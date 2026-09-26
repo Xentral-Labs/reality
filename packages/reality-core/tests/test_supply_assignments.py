@@ -163,6 +163,68 @@ def test_supply_assignment_enforces_bounds_shape_and_tenant(session, business):
         )
 
 
+def test_assignments_together_never_protect_more_than_the_demand(session, business):
+    """FR-009: the total, not each statement, stays within the customer's demand."""
+    customer, supplier = commitments(session, business)
+    second = core.create_manual_order(
+        session,
+        business.tenant.id,
+        "purchase",
+        "PO-SUPPLY-002",
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "10",
+                "unit_price": "10",
+                "gross_amount": "100",
+            }
+        ],
+        "100",
+        document_date="2026-09-21",
+    )[3][0]
+
+    def assign(supply, quantity, request_id):
+        return assign_supply(
+            session,
+            business.tenant.id,
+            supply.id,
+            quantity,
+            purpose="customer_demand",
+            customer_commitment_id=customer.id,
+            request_id=request_id,
+        )
+
+    first = assign(supplier, "5", "demand-first")
+    with pytest.raises(core.InvalidOperation, match="exceeds open customer"):
+        assign(supplier, "4", "demand-same-supplier-over")
+    with pytest.raises(core.InvalidOperation, match="exceeds open customer"):
+        assign(second, "4", "demand-second-supplier-over")
+    assign(second, "3", "demand-second-supplier")
+    demand = supply_coverage(
+        session, business.tenant.id, customer_commitment_id=customer.id
+    )["customer"]
+    assert demand["open"] == Decimal(8)
+    assert demand["protecting_supply"] == Decimal(8)
+    with pytest.raises(core.InvalidOperation, match="exceeds open customer"):
+        assign(second, "1", "demand-fully-protected")
+
+    reverse_supply_assignment(
+        session,
+        business.tenant.id,
+        first.id,
+        "2",
+        reason="Supplier cannot deliver all",
+        request_id="demand-freed",
+    )
+    assign(second, "2", "demand-reassigned")
+    assert supply_coverage(
+        session, business.tenant.id, customer_commitment_id=customer.id
+    )["customer"]["protecting_supply"] == Decimal(8)
+
+
 def test_partial_reversal_is_append_only_and_idempotent(session, business):
     customer, supplier = commitments(session, business)
     assignment = assign_supply(
