@@ -78,6 +78,8 @@ def test_contribution_capabilities_share_one_business_topic():
         "command:commercial_match",
         "command:contribution_preview",
         "command:cost_query",
+        "command:cost_review_draft",
+        "command:propose_cost_review",
         "command:cost_record",
         "command:reviewed_contribution",
         "command:execute_cost_change",

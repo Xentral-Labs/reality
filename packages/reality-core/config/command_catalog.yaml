@@ -6,6 +6,7 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # untyped until it is operationally relevant; once exposed here, explain its business
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
+  answers: What a person decided for a cost review draft's open inputs; only the valuation method and the owner party are accepted.
   delivery_guard: Optional single-line sales-invoice precondition binding the unit and unbilled quantity read for the invoiced order line; rechecked under the delivery lock before recording.
   supplier_id: Opaque same-tenant identity of the supplier Party stated on the invoice.
   invoice_ids: Opaque same-tenant customer-invoice identities explicitly selected for one reminder.
@@ -256,6 +257,20 @@ commands:
     reads: [business_event, cost_attribution_part, cost_attribution_revision, cost_component_basis, cost_contribution_review, cost_input_manifest, cost_inventory_member, cost_inventory_review, cost_movement_basis, cost_ownership_revision, cost_policy_revision, cost_receipt_basis, cost_revenue_match_basis, cost_scope_review, cost_selling_attribution_part, cost_selling_review_category, cost_selling_review_member, document_line, financial_component, item]
     writes: []
     effect: Read one admitted inventory or contribution scope with exact retained cutoffs and explicit current or historical freshness; no global generation claim.
+  - name: Propose a drafted cost review
+    service: propose_cost_review
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [item, movement, movement_correction, party, party_role, source_record, document, document_line, financial_component, cost_input_manifest, cost_receipt_basis, cost_attribution_revision, cost_attribution_part, cost_component_basis, cost_scope_review, cost_inventory_review]
+    writes: [action]
+    effect: Draft the review again from held records and create one proposal for it; a company owner confirms it in Decisions. Nothing else changes.
+  - name: Draft a cost review
+    service: cost_review_draft
+    mode: read
+    adapters: [Web, MCP, Chat]
+    reads: [item, movement, movement_correction, party, party_role, source_record, document, document_line, financial_component, cost_input_manifest, cost_receipt_basis, cost_attribution_revision, cost_attribution_part, cost_component_basis, cost_scope_review, cost_inventory_review]
+    writes: []
+    effect: Draft the inventory or contribution review the held records support, or name the inputs a person must provide; nothing is stored or proposed.
   - name: Inspect retained cost record
     service: cost_record
     mode: read
@@ -2877,6 +2892,75 @@ capability_guidance:
       do_not_use:
       - scenario: Determine customer debt.
         reason: Use open items.
+  cost_review_propose:
+    application_tool: cost.change
+    purpose: Propose the inventory or contribution review the draft showed, without copying identifiers or arguments.
+    use_when:
+    - After cost_review_draft, once its open inputs are answered, for example the valuation method.
+    do_not_use_when:
+    - Receipt cost assignments, selling costs or any review the draft does not cover; use cost_change_propose for those.
+    required_context:
+    - Tenant, inventory or contribution kind, the item or invoice line ID, and the answers to the draft's open inputs.
+    preconditions:
+    - The draft has no remaining open inputs; otherwise the tool returns them instead of proposing.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: The same drafted decision returns the waiting proposal instead of a second one.
+    refusals:
+    - code: draft_changed
+      description: The draft still has open inputs; they are returned for the person to answer.
+    events:
+    - cost.reviewed
+    verification_reads:
+    - name: cost.query.get
+      proves: The guidance then shows the owner's confirmation step linked to the proposal.
+    examples:
+      use:
+      - scenario: A clerk answered that FIFO applies to the drafted inventory review.
+        reason: The server drafts again and proposes exactly that decision for the owner.
+      do_not_use:
+      - scenario: Assign a supplier invoice line to a receipt.
+        reason: That is an operation of cost_change_propose.
+    postcondition:
+      kind: reference
+      meaning: One proposed cost decision exists for the owner to confirm; nothing is executed.
+  cost_review_draft:
+    kind: read
+    application_tool: cost.review.draft
+    purpose: Draft the inventory or contribution cost review that held records support, so nobody has to supply identifiers.
+    use_when:
+    - Before cost_change_propose for inventory_review or contribution_review, including when a person asks in plain language to prepare a cost review.
+    do_not_use_when:
+    - Assign supplier invoice lines to receipts or review selling costs; those have their own operations.
+    required_context:
+    - Tenant, inventory or contribution kind and the item or invoice line ID; optional answers for the valuation method and owner party.
+    data_basis: [movement, movement_correction, party, party_role, source_record, cost_input_manifest, financial_component, document, document_line]
+    limitations:
+    - The valuation method is always asked; FIFO is preselected and specific selection is offered only for serial or lot items.
+    - Customer return portions and supplier return selections are not derived; they become open inputs.
+    freshness: Current; arguments are bound to the returned event sequence and go stale when it moves.
+    empty_result: With open inputs, arguments are null and partial_arguments show what is already derived.
+    refusal_behavior: Unknown kind, extra answers or foreign scopes refuse; foreign scopes are not found.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Which held records support the review and which inputs a person must still provide.
+      does_not_prove:
+      - That the owner will confirm the review, or any cost the evidence does not state.
+    unknown_when:
+    - A receipt's cost is incomplete, an opening states no cost, or ownership is ambiguous.
+    next_steps:
+    - Ask the person only about open_inputs, in their labels; then call cost_review_propose with the same kind, scope_id and the answers.
+    examples:
+      use:
+      - scenario: A clerk asks to prepare the cost review for an item.
+        reason: The draft derives owner, history, movements and receipt manifests; only the method is asked.
+      do_not_use:
+      - scenario: Invent an opening stock value the evidence does not state.
+        reason: An open input asks the person for the evidenced value instead.
   cost_query_get:
     kind: read
     application_tool: cost.query.get
@@ -3191,7 +3275,7 @@ capability_guidance:
         reason: This first slice does not implement consumption or selling costs.
   cost_change_propose:
     application_tool: cost.change
-    purpose: Prepare acquisition or selling-cost decisions, bounded inventory reviews and explicitly confirmed whole-line DB1/DB2 reviews.
+    purpose: Prepare acquisition or selling-cost decisions, bounded inventory reviews and explicitly confirmed whole-line DB1/DB2 reviews. For inventory_review and contribution_review, call cost_review_draft first and then cost_review_propose.
     use_when:
     - Assign received acquisition amounts, review their completeness, confirm bounded inventory scope or approve an exact whole-line commercial contribution.
     do_not_use_when:
@@ -4521,6 +4605,8 @@ agent_command_coverage:
   contribution_preview: {classification: eligible, tools: [cost_contribution_preview]}
   commercial_match: {classification: eligible, tools: [cost_commercial_match_get]}
   cost_query: {classification: eligible, tools: [cost_query_get]}
+  cost_review_draft: {classification: eligible, tools: [cost_review_draft]}
+  propose_cost_review: {classification: eligible, tools: [cost_review_propose]}
   cost_record: {classification: eligible, tools: [cost_record_get]}
   reviewed_contribution: {classification: eligible, tools: [cost_contribution_get]}
   receipt_cost: {classification: eligible, tools: [cost_receipt_get]}

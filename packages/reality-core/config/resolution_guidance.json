@@ -236,6 +236,58 @@
     "commercial_inventory_cost_unknown": {
       "label": "The item's cost is not known for this sale",
       "explanation": "The item's cost review does not provide a cost for the shipped quantity."
+    },
+    "valuation_method": {
+      "label": "Choose the valuation method",
+      "explanation": "FIFO values stock in the order it arrived. Specific selection is only offered for items tracked by serial or lot."
+    },
+    "company_party_missing": {
+      "label": "Your company is not recorded as a business partner",
+      "explanation": "Record your own company as a business partner with the role company in master data, so the stock has an owner."
+    },
+    "receipt_cost_incomplete": {
+      "label": "A receipt's cost is not confirmed yet",
+      "explanation": "Confirm the cost of this receipt first; then prepare the item's cost review again."
+    },
+    "opening_cost_missing": {
+      "label": "The opening stock has no stated acquisition value",
+      "explanation": "Correct the opening stock and record it again with the value its evidence states, such as an inventory list."
+    },
+    "movement_unclassified": {
+      "label": "A stock movement needs a person's decision",
+      "explanation": "This movement cannot be assigned automatically. Check it before the cost review can be prepared."
+    },
+    "ownership_ambiguous": {
+      "label": "It is unclear who owns this stock",
+      "explanation": "No evidence shows who owns the goods of this receipt. Check the receipt and its supplier invoice."
+    },
+    "return_portion_undetermined": {
+      "label": "A customer return cannot be traced to its shipment",
+      "explanation": "The return does not say which shipment it came from, so its cost cannot be restored automatically."
+    },
+    "review_bound_exceeded": {
+      "label": "Too many movements for one cost review",
+      "explanation": "This item has more stock movements or receipts than one review can cover."
+    },
+    "upstream_not_ready": {
+      "label": "An earlier step is still open",
+      "explanation": "Complete the step named in the cost explanation first."
+    },
+    "currency_ambiguous": {
+      "label": "The costs use more than one currency",
+      "explanation": "Receipts or openings of this item state different currencies. One review covers one currency."
+    },
+    "inventory_history_empty": {
+      "label": "This item has no stock movements yet",
+      "explanation": "A cost review needs at least one receipt or opening stock."
+    },
+    "inputs_changed": {
+      "label": "The data changed while it was read",
+      "explanation": "Try again in a moment."
+    },
+    "specific_selection_required": {
+      "label": "An exact stock layer must be chosen",
+      "explanation": "Supplier returns and specific selection need a person to choose which receipt the goods came from."
     }
   },
   "steps": {
@@ -253,20 +305,32 @@
     "inventory_review": {
       "label": "Prepare the item's cost review",
       "role": "member",
-      "path": "chat",
-      "chat_prompt": "Prepare the inventory cost review for {scope} so a company owner can confirm it."
+      "path": "review_draft",
+      "alternative": {
+        "label": "Prepare with Reality instead",
+        "path": "chat",
+        "chat_prompt": "Prepare the inventory cost review for {scope} so a company owner can confirm it."
+      }
     },
     "inventory_review_renew": {
       "label": "Renew the item's cost review",
       "role": "member",
-      "path": "chat",
-      "chat_prompt": "Renew the inventory cost review for {scope} with the current evidence so a company owner can confirm it."
+      "path": "review_draft",
+      "alternative": {
+        "label": "Prepare with Reality instead",
+        "path": "chat",
+        "chat_prompt": "Renew the inventory cost review for {scope} with the current evidence so a company owner can confirm it."
+      }
     },
     "contribution_review": {
       "label": "Prepare the contribution review",
       "role": "member",
-      "path": "chat",
-      "chat_prompt": "Prepare the contribution review for {scope} so a company owner can confirm it."
+      "path": "review_draft",
+      "alternative": {
+        "label": "Prepare with Reality instead",
+        "path": "chat",
+        "chat_prompt": "Prepare the contribution review for {scope} so a company owner can confirm it."
+      }
     },
     "selling_cost_review": {
       "label": "Review the selling costs",

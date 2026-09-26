@@ -18,8 +18,8 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 10       | 14        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
-| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 13       | 3         |
-| [Deckungsbeitrag](#resource-contribution)                      | 0      | 1        | 4         |
+| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 14       | 3         |
+| [Deckungsbeitrag](#resource-contribution)                      | 0      | 2        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 3        | 6         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 11       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
@@ -537,6 +537,8 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 **Aktionen**
 
+- [Entworfene Kostenprüfung vorschlagen](./commands#command-propose_cost_review)
+  (`propose_cost_review`)
 - [Kostenentscheidung bestätigen](./commands#command-execute_cost_change) (`execute_cost_change`)
 - [Buchhaltungsziel pflegen](./commands#command-maintain_target_configuration)
   (`maintain_target_configuration`)
@@ -557,6 +559,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 - [Geprüfte Teilzuordnung anzeigen](./commands#command-commercial_match) (`commercial_match`)
 - [Kosten mit Bewertungsbasis abfragen](./commands#command-cost_query) (`cost_query`)
+- [Kostenprüfung entwerfen](./commands#command-cost_review_draft) (`cost_review_draft`)
 - [Kostennachweis prüfen](./commands#command-cost_record) (`cost_record`)
 - [Geprüfte Deckungsbeiträge anzeigen](./commands#command-reviewed_contribution)
   (`reviewed_contribution`)
@@ -638,12 +641,15 @@ jedes bestätigte Ergebnis behält seine Prüfung und Wissensgrenze.
 
 **Aktionen**
 
+- [Entworfene Kostenprüfung vorschlagen](./commands#command-propose_cost_review)
+  (`propose_cost_review`)
 - [Kostenentscheidung bestätigen](./commands#command-execute_cost_change) (`execute_cost_change`)
 
 **Nachschlagen**
 
 - [Geprüfte Teilzuordnung anzeigen](./commands#command-commercial_match) (`commercial_match`)
 - [Kosten mit Bewertungsbasis abfragen](./commands#command-cost_query) (`cost_query`)
+- [Kostenprüfung entwerfen](./commands#command-cost_review_draft) (`cost_review_draft`)
 - [Kostennachweis prüfen](./commands#command-cost_record) (`cost_record`)
 - [Geprüfte Deckungsbeiträge anzeigen](./commands#command-reviewed_contribution)
   (`reviewed_contribution`)

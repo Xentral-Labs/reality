@@ -98,6 +98,43 @@ def _read(application_name: str) -> ToolHandler:
     return handler
 
 
+def _cost_review_propose(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """Spec 282: propose a drafted cost review without copying its arguments."""
+    from pydantic import ValidationError
+
+    from reality.domain.cost_review_draft import CostReviewProposeRequest
+    from reality.services.cost_review_draft import DraftChanged
+    from reality.services.costing import propose_cost_review
+
+    try:
+        request = CostReviewProposeRequest.model_validate(arguments)
+    except ValidationError as error:
+        raise InvalidOperation(str(error)) from error
+    try:
+        return propose_cost_review(
+            session,
+            tenant_id,
+            kind=request.kind,
+            scope_id=request.scope_id,
+            answers=request.answers.model_dump(exclude_none=True)
+            if request.answers
+            else None,
+        )
+    except DraftChanged as error:
+        return {
+            "proposal_id": None,
+            "status": "draft_changed",
+            "open_inputs": error.draft["open_inputs"],
+            "next_step": "Ask the person about the open inputs by their labels, then call again.",
+        }
+
+
+# The proposal it creates is an ordinary cost decision with its existing web review.
+_cost_review_propose.application_name = "cost.change"  # type: ignore[attr-defined]
+
+
 def _propose(application_name: str) -> ToolHandler:
     def handler(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
         normalized = {
@@ -1517,6 +1554,26 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                 "reason": OPTIONAL_STRING,
                 "resolves_movement_id": OPTIONAL_STRING,
                 "return_announcement_id": OPTIONAL_STRING,
+                "opening_cost": {
+                    "type": "object",
+                    "description": "Opening stock only: the total acquisition value its evidence states, recorded as received for the cost review (spec 282).",
+                    "properties": {
+                        "amount": {
+                            "type": "string",
+                            "description": "Total acquisition value exactly as the evidence states it; never a computed unit cost.",
+                        },
+                        "currency": {
+                            "type": "string",
+                            "description": "Three-letter currency code of the stated value.",
+                        },
+                        "evidence_reference": {
+                            "type": "string",
+                            "description": "Names the document the value comes from, for example an inventory list.",
+                        },
+                    },
+                    "required": ["amount", "currency", "evidence_reference"],
+                    "additionalProperties": False,
+                },
             },
             required=("movement_type", "item_id", "quantity"),
         ),
@@ -2852,6 +2909,10 @@ MCP_TOOL_CATALOG = (
 
 from reality.domain.cost_query import CostQueryRequest
 from reality.domain.cost_records import CostRecordRead
+from reality.domain.cost_review_draft import (
+    CostReviewDraftRequest,
+    CostReviewProposeRequest,
+)
 from reality.domain.costing import (
     CommercialMatchRead,
     ContributionRead,
@@ -2871,6 +2932,24 @@ MCP_TOOL_CATALOG += (
         "finance",
         CommercialMatchRead.model_json_schema(),
         _read("cost.commercial-match.get"),
+    ),
+    MCPToolDefinition(
+        "cost_review_draft",
+        "Draft a cost review",
+        "Call this first whenever someone asks to prepare, draft or start a cost review (Kostenprüfung) for an item or an invoice line. Use kind inventory with the item ID, or kind contribution with the invoice line ID. It derives owner, currency, unit, history and every movement from held records and returns the few open inputs to ask the person, by their labels. Never ask the person for IDs or technical fields. Then call cost_review_propose with the same kind and scope_id and the answers.",
+        "read",
+        "finance",
+        CostReviewDraftRequest.model_json_schema(),
+        _read("cost.review.draft"),
+    ),
+    MCPToolDefinition(
+        "cost_review_propose",
+        "Propose a drafted cost review",
+        "Propose the inventory or contribution review cost_review_draft showed, once its open inputs are answered. Pass only kind, scope_id and the answers (for example method fifo); the server drafts again and proposes exactly that, so never copy identifiers or arguments. It only creates a proposal; a company owner confirms it in Decisions.",
+        "propose",
+        "finance",
+        CostReviewProposeRequest.model_json_schema(),
+        _cost_review_propose,
     ),
     MCPToolDefinition(
         "cost_query_get",
@@ -2938,7 +3017,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "cost_change_propose",
         "Review cost and contribution decision",
-        "Prepare explicit received-cost attribution, replacement, withdrawal, inventory scope or whole-line contribution review. An active owner must explicitly confirm the unchanged proposal.",
+        "Prepare explicit received-cost attribution, replacement, withdrawal, inventory scope or whole-line contribution review. For inventory_review and contribution_review use cost_review_draft and cost_review_propose instead; they need no identifiers or arguments to be copied. This only creates a proposal; it never executes. A company owner then confirms it in Decisions.",
         "propose",
         "finance",
         change_input_schema(),

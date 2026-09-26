@@ -5,7 +5,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import String, cast, or_, select
@@ -6869,6 +6869,82 @@ def explorer_record(record) -> dict:
         for key, value in values.items()
     ]
     return {"id": record.id, "title": title, "fields": fields}
+
+
+@router.get("/cost-review-draft")
+def get_cost_review_draft(
+    tenant_id: str,
+    session: DatabaseSession,
+    kind: str,
+    scope_id: str,
+    method: str | None = None,
+    owner_party_id: str | None = None,
+):
+    """Draft the cost review the held records support (spec 282)."""
+    from reality.tools.application import run_read_tool
+
+    answers = {
+        key: value
+        for key, value in {"method": method, "owner_party_id": owner_party_id}.items()
+        if value
+    }
+    try:
+        return run_read_tool(
+            session,
+            tenant_id,
+            "cost.review.draft",
+            {
+                "kind": kind,
+                "scope_id": scope_id,
+                **({"answers": answers} if answers else {}),
+            },
+        )
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+class CostReviewProposalWrite(ApiModel):
+    kind: str
+    scope_id: str
+    event_sequence: int
+    answers: dict[str, str] | None = None
+
+
+@router.post("/cost-review-proposals", status_code=status.HTTP_201_CREATED)
+def post_cost_review_proposal(
+    tenant_id: str,
+    body: CostReviewProposalWrite,
+    request: Request,
+    response: Response,
+    session: DatabaseSession,
+):
+    """Propose exactly what the shared draft derives now; a drifted draft is refused."""
+    from reality.services.analytics.reports import caller
+    from reality.services.cost_review_draft import DraftChanged, propose_drafted_review
+
+    try:
+        with caller(optional_request_principal(request)):
+            proposal, created = propose_drafted_review(
+                session,
+                tenant_id,
+                kind=body.kind,
+                scope_id=body.scope_id,
+                answers=body.answers,
+                event_sequence=body.event_sequence,
+            )
+    except DraftChanged as error:
+        raise HTTPException(
+            status_code=409, detail={"code": "draft_changed", "draft": error.draft}
+        ) from error
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+    if not created:
+        response.status_code = status.HTTP_200_OK
+    return {
+        "id": proposal.id,
+        "status": proposal.status,
+        "preview": json.loads(proposal.output),
+    }
 
 
 @router.get("/cost-query")

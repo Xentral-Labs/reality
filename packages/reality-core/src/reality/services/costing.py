@@ -1544,6 +1544,50 @@ def cost_record(
     return _read(session, tenant_id, kind, record_id, page=page, language=language)
 
 
+def cost_review_draft(
+    session: Session,
+    tenant_id: str,
+    *,
+    kind: str,
+    scope_id: str,
+    answers: dict | None = None,
+) -> dict:
+    """Draft the review the held records support for one scope (spec 282)."""
+    from reality.services.cost_review_draft import cost_review_draft as draft
+
+    return draft(session, tenant_id, kind=kind, scope_id=scope_id, answers=answers)
+
+
+def propose_cost_review(
+    session: Session,
+    tenant_id: str,
+    *,
+    kind: str,
+    scope_id: str,
+    answers: dict | None = None,
+) -> dict:
+    """Propose the review the held records support now, for an owner to confirm."""
+    from reality.services.cost_review_draft import propose_drafted_review
+    from reality.services.proposal_reviews import proposal_next_step
+
+    proposal, created = propose_drafted_review(
+        session,
+        tenant_id,
+        kind=kind,
+        scope_id=scope_id,
+        answers=answers,
+        actor_type="agent",
+    )
+    return {
+        "proposal_id": proposal.id,
+        "status": proposal.status,
+        "created": created,
+        "requires_confirmation": True,
+        "preview": json.loads(proposal.output),
+        "next_step": proposal_next_step(proposal),
+    }
+
+
 def cost_query(
     session: Session,
     tenant_id: str,

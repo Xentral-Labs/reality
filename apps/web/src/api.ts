@@ -329,7 +329,8 @@ export type GuidanceStep = {
   code: string;
   state: "done" | "open" | "blocked";
   role: "member" | "owner" | "operator";
-  path: "web_form" | "chat" | "decision_review" | "system_status" | "page" | "none";
+  path:
+    "web_form" | "chat" | "decision_review" | "system_status" | "page" | "none" | "review_draft";
   targets: string[];
   target_count: number;
   proposal_id?: string;
@@ -356,6 +357,24 @@ export type ResolutionGuidanceCatalog = {
   >;
   blockers: Record<string, string>;
 };
+/** Spec 282: the review the held records support, or what a person still owes. */
+export type CostReviewDraft = {
+  kind: "inventory" | "contribution";
+  scope_id: string;
+  event_sequence: number;
+  arguments: Record<string, unknown> | null;
+  partial_arguments: Record<string, unknown> | null;
+  open_inputs: {
+    code: string;
+    subject?: { kind: string; id: string };
+    reason?: string;
+    choices?: string[];
+    default?: string;
+  }[];
+  basis: { kind: string; id: string; role: string }[];
+  summary: Record<string, unknown>;
+};
+export type CostReviewAnswers = { method?: string; owner_party_id?: string };
 export type CostQueryEnvelope = {
   requested: {
     kind: "inventory" | "contribution";
@@ -1978,6 +1997,32 @@ export const api = {
       `/api/tenants/${tenant}/documents/${id}/line-correction`,
       { method: "PUT", body: JSON.stringify(body) },
     ),
+  costReviewDraft: (
+    tenant: string,
+    kind: "inventory" | "contribution",
+    scopeId: string,
+    answers: CostReviewAnswers = {},
+  ) =>
+    request<CostReviewDraft>(
+      `/api/tenants/${tenant}/cost-review-draft?${new URLSearchParams({
+        kind,
+        scope_id: scopeId,
+        ...Object.fromEntries(Object.entries(answers).filter(([, value]) => value)),
+      })}`,
+    ),
+  proposeCostReview: (
+    tenant: string,
+    body: {
+      kind: "inventory" | "contribution";
+      scope_id: string;
+      event_sequence: number;
+      answers?: CostReviewAnswers;
+    },
+  ) =>
+    request<{ id: string; status: string }>(`/api/tenants/${tenant}/cost-review-proposals`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   /** Spec 279 FR-013: the existing live price read for one partner and item. */
   resolvePrice: (
     tenant: string,
