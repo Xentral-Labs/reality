@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import sessionmaker
+
 from reality.mcp import auth as auth_module
 from reality.mcp.app import create_mcp_app
 from reality.mcp.auth import create_mcp_access_token
 from reality.mcp.config import MCPRuntimeSettings
-from sqlalchemy.orm import sessionmaker
 
 
 def test_sdk_supports_target_protocol_revision():
