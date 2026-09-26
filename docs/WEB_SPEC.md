@@ -139,6 +139,25 @@ the reply itself remains readable and is never retried merely because optional s
 could not be recorded. The stored bounded support snapshot is explanatory metadata,
 not a Fact, source payload or operational authority.
 
+### Human-readable decision review — Spec 276
+
+An ordinary proposal attached to a Chat answer appears as a distinct pending-decision card, not
+as a generic technical button. Business language leads: the card names the proposed action, its
+origin and purpose, states that no change has happened yet, and provides one clear route to the
+canonical review. Internal tool names do not appear in the card's primary content.
+
+Proposal review opens in a stable, labelled dialog for loading, failure and loaded states. A
+failed read explains the problem and offers retry without attempting any mutation. Order review
+leads with the business decision, total and exact effect before status or controls. Its action
+footer has one primary confirmation action; close, rejection and correction remain secondary.
+Exact proposal identity, review, receipt, verification and links remain available under a
+collapsed System details disclosure. None of these presentation rules changes proposal
+authorization, review tokens, confirmation, rejection, execution or uncertain-outcome recovery.
+The Web implementation uses one decision-review kit for dialog headings, structured business
+values and pending actions. Domain adapters may provide a purpose-built summary, but nested
+objects and lists render as labelled business content rather than serialized JSON, and compatible
+review surfaces do not define their own confirm/reject button order or styling.
+
 Sales and Purchasing distinguish Delivery Commitments from physical Shipments. Commitments are
 promises; Shipments are real consignments with Package tracking observations and linked Movement
 contents. Sales defaults to outbound customer shipments and Purchasing to inbound supplier ones.

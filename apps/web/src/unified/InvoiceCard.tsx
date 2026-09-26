@@ -11,6 +11,7 @@ import { formatMoney, formatQuantity, formatDateTime, t } from "../localization"
 import { useRead } from "./useCompanyContext";
 import { useProposalRecovery } from "./useProposal";
 import { Inspector } from "./Inspector";
+import { DecisionActionBar } from "./DecisionReview";
 import { ReadLine, ReadState } from "./ReadState";
 import { RegisterPager } from "./WarehousePage";
 type InvoiceTool = "sales_invoice_record" | "supplier_invoice_record";
@@ -527,31 +528,18 @@ export function InvoiceCard({
           )}
           <div className="flex flex-wrap gap-3">
             {proposal.status === "proposed" && !uncertain && (
-              <>
-                <button
-                  className="br-btn br-btn-primary"
-                  disabled={busy || !review}
-                  onClick={confirm}
-                >
-                  {t("Confirm change")}
-                </button>
-                <button
-                  className="br-btn"
-                  disabled={busy}
-                  onClick={() =>
-                    run(async () => {
-                      await api.rejectProposal(tenant, proposal.id, null);
-                      setProposal({ ...proposal, status: "rejected" });
-                      settled();
-                    })
-                  }
-                >
-                  {t("Reject")}
-                </button>
-                <button className="br-btn" disabled={busy} onClick={edit}>
-                  {t("Edit")}
-                </button>
-              </>
+              <DecisionActionBar
+                busy={busy || !review}
+                reject={() =>
+                  run(async () => {
+                    await api.rejectProposal(tenant, proposal.id, null);
+                    setProposal({ ...proposal, status: "rejected" });
+                    settled();
+                  })
+                }
+                edit={edit}
+                confirm={confirm}
+              />
             )}
             {(uncertain || ["executing", "executed"].includes(proposal.status)) && (
               <button className="br-btn" disabled={busy} onClick={() => run(refresh)}>

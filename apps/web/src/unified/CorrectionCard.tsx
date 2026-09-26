@@ -11,6 +11,7 @@ import {
 import { formatQuantity, t } from "../localization";
 import { ReadLine } from "./ReadState";
 import { Inspector } from "./Inspector";
+import { DecisionActionBar } from "./DecisionReview";
 import { useRead } from "./useCompanyContext";
 import { useProposalRecovery } from "./useProposal";
 const movementLabels: Record<string, string> = {
@@ -488,30 +489,17 @@ export function CorrectionCard({
             )}
           </p>
           {proposal.status === "proposed" && !uncertain && (
-            <div className="flex flex-wrap gap-3">
-              <button
-                className="br-btn br-btn-primary"
-                disabled={busy || !proposal.review}
-                onClick={confirm}
-              >
-                {t("Confirm change")}
-              </button>
-              <button
-                className="br-btn"
-                disabled={busy}
-                onClick={() =>
-                  run(async () => {
-                    await api.rejectProposal(tenant, proposal.id, null);
-                    await refresh();
-                  })
-                }
-              >
-                {t("Reject")}
-              </button>
-              <button className="br-btn" disabled={busy} onClick={edit}>
-                {t("Edit")}
-              </button>
-            </div>
+            <DecisionActionBar
+              busy={busy || !proposal.review}
+              reject={() =>
+                run(async () => {
+                  await api.rejectProposal(tenant, proposal.id, null);
+                  await refresh();
+                })
+              }
+              edit={edit}
+              confirm={confirm}
+            />
           )}
           {(uncertain || ["executing", "executed"].includes(proposal.status)) && (
             <button

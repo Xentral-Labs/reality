@@ -19660,3 +19660,81 @@ Object.assign(dictionaries.es, {
   "Additional supporting records are not shown in this compact view.":
     "Los registros de respaldo adicionales no se muestran en esta vista compacta.",
 });
+
+// Human-readable decision review (spec 276).
+Object.assign(dictionaries.de, {
+  "Decision required": "Entscheidung erforderlich",
+  "Review and decide": "Prüfen und entscheiden",
+  "Review decision": "Entscheidung prüfen",
+  "This proposed change has not changed your records yet.":
+    "Diese vorgeschlagene Änderung hat deine Datensätze noch nicht verändert.",
+  "Prepared for your review": "Für deine Prüfung vorbereitet",
+  "Confirm customer order": "Kundenauftrag bestätigen",
+  "Confirm supplier order": "Lieferantenauftrag bestätigen",
+  "Check the order and its effect before you decide.":
+    "Prüfe den Auftrag und seine Auswirkungen, bevor du entscheidest.",
+  "What happens when you confirm?": "Was passiert bei der Bestätigung?",
+  "Do not approve": "Nicht freigeben",
+  "Request changes": "Änderungen anfordern",
+  "System details": "Systemdetails",
+});
+Object.assign(dictionaries.nl, {
+  "Decision required": "Beslissing vereist",
+  "Review and decide": "Beoordelen en beslissen",
+  "Review decision": "Beslissing beoordelen",
+  "This proposed change has not changed your records yet.":
+    "Deze voorgestelde wijziging heeft je records nog niet gewijzigd.",
+  "Prepared for your review": "Voor jouw beoordeling voorbereid",
+  "Confirm customer order": "Klantorder bevestigen",
+  "Confirm supplier order": "Leveranciersorder bevestigen",
+  "Check the order and its effect before you decide.":
+    "Controleer de order en het effect voordat je beslist.",
+  "What happens when you confirm?": "Wat gebeurt er bij bevestiging?",
+  "Do not approve": "Niet goedkeuren",
+  "Request changes": "Wijzigingen aanvragen",
+  "System details": "Systeemdetails",
+});
+Object.assign(dictionaries.es, {
+  "Decision required": "Decisión requerida",
+  "Review and decide": "Revisar y decidir",
+  "Review decision": "Revisar decisión",
+  "This proposed change has not changed your records yet.":
+    "Este cambio propuesto todavía no ha modificado tus registros.",
+  "Prepared for your review": "Preparado para tu revisión",
+  "Confirm customer order": "Confirmar pedido de cliente",
+  "Confirm supplier order": "Confirmar pedido a proveedor",
+  "Check the order and its effect before you decide.":
+    "Revisa el pedido y su efecto antes de decidir.",
+  "What happens when you confirm?": "¿Qué ocurre al confirmar?",
+  "Do not approve": "No aprobar",
+  "Request changes": "Solicitar cambios",
+  "System details": "Detalles del sistema",
+});
+
+Object.assign(dictionaries.de, {
+  Decision: "Entscheidung",
+  Order: "Auftrag",
+  "Create order": "Auftrag anlegen",
+  "Create one sales or purchase order.": "Legt einen Kunden- oder Lieferantenauftrag an.",
+  "Email addresses": "E-Mail-Adressen",
+  Email: "E-Mail",
+  Label: "Bezeichnung",
+});
+Object.assign(dictionaries.nl, {
+  Decision: "Beslissing",
+  Order: "Bestelling",
+  "Create order": "Order aanmaken",
+  "Create one sales or purchase order.": "Maakt één klant- of leveranciersorder aan.",
+  "Email addresses": "E-mailadressen",
+  Email: "E-mail",
+  Label: "Label",
+});
+Object.assign(dictionaries.es, {
+  Decision: "Decisión",
+  Order: "Pedido",
+  "Create order": "Crear pedido",
+  "Create one sales or purchase order.": "Crea un pedido de cliente o a proveedor.",
+  "Email addresses": "Direcciones de correo electrónico",
+  Email: "Correo electrónico",
+  Label: "Etiqueta",
+});

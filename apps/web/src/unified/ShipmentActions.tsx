@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, deliveryActions, type DeliveryProposal } from "../api";
 import { t } from "../localization";
+import { DecisionActionBar } from "./DecisionReview";
 import type { DeliveryAction } from "./ActionLauncher";
 
 type ShipmentTool = Extract<
@@ -311,14 +312,12 @@ export function ShipmentActions({
             </pre>
           )}
           {proposal.status === "proposed" && (
-            <div className="mt-4 flex gap-3">
-              <button disabled={busy} className="br-btn br-btn-primary" onClick={confirm}>
-                {t("Confirm")}
-              </button>
-              <button disabled={busy} className="br-btn" onClick={reject}>
-                {t("Reject")}
-              </button>
-            </div>
+            <DecisionActionBar
+              busy={busy}
+              reject={reject}
+              confirm={confirm}
+              confirmLabel="Confirm"
+            />
           )}
         </div>
       )}

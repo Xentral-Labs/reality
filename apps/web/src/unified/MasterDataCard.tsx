@@ -10,6 +10,12 @@ import {
 import { t } from "../localization";
 import { ReadState } from "./ReadState";
 import { useRead } from "./useCompanyContext";
+import {
+  BusinessFieldList,
+  BusinessValue,
+  DecisionActionBar,
+  DecisionReviewHeader,
+} from "./DecisionReview";
 
 export type ReferenceDraft = {
   family: ReferenceFamily;
@@ -163,6 +169,9 @@ const groups: ReferenceField["group"][] = [
 export const fieldLabels: Record<string, string> = {
   id: "Record ID",
   expected_revision: "Reviewed revision",
+  emails: "Email addresses",
+  email: "Email",
+  label: "Label",
   ...Object.fromEntries(
     [...partyFields, ...itemFields, ...locationFields].map((field) => [field.key, field.label]),
   ),
@@ -177,7 +186,10 @@ export function displayValue(key: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
   if (Array.isArray(value)) return value.map((entry) => displayValue(key, entry)).join(", ");
   if (typeof value === "boolean") return t(value ? "Yes" : "No");
-  if (typeof value === "object") return JSON.stringify(value);
+  if (typeof value === "object")
+    return Object.values(value as Record<string, unknown>)
+      .map((entry) => displayValue(key, entry))
+      .join(" · ");
   const option = valueOptions[key]?.find((entry) => entry.value === String(value));
   return option ? t(option.label) : String(value);
 }
@@ -189,16 +201,7 @@ export function RecordSummary({
   omit?: string[];
 }) {
   return (
-    <dl className="mt-3 space-y-2 text-sm">
-      {Object.entries(record)
-        .filter(([key]) => !omit.includes(key))
-        .map(([key, value]) => (
-          <div key={key} className="grid grid-cols-[minmax(90px,1fr)_2fr] gap-3">
-            <dt className="break-words text-fg-muted">{t(fieldLabels[key] || key)}</dt>
-            <dd className="break-all">{displayValue(key, value)}</dd>
-          </div>
-        ))}
-    </dl>
+    <BusinessFieldList record={record} omit={omit} labelFor={(key) => fieldLabels[key] || key} />
   );
 }
 const createDefaults = (family: ReferenceFamily): Record<string, unknown> =>
@@ -551,17 +554,12 @@ export function MasterDataCard({
       aria-label={t("Master data action")}
       className="m-auto max-h-[90vh] w-[min(760px,94vw)] overflow-auto rounded-xl border border-border-default bg-surface p-6 text-fg-default backdrop:bg-black/30"
     >
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-accent">{t("Master data")}</p>
-          <h2 className="mt-2 text-xl font-semibold text-fg-strong">
-            {t(proposal ? "Review proposed changes" : detail ? "Edit details" : "Create a record")}
-          </h2>
-        </div>
-        <button className="br-btn" disabled={busy} onClick={close}>
-          {t("Close")}
-        </button>
-      </div>
+      <DecisionReviewHeader
+        category="Master data"
+        title={proposal ? "Review proposed changes" : detail ? "Edit details" : "Create a record"}
+        close={close}
+        busy={busy}
+      />
       {error && (
         <p role="alert" className="my-4 rounded-lg bg-caution-bg p-4 text-caution-text">
           {error}
@@ -600,28 +598,25 @@ export function MasterDataCard({
           {proposal.status === "proposed" && proposal.output.records && (
             <details className="my-4">
               <summary>{t("Field changes")}</summary>
-              <pre className="mt-3 overflow-auto whitespace-pre-wrap text-xs">
-                {JSON.stringify(proposal.output.records, null, 2)}
-              </pre>
+              <div className="mt-3 space-y-3">
+                <BusinessValue
+                  value={proposal.output.records}
+                  labelFor={(key) => fieldLabels[key] || key}
+                />
+              </div>
             </details>
           )}
-          <div className="mt-5 flex flex-wrap gap-3">
-            {proposal.status === "proposed" && !uncertain && (
-              <>
-                <button className="br-btn br-btn-primary" disabled={busy} onClick={confirm}>
-                  {t("Confirm change")}
+          {proposal.status === "proposed" && !uncertain ? (
+            <DecisionActionBar busy={busy} reject={reject} confirm={confirm} />
+          ) : (
+            (uncertain || proposal.status === "executing") && (
+              <DecisionActionBar>
+                <button className="br-btn" disabled={busy} onClick={check}>
+                  {t("Check outcome")}
                 </button>
-                <button className="br-btn" disabled={busy} onClick={reject}>
-                  {t("Reject")}
-                </button>
-              </>
-            )}
-            {(uncertain || proposal.status === "executing") && (
-              <button className="br-btn" disabled={busy} onClick={check}>
-                {t("Check outcome")}
-              </button>
-            )}
-          </div>
+              </DecisionActionBar>
+            )
+          )}
           {proposal.status === "executed" && (
             <div className="mt-5 rounded-lg bg-positive-bg p-4 text-positive-text">
               <p>{t("Recorded reference IDs")}</p>
@@ -636,7 +631,10 @@ export function MasterDataCard({
               ))}
             </div>
           )}
-          <p className="mt-5 break-all text-xs text-fg-muted">{proposal.id}</p>
+          <details className="mt-5 text-sm">
+            <summary className="cursor-pointer text-fg-muted">{t("System details")}</summary>
+            <p className="mt-3 break-all text-xs text-fg-muted">{proposal.id}</p>
+          </details>
         </>
       ) : (
         <form

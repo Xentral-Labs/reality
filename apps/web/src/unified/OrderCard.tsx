@@ -12,6 +12,7 @@ import { ReadLine } from "./ReadState";
 import { useRead } from "./useCompanyContext";
 import { useProposalRecovery } from "./useProposal";
 import { Inspector } from "./Inspector";
+import { DecisionActionBar, DecisionReviewHeader } from "./DecisionReview";
 
 function ReferenceSelect({
   tenant,
@@ -254,14 +255,19 @@ export function OrderCard({
       }}
       className="m-auto max-h-[90vh] w-[min(940px,94vw)] overflow-auto rounded-xl border border-border-default bg-surface p-6 text-fg-default backdrop:bg-black/30"
     >
-      <header className="mb-5 flex items-center justify-between gap-4">
-        <h2 id="order-title" className="text-xl font-semibold text-fg-strong">
-          {t("New order")}
-        </h2>
-        <button className="br-btn" disabled={busy} onClick={close}>
-          {t("Close")}
-        </button>
-      </header>
+      <DecisionReviewHeader
+        category={proposal ? "Decision" : "Order"}
+        title={
+          proposal?.status === "proposed" && review
+            ? review.state.creation.direction === "sales"
+              ? "Confirm customer order"
+              : "Confirm supplier order"
+            : "New order"
+        }
+        close={close}
+        busy={busy}
+        titleId="order-title"
+      />
       {!proposal ? (
         <form
           className="space-y-5"
@@ -428,6 +434,16 @@ export function OrderCard({
         <div className="space-y-5">
           {review && (
             <>
+              {proposal.status === "proposed" && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-accent">
+                    {t("Decision required")}
+                  </p>
+                  <p className="mt-1 text-sm text-fg-muted">
+                    {t("Check the order and its effect before you decide.")}
+                  </p>
+                </div>
+              )}
               <div className="rounded-lg bg-surface-muted p-4">
                 <p className="text-xs text-fg-muted">
                   {t(
@@ -533,9 +549,14 @@ export function OrderCard({
                     : {String(value)}
                   </p>
                 ))}
-              <p className="text-sm text-fg-muted">
-                {t("Creates the agreement and its deliveries. Stock and money remain unchanged.")}
-              </p>
+              <section className="rounded-lg border border-border-default p-4">
+                <h3 className="font-semibold text-fg-strong">
+                  {t("What happens when you confirm?")}
+                </h3>
+                <p className="mt-2 text-sm text-fg-muted">
+                  {t("Creates the agreement and its deliveries. Stock and money remain unchanged.")}
+                </p>
+              </section>
             </>
           )}
           <p role="status">
@@ -558,48 +579,41 @@ export function OrderCard({
               {proposal.observation_error}
             </p>
           )}
-          <div className="flex flex-wrap gap-3">
-            {proposal.status === "proposed" && !uncertain && (
-              <>
-                <button
-                  className="br-btn br-btn-primary"
-                  disabled={busy || !review}
-                  onClick={confirm}
-                >
-                  {t("Confirm change")}
+          {proposal.status === "proposed" && !uncertain ? (
+            <DecisionActionBar
+              busy={busy || !review}
+              reject={() =>
+                run(async () => {
+                  await api.rejectProposal(tenant, proposal.id, null);
+                  setProposal({ ...proposal, status: "rejected" });
+                  settled();
+                })
+              }
+              edit={edit}
+              confirm={confirm}
+              confirmLabel={
+                review?.state.creation.direction === "purchase"
+                  ? "Confirm supplier order"
+                  : "Confirm customer order"
+              }
+            />
+          ) : (
+            <DecisionActionBar>
+              {(uncertain || ["executing", "executed"].includes(proposal.status)) && (
+                <button className="br-btn" disabled={busy} onClick={() => run(refresh)}>
+                  {t("Check outcome")}
                 </button>
-                <button
+              )}
+              {proposal.verification === "verified" && receipt?.document_id && (
+                <a
                   className="br-btn"
-                  disabled={busy}
-                  onClick={() =>
-                    run(async () => {
-                      await api.rejectProposal(tenant, proposal.id, null);
-                      setProposal({ ...proposal, status: "rejected" });
-                      settled();
-                    })
-                  }
+                  href={`/app/orders-deliveries?${new URLSearchParams({ tenant, orders_view: review?.intent.direction === "purchase" ? "supplier-orders" : "customer-orders", q: receipt.document_id })}`}
                 >
-                  {t("Reject")}
-                </button>
-                <button className="br-btn" disabled={busy} onClick={edit}>
-                  {t("Edit")}
-                </button>
-              </>
-            )}
-            {(uncertain || ["executing", "executed"].includes(proposal.status)) && (
-              <button className="br-btn" disabled={busy} onClick={() => run(refresh)}>
-                {t("Check outcome")}
-              </button>
-            )}
-            {proposal.verification === "verified" && receipt?.document_id && (
-              <a
-                className="br-btn"
-                href={`/app/orders-deliveries?${new URLSearchParams({ tenant, orders_view: review?.intent.direction === "purchase" ? "supplier-orders" : "customer-orders", q: receipt.document_id })}`}
-              >
-                {t("Open order")}
-              </a>
-            )}
-          </div>
+                  {t("Open order")}
+                </a>
+              )}
+            </DecisionActionBar>
+          )}
           {proposal.verification === "verified" &&
             receipt?.commitment_ids?.map((id, index) => (
               <a
@@ -621,7 +635,7 @@ export function OrderCard({
             </button>
           ))}
           <details>
-            <summary className="cursor-pointer text-sm">{t("Technical details")}</summary>
+            <summary className="cursor-pointer text-sm">{t("System details")}</summary>
             <pre className="mt-3 overflow-auto whitespace-pre-wrap break-all text-xs">
               {JSON.stringify(
                 {

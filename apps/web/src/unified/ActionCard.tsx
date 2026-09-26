@@ -13,6 +13,7 @@ import type { DeliveryAction } from "./ActionLauncher";
 import { ReferenceChoices } from "./ReferenceChoices";
 import { useProposalRecovery } from "./useProposal";
 import { Inspector } from "./Inspector";
+import { DecisionActionBar } from "./DecisionReview";
 import { useEffect, useRef, useState } from "react";
 import {
   api,
@@ -633,76 +634,63 @@ function DeliveryActionCard({
             )}
           </p>
           {proposal.status === "proposed" && !uncertain && (
-            <div className="flex flex-wrap gap-3">
-              <button
-                className="br-btn br-btn-primary"
-                disabled={busy || !proposal.review}
-                onClick={confirm}
-              >
-                {t("Confirm change")}
-              </button>
-              <button className="br-btn" disabled={busy} onClick={reject}>
-                {t("Reject")}
-              </button>
-              <button
-                className="br-btn"
-                disabled={busy}
-                onClick={() =>
-                  run(async () => {
-                    await api.rejectProposal(tenant, proposal.id, null);
-                    setRows([
+            <DecisionActionBar
+              busy={busy || !proposal.review}
+              reject={reject}
+              edit={() =>
+                run(async () => {
+                  await api.rejectProposal(tenant, proposal.id, null);
+                  setRows([
+                    {
+                      ...proposal.review!.state.case,
+                      location_id:
+                        ((proposal.review!.intent.from_location_id ||
+                          proposal.review!.intent.to_location_id) as string | undefined) ||
+                        proposal.review!.state.case.location_id,
+                    },
+                  ]);
+                  setTarget(
+                    releasing
+                      ? String(proposal.review!.intent.reservation_id)
+                      : proposal.review!.state.case.id,
+                  );
+                  if (releasing)
+                    setReservations([
                       {
-                        ...proposal.review!.state.case,
-                        location_id:
-                          ((proposal.review!.intent.from_location_id ||
-                            proposal.review!.intent.to_location_id) as string | undefined) ||
-                          proposal.review!.state.case.location_id,
+                        id: String(proposal.review!.intent.reservation_id),
+                        item: proposal.review!.state.case.item || "",
+                        location: proposal.review!.state.case.location || "",
+                        sku: "",
+                        unit: proposal.review!.state.case.unit,
+                        quantity: proposal.review!.effect.released,
+                        status: "active",
                       },
                     ]);
-                    setTarget(
-                      releasing
-                        ? String(proposal.review!.intent.reservation_id)
-                        : proposal.review!.state.case.id,
-                    );
-                    if (releasing)
-                      setReservations([
-                        {
-                          id: String(proposal.review!.intent.reservation_id),
-                          item: proposal.review!.state.case.item || "",
-                          location: proposal.review!.state.case.location || "",
-                          sku: "",
-                          unit: proposal.review!.state.case.unit,
-                          quantity: proposal.review!.effect.released,
-                          status: "active",
-                        },
-                      ]);
-                    setReasonCode(String(proposal.review!.intent.reason_code || ""));
-                    setNote(String(proposal.review!.intent.note || ""));
-                    setQuantity(
-                      String(
-                        proposal.review!.intent.quantity ??
-                          proposal.review!.effect.requested ??
-                          proposal.review!.state.case.open,
+                  setReasonCode(String(proposal.review!.intent.reason_code || ""));
+                  setNote(String(proposal.review!.intent.note || ""));
+                  setQuantity(
+                    String(
+                      proposal.review!.intent.quantity ??
+                        proposal.review!.effect.requested ??
+                        proposal.review!.state.case.open,
+                    ),
+                  );
+                  setTracking(
+                    Object.fromEntries(
+                      Object.entries(proposal.review!.intent).filter(
+                        ([key, value]) =>
+                          ["handling_unit_id", "lot_id", "serial_unit_id"].includes(key) &&
+                          typeof value === "string",
                       ),
-                    );
-                    setTracking(
-                      Object.fromEntries(
-                        Object.entries(proposal.review!.intent).filter(
-                          ([key, value]) =>
-                            ["handling_unit_id", "lot_id", "serial_unit_id"].includes(key) &&
-                            typeof value === "string",
-                        ),
-                      ) as Record<string, string>,
-                    );
-                    requestId.current = crypto.randomUUID();
-                    setProposal(null);
-                    setEditing(true);
-                  })
-                }
-              >
-                {t("Edit")}
-              </button>
-            </div>
+                    ) as Record<string, string>,
+                  );
+                  requestId.current = crypto.randomUUID();
+                  setProposal(null);
+                  setEditing(true);
+                })
+              }
+              confirm={confirm}
+            />
           )}
           {(uncertain || proposal.status === "executing" || proposal.status === "executed") && (
             <button
