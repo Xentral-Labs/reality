@@ -35,20 +35,20 @@ Tests come before the implementation they prove. Paths are relative to the repos
 
 ## US2 — Readiness and payment matching
 
-- [ ] T007 [US2] Write failing FR-004 proofs in
+- [x] T007 [US2] Write failing FR-004 proofs in
   `packages/reality-core/tests/test_fulfillment_readiness.py`: consolidated invoice open →
   blocker `prepayment_consolidated_invoice_open` naming invoice and open amount; paid in part →
   still blocked; settled in full → released. Rewrite
   `test_cross_order_invoice_attribution_blocks_without_guessing` accordingly.
-- [ ] T008 [US2] Implement FR-004 in
+- [x] T008 [US2] Implement FR-004 in
   `packages/reality-core/src/reality/services/fulfillment_readiness.py` (rule, detail, links)
   and add the code to `DELIVERY_BLOCKER_TYPES` in `services/projections.py`; update
   `tests/test_incremental_derivation.py` blocker list.
-- [ ] T009 [US2] Write failing FR-005 proof in
+- [x] T009 [US2] Write failing FR-005 proof in
   `packages/reality-core/tests/test_payment_intake.py`: a payment naming one order of a
   consolidated invoice is a candidate with the stated reason, not an allocation; the invoice
   reference still allocates.
-- [ ] T010 [US2] Implement FR-005 in
+- [x] T010 [US2] Implement FR-005 in
   `packages/reality-core/src/reality/services/payment_intake.py` `resolve_references`.
 
 ## FR-006 — Billable positions read

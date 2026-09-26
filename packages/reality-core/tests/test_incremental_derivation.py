@@ -982,6 +982,7 @@ def test_every_reason_a_promise_can_be_blocked_by_is_declared(session, business)
         "insufficient_stock",
         "prepayment_invoice_missing",
         "prepayment_attribution_ambiguous",
+        "prepayment_consolidated_invoice_open",
         "prepayment_required",
     } <= declared
 

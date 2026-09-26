@@ -75,7 +75,9 @@ def _prepayment_order(session, business):
     return order, lines[0], commitment
 
 
-def test_prepayment_readiness_uses_stated_order_and_active_allocation(session, business):
+def test_prepayment_readiness_uses_stated_order_and_active_allocation(
+    session, business
+):
     tenant_id = business.tenant.id
     _order, line, commitment = _prepayment_order(session, business)
 
@@ -156,23 +158,27 @@ def test_reversed_and_foreign_payment_evidence_does_not_satisfy_prepayment(
     assert reversed_payment.ship_ready is False
 
 
-def test_cross_order_invoice_attribution_blocks_without_guessing(session, business):
+def test_invoice_line_of_another_partys_order_blocks_without_guessing(
+    session, business
+):
+    """An invoice line billing another party's order cannot be attributed."""
     tenant_id = business.tenant.id
     _order, line, commitment = _prepayment_order(session, business)
     receipt = record_sales_invoice(
-        session, tenant_id, line.id, "10", "100", "INV-CONSOLIDATED"
+        session, tenant_id, line.id, "10", "100", "INV-FOREIGN-LINE"
     )
     invoice = record_by_id(
         session,
         Document,
         next(row["id"] for row in receipt["records"] if row["family"] == "document"),
     )
+    other_customer = create_party(session, tenant_id, "Other customer", "customer")
     other_order, other_lines = create_manual_document_with_lines(
         session,
         tenant_id,
         "sales_order",
         "SO-OTHER",
-        business.customer.id,
+        other_customer.id,
         [{"item_id": business.item.id, "quantity": "1", "gross_amount": "10"}],
         "10",
     )
@@ -196,6 +202,66 @@ def test_cross_order_invoice_attribution_blocks_without_guessing(session, busine
     assert "prepayment_attribution_ambiguous" in result.blocker_codes
     assert result.received_amount == 0
     assert result.ship_ready is False
+
+
+def test_a_consolidated_invoice_releases_prepayment_only_when_settled_in_full(
+    session, business
+):
+    """Spec 280 FR-004: no split of a payment; the whole invoice must be settled."""
+    tenant_id = business.tenant.id
+    _order, line, commitment = _prepayment_order(session, business)
+    _other, other_lines = create_manual_document_with_lines(
+        session,
+        tenant_id,
+        "sales_order",
+        "SO-SAME-CUSTOMER",
+        business.customer.id,
+        [{"item_id": business.item.id, "quantity": "1", "gross_amount": "10"}],
+        "10",
+    )
+    receipt = record_sales_invoice(
+        session,
+        tenant_id,
+        lines=[
+            {"order_line_id": line.id, "quantity": "10", "gross_amount": "100"},
+            {"order_line_id": other_lines[0].id, "quantity": "1", "gross_amount": "10"},
+        ],
+        gross_amount="110",
+        number="INV-COLLECTIVE",
+    )
+    invoice = record_by_id(
+        session,
+        Document,
+        next(row["id"] for row in receipt["records"] if row["family"] == "document"),
+    )
+
+    open_invoice = fulfillment_readiness(session, tenant_id, commitment.id)
+    assert open_invoice.blocker_codes == (
+        "prepayment_consolidated_invoice_open",
+        "prepayment_required",
+    )
+    assert open_invoice.invoice_ids == (invoice.id,)
+    blocker = next(
+        row
+        for row in open_invoice.as_dict()["blockers"]
+        if row["code"] == "prepayment_consolidated_invoice_open"
+    )
+    assert "INV-COLLECTIVE" in blocker["detail"]
+    assert "110" in blocker["detail"]
+    assert {"kind": "invoice", "id": invoice.id} in blocker["links"]
+
+    post_customer_payment(session, tenant_id, invoice.id, "50")
+    part_paid = fulfillment_readiness(session, tenant_id, commitment.id)
+    assert part_paid.ship_ready is False
+    assert "prepayment_consolidated_invoice_open" in part_paid.blocker_codes
+    assert part_paid.received_amount == 0
+
+    post_customer_payment(session, tenant_id, invoice.id, "60")
+    settled = fulfillment_readiness(session, tenant_id, commitment.id)
+    assert settled.blocker_codes == ()
+    assert settled.ship_ready is True
+    assert settled.received_amount == Decimal(100)
+    assert settled.remaining_amount == 0
 
 
 def test_unpaid_net_term_is_not_blocked_by_prepayment(session, business):

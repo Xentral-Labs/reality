@@ -320,6 +320,27 @@ def _orders_by(
     return list(session.scalars(query))
 
 
+def _bills_other_orders(
+    session: Session, tenant_id: str, invoice: Document, order_ids: set[str]
+) -> bool:
+    """Whether an invoice also bills lines of orders outside ``order_ids``."""
+    billed_orders = set(
+        session.scalars(
+            select(DocumentLine.document_id).where(
+                DocumentLine.tenant_id == tenant_id,
+                DocumentLine.id.in_(
+                    select(DocumentLine.billed_document_line_id).where(
+                        DocumentLine.tenant_id == tenant_id,
+                        DocumentLine.document_id == invoice.id,
+                        DocumentLine.billed_document_line_id.is_not(None),
+                    )
+                ),
+            )
+        )
+    )
+    return bool(billed_orders - order_ids)
+
+
 def resolve_references(
     session: Session,
     tenant_id: str,
@@ -338,6 +359,7 @@ def resolve_references(
     found: dict[str, Document] = {}
     reasons: list[str] = []
     for reference in references:
+        orders: list[Document] = []
         if reference.type == "invoice_number":
             invoices = list(
                 session.scalars(
@@ -424,6 +446,18 @@ def resolve_references(
                 else f"customer number {reference.value} names another customer"
             )
             continue
+        if orders:
+            # Naming an order names a consolidated invoice only in part (spec 280):
+            # the payment may be for this order alone, so it is not allocated.
+            order_ids = {order.id for order in orders}
+            partial = [
+                invoice
+                for invoice in invoices
+                if _bills_other_orders(session, tenant_id, invoice, order_ids)
+            ]
+            for invoice in partial:
+                reasons.append(f"invoice {invoice.number} also bills other orders")
+            invoices = [invoice for invoice in invoices if invoice not in partial]
         for invoice in invoices:
             if invoice.currency != currency:
                 reasons.append(
