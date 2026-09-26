@@ -738,6 +738,17 @@ def load_catalog_labels() -> dict[str, dict[str, dict[str, str]]]:
     return labels
 
 
+@lru_cache(maxsize=1)
+def load_resolution_guidance() -> dict[str, Any]:
+    """Load the spec 279 guidance catalog; every form must be a discovery form."""
+    from reality.domain.resolution_guidance import validate_resolution_guidance
+
+    discovery = yaml.safe_load(config_text("action_discovery.json"))
+    forms = {entry["form"] for entry in discovery["entries"] if entry.get("form")}
+    payload = yaml.safe_load(config_text("resolution_guidance.json"))
+    return validate_resolution_guidance(payload, forms=forms)
+
+
 def load_operational_exception_catalog() -> OperationalExceptionCatalog:
     from reality.services.exceptions import DERIVATION_REGISTRY
 
@@ -1488,6 +1499,15 @@ def load_application_catalog() -> dict[str, Any]:
         "operational_exception_classes": [
             entry["id"] for entry in operational_exception_catalog.classes
         ],
+        "operational_exception_guidance": [
+            {
+                "id": entry["id"],
+                "label": entry["label"],
+                "clears_through": entry["clears_through"],
+            }
+            for entry in operational_exception_catalog.classes
+        ],
+        "resolution_guidance": deepcopy(load_resolution_guidance()),
     }
 
 

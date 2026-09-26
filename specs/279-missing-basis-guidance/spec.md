@@ -253,7 +253,7 @@ existing path exists, a working control.
   or unavailable basis to the web MUST include resolution guidance. The guidance is a
   stable reason code plus an ordered list of steps. Each step has a stable code, a state
   (done, open or blocked), the required role (member, owner or operator), and a path
-  type (web form, chat handoff, decision review, system status, or none) with its target.
+  type (web form, chat handoff, decision review, system status, app page, or none) with its target.
 - **FR-002**: Step order and the first open step MUST be determined by the shared
   services, not by the web.
 - **FR-003**: Contribution guidance MUST report upstream blockers (inventory review,
