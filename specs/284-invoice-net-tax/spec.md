@@ -56,6 +56,7 @@ included.
   own form and contract.
 - Making net or tax mandatory. Businesses that invoice without tax detail keep recording
   gross only.
+- An invoice-level net or tax total. Amounts are stated per position only (owner decision).
 
 ### Existing Contracts
 
@@ -202,9 +203,8 @@ amounts, and the cost evidence read offers the net basis.
 
 ## Open Questions
 
-- [NEEDS CLARIFICATION: Should the form also ask for the net and tax of the whole invoice
-  (header) when it has several positions, or only per position? Per position is enough for
-  DB1; a header total would be a second stated value to compare against.]
+None. Decided by the owner on 2026-09-26: net and tax are asked per position only; there is
+no invoice-level net or tax total.
 
 ## Requirement Traceability
 
