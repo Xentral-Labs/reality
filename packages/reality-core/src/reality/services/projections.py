@@ -2712,18 +2712,27 @@ def _explain_retained_order(
         row = case["case"]
         open_value = Decimal(row["open"]) if row["status"] == "open" else Decimal(0)
         shortage = max(Decimal(0), open_value - Decimal(row["reserved"]))
-        reasons = sorted(
-            {
-                (
-                    "party_delivery_hold"
-                    if h["scope"] == "party"
-                    else h["scope"] + "_hold"
-                )
-                for h in row["blockers"]
-            }
-        )
-        if shortage:
-            reasons.append("insufficient_reservation")
+        readiness = None
+        if commitment.type == "customer_delivery":
+            from reality.services.fulfillment_readiness import fulfillment_readiness
+
+            readiness = fulfillment_readiness(
+                session, tenant_id, commitment.id
+            ).as_dict()
+            reasons = list(readiness["blocker_codes"])
+        else:
+            reasons = sorted(
+                {
+                    (
+                        "party_delivery_hold"
+                        if h["scope"] == "party"
+                        else h["scope"] + "_hold"
+                    )
+                    for h in row["blockers"]
+                }
+            )
+            if shortage:
+                reasons.append("insufficient_reservation")
         lines.append(
             {
                 "commitment_id": commitment.id,
@@ -2746,6 +2755,7 @@ def _explain_retained_order(
                 "location_id": row["location_id"],
                 "blocking_reasons": reasons,
                 "inventory": case["inventory"],
+                "readiness": readiness,
             }
         )
     ids = [c.id for c in commitments]

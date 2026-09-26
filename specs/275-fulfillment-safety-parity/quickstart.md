@@ -83,3 +83,9 @@ dispatch. This preserves FR-017 even when an MCP SDK binds arguments permissivel
 The live proof rebuilds the MCP container, opens an authenticated MCP HTTP session, submits an
 undeclared shipment field and confirms that the schema error names that field before any party,
 item or fulfillment lookup. Its temporary access token is revoked immediately after the check.
+
+The post-fix Claude Desktop proof uses a neutral seven-day term with
+`requires_prepayment: true`. It confirms that `order_explain`, fulfillment blockers and dispatch
+all report the same native prepayment decision, then verifies that
+`proposal_execution_status` remains readable after the paid shipment executes even if no current
+delivery observation is available.
