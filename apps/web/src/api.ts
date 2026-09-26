@@ -1083,6 +1083,17 @@ export type LocationRow = {
 };
 export type SuggestionRow = { value: string; label: string; description: string; status: string };
 export type SuggestionData = { items: SuggestionRow[]; allow_custom: boolean };
+export type ResolvedPrice = {
+  unit_price: string;
+  currency: string;
+  unit: string;
+  price_list_id: string | null;
+  price_list_entry_id: string | null;
+  source: string;
+  assignment_id: string | null;
+  party_group_id: string | null;
+  evaluated_at: string;
+};
 export type PaymentTermRow = {
   id: string;
   tenant_id: string;
@@ -1930,6 +1941,19 @@ export const api = {
       `/api/tenants/${tenant}/documents/${id}/line-correction`,
       { method: "PUT", body: JSON.stringify(body) },
     ),
+  /** Spec 279 FR-013: the existing live price read for one partner and item. */
+  resolvePrice: (
+    tenant: string,
+    query: {
+      party_id: string;
+      item_id: string;
+      quantity: string;
+      direction: "sales" | "purchase";
+      currency: string;
+      unit: string;
+    },
+  ) =>
+    request<ResolvedPrice>(`/api/tenants/${tenant}/prices/resolve?${new URLSearchParams(query)}`),
   suggestions: (tenant: string, kind: string, query = "") =>
     request<SuggestionData>(
       `/api/tenants/${tenant}/suggestions/${encodeURIComponent(kind)}?q=${encodeURIComponent(query)}`,

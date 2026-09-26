@@ -20802,3 +20802,34 @@ Object.assign(dictionaries.es, {
   "This exception has to be cleared:": "Esta incidencia tiene que estar resuelta:",
   "This exception has to be open:": "Esta incidencia tiene que estar abierta:",
 });
+
+// Spec 279: price determination input.
+Object.assign(dictionaries.de, {
+  "Determine price": "Preis ermitteln",
+  "Evaluated at": "Ermittelt am",
+});
+Object.assign(dictionaries.nl, {
+  "Determine price": "Prijs bepalen",
+  "Evaluated at": "Bepaald op",
+});
+Object.assign(dictionaries.es, {
+  "Determine price": "Determinar precio",
+  "Evaluated at": "Determinado el",
+});
+
+// Spec 279: price determination sources.
+Object.assign(dictionaries.de, {
+  "Price list assigned to the business partner": "Dem Geschäftspartner zugeordnete Preisliste",
+  "Price list of the business partner's group": "Preisliste der Gruppe des Geschäftspartners",
+  "Default price list": "Standardpreisliste",
+});
+Object.assign(dictionaries.nl, {
+  "Price list assigned to the business partner": "Prijslijst die aan de relatie is toegewezen",
+  "Price list of the business partner's group": "Prijslijst van de groep van de relatie",
+  "Default price list": "Standaardprijslijst",
+});
+Object.assign(dictionaries.es, {
+  "Price list assigned to the business partner": "Lista de precios asignada al socio comercial",
+  "Price list of the business partner's group": "Lista de precios del grupo del socio comercial",
+  "Default price list": "Lista de precios predeterminada",
+});

@@ -5,6 +5,7 @@ import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import { ProjectionFreshness } from "./ProjectionFreshness";
 import { ReportDataTable } from "./ReportDataTable";
+import { PriceResolution } from "./PriceResolution";
 
 async function readView(tenant: string, name: string): Promise<ProjectionSnapshot> {
   if (!name.startsWith("view:")) return api.inspectorProjection(tenant, name);
@@ -102,6 +103,9 @@ export function ProjectionDataDialog({
     };
   }, []);
   const rows = read.data?.items.slice(0, 100);
+  // Spec 279 FR-013: price determination has no stored rows; it asks for its inputs.
+  const interactive = name === "price_resolution";
+  const showsData = dataAvailable || interactive;
   const splitLayout = "lg:grid-cols-[minmax(0,1fr)_340px] lg:grid-rows-1";
   const besideData = "max-h-[32dvh] lg:order-2 lg:max-h-none lg:border-b-0 lg:border-l";
   const detailsOnly = "row-span-2 max-h-none";
@@ -134,11 +138,11 @@ export function ProjectionDataDialog({
           </button>
         </header>
         <div
-          className={`grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] overflow-hidden ${details && dataAvailable ? splitLayout : "grid-cols-1"}`}
+          className={`grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] overflow-hidden ${details && showsData ? splitLayout : "grid-cols-1"}`}
         >
           {details && (
             <aside
-              className={`min-h-0 min-w-0 overflow-auto border-b border-border-default bg-surface-muted p-4 ${dataAvailable ? besideData : detailsOnly}`}
+              className={`min-h-0 min-w-0 overflow-auto border-b border-border-default bg-surface-muted p-4 ${showsData ? besideData : detailsOnly}`}
             >
               <details
                 open={detailsOpen}
@@ -152,7 +156,7 @@ export function ProjectionDataDialog({
           )}
           <div
             data-report-data
-            className={`min-h-0 min-w-0 overflow-auto p-5 ${details ? "lg:order-1" : "row-span-2"} ${!dataAvailable && details ? "hidden" : ""}`}
+            className={`min-h-0 min-w-0 overflow-auto p-5 ${details ? "lg:order-1" : "row-span-2"} ${!showsData && details ? "hidden" : ""}`}
           >
             <ProjectionFreshness
               metadata={read.data?.metadata}
@@ -160,7 +164,9 @@ export function ProjectionDataDialog({
               loading={read.loading}
               error={read.error}
             />
-            {!dataAvailable ? (
+            {interactive ? (
+              <PriceResolution tenant={tenant} />
+            ) : !dataAvailable ? (
               <p className="py-4 text-sm text-fg-muted">
                 {t(
                   "This report needs a business partner and an item. See the details for its inputs and calculation.",
