@@ -79,7 +79,7 @@ Tests come before the implementation they prove. Paths are relative to the repos
 ## Verification and review
 
 - [ ] T018 Update `tests/scenarios/test_catalog_purchasing.py` I05 to the guided path and add E02
-  to `tests/scenarios/test_catalog_finance.py` (after #203 is on main); update
+  to `tests/scenarios/test_catalog_finance.py` (#203 is on main); update
   `docs/scenarios/coverage.md`, `docs/features/order_to_cash.md`,
   `docs/features/procure_to_pay.md` and `docs/SPEC_COVERAGE_MATRIX.md`.
 - [ ] T019 Run focused suites, the full backend suite in CI order, web build, i18n audit, node

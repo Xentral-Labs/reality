@@ -129,7 +129,7 @@ No exception; Complexity Tracking is empty.
 - `tests/test_fulfillment_readiness.py::test_cross_order_invoice_attribution_blocks_without_guessing`:
   rewritten for the consolidated rule (open → blocked with the new code; settled → released).
 - `tests/scenarios/test_catalog_purchasing.py::test_one_supplier_invoice_bills_lines_of_two_purchase_orders`
-  (PR #203): its "same order" refusal becomes the guided success path.
+  (merged in #203): its "same order" refusal becomes the guided success path.
 
 ## Validation and rollback
 
