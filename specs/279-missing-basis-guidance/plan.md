@@ -67,7 +67,7 @@ packages/reality-core/tests/test_projection_jobs.py                # failure_cod
 packages/reality-core/tests/test_attention_reads.py                # cost finding guidance
 apps/web/src/api.ts                                                # types: ResolutionGuidance, catalog, metadata
 apps/web/src/unified/ResolutionGuidance.tsx                        # NEW shared component
-apps/web/src/unified/resolutionGuidance.ts                         # NEW path → handler mapping, chat draft event
+apps/web/src/unified/guidanceActions.ts                            # NEW reason text, role barriers, chat draft event
 apps/web/src/unified/CostExplanation.tsx                           # use component; drop raw codes, unit cost
 apps/web/src/unified/ProjectionFreshness.tsx                       # readiness sentence, failure reason, status link
 apps/web/src/unified/AttentionPage.tsx                             # localized class title/guidance; cost steps
@@ -75,7 +75,8 @@ apps/web/src/unified/Shell.tsx, ChatPage.tsx                       # open-chat e
 apps/web/src/unified/analytics/InventoryValuation.tsx             # unavailable explanation
 apps/web/src/unified/ReportExplanation.tsx, ProjectionDataDialog.tsx # price determination input
 apps/web/src/unified/ReportDataTable.tsx                           # blocker labels + step
-apps/web/src/unified/StorylineNarrator.tsx, DataSourcesPage.tsx    # labels + step
+apps/web/src/unified/StorylineNarrator.tsx                         # check sentences
+apps/web/src/unified/PriceResolution.tsx, RecordReference.tsx     # NEW price inputs; shared record chooser
 apps/web/src/localization.tsx                                      # de/nl/es labels
 apps/web/scripts/resolution-guidance-localization.test.mjs         # NEW catalog translation test
 apps/web/scripts/exception-catalog-localization.test.mjs           # NEW exception title/guidance test
@@ -175,9 +176,9 @@ the cause (US2 scenario 2).
 Steps are only derived for current reads. Historical reads (`review_id` given) return
 `steps: []`.
 
-`writable` is `False` when `tenant_policy.require_core_operation(session, tenant,
-"execute_cost_change")` would refuse. It is checked without raising, through a small
-predicate added beside it.
+`writable` is `False` when `tenant_policy.require_business_operation(session, tenant,
+"execute_cost_change")` would refuse. It is checked without raising, through the new
+predicate `business_operation_allowed` beside it.
 
 ### Cost query response
 
@@ -329,3 +330,18 @@ output if the generator picks up the catalog response.
 | Constitution exception | Why needed | Simpler alternative rejected | Approval |
 |---|---|---|---|
 | None | — | — | — |
+
+## Implementation notes (2026-09-26)
+
+- The web helper module is `guidanceActions.ts`, not `resolutionGuidance.ts`: on a
+  case-insensitive file system it collided with `ResolutionGuidance.tsx`.
+- `operational_exception_classes` stays a list of IDs (Storyline and a catalog test read
+  it); titles and resolution texts are served beside it as `operational_exception_guidance`.
+- Data sources' "No import job" was dropped from scope: records written directly through
+  the API never have an import job, so it is information, not a missing prerequisite.
+- Measured cost (see `quickstart.md`): a current, unreviewed inventory query rises from 4 to
+  8 + 4 statements per receipt (at most about 90); an unreviewed contribution query from 4
+  to 50. An expanded multi-line invoice multiplies the contribution figure by its lines.
+- `unified-inspector-browser.mjs` already fails on `origin/main` (the inline exception
+  catalog freshness wait), so the price determination proof lives in its own
+  `price-resolution-browser.mjs`.

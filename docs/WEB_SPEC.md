@@ -158,6 +158,26 @@ values and pending actions. Domain adapters may provide a purpose-built summary,
 objects and lists render as labelled business content rather than serialized JSON, and compatible
 review surfaces do not define their own confirm/reject button order or styling.
 
+### Guidance for missing basis — Spec 279
+
+When a value is missing, stale, pending or unavailable, the page explains why and how to get
+it, never only that it is missing. The shared services attach resolution guidance: a stable
+reason code and ordered steps, each with a state (done, open, blocked), the role that may act
+(member, owner, operator) and a path (action form, chat handoff, decision review, system
+status, app page or none). The wording, roles and paths live in
+`packages/reality-core/config/resolution_guidance.json`, which is served with the application
+catalog and translated in every web language. The browser never decides step order.
+
+One `ResolutionGuidance` component renders the reason and steps and offers one control per
+open step through a path that already exists. A chat step only prepares an unsent request
+through the `reality:open-chat` event; sending, proposing and confirming stay with the person.
+A viewer without the step's role sees who must act, and a read-only company shows no write
+path. After any write the host re-reads the service result. Raw stage, tool, operation and
+basis codes stay in the Inspector. Surfaces: cost explanation (stock, open items, orders),
+cost findings and all exception titles and resolution texts, stored-calculation notices,
+delivery blockers, the company valuation selector, Storyline step checks and Price
+determination, which asks for a business partner and an item.
+
 Sales and Purchasing distinguish Delivery Commitments from physical Shipments. Commitments are
 promises; Shipments are real consignments with Package tracking observations and linked Movement
 contents. Sales defaults to outbound customer shipments and Purchasing to inbound supplier ones.

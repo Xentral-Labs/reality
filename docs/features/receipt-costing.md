@@ -211,6 +211,16 @@ document-line contribution scopes and separates received net revenue, consumed a
 cost, DB1, reviewed selling costs and DB2; those order/finance entry points remain T088 work.
 Every retained review links to the existing Inspector.
 
+Since spec 279 the `cost.query.get` guidance also carries `reason_code`, ordered `steps`,
+`writable` and `value_reasons`, derived at read time by `services/cost_resolution.py` and never
+stored. Inventory steps are: confirm each receipt's cost (bounded by the inventory receipt
+limit), prepare the item's cost review (or renew it when stale), and a company owner confirms
+the waiting `tool:cost.change` proposal, which the step links by its opaque ID. Contribution
+guidance names the upstream blocker from the current preview, so an unreviewed or stale item
+review comes before the contribution review; selling costs affect DB2 only and never block the
+DB1 path; source-data limits get a step without an action path. The fields MCP clients already
+read (`stage`, `reason`, `next_action`) keep their meaning.
+
 Fixture M remains the product acceptance protocol: five operations users unfamiliar with
 the implementation open the complete demo order, state DB1 and DB2, explain one included
 cost and reach its source evidence. At least four must finish correctly within two minutes
