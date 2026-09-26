@@ -1647,7 +1647,8 @@ def _proposal_execution_receipt(
                 "business_outcome": "not_proven",
             },
             "reconciliation_evidence": detail["links"],
-            "observation": detail["observation"],
+            "observation": detail.get("observation"),
+            "observation_error": detail.get("observation_error"),
         }
     tool_name = proposal.type.removeprefix("tool:")
     result: dict[str, Any] = {

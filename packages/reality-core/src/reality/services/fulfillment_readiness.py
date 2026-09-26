@@ -215,7 +215,7 @@ def fulfillment_readiness(
         return FulfillmentReadiness(
             commitment.id,
             None,
-            not operational_blockers,
+            open_quantity > ZERO and not operational_blockers,
             tuple(operational_blockers),
             commitment.currency,
             ZERO,
@@ -254,7 +254,7 @@ def fulfillment_readiness(
         return FulfillmentReadiness(
             commitment.id,
             order.id,
-            not operational_blockers,
+            open_quantity > ZERO and not operational_blockers,
             tuple(operational_blockers),
             order.currency,
             required,
@@ -358,7 +358,7 @@ def fulfillment_readiness(
     return FulfillmentReadiness(
         commitment.id,
         order.id,
-        not blockers,
+        open_quantity > ZERO and not blockers,
         tuple(blockers),
         order.currency,
         required,

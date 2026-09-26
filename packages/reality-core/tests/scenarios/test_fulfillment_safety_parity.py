@@ -132,6 +132,16 @@ def test_two_order_story_keeps_unpaid_prepayment_stock_inside(session, business)
     assert before.required_amount == Decimal(100)
     assert before.received_amount == 0
     assert before.remaining_amount == Decimal(100)
+    explained_before_payment = run_read_tool(
+        session,
+        tenant_id,
+        "order_explain",
+        {"order_reference": prepay_order.id},
+    )
+    assert explained_before_payment["fulfillment"]["ship_ready"] is False
+    assert "prepayment_required" in explained_before_payment["fulfillment"][
+        "blocking_reasons"
+    ]
     assert run_read_tool(
         session,
         tenant_id,
@@ -208,7 +218,29 @@ def test_two_order_story_keeps_unpaid_prepayment_stock_inside(session, business)
     assert reviewed.status == "proposed"
     reject_proposal(session, tenant_id, reviewed.id)
     core.release_commitment_hold(session, tenant_id, prepay_commitment.id)
-    _dispatch(session, business, prepay_commitment)
+    executed_dispatch = _dispatch(session, business, prepay_commitment)
+    execution_status = run_read_tool(
+        session,
+        tenant_id,
+        "proposal_execution_status",
+        {"proposal_id": executed_dispatch.id},
+    )
+    assert execution_status["status"] == "executed"
+    assert "observation" in execution_status
+    completed = fulfillment_readiness(session, tenant_id, prepay_commitment.id)
+    assert completed.open_quantity == 0
+    assert completed.ship_ready is False
+    explained_after_dispatch = run_read_tool(
+        session,
+        tenant_id,
+        "order_explain",
+        {"order_reference": prepay_order.id},
+    )
+    assert explained_after_dispatch["fulfillment"]["readiness"] == "closed"
+    assert explained_after_dispatch["fulfillment"]["ship_ready"] is False
+    assert explained_after_dispatch["fulfillment"]["lines"][0]["readiness"][
+        "ship_ready"
+    ] is False
 
     assert core.stock_at(session, tenant_id, business.item.id, business.location.id) == 10
     assert core.open_invoice_amount(session, tenant_id, net_invoice.id) == 0

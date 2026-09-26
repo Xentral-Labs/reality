@@ -210,8 +210,8 @@ values are rejected before review.
   independent blocker applies.
 - **FR-007**: One shared fulfillment-readiness decision MUST combine commitment status,
   active holds, physical availability, reservation coverage and payment readiness.
-- **FR-008**: Web, Chat, MCP and application tools MUST consume the shared decision and MUST
-  NOT implement alternative readiness rules.
+- **FR-008**: Web, Chat, MCP and application tools, including `order_explain`, MUST consume
+  the shared decision and MUST NOT implement alternative readiness rules.
 - **FR-009**: Readiness MUST expose stable blocker codes, human explanations, relevant
   quantities and money amounts, plus opaque links to their authoritative records.
 - **FR-010**: Shipment preparation and execution MUST both enforce current readiness and
@@ -226,7 +226,8 @@ values are rejected before review.
 - **FR-014**: A proposal MAY remain executing only while its business effect is genuinely
   unknown, and its status MUST expose the reconciliation requirement.
 - **FR-015**: Proposal detail, history and MCP status MUST expose equivalent terminal failure
-  information and a safe next action.
+  information and a safe next action. Status reads for successful delivery proposals MUST remain
+  available when their optional current observation cannot be produced.
 - **FR-016**: Shipment proposal tools MUST publish complete discriminated input contracts
   for every supported purpose, including required nested movement shapes and enum values.
 - **FR-017**: Public proposal preparation MUST reject unknown fields, including undeclared
