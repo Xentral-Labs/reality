@@ -187,6 +187,29 @@ await page.route("**/api/**", async (route) => {
     };
     return reply(proposal);
   }
+  // Decision reviews (spec 276) hand a delivery-kind proposal to the shared action card.
+  if (p.endsWith("/change-proposals/invoice/review"))
+    return reply({
+      id: "invoice",
+      tool: proposal.tool,
+      label: "Invoice",
+      purpose: "",
+      review_kind: "delivery",
+      status: proposal.status,
+      actor_type: "human",
+      created_at: "2026-09-08T12:00:00Z",
+      decided_at: null,
+      decider: null,
+      input: proposal.review.intent,
+      preview: {},
+      receipt: {},
+      next_step: {
+        review_required: true,
+        required_principal: "authorized_human",
+        reconciliation_read: "delivery_proposal_detail",
+        verification_reads: [],
+      },
+    });
   if (p.endsWith("/approve")) {
     confirmations++;
     proposal.status = "executed";
@@ -228,12 +251,18 @@ await page.route("**/api/**", async (route) => {
     return reply({ detail: "Home reads are outside this invoice fixture" }, 503);
   return reply({ items: [], totals: [], page: pager });
 });
+// Page actions render once action discovery has loaded; wait for the menu before opening
+// it, or a check made too early sees no menu and leaves the actions hidden.
+const openPageActions = async () => {
+  const summary = page.locator(".register-actions > summary").last();
+  await summary.waitFor();
+  if (!(await summary.evaluate((node) => node.parentElement.open))) await summary.click();
+};
 try {
   await page.goto(
     (process.env.UNIFIED_BASE_URL || "http://localhost:5177") + "/app/finance?tenant=company",
   );
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions();
   await page.getByRole("button", { name: "New customer invoice", exact: true }).click();
   await page.getByLabel("Order", { exact: true }).selectOption("order");
   await page.getByLabel("Order line", { exact: true }).selectOption("line");
@@ -290,7 +319,7 @@ try {
     (process.env.UNIFIED_BASE_URL || "http://localhost:5177") +
       "/app/finance?tenant=company&proposal=invoice",
   );
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByRole("button", { name: "Request changes", exact: true }).click();
   await page.getByLabel("Order line", { exact: true }).nth(1).waitFor();
   assert.equal(await page.getByLabel("Order line", { exact: true }).count(), 2);
   assert.equal(await page.getByLabel("Order line", { exact: true }).nth(1).inputValue(), "line2");
@@ -301,12 +330,12 @@ try {
   assert.equal(await page.getByLabel("Stated invoice amount", { exact: true }).inputValue(), "301");
   await page.getByRole("button", { name: "Review change", exact: true }).click();
   await page.getByRole("button", { name: "Confirm change", exact: true }).click();
-  await page.getByRole("link", { name: "Open invoice", exact: true }).waitFor();
+  // A decision opened from its review closes once the lost response is recovered.
+  await page.locator("#invoice-title").waitFor({ state: "detached" });
   assert.equal(confirmations, 1);
-  await page.getByRole("button", { name: "Close", exact: true }).click();
+  assert.equal(proposal.status, "executed");
   await page.locator("[data-action-launcher] > button").click();
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions();
   await page.getByRole("button", { name: "New customer invoice", exact: true }).last().click();
   await page.getByLabel("Invoice type", { exact: true }).selectOption("supplier_invoice_record");
   await page.getByLabel("Order", { exact: true }).selectOption("order");
@@ -316,7 +345,7 @@ try {
   await page.getByLabel("Stated line amount", { exact: true }).fill("299");
   await page.getByLabel("Stated invoice amount", { exact: true }).fill("299");
   await page.getByRole("button", { name: "Review change", exact: true }).click();
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByRole("button", { name: "Request changes", exact: true }).click();
   assert.equal(await page.getByLabel("Invoice number", { exact: true }).inputValue(), "SUP-120");
   assert.equal(
     await page.getByLabel("Invoice type", { exact: true }).inputValue(),
@@ -336,16 +365,16 @@ try {
   await page.goto(
     (process.env.UNIFIED_BASE_URL || "http://localhost:5177") + "/app/copilot?tenant=company",
   );
-  await page.getByRole("button", { name: /Review proposed changes/ }).click();
+  await page.getByRole("button", { name: "Review and decide", exact: true }).click();
   await page.locator("#invoice-title").waitFor();
-  await page.getByRole("button", { name: "Reject", exact: true }).click();
-  await page.getByRole("dialog").getByText("Rejected", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Do not approve", exact: true }).click();
+  await page.locator("#invoice-title").waitFor({ state: "detached" });
+  assert.equal(proposal.status, "rejected");
   // Spec 283: a consolidated invoice from one party's deliveries over two orders.
   await page.goto(
     (process.env.UNIFIED_BASE_URL || "http://localhost:5177") + "/app/finance?tenant=company",
   );
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions();
   await page.getByRole("button", { name: "New customer invoice", exact: true }).click();
   await page.getByLabel("Collect positions", { exact: true }).selectOption("party");
   await page.getByLabel("Party", { exact: true }).selectOption("customer");
@@ -366,7 +395,7 @@ try {
   ]);
   await page.getByRole("button", { name: "Order: ORDER-A", exact: true }).waitFor();
   await page.getByRole("button", { name: "Order: ORDER-B", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByRole("button", { name: "Request changes", exact: true }).click();
   await page.getByLabel("Include Office chair", { exact: true }).waitFor();
   assert.equal(await page.getByLabel("Collect positions", { exact: true }).inputValue(), "party");
   assert.equal(await page.getByLabel("Include Desk lamp", { exact: true }).isChecked(), true);

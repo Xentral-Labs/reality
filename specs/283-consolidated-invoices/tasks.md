@@ -75,7 +75,7 @@ Tests come before the implementation they prove. Paths are relative to the repos
   invoice.
 - [x] T015 [US3] Implement FR-008 in `packages/reality-core/src/reality/web/api.py`
   `document_inspector`.
-- [ ] T016 (extended, not executable: the script already fails on main at its first step, the empty Finance "More actions" menu in the fixture; T017 was implemented before this proof, see verification) [US1][US3] Extend `apps/web/scripts/unified-invoice-entry-browser.mjs` with the party
+- [x] T016 [US1][US3] Extend `apps/web/scripts/unified-invoice-entry-browser.mjs` with the party
   mode (pick positions of two orders, review lists both orders, edit restores) before the UI.
 - [x] T017 [US1][US3] Implement FR-006/FR-007 in `apps/web/src/unified/InvoiceCard.tsx`,
   `apps/web/src/api.ts` and `apps/web/src/localization.tsx` (en/de/nl/es, German
@@ -97,7 +97,10 @@ Tests come before the implementation they prove. Paths are relative to the repos
   its many callers. The billable read reuses it and the shared movement path unchanged.
 - A4: the statement count is independent of fully billed history (SQL prefilter), not of the
   number of open candidates, which the 200-position bound limits.
-- T016/T017: order reversed; the browser proof could not run on main (see T016).
+- T016/T017: order reversed. The browser proof first could not run because the script already
+  failed on main (a race opening the page-action menu before action discovery loaded, and three
+  labels and two review hosts renamed since spec 276). The fixture was repaired; the party flow
+  passes, and against main's InvoiceCard it fails exactly at "Collect positions".
 
 ## Dependencies
 
