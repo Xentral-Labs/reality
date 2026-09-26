@@ -277,8 +277,11 @@ def test_a_consolidated_sales_invoice_bills_each_order_line_by_its_own_quantity(
     )
     assert billing(session, business, a) == (Decimal(0), Decimal(3))
     assert billing(session, business, b) == (Decimal(0), Decimal(3))
-    # Out of scope here: shipped_not_billed does not yet honour a reversed invoice,
-    # for a single-order invoice either; that is a separate defect.
+    # A reversed invoice bills nothing any more, so both deliveries are unbilled.
+    assert findings(session, business, "shipped_not_billed", unbilled) == {
+        a.id: Decimal(3),
+        b.id: Decimal(3),
+    }
 
 
 def test_a_consolidated_supplier_invoice_is_received_against_each_purchase(

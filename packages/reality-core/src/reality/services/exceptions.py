@@ -19,6 +19,7 @@ from reality.db.core import (
     ImportJob,
     Item,
     LedgerEntry,
+    LedgerReversal,
     Location,
     Lot,
     Movement,
@@ -764,12 +765,58 @@ def _invoice_lines(
     Credit note lines reference the same order line and mean the opposite, so a
     class about billing must not count them.
     """
-    return [
+    invoices = [
         line
         for line in _billing_lines(session, tenant_id, order_line_id)
         if _referencing_document_type(session, tenant_id, line)
         in {"sales_invoice", "supplier_invoice"}
     ]
+    released = _released_invoice_ids(
+        session, tenant_id, {line.document_id for line in invoices}
+    )
+    return [line for line in invoices if line.document_id not in released]
+
+
+def _released_invoice_ids(
+    session: Session, tenant_id: str, document_ids: set[str]
+) -> set[str]:
+    """Invoices whose every posting group is reversed, so they bill nothing.
+
+    Spec 124 FR-004: a full reversal makes the quantity billable again. The billing
+    availability the invoice entry validates against already reads it this way; the
+    classes reading billed quantity read it here, so both agree. An unposted invoice
+    has no group and still counts, as it does there.
+    """
+    if not document_ids:
+        return set()
+    inputs = _inputs(session, tenant_id)
+    if inputs is not None:
+        return inputs.released_invoices & document_ids
+    groups: dict[str, set[str]] = {}
+    for document_id, group in session.execute(
+        select(LedgerEntry.document_id, LedgerEntry.posting_group_id).where(
+            LedgerEntry.tenant_id == tenant_id,
+            LedgerEntry.document_id.in_(document_ids),
+        )
+    ):
+        groups.setdefault(document_id, set()).add(group)
+    if not groups:
+        return set()
+    reversed_groups = set(
+        session.scalars(
+            select(LedgerReversal.original_posting_group_id).where(
+                LedgerReversal.tenant_id == tenant_id,
+                LedgerReversal.original_posting_group_id.in_(
+                    {group for values in groups.values() for group in values}
+                ),
+            )
+        )
+    )
+    return {
+        document_id
+        for document_id, values in groups.items()
+        if values and values <= reversed_groups
+    }
 
 
 @dataclass(frozen=True)
