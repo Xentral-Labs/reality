@@ -3,7 +3,13 @@
 // to observe the in-flight state and the "nothing changed" outcome.
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
+const guidanceCatalog = JSON.parse(
+  await readFile(
+    new URL("../../../packages/reality-core/config/resolution_guidance.json", import.meta.url),
+    "utf8",
+  ),
+);
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -22,7 +28,9 @@ let language = "en",
   delay = 0,
   state = "ready",
   readFails = false,
-  summaryRequests = 0;
+  summaryRequests = 0,
+  failureCode = null,
+  worker = "ready";
 
 const metadata = () => ({
   projection: "exceptions",
@@ -34,6 +42,23 @@ const metadata = () => ({
   projection_version: 1,
   upstream_freshness: "unknown",
   consistency: "completed_snapshot",
+  failure_code: state === "failed" ? failureCode : null,
+  guidance:
+    state === "ready"
+      ? null
+      : {
+          reason_code: state === "failed" && failureCode ? failureCode : `projection_${state}`,
+          steps: [
+            {
+              code: "system_status",
+              state: "open",
+              role: "operator",
+              path: "system_status",
+              targets: [],
+              target_count: 0,
+            },
+          ],
+        },
 });
 
 await page.route("**/api/**", async (route) => {
@@ -63,7 +88,14 @@ await page.route("**/api/**", async (route) => {
     });
   if (path === "/api/v1/bootstrap")
     return reply({ tenants: [{ id: "t1", name: "Northstar" }], default_tenant_id: "t1" });
-  if (path.endsWith("/application-reference")) return reply({ workspaces: [] });
+  if (path.endsWith("/application-reference"))
+    return reply({ workspaces: [], resolution_guidance: guidanceCatalog });
+  if (path.endsWith("/readiness"))
+    return reply({
+      status: worker === "ready" ? "ready" : worker,
+      observed_at: completedAt,
+      components: { connection: "ready", scheduler: "ready", worker },
+    });
   if (path === "/api/playground/exception-catalog")
     return reply({
       version: 1,
@@ -263,6 +295,36 @@ try {
   readFails = false;
   await refreshButton().click();
   await page.locator('[data-projection-outcome="unchanged"]').waitFor();
+
+  // Spec 279 FR-011: a result that is not current explains itself.
+  state = "uninitialized";
+  completedAt = null;
+  worker = "unavailable";
+  await page.goto(`${base}/app/attention?tenant=t1`);
+  const explanation = page.locator('[data-projection-guidance="projection_uninitialized"]');
+  await explanation.getByText("Waiting for the first calculation", { exact: true }).waitFor();
+  await explanation
+    .getByText("Background processing is currently unavailable, so calculations cannot run.", {
+      exact: true,
+    })
+    .waitFor();
+  state = "failed";
+  completedAt = "2026-09-16T19:45:00Z";
+  failureCode = "handler_timeout";
+  worker = "ready";
+  await page.reload();
+  const failed = page.locator('[data-projection-guidance="handler_timeout"]');
+  await failed.getByText("The calculation took too long", { exact: true }).waitFor();
+  assert.equal(await failed.locator("[data-projection-processing]").count(), 0);
+  const errorsBeforeHome = errors.length;
+  await failed.getByRole("button", { name: "Open system status" }).click();
+  await page.waitForURL((url) => url.pathname === "/app" || url.pathname === "/app/");
+  // This fixture serves only the stored-result reads, not the Home page it links to:
+  // leave Home before its reads settle and discard what they raised.
+  await page.goto(`${base}/app/attention?tenant=t1`);
+  errors.splice(errorsBeforeHome);
+  state = "ready";
+  failureCode = null;
 
   // 5. Every wording exists in all four languages.
   for (language of ["de", "nl", "es"]) {

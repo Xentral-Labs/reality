@@ -21370,3 +21370,23 @@ Object.assign(dictionaries.es, {
   "Correcting the commercial evidence or accepting and reviewing a non-negative current contribution basis.":
     "Corregir los justificantes comerciales o aceptar y revisar una base de contribución actual no negativa.",
 });
+
+// Spec 279: stored calculation guidance.
+Object.assign(dictionaries.de, {
+  "Background processing has not been confirmed yet.":
+    "Die Hintergrundverarbeitung ist noch nicht bestätigt.",
+  "Background processing is currently unavailable, so calculations cannot run.":
+    "Die Hintergrundverarbeitung ist gerade nicht verfügbar, deshalb können keine Berechnungen laufen.",
+});
+Object.assign(dictionaries.nl, {
+  "Background processing has not been confirmed yet.":
+    "De achtergrondverwerking is nog niet bevestigd.",
+  "Background processing is currently unavailable, so calculations cannot run.":
+    "De achtergrondverwerking is momenteel niet beschikbaar, dus er kunnen geen berekeningen lopen.",
+});
+Object.assign(dictionaries.es, {
+  "Background processing has not been confirmed yet.":
+    "El procesamiento en segundo plano aún no está confirmado.",
+  "Background processing is currently unavailable, so calculations cannot run.":
+    "El procesamiento en segundo plano no está disponible ahora mismo, así que no se pueden ejecutar cálculos.",
+});
