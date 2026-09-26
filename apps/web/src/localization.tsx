@@ -20968,3 +20968,56 @@ Object.assign(dictionaries.es, {
   "Release the customer's delivery hold": "Levantar el bloqueo de entregas del cliente",
   "Check the open items": "Revisar las partidas abiertas",
 });
+
+// Spec 279: resolution guidance controls.
+Object.assign(dictionaries.de, {
+  "A company owner must confirm this.": "Ein Inhaber muss das bestätigen.",
+  "An administrator takes care of this.": "Darum kümmert sich ein Administrator.",
+  "Further step": "Weiterer Schritt",
+  "Open system status": "Systemstatus öffnen",
+  "Open the explanation to see which evidence is involved.":
+    "Öffne die Erklärung, um zu sehen, welche Nachweise betroffen sind.",
+  "Prepare with Reality": "Mit Reality vorbereiten",
+  "Review in Decisions": "In Entscheidungen prüfen",
+  "Something this value needs is still missing": "Für diesen Wert fehlt noch etwas",
+  "Steps to a proven value": "Schritte zu einem nachgewiesenen Wert",
+  "This company is read-only. Nothing can be changed here.":
+    "Dieses Unternehmen ist schreibgeschützt. Hier lässt sich nichts ändern.",
+  "Step done": "Schritt erledigt",
+  "Step open": "Schritt offen",
+  "Step waits for the one before": "Schritt wartet auf den vorherigen",
+});
+Object.assign(dictionaries.nl, {
+  "A company owner must confirm this.": "Een eigenaar moet dit bevestigen.",
+  "An administrator takes care of this.": "Een beheerder regelt dit.",
+  "Further step": "Volgende stap",
+  "Open system status": "Systeemstatus openen",
+  "Open the explanation to see which evidence is involved.":
+    "Open de uitleg om te zien welk bewijs het betreft.",
+  "Prepare with Reality": "Met Reality voorbereiden",
+  "Review in Decisions": "Bekijken in Beslissingen",
+  "Something this value needs is still missing": "Voor deze waarde ontbreekt nog iets",
+  "Steps to a proven value": "Stappen naar een aangetoonde waarde",
+  "This company is read-only. Nothing can be changed here.":
+    "Dit bedrijf is alleen-lezen. Hier kan niets worden gewijzigd.",
+  "Step done": "Stap afgerond",
+  "Step open": "Stap open",
+  "Step waits for the one before": "Stap wacht op de vorige",
+});
+Object.assign(dictionaries.es, {
+  "A company owner must confirm this.": "Un propietario debe confirmarlo.",
+  "An administrator takes care of this.": "De esto se encarga un administrador.",
+  "Further step": "Otro paso",
+  "Open system status": "Abrir el estado del sistema",
+  "Open the explanation to see which evidence is involved.":
+    "Abre la explicación para ver qué justificantes intervienen.",
+  "Prepare with Reality": "Preparar con Reality",
+  "Review in Decisions": "Revisar en Decisiones",
+  "Something this value needs is still missing": "A este valor todavía le falta algo",
+  "Steps to a proven value": "Pasos hacia un valor demostrado",
+  "This company is read-only. Nothing can be changed here.":
+    "Esta empresa es de solo lectura. Aquí no se puede cambiar nada.",
+  "Step done": "Paso completado",
+  "Step open": "Paso pendiente",
+  "Step waits for the one before": "El paso espera al anterior",
+});

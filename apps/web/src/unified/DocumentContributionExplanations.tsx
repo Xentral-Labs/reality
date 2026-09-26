@@ -29,7 +29,12 @@ export function DocumentContributionExplanations({
       {unique.map((scope) => (
         <div key={scope.id}>
           <p className="text-sm font-medium text-fg-strong">{scope.label}</p>
-          <CostExplanation tenant={tenant} kind="contribution" scopeId={scope.id} />
+          <CostExplanation
+            tenant={tenant}
+            kind="contribution"
+            scopeId={scope.id}
+            scopeLabel={scope.label}
+          />
         </div>
       ))}
     </section>

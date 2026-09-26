@@ -24,8 +24,7 @@ test("one explanation component owns freshness, gaps, precision and trace", asyn
     "Missing basis",
     "Exact retained value",
     "Cost readiness",
-    "Next authorized action",
-    "Authenticated company owner required",
+    "ResolutionGuidance",
     "guidance.explanation_links",
     "inspector_target_kind",
   ])
@@ -34,7 +33,11 @@ test("one explanation component owns freshness, gaps, precision and trace", asyn
   assert.match(component, /formatExactDecimal\(text\(value\)!, true\)/);
   assert.doesNotMatch(component, /Exact retained value"\)\}: \{text\(value\)\}/);
   assert.match(component, /className="mt-1 block text-fg-muted"/);
-  assert.match(component, /shown\.unit_cost/);
+  // Spec 279 FR-010: inventory results never carry a unit cost, so no field promises one.
+  assert.doesNotMatch(component, /shown\.unit_cost|"Unit cost"/);
+  assert.match(component, /value_reasons\?\.carrying_value/);
+  // Spec 279 FR-005: no raw stage, reason sentence, tool or operation reaches the page.
+  assert.doesNotMatch(component, /guidance\.stage\}|guidance\.reason\}|next_action|<code>/);
   assert.match(component, /shown\.acquisition_value \?\? shown\.basis_acquisition_value/);
 });
 
@@ -57,7 +60,7 @@ test("Orders and Finance use only exact invoice line identities", async () => {
   const finance = await source("unified/FinancePage.tsx");
   assert.match(component, /invoice\.invoice_line_id/);
   assert.match(component, /line\.id/);
-  assert.match(component, /kind="contribution" scopeId=\{scope\.id\}/);
+  assert.match(component, /kind="contribution"\s+scopeId=\{scope\.id\}/);
   assert.match(orders, /source="billed_invoice_lines"/);
   assert.match(finance, /row\.document_type === "sales_invoice"/);
   assert.match(finance, /source="document_lines"/);
