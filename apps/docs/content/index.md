@@ -150,7 +150,8 @@ contracts remain normative when implementation detail or governance matters.
 The model is not only described; it is inspectable. Readers can trace each central business claim
 from the worked example through an executable catalog to its service and test. The core stays small
 on purpose: it proves and teaches the shortest true relationships instead of pretending to cover
-every ERP feature. Reality is available under the [MIT License](/reference/license).
+every feature a full business suite has. Reality is available under the
+[MIT License](/reference/license).
 
 ## Try Reality without installing it yourself
 
