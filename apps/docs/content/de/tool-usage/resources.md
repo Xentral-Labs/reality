@@ -557,6 +557,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 - [Geprüfte Teilzuordnung anzeigen](./commands#command-commercial_match) (`commercial_match`)
 - [Kosten mit Bewertungsbasis abfragen](./commands#command-cost_query) (`cost_query`)
+- [Kostenprüfung entwerfen](./commands#command-cost_review_draft) (`cost_review_draft`)
 - [Kostennachweis prüfen](./commands#command-cost_record) (`cost_record`)
 - [Geprüfte Deckungsbeiträge anzeigen](./commands#command-reviewed_contribution)
   (`reviewed_contribution`)
@@ -644,6 +645,7 @@ jedes bestätigte Ergebnis behält seine Prüfung und Wissensgrenze.
 
 - [Geprüfte Teilzuordnung anzeigen](./commands#command-commercial_match) (`commercial_match`)
 - [Kosten mit Bewertungsbasis abfragen](./commands#command-cost_query) (`cost_query`)
+- [Kostenprüfung entwerfen](./commands#command-cost_review_draft) (`cost_review_draft`)
 - [Kostennachweis prüfen](./commands#command-cost_record) (`cost_record`)
 - [Geprüfte Deckungsbeiträge anzeigen](./commands#command-reviewed_contribution)
   (`reviewed_contribution`)

@@ -16,6 +16,7 @@ all reach the same operation.
 | [`assign_supply`](#command-assign_supply)                                         | Assign incoming supply to customer demand | Cross-functional           | `supply_assign_propose`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report               | Cross-functional           | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision    | Cross-functional           | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
+| [`cost_review_draft`](#command-cost_review_draft)                                 | Draft a cost review                       | Cross-functional           | `cost_review_draft`                                                                                                                                                                          | Web · MCP · Chat                        |
 | [`cost_record`](#command-cost_record)                                             | Inspect retained cost record              | Cross-functional           | `cost_record_get`                                                                                                                                                                            | CLI · Web · MCP · Chat                  |
 | [`notices`](#command-notices)                                                     | List dunning notices                      | Cross-functional           | `finance_dunning_notices`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate    | Cross-functional           | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
@@ -5211,7 +5212,7 @@ reservations.
 **Synopsis**
 
 ```text
-movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id]
+movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [opening_cost]
 ```
 
 **Reach via:** CLI · Web · API · scenario · MCP · Chat
@@ -5234,7 +5235,7 @@ required.
 **Synopsis**
 
 ```text
-movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id]
+movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [opening_cost]
 ```
 
 **Access:** `propose`
@@ -5265,22 +5266,26 @@ Record an immutable physical receipt, transfer, shipment, return, or adjustment.
 
 **Parameters**
 
-| Name                     | Type     | Required | Description                                                                                                                                                                                                                                                     | Default |
-| ------------------------ | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `movement_type`          | `string` | yes      | Physical event kind — opening_stock, receipt, shipment, transfer, adjustment, return (goods back from a customer), or supplier_return (goods back to a supplier). `opening_stock`, `receipt`, `shipment`, `transfer`, `return`, `supplier_return`, `adjustment` | —       |
-| `item_id`                | `string` | yes      | Opaque identity of the operational item reference.                                                                                                                                                                                                              | —       |
-| `quantity`               | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                                                                                                                         | —       |
-| `from_location_id`       | `string` | no       | Opaque identity of the location from which physical stock leaves.                                                                                                                                                                                               | —       |
-| `to_location_id`         | `string` | no       | Opaque identity of the location into which physical stock arrives.                                                                                                                                                                                              | —       |
-| `commitment_id`          | `string` | no       | Opaque identity of the obligation being reserved, held, or executed.                                                                                                                                                                                            | —       |
-| `source_record_id`       | `string` | no       | Opaque identity of the immutable source record supporting this typed record.                                                                                                                                                                                    | —       |
-| `handling_unit_id`       | `string` | no       | Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.                                                                                                                                                                             | —       |
-| `lot_id`                 | `string` | no       | Exact batch or lot identity to reserve or move.                                                                                                                                                                                                                 | —       |
-| `serial_unit_id`         | `string` | no       | Exact serial-unit identity to reserve or move; serialized quantities are always one.                                                                                                                                                                            | —       |
-| `occurred_at`            | `string` | no       | UTC instant at which the physical or business event occurred.                                                                                                                                                                                                   | —       |
-| `reason`                 | `string` | no       | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                                                                                                                         | —       |
-| `resolves_movement_id`   | `string` | no       | Opaque identity of the return this movement settles; absent means it settles none.                                                                                                                                                                              | —       |
-| `return_announcement_id` | `string` | no       | Opaque identity of the announced return these goods fulfil; absent means they were not announced.                                                                                                                                                               | —       |
+| Name                              | Type     | Required | Description                                                                                                                                                                                                                                                     | Default |
+| --------------------------------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `movement_type`                   | `string` | yes      | Physical event kind — opening_stock, receipt, shipment, transfer, adjustment, return (goods back from a customer), or supplier_return (goods back to a supplier). `opening_stock`, `receipt`, `shipment`, `transfer`, `return`, `supplier_return`, `adjustment` | —       |
+| `item_id`                         | `string` | yes      | Opaque identity of the operational item reference.                                                                                                                                                                                                              | —       |
+| `quantity`                        | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                                                                                                                         | —       |
+| `from_location_id`                | `string` | no       | Opaque identity of the location from which physical stock leaves.                                                                                                                                                                                               | —       |
+| `to_location_id`                  | `string` | no       | Opaque identity of the location into which physical stock arrives.                                                                                                                                                                                              | —       |
+| `commitment_id`                   | `string` | no       | Opaque identity of the obligation being reserved, held, or executed.                                                                                                                                                                                            | —       |
+| `source_record_id`                | `string` | no       | Opaque identity of the immutable source record supporting this typed record.                                                                                                                                                                                    | —       |
+| `handling_unit_id`                | `string` | no       | Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.                                                                                                                                                                             | —       |
+| `lot_id`                          | `string` | no       | Exact batch or lot identity to reserve or move.                                                                                                                                                                                                                 | —       |
+| `serial_unit_id`                  | `string` | no       | Exact serial-unit identity to reserve or move; serialized quantities are always one.                                                                                                                                                                            | —       |
+| `occurred_at`                     | `string` | no       | UTC instant at which the physical or business event occurred.                                                                                                                                                                                                   | —       |
+| `reason`                          | `string` | no       | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                                                                                                                         | —       |
+| `resolves_movement_id`            | `string` | no       | Opaque identity of the return this movement settles; absent means it settles none.                                                                                                                                                                              | —       |
+| `return_announcement_id`          | `string` | no       | Opaque identity of the announced return these goods fulfil; absent means they were not announced.                                                                                                                                                               | —       |
+| `opening_cost`                    | `object` | no       | Opening stock only: the total acquisition value its evidence states, recorded as received for the cost review (spec 282).                                                                                                                                       | —       |
+| `opening_cost.amount`             | `string` | yes      | Total acquisition value exactly as the evidence states it; never a computed unit cost.                                                                                                                                                                          | —       |
+| `opening_cost.currency`           | `string` | yes      | Three-letter currency code of the stated value.                                                                                                                                                                                                                 | —       |
+| `opening_cost.evidence_reference` | `string` | yes      | Names the document the value comes from, for example an inventory list.                                                                                                                                                                                         | —       |
 
 **Verify with:** `inventory` — Physical stock reflects the immutable Movement.;
 `commitment_register` — Fulfillment derives from Movements linked to the Commitment.; `timeline` —
@@ -6208,7 +6213,8 @@ cost_change_propose expected_event_sequence reason operation [document_id] [docu
 **Access:** `propose`
 
 Prepare acquisition or selling-cost decisions, bounded inventory reviews and explicitly confirmed
-whole-line DB1/DB2 reviews.
+whole-line DB1/DB2 reviews. For inventory_review and contribution_review, call cost_review_draft
+first and propose its arguments unchanged.
 
 **Use when**
 
@@ -6389,6 +6395,72 @@ shares and reviewed completeness.; `cost.inventory.get` — Confirmed bounded po
 acquisition value and consumption at an exact retained cutoff.
 
 **See also:** command [`execute_cost_change`](./commands#command-execute_cost_change)
+
+### `cost_review_draft` — Draft a cost review {#command-cost_review_draft}
+
+Draft the inventory or contribution review the held records support, or name the inputs a person
+must provide; nothing is stored or proposed.
+
+**Synopsis**
+
+```text
+cost_review_draft kind scope_id [answers]
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `item`, `movement`, `movement_correction`, `party`, `party_role`,
+`source_record`, `document`, `document_line`, `financial_component`, `cost_input_manifest`,
+`cost_receipt_basis`, `cost_attribution_revision`, `cost_attribution_part`, `cost_component_basis`,
+`cost_scope_review`, `cost_inventory_review` · Writes: —
+
+**See also:** agent tool [`cost_review_draft`](./commands#tool-cost_review_draft)
+
+#### `cost_review_draft` — Draft a cost review {#tool-cost_review_draft}
+
+Draft the inventory or contribution review the held records support: complete cost_change_propose
+arguments, or the open inputs a person must decide. Call it before cost_change_propose.
+
+**Synopsis**
+
+```text
+cost_review_draft kind scope_id [answers]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query          | Kind                        | Default |
+| ----------------------- | --------------------------- | ------- |
+| `MCP cost_review_draft` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Draft the inventory or contribution cost review that held records support, so nobody has to supply
+identifiers.
+
+**Use when**
+
+- Before cost_change_propose for inventory_review or contribution_review, including when a person
+  asks in plain language to prepare a cost review.
+
+**Do not use when**
+
+- Assign supplier invoice lines to receipts or review selling costs; those have their own
+  operations.
+
+**Parameters**
+
+| Name                     | Type     | Required | Description                                                                                                 | Default |
+| ------------------------ | -------- | -------- | ----------------------------------------------------------------------------------------------------------- | ------- |
+| `kind`                   | `string` | yes      | Explicit internal or target reference kind; no inferred tax or country meaning. `inventory`, `contribution` | —       |
+| `scope_id`               | `string` | yes      | Exact item identity for inventory or received invoice-line identity for contribution.                       | —       |
+| `answers`                | `object` | no       | What a person decided for the open inputs; nothing else is accepted.                                        | `None`  |
+| `answers.method`         | `string` | no       | `fifo`, `specific`                                                                                          | `None`  |
+| `answers.owner_party_id` | `string` | no       | —                                                                                                           | `None`  |
+
+**See also:** command [`cost_review_draft`](./commands#command-cost_review_draft)
 
 ### `cost_record` — Inspect retained cost record {#command-cost_record}
 

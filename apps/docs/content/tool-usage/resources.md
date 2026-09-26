@@ -547,6 +547,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 - [Read reviewed partial commercial match](./commands#command-commercial_match) (`commercial_match`)
 - [Read cost query context](./commands#command-cost_query) (`cost_query`)
+- [Draft a cost review](./commands#command-cost_review_draft) (`cost_review_draft`)
 - [Inspect retained cost record](./commands#command-cost_record) (`cost_record`)
 - [Read reviewed commercial contribution](./commands#command-reviewed_contribution)
   (`reviewed_contribution`)
@@ -636,6 +637,7 @@ confirmed result retains its review and knowledge boundary.
 
 - [Read reviewed partial commercial match](./commands#command-commercial_match) (`commercial_match`)
 - [Read cost query context](./commands#command-cost_query) (`cost_query`)
+- [Draft a cost review](./commands#command-cost_review_draft) (`cost_review_draft`)
 - [Inspect retained cost record](./commands#command-cost_record) (`cost_record`)
 - [Read reviewed commercial contribution](./commands#command-reviewed_contribution)
   (`reviewed_contribution`)

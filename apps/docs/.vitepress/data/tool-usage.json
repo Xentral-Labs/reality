@@ -769,6 +769,7 @@
       "reads": [
         "command:commercial_match",
         "command:cost_query",
+        "command:cost_review_draft",
         "command:cost_record",
         "command:reviewed_contribution",
         "command:contribution_preview",
@@ -851,6 +852,7 @@
       "reads": [
         "command:commercial_match",
         "command:cost_query",
+        "command:cost_review_draft",
         "command:cost_record",
         "command:reviewed_contribution",
         "command:contribution_preview",
@@ -5893,7 +5895,7 @@
       "summary": "Prepare this business mutation without changing state. Record Movement. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id]",
+      "synopsis": "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [opening_cost]",
       "parameters": [
         {
           "name": "movement_type",
@@ -6001,6 +6003,34 @@
           "required": false,
           "description": "Opaque identity of the announced return these goods fulfil; absent means they were not announced.",
           "depth": 0
+        },
+        {
+          "name": "opening_cost",
+          "type": "object",
+          "required": false,
+          "description": "Opening stock only: the total acquisition value its evidence states, recorded as received for the cost review (spec 282).",
+          "depth": 0
+        },
+        {
+          "name": "opening_cost.amount",
+          "type": "string",
+          "required": true,
+          "description": "Total acquisition value exactly as the evidence states it; never a computed unit cost.",
+          "depth": 1
+        },
+        {
+          "name": "opening_cost.currency",
+          "type": "string",
+          "required": true,
+          "description": "Three-letter currency code of the stated value.",
+          "depth": 1
+        },
+        {
+          "name": "opening_cost.evidence_reference",
+          "type": "string",
+          "required": true,
+          "description": "Names the document the value comes from, for example an inventory list.",
+          "depth": 1
         }
       ],
       "guidance": {
@@ -14375,6 +14405,86 @@
       "resources": ["accounting", "contribution", "source"]
     },
     {
+      "id": "tool:cost_review_draft",
+      "kind": "tool",
+      "key": "cost_review_draft",
+      "label": "Draft a cost review",
+      "area": "cross_functional",
+      "summary": "Draft the inventory or contribution review the held records support: complete cost_change_propose arguments, or the open inputs a person must decide. Call it before cost_change_propose.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "cost_review_draft kind scope_id [answers]",
+      "parameters": [
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 0,
+          "enum": ["inventory", "contribution"]
+        },
+        {
+          "name": "scope_id",
+          "type": "string",
+          "required": true,
+          "description": "Exact item identity for inventory or received invoice-line identity for contribution.",
+          "depth": 0
+        },
+        {
+          "name": "answers",
+          "type": "object",
+          "required": false,
+          "description": "What a person decided for the open inputs; nothing else is accepted.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "answers.method",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null,
+          "enum": ["fifo", "specific"]
+        },
+        {
+          "name": "answers.owner_party_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        }
+      ],
+      "guidance": {
+        "purpose": "Draft the inventory or contribution cost review that held records support, so nobody has to supply identifiers.",
+        "use_when": [
+          "Before cost_change_propose for inventory_review or contribution_review, including when a person asks in plain language to prepare a cost review."
+        ],
+        "do_not_use_when": [
+          "Assign supplier invoice lines to receipts or review selling costs; those have their own operations."
+        ],
+        "limitations": [
+          "The valuation method is always asked; FIFO is preselected and specific selection is offered only for serial or lot items.",
+          "Customer return portions and supplier return selections are not derived; they become open inputs."
+        ],
+        "empty_result": "With open inputs, arguments are null and partial_arguments show what is already derived.",
+        "freshness": "Current; arguments are bound to the returned event sequence and go stale when it moves."
+      },
+      "read_modes": [
+        {
+          "query": "MCP cost_review_draft",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "cost_review_draft",
+      "projections": [],
+      "links": ["command:cost_review_draft"],
+      "label_de": "Draft a cost review",
+      "resources": ["accounting", "contribution"]
+    },
+    {
       "id": "tool:cost_query_get",
       "kind": "tool",
       "key": "cost_query_get",
@@ -15922,7 +16032,7 @@
         }
       ],
       "guidance": {
-        "purpose": "Prepare acquisition or selling-cost decisions, bounded inventory reviews and explicitly confirmed whole-line DB1/DB2 reviews.",
+        "purpose": "Prepare acquisition or selling-cost decisions, bounded inventory reviews and explicitly confirmed whole-line DB1/DB2 reviews. For inventory_review and contribution_review, call cost_review_draft first and propose its arguments unchanged.",
         "use_when": [
           "Assign received acquisition amounts, review their completeness, confirm bounded inventory scope or approve an exact whole-line commercial contribution."
         ],
@@ -16068,6 +16178,59 @@
       },
       "links": ["tool:cost_query_get"],
       "label_de": "Kosten mit Bewertungsbasis abfragen",
+      "resources": ["accounting", "contribution"]
+    },
+    {
+      "id": "command:cost_review_draft",
+      "kind": "command",
+      "key": "cost_review_draft",
+      "label": "Draft a cost review",
+      "area": "cross_functional",
+      "summary": "Draft the inventory or contribution review the held records support, or name the inputs a person must provide; nothing is stored or proposed.",
+      "mode": "read",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": [
+        "item",
+        "movement",
+        "movement_correction",
+        "party",
+        "party_role",
+        "source_record",
+        "document",
+        "document_line",
+        "financial_component",
+        "cost_input_manifest",
+        "cost_receipt_basis",
+        "cost_attribution_revision",
+        "cost_attribution_part",
+        "cost_component_basis",
+        "cost_scope_review",
+        "cost_inventory_review"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["cost_review_draft"],
+      "synopses": ["cost_review_draft kind scope_id [answers]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Draft the inventory or contribution cost review that held records support, so nobody has to supply identifiers.",
+        "use_when": [
+          "Before cost_change_propose for inventory_review or contribution_review, including when a person asks in plain language to prepare a cost review."
+        ],
+        "do_not_use_when": [
+          "Assign supplier invoice lines to receipts or review selling costs; those have their own operations."
+        ],
+        "limitations": [
+          "The valuation method is always asked; FIFO is preselected and specific selection is offered only for serial or lot items.",
+          "Customer return portions and supplier return selections are not derived; they become open inputs."
+        ],
+        "empty_result": "With open inputs, arguments are null and partial_arguments show what is already derived.",
+        "freshness": "Current; arguments are bound to the returned event sequence and go stale when it moves."
+      },
+      "links": ["tool:cost_review_draft"],
+      "label_de": "Kostenprüfung entwerfen",
       "resources": ["accounting", "contribution"]
     },
     {
@@ -16455,7 +16618,7 @@
       "events": ["cost.attributed", "cost.reviewed"],
       "actions": [],
       "guidance": {
-        "purpose": "Prepare acquisition or selling-cost decisions, bounded inventory reviews and explicitly confirmed whole-line DB1/DB2 reviews.",
+        "purpose": "Prepare acquisition or selling-cost decisions, bounded inventory reviews and explicitly confirmed whole-line DB1/DB2 reviews. For inventory_review and contribution_review, call cost_review_draft first and propose its arguments unchanged.",
         "use_when": [
           "Assign received acquisition amounts, review their completeness, confirm bounded inventory scope or approve an exact whole-line commercial contribution."
         ],
@@ -18395,7 +18558,7 @@
       "related_services": [],
       "tools": ["movement_create_propose"],
       "synopses": [
-        "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id]"
+        "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [opening_cost]"
       ],
       "events": ["commitment.fulfilled", "reservation.consumed", "movement.recorded"],
       "actions": ["record_movement"],

@@ -553,3 +553,42 @@ def test_late_return_case_remains_truthful(seeded):
     assert late["coverage"]["complete"] is True
     assert cases["late_cost_return"]["initial_state"] == "cost_incomplete"
     assert cases["late_cost_return"]["current_state"] == "late_cost_return_reviewed"
+
+
+def test_demo_items_are_drafted_or_name_only_unstated_inputs(seeded):
+    """Spec 282 SC-003: over every stocked demo item the draft is accepted by the
+    existing check, or it names only inputs no held source states. It never returns a
+    wrong argument set. The demo seed states its own opening cost in code (a fixed unit
+    cost), so those openings honestly stay open instead of being copied."""
+    from collections import Counter
+
+    from reality.services.core import stock_at
+    from reality.services.cost_review_draft import cost_review_draft
+    from reality.services.costing import preview_cost_change
+
+    session, run = seeded
+    unstated = {
+        "opening_cost_missing",
+        "return_portion_undetermined",
+        "movement_unclassified",
+    }
+    outcome = Counter()
+    for item in session.scalars(select(Item).where(Item.tenant_id == run.tenant_id)):
+        if stock_at(session, run.tenant_id, item.id) <= 0:
+            continue
+        draft = cost_review_draft(
+            session,
+            run.tenant_id,
+            kind="inventory",
+            scope_id=item.id,
+            answers={"method": "fifo"},
+        )
+        if draft["arguments"]:
+            preview_cost_change(session, run.tenant_id, draft["arguments"])
+            outcome["accepted"] += 1
+            continue
+        codes = {entry["code"] for entry in draft["open_inputs"]}
+        assert codes <= unstated, (item.sku, draft["open_inputs"])
+        outcome["open"] += 1
+    # Positive control: some demo items are drafted completely and accepted.
+    assert outcome["accepted"] >= 1, outcome

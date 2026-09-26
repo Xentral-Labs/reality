@@ -271,3 +271,21 @@ Negative tests are paired with positive controls (memory: vacuous negatives).
 | Constitution exception | Why needed | Simpler alternative rejected | Approval |
 |---|---|---|---|
 | None | — | — | — |
+
+## Implementation notes (2026-09-26)
+
+- **Earlier openings without cost** are corrected away with the existing movement correction
+  and recorded again with cost. The correction tool takes no `opening_cost`, and none was
+  needed.
+- **Added open-input codes:** `currency_ambiguous` (receipts or openings in more than one
+  currency), plus the reason codes `inventory_history_empty`, `inputs_changed` and
+  `specific_selection_required`. All have catalog wording.
+- **Tenant policy:** it admits `store_source_record` during proposal execution only for a
+  `movement_create` opening whose saved intent carries `opening_cost`.
+- **Opening verification:** both opening verifications accept exactly the
+  `opening_cost_statement` that the same proposal recorded, and nothing else.
+- **Idempotent endpoint:** the proposal endpoint compares the drafted arguments in the
+  proposal's normalized form, because the stored input normalizes timestamps and omitted
+  fields.
+- **Demo seed finding:** the demo seed fixes the opening cost at 6 per unit in code. No source
+  states it, so the draft keeps those openings open (SC-003 reworded).
