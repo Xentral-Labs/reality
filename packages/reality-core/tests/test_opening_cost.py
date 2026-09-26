@@ -118,6 +118,8 @@ def test_opening_with_statement_is_drafted_and_accepted(session, business, cost_
         }
     ]
     assert result["arguments"]["currency"] == "EUR"
+    # The summary names the quantity, so nobody reads the movement count as pieces.
+    assert result["summary"]["openings"][0]["quantity"] == "5.2500"
     preview_cost_change(session, business.tenant.id, result["arguments"])
     _, review = stock.commit_review(session, business, cost_owner, result["arguments"])
     assert review["acquisition_value"] == "63.0000"

@@ -122,6 +122,11 @@ def test_open_inputs_are_refused_until_answered(
         f"{base}/cost-review-proposals", json={**body, "answers": {"method": "fifo"}}
     )
     assert answered.status_code == 201, answered.text
+    # An inventory draft's cutoff is "now"; submitting it again is still one decision.
+    again = client.post(
+        f"{base}/cost-review-proposals", json={**body, "answers": {"method": "fifo"}}
+    )
+    assert again.status_code == 200 and again.json()["id"] == answered.json()["id"]
 
 
 def test_the_endpoint_proposes_through_the_shared_draft(

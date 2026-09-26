@@ -171,14 +171,24 @@ export function CostReviewDraftDialog({
                       .join(", ") || "—"}
                   </dd>
                 </div>
-                {((summary.openings as { amount: string }[]) || []).map((opening, index) => (
-                  <div key={index}>
-                    <dt className="text-xs text-fg-muted">
-                      {t("Opening stock value per evidence")}
-                    </dt>
-                    <dd>{money(opening.amount)}</dd>
-                  </div>
-                ))}
+                {((summary.openings as { amount: string; quantity?: string }[]) || []).map(
+                  (opening, index) => (
+                    <div key={index}>
+                      <dt className="text-xs text-fg-muted">
+                        {t("Opening stock value per evidence")}
+                      </dt>
+                      <dd>
+                        {money(opening.amount)}
+                        {opening.quantity && (
+                          <>
+                            {" "}
+                            · {formatQuantity(opening.quantity)} {text(summary.base_unit)}
+                          </>
+                        )}
+                      </dd>
+                    </div>
+                  ),
+                )}
               </>
             ) : (
               <>
