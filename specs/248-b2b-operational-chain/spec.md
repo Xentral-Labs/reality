@@ -207,6 +207,9 @@ least one allowed explanation path and the unexplained-movement exception is emp
   exists.
 - A supplier commitment is assigned to demand and later reduced below the assigned quantity.
 - A customer commitment or supplier commitment is cancelled after a supply assignment exists.
+  The assignment then no longer counts: coverage derives it as ended at read time, the stated
+  assignment is kept unchanged, and the supplier quantity becomes unassigned again (clarified
+  2026-09-26).
 - Returned quantity arrives in several parcels or exceeds the still-announceable delivered quantity.
 - A return disposition is corrected after stock has already moved.
 - Credit is issued without goods being required back, or goods return without a credit being due.

@@ -63,11 +63,31 @@ def _effective_rows(
             .group_by(SupplyAssignment.reverses_assignment_id)
         )
     }
+    # A cancelled promise on either side ends the assignment: a promise that is off
+    # neither needs supply nor gives any. The statement itself stays as it was said.
+    cancelled = set(
+        session.scalars(
+            select(Commitment.id).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.status == "cancelled",
+                Commitment.id.in_(
+                    {row.supplier_commitment_id for row in rows}
+                    | {
+                        row.customer_commitment_id
+                        for row in rows
+                        if row.customer_commitment_id
+                    }
+                ),
+            )
+        )
+    )
     return [
         row
         for row in rows
         if row.reverses_assignment_id is None
         and row.quantity > reversed_quantities.get(row.id, Decimal(0))
+        and row.supplier_commitment_id not in cancelled
+        and row.customer_commitment_id not in cancelled
     ]
 
 

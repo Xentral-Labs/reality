@@ -1,7 +1,9 @@
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import func, select
 
+from reality.db.core import SupplyAssignment
 from reality.services import core
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
@@ -223,6 +225,117 @@ def test_assignments_together_never_protect_more_than_the_demand(session, busine
     assert supply_coverage(
         session, business.tenant.id, customer_commitment_id=customer.id
     )["customer"]["protecting_supply"] == Decimal(8)
+
+
+def test_cancelling_the_demand_releases_the_supply_assigned_to_it(session, business):
+    """Spec 248 edge case: a cancelled promise no longer holds the supply pegged to it.
+
+    The statement stays as it was said; coverage simply stops counting it, as
+    a cancellation already lets reservations and holds go.
+    """
+    customer, supplier = commitments(session, business)
+    assignment = assign_supply(
+        session,
+        business.tenant.id,
+        supplier.id,
+        "6",
+        purpose="customer_demand",
+        customer_commitment_id=customer.id,
+        request_id="assign-before-cancel",
+    )
+    before = supply_coverage(
+        session, business.tenant.id, supplier_commitment_id=supplier.id
+    )["supplier"]
+    assert (before["customer_assigned"], before["unassigned"]) == (
+        Decimal(6),
+        Decimal(6),
+    )
+
+    core.cancel_commitment(
+        session, business.tenant.id, customer.id, reason="Customer withdrew"
+    )
+
+    after = supply_coverage(
+        session, business.tenant.id, supplier_commitment_id=supplier.id
+    )
+    assert (
+        after["supplier"]["customer_assigned"],
+        after["supplier"]["unassigned"],
+    ) == (
+        Decimal(0),
+        Decimal(12),
+    )
+    assert after["items"] == []
+    assert assignment.quantity == Decimal(6)
+    assert (
+        session.scalar(
+            select(func.count()).where(
+                SupplyAssignment.tenant_id == business.tenant.id,
+                SupplyAssignment.reverses_assignment_id == assignment.id,
+            )
+        )
+        == 0
+    )
+    # The freed supply can serve another promise.
+    other = core.create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "12",
+        "2026-09-30",
+    )
+    assign_supply(
+        session,
+        business.tenant.id,
+        supplier.id,
+        "12",
+        purpose="customer_demand",
+        customer_commitment_id=other.id,
+        request_id="assign-freed-supply",
+    )
+
+
+def test_cancelling_the_supply_leaves_the_demand_unprotected(session, business):
+    """Spec 248 edge case: a cancelled purchase protects no customer promise."""
+    customer, supplier = commitments(session, business)
+    assign_supply(
+        session,
+        business.tenant.id,
+        supplier.id,
+        "5",
+        purpose="customer_demand",
+        customer_commitment_id=customer.id,
+        request_id="assign-before-supply-cancel",
+    )
+    assign_supply(
+        session,
+        business.tenant.id,
+        supplier.id,
+        "4",
+        purpose="stock_replenishment",
+        request_id="stock-before-supply-cancel",
+    )
+    assert supply_coverage(
+        session, business.tenant.id, customer_commitment_id=customer.id
+    )["customer"]["protecting_supply"] == Decimal(5)
+
+    core.cancel_commitment(
+        session, business.tenant.id, supplier.id, reason="Supplier discontinued"
+    )
+
+    assert supply_coverage(
+        session, business.tenant.id, customer_commitment_id=customer.id
+    )["customer"]["protecting_supply"] == Decimal(0)
+    assert (
+        supply_coverage(
+            session, business.tenant.id, supplier_commitment_id=supplier.id
+        )["items"]
+        == []
+    )
 
 
 def test_partial_reversal_is_append_only_and_idempotent(session, business):
