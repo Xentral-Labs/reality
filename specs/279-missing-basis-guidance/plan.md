@@ -219,8 +219,9 @@ service facts; no ordering rule lives in the browser.
 `ResolutionGuidance` takes `{guidance, catalog, viewerRole, scopeLabel}` and renders:
 
 - `t(reason.label)` and `t(reason.explanation)`;
-- an ordered list of steps with done, open and blocked markers, the first open step
-  emphasized;
+- an ordered vertical stepper with large numbered markers and a continuous connector;
+  done markers use a check, the first open marker and label are emphasized, and steps do
+  not receive individual card frames;
 - one control per open step:
   - `web_form`: `useActionDiscovery().open(form, prefill)`, with a prefill only where
     `paletteActionPrefill` allows it;

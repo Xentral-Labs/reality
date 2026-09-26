@@ -262,6 +262,10 @@ try {
   await page.getByText(reason, { exact: true }).waitFor();
   assert.equal(await page.getByText(reason, { exact: true }).count(), 1);
   const panel = page.locator("[data-resolution-guidance]");
+  const markers = panel.locator("[data-guidance-marker]");
+  assert.equal(await markers.count(), 3);
+  assert.deepEqual(await markers.allTextContents(), ["1", "2", "3"]);
+  assert.equal(await panel.locator("[data-guidance-connector]").count(), 2);
   const shown = await panel.evaluate(
     (node) => node.closest("section")?.parentElement?.innerText || "",
   );

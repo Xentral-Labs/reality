@@ -93,6 +93,7 @@ written in English. Paths below are relative to the repository root; `core/` sta
 - [x] T025 [P] [US3] [DR-002] Add `test_owner_step_links_proposal_id` to `core/tests/test_cost_resolution.py`.
 - [x] T026 [US3] [FR-008] Carry `detail.draft` on the `reality:open-chat` event in `apps/web/src/unified/Shell.tsx`. Pass it as `initialDraft`, and make `apps/web/src/unified/ChatPage.tsx` adopt a changed `initialDraft` without sending.
 - [x] T027 [US3] [FR-007] [FR-008] [FR-009] Implement `apps/web/src/unified/guidanceActions.ts` (path → handler: action discovery `open`, chat event, decisions navigation, Home), and add the controls and "who must act" sentences to `ResolutionGuidance.tsx`. Re-read the host panel's service result after a form, proposal or decision completes.
+- [x] T027A [US2] [FR-006] Add a failing contract assertion for a connected, numbered vertical stepper, then update `apps/web/src/unified/ResolutionGuidance.tsx` to use large markers, a visible connector and no per-step card frame. Verify the contract, Web build and formatting; extend the cost-explanation browser flow (local execution requires the external Playwright module and executable).
 
 ## Phase 6: User Story 4 — stored calculations (P2)
 

@@ -19,6 +19,19 @@ test("the shared component renders catalog wording, never codes", async () => {
   assert.doesNotMatch(component, />\s*\{(?:step\.code|guidance\.reason_code)\}/);
 });
 
+test("ordered guidance reads as a connected numbered stepper", async () => {
+  const component = await source("unified/ResolutionGuidance.tsx");
+  assert.match(component, /data-guidance-marker/);
+  assert.match(component, /data-guidance-connector/);
+  assert.match(component, /: index \+ 1\}/);
+  assert.match(component, /size-8/);
+  assert.doesNotMatch(component, /CircleDot/);
+  assert.doesNotMatch(
+    component,
+    /data-\[guidance-first=true\]:ring-1|data-\[guidance-first=true\]:bg-surface/,
+  );
+});
+
 test("each path type reuses an existing route and never acts on its own", async () => {
   const component = await source("unified/ResolutionGuidance.tsx");
   const actions = await source("unified/guidanceActions.ts");

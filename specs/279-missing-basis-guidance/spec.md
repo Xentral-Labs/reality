@@ -148,6 +148,10 @@ steps, their states and the first open step.
    value field that the service never provides for that scope.
 4. **Given** a complete, current basis, **When** the panel is shown, **Then** no steps
    are shown and the existing "Inspect cost basis" link remains.
+5. **Given** guidance with two or more steps, **When** the panel is shown, **Then** large
+   numbered status markers and a continuous connector make the order visually explicit,
+   the completed state uses a check mark, and individual step cards do not compete with
+   that sequence.
 
 ---
 
@@ -270,7 +274,9 @@ existing path exists, a working control.
   outside the Inspector and developer-oriented views. It MUST NOT show the same reason
   twice.
 - **FR-006**: The web MUST present guidance through one shared component: plain reason,
-  ordered steps, first open step highlighted, one control per open step.
+  ordered steps as a connected vertical stepper with large numbered status markers,
+  completed steps marked with a check, first open step highlighted without an individual
+  card frame, and one control per open step.
 - **FR-007**: A step whose path is a web form MUST open that existing form, prefilled
   with the scope where the form supports it.
 - **FR-008**: A step whose path is a chat handoff MUST open chat with an unsent,

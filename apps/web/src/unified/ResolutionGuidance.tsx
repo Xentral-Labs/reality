@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { CheckCircle2, Circle, CircleDot } from "lucide-react";
+import { Check } from "lucide-react";
 import { recordsChanged, type ResolutionGuidance as Guidance } from "../api";
 import { t } from "../localization";
 import { useActionDiscovery } from "./ActionLauncher";
@@ -42,24 +42,36 @@ export function ResolutionGuidance({
         <div className="mt-1 text-fg-muted">{reason.explanation}</div>
       </div>
       {guidance.steps.length > 0 && (
-        <ol className="space-y-2" aria-label={t("Steps to a proven value")}>
+        <ol className="mt-4" aria-label={t("Steps to a proven value")}>
           {guidance.steps.map((step, index) => {
             const entry = catalog?.steps[step.code];
             const barrier = stepBarrier(step, guidance, { owner: !!context?.owner });
             const emphasized = index === firstOpen;
-            const Icon =
-              step.state === "done" ? CheckCircle2 : step.state === "open" ? CircleDot : Circle;
             return (
               <li
                 key={`${step.code}:${index}`}
                 data-guidance-step={step.code}
                 data-guidance-state={step.state}
                 data-guidance-first={emphasized}
-                className="group flex flex-wrap items-start gap-2 rounded-lg p-2 data-[guidance-first=true]:bg-surface data-[guidance-first=true]:ring-1 data-[guidance-first=true]:ring-border-default data-[guidance-state=blocked]:text-fg-muted"
+                className="group grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3 pb-5 last:pb-0 data-[guidance-state=blocked]:text-fg-muted"
               >
-                <Icon size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <div className="group-data-[guidance-first=true]:font-medium group-data-[guidance-first=true]:text-fg-strong">
+                <div className="relative flex min-h-full justify-center" aria-hidden="true">
+                  {index < guidance.steps.length - 1 && (
+                    <span
+                      data-guidance-connector
+                      className="absolute top-8 -bottom-5 w-0.5 bg-border-default"
+                    />
+                  )}
+                  <span
+                    data-guidance-marker
+                    data-marker-state={step.state === "done" || emphasized ? "active" : "inactive"}
+                    className="relative z-10 grid size-8 shrink-0 place-items-center rounded-full border-2 text-sm font-semibold data-[marker-state=active]:border-accent data-[marker-state=active]:bg-accent data-[marker-state=active]:text-fg-inverse data-[marker-state=inactive]:border-border-strong data-[marker-state=inactive]:bg-surface data-[marker-state=inactive]:text-fg-muted"
+                  >
+                    {step.state === "done" ? <Check size={16} strokeWidth={2.5} /> : index + 1}
+                  </span>
+                </div>
+                <div className="min-w-0 pt-1">
+                  <div className="text-base group-data-[guidance-first=true]:font-semibold group-data-[guidance-first=true]:text-fg-strong">
                     {entry ? t(entry.label) : t("Further step")}
                     {step.target_count > 1 && (
                       <span className="text-fg-muted"> ({step.target_count})</span>
