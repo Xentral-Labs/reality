@@ -160,8 +160,8 @@ oder Governance geht.
 Das Modell soll nicht nur beschrieben, sondern überprüfbar sein. Leser können jede zentrale
 Geschäftsaussage vom Praxisbeispiel über den ausführbaren Katalog bis zum Service und Test
 verfolgen. Der Kern bleibt bewusst klein: Er soll die kürzesten wahren Beziehungen beweisen und
-verständlich machen, nicht möglichst viele ERP-Funktionen vortäuschen. Reality steht unter der
-[MIT-Lizenz](/de/reference/license).
+verständlich machen, nicht den Funktionsumfang einer kompletten Unternehmenssoftware vortäuschen.
+Reality steht unter der [MIT-Lizenz](/de/reference/license).
 
 ## Reality ohne eigene Installation testen
 
