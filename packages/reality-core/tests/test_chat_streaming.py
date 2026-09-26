@@ -334,7 +334,7 @@ def test_streaming_adapter_dispatches_once_after_complete_arguments(
             business.tenant.id,
             "inventory_read",
             {"limit": 2},
-            ("read", "propose", "confirm"),
+            ("read", "propose"),
         )
     ]
     assert [e["type"] for e in events] == ["reset", "delta", "reset", "delta"]

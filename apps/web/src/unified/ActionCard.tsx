@@ -771,6 +771,11 @@ export function ActionCard(
     postingGroup?: string;
     invoice?: string;
     creditNote?: string;
+    order?: string;
+    shipmentInput?: {
+      counterparty_id: string;
+      movements: Record<string, string>[];
+    };
   },
 ) {
   const kind = useRead(

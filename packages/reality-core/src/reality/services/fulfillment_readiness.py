@@ -148,7 +148,11 @@ def _blocker_links(code: str, result: FulfillmentReadiness) -> list[dict[str, st
 
 
 def fulfillment_readiness(
-    session: Session, tenant_id: str, commitment_id: str
+    session: Session,
+    tenant_id: str,
+    commitment_id: str,
+    *,
+    proposed_quantity: Decimal | None = None,
 ) -> FulfillmentReadiness:
     """Derive payment readiness for one customer-delivery commitment.
 
@@ -170,6 +174,11 @@ def fulfillment_readiness(
         - movement_quantity(session, tenant_id, commitment.id, "shipment"),
         ZERO,
     )
+    checked_quantity = open_quantity if proposed_quantity is None else proposed_quantity
+    if proposed_quantity is not None and (
+        checked_quantity <= ZERO or checked_quantity > open_quantity
+    ):
+        raise InvalidOperation("Proposed shipment quantity must be positive and open.")
     reserved_quantity = Decimal(
         session.scalar(
             select(func.coalesce(func.sum(Reservation.quantity), 0)).where(
@@ -207,9 +216,9 @@ def fulfillment_readiness(
         operational_blockers.append("commitment_hold")
     if party_hold_ids:
         operational_blockers.append("party_delivery_hold")
-    if reserved_quantity < open_quantity:
+    if reserved_quantity < checked_quantity:
         operational_blockers.append("insufficient_reservation")
-    if physical_quantity < open_quantity:
+    if physical_quantity < checked_quantity:
         operational_blockers.append("insufficient_stock")
     if not commitment.document_id:
         return FulfillmentReadiness(

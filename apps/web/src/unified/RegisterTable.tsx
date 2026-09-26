@@ -76,6 +76,10 @@ const profiles: Record<string, Profile> = {
     widths: [150, 220, 130, 130, 80, 180, 80],
     sorts: ["number", null, "date", "amount", null, null],
   },
+  "orders-deliveries:readiness": {
+    widths: [160, 220, 150, 120, 280, 80],
+    sorts: [null, null, null, null, null],
+  },
   "warehouse:stock": {
     widths: [280, 100, 100, 100, 80],
     sorts: ["name", "physical", "reserved", "available"],

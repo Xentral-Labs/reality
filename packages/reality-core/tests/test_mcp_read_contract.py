@@ -426,6 +426,8 @@ def test_unit_mismatch_and_missing_unit_are_not_converted(session, business):
     assert queue["unit"] == "pcs" and queue["document_line_unit"] == "box"
     assert queue["unit_mismatch"] is True
     assert Decimal(queue["quantity"]) == 2
+    assert Decimal(queue["fulfilled_quantity"]) == 0
+    assert Decimal(queue["physical_quantity"]) >= Decimal(queue["shippable_quantity"])
 
 
 def test_exact_page_end_and_live_insert_contract(session, business):

@@ -202,7 +202,8 @@ def test_practice_company_copilot_is_admitted(session, monkeypatch):
     offered = {tool["name"] for tool in captured["tools"]}
     assert "finance_settlement_context" in offered  # read
     assert "finance_settlement_propose" in offered  # propose, like a business company
-    assert "proposal_approve_and_execute" in offered  # practice Chat may decide
+    assert "proposal_approve_and_execute" not in offered
+    assert "proposal_reject" not in offered
     # The chat service path delivers the provider's text, not a refusal.
     monkeypatch.setenv("ANTHROPIC_API_KEY", "synthetic")
 

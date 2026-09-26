@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import or_, select
@@ -184,7 +185,10 @@ def review_shipment_action(
                 readiness = None
                 if purpose == "customer_delivery":
                     readiness = fulfillment_readiness(
-                        session, tenant_id, preview["commitment_id"]
+                        session,
+                        tenant_id,
+                        preview["commitment_id"],
+                        proposed_quantity=Decimal(preview["quantity"]),
                     )
                     if not readiness.ship_ready:
                         raise InvalidOperation(

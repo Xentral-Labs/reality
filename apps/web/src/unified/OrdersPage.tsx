@@ -2,7 +2,7 @@ import { SelectedRecordPreview } from "./SelectedRecordPreview";
 import { useContextActions } from "./ActionLauncher";
 import { PageActionBar } from "./PageActionBar";
 import { isPurchasing } from "./pageIntroduction";
-import { Fragment, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DeliveryCase } from "./DeliveryCase";
 import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWorkbench";
 import { DocumentContributionExplanations } from "./DocumentContributionExplanations";
@@ -10,7 +10,15 @@ import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { useWorkCount } from "./workCounts";
 import { withWorkCount } from "./TabWorkCount";
-import { api, deliveryApi, type DeliveryRow, type DocumentRow, type Page } from "../api";
+import {
+  api,
+  deliveryApi,
+  type DeliveryRow,
+  type DocumentRow,
+  type FulfillmentQueueRow,
+  type Page,
+  type ProjectionMetadata,
+} from "../api";
 import { Inspector } from "./Inspector";
 import { SourceBadge } from "./SourceBadge";
 import { formatDateTime, formatMoney, formatNumber, formatQuantity, t } from "../localization";
@@ -24,10 +32,18 @@ import { ShipmentsRegister } from "./ShipmentsRegister";
 type Register =
   | { view: "deliveries"; items: DeliveryRow[]; page: Page }
   | { view: "shipments"; items: never[]; page: Page }
+  | {
+      view: "readiness";
+      items: FulfillmentQueueRow[];
+      page: Page;
+      metadata?: ProjectionMetadata;
+    }
   | { view: "customer-orders" | "supplier-orders"; items: DocumentRow[]; page: Page };
 const numericHeader = "!text-right";
 const cell = "px-4 py-4 text-sm align-top";
 const headerCell = "px-4 py-3 text-left text-xs font-medium text-fg-muted";
+const freshnessReadyTone = "border-border-default bg-surface-muted";
+const freshnessWarningTone = "border-warning-border bg-warning-soft";
 function statusLabel(status: string) {
   return (
     (
@@ -38,14 +54,189 @@ function statusLabel(status: string) {
     )[status] || t("Unknown")
   );
 }
+function ProjectionFreshness({ metadata }: { metadata?: ProjectionMetadata }) {
+  if (!metadata || metadata.state === "uninitialized")
+    return (
+      <p className="mb-4 rounded-lg border border-border-default bg-surface-muted px-4 py-3 text-sm">
+        {t("Readiness is unavailable until the first projection completes.")}
+      </p>
+    );
+  const pending = Math.max(
+    0,
+    metadata.target_event_sequence - (metadata.processed_event_sequence || 0),
+  );
+  let message = `${t("New business events are waiting for readiness refresh")}: ${formatNumber(pending)} (${metadata.processed_event_sequence || 0} → ${metadata.target_event_sequence}). ${t("The last completed snapshot is shown.")}`;
+  if (metadata.state === "ready")
+    message = `${t("Readiness observed at")} ${metadata.completed_at ? formatDateTime(metadata.completed_at) : "—"}`;
+  if (metadata.state === "failed")
+    message = t("The latest readiness refresh failed; the last completed snapshot is shown.");
+  const tone = metadata.state === "ready" ? freshnessReadyTone : freshnessWarningTone;
+  return <p className={`mb-4 rounded-lg border px-4 py-3 text-sm ${tone}`}>{message}</p>;
+}
+
+function lineBlockerExplanation(line: FulfillmentQueueRow["lines"][number], code: string) {
+  if (code === "insufficient_reservation")
+    return `${formatQuantity(line.reserved_quantity)} ${line.unit} ${t("of")} ${formatQuantity(line.open_quantity)} ${line.unit} ${t("reserved")}`;
+  if (code === "insufficient_stock")
+    return `${formatQuantity(line.physical_quantity)} ${line.unit} ${t("of")} ${formatQuantity(line.open_quantity)} ${line.unit} ${t("physically available")}`;
+  if (code === "prepayment_required" && line.fulfillment_readiness)
+    return `${formatMoney(line.fulfillment_readiness.remaining_amount, line.fulfillment_readiness.currency)} ${t("prepayment remaining")}`;
+  const labels: Record<string, string> = {
+    prepayment_invoice_missing: "Prepayment invoice evidence is missing",
+    prepayment_attribution_ambiguous: "Prepayment cannot be attributed unambiguously",
+    commitment_hold: "Commitment is on hold",
+    party_delivery_hold: "Customer delivery is on hold",
+  };
+  return t(labels[code] || code);
+}
+
+function ReadinessBlockers({ row }: { row: FulfillmentQueueRow }) {
+  const blockers = row.lines.flatMap((line) =>
+    line.blocking_reasons.map((code) => ({ key: `${line.commitment_id}:${code}`, line, code })),
+  );
+  if (!blockers.length) return <>{t("None")}</>;
+  return (
+    <ul className="space-y-1">
+      {blockers.map(({ key, line, code }) => (
+        <li key={key}>{lineBlockerExplanation(line, code)}</li>
+      ))}
+    </ul>
+  );
+}
+
+function ReadinessEvidence({
+  row,
+  inspect,
+  prepareInvoice,
+  prepareShipment,
+  actionsCurrent,
+}: {
+  row: FulfillmentQueueRow;
+  inspect: (target: { kind: string; id: string }) => void;
+  prepareInvoice?: (order: string) => void;
+  prepareShipment?: (input: {
+    counterparty_id: string;
+    movements: Record<string, string>[];
+  }) => void;
+  actionsCurrent: boolean;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        {row.document_id && (
+          <button
+            className="br-btn"
+            onClick={() => inspect({ kind: "document", id: row.document_id! })}
+          >
+            {t("Inspect order document")}
+          </button>
+        )}
+        {actionsCurrent &&
+          row.document_id &&
+          prepareInvoice &&
+          row.lines.some((line) =>
+            line.blocking_reasons.includes("prepayment_invoice_missing"),
+          ) && (
+            <button className="br-btn" onClick={() => prepareInvoice(row.document_id!)}>
+              {t("Prepare prepayment invoice")}
+            </button>
+          )}
+      </div>
+      {!actionsCurrent && (
+        <p className="rounded-lg border border-border-default bg-surface px-3 py-2 text-sm text-fg-muted">
+          {t("Actions are unavailable until the readiness projection is current.")}
+        </p>
+      )}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[900px] text-sm">
+          <thead>
+            <tr>
+              {["Item", "Open", "Fulfilled", "Reserved", "Shortage", "Payment", "Evidence"].map(
+                (label) => (
+                  <th key={label} className={headerCell}>
+                    {t(label)}
+                  </th>
+                ),
+              )}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border-default">
+            {row.lines.map((line) => {
+              const payment = line.fulfillment_readiness;
+              return (
+                <tr key={line.commitment_id}>
+                  <td className={cell}>{line.item || line.sku || line.item_id}</td>
+                  {[
+                    line.open_quantity,
+                    line.fulfilled_quantity,
+                    line.reserved_quantity,
+                    line.shortage_quantity,
+                  ].map((value, index) => (
+                    <td key={index} className={`${cell} whitespace-nowrap text-right`}>
+                      {formatQuantity(value)} <span className="text-fg-muted">{line.unit}</span>
+                    </td>
+                  ))}
+                  <td className={cell}>
+                    {payment?.requires_prepayment
+                      ? `${formatMoney(payment.received_amount, payment.currency)} / ${formatMoney(payment.required_amount, payment.currency)}`
+                      : t("No prepayment gate")}
+                  </td>
+                  <td className={cell}>
+                    {actionsCurrent &&
+                      prepareShipment &&
+                      row.party_id &&
+                      line.location_id &&
+                      Number(line.shippable_quantity) > 0 && (
+                        <button
+                          className="br-btn mr-2"
+                          onClick={() =>
+                            prepareShipment({
+                              counterparty_id: row.party_id!,
+                              movements: [
+                                {
+                                  commitment_id: line.commitment_id,
+                                  item_id: line.item_id,
+                                  from_location_id: line.location_id!,
+                                  quantity: line.shippable_quantity,
+                                },
+                              ],
+                            })
+                          }
+                        >
+                          {t("Prepare available shipment")}
+                        </button>
+                      )}
+                    <button
+                      className="br-btn"
+                      onClick={() => inspect({ kind: "commitment", id: line.commitment_id })}
+                    >
+                      {t("Inspect commitment")}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 export function OrdersPage({
   selection,
   navigate,
   receive,
   create,
+  prepareInvoice,
+  prepareShipment,
 }: {
   receive?: (id: string) => void;
   create?: (direction: string) => void;
+  prepareInvoice?: (order: string) => void;
+  prepareShipment?: (input: {
+    counterparty_id: string;
+    movements: Record<string, string>[];
+  }) => void;
   selection: Selection;
   navigate: (changes: Partial<Selection>) => void;
 }) {
@@ -57,6 +248,12 @@ export function OrdersPage({
   });
   const table = useRegisterQuery();
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
+  const [settledNotice, setSettledNotice] = useState(false);
+  useEffect(() => {
+    const settled = () => setSettledNotice(true);
+    window.addEventListener("reality:delivery-settled", settled);
+    return () => window.removeEventListener("reality:delivery-settled", settled);
+  }, []);
   const listScroll = useRef(0);
   const openCommitment = (id: string) => {
     listScroll.current = window.scrollY;
@@ -83,6 +280,16 @@ export function OrdersPage({
           deliveryType,
           order,
           table,
+        )),
+      };
+    if (view === "readiness")
+      return {
+        view,
+        ...(await api.specializedProjection<FulfillmentQueueRow>(
+          tenant,
+          "fulfillment_queue",
+          q,
+          page,
         )),
       };
     return {
@@ -128,8 +335,8 @@ export function OrdersPage({
       <div hidden={!!selection.commitment}>
         <RegisterWorkbench>
           {entry &&
-            ["customer-orders", "supplier-orders"].includes(view) &&
-            !data?.items.some((row) => row.id === entry) && (
+            (data?.view === "customer-orders" || data?.view === "supplier-orders") &&
+            !data.items.some((row) => row.id === entry) && (
               <SelectedRecordPreview kind="order" close={() => navigate({ entry: "" })}>
                 <InlineInspector tenant={tenant} target={{ kind: "document", id: entry }}>
                   <button
@@ -159,6 +366,7 @@ export function OrdersPage({
                     purchasing ? "Supplier orders" : "Customer orders",
                   ],
                   ["deliveries", "Commitments"],
+                  ...(!purchasing ? ([["readiness", "Readiness"]] as const) : []),
                   ["shipments", "Shipments"],
                 ] as const
               ).flatMap(([value, label]) =>
@@ -197,6 +405,21 @@ export function OrdersPage({
           )}
 
           <section className="register-surface">
+            {view === "readiness" && settledNotice && (
+              <div
+                role="status"
+                className="mb-4 flex items-start justify-between gap-3 rounded-lg border border-border-default bg-accent-soft px-4 py-3 text-sm"
+              >
+                <span>
+                  {t(
+                    "Confirmed action recorded. Readiness was reloaded; review the current blockers and projection freshness.",
+                  )}
+                </span>
+                <button className="br-btn" onClick={() => setSettledNotice(false)}>
+                  {t("Dismiss")}
+                </button>
+              </div>
+            )}
             <RegisterToolbar
               count={view === "shipments" ? undefined : data?.page.total}
               search={
@@ -212,7 +435,9 @@ export function OrdersPage({
                         ? "Search party, item or delivery ID"
                         : view === "shipments"
                           ? "Search carrier, tracking number or shipment ID"
-                          : "Search document number, reference or source",
+                          : view === "readiness"
+                            ? "Search order, customer or item"
+                            : "Search document number, reference or source",
                     )}
                   />
                 </label>
@@ -260,7 +485,81 @@ export function OrdersPage({
               <ReadState loading={read.loading} error={read.error} retry={read.refresh} rows={8} />
             ) : (
               <div className="min-w-0">
-                {data.view === "deliveries" ? (
+                {data.view === "readiness" ? (
+                  <>
+                    <ProjectionFreshness metadata={data.metadata} />
+                    {data.metadata?.state !== "uninitialized" && (
+                      <RegisterTable
+                        busy={read.loading}
+                        className="w-full min-w-[900px] border-collapse"
+                        footer={
+                          <RegisterPager
+                            page={data.page}
+                            change={(page) => navigate({ page, entry: "" })}
+                          />
+                        }
+                      >
+                        <thead className="bg-surface-muted">
+                          <tr>
+                            {["Order", "Customer", "Due", "Readiness", "Blockers", "Actions"].map(
+                              (label) => (
+                                <th key={label} className={headerCell}>
+                                  {t(label)}
+                                </th>
+                              ),
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border-default">
+                          {data.items.map((row) => (
+                            <Fragment key={row.order_key}>
+                              <tr data-orders-row={row.order_key}>
+                                <td className={cell}>
+                                  <p className="font-medium text-fg-strong">
+                                    {row.document_number || row.order_key}
+                                  </p>
+                                </td>
+                                <td className={cell}>{row.party || t("Unknown party")}</td>
+                                <td className={cell}>
+                                  {row.due_at ? formatDateTime(row.due_at) : t("No due date")}
+                                </td>
+                                <td className={cell}>{t(row.ship_ready ? "Ready" : "Blocked")}</td>
+                                <td className={cell}>
+                                  <ReadinessBlockers row={row} />
+                                </td>
+                                <td className={cell}>
+                                  <PreviewButton
+                                    open={entry === row.order_key}
+                                    controls={`readiness-preview-${row.order_key}`}
+                                    label={row.document_number || row.order_key}
+                                    toggle={() =>
+                                      navigate({
+                                        entry: entry === row.order_key ? "" : row.order_key,
+                                      })
+                                    }
+                                  />
+                                </td>
+                              </tr>
+                              <TablePreview
+                                id={`readiness-preview-${row.order_key}`}
+                                open={entry === row.order_key}
+                                columns={6}
+                              >
+                                <ReadinessEvidence
+                                  row={row}
+                                  inspect={setTarget}
+                                  prepareInvoice={prepareInvoice}
+                                  prepareShipment={prepareShipment}
+                                  actionsCurrent={data.metadata?.state === "ready"}
+                                />
+                              </TablePreview>
+                            </Fragment>
+                          ))}
+                        </tbody>
+                      </RegisterTable>
+                    )}
+                  </>
+                ) : data.view === "deliveries" ? (
                   <RegisterTable
                     busy={read.loading}
                     className="w-full min-w-[850px] border-collapse"

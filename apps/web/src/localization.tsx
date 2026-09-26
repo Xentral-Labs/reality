@@ -13,6 +13,36 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Actions are unavailable until the readiness projection is current.":
+      "Aktionen sind erst verfügbar, wenn die Versandbereitschaft aktuell berechnet ist.",
+    of: "von",
+    reserved: "reserviert",
+    "physically available": "physisch vorhanden",
+    "prepayment remaining": "Vorauszahlung fehlen",
+    "Prepayment invoice evidence is missing": "Der Beleg für die Anzahlungsrechnung fehlt",
+    "Prepayment cannot be attributed unambiguously":
+      "Die Vorauszahlung kann nicht eindeutig zugeordnet werden",
+    "Commitment is on hold": "Das Commitment ist gesperrt",
+    "Customer delivery is on hold": "Die Kundenlieferung ist gesperrt",
+    Dismiss: "Ausblenden",
+    "Confirmed action recorded. Readiness was reloaded; review the current blockers and projection freshness.":
+      "Bestätigte Aktion erfasst. Die Versandbereitschaft wurde neu gelesen; prüfen Sie die aktuellen Blockaden und die Projektionsfrische.",
+    "Prepare prepayment invoice": "Anzahlungsrechnung vorbereiten",
+    "Prepare available shipment": "Verfügbare Teilmenge vorbereiten",
+    Readiness: "Versandbereitschaft",
+    Blockers: "Blockaden",
+    "Search order, customer or item": "Auftrag, Kunde oder Artikel suchen",
+    "Inspect order document": "Auftragsbeleg prüfen",
+    "Inspect commitment": "Commitment prüfen",
+    "No prepayment gate": "Keine Vorauszahlungssperre",
+    "Readiness is unavailable until the first projection completes.":
+      "Die Versandbereitschaft ist erst nach der ersten abgeschlossenen Projektion verfügbar.",
+    "Readiness observed at": "Versandbereitschaft ermittelt am",
+    "New business events are waiting for readiness refresh":
+      "Neue Geschäftsereignisse warten auf die Aktualisierung der Versandbereitschaft",
+    "The last completed snapshot is shown.": "Der letzte abgeschlossene Stand wird angezeigt.",
+    "The latest readiness refresh failed; the last completed snapshot is shown.":
+      "Die letzte Aktualisierung der Versandbereitschaft ist fehlgeschlagen; der letzte abgeschlossene Stand wird angezeigt.",
     "Financial company generation": "Finanzielle Unternehmensberechnung",
     "Select a financial company generation…": "Finanzielle Unternehmensberechnung auswählen …",
     "Selected company generation is no longer current":
@@ -2065,6 +2095,36 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Actions are unavailable until the readiness projection is current.":
+      "Acties zijn pas beschikbaar wanneer de projectie voor verzendgereedheid actueel is.",
+    of: "van",
+    reserved: "gereserveerd",
+    "physically available": "fysiek beschikbaar",
+    "prepayment remaining": "vooruitbetaling resterend",
+    "Prepayment invoice evidence is missing": "Het bewijs van de vooruitbetalingsfactuur ontbreekt",
+    "Prepayment cannot be attributed unambiguously":
+      "De vooruitbetaling kan niet eenduidig worden toegewezen",
+    "Commitment is on hold": "De toezegging is geblokkeerd",
+    "Customer delivery is on hold": "De klantlevering is geblokkeerd",
+    Dismiss: "Sluiten",
+    "Confirmed action recorded. Readiness was reloaded; review the current blockers and projection freshness.":
+      "Bevestigde actie vastgelegd. De verzendgereedheid is opnieuw geladen; controleer de actuele blokkades en projectieversheid.",
+    "Prepare prepayment invoice": "Vooruitbetalingsfactuur voorbereiden",
+    "Prepare available shipment": "Beschikbare zending voorbereiden",
+    Readiness: "Verzendgereedheid",
+    Blockers: "Blokkades",
+    "Search order, customer or item": "Zoek order, klant of artikel",
+    "Inspect order document": "Orderdocument inspecteren",
+    "Inspect commitment": "Toezegging inspecteren",
+    "No prepayment gate": "Geen vooruitbetalingsblokkade",
+    "Readiness is unavailable until the first projection completes.":
+      "Verzendgereedheid is pas beschikbaar nadat de eerste projectie is voltooid.",
+    "Readiness observed at": "Verzendgereedheid vastgesteld op",
+    "New business events are waiting for readiness refresh":
+      "Nieuwe bedrijfsgebeurtenissen wachten op de update van verzendgereedheid",
+    "The last completed snapshot is shown.": "De laatst voltooide momentopname wordt getoond.",
+    "The latest readiness refresh failed; the last completed snapshot is shown.":
+      "De laatste update van verzendgereedheid is mislukt; de laatst voltooide momentopname wordt getoond.",
     "Financial company generation": "Financiële bedrijfsberekening",
     "Select a financial company generation…": "Selecteer een financiële bedrijfsberekening…",
     "Selected company generation is no longer current":
@@ -3811,6 +3871,36 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Actions are unavailable until the readiness projection is current.":
+      "Las acciones estarán disponibles cuando la proyección de preparación esté actualizada.",
+    of: "de",
+    reserved: "reservadas",
+    "physically available": "disponibles físicamente",
+    "prepayment remaining": "de prepago pendientes",
+    "Prepayment invoice evidence is missing": "Falta el comprobante de la factura de prepago",
+    "Prepayment cannot be attributed unambiguously":
+      "El prepago no se puede atribuir de forma inequívoca",
+    "Commitment is on hold": "El compromiso está bloqueado",
+    "Customer delivery is on hold": "La entrega al cliente está bloqueada",
+    Dismiss: "Descartar",
+    "Confirmed action recorded. Readiness was reloaded; review the current blockers and projection freshness.":
+      "Acción confirmada registrada. Se volvió a cargar la preparación; revise los bloqueos actuales y la vigencia de la proyección.",
+    "Prepare prepayment invoice": "Preparar factura de prepago",
+    "Prepare available shipment": "Preparar envío disponible",
+    Readiness: "Preparación para envío",
+    Blockers: "Bloqueos",
+    "Search order, customer or item": "Buscar pedido, cliente o artículo",
+    "Inspect order document": "Inspeccionar documento del pedido",
+    "Inspect commitment": "Inspeccionar compromiso",
+    "No prepayment gate": "Sin bloqueo por prepago",
+    "Readiness is unavailable until the first projection completes.":
+      "La preparación para envío no está disponible hasta que finalice la primera proyección.",
+    "Readiness observed at": "Preparación para envío observada el",
+    "New business events are waiting for readiness refresh":
+      "Hay nuevos eventos de negocio esperando la actualización de preparación",
+    "The last completed snapshot is shown.": "Se muestra la última instantánea completada.",
+    "The latest readiness refresh failed; the last completed snapshot is shown.":
+      "Falló la última actualización de preparación; se muestra la última instantánea completada.",
     "Financial company generation": "Cálculo financiero de empresa",
     "Select a financial company generation…": "Seleccionar un cálculo financiero de empresa…",
     "Selected company generation is no longer current":

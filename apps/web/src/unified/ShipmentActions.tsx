@@ -21,6 +21,7 @@ export function ShipmentActions({
   close,
   prepared,
   settled,
+  shipmentInput,
 }: {
   tenant: string;
   tool: ShipmentTool;
@@ -28,6 +29,10 @@ export function ShipmentActions({
   close: () => void;
   prepared?: (id: string) => void;
   settled: () => void;
+  shipmentInput?: {
+    counterparty_id: string;
+    movements: Record<string, string>[];
+  };
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const requestId = useRef(crypto.randomUUID());
@@ -35,7 +40,7 @@ export function ShipmentActions({
   const [purpose, setPurpose] = useState(
     tool === "shipment_receive" ? "supplier_delivery" : "customer_delivery",
   );
-  const [counterparty, setCounterparty] = useState("");
+  const [counterparty, setCounterparty] = useState(shipmentInput?.counterparty_id || "");
   const [carrier, setCarrier] = useState("");
   const [tracking, setTracking] = useState("");
   const [shipment, setShipment] = useState("");
@@ -45,7 +50,7 @@ export function ShipmentActions({
   const [eventId, setEventId] = useState("");
   const [replacement, setReplacement] = useState("");
   const [reason, setReason] = useState("");
-  const [movements, setMovements] = useState("[]");
+  const [movements, setMovements] = useState(JSON.stringify(shipmentInput?.movements || []));
   const [returnMovement, setReturnMovement] = useState("");
   const [disposition, setDisposition] = useState("restock");
   const [quantity, setQuantity] = useState("");
