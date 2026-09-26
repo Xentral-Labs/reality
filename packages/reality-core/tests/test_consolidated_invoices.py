@@ -1,0 +1,165 @@
+"""Spec 280: one invoice over several orders of one party and one currency."""
+
+import json
+from decimal import Decimal
+from uuid import uuid4
+
+import pytest
+from conftest import record_by_id
+from sqlalchemy import func, select
+from test_unified_invoice_entry import confirm
+
+from reality.db.core import Document, DocumentLine, LedgerEntry, SourceRecord
+from reality.services import core
+from reality.services.delivery_actions import (
+    delivery_proposal_detail,
+    prepare_delivery_action,
+)
+
+
+def order(session, b, direction="sales", *, party=None, currency="EUR", lines=1):
+    counterparty = party or (b.customer if direction == "sales" else b.supplier)
+    return core.create_manual_order(
+        session,
+        b.tenant.id,
+        direction,
+        "ORDER-280-" + uuid4().hex[:8],
+        b.company.id,
+        counterparty.id,
+        b.location.id,
+        [
+            {
+                "item_id": b.item.id,
+                "quantity": "3",
+                "unit_price": "10",
+                "gross_amount": "30",
+            }
+            for _ in range(lines)
+        ],
+        gross_amount=str(30 * lines),
+        currency=currency,
+    )[2]
+
+
+def position(line, quantity="2", gross_amount="20"):
+    return {
+        "order_line_id": line.id,
+        "quantity": quantity,
+        "gross_amount": gross_amount,
+    }
+
+
+def prepare(session, b, lines, direction="sales", *, total="61.07", request=None):
+    return prepare_delivery_action(
+        session,
+        b.tenant.id,
+        "sales_invoice_record" if direction == "sales" else "supplier_invoice_record",
+        {"lines": lines, "gross_amount": total, "number": "INV-280"},
+        request_id=request or "consolidated-" + uuid4().hex[:8],
+    )
+
+
+def nothing_recorded(session):
+    return (
+        session.scalar(select(func.count()).select_from(LedgerEntry)) == 0
+        and session.scalar(
+            select(func.count())
+            .select_from(Document)
+            .where(Document.type.in_(("sales_invoice", "supplier_invoice")))
+        )
+        == 0
+    )
+
+
+@pytest.mark.parametrize(("direction", "orders"), [("sales", 3), ("purchase", 2)])
+def test_one_invoice_bills_positions_of_several_orders(
+    session, business, direction, orders
+):
+    """FR-001/FR-002: one source, one invoice, one line per position, one posting."""
+    lines = [order(session, business, direction)[0] for _ in range(orders)]
+    selected = [
+        position(line, gross_amount=str(20 + index)) for index, line in enumerate(lines)
+    ]
+    proposal = prepare(session, business, selected, direction)
+    assert nothing_recorded(session)
+
+    confirm(session, business, proposal)
+
+    detail = delivery_proposal_detail(session, business.tenant.id, proposal.id)
+    assert detail["verification"] == "verified"
+    records = detail["receipt"]["records"]
+    invoice = record_by_id(
+        session, Document, next(r["id"] for r in records if r["family"] == "document")
+    )
+    assert invoice.gross_amount == Decimal("61.07")
+    invoice_lines = [
+        record_by_id(session, DocumentLine, r["id"])
+        for r in records
+        if r["family"] == "document_line"
+    ]
+    assert [
+        (row.billed_document_line_id, row.quantity, row.gross_amount)
+        for row in invoice_lines
+    ] == [
+        (line.id, Decimal(2), Decimal(20 + index)) for index, line in enumerate(lines)
+    ]
+    assert len({line.document_id for line in lines}) == orders
+    entries = [
+        record_by_id(session, LedgerEntry, r["id"])
+        for r in records
+        if r["family"] == "ledger_entry"
+    ]
+    assert len({entry.posting_group_id for entry in entries}) == 1
+    assert all(entry.amount == Decimal("61.07") for entry in entries)
+    assert (
+        json.loads(
+            record_by_id(session, SourceRecord, invoice.source_record_id).payload
+        )["lines"]
+        == selected
+    )
+
+
+@pytest.mark.parametrize("mismatch", ["party", "currency", "direction"])
+def test_positions_of_another_party_currency_or_direction_are_refused(
+    session, business, mismatch
+):
+    """FR-001: grouping is one direction, one party and one currency; nothing is written."""
+    first = order(session, business)[0]
+    if mismatch == "party":
+        other_party = core.create_party(
+            session, business.tenant.id, "Other Customer KG", "customer"
+        )
+        other = order(session, business, party=other_party)[0]
+    elif mismatch == "currency":
+        other = order(session, business, currency="CHF")[0]
+    else:
+        other = order(session, business, "purchase")[0]
+    same = order(session, business)[0]
+
+    with pytest.raises(core.InvalidOperation, match="one (party|currency|direction)"):
+        prepare(session, business, [position(first), position(other)])
+    assert nothing_recorded(session)
+
+    # Positive control: the same two orders of one party and currency are accepted.
+    prepare(session, business, [position(first), position(same)])
+
+
+def test_a_failing_later_position_leaves_no_invoice(session, business):
+    """FR-002: one refused position refuses the whole consolidated invoice."""
+    first = order(session, business)[0]
+    second = order(session, business)[0]
+    with pytest.raises(core.InvalidOperation, match="remaining"):
+        prepare(session, business, [position(first), position(second, quantity="4")])
+    assert nothing_recorded(session)
+
+
+def test_an_invoice_carries_at_most_two_hundred_positions(session, business):
+    """FR-010: the position bound is refused before any write; 200 still fit."""
+    lines = order(session, business, lines=201)
+    selected = [position(line, quantity="1", gross_amount="10") for line in lines]
+
+    with pytest.raises(core.InvalidOperation, match="at most 200"):
+        prepare(session, business, selected, total="2010")
+    assert nothing_recorded(session)
+
+    prepare(session, business, selected[:200], total="2000")
