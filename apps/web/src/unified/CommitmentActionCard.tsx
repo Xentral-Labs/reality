@@ -3,6 +3,7 @@ import { deliveryActions, deliveryApi, type DeliveryProposal, type DeliveryRow }
 import { formatQuantity, t } from "../localization";
 import type { DeliveryAction } from "./actionDiscovery";
 import { Inspector } from "./Inspector";
+import { DecisionActionBar } from "./DecisionReview";
 import { ReadLine } from "./ReadState";
 import { useProposalRecovery } from "./useProposal";
 
@@ -319,18 +320,11 @@ export function CommitmentActionCard({
           )}
 
           {proposal.status === "proposed" && !selectionRequired && (
-            <div className="flex gap-3">
-              <button
-                className="br-btn br-btn-primary"
-                disabled={busy}
-                onClick={() => void confirm()}
-              >
-                {t("Confirm change")}
-              </button>
+            <DecisionActionBar busy={busy} confirm={() => void confirm()}>
               <button className="br-btn" disabled={busy} onClick={close}>
                 {t("Cancel")}
               </button>
-            </div>
+            </DecisionActionBar>
           )}
           {proposal.status === "executing" && <p role="status">{t("Checking result")}</p>}
           {proposal.status === "executed" && (

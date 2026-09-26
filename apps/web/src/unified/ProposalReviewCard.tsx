@@ -3,8 +3,9 @@ import { api } from "../api";
 import { formatDateTime, t } from "../localization";
 import { DecisionLine } from "./DecisionLine";
 import { ActionCard } from "./ActionCard";
-import { ReadLine } from "./ReadState";
+import { ReadState } from "./ReadState";
 import { useRead } from "./useCompanyContext";
+import { BusinessFieldList, DecisionActionBar, DecisionReviewHeader } from "./DecisionReview";
 
 export function ProposalReviewCard({
   tenant,
@@ -28,16 +29,25 @@ export function ProposalReviewCard({
     return (
       <dialog
         ref={dialog}
-        className="m-auto rounded-xl border border-border-default bg-surface p-6"
+        aria-labelledby="proposal-review-title"
+        aria-busy={review.loading}
+        className="m-auto max-h-[90vh] min-h-72 w-[min(720px,calc(100vw-2rem))] overflow-auto rounded-xl border border-border-default bg-surface p-6 text-fg-default backdrop:bg-black/30"
         onCancel={(event) => {
           event.preventDefault();
           close();
         }}
       >
-        {review.error ? <p role="alert">{review.error}</p> : <ReadLine />}
-        <button className="br-btn mt-4" onClick={close}>
-          {t("Close")}
-        </button>
+        <DecisionReviewHeader
+          category="Decision required"
+          title="Review decision"
+          close={close}
+          titleId="proposal-review-title"
+        />
+        {review.error ? (
+          <ReadState error={review.error} retry={review.refresh} />
+        ) : (
+          <ReadState loading rows={5} retry={review.refresh} />
+        )}
       </dialog>
     );
   if (review.data.review_kind === "delivery")
@@ -71,13 +81,20 @@ export function ProposalReviewCard({
   return (
     <dialog
       ref={dialog}
+      aria-labelledby="proposal-review-title"
       className="m-auto max-h-[90vh] w-[min(720px,calc(100vw-2rem))] overflow-auto rounded-xl border border-border-default bg-surface p-6 text-fg-default"
       onCancel={(event) => {
         event.preventDefault();
         close();
       }}
     >
-      <h2 className="text-xl font-semibold text-fg-strong">{t(data.label)}</h2>
+      <DecisionReviewHeader
+        category={data.status === "proposed" ? "Decision required" : "Decision"}
+        title={data.label}
+        close={close}
+        busy={working}
+        titleId="proposal-review-title"
+      />
       {data.purpose && <p className="mt-2 text-sm text-fg-default">{data.purpose}</p>}
       <p className="mt-2 text-sm text-fg-muted">
         {t(data.actor_type === "agent" ? "Proposed by an agent" : "Prepared for review")} ·{" "}
@@ -109,9 +126,9 @@ export function ProposalReviewCard({
       )}
       <section className="mt-5">
         <h3 className="font-semibold">{t("Stated input")}</h3>
-        <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-xl bg-surface-muted p-4 text-xs">
-          {JSON.stringify(data.input, null, 2)}
-        </pre>
+        <div className="mt-2 rounded-xl bg-surface-muted p-4">
+          <BusinessFieldList record={data.input} />
+        </div>
       </section>
       {data.status !== "proposed" && (
         <p className="mt-4 text-sm text-fg-muted">
@@ -128,34 +145,23 @@ export function ProposalReviewCard({
         <h3 className="font-semibold">
           {t(data.status === "proposed" ? "Prepared preview" : "Stored receipt")}
         </h3>
-        <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-xl bg-surface-muted p-4 text-xs">
-          {JSON.stringify(content, null, 2)}
-        </pre>
+        <div className="mt-2 rounded-xl bg-surface-muted p-4">
+          <BusinessFieldList record={content} />
+        </div>
       </section>
       {error && (
         <p role="alert" className="mt-4 text-critical-text">
           {error}
         </p>
       )}
-      <div className="mt-6 flex flex-wrap justify-end gap-2">
-        <button className="br-btn" disabled={working} onClick={close}>
-          {t("Close")}
-        </button>
-        {data.rejectable && (
-          <button className="br-btn" disabled={working} onClick={() => void decide(false)}>
-            {t("Reject")}
-          </button>
-        )}
-        {data.confirmable && (
-          <button
-            className="br-btn br-btn-primary"
-            disabled={working}
-            onClick={() => void decide(true)}
-          >
-            {t("Confirm")}
-          </button>
-        )}
-      </div>
+      {(data.rejectable || data.confirmable) && (
+        <DecisionActionBar
+          busy={working}
+          reject={data.rejectable ? () => void decide(false) : undefined}
+          confirm={data.confirmable ? () => void decide(true) : undefined}
+          confirmLabel="Confirm change"
+        />
+      )}
     </dialog>
   );
 }

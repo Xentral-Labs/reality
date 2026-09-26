@@ -111,11 +111,23 @@ await page.route("**/api/**", async (route) => {
     proposal.status = "rejected";
     return reply(proposal);
   }
+  if (p.includes("/change-proposals/") && p.endsWith("/review"))
+    return reply({ review_kind: "delivery" });
   if (p.includes("/delivery-actions/")) return reply(proposal);
   if (p.endsWith("/change-proposals"))
     return reply({
       items: proposal
-        ? [{ ...proposal, input: proposal.review.intent, created_at: "2026-09-08T10:00:00Z" }]
+        ? [
+            {
+              ...proposal,
+              input: proposal.review.intent,
+              actor_type: "agent",
+              review_kind: "delivery",
+              review_label: "Create order",
+              review_purpose: "Create the agreed order and its deliveries",
+              created_at: "2026-09-08T10:00:00Z",
+            },
+          ]
         : [],
       page: pager,
     });
@@ -124,7 +136,19 @@ await page.route("**/api/**", async (route) => {
       sessions: [{ id: "conversation", title: "Correction" }],
       active_session_id: "conversation",
       messages: [],
-      proposals: proposal ? [{ ...proposal, input: proposal.review.intent }] : [],
+      proposals: proposal
+        ? [
+            {
+              ...proposal,
+              input: proposal.review.intent,
+              actor_type: "agent",
+              review_kind: "delivery",
+              review_label: "Create order",
+              review_purpose: "Create the agreed order and its deliveries",
+              created_at: "2026-09-08T10:00:00Z",
+            },
+          ]
+        : [],
       suggestions: [],
       has_archived: false,
     });
@@ -162,7 +186,7 @@ try {
   // Canonical richer intent survives a deterministic edit.
   proposal.review.intent.customer_reference = "Keep <original> reference";
   await page.reload();
-  await dialog.getByRole("button", { name: "Edit", exact: true }).click();
+  await dialog.getByRole("button", { name: "Request changes", exact: true }).click();
   await dialog.getByLabel("Quantity", { exact: true }).nth(1).fill("4");
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
   await page.waitForURL(/proposal=order-2/);
@@ -186,7 +210,7 @@ try {
       }
   language = "en";
   await page.reload();
-  await dialog.getByRole("button", { name: "Confirm change", exact: true }).click();
+  await dialog.getByRole("button", { name: "Confirm customer order", exact: true }).click();
   await dialog.getByText("Recorded", { exact: true }).waitFor();
   assert.equal(confirmations, 1);
   await dialog.getByRole("link", { name: "Open order", exact: true }).waitFor();
@@ -233,11 +257,11 @@ try {
   await page.goto(`${base}/app/decisions?tenant=company`);
   await page.locator("[data-work-list=decisions] [data-work-row]").first().click();
   await page.getByRole("button", { name: "Review proposed changes", exact: true }).click();
-  await dialog.getByRole("heading", { name: "New order", exact: true }).waitFor();
+  await dialog.getByRole("heading", { name: "Confirm supplier order", exact: true }).waitFor();
   await page.goto(`${base}/app/copilot?tenant=company`);
-  await page.getByRole("button", { name: /Review proposed changes/ }).click();
-  await dialog.getByRole("heading", { name: "New order", exact: true }).waitFor();
-  await dialog.getByRole("button", { name: "Reject", exact: true }).click();
+  await page.getByRole("button", { name: "Review and decide", exact: true }).click();
+  await dialog.getByRole("heading", { name: "Confirm supplier order", exact: true }).waitFor();
+  await dialog.getByRole("button", { name: "Do not approve", exact: true }).click();
   await dialog.getByText("Rejected", { exact: true }).waitFor();
   assert.deepEqual(errors, []);
   console.log(

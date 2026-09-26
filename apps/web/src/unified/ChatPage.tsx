@@ -13,6 +13,7 @@ import { AllowanceNotice, ChatComposer } from "./ChatComposer";
 import {
   Archive,
   ArchiveRestore,
+  CheckCircle2,
   ChevronLeft,
   History,
   LoaderCircle,
@@ -38,12 +39,65 @@ const fullFrame = "mx-auto flex h-[calc(100dvh-152px)] min-h-[500px] max-w-5xl f
 import { useEffect, useRef, useState, useId, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { currentCorrelation, APIError, api, deliveryApi } from "../api";
+import { currentCorrelation, APIError, api, deliveryApi, type CopilotProposal } from "../api";
 import { t, formatDateTime } from "../localization";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import type { Selection } from "./routing";
 import { proposalReviewLocation } from "./proposalRouting";
+
+const chatDecisionLabels: Record<string, string> = {
+  reserve: "Reserve stock",
+  reservation_release: "Release reservation",
+  commitment_hold: "Hold commitment",
+  commitment_hold_release: "Release commitment hold",
+  party_delivery_hold: "Place customer delivery hold",
+  party_delivery_hold_release: "Release customer delivery hold",
+  movement_create: "Record movement",
+  movement_correct: "Correct movement",
+  ledger_reverse: "Reverse posting",
+  order_create: "Create order",
+  sales_invoice_record: "Record sales invoice",
+  supplier_invoice_record: "Record supplier invoice",
+  sales_credit_record: "Record sales credit",
+  customer_refund_post: "Record refund",
+  customer_payment_post: "Record customer payment",
+  supplier_payment_post: "Record supplier payment",
+};
+
+function ChatDecisionCard({ proposal, open }: { proposal: CopilotProposal; open: () => void }) {
+  return (
+    <section
+      data-chat-decision
+      className="w-full max-w-3xl overflow-hidden rounded-xl border border-accent/30 bg-surface shadow-sm"
+      aria-labelledby={`chat-decision-${proposal.id}`}
+    >
+      <div className="flex gap-3 border-b border-border-default bg-accent-soft px-5 py-4">
+        <CheckCircle2 aria-hidden="true" className="mt-0.5 shrink-0 text-accent" size={20} />
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">
+            {t("Decision required")}
+          </p>
+          <h3 id={`chat-decision-${proposal.id}`} className="mt-1 font-semibold text-fg-strong">
+            {t(chatDecisionLabels[proposal.tool] || proposal.review_label)}
+          </h3>
+        </div>
+      </div>
+      <div className="space-y-3 px-5 py-4 text-sm">
+        {proposal.review_purpose && <p>{t(proposal.review_purpose)}</p>}
+        <p className="text-fg-muted">
+          {t(proposal.actor_type === "agent" ? "Proposed by an agent" : "Prepared for your review")}
+        </p>
+        <p className="rounded-lg bg-surface-muted px-3 py-2 text-fg-default">
+          {t("This proposed change has not changed your records yet.")}
+        </p>
+        <button className="br-btn br-btn-primary" onClick={open}>
+          {t("Review and decide")}
+        </button>
+      </div>
+    </section>
+  );
+}
 
 type RemovableSession = { id: string; title: string; message_count: number };
 
@@ -853,13 +907,11 @@ export function ChatPage({
               }
             />
           ) : (
-            <button
+            <ChatDecisionCard
               key={proposal.id}
-              className="br-btn self-start"
-              onClick={() => navigate(proposalReviewLocation(proposal.id, proposal.review_kind))}
-            >
-              {t("Review proposed changes")} · {proposal.review_label}
-            </button>
+              proposal={proposal}
+              open={() => navigate(proposalReviewLocation(proposal.id, proposal.review_kind))}
+            />
           ),
         )}
       </div>
