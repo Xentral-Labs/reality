@@ -177,8 +177,9 @@ hidden or replaced by a "who must act" note when the viewer lacks the role.
 4. **Given** a member who is not an owner and a step that needs owner confirmation,
    **When** the guidance is shown, **Then** it says that a company owner must confirm,
    and it offers no confirm control.
-5. **Given** a read-only sandbox company, **When** a step needs a write, **Then** the
-   guidance explains that the company is read-only and offers no write path.
+5. **Given** a company in which cost decisions cannot be confirmed (demo and practice
+   companies), **When** a step needs one, **Then** the guidance says so and offers no
+   write path.
 
 ---
 
@@ -276,7 +277,7 @@ existing path exists, a working control.
   editable request that names the scope. It MUST NOT send, propose or confirm anything on
   its own.
 - **FR-009**: A step that requires a role the viewer lacks MUST show who must act and
-  MUST NOT offer a control that the service would refuse. A read-only company MUST show
+  MUST NOT offer a control that the service would refuse. A company in which cost decisions cannot be confirmed MUST show
   no write path.
 - **FR-010**: The cost panel MUST NOT show a value field that the service never provides
   for that scope kind. It MUST show the specific reason for a missing carrying value.

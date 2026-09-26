@@ -87,7 +87,7 @@ written in English. Paths below are relative to the repository root; `core/` sta
   - the chat step fills the composer and sends no request;
   - the owner step links to Decisions with the proposal;
   - a member sees "A company owner must confirm this" and no confirm control;
-  - a read-only company shows no write path;
+  - a company that cannot confirm cost decisions shows no write path;
   - after the owner confirms, the panel re-reads and shows the value (edge case: state changes);
   - with AI not configured, the chat step opens chat showing the existing configuration notice.
 - [x] T025 [P] [US3] [DR-002] Add `test_owner_step_links_proposal_id` to `core/tests/test_cost_resolution.py`.

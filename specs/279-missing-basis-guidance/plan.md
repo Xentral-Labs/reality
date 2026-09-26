@@ -236,7 +236,7 @@ service facts; no ordering rule lives in the browser.
 - A chat step in a company without AI credentials still opens chat, which already
   shows the existing "AI credentials not configured" notice with its Settings link.
 - When `step.role === "owner"` and the viewer is not an owner, or `!writable`: a sentence
-  naming who must act ("A company owner must confirm this", "This company is read-only")
+  naming who must act ("A company owner must confirm this", "Cost decisions cannot be confirmed in this company")
   instead of a control.
 - Operator steps: a sentence with the system status link.
 - Unknown codes: the generic "Missing basis" sentence and no raw code (edge case).
@@ -345,3 +345,7 @@ output if the generator picks up the catalog response.
 - `unified-inspector-browser.mjs` already fails on `origin/main` (the inline exception
   catalog freshness wait), so the price determination proof lives in its own
   `price-resolution-browser.mjs`.
+- The live walk-through (T909) showed that demo and practice companies refuse
+  `execute_cost_change` outright. The first wording, "This company is read-only", was
+  wrong there (much else can be changed), so the barrier now says that cost decisions
+  cannot be confirmed in this company.
