@@ -5,6 +5,7 @@ import {
   layoutJourney,
   journeyLanes,
   mergeJourneyEvents,
+  decisionTimelineEvents,
 } from "../src/unified/orderJourneyLayout.ts";
 const event = (id, kind, time, subject = id) => ({
   id,
@@ -27,7 +28,7 @@ test("fit uses eligible recording times, preserving repeated subject observation
   assert.ok(range.start > Date.parse(events[3].recorded_at));
   const layout = layoutJourney(events, range, 800);
   assert.deepEqual(layout.flatMap((p) => p.events.map((e) => e.id)).sort(), ["e1", "e2", "e3"]);
-  assert.equal(journeyLanes.length, 5);
+  assert.equal(journeyLanes.length, 6);
 });
 test("only overlapping points in one lane group, with all members accessible", () => {
   const burst = Array.from({ length: 30 }, (_, i) =>
@@ -35,7 +36,7 @@ test("only overlapping points in one lane group, with all members accessible", (
   );
   const points = layoutJourney([...burst, events[0]], journeyRange(burst), 600);
   assert.equal(points.length, 2);
-  assert.equal(points.find((p) => p.lane === 3).events.length, 30);
+  assert.equal(points.find((p) => p.lane === 4).events.length, 30);
 });
 test("range excludes outside events and empty input has finite geometry", () => {
   const range = {
@@ -60,6 +61,33 @@ test("refresh merges identity and sequence without dropping history", () => {
 test("posting group events share the ledger lane without becoming ledger entries", () => {
   const posting = event("e7", "posting_group", "2026-09-18T08:03:00Z", "group-1");
   const points = layoutJourney([posting], journeyRange([posting]), 600);
-  assert.equal(points[0].lane, 4);
+  assert.equal(points[0].lane, 5);
   assert.equal(points[0].events[0].subject_type, "posting_group");
+});
+
+test("decisions become unconnected raised and settled points", () => {
+  const proposal = (id, status, decided_at = null) => ({
+    id,
+    status,
+    created_at: "2026-09-18T08:00:00Z",
+    decided_at,
+    review_label: `Review ${id}`,
+  });
+  const markers = decisionTimelineEvents([
+    proposal("pending", "proposed"),
+    proposal("yes", "executed", "2026-09-18T08:02:00Z"),
+    proposal("no", "rejected", "2026-09-18T08:03:00Z"),
+  ]);
+  assert.deepEqual(
+    markers.map((marker) => marker.type),
+    [
+      "decision.raised",
+      "decision.raised",
+      "decision.accepted",
+      "decision.raised",
+      "decision.rejected",
+    ],
+  );
+  assert.ok(markers.every((marker) => marker.subject_type === "decision"));
+  assert.equal(layoutJourney(markers, journeyRange(markers), 600)[0].lane, 2);
 });

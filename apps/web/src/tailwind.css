@@ -4248,6 +4248,7 @@ textarea.br-control.rule-draft-editor {
 :root {
   --journey-fact: #2874b8;
   --journey-commitment: #7960c9;
+  --journey-decision: #536f9f;
   --journey-reservation: #b66c22;
   --journey-movement: #23865e;
   --journey-ledger: #ab5288;
@@ -4255,6 +4256,7 @@ textarea.br-control.rule-draft-editor {
 [data-theme="dark"] {
   --journey-fact: #68b4f0;
   --journey-commitment: #ae99ee;
+  --journey-decision: #8faee2;
   --journey-reservation: #e9ad62;
   --journey-movement: #65cf9e;
   --journey-ledger: #e693c2;
