@@ -327,3 +327,39 @@ def test_welcome_dashboard_counts_the_stored_register(session, business, monkeyp
         row["id"] for row in register["items"]
     ]
     assert dashboard["capabilities"]["activity"] is True
+
+
+def test_cost_finding_carries_the_cost_panel_guidance(session, business):
+    """Spec 279 FR-012: a cost finding offers the same steps as the cost panel."""
+    from reality.services.attention_reads import cost_finding_resolution
+    from reality.services.costing import cost_query
+
+    item = cost_finding_resolution(
+        session,
+        business.tenant.id,
+        {"class_id": "missing_acquisition_cost", "record_id": business.item.id},
+    )
+    panel = cost_query(
+        session, business.tenant.id, kind="inventory", scope_id=business.item.id
+    )["guidance"]
+    assert item["kind"] == "inventory" and item["scope_id"] == business.item.id
+    assert item["steps"] == panel["steps"] and item["steps"]
+    # Classes without a cost query scope keep only their text guidance.
+    assert (
+        cost_finding_resolution(
+            session,
+            business.tenant.id,
+            {"class_id": "unassigned_cost_component", "record_id": "line"},
+        )
+        is None
+    )
+    # Another company's subject is not found and yields no guidance.
+    other = create_tenant(session, "Neighbor")
+    assert (
+        cost_finding_resolution(
+            session,
+            other.id,
+            {"class_id": "missing_acquisition_cost", "record_id": business.item.id},
+        )
+        is None
+    )
