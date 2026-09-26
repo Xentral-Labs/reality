@@ -61,11 +61,24 @@ def test_unpaged_balances_match_existing_finance_and_include_unused_credit(
     assert Decimal(result.rows[0]["customer_unused_credit"]) == 130
 
 
-def test_historical_settlements_do_not_use_later_payments_or_allocations(
-    session, business
-):
+def _balance_at(session, tenant, day):
     from reality.services.finance.balances import party_balance_rows
 
+    return [
+        (row["open"], row["credit"], row["balance"])
+        for row in party_balance_rows(
+            session,
+            tenant,
+            side="customer",
+            effective_before=datetime(2026, 1, day, tzinfo=UTC),
+        )
+    ]
+
+
+def test_historical_settlements_take_effect_with_their_later_endpoint(
+    session, business
+):
+    """Spec 232 FR-003: a later payment is excluded; a late-recorded match is not a cutoff."""
     tenant = business.tenant.id
     doc = invoice(session, business)
     entries = core.record_customer_payment(session, tenant, business.customer.id, "30")
@@ -79,20 +92,46 @@ def test_historical_settlements_do_not_use_later_payments_or_allocations(
         core._settlement_control_entry(session, tenant, doc.id).id,
         "30",
     )
-    allocation.allocated_at = datetime(2026, 1, 11, tzinfo=UTC)
+    # The clerk matched the payment ten days after it arrived.
+    allocation.allocated_at = datetime(2026, 1, 20, tzinfo=UTC)
     session.flush()
 
-    def at(day):
-        return party_balance_rows(
-            session,
-            tenant,
-            side="customer",
-            effective_before=datetime(2026, 1, day, tzinfo=UTC),
-        )[0]
+    assert _balance_at(session, tenant, 9) == [(100, 0, 100)]
+    assert _balance_at(session, tenant, 11) == [(70, 0, 70)]
+    assert _balance_at(session, tenant, 21) == [(70, 0, 70)]
 
-    assert (at(9)["open"], at(9)["credit"], at(9)["balance"]) == (100, 0, 100)
-    assert (at(11)["open"], at(11)["credit"], at(11)["balance"]) == (100, 30, 70)
-    assert (at(12)["open"], at(12)["credit"], at(12)["balance"]) == (70, 0, 70)
+
+def test_backdated_refund_of_a_credit_settles_it_from_its_own_date(session, business):
+    """Spec 232 FR-003: a refund dated before its recording clears the credit as of its date."""
+    tenant = business.tenant.id
+    payment_entries = core.record_customer_payment(
+        session,
+        tenant,
+        business.customer.id,
+        "119",
+        effective_at=datetime(2026, 1, 10, 8, tzinfo=UTC),
+    )
+    refund_entries = core.record_customer_refund(
+        session,
+        tenant,
+        business.customer.id,
+        "119",
+        effective_at=datetime(2026, 1, 12, 9, tzinfo=UTC),
+    )
+    allocation = core.allocate_settlement(
+        session,
+        tenant,
+        next(e.id for e in payment_entries if e.account == "accounts_receivable"),
+        next(e.id for e in refund_entries if e.account == "accounts_receivable"),
+        "119",
+    )
+    # Recorded on the 26th, stated as effective on the 12th.
+    allocation.allocated_at = datetime(2026, 1, 26, tzinfo=UTC)
+    session.flush()
+
+    assert _balance_at(session, tenant, 11) == [(0, 119, -119)]
+    assert _balance_at(session, tenant, 13) == []
+    assert _balance_at(session, tenant, 27) == []
 
 
 def test_detail_inventory_conserves_locations_and_unknown_tracking(session, business):
