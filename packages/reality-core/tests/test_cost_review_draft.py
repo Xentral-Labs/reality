@@ -267,3 +267,42 @@ def test_bounds_report_instead_of_truncate(session, business, cost_owner, monkey
     draft = inventory(session, business, method="fifo")
     assert codes(draft) == ["review_bound_exceeded"]
     assert draft["arguments"] is None and draft["partial_arguments"] is None
+
+
+# US4 chat and MCP --------------------------------------------------------------------
+
+
+def test_mcp_and_chat_offer_the_same_draft(session, business, cost_owner):
+    from reality.mcp.catalog import MCP_TOOL_REGISTRY, model_tool_schemas
+
+    billed, *_ = revenue.prepared(session, business, cost_owner)
+    arguments = {"kind": "contribution", "scope_id": billed.id}
+    direct = cost_review_draft(session, business.tenant.id, **arguments)
+    assert (
+        MCP_TOOL_REGISTRY["cost_review_draft"].handler(
+            session, business.tenant.id, arguments
+        )
+        == direct
+    )
+    # Read-only chats (practice companies) get it too; it writes nothing.
+    names = {tool["function"]["name"] for tool in model_tool_schemas(access=("read",))}
+    assert "cost_review_draft" in names
+    with pytest.raises(core.InvalidOperation):
+        MCP_TOOL_REGISTRY["cost_review_draft"].handler(
+            session, business.tenant.id, {**arguments, "answers": {"price": "1"}}
+        )
+
+
+def test_agent_guidance_names_the_draft_first():
+    import yaml
+
+    from reality.config import config_text
+
+    guidance = yaml.safe_load(config_text("command_catalog.yaml"))[
+        "capability_guidance"
+    ]
+    assert "cost_review_draft first" in guidance["cost_change_propose"]["purpose"]
+    draft_block = guidance["cost_review_draft"]
+    assert (
+        draft_block["confirmation"] == "none" and draft_block["side_effects"] == "none"
+    )

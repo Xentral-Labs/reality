@@ -221,6 +221,7 @@
     "commercial_match": "accounts",
     "contribution_preview": "accounts",
     "cost_query": "accounts",
+    "cost_review_draft": "accounts",
     "cost_record": "accounts",
     "reviewed_contribution": "accounts",
     "execute_cost_change": "accounts",

@@ -1517,6 +1517,26 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                 "reason": OPTIONAL_STRING,
                 "resolves_movement_id": OPTIONAL_STRING,
                 "return_announcement_id": OPTIONAL_STRING,
+                "opening_cost": {
+                    "type": "object",
+                    "description": "Opening stock only: the total acquisition value its evidence states, recorded as received for the cost review (spec 282).",
+                    "properties": {
+                        "amount": {
+                            "type": "string",
+                            "description": "Total acquisition value exactly as the evidence states it; never a computed unit cost.",
+                        },
+                        "currency": {
+                            "type": "string",
+                            "description": "Three-letter currency code of the stated value.",
+                        },
+                        "evidence_reference": {
+                            "type": "string",
+                            "description": "Names the document the value comes from, for example an inventory list.",
+                        },
+                    },
+                    "required": ["amount", "currency", "evidence_reference"],
+                    "additionalProperties": False,
+                },
             },
             required=("movement_type", "item_id", "quantity"),
         ),
@@ -2852,6 +2872,7 @@ MCP_TOOL_CATALOG = (
 
 from reality.domain.cost_query import CostQueryRequest
 from reality.domain.cost_records import CostRecordRead
+from reality.domain.cost_review_draft import CostReviewDraftRequest
 from reality.domain.costing import (
     CommercialMatchRead,
     ContributionRead,
@@ -2871,6 +2892,15 @@ MCP_TOOL_CATALOG += (
         "finance",
         CommercialMatchRead.model_json_schema(),
         _read("cost.commercial-match.get"),
+    ),
+    MCPToolDefinition(
+        "cost_review_draft",
+        "Draft a cost review",
+        "Draft the inventory or contribution review the held records support: complete cost_change_propose arguments, or the open inputs a person must decide. Call it before cost_change_propose.",
+        "read",
+        "finance",
+        CostReviewDraftRequest.model_json_schema(),
+        _read("cost.review.draft"),
     ),
     MCPToolDefinition(
         "cost_query_get",

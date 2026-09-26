@@ -8,6 +8,8 @@ confirmation stay on the existing path.
 
 from typing import Any, Literal
 
+from pydantic import BaseModel, ConfigDict, Field
+
 DraftKind = Literal["inventory", "contribution"]
 
 #: Open inputs a draft may name. Each has catalog wording in resolution_guidance.json.
@@ -28,6 +30,21 @@ OPEN_INPUT_CODES = frozenset(
 
 #: Proposal reason the draft supplies; the proposer may edit it.
 DRAFT_REASON = "Prepared from held evidence through the cost review draft."
+
+
+class DraftAnswers(BaseModel):
+    """What a person decided for the open inputs; nothing else is accepted."""
+
+    model_config = ConfigDict(extra="forbid")
+    method: Literal["fifo", "specific"] | None = None
+    owner_party_id: str | None = Field(default=None, min_length=1)
+
+
+class CostReviewDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    kind: DraftKind
+    scope_id: str = Field(min_length=1)
+    answers: DraftAnswers | None = None
 
 
 def method_choices(tracking_type: str | None) -> list[str]:

@@ -2747,6 +2747,7 @@ from reality.tools.costing import inventory as _inventory_cost_tool
 from reality.tools.costing import query as _cost_query_tool
 from reality.tools.costing import receipt as _receipt_cost_tool
 from reality.tools.costing import record as _cost_record_tool
+from reality.tools.costing import review_draft as _cost_review_draft_tool
 from reality.tools.costing import reviewed_contribution as _reviewed_contribution_tool
 
 TOOLS["cost.query.get"] = Tool(
@@ -2754,6 +2755,12 @@ TOOLS["cost.query.get"] = Tool(
     "Read an exact retained cost answer with constrained cutoffs, scope and freshness.",
     False,
     _cost_query_tool,
+)
+TOOLS["cost.review.draft"] = Tool(
+    "cost.review.draft",
+    "Draft the inventory or contribution cost review the held records support, with any open inputs.",
+    False,
+    _cost_review_draft_tool,
 )
 TOOLS["cost.record.get"] = Tool(
     "cost.record.get",
@@ -3347,7 +3354,9 @@ def approve_and_execute_proposal(
             session.commit()
             return proposal
         except (InvalidOperation, NotFound) as error:
-            _finalize_known_no_effect_failure(session, tenant_id, proposal_id, error)
+            _finalize_known_no_effect_failure(
+                session, tenant_id, proposal_id, error
+            )
             raise
         except Exception:
             session.rollback()
@@ -3526,7 +3535,9 @@ def approve_and_execute_proposal(
             # transaction is rolled back. Retain that terminal fact instead of
             # stranding the action in `executing` or making rejected input retryable.
             # Unexpected exceptions still leave the durable execution claim intact.
-            _finalize_known_no_effect_failure(session, tenant_id, proposal_id, error)
+            _finalize_known_no_effect_failure(
+                session, tenant_id, proposal_id, error
+            )
             raise
     proposal.status = "executed"
     proposal.output = json.dumps(_json_value(result), sort_keys=True)

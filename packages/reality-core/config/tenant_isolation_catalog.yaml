@@ -997,6 +997,8 @@ families:
       - reality.services.costing:inventory_cost_snapshot
       - reality.services.costing:cost_query
       - tool:cost.query.get
+      - reality.services.costing:cost_review_draft
+      - tool:cost.review.draft
       - reality.services.costing:cost_record
       - tool:cost.record.get
       - reality.services.costing:reviewed_contribution
@@ -1097,6 +1099,11 @@ families:
         operations:
           - reality.services.costing:cost_query
           - tool:cost.query.get
+      - id: tests/test_cost_review_draft.py::test_cross_company_scope_is_not_found
+        assertion: boundary
+        operations:
+          - reality.services.costing:cost_review_draft
+          - tool:cost.review.draft
       - id: tests/test_cost_records.py::test_real_cost_records_are_inspectable_and_tenant_scoped
         assertion: boundary
         operations:
