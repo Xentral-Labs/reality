@@ -1,6 +1,7 @@
 """Spec 280: one invoice over several orders of one party and one currency."""
 
 import json
+from datetime import UTC, datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -15,6 +16,7 @@ from reality.services.delivery_actions import (
     delivery_proposal_detail,
     prepare_delivery_action,
 )
+from reality.services.exceptions import operational_exceptions
 
 
 def order(session, b, direction="sales", *, party=None, currency="EUR", lines=1):
@@ -136,7 +138,12 @@ def test_positions_of_another_party_currency_or_direction_are_refused(
         other = order(session, business, "purchase")[0]
     same = order(session, business)[0]
 
-    with pytest.raises(core.InvalidOperation, match="one (party|currency|direction)"):
+    expected = {
+        "party": "one party",
+        "currency": "one currency",
+        "direction": "requires a sales order line",
+    }[mismatch]
+    with pytest.raises(core.InvalidOperation, match=expected):
         prepare(session, business, [position(first), position(other)])
     assert nothing_recorded(session)
 
@@ -163,3 +170,158 @@ def test_an_invoice_carries_at_most_two_hundred_positions(session, business):
     assert nothing_recorded(session)
 
     prepare(session, business, selected[:200], total="2000")
+
+
+# --- FR-003: billing stays per order line ------------------------------------
+
+AS_OF = datetime(2026, 12, 31, tzinfo=UTC)
+
+
+def placed(session, b, direction="sales"):
+    _, _, lines, commitments = core.create_manual_order(
+        session,
+        b.tenant.id,
+        direction,
+        "ORDER-280-" + uuid4().hex[:8],
+        b.company.id,
+        (b.customer if direction == "sales" else b.supplier).id,
+        b.location.id,
+        [
+            {
+                "item_id": b.item.id,
+                "quantity": "3",
+                "unit_price": "10",
+                "gross_amount": "30",
+            }
+        ],
+        gross_amount="30",
+    )
+    return lines[0], commitments[0]
+
+
+def billing(session, b, line):
+    row = core._order_line_billing(session, b.tenant.id, line.id)
+    assert row["invoiced"] + row["remaining"] == row["ordered"]
+    return row["invoiced"], row["remaining"]
+
+
+def findings(session, b, class_id, quantity):
+    return {
+        row.record_id: row.causal_values[quantity]
+        for row in operational_exceptions(session, b.tenant.id, as_of=AS_OF)
+        if row.class_id == class_id
+    }
+
+
+def invoice_group(session, b, proposal):
+    receipt = delivery_proposal_detail(session, b.tenant.id, proposal.id)["receipt"]
+    return next(
+        record_by_id(session, LedgerEntry, r["id"]).posting_group_id
+        for r in receipt["records"]
+        if r["family"] == "ledger_entry"
+    )
+
+
+def test_a_consolidated_sales_invoice_bills_each_order_line_by_its_own_quantity(
+    session, business
+):
+    """FR-003: billed + remaining = ordered per line, before, after and after reversal."""
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        business.item.id,
+        10,
+        to_location_id=business.location.id,
+    )
+    (a, a_promise), (b, b_promise) = (
+        placed(session, business),
+        placed(session, business),
+    )
+    for promise in (a_promise, b_promise):
+        core.record_movement(
+            session,
+            business.tenant.id,
+            "shipment",
+            business.item.id,
+            3,
+            from_location_id=business.location.id,
+            commitment_id=promise.id,
+        )
+    unbilled = "unbilled_quantity"
+    assert findings(session, business, "shipped_not_billed", unbilled) == {
+        a.id: Decimal(3),
+        b.id: Decimal(3),
+    }
+
+    proposal = prepare(
+        session,
+        business,
+        [position(a, "2", "20"), position(b, "3", "30")],
+        total="50",
+    )
+    confirm(session, business, proposal)
+
+    assert billing(session, business, a) == (Decimal(2), Decimal(1))
+    assert billing(session, business, b) == (Decimal(3), Decimal(0))
+    assert findings(session, business, "shipped_not_billed", unbilled) == {
+        a.id: Decimal(1)
+    }
+
+    core.reverse_ledger_posting_group(
+        session,
+        business.tenant.id,
+        invoice_group(session, business, proposal),
+        reason="Wrong customer reference",
+    )
+    assert billing(session, business, a) == (Decimal(0), Decimal(3))
+    assert billing(session, business, b) == (Decimal(0), Decimal(3))
+    # Out of scope here: shipped_not_billed does not yet honour a reversed invoice,
+    # for a single-order invoice either; that is a separate defect.
+
+
+def test_a_consolidated_supplier_invoice_is_received_against_each_purchase(
+    session, business
+):
+    """FR-003: billed_not_received is judged per purchase order line."""
+    (a, a_promise), (b, _) = (
+        placed(session, business, "purchase"),
+        placed(session, business, "purchase"),
+    )
+    proposal = prepare(
+        session,
+        business,
+        [position(a, "2", "20"), position(b, "3", "30")],
+        "purchase",
+        total="50",
+    )
+    confirm(session, business, proposal)
+    unreceived = "unreceived_quantity"
+    assert findings(session, business, "billed_not_received", unreceived) == {
+        a.id: Decimal(2),
+        b.id: Decimal(3),
+    }
+
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "receipt",
+        business.item.id,
+        2,
+        to_location_id=business.location.id,
+        commitment_id=a_promise.id,
+    )
+    assert findings(session, business, "billed_not_received", unreceived) == {
+        b.id: Decimal(3)
+    }
+
+
+@pytest.mark.anyio
+async def test_the_mcp_schema_declares_the_position_bound():
+    """FR-010: agents see the same bound before calling the tool."""
+    from reality.mcp import server as mcp_module
+
+    tools = {tool.name: tool for tool in await mcp_module.build_server().list_tools()}
+    for name in ("sales_invoice_record_propose", "supplier_invoice_record_propose"):
+        lines = tools[name].input_schema["properties"]["lines"]
+        assert (lines["minItems"], lines["maxItems"]) == (1, 200)
