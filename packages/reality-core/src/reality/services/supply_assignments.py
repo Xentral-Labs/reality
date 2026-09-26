@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from reality.db.core import Commitment, SupplyAssignment, uid
 from reality.domain.supply import (
+    assignable_demand_quantity,
     available_assignment_quantity,
     validate_assignment_quantity,
 )
@@ -211,7 +212,13 @@ def preview_supply_assignment(
         validate_assignment_quantity(
             qty,
             supplier_view["unassigned"],
-            customer_view["open"] if customer_view else None,
+            assignable_demand_quantity(
+                customer_view["quantity"],
+                customer_view["open"],
+                customer_view["protecting_supply"],
+            )
+            if customer_view
+            else None,
         )
     except ValueError as error:
         raise core.InvalidOperation(str(error)) from error
