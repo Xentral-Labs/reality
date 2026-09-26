@@ -20833,3 +20833,93 @@ Object.assign(dictionaries.es, {
   "Price list of the business partner's group": "Lista de precios del grupo del socio comercial",
   "Default price list": "Lista de precios predeterminada",
 });
+
+// Spec 279: contribution gaps found in live demo data.
+Object.assign(dictionaries.de, {
+  "The invoice line cannot be matched to one billing clearly":
+    "Die Rechnungsposition lässt sich keiner Berechnung eindeutig zuordnen",
+  "More than one billing could belong to this order line, so the contribution cannot be attributed automatically.":
+    "Zu dieser Auftragsposition könnten mehrere Berechnungen gehören, deshalb lässt sich der Deckungsbeitrag nicht automatisch zuordnen.",
+  "The shipment cannot be matched to this invoice line clearly":
+    "Die Lieferung lässt sich dieser Rechnungsposition nicht eindeutig zuordnen",
+  "More than one shipment could belong to this invoice line, so its goods cost cannot be attributed automatically.":
+    "Zu dieser Rechnungsposition könnten mehrere Lieferungen gehören, deshalb lässt sich ihr Wareneinsatz nicht automatisch zuordnen.",
+  "Invoice and order name different customers": "Rechnung und Auftrag nennen verschiedene Kunden",
+  "The invoice line and the order line it bills belong to different business partners.":
+    "Rechnungsposition und berechnete Auftragsposition gehören zu verschiedenen Geschäftspartnern.",
+  "Invoice and order name different items": "Rechnung und Auftrag nennen verschiedene Artikel",
+  "The invoice line bills a different item than the order line it names.":
+    "Die Rechnungsposition berechnet einen anderen Artikel als die genannte Auftragsposition.",
+  "The shipment was revised": "Die Lieferung wurde geändert",
+  "Contributions for revised shipments are not supported yet.":
+    "Deckungsbeiträge für geänderte Lieferungen werden noch nicht unterstützt.",
+  "This shipment has no contribution": "Für diese Lieferung gibt es keinen Deckungsbeitrag",
+  "The shipment behind this invoice line is not a supported delivery for contributions.":
+    "Die Lieferung zu dieser Rechnungsposition ist keine für Deckungsbeiträge unterstützte Lieferung.",
+  "The goods cost of the sale is not resolved": "Der Wareneinsatz des Verkaufs ist nicht geklärt",
+  "The shipment's goods cost could not be taken from the item's confirmed cost review.":
+    "Der Wareneinsatz der Lieferung ließ sich nicht aus der bestätigten Kostenprüfung des Artikels übernehmen.",
+  "The item's cost is not known for this sale":
+    "Die Artikelkosten sind für diesen Verkauf nicht bekannt",
+  "The item's cost review does not provide a cost for the shipped quantity.":
+    "Die Kostenprüfung des Artikels liefert keine Kosten für die gelieferte Menge.",
+});
+Object.assign(dictionaries.nl, {
+  "The invoice line cannot be matched to one billing clearly":
+    "De factuurregel kan niet eenduidig aan één facturering worden gekoppeld",
+  "More than one billing could belong to this order line, so the contribution cannot be attributed automatically.":
+    "Er kunnen meerdere factureringen bij deze orderregel horen, dus de bijdrage kan niet automatisch worden toegerekend.",
+  "The shipment cannot be matched to this invoice line clearly":
+    "De levering kan niet eenduidig aan deze factuurregel worden gekoppeld",
+  "More than one shipment could belong to this invoice line, so its goods cost cannot be attributed automatically.":
+    "Er kunnen meerdere leveringen bij deze factuurregel horen, dus de inkoopwaarde kan niet automatisch worden toegerekend.",
+  "Invoice and order name different customers": "Factuur en order noemen verschillende klanten",
+  "The invoice line and the order line it bills belong to different business partners.":
+    "De factuurregel en de gefactureerde orderregel horen bij verschillende relaties.",
+  "Invoice and order name different items": "Factuur en order noemen verschillende artikelen",
+  "The invoice line bills a different item than the order line it names.":
+    "De factuurregel factureert een ander artikel dan de genoemde orderregel.",
+  "The shipment was revised": "De levering is herzien",
+  "Contributions for revised shipments are not supported yet.":
+    "Bijdragen voor herziene leveringen worden nog niet ondersteund.",
+  "This shipment has no contribution": "Deze levering heeft geen bijdrage",
+  "The shipment behind this invoice line is not a supported delivery for contributions.":
+    "De levering achter deze factuurregel is geen ondersteunde levering voor bijdragen.",
+  "The goods cost of the sale is not resolved": "De inkoopwaarde van de verkoop is niet opgelost",
+  "The shipment's goods cost could not be taken from the item's confirmed cost review.":
+    "De inkoopwaarde van de levering kon niet uit de bevestigde kostencontrole van het artikel worden overgenomen.",
+  "The item's cost is not known for this sale":
+    "De artikelkosten zijn voor deze verkoop niet bekend",
+  "The item's cost review does not provide a cost for the shipped quantity.":
+    "De kostencontrole van het artikel geeft geen kosten voor de geleverde hoeveelheid.",
+});
+Object.assign(dictionaries.es, {
+  "The invoice line cannot be matched to one billing clearly":
+    "La línea de factura no se puede asignar con claridad a una facturación",
+  "More than one billing could belong to this order line, so the contribution cannot be attributed automatically.":
+    "Varias facturaciones podrían corresponder a esta línea de pedido, así que la contribución no se puede atribuir automáticamente.",
+  "The shipment cannot be matched to this invoice line clearly":
+    "El envío no se puede asignar con claridad a esta línea de factura",
+  "More than one shipment could belong to this invoice line, so its goods cost cannot be attributed automatically.":
+    "Varios envíos podrían corresponder a esta línea de factura, así que su coste de mercancía no se puede atribuir automáticamente.",
+  "Invoice and order name different customers": "La factura y el pedido indican clientes distintos",
+  "The invoice line and the order line it bills belong to different business partners.":
+    "La línea de factura y la línea de pedido que factura pertenecen a socios comerciales distintos.",
+  "Invoice and order name different items": "La factura y el pedido indican artículos distintos",
+  "The invoice line bills a different item than the order line it names.":
+    "La línea de factura factura un artículo distinto del de la línea de pedido indicada.",
+  "The shipment was revised": "El envío se revisó",
+  "Contributions for revised shipments are not supported yet.":
+    "Las contribuciones de envíos revisados aún no se admiten.",
+  "This shipment has no contribution": "Este envío no tiene contribución",
+  "The shipment behind this invoice line is not a supported delivery for contributions.":
+    "El envío de esta línea de factura no es una entrega admitida para contribuciones.",
+  "The goods cost of the sale is not resolved":
+    "El coste de la mercancía de la venta no está resuelto",
+  "The shipment's goods cost could not be taken from the item's confirmed cost review.":
+    "El coste de la mercancía del envío no se pudo tomar de la revisión de costes confirmada del artículo.",
+  "The item's cost is not known for this sale":
+    "El coste del artículo no se conoce para esta venta",
+  "The item's cost review does not provide a cost for the shipped quantity.":
+    "La revisión de costes del artículo no aporta un coste para la cantidad enviada.",
+});
