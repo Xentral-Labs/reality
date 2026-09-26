@@ -1153,7 +1153,7 @@ def test_prepare_opening_is_atomic_idempotent_and_not_execution(durable_playgrou
     assert result["status"] == "proposed"
     assert result["arguments"]["quantity"] == "20"
     assert result["arguments"]["occurred_at"]
-    assert result["preview"]["requires_human_confirmation"] is True
+    assert result["preview"]["requires_confirmation"] is True
     assert result["preview"]["defaults"] == ["occurred_at"]
     with Session(engine) as session:
         tenant_id = record_by_id(session, PlaygroundRun, run_id).tenant_id

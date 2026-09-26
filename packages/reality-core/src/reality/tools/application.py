@@ -2820,7 +2820,7 @@ def create_change_proposal(
         "tool": tool_name,
         "arguments": _json_value(normalized_arguments),
         "effect": tool.description,
-        "requires_human_confirmation": True,
+        "requires_confirmation": True,
     }
     from reality.domain.target_mappings import COMMANDS as TARGET_COMMANDS
 
@@ -2957,7 +2957,7 @@ def create_change_proposal(
             "predicate": normalized_arguments["predicate"],
             "value": normalized_arguments["value"],
             "observed_at": normalized_arguments["observed_at"],
-            "requires_human_confirmation": True,
+            "requires_confirmation": True,
         }
     if tool_name in MEMBERSHIP_MUTATION_TOOLS:
         target_key = (
@@ -2973,7 +2973,7 @@ def create_change_proposal(
             "action": tool_name,
             "company_id": tenant_id,
             "target": {target_key: target_value},
-            "requires_human_confirmation": True,
+            "requires_confirmation": True,
         }
     if tool_name == "graph.reports.change":
         from reality.services.analytics.proposals import prepare
@@ -3037,7 +3037,9 @@ def proposals_awaiting_approval(
 
 
 def _decider_values(
-    principal: Principal | None, settling_token_id: str | None
+    principal: Principal | None,
+    settling_token_id: str | None,
+    settling_channel: str | None = None,
 ) -> dict[str, Any]:
     """Who settled a proposal, as the columns that record it.
 
@@ -3051,6 +3053,9 @@ def _decider_values(
         "decided_at": now(),
         "decided_by_user_id": principal.user_id if principal else None,
         "decided_via_token_id": None if principal else settling_token_id,
+        "decided_via_channel": None
+        if principal or settling_token_id
+        else settling_channel,
     }
 
 
@@ -3059,6 +3064,7 @@ UNDECIDED = {
     "decided_at": None,
     "decided_by_user_id": None,
     "decided_via_token_id": None,
+    "decided_via_channel": None,
 }
 
 
@@ -3066,9 +3072,12 @@ def _record_decision(
     proposal: ChangeProposal,
     principal: Principal | None,
     settling_token_id: str | None = None,
+    settling_channel: str | None = None,
 ) -> ChangeProposal:
     """Attribute a settled proposal to the moment and to whoever settled it."""
-    for column, value in _decider_values(principal, settling_token_id).items():
+    for column, value in _decider_values(
+        principal, settling_token_id, settling_channel
+    ).items():
         setattr(proposal, column, value)
     return proposal
 
@@ -3087,6 +3096,7 @@ def approve_and_execute_proposal(
     review_token: str | None = None,
     confirmed: bool = False,
     settling_token_id: str | None = None,
+    settling_channel: str | None = None,
 ) -> ChangeProposal:
     candidate = session.scalar(
         select(ChangeProposal).where(
@@ -3216,7 +3226,9 @@ def approve_and_execute_proposal(
                     ),
                 )
             proposal.status = "executed"
-            _record_decision(proposal, confirming_principal, settling_token_id)
+            _record_decision(
+                proposal, confirming_principal, settling_token_id, settling_channel
+            )
             proposal.output = json.dumps(_json_value(result), sort_keys=True)
             session.commit()
             return proposal
@@ -3233,7 +3245,9 @@ def approve_and_execute_proposal(
         )
         .values(
             status="executing",
-            **_decider_values(confirming_principal, settling_token_id),
+            **_decider_values(
+                confirming_principal, settling_token_id, settling_channel
+            ),
         )
         .returning(ChangeProposal.id)
     )
@@ -3432,6 +3446,7 @@ def reject_proposal(
     *,
     confirming_principal: Principal | None = None,
     settling_token_id: str | None = None,
+    settling_channel: str | None = None,
 ) -> ChangeProposal:
     existing = session.scalar(
         select(ChangeProposal).where(
@@ -3450,7 +3465,9 @@ def reject_proposal(
     require_proposal_decision(session, tenant_id, proposal_id, "proposal_reject")
     proposal = existing
     proposal.status = "rejected"
-    _record_decision(proposal, confirming_principal, settling_token_id)
+    _record_decision(
+        proposal, confirming_principal, settling_token_id, settling_channel
+    )
     session.commit()
     return proposal
 

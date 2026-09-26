@@ -31,7 +31,7 @@ parameter_descriptions:
   cost_effect: Explicit economic cost direction, separate from the retained source sign.
   assignment_kind: Direct cost attribution or explicitly allocated share, kept separate in contribution output.
   manifest_id: Opaque sealed receipt review input set; absence requests current retained knowledge.
-  confirmed: Explicit human approval of the unchanged prepared decision.
+  confirmed: Explicit authorized approval of the unchanged prepared decision.
   effective_before: Exclusive UTC effective-time cutoff over retained postings, allocations and reversals; absent means current state. Does not reconstruct historical payment terms or knowledge time.
   item_ids: Opaque article identities the caller can still reach, used to select which articles are answered for; absent means every article of the company. It narrows the rows returned and never how one is derived, because each article's position is worked out from its own movements, reservations and open promises.
   party_ids: Opaque business-partner identities the caller can still reach, used to select which partners are answered for; absent means every partner of the company. A balance is summed within one partner and currency and never across them, so naming fewer returns fewer rows of identical arithmetic.
@@ -3620,20 +3620,20 @@ capability_guidance:
       meaning: The selected account configuration exists.
   proposal_approve_and_execute:
     kind: confirm
-    purpose: Apply one exact prepared mutation after explicit human approval through a single-use Reality execution boundary.
-    use_when: [An accountable human has reviewed and approved the exact pending proposal preview.]
+    purpose: Apply one exact prepared mutation after an explicit authorized decision through a single-use Reality execution boundary.
+    use_when: [An authorized person or agent explicitly decides the exact pending proposal preview.]
     do_not_use_when:
       - Approval is inferred from model output, credentials, connection, or prior similar decisions.
       - The proposal is executing, rejected, unknown, foreign, or no longer matches the intended action.
     required_context: [change_proposal]
     preconditions: [The proposal belongs to the selected tenant, remains proposed, and approved is explicitly true.]
-    confirmation: explicit_human
-    principal_semantics: The authenticated MCP client asserts that an accountable human approved the exact preview; operations that require a Reality user principal are refused unless the confirming adapter supplies that authenticated principal.
+    confirmation: explicit_decision
+    principal_semantics: The authenticated caller makes an explicit decision on the exact preview; operations that require a Reality user principal are refused unless the confirming adapter supplies that authenticated principal.
     idempotency: {mode: single_use_replay, guidance: An executed replay returns the stored receipt without executing again; never retry an executing proposal blindly.}
     retry_behavior: Retry only after a transport failure by reading proposal_execution_status; an executed result is replay-safe and an executing result requires reconciliation.
     unknown_behavior: Executing means the effect may be in progress or committed without a delivered response; reconcile by proposal ID and do not execute again.
     refusals:
-      - {code: approval_required, description: approved=true was not supplied after explicit human approval.}
+      - {code: approval_required, description: approved=true was not supplied for an explicit authorized decision.}
       - {code: execution_unknown, description: The proposal is already executing and cannot be safely retried.}
       - {code: proposal_settled, description: The proposal was rejected or otherwise cannot be confirmed.}
       - {code: proposal_not_found, description: No proposal is visible in the selected tenant.}
@@ -3645,7 +3645,7 @@ capability_guidance:
       - {name: proposal_execution_status, proves: Correlated execution evidence and current Reservation/Commitment values match the stored receipt.}
       - {name: business_records_discover, proves: Named operational records remain visible with current tenant-scoped values.}
     examples:
-      use: [{scenario: An accountable operator approves the exact pending reservation proposal., reason: Explicit human approval permits the single-use confirmation boundary.}]
+      use: [{scenario: An accountable operator or agent approves the exact pending reservation proposal., reason: An explicit authorized decision permits the single-use confirmation boundary.}]
       do_not_use: [{scenario: An agent believes a similar proposal would usually be approved., reason: Learned behavior and model output are not confirmation authority.}]
   proposal_execution_status:
     kind: read
@@ -4260,7 +4260,7 @@ capability_guidance:
   proposals_awaiting_approval:
     kind: read
     application_tool: proposals_awaiting_approval
-    purpose: List tenant change proposals that still await explicit human approval.
+    purpose: List tenant change proposals that still await an explicit authorized decision.
     use_when: [The current governed review queue is needed before approval or rejection.]
     do_not_use_when: [Executed Reality, rejected history, or proof of an effect is required.]
     required_context: [tenant]

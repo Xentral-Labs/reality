@@ -300,3 +300,9 @@ test. A partial implementation remains unchecked and names the missing proof.
   correction tests and 46 stale/replay regressions passed; 123 frontend contracts, 1546/1546
   localization keys per language, build/format/lint/spec/diff gates and the five-form responsive
   four-locale Chromium matrix passed. No shared company data or active port-8080 stack was changed.
+
+## Chat agent decisions — Spec 274
+
+- [x] Ordinary product Chat can prepare and separately confirm or reject an exact stored proposal through the shared application boundary; proposing alone never mutates business state, while protected owner/person checks and read-only Playground policy remain unchanged.
+- [x] Chat-settled decisions are durably and truthfully attributed to the Chat agent, retain tenant, stale-review, replay and operation-specific safeguards, and remain traceable through the Decision Trail.
+- [x] Validation: complete serial PostgreSQL backend suite passed with 4,388 tests and 10 skips; focused Chat, attribution, migration and frontend suites, Ruff, spec policy, generated catalog, four-language audit, production Web build and diff checks passed. See Spec 274 quickstart for exact evidence.

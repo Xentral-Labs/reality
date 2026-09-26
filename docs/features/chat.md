@@ -4,8 +4,8 @@ Chat is a natural-language shell over a registered application-tool layer. The p
 returns text plus structured tool calls; it never receives an ORM Session.
 
 - Read tools may execute immediately and remain tenant-scoped.
-- Mutation tools first produce a typed proposal containing arguments and human summary.
-- Only an explicit confirmation executes a proposal; rejection records no business mutation.
+- Mutation tools first produce a typed proposal containing arguments and a readable summary.
+- Only a separate explicit decision by an authorized person or agent executes a proposal; rejection records no business mutation.
 - A proposal cannot be replayed after execution, tenant change, or argument tampering.
 - A deterministic dummy provider covers reads, proposals, confirmation, rejection, and errors.
 - OpenAI/Anthropic are future provider adapters, not alternate business logic.
@@ -103,8 +103,12 @@ in the web. When a client settles a proposal with `proposal_approve_and_execute`
 the moment, never the issuer as the deciding person. Every business event the proposal
 writes references it through `business_event.action_id`, for every mutating tool.
 Approve, reject and `proposal_execution_status` return the resulting `decider`/`decision`:
-a signed-in person, a token with its issuer (or an unknown issuer for older tokens), or
-unknown.
+a signed-in person, the built-in Chat agent, a token with its issuer (or an unknown
+issuer for older tokens), or unknown. Ordinary Chat receives read, propose and confirm
+tools. It may settle its own exact proposal through a separate tool call; this records
+the observed `chat_agent` channel and never pretends that the signed-in sender personally
+approved. Confirmation access does not supply the human owner/person principal still
+required by protected membership, finance, costing and reviewed-delivery operations.
 
 ## MCP read response contracts
 
@@ -116,7 +120,7 @@ refreshes and authentication telemetry.
 ## Sandbox practice companies
 
 Since feature 169 the App copilot is admitted for active practice companies exactly like every
-other reviewed practice operation (spec 155): the provider loop offers read and propose tools,
+other reviewed practice operation (spec 155): the provider loop offers read, propose and confirm tools,
 mutations stay behind the proposal boundary, and eligibility is read from persisted run, owner
 and membership state. Lesson runs keep the read-only companion of spec 106. A policy refusal
 is reported as "The Copilot is not available for this company: <reason>", never as a

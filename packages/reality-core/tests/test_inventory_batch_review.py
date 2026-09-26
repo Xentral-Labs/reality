@@ -82,7 +82,7 @@ def test_batch_mcp_confirmation_shared_basis_replay_and_snapshots(
     before = counts(session, tenant)
     with caller(Principal(cost_owner.id)):
         proposed = command.handler(session, tenant, args)
-    assert proposed["requires_human_confirmation"]
+    assert proposed["requires_confirmation"]
     assert counts(session, tenant) == before
     with pytest.raises(core.InvalidOperation, match="confirmation"):
         approve_and_execute_proposal(

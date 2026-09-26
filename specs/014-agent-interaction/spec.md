@@ -28,7 +28,7 @@ tenant conversations, and scoped remote MCP access.
 ### Non-Goals
 
 - Direct ORM access by a provider, Chat, MCP, or browser.
-- Unconfirmed interactive mutations or autonomous approval.
+- Direct interactive mutations that bypass a stored proposal and separate decision.
 - Treating model output as business truth.
 - Provider-specific business logic; external model adapters remain replaceable.
 - Broad MCP tokens unconstrained by tenant and tool permissions.
@@ -79,7 +79,7 @@ contexts and verify result, tenant scope, and unchanged business state.
 As a user, I can inspect a typed proposed action before any business mutation and then
 confirm or reject exactly that action.
 
-**Why this priority**: Human confirmation is the non-negotiable mutation boundary.
+**Why this priority**: A separate explicit decision by an authorized person or agent is the non-negotiable mutation boundary.
 
 **Independent Test**: Propose Reservation, verify no allocation, confirm once, then
 attempt replay, tenant change, and a rejected proposal.

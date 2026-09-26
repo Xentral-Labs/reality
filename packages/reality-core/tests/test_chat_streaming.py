@@ -330,7 +330,12 @@ def test_streaming_adapter_dispatches_once_after_complete_arguments(
         )
     assert answer == "Grüße"
     assert dispatched == [
-        (business.tenant.id, "inventory_read", {"limit": 2}, ("read", "propose"))
+        (
+            business.tenant.id,
+            "inventory_read",
+            {"limit": 2},
+            ("read", "propose", "confirm"),
+        )
     ]
     assert [e["type"] for e in events] == ["reset", "delta", "reset", "delta"]
 

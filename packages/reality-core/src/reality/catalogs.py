@@ -350,7 +350,7 @@ def validate_capability_guidance(
                 raise ValueError(
                     f"Confirm capability guidance references unknown public tool: {tool_name}"
                 )
-            if raw.get("confirmation") != "explicit_human":
+            if raw.get("confirmation") != "explicit_decision":
                 raise ValueError(
                     f"Capability guidance confirmation mismatch: {tool_name}"
                 )

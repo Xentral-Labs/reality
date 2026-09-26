@@ -19049,6 +19049,8 @@ Object.assign(dictionaries.de, {
   "Not decided yet": "Noch nicht entschieden",
   "Confirmed by {name}": "Bestätigt von {name}",
   "Rejected by {name}": "Abgelehnt von {name}",
+  "Confirmed by Chat agent": "Vom Chat-Agenten bestätigt",
+  "Rejected by Chat agent": "Vom Chat-Agenten abgelehnt",
   "Confirmed through token {token}, issued by {issuer}":
     "Bestätigt über MCP-Token {token}, ausgestellt von {issuer}",
   "Rejected through token {token}, issued by {issuer}":
@@ -19069,6 +19071,8 @@ Object.assign(dictionaries.nl, {
   "Not decided yet": "Nog niet beslist",
   "Confirmed by {name}": "Bevestigd door {name}",
   "Rejected by {name}": "Afgewezen door {name}",
+  "Confirmed by Chat agent": "Bevestigd door de chatagent",
+  "Rejected by Chat agent": "Afgewezen door de chatagent",
   "Confirmed through token {token}, issued by {issuer}":
     "Bevestigd via MCP-token {token}, uitgegeven door {issuer}",
   "Rejected through token {token}, issued by {issuer}":
@@ -19089,6 +19093,8 @@ Object.assign(dictionaries.es, {
   "Not decided yet": "Aún sin decidir",
   "Confirmed by {name}": "Confirmado por {name}",
   "Rejected by {name}": "Rechazado por {name}",
+  "Confirmed by Chat agent": "Confirmado por el agente de chat",
+  "Rejected by Chat agent": "Rechazado por el agente de chat",
   "Confirmed through token {token}, issued by {issuer}":
     "Confirmado mediante el token MCP {token}, emitido por {issuer}",
   "Rejected through token {token}, issued by {issuer}":

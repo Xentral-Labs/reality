@@ -976,8 +976,8 @@ item_update_propose records
 
 #### `item_update_propose` — Propose Item update {#tool-item_update_propose}
 
-Prepare updates to existing Items identified only by opaque ID. Exact changes are previewed and
-human confirmation is required.
+Prepare updates to existing Items identified only by opaque ID. Exact changes are previewed and a
+separate decision is required.
 
 **Synopsis**
 
@@ -1029,7 +1029,7 @@ location_update_propose records
 #### `location_update_propose` — Propose Location update {#tool-location_update_propose}
 
 Prepare updates to existing Locations identified only by opaque ID. Parent locations also use opaque
-IDs. Exact changes are previewed and human confirmation is required.
+IDs. Exact changes are previewed and a separate decision is required.
 
 **Synopsis**
 
@@ -1080,8 +1080,8 @@ party_update_propose records
 
 #### `party_update_propose` — Propose Party update {#tool-party_update_propose}
 
-Prepare updates to existing Parties identified only by opaque ID. Exact changes are previewed and
-human confirmation is required.
+Prepare updates to existing Parties identified only by opaque ID. Exact changes are previewed and a
+separate decision is required.
 
 **Synopsis**
 
@@ -3675,7 +3675,7 @@ ledger_reversal_propose posting_group_id reason
 
 #### `ledger_reversal_propose` — Propose Ledger reversal {#tool-ledger_reversal_propose}
 
-Preview a complete inverse posting group without executing before human approval.
+Preview a complete inverse posting group without executing before a separate decision.
 
 **Synopsis**
 
@@ -4833,8 +4833,8 @@ movement_correction_propose movement_id reason [replacement]
 
 #### `movement_correction_propose` — Propose Movement correction {#tool-movement_correction_propose}
 
-Preview an exact compensating Movement and optional replacement without executing before human
-approval.
+Preview an exact compensating Movement and optional replacement without executing before a separate
+decision.
 
 **Synopsis**
 
@@ -7692,7 +7692,7 @@ proposals_awaiting_approval
 
 [How this query runs](./views#read-execution)
 
-List tenant change proposals that still await explicit human approval.
+List tenant change proposals that still await an explicit authorized decision.
 
 **Use when**
 
@@ -7751,7 +7751,8 @@ records.
 
 ### `proposal_approve_and_execute` — Approve and execute a proposal {#tool-proposal_approve_and_execute}
 
-Approve one exact proposal and execute it through the shared application boundary.
+Settle one exact proposal by explicit authorized decision and execute it through the shared
+application boundary.
 
 **Synopsis**
 
@@ -7761,12 +7762,12 @@ proposal_approve_and_execute proposal_id [approved] [review_token]
 
 **Access:** `confirm`
 
-Apply one exact prepared mutation after explicit human approval through a single-use Reality
+Apply one exact prepared mutation after an explicit authorized decision through a single-use Reality
 execution boundary.
 
 **Use when**
 
-- An accountable human has reviewed and approved the exact pending proposal preview.
+- An authorized person or agent explicitly decides the exact pending proposal preview.
 
 **Do not use when**
 
@@ -7781,7 +7782,7 @@ execution boundary.
 
 **Refused when**
 
-- `approval_required` — approved=true was not supplied after explicit human approval.
+- `approval_required` — approved=true was not supplied for an explicit authorized decision.
 - `execution_unknown` — The proposal is already executing and cannot be safely retried.
 - `proposal_settled` — The proposal was rejected or otherwise cannot be confirmed.
 - `proposal_not_found` — No proposal is visible in the selected tenant.
@@ -7800,7 +7801,7 @@ operational records remain visible with current tenant-scoped values.
 
 ### `proposal_reject` — Reject a proposal {#tool-proposal_reject}
 
-Carry out an explicit human rejection of one pending proposal without business effect.
+Reject one pending proposal by explicit authorized decision without business effect.
 
 **Synopsis**
 

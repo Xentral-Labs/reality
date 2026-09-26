@@ -50,7 +50,7 @@ def test_commercial_match_confirm_replay_and_revision(session, business, cost_ow
     preview = preview_cost_change(
         session, business.tenant.id, args, principal=Principal(cost_owner.id)
     )
-    assert preview["requires_human_confirmation"] is True
+    assert preview["requires_confirmation"] is True
     action, first = stock.commit_review(session, business, cost_owner, args)
     assert first["revision"] == 1
     assert first["goods_cost_disposition"] == "not_applicable"

@@ -219,7 +219,7 @@ def build_server(
         "Reality",
         instructions=(
             "Inspect operational reality through shared application services. "
-            "Mutations are proposals and require separate human approval. "
+            "Mutations are proposals and require a separate authorized decision. "
             "Call capability_catalog first: it names the business areas this company "
             "covers and marks which tools this credential may actually use, so a "
             "capability you are not granted is never mistaken for one that is absent."

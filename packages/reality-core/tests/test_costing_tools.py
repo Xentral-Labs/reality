@@ -99,7 +99,7 @@ def test_mcp_cost_schema_and_handlers_use_application_services(
             business.tenant.id,
             assignment(session, business, movement, doc, "1000"),
         )
-    assert result["requires_human_confirmation"]
+    assert result["requires_confirmation"]
     assert session.scalar(select(func.count()).select_from(CostAttribution)) == 0
     assert (
         json.loads(record_by_id(session, ChangeProposal, result["proposal_id"]).input)[

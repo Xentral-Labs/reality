@@ -10,6 +10,34 @@ from sqlalchemy.exc import IntegrityError
 from reality.db.core import Base
 
 
+def test_chat_agent_decision_attribution_upgrades_and_downgrades(
+    postgres_database: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+    config = Config("alembic.ini")
+    config.set_main_option("sqlalchemy.url", postgres_database)
+    command.upgrade(config, "0097_chat_answer_basis")
+    engine = create_engine(postgres_database)
+    try:
+        assert "decided_via_channel" not in {
+            column["name"] for column in inspect(engine).get_columns("action")
+        }
+        command.upgrade(config, "head")
+        assert "decided_via_channel" in {
+            column["name"] for column in inspect(engine).get_columns("action")
+        }
+        assert "ck_action_decided_via_channel" in {
+            constraint["name"]
+            for constraint in inspect(engine).get_check_constraints("action")
+        }
+        command.downgrade(config, "0097_chat_answer_basis")
+        assert "decided_via_channel" not in {
+            column["name"] for column in inspect(engine).get_columns("action")
+        }
+    finally:
+        engine.dispose()
+
+
 def test_external_agent_closure_requires_no_schema_change(
     postgres_database: str,
     monkeypatch: pytest.MonkeyPatch,

@@ -53,7 +53,7 @@ def test_master_data_tools_only_create_after_confirmation(
     )
 
     assert proposed["status"] == "proposed"
-    assert proposed["requires_human_confirmation"] is True
+    assert proposed["requires_confirmation"] is True
     assert _count(session, model, business.tenant.id) == before
 
     executed = dispatch_tool(
