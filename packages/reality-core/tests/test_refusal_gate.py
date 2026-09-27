@@ -46,13 +46,18 @@ class Site:
     coded: bool
 
 
-def _message(call: ast.Call) -> str:
+def _message(call: ast.Call, source: str) -> str:
+    """The literal sentence, or the source text of a computed one.
+
+    Source text, not `ast.unparse`: unparse renders f-strings differently across
+    Python versions, which would make the ratchet keys depend on the interpreter.
+    """
     if not call.args:
         return ""
     first = call.args[0]
     if isinstance(first, ast.Constant) and isinstance(first.value, str):
         return first.value
-    return ast.unparse(first)
+    return " ".join((ast.get_source_segment(source, first) or "").split())
 
 
 def refusal_sites(source: str, path: str) -> list[Site]:
@@ -90,7 +95,7 @@ def refusal_sites(source: str, path: str) -> list[Site]:
                             path,
                             child.lineno,
                             ".".join(scope) or "<module>",
-                            _message(child.exc),
+                            _message(child.exc, source),
                             literal,
                             keyword is not None,
                         )
@@ -228,7 +233,7 @@ def test_gate_accepts_coded_and_ratcheted_refusals():
     entry = {
         "path": "sample.py",
         "function": "uncoded",
-        "message": "f'Value {value} is refused.'",
+        "message": 'f"Value {value} is refused."',
         "scope": "286",
     }
     assert gate({"sample.py": SAMPLE}, [entry], CATALOG) == []
@@ -244,7 +249,7 @@ def test_gate_names_a_stale_ratchet_entry():
     entry = {
         "path": "sample.py",
         "function": "uncoded",
-        "message": "f'Value {value} is refused.'",
+        "message": 'f"Value {value} is refused."',
         "scope": "286",
     }
     problems = gate({"sample.py": SAMPLE}, [entry, stale], CATALOG)

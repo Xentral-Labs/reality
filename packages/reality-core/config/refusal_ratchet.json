@@ -68,7 +68,7 @@
     {
       "path": "reality/services/artifacts.py",
       "function": "stage_artifact",
-      "message": "f'Upload exceeds the configured limit of {maximum} bytes.'",
+      "message": "f\"Upload exceeds the configured limit of {maximum} bytes.\"",
       "scope": "later"
     },
     {
@@ -128,7 +128,7 @@
     {
       "path": "reality/services/core.py",
       "function": "_canonical_fact_value",
-      "message": "f'Fact value does not satisfy {contract['predicate']} ({value_type}).'",
+      "message": "f\"Fact value does not satisfy {contract['predicate']} ({value_type}).\"",
       "scope": "later"
     },
     {
@@ -314,7 +314,7 @@
     {
       "path": "reality/services/core.py",
       "function": "create_price_list",
-      "message": "f'An active default {direction} price list for {currency} already exists.'",
+      "message": "f\"An active default {direction} price list for {currency} already exists.\"",
       "scope": "later"
     },
     {
@@ -344,7 +344,7 @@
     {
       "path": "reality/services/core.py",
       "function": "update_price_list",
-      "message": "f'An active default {direction} price list for {currency} already exists.'",
+      "message": "f\"An active default {direction} price list for {currency} already exists.\"",
       "scope": "later"
     },
     {
@@ -440,7 +440,7 @@
     {
       "path": "reality/services/core.py",
       "function": "state_lot_expiry",
-      "message": "f\"A lot's best-before date is already stated as {lot.expires_at.isoformat()}; it is a received value and is not adjusted. Correct it instead, saying what is stated now and why it was wrong.\"",
+      "message": "\"A lot's best-before date is already stated as \" f\"{lot.expires_at.isoformat()}; it is a received value and is not adjusted. \" \"Correct it instead, saying what is stated now and why it was wrong.\"",
       "scope": "later"
     },
     {
@@ -452,7 +452,7 @@
     {
       "path": "reality/services/core.py",
       "function": "correct_lot_expiry",
-      "message": "f'The best-before correction no longer matches what is stated: {(lot.expires_at.isoformat() if lot.expires_at else 'none')} is stored, {(confirmed.isoformat() if confirmed else 'none')} was confirmed.'",
+      "message": "\"The best-before correction no longer matches what is stated: \" f\"{lot.expires_at.isoformat() if lot.expires_at else 'none'} is stored, \" f\"{confirmed.isoformat() if confirmed else 'none'} was confirmed.\"",
       "scope": "later"
     },
     {
@@ -536,7 +536,7 @@
     {
       "path": "reality/services/core.py",
       "function": "close_stale_promises",
-      "message": "f'The closure no longer matches the confirmed count: {len(matches)} match, {expected_count} were confirmed.'",
+      "message": "\"The closure no longer matches the confirmed count: \" f\"{len(matches)} match, {expected_count} were confirmed.\"",
       "scope": "later"
     },
     {
@@ -722,7 +722,7 @@
     {
       "path": "reality/services/core.py",
       "function": "create_source_system",
-      "message": "f'Source system code already exists: {code}'",
+      "message": "f\"Source system code already exists: {code}\"",
       "scope": "later"
     },
     {
@@ -740,7 +740,7 @@
     {
       "path": "reality/services/core.py",
       "function": "install_connector_shell",
-      "message": "f'Select valid source types{detail}.'",
+      "message": "f\"Select valid source types{detail}.\"",
       "scope": "later"
     },
     {
@@ -752,7 +752,7 @@
     {
       "path": "reality/services/core.py",
       "function": "install_connector_shell",
-      "message": "f'Source system already exists: {instance_code}'",
+      "message": "f\"Source system already exists: {instance_code}\"",
       "scope": "later"
     },
     {
@@ -770,13 +770,13 @@
     {
       "path": "reality/services/core.py",
       "function": "create_source_capability",
-      "message": "f'Source capability already exists: {system.code}/{source_type}'",
+      "message": "f\"Source capability already exists: {system.code}/{source_type}\"",
       "scope": "later"
     },
     {
       "path": "reality/services/core.py",
       "function": "_shopify_interpretation",
-      "message": "f'Unknown SKU: {sku}'",
+      "message": "f\"Unknown SKU: {sku}\"",
       "scope": "later"
     },
     {
@@ -860,19 +860,19 @@
     {
       "path": "reality/services/core.py",
       "function": "execute_payment_run",
-      "message": "f'The payment run no longer matches the confirmed total: {total} stated, {confirmed_total} confirmed.'",
+      "message": "\"The payment run no longer matches the confirmed total: \" f\"{total} stated, {confirmed_total} confirmed.\"",
       "scope": "later"
     },
     {
       "path": "reality/services/core.py",
       "function": "execute_payment_run",
-      "message": "PAYMENT_RUN_WITHHELD_REASONS[withheld_because] if withheld_because else 'A payment run pays open supplier invoices of this tenant only.'",
+      "message": "PAYMENT_RUN_WITHHELD_REASONS[withheld_because] if withheld_because else \"A payment run pays open supplier invoices of this tenant only.\"",
       "scope": "later"
     },
     {
       "path": "reality/services/core.py",
       "function": "execute_payment_run",
-      "message": "f'A payment run pays in one currency: {row['document'].currency} does not match {run_currency}.'",
+      "message": "\"A payment run pays in one currency: \" f\"{row['document'].currency} does not match {run_currency}.\"",
       "scope": "later"
     },
     {
@@ -1065,7 +1065,7 @@
     {
       "path": "reality/services/finance/opening.py",
       "function": "_day",
-      "message": "f'Enter a valid {name} date.'",
+      "message": "f\"Enter a valid {name} date.\"",
       "scope": "later"
     },
     {
@@ -1560,7 +1560,7 @@
     {
       "path": "reality/tools/application.py",
       "function": "_capability_describe",
-      "message": "'Capability identity is ambiguous; use one canonical public name: ' + ', '.join(sorted(candidates))",
+      "message": "\"Capability identity is ambiguous; use one canonical public name: \" + \", \".join(sorted(candidates))",
       "scope": "later",
       "count": 2
     },
@@ -1591,7 +1591,7 @@
     {
       "path": "reality/tools/application.py",
       "function": "_payments_read",
-      "message": "'Unsupported payment filter: ' + ', '.join(unsupported_arguments) + '.'",
+      "message": "\"Unsupported payment filter: \" + \", \".join(unsupported_arguments) + \".\"",
       "scope": "later"
     },
     {
