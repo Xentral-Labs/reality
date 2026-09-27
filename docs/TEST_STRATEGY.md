@@ -18,6 +18,15 @@ PostgreSQL databases and fixed timestamps where business dates affect behavior.
    act that produces it; changing that set is a change to the story and must be argued as
    one, never quietly resolved.
 
+6. **Browser** — `apps/web/scripts/*-browser.mjs` drive a real browser against a Vite dev
+   server with every `/api/**` call answered by fixtures, so they prove that pages render
+   and flows work without a database. The scripts listed in
+   `apps/web/scripts/browser-suite.json` run in CI (`browser-scripts` job,
+   `npm run test:browser`) whenever the web app or the catalogs change; add a script to the
+   list once it passes, and fix a listed script in the pull request that breaks it.
+   `packages/reality-core/tests/browser/*.py` run the same kind of script against a real
+   API, database, worker and scheduler; they are explicit and not part of CI yet.
+
 ## Required assertions
 
 - Every business query is isolated by tenant, including aggregate queries.
