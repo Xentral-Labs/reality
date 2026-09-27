@@ -22,6 +22,8 @@ test("a position sends only the net and tax the person stated", () => {
 
 test("the form sends each position through the stated detail helper", () => {
   assert.match(card, /lines: draft\.lines\?\.map\(withStatedDetail\)/);
+  // Both entry modes (one order, or positions of several orders of a party) ask for them.
+  assert.equal(card.match(/<StatedAmountFields/g)?.length, 2);
   assert.match(card, /t\("Net \(as stated on the invoice\)"\)/);
   assert.match(card, /t\("Tax \(as stated on the invoice\)"\)/);
 });
