@@ -1561,6 +1561,82 @@ def test_shipped_not_billed(session, business):
     assert "shipped_not_billed" not in by_class(session, business.tenant.id)
 
 
+def _reverse_invoice(session, business, document, *, direction="sales"):
+    post = post_sales_invoice if direction == "sales" else post_supplier_invoice
+    entries = post(session, business.tenant.id, document.id)
+    reverse_ledger_posting_group(
+        session,
+        business.tenant.id,
+        entries[0].posting_group_id,
+        reason="Invoiced in error",
+    )
+
+
+def test_a_reversed_invoice_no_longer_bills_what_was_shipped(session, business):
+    """Spec 124 FR-001/FR-004: effectively invoiced excludes a fully reversed invoice."""
+    stock(session, business)
+    _, line, commitment = order(session, business)
+    ship(session, business, commitment, 6)
+    document, _ = bill(session, business, line, quantity="6")
+    # Posted and in force, the invoice bills the whole delivery.
+    post_sales_invoice(session, business.tenant.id, document.id)
+    assert "shipped_not_billed" not in by_class(session, business.tenant.id)
+
+    other, _ = bill(session, business, line, number="RE-076-REV", quantity="6")
+    _reverse_invoice(session, business, other)
+    # A reversed second invoice changes nothing while the first stands ...
+    assert "shipped_not_billed" not in by_class(session, business.tenant.id)
+
+    reverse_ledger_posting_group(
+        session,
+        business.tenant.id,
+        next(
+            entry.posting_group_id
+            for entry in session.scalars(
+                select(LedgerEntry).where(LedgerEntry.document_id == document.id)
+            )
+        ),
+        reason="Wrong customer",
+    )
+    # ... and once every invoice is reversed, the delivery is unbilled again.
+    row = by_class(session, business.tenant.id)["shipped_not_billed"]
+    assert row.record_id == line.id
+    assert row.causal_values["billed_quantity"] == Decimal("0.0000")
+    assert row.causal_values["unbilled_quantity"] == Decimal("6.0000")
+    # The direct path, which the guarded sales invoice rechecks, agrees.
+    from reality.services.exceptions import kept_and_billed_quantity
+
+    assert kept_and_billed_quantity(
+        session, business.tenant.id, commitment.id, line
+    ) == (Decimal("6.0000"), Decimal(0))
+
+
+def test_a_reversed_supplier_invoice_is_not_billed_and_not_received(session, business):
+    """Spec 124 FR-001/FR-004: a reversed supplier invoice bills nothing to receive."""
+    _, line, _ = order(session, business, direction="purchase", number="PO-076-REV")
+    document, _ = bill(
+        session, business, line, direction="purchase", number="ER-076-REV", quantity="6"
+    )
+    post_supplier_invoice(session, business.tenant.id, document.id)
+    assert (
+        by_class(session, business.tenant.id)["billed_not_received"].record_id
+        == line.id
+    )
+
+    reverse_ledger_posting_group(
+        session,
+        business.tenant.id,
+        next(
+            entry.posting_group_id
+            for entry in session.scalars(
+                select(LedgerEntry).where(LedgerEntry.document_id == document.id)
+            )
+        ),
+        reason="Duplicate of ER-076",
+    )
+    assert "billed_not_received" not in by_class(session, business.tenant.id)
+
+
 def test_billed_not_received(session, business):
     _, line, commitment = order(
         session, business, direction="purchase", number="PO-076"
