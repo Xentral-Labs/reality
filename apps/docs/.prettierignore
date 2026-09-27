@@ -2,3 +2,5 @@ node_modules/
 .vitepress/dist/
 .vitepress/cache/
 package-lock.json
+.vitepress/data/business-journeys.json
+public/generated/business-journeys.json

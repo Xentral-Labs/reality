@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+
 from reality.catalogs import config_text
 from reality.domain.business_journeys import load_journey_catalog
 from reality.services.business_journeys import answer_public_question

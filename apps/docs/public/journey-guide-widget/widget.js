@@ -279,10 +279,7 @@
     }
 
     scrollAnswerToStart(box) {
-      this.conversation.scrollTop = Math.max(
-        0,
-        box.offsetTop - this.conversation.offsetTop - 12,
-      );
+      this.conversation.scrollTop = Math.max(0, box.offsetTop - this.conversation.offsetTop - 12);
     }
 
     show(answer) {

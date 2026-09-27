@@ -7,10 +7,11 @@ from threading import Barrier
 import pytest
 from alembic import command
 from alembic.config import Config
-from reality.db.core import AppUser, JourneyProposal, JourneyProposalVote, now
-from reality.services.business_journeys import set_vote
 from sqlalchemy import create_engine, func, inspect, select
 from sqlalchemy.orm import sessionmaker
+
+from reality.db.core import AppUser, JourneyProposal, JourneyProposalVote, now
+from reality.services.business_journeys import set_vote
 
 CORE_ROOT = Path(__file__).parents[1]
 ALEMBIC_INI = str(CORE_ROOT / "alembic.ini")

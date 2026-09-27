@@ -4,6 +4,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+
 from reality.db.core import (
     AppUser,
     BusinessEvent,

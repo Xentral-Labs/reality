@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+
 from reality.services.business_journeys import (
     JourneyProposalError,
     create_proposal,
