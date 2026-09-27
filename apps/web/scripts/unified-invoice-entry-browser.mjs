@@ -321,6 +321,10 @@ try {
   );
   await page.getByRole("button", { name: "Request changes", exact: true }).click();
   await page.getByLabel("Order line", { exact: true }).nth(1).waitFor();
+  // The order lines load after the form opens; wait for the restored selection.
+  await page.waitForFunction(
+    () => document.querySelectorAll('select[aria-label="Order line"]')[1]?.value === "line2",
+  );
   assert.equal(await page.getByLabel("Order line", { exact: true }).count(), 2);
   assert.equal(await page.getByLabel("Order line", { exact: true }).nth(1).inputValue(), "line2");
   assert.equal(
