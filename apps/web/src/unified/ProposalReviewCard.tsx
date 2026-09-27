@@ -11,10 +11,13 @@ export function ProposalReviewCard({
   tenant,
   proposalId,
   close,
+  prepared,
 }: {
   tenant: string;
   proposalId: string;
   close: () => void;
+  /** A revised proposal replaces this one; the host keeps it addressable (spec 119 FR-003). */
+  prepared?: (id: string) => void;
 }) {
   const review = useRead(() => api.proposalReview(tenant, proposalId), [tenant, proposalId]);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -57,6 +60,7 @@ export function ProposalReviewCard({
         proposalId={proposalId}
         tool="reserve"
         close={close}
+        prepared={prepared}
         settled={close}
       />
     );
