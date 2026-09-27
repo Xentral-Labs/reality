@@ -1,4 +1,4 @@
-# Specification Quality Checklist: Fast Proposal Review Metadata
+# Specification Quality Checklist: Shared Runtime Catalog
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-09-27
@@ -34,3 +34,5 @@
 - Validation passed in one review iteration.
 - The specification deliberately separates immutable deployment reference metadata from mutable,
   tenant-scoped proposal and attribution state.
+- Clarification expanded reuse to the shared application service/tool boundary so API, MCP, Web,
+  CLI and other adapters do not create separate caches.
