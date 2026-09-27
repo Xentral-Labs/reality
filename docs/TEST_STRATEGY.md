@@ -21,8 +21,9 @@ PostgreSQL databases and fixed timestamps where business dates affect behavior.
 6. **Browser** — `apps/web/scripts/*-browser.mjs` drive a real browser against a Vite dev
    server with every `/api/**` call answered by fixtures, so they prove that pages render
    and flows work without a database. The scripts listed in
-   `apps/web/scripts/browser-suite.json` run in CI (`browser-scripts` job,
-   `npm run test:browser`) whenever the web app or the catalogs change; add a script to the
+   `apps/web/scripts/browser-suite.json` run in CI (`browser-scripts` job, split across
+   three runners with `BROWSER_SUITE_SHARD`; locally `npm run test:browser`) whenever the
+   web app or the catalogs change; add a script to the
    list once it passes, and fix a listed script in the pull request that breaks it.
    `packages/reality-core/tests/browser/*.py` run the same kind of script against a real
    API, database, worker and scheduler; they are explicit and not part of CI yet.

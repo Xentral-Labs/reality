@@ -32,6 +32,7 @@ const user = {
   is_platform_admin: false,
 };
 let rejectQuestion = false;
+let createdSession = null;
 const requests = [];
 await page.route("**/api/**", async (route) => {
   const request = route.request();
@@ -72,17 +73,20 @@ await page.route("**/api/**", async (route) => {
       capabilities: {},
     });
   }
+  // The conversation the question starts exists from then on.
   if (url.pathname.endsWith("/copilot"))
     return respond({
-      sessions: [],
-      active_session_id: null,
+      sessions: createdSession ? [createdSession] : [],
+      active_session_id: createdSession?.id ?? null,
       messages: [],
       proposals: [],
       suggestions: [],
       has_archived: false,
     });
-  if (url.pathname.endsWith("/copilot/sessions"))
-    return respond({ id: "chat_a", title: "New conversation" });
+  if (url.pathname.endsWith("/copilot/sessions")) {
+    createdSession = { id: "chat_a", title: "New conversation", message_count: 0 };
+    return respond(createdSession);
+  }
   if (url.pathname.endsWith("/messages")) {
     rejectQuestion = true;
     return respond({ detail: "Provider unavailable" }, 503);
@@ -104,8 +108,9 @@ try {
   await page.screenshot({ path: `${out}/home-desktop.png`, fullPage: true });
   await page.getByRole("button", { name: "Switch company", exact: true }).click();
   await page.locator('[data-company-option="tenant_b"]').click();
-  await page.getByRole("heading", { name: "No open commitments" }).waitFor();
-  assert.ok(new URL(page.url()).searchParams.get("tenant") === "tenant_b");
+  // The other company opens on its own Welcome.
+  await page.waitForURL(/tenant=tenant_b/);
+  await page.locator("[data-home-pulse]").waitFor();
   if (!(await page.locator("[data-global-chat]").isVisible()))
     await page.getByRole("button", { name: "Show chat", exact: true }).click();
   await page.getByRole("textbox", { name: "Ask about your company" }).fill("What is open?");
@@ -117,7 +122,7 @@ try {
   await page.screenshot({ path: `${out}/chat-mobile.png`, fullPage: true });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.getByRole("button", { name: "Navigation", exact: true }).click();
-  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page.getByRole("link", { name: "Inbox", exact: true }).click();
   await page.locator("[data-home-pulse]").waitFor();
   await page.goto(`${base}/app?tenant=foreign`);
   await page.getByRole("heading", { name: "Company unavailable" }).waitFor();

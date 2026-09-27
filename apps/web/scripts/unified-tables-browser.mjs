@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir, readFile } from "node:fs/promises";
+import { isSearchRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -155,9 +156,10 @@ try {
   assert.ok(!csv.split("\r\n")[0].includes("Actions"));
   assert.equal(csv.split("\r\n").length, 31);
   await selectAll.uncheck();
+  // Without a selection the selection tools leave the footer.
   assert.equal(
-    await page.getByRole("button", { name: "Export selection", exact: true }).isDisabled(),
-    true,
+    await page.getByRole("button", { name: "Export selection", exact: true }).count(),
+    0,
   );
   assert.equal(await rows.first().evaluate((n) => n.getBoundingClientRect().height), 44);
   assert.equal(
@@ -238,7 +240,7 @@ try {
           fullPage: true,
         });
       }
-  assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
+  assert.equal(requests.filter((r) => r.method !== "GET" && !isSearchRead(r.path)).length, 0);
   assert.deepEqual(errors, []);
   console.log(
     "PASS:44/36px rows,44px header, visibility/resize/density persistence, server sort/size, row/keyboard details, sticky scroll and24 localized viewport screenshots.",

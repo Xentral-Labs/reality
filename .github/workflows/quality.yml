@@ -166,9 +166,14 @@ jobs:
   browser-scripts:
     # Fixture-based Playwright scripts listed in apps/web/scripts/browser-suite.json. Runs in
     # parallel with the other jobs; skipped for pull requests that touch neither the web app
-    # nor the catalogs the fixtures are derived from.
+    # nor the catalogs the fixtures are derived from. The list is split across three runners
+    # (every third script each), which keeps each well inside the time limit.
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -224,6 +229,8 @@ jobs:
         run: sudo mkdir -p /private && sudo ln -sfn /tmp /private/tmp
       - name: Run browser scripts
         if: steps.diff.outputs.changed == 'true'
+        env:
+          BROWSER_SUITE_SHARD: ${{ matrix.shard }}/3
         run: cd apps/web && node scripts/run-browser-suite.mjs
 
   docs-quality:

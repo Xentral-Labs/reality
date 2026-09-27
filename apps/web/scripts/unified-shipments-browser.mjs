@@ -1,6 +1,7 @@
 // Stateful browser proof for Spec 173; PostgreSQL tests prove the business effects.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { reference } from "./action-discovery-fixture.mjs";
+import { startAction } from "./command-palette.mjs";
 import { pathToFileURL } from "node:url";
 
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
@@ -8,15 +9,7 @@ const browser = await chromium.launch({
   headless: true,
   executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
 });
-const reference = JSON.parse(
-  readFileSync(new URL("./fixtures/action-reference.json", import.meta.url), "utf8"),
-);
-reference.discovery = JSON.parse(
-  readFileSync(
-    new URL("../../../packages/reality-core/config/action_discovery.json", import.meta.url),
-    "utf8",
-  ),
-);
+
 const base = process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177";
 const errors = [];
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
@@ -104,7 +97,36 @@ await page.route("**/api/**", async (route) => {
       title: "Shipment",
       subtitle: "TRACK-173",
       meaning: "Physical consignment",
-      sections: [],
+      // The operational preview's shipment sections (5ecf6f76).
+      sections: [
+        {
+          title: "Effective physical contents",
+          has_more: false,
+          rows: [
+            {
+              label: "Desk lamp",
+              original_label: true,
+              translate_value: false,
+              value: "2 pcs",
+              link: null,
+            },
+          ],
+        },
+        {
+          title: "Current tracking observations",
+          has_more: false,
+          rows: [
+            {
+              label: "Dispatched",
+              original_label: false,
+              translate_value: false,
+              value: "2026-09-11T10:00:00Z",
+              link: null,
+              hint: "Carrier",
+            },
+          ],
+        },
+      ],
       metrics: [],
       technical_rows: [],
     });
@@ -163,11 +185,10 @@ try {
   await page.locator("[data-shipment-row=shp_out]").waitFor();
   assert.equal(await page.getByText("TRACK-173", { exact: true }).count(), 1);
   await page.getByRole("button", { name: /TRACK-173/ }).click();
-  await page.getByText("Physical contents", { exact: true }).waitFor();
-  await page.getByText("Tracking observations", { exact: true }).waitFor();
+  await page.getByText("Effective physical contents", { exact: true }).waitFor();
+  await page.getByText("Current tracking observations", { exact: true }).waitFor();
 
-  await page.getByText("Actions", { exact: true }).first().click();
-  await page.getByRole("button", { name: "Record shipment notice", exact: true }).click();
+  await startAction(page, "Record shipment notice");
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Counterparty ID").fill("supplier");
   await dialog.getByLabel("Tracking number").fill("IN-NEW");
@@ -184,8 +205,7 @@ try {
     ["Correct tracking event", "Event ID"],
   ];
   for (const [action, field] of forms) {
-    await page.getByText("Actions", { exact: true }).first().click();
-    await page.getByRole("button", { name: action, exact: true }).click();
+    await startAction(page, action);
     const fieldLocator =
       field === "Movement inputs (JSON)"
         ? page.getByRole("dialog").locator("textarea")

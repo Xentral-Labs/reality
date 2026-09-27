@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { isSearchRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -223,11 +224,11 @@ try {
   const itemRead = page.waitForResponse((response) =>
     response.url().includes("/inspector/item/item1"),
   );
-  await page.getByRole("button", { name: "Imported lamp", exact: true }).click();
+  await page.getByRole("button", { name: /Imported lamp$/ }).click();
   await itemRead;
   assert.ok(requests.some((r) => r.path.includes("/inspector/item/item1")));
   await page.getByRole("dialog").getByRole("button", { name: "Back", exact: true }).click();
-  await page.getByRole("button", { name: "Imported lamp", exact: true }).waitFor();
+  await page.getByRole("button", { name: /Imported lamp$/ }).waitFor();
   await page.locator("dialog summary").last().click();
   assert.ok((await page.locator("pre[data-original-content]").innerText()).includes("<script>"));
   assert.equal(await page.locator("dialog script").count(), 0);
@@ -313,7 +314,7 @@ try {
           });
         }
       }
-  assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
+  assert.equal(requests.filter((r) => r.method !== "GET" && !isSearchRead(r.path)).length, 0);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: systems → source version → exact evidence, escaped original, Inspector reload/focus, paging, filters, retry, company reset, no writes and 48 localized screenshots.",

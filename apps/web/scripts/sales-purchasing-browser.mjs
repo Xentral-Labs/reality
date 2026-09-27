@@ -49,16 +49,17 @@ const origin = process.env.BASE_URL || "http://localhost:8087";
 try {
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 });
-    for (const [title, view, direction] of [
-      ["Sales", "customer-orders", "customer_delivery"],
-      ["Purchasing", "supplier-orders", "supplier_delivery"],
+    // Orders, Commitments (the delivery view), Readiness for sales only, and Shipments.
+    for (const [title, view, direction, tabCount] of [
+      ["Sales", "customer-orders", "customer_delivery", 4],
+      ["Purchasing", "supplier-orders", "supplier_delivery", 3],
     ]) {
       await page.goto(origin + `/app/orders-deliveries?tenant=intro_company&orders_view=${view}`);
       await page.locator("[data-page-introduction] h1").waitFor();
       assert.equal((await page.locator("[data-page-introduction] h1").innerText()).trim(), title);
       const tabs = page.locator("[data-shell-header] .register-tabs");
-      assert.equal(await tabs.getByRole("button").count(), 2);
-      await tabs.getByRole("button", { name: "Deliveries", exact: true }).click();
+      assert.equal(await tabs.getByRole("button").count(), tabCount);
+      await tabs.getByRole("button", { name: "Commitments", exact: true }).click();
       assert.equal(new URL(page.url()).searchParams.get("delivery_type"), direction);
       await page.reload();
       await page.locator("[data-page-introduction] h1").waitFor();

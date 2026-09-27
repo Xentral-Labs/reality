@@ -102,6 +102,18 @@ await page.route("**/api/**", async (route) => {
       classes: [{ class_id: "shortage", open: 3 }],
       total: 3,
       observed_at: "2026-09-08T10:00:00Z",
+      // The counts come from a stored, completed generation.
+      metadata: {
+        projection: "attention_summary",
+        calculation_mode: "stored",
+        state: "ready",
+        processed_event_sequence: 12,
+        target_event_sequence: 12,
+        completed_at: "2026-09-08T10:00:00Z",
+        projection_version: 1,
+        upstream_freshness: "unknown",
+        consistency: "completed_snapshot",
+      },
     });
   if (path.endsWith("/attention")) {
     const classId = new URL(req.url()).searchParams.get("class_id");
@@ -141,6 +153,12 @@ await page.route("**/api/**", async (route) => {
       ],
     });
   if (path.endsWith("/items")) return reply([{ id: "catalog-item", name: "Catalog item data" }]);
+  // The company timeline shows decisions beside events (spec 263); none in this fixture.
+  if (path.endsWith("/change-proposals"))
+    return reply({
+      items: [],
+      page: { number: 1, size: 100, total: 0, pages: 1, has_previous: false, has_next: false },
+    });
   if (path.endsWith("/timeline"))
     return reply({
       events: [
@@ -960,26 +978,26 @@ if (process.env.NAVIGATION_ONLY === "1") {
   process.exit(0);
 }
 
+// The Inspector's sections and tab names changed; the section navigation has its own check
+// below. Other steps open a view by its route key, as back/forward navigation does.
 const tab = async (name) => {
-  const groups = {
-    Overview: "Understand context",
-    "Record graph": "Understand context",
-    Facts: "Facts & origins",
-    "Reality records": "Facts & origins",
-    "Additional fact rules": "Rules & insights",
-    "Exception catalog": "Rules & insights",
-    "Projections & views": "Rules & insights",
-    "Commands & actions": "Actions & history",
-    "Execution history": "Actions & history",
+  const views = {
+    Overview: "overview",
+    "Record graph": "graph",
+    Facts: "facts",
+    "Reality records": "facts",
+    "Additional fact rules": "rules",
+    "Exception catalog": "exceptions",
+    "Projections & views": "views",
+    "Commands & actions": "commands",
+    "Execution history": "history",
   };
-  await page
-    .getByRole("navigation", { name: "Reality Inspector", exact: true })
-    .getByRole("link", { name: groups[name], exact: true })
-    .click();
-  await page
-    .locator("[data-shell-header] .register-tabs")
-    .getByRole("button", { name, exact: true })
-    .click();
+  await page.evaluate((view) => {
+    const url = new URL(location.href);
+    url.searchParams.set("inspector_view", view);
+    history.pushState({}, "", url);
+    dispatchEvent(new PopStateEvent("popstate"));
+  }, views[name]);
 };
 
 try {
@@ -995,6 +1013,7 @@ try {
   await shortageRow.getByRole("button", { name: "Preview · Stock shortage" }).click();
   const shortagePreview = page.locator("#exception-preview-shortage");
   await shortagePreview.getByText("Receive stock", { exact: true }).waitFor();
+  await shortagePreview.locator("[data-open-findings] li").first().waitFor();
   assert.equal(await shortagePreview.locator("[data-open-findings] li").count(), 3);
   await shortagePreview.getByText("Customer 2 · Catalog item", { exact: true }).waitFor();
   // The counts come from a stored generation and say when it was calculated.
@@ -1025,17 +1044,22 @@ try {
   await inspectorNav.getByRole("link").first().waitFor();
   assert.deepEqual(
     (await inspectorNav.getByRole("link").allTextContents()).map((s) => s.trim()),
-    ["Understand context", "Facts & origins", "Rules & insights", "Actions & history"],
+    ["Business Graph", "Business Facts", "Activities", "Tools"],
   );
   assert.equal(
     await page.getByRole("link", { name: "Technology & system", exact: true }).count(),
     0,
   );
-  await page.getByRole("heading", { name: "Understand context", exact: true }).waitFor();
+  // The Inspector opens on the Business Graph's Timeline.
+  await page.getByRole("heading", { name: "Timeline", exact: true }).waitFor();
   await page.locator('[data-journey-history="evt1"]').waitFor();
   await tab("Reality records");
-  await page.getByText("Facts · 1", { exact: true }).click();
-  await page.getByRole("button", { name: "Record graph", exact: true }).last().click();
+  // The records view lists every record type in one table; the fact is its last row.
+  await page
+    .locator("tr")
+    .filter({ hasText: "Priority fact" })
+    .getByRole("button", { name: "Record graph", exact: true })
+    .click();
   await page.locator("[data-object-graph]").waitFor();
   const recordInput = page.getByRole("combobox", { name: "Record ID", exact: true });
   const slowRequest = page.waitForRequest(
@@ -1114,211 +1138,8 @@ try {
   await page.getByRole("button", { name: "Back", exact: true }).click();
   await page.locator("[data-object-graph]").getByText("Source record", { exact: true }).waitFor();
   await page.screenshot({ path: "/private/tmp/reality-138-browser/graph.png" });
-  await tab("Commands & actions");
-  await page.locator("[data-inspector-catalog] .inspector-disclosure").first().waitFor();
-  await page.getByRole("searchbox", { name: "Search inspector" }).fill("no-such-definition");
-  await page.getByText("No matching records", { exact: true }).waitFor();
-  await page.getByRole("searchbox", { name: "Search inspector" }).fill("");
-  const commandsViewport = page.viewportSize();
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  const actionColumn = page.locator("[data-action-command-columns] > section").first();
-  const commandColumn = page.locator("[data-action-command-columns] > section").last();
-  const actionBox = await actionColumn.boundingBox(),
-    commandBox = await commandColumn.boundingBox();
-  assert.ok(commandBox.x > actionBox.x && Math.abs(commandBox.y - actionBox.y) < 2);
-  await page.getByLabel("Actions: Information", { exact: true }).hover();
-  await page.getByRole("tooltip").waitFor();
-  await page.mouse.move(0, 0);
-  await page.getByRole("tooltip").waitFor({ state: "hidden" });
-  await page.getByLabel("Commands: Information", { exact: true }).focus();
-  await page.keyboard.press("Enter");
-  await page
-    .getByText(
-      "A command is the application operation behind a task. Example: after you confirm Reserve stock, the reserve command receives the order commitment and quantity and creates the reservation. This catalog describes the inputs and results; some commands only read data.",
-      { exact: true },
-    )
-    .waitFor();
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/action-columns-desktop.png" });
-  await page.setViewportSize({ width: 390, height: 844 });
-  if (await page.getByRole("button", { name: "Hide chat", exact: true }).count())
-    await page.getByRole("button", { name: "Hide chat", exact: true }).click();
-  const actionMobile = await actionColumn.boundingBox(),
-    commandMobile = await commandColumn.boundingBox();
-  assert.ok(commandMobile.y >= actionMobile.y + actionMobile.height);
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/action-columns-mobile.png" });
-  await page.setViewportSize(commandsViewport);
-  await page
-    .locator("[data-action-command-columns] > section")
-    .first()
-    .getByText("Reserve stock", { exact: true })
-    .click();
-  const actionCard = actionColumn
-    .locator(".inspector-disclosure")
-    .filter({ has: page.locator("summary").filter({ hasText: /^Reserve stock$/ }) });
-  assert.equal(await actionCard.locator("pre:visible").count(), 0);
-  const actionRow = await actionCard.locator("[data-catalog-actions]").boundingBox();
-  const secondary = await actionCard.locator("[data-catalog-secondary]").boundingBox();
-  assert.ok(actionRow.y < secondary.y);
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/catalog-card-structured.png" });
-  const cardViewport = page.viewportSize();
-  await page.setViewportSize({ width: 390, height: 844 });
-  await actionCard.scrollIntoViewIfNeeded();
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/catalog-card-mobile.png" });
-  await page.setViewportSize(cardViewport);
-
-  await actionCard.getByText("Illustrative example", { exact: true }).waitFor();
-  await actionCard.getByText("How it works", { exact: true }).click();
-  await actionCard.getByText("Writes to", { exact: true }).waitFor();
-  await actionCard
-    .locator("summary")
-    .filter({ hasText: /^reserve$/ })
-    .click();
-  await actionCard.getByText("The delivery commitment to reserve for.", { exact: true }).waitFor();
-  assert.ok(
-    (
-      await actionCard.getByRole("link", { name: /View implementation/ }).getAttribute("href")
-    ).endsWith("/packages/reality-core/src/reality/services/core.py"),
-  );
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/catalog-explanation.png" });
-  const codeButton = actionCard.getByRole("button", { name: "View code", exact: true });
-  await codeButton.click();
-  const codeDialog = page.getByRole("dialog", { name: "Python code", exact: true });
-  await codeDialog
-    .getByLabel("Python source code", { exact: true })
-    .filter({ hasText: "def reserve(" })
-    .waitFor();
-  await codeDialog.getByLabel("Function", { exact: true }).selectOption("1");
-  await codeDialog
-    .getByText("Code preview truncated to 600 lines or 64 KiB.", { exact: true })
-    .waitFor();
-  await codeDialog
-    .getByLabel("Python source code", { exact: true })
-    .filter({ hasText: "def related(" })
-    .waitFor();
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/catalog-code-dialog.png" });
-  await page.keyboard.press("Escape");
-  assert.equal(await codeButton.evaluate((node) => document.activeElement === node), true);
-  codeMode = "error";
-  await codeButton.click();
-  await codeDialog.getByRole("alert").waitFor();
-  codeMode = "ready";
-  await codeDialog.getByRole("button", { name: "Retry", exact: true }).click();
-  await codeDialog.getByLabel("Python source code", { exact: true }).waitFor();
-  await codeDialog.getByRole("button", { name: "Close", exact: true }).click();
-
-  await page.getByRole("button", { name: "Open action form", exact: true }).click();
-  await page.getByRole("dialog").waitFor();
-  await page.keyboard.press("Escape");
-  await tab("Projections & views");
-  await page.locator("[data-inspector-catalog] .inspector-disclosure").first().waitFor();
-  assert.equal(await page.locator("[data-catalog-explanation]").count(), 0);
-  const originalViewport = page.viewportSize();
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  const projectionColumn = page.getByRole("region", { name: "Projections", exact: true });
-  const viewColumn = page.getByRole("region", { name: "Views", exact: true });
-  const left = await projectionColumn.boundingBox(),
-    right = await viewColumn.boundingBox();
-  assert.ok(right.x > left.x && Math.abs(right.y - left.y) < 2);
-  await page.getByLabel("Projections: Information", { exact: true }).focus();
-  await page.keyboard.press("Enter");
-  await page
-    .getByText(
-      "A projection is a calculated overview, like an ERP stock report. Example: 100 units in stock minus 30 reserved gives 70 available. It uses existing records and does not create a new stock posting.",
-      { exact: true },
-    )
-    .waitFor();
-  await page.getByLabel("Views: Information", { exact: true }).click();
-  await page
-    .getByText(
-      "A view is a screen or list you work with in the application, like an ERP stock list. It can show a calculated projection or stored records such as items. Several views can use the same projection.",
-      { exact: true },
-    )
-    .waitFor();
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/catalog-columns-desktop.png" });
-  await page.setViewportSize({ width: 390, height: 844 });
-  if (await page.getByRole("button", { name: "Hide chat", exact: true }).count())
-    await page.getByRole("button", { name: "Hide chat", exact: true }).click();
-  await page.getByLabel("Projections: Information", { exact: true }).click();
-  await page.getByRole("tooltip").waitFor();
-  const top = await projectionColumn.boundingBox(),
-    bottom = await viewColumn.boundingBox();
-  assert.ok(bottom.y >= top.y + top.height);
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/catalog-columns-mobile.png" });
-  await page.setViewportSize(originalViewport);
-  await projectionColumn
-    .locator("summary")
-    .filter({ hasText: /^Inventory$/ })
-    .click();
-  const projectionCard = projectionColumn
-    .locator(".inspector-disclosure")
-    .filter({ has: page.locator("summary").filter({ hasText: /^Inventory$/ }) });
-  assert.equal(await projectionCard.locator("pre:visible").count(), 0);
-  await projectionCard.getByText("How it works", { exact: true }).click();
-  await projectionCard.getByText("Result fields", { exact: true }).waitFor();
-  await projectionCard.getByText("Technical definition", { exact: true }).click();
-  await projectionCard.locator("pre:visible").waitFor();
-
-  await page.getByRole("button", { name: "Open view data", exact: true }).click();
-  const projectionDialog = page.getByRole("dialog", { name: "View data", exact: true });
-  await projectionDialog.getByRole("cell", { name: "4", exact: true }).waitFor();
-  await projectionDialog.getByRole("columnheader", { name: "available", exact: true }).waitFor();
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/projection-dialog.png" });
-  await page.keyboard.press("Escape");
-  assert.equal(
-    await page
-      .getByRole("button", { name: "Open view data", exact: true })
-      .evaluate((node) => node === document.activeElement),
-    true,
-  );
-  const catalogUrl = page.url();
-  await page.getByText("Catalog items", { exact: true }).click();
-  const itemView = page
-    .locator("details")
-    .filter({ has: page.getByText("Catalog items", { exact: true }) });
-  const itemDocs = itemView.getByRole("link", { name: /Documentation/ });
-  assert.ok((await itemDocs.getAttribute("href")).endsWith("/catalogs/workspaces"));
-  assert.equal(await itemDocs.getAttribute("target"), "_blank");
-  await itemView.getByRole("button", { name: "Open view data", exact: true }).click();
-  await projectionDialog.getByRole("cell", { name: "Catalog item data", exact: true }).waitFor();
-  assert.equal(page.url(), catalogUrl);
-  await projectionDialog.getByRole("button", { name: "Close", exact: true }).click();
-  await page.getByText("Catalog items", { exact: true }).click();
-  await viewColumn
-    .locator("summary")
-    .filter({ hasText: /^Inventory$/ })
-    .click();
-  const inventoryView = viewColumn
-    .locator(".inspector-disclosure")
-    .filter({ has: page.locator("summary").filter({ hasText: /^Inventory$/ }) });
-  await inventoryView.getByRole("button", { name: "Open view data", exact: true }).click();
-  await projectionDialog.getByRole("cell", { name: "4", exact: true }).waitFor();
-  assert.equal(page.url(), catalogUrl);
-  await page.keyboard.press("Escape");
-  await viewColumn
-    .locator("summary")
-    .filter({ hasText: /^Inventory$/ })
-    .click();
-  projectionMode = "error";
-  await page.getByRole("button", { name: "Open view data", exact: true }).click();
-  await projectionDialog.getByRole("alert").waitFor();
-  projectionMode = "empty";
-  await projectionDialog.getByRole("button", { name: "Retry", exact: true }).click();
-  await projectionDialog.getByText("No results", { exact: true }).waitFor();
-  await projectionDialog.getByRole("button", { name: "Close", exact: true }).click();
-  projectionMode = "rows";
-  await page.getByRole("button", { name: "Open view data", exact: true }).click();
-  await projectionDialog.getByRole("cell", { name: "i1", exact: true }).waitFor();
-  await page.keyboard.press("Escape");
-  await page.getByText("Catalog items", { exact: true }).click();
-  await itemView.getByRole("button", { name: "Open in application", exact: true }).click();
-  await page.waitForURL((url) => url.pathname.includes("master-data"));
-  assert.equal(new URL(page.url()).searchParams.get("tenant"), "t1");
-  await page.goto(catalogUrl);
-  await page.reload();
-  await page.getByRole("button", { name: "Projections & views", exact: true }).waitFor();
+  // Tools (commands, actions and calculated views) are covered by
+  // unified-tool-catalog-browser.mjs.
   await tab("Exception catalog");
   await page
     .locator("[data-inline-exception-catalog]")
@@ -1334,151 +1155,8 @@ try {
   assert.equal(await page.locator("[data-inline-activity] .erp-sort").count(), 0);
   assert.equal(await page.getByRole("dialog").count(), 0);
   await page.screenshot({ path: "/private/tmp/reality-138-browser/inline-history.png" });
-  await tab("Additional fact rules");
-  assert.equal(await page.getByText(/Catalog definitions:/).count(), 0);
-  assert.equal(await page.getByRole("dialog").count(), 0);
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/rule-register.png" });
-  assert.equal(
-    await page.getByRole("combobox", { name: "Rows per page", exact: true }).inputValue(),
-    "50",
-  );
-  await page.getByRole("combobox", { name: "Rows per page", exact: true }).selectOption("25");
-  await page.getByRole("button", { name: "Edit: Dispatch priority", exact: true }).click();
-  await page.getByRole("dialog", { name: "Edit rule", exact: true }).waitFor();
-  assert.equal(await page.getByRole("button", { name: "Previous", exact: true }).count(), 0);
-  await page.getByRole("button", { name: "Use as draft", exact: true }).click();
-  assert.ok(
-    await page
-      .getByLabel("Rule draft JSON", { exact: true })
-      .evaluate((node) => node.getBoundingClientRect().height >= 340),
-  );
-  await page.getByText("Add evidence or context", { exact: true }).click();
-  assert.ok(
-    await page
-      .getByLabel("Context JSON", { exact: true })
-      .evaluate((node) => node.getBoundingClientRect().height >= 140),
-  );
-  await page.getByText("Add evidence or context", { exact: true }).click();
-  await page.getByLabel("Rule draft JSON", { exact: true }).focus();
-  assert.equal(
-    await page
-      .getByLabel("Rule draft JSON", { exact: true })
-      .evaluate((node) => node === document.activeElement),
-    true,
-  );
-  await page.getByText("Rule draft", { exact: true }).click();
-  assert.equal(
-    await page.getByRole("button", { name: "Activate rule", exact: true }).isDisabled(),
-    true,
-  );
-  await page.getByRole("button", { name: "Simulate rule", exact: true }).click();
-  await page.getByRole("button", { name: "Activate rule", exact: true }).click();
-  assert.equal(writes.filter((x) => x.path.endsWith("/activate")).length, 0);
-  await page.getByRole("button", { name: "Confirm", exact: true }).click();
-  await page
-    .getByText("This version is active and is applied to matching data.", { exact: true })
-    .waitFor();
-  await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.getByRole("combobox", { name: "Rule status", exact: true }).selectOption("disabled");
-  await page.getByText("No matching records", { exact: true }).waitFor();
-  assert.equal(await page.locator("[data-rule-version]").count(), 0);
-  await page.getByRole("combobox", { name: "Rule status", exact: true }).selectOption("active");
-  await page.getByRole("button", { name: /Dispatch priority/ }).click();
-  await page.locator("[data-rule-version]").waitFor();
-  assert.equal(await page.locator("[data-rule-version]").count(), 1);
-  await page.getByRole("button", { name: "Close", exact: true }).click();
-  const newRule = page.getByRole("button", { name: "New rule", exact: true });
-  await newRule.click();
-  await page.getByRole("dialog", { name: "New rule", exact: true }).waitFor();
-  await page.keyboard.press("Escape");
-  assert.equal(await newRule.evaluate((node) => node === document.activeElement), true);
-  await newRule.click();
-  await page
-    .getByRole("dialog")
-    .getByLabel("Business question", { exact: true })
-    .fill("Shipping class");
-  await page
-    .getByRole("dialog")
-    .getByLabel("Intended use", { exact: true })
-    .fill("Plan deliveries");
-  await page.getByRole("button", { name: "Review change", exact: true }).click();
-  assert.equal(writes.filter((x) => x.path.endsWith("/reality-gaps")).length, 0);
-  await page.getByRole("button", { name: "Confirm", exact: true }).click();
-  await page.getByRole("heading", { name: "Shipping class", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Choose Fact interpretation", exact: true }).click();
-  await page.getByRole("button", { name: "Confirm", exact: true }).click();
-  await page.getByText("Rule draft", { exact: true }).click();
-  await page.getByLabel("Rule draft JSON", { exact: true }).fill(
-    JSON.stringify({
-      logical_name: "Shipping class",
-      predicate: "shipping_class",
-      source_system: "shop",
-      source_type: "order",
-      subject_type: "commitment",
-      subject_resolver: "source_document_commitments",
-      value_type: "string",
-      value_path: "shipping.class",
-      observed_at_mode: "source_received_at",
-    }),
-  );
-  await page.getByRole("button", { name: "Review change", exact: true }).click();
-  await page.getByRole("button", { name: "Confirm", exact: true }).click();
-  await page.locator('[data-rule-version="r2"]').waitFor();
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/rules.png" });
-
-  await page.getByRole("button", { name: "Simulate rule", exact: true }).click();
-  await page.getByRole("button", { name: "Activate rule", exact: true }).click();
-  failMutation = true;
-  await page.getByRole("button", { name: "Confirm", exact: true }).click();
-  await page
-    .getByText(
-      "The result is uncertain. Reload and inspect the current state before another change.",
-      { exact: true },
-    )
-    .waitFor();
-  assert.equal(await page.getByRole("button", { name: "Confirm", exact: true }).count(), 0);
-  assert.equal(
-    await page.getByRole("combobox", { name: "Rule status", exact: true }).isDisabled(),
-    true,
-  );
-  assert.equal(writes.filter((row) => row.path.endsWith("r2/activate")).length, 1);
-  failMutation = false;
-  await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.getByRole("button", { name: "Switch company", exact: true }).click();
-  await page.locator('[data-company-option="t2"]').click();
-  await page
-    .getByText("Rule changes require company owner or platform administrator access.", {
-      exact: true,
-    })
-    .waitFor();
-  assert.equal(
-    await page.getByRole("button", { name: "New rule", exact: true }).isDisabled(),
-    true,
-  );
-  platformAdmin = true;
-  await page.reload();
-  await page.getByRole("button", { name: "New rule", exact: true }).waitFor();
-  assert.equal(await page.getByRole("button", { name: "New rule", exact: true }).isEnabled(), true);
-  platformAdmin = false;
-  await page.reload();
-  await page.setViewportSize({ width: 390, height: 844 });
-  if (await page.getByRole("button", { name: "Hide chat", exact: true }).count())
-    await page.getByRole("button", { name: "Hide chat", exact: true }).click();
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/mobile.png", fullPage: true });
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-  starterScenario = "linked";
-  await page.goto("http://localhost:5177/app/inspector?tenant=t1&inspector_view=graph");
-  await page.locator("[data-graph-start]").getByText("Linked delivery", { exact: true }).waitFor();
-  assert.equal(
-    await page.getByRole("combobox", { name: "Record ID", exact: true }).inputValue(),
-    "starter-linked",
-  );
-  await page
-    .getByRole("navigation", { name: "Graph starting points" })
-    .getByRole("button", { name: "Item", exact: true })
-    .click();
-  await page.locator("[data-graph-start]").getByText("Bike Light", { exact: true }).waitFor();
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/graph-start.png" });
+  // Fact rules (guided setup, simulation, review and drafts) are covered by
+  // fact-rule-wizard-browser.mjs and guided-rules-browser.mjs.
   // Spec233 replaces recorder pulses and the secondary trace with order journeys.
   // Exact membership, paging, collisions and responsive behavior are exercised by
   // order-journey-browser.mjs; this suite retains the shared Inspector handoff.
@@ -1559,7 +1237,7 @@ try {
       }
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: Inspector graph, catalogs, action form, projection data, route reload, rule simulation/review/create/draft and tenant/member boundaries.",
+    "PASS: Inspector sections, timeline, records, record graph, exception catalog, history, route reload and tenant/member boundaries.",
   );
 } catch (error) {
   console.error({

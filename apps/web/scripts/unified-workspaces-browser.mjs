@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { reference as discoveryReference } from "./action-discovery-fixture.mjs";
+import { openPageActions } from "./page-actions.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -70,7 +72,8 @@ await page.route("**/api/**", async (route) => {
       ],
       default_tenant_id: tenant,
     });
-  if (path.endsWith("/application-reference")) return reply({ workspaces: [] });
+  // The production action catalog decides which page actions exist.
+  if (path.endsWith("/application-reference")) return reply(discoveryReference);
   if (path.endsWith("/dashboard"))
     return reply({
       totals: { open_deliveries: 12, exceptions: 2, pending_decisions: 1 },
@@ -165,10 +168,15 @@ const out = process.env.UNIFIED_WORKSPACE_SCREENSHOTS || "/private/tmp/reality-1
 await mkdir(out, { recursive: true });
 try {
   await page.goto(`${base}/app?tenant=${tenant}`);
-  await page.getByRole("button", { name: "Open analytics", exact: true }).click();
+  // Analytics opens from the navigation; Welcome no longer carries a shortcut to it.
+  await page.getByRole("link", { name: "Analytics", exact: true }).click();
   const tabs = page.getByRole("navigation", { name: "Analytics views" });
-  await tabs.getByRole("button", { name: "Explore", exact: true }).waitFor();
-  assert.deepEqual(await tabs.getByRole("button").allTextContents(), ["Explore", "My reports"]);
+  await tabs.getByRole("button", { name: "My reports", exact: true }).waitFor();
+  assert.deepEqual(await tabs.getByRole("button").allTextContents(), [
+    "My reports",
+    "Analysis",
+    "Explore data",
+  ]);
   await page.goto(`${base}/app/warehouse?tenant=${tenant}&warehouse_view=movements`);
   const menu = page.locator(".register-actions > summary");
   await menu.click();
@@ -183,8 +191,11 @@ try {
   };
   for (const family of ["customer", "supplier", "item", "location"]) {
     await page.goto(`${base}/app/master-data?tenant=${tenant}&family=${family}`);
-    assert.equal(await page.locator(".register-actions").count(), 0);
-    const create = page.getByRole("button", { name: createLabels[family], exact: true });
+    // Creating a record is the page action behind More actions.
+    await openPageActions(page);
+    const create = page
+      .locator(".register-actions")
+      .getByRole("button", { name: createLabels[family], exact: true });
     await create.focus();
     await page.keyboard.press("Enter");
     await page.getByRole("dialog").waitFor();

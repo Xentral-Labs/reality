@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { openPageActions } from "./page-actions.mjs";
+import { isSearchRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -117,9 +119,16 @@ await page.route("**/api/**", async (route) => {
 });
 await mkdir(out, { recursive: true });
 const base = process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177";
+// Add integration is the page action behind More actions.
+const addButton = (name = "Add integration") =>
+  page.locator(".register-actions").getByRole("button", { name, exact: true });
+const addIntegration = async (name) => {
+  await openPageActions(page);
+  await addButton(name).click();
+};
 try {
   await page.goto(`${base}/app/data-sources?tenant=${tenant}`);
-  await page.getByRole("button", { name: "Add integration", exact: true }).click();
+  await addIntegration();
   await page.getByRole("textbox", { name: "Search providers" }).fill("Shopware");
   await page.getByRole("button", { name: "Prepare Shopware 6", exact: true }).click();
   await page.getByRole("textbox", { name: "Connection name", exact: true }).fill("DE Shop");
@@ -135,15 +144,18 @@ try {
   await page.keyboard.press("Escape");
   assert.equal(await page.getByText("DE Shop", { exact: true }).count(), 1);
   await page.goto(`${base}/app/data-sources?tenant=other`);
-  await page.getByRole("button", { name: "Add integration", exact: true }).waitFor();
+  await openPageActions(page);
+  await addButton().waitFor();
   assert.equal(await page.getByText("DE Shop", { exact: true }).count(), 0);
   await page.goto(`${base}/app/data-sources?tenant=${tenant}`);
   await page.getByText("DE Shop", { exact: true }).waitFor();
   await page.screenshot({ path: "/private/tmp/integrations-desktop.png" });
   await page.getByRole("button", { name: "Remove draft", exact: true }).click();
   assert.equal(await page.getByText("DE Shop", { exact: true }).count(), 0);
-  await page.getByRole("button", { name: "Add integration", exact: true }).click();
+  await addIntegration();
   const modal = page.getByRole("dialog");
+  // The provider catalog loads after the dialog opens.
+  await modal.getByRole("button", { name: "Prepare Shopify", exact: true }).waitFor();
   assert.equal(await modal.locator("input[type=password]").count(), 0);
   for (const name of [
     "Shopify",
@@ -190,7 +202,8 @@ try {
   await page.getByRole("button", { name: "Open preparation", exact: true }).waitFor();
   userId = "another-user";
   await page.reload();
-  await page.getByRole("button", { name: "Add integration", exact: true }).waitFor();
+  await openPageActions(page);
+  await addButton().waitFor();
   assert.equal(
     await page.getByRole("button", { name: "Open preparation", exact: true }).count(),
     0,
@@ -203,7 +216,7 @@ try {
   await modal.getByRole("button", { name: "Review", exact: true }).click();
   await modal.getByRole("button", { name: "Save draft", exact: true }).click();
   await page.getByText("Payment account", { exact: true }).waitFor();
-  await page.getByRole("button", { name: "Add integration", exact: true }).click();
+  await addIntegration();
   await modal.getByRole("button", { name: "Prepare Shopify Payments", exact: true }).click();
   await page.getByRole("textbox", { name: "Related Shopify shop" }).fill("Another shop");
   await modal.getByRole("button", { name: "Next", exact: true }).click();
@@ -229,7 +242,7 @@ try {
   );
   fail = true;
   await page.reload();
-  await page.getByRole("button", { name: "Add integration", exact: true }).click();
+  await addIntegration();
   await modal.getByRole("button", { name: "Prepare Shopware 6", exact: true }).waitFor();
   await page.keyboard.press("Escape");
   fail = false;
@@ -243,7 +256,7 @@ try {
     for (const width of [390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.reload();
-      await page.getByRole("button", { name: add, exact: true }).click();
+      await addIntegration(add);
       await modal.getByRole("button", { name: `${prepare} Shopware 6`, exact: true }).waitFor();
       await page.screenshot({ path: `/private/tmp/integrations-catalog-${lang}-${width}.png` });
       assert.equal(
@@ -263,7 +276,7 @@ try {
       );
     }
   }
-  assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
+  assert.equal(requests.filter((r) => r.method !== "GET" && !isSearchRead(r.path)).length, 0);
   assert.deepEqual(errors, []);
   console.log(
     "Integration preparation: selection, save, reload, cancellation, tenant isolation and removal passed; no API mutations.",

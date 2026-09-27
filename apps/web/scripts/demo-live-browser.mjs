@@ -209,13 +209,10 @@ try {
         );
         if (language === "en") {
           await page.goto(`${base}/app/data-sources?tenant=demo`);
-          const source = page.locator("[data-demo-data-source]");
-          await source.waitFor();
-          await source.getByText("60 orders per hour", { exact: false }).waitFor();
-          assert.match(
-            await source.locator("[data-demo-data-open]").getAttribute("href"),
-            /\/app\/demo-data\?tenant=demo/,
-          );
+          // A connected simulation lives only in its registered source (252920bd); the
+          // entry card is for companies where nothing is connected yet.
+          await page.locator("[data-source-table-inset]").waitFor();
+          assert.equal(await page.locator("[data-demo-data-source]").count(), 0);
           assert.equal(
             await page.locator(".demo-data-integration").count(),
             0,
@@ -223,7 +220,7 @@ try {
           );
           ordinary = true;
           await page.reload();
-          await page.locator('[data-company-id="demo"]').waitFor();
+          await page.locator('[data-company-id="demo"]').first().waitFor({ state: "attached" });
           await page.locator("[data-source-table-inset]").waitFor();
           assert.equal(
             await page.locator("[data-demo-data-source]").count(),

@@ -165,6 +165,9 @@ await page.route("**/api/**", async (route) => {
       contentType: "application/json",
       body: JSON.stringify({ grants: [] }),
     });
+  // The account's proposed journeys (read on demand from the account area); none here.
+  if (path === "/api/auth/journey-proposals" && req.method() === "GET")
+    return route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
   // Shell-wide background reads the settings do not depend on; anything else is unexpected.
   if (isShellBackgroundRead(req.method(), path))
     return route.fulfill({ status: 404, contentType: "application/json", body: "{}" });

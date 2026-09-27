@@ -375,7 +375,12 @@ await page.route("**/api/**", async (route) => {
         has_archived: false,
       });
     if (p.endsWith("/storyline/chat/independent-answer"))
-      return reply({ available: true, items: [], has_more: false });
+      return reply({
+        basis: { available: false, rows: [], additional_count: 0, calls: 0, has_more: false },
+        available: true,
+        items: [],
+        has_more: false,
+      });
   }
   if (p.endsWith("/copilot/sessions") && req.method() === "POST") {
     chatSession = {
@@ -408,6 +413,8 @@ await page.route("**/api/**", async (route) => {
   if (p.endsWith("/storyline/chat/answer-free")) {
     evidenceReads.push(p);
     return reply({
+      // Spec 272: no business basis, but one recorded call behind the reply.
+      basis: { available: false, rows: [], additional_count: 0, calls: 1, has_more: false },
       available: true,
       has_more: false,
       items: [
@@ -822,7 +829,7 @@ async function assertMainCompanyFreePlay() {
   const navigation = page.locator("a[data-navigation-item]");
   assert.deepEqual(
     (await navigation.allTextContents()).slice(0, 2).map((text) => text.trim()),
-    ["Home", "Chat"],
+    ["Inbox", "Chat"],
   );
   await page.getByRole("link", { name: "Chat", exact: true }).click();
   await page.waitForURL(/\/app\/chat/);
@@ -864,16 +871,18 @@ async function assertMainCompanyFreePlay() {
     assert.equal(await input.inputValue(), "");
   };
   await input.fill("Unsent story draft");
+  const plainEvidence = page.waitForResponse((r) =>
+    r.url().includes("/storyline/chat/plain-answer"),
+  );
   await switchMain("plain");
   await page.locator("[data-free-play-real-data]").waitFor();
-  await page.locator('[data-chat-evidence="plain-answer"] summary').click();
-  await page
-    .getByText(
-      "Reality did not record which calls produced this reply. The reply itself draws on this company's current data.",
-      { exact: true },
-    )
-    .waitFor();
+  // Spec 272 FR-008: a reply without recorded reads shows no basis disclosure at all.
+  await plainEvidence;
+  await page.waitForTimeout(200);
+  assert.equal(await page.locator('[data-chat-evidence="plain-answer"]').count(), 0);
   await switchMain("independent");
+  // Spec 225 FR-020: the history opens from the page header's History action.
+  await page.locator('[data-page-action="inline"][aria-expanded="false"]').click();
   await page.locator('[data-chat-session="independent-chat"]').click();
   await page.waitForURL(/session=independent-chat/);
   await input.fill("Unsent sandbox draft");
@@ -1305,8 +1314,13 @@ await page.waitForFunction(
 );
 assert.equal(chatSends.length, 1, "one explicit send creates one request");
 assert.equal(chatSends[0].message, "Show the open findings, please.");
-assert.equal(evidenceReads.length, 0, "evidence is loaded on demand");
+// Spec 272: the reply reads its evidence once to decide whether a disclosure is shown.
+assert.ok(evidenceReads.length >= 1, "the reply reads its evidence");
 await page.locator('[data-chat-evidence="answer-free"] > summary').click();
+// The recorded calls sit in the nested technical activity.
+await page
+  .locator('[data-chat-evidence="answer-free"] [data-technical-activity] > summary')
+  .click();
 await page.locator('[data-chat-evidence="answer-free"] [data-storyline-call="read"]').waitFor();
 assert.equal(
   await page.locator('[data-chat-evidence="answer-free"] [data-storyline-call]').count(),
@@ -1326,6 +1340,9 @@ for (const lang of ["en", "de", "nl", "es"])
       );
       await composer.waitFor();
       await page.locator('[data-chat-evidence="answer-free"] > summary').click();
+      await page
+        .locator('[data-chat-evidence="answer-free"] [data-technical-activity] > summary')
+        .click();
       await page
         .locator('[data-chat-evidence="answer-free"] [data-storyline-call="read"]')
         .waitFor();

@@ -307,11 +307,11 @@ try {
   await page.getByText("Preparing your demo company", { exact: true }).waitFor();
   assert.equal(await page.getByRole("alert").count(), 0);
   assert.equal(ready, false, "the company is still being seeded");
-  // Feature 201: three steps from real state, and the middle one only claims work
-  // once a worker actually holds it.
+  // Feature 201: steps from real state (created, data, calculation, ready), and the data
+  // step only claims work once a worker actually holds it.
   const steps = page.locator("[data-setup-steps]");
   await steps.waitFor();
-  assert.equal(await steps.locator("[data-setup-step]").count(), 3);
+  assert.equal(await steps.locator("[data-setup-step]").count(), 4);
   assert.equal(
     await steps.locator('[data-setup-step="created"]').getAttribute("data-state"),
     "done",
@@ -320,7 +320,7 @@ try {
   await steps.getByText("Preparing orders, deliveries and invoices", { exact: true }).waitFor();
   assert.equal(await steps.locator('[data-setup-step="data"][data-state="current"]').count(), 1);
   await page.screenshot({ path: `${out}/setup-steps.png`, fullPage: true });
-  await page.locator("[data-trial-tasks]").waitFor({ timeout: 20000 });
+  await page.locator("[data-home-pulse]").waitFor({ timeout: 20000 });
   assert.equal(posts, 2, "following the receipt must not create a second company");
   seedDelay = 50;
   ready = false;
@@ -335,40 +335,14 @@ try {
   assert.equal(ready, false);
   failSetup = false;
   await page.getByRole("button", { name: "Retry", exact: true }).click();
-  await page.locator("[data-trial-tasks]").waitFor();
+  await page.locator("[data-home-pulse]").waitFor();
   assert.ok(posts >= 4);
   assert.ok(!page.url().includes("settings"));
-  assert.equal(await page.locator("[data-trial-github]").count(), 0);
-  await page.getByRole("button", { name: "Which orders need attention?", exact: true }).focus();
-  await page.keyboard.press("Enter");
-  await page.getByText("Awaiting first calculation.").first().waitFor();
-  assert.equal(await page.locator("[data-trial-github]").count(), 0);
-  attentionState = "ready";
-  await page.getByRole("link", { name: "Home", exact: true }).click();
-  failAttention = true;
-  await page.getByRole("button", { name: "Which orders need attention?", exact: true }).click();
-  await page.locator('[data-work-list="exceptions"] [role="alert"]').waitFor();
-  assert.equal(await page.locator("[data-trial-github]").count(), 0);
-  failAttention = false;
-  await page.getByRole("button", { name: "Retry", exact: true }).first().click();
-  await page.locator("[data-trial-github]").waitFor();
-  await page.screenshot({ path: `${out}/first-result-desktop.png`, fullPage: true });
-  await page.getByRole("button", { name: "Keep exploring", exact: true }).click();
-  await page.reload();
-  assert.equal(await page.locator("[data-trial-github]").count(), 0);
-  await page.getByRole("link", { name: "Home", exact: true }).click();
-  await page.getByRole("button", { name: "Which invoices remain open?", exact: true }).click();
-  assert.ok(page.url().includes("finance_status=outstanding"));
-  await page.getByRole("link", { name: "Home", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Why is this order not fully delivered?", exact: true })
-    .click();
-  await page.getByText("Northstar", { exact: true }).first().click();
-  await page.getByRole("button", { name: "Open commitment", exact: true }).click();
-  await page.getByRole("button", { name: "Back to commitments", exact: true }).waitFor();
+  // Welcome no longer offers the three trial questions (ba9a8adf); the new company opens
+  // on its Welcome and the chat's allowance rules apply there.
   const chat = page.locator("[data-global-chat]");
   assert.equal(await chat.locator("[data-ai-allowance]").count(), 0);
-  const usage = chat.locator("header [data-chat-usage] button").first();
+  const usage = chat.locator("[data-chat-usage] button").first();
   await usage.focus();
   await page.keyboard.press("Enter");
   const usageDialog = page.getByRole("dialog", { name: "Usage", exact: true });
@@ -378,7 +352,7 @@ try {
   await usage.click();
   await usageDialog.getByRole("button", { name: "View usage", exact: true }).click();
   await page.locator("[data-usage-settings]").waitFor();
-  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page.getByRole("link", { name: "Inbox", exact: true }).click();
   await chat.locator("textarea").fill("Keep this question after exhaustion");
   await chat.locator('button[type="submit"]').click();
   await chat
@@ -397,18 +371,7 @@ try {
     language = locale;
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${base}/app?tenant=${company.id}&lang=${locale}`);
-    await page.locator("[data-trial-tasks]").waitFor();
-    await page
-      .getByText(
-        {
-          en: "Try these three questions",
-          de: "Starte mit diesen drei Fragen",
-          nl: "Begin met deze drie vragen",
-          es: "Empieza con estas tres preguntas",
-        }[locale],
-        { exact: true },
-      )
-      .waitFor();
+    await page.locator("[data-home-pulse]").waitFor();
     assert.equal(await page.locator("html").getAttribute("lang"), locale);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     await page.screenshot({ path: `${out}/${locale}-mobile.png`, fullPage: true });
@@ -424,7 +387,7 @@ try {
     .waitFor();
   failSetup = false;
   await page.getByRole("button", { name: "Retry", exact: true }).click();
-  await page.locator("[data-trial-tasks]").waitFor();
+  await page.locator("[data-home-pulse]").waitFor();
   const beforeArchive = posts;
   archived = true;
   ready = false;
