@@ -28,7 +28,7 @@ review under FR-013.
 **Testing**: pytest unit, catalog planted-drift, architecture source fixtures, PostgreSQL service/business stories, adapter parity; existing Web/catalog checks and generated-doc checks
 **Project Type**: shared backend core with Web/API, CLI, Chat, MCP, worker, scheduler, integration and demo adapters
 **Constraints**: Decimal; UTC; opaque IDs; lossless source; strict tenant scope; Source → Evidence → Reality; no public contract or business-semantic change
-**Scale/Scope**: All catalogued ERP commands and public ERP reads receive structural governance; semantic consolidation is limited to inventory availability, commitment fulfilment/open quantity, open financial balances and contribution results
+**Scale/Scope**: All catalogued ERP commands and read-access tools in the public MCP capability registry (except catalog self-description tools) receive root structural governance; other Web/CLI/projection/exception reads attach as consumers unless already represented by a command; semantic consolidation is limited to inventory availability, commitment fulfilment/open quantity, open financial balances and contribution results
 
 There are no unresolved technical clarifications. [research.md](research.md) records the selected
 mechanisms and rejected alternatives.
@@ -116,14 +116,16 @@ own canonical blocks. Evidence is not maintained in a parallel inventory. The tr
 - command owner, mode, adapters, reads/writes, effects and events from `command_catalog.yaml`;
 - public bindings and schemas from the MCP/application registries;
 - verification reads and limitations from capability guidance;
-- exact executable test node identifiers declared beside the governed entry;
+- exact executable test node identifiers declared beside the governed entry and resolved by CI/docs
+  validation, never by production application startup;
 - explicit exclusions for transport/operational helpers with a reason.
 
-Validation refuses duplicate command services, missing or duplicate mutation owners, unknown/stale
-tools or tests, unclassified public reads, conflicting resource ownership, nondeterministic
-composition and unexplained exclusions. Diagnostics name the capability, conflicting/missing owner
-and expected boundary. The generated docs render the same validated trace; they do not keep a
-second list.
+Runtime validation refuses duplicate command services, missing or duplicate mutation owners,
+unknown/stale runtime tools, unclassified public reads, conflicting resource ownership,
+nondeterministic composition and unexplained exclusions. CI/docs validation additionally resolves
+declared test node identifiers against the repository; production packages do not depend on test
+files. Diagnostics name the capability, conflicting/missing owner and expected boundary. The
+generated docs render the same validated trace; they do not keep a second list.
 
 ### Architecture enforcement
 
@@ -226,8 +228,9 @@ proves the path; it does not introduce a second dispatcher.
 No Alembic migration, persisted entity, backfill, business-table write or API payload is added.
 `CapabilityTrace`, `Ownership`, `BoundaryException` and calculation-consumer declarations are
 version-controlled deployment metadata described in [data-model.md](data-model.md). Catalog startup
-remains fail-fast and atomic; a broken trace prevents readiness rather than exposing a partial
-catalog.
+remains fail-fast and atomic for runtime-resolvable owner/tool/catalog structure; a broken runtime
+trace prevents readiness rather than exposing a partial catalog. Test-evidence path resolution is a
+repository CI/docs gate and is not executed by production startup.
 
 ### Failure, security, and tenant behavior
 

@@ -5,7 +5,9 @@ runtime permission surface.
 
 ## Required trace row
 
-Each catalogued ERP command and public ERP read produces exactly one governed row:
+Each catalogued ERP command and read-access tool in the public MCP capability registry produces
+exactly one governed row, except catalog self-description tools. Web-, CLI-, projection- and
+exception-only reads attach as consumers unless they already have a catalogued command.
 
 ```text
 identity and kind
@@ -23,11 +25,13 @@ stack traces never appear.
 
 ## Validation contract
 
-Construction fails before readiness when an identity/owner/entry point is missing or duplicated; a
-referenced callable, classification, verification read or test does not resolve; a mutation has
-zero/multiple owners; an exclusion is unexplained; a critical consumer lacks shared evidence; or
-fragment composition changes identity/order. Failure names the governed identity, rule and expected
-owner/boundary and emits no partial trace.
+Runtime construction fails before readiness when an identity/owner/entry point is missing or
+duplicated; a referenced runtime callable, classification or verification read does not resolve; a
+mutation has zero/multiple owners; an exclusion is unexplained; a critical consumer lacks declared
+evidence; or fragment composition changes identity/order. CI/docs validation additionally resolves
+each executable test node against repository test files. Production startup never depends on those
+files. Failure names the governed identity, rule and expected owner/boundary and emits no partial
+trace.
 
 ## Compatibility contract
 

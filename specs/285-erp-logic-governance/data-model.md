@@ -6,7 +6,8 @@ tenant data, evidence, authorization or business state.
 
 ## GovernedCapability
 
-- `identity`: stable existing command service or public read/tool identity.
+- `identity`: stable existing command service or read-access public MCP tool identity; catalog
+  self-description tools are excluded and adapter/view-only reads attach as consumers.
 - `kind`: command mutation, command read or public read without a business command.
 - `resource_keys` and `process_steps`: existing business classifications.
 - `owner`: exactly one `AuthoritativeOwner`.
@@ -15,8 +16,10 @@ tenant data, evidence, authorization or business state.
 - `verification_reads`, meaning boundaries and exact executable test evidence.
 - optional explicit exclusion reason for a non-business transport/operational helper.
 
-Validation: unique identity; singular mutation owner; all references resolve; evidence is non-empty;
-ordering is deterministic; no unexplained public business entry is absent.
+Validation: unique identity; singular mutation owner; runtime references resolve at application
+startup; evidence is non-empty and its repository test node resolves in CI/docs validation;
+ordering is deterministic; no unexplained public business entry is absent. Production runtime does
+not require repository test files.
 
 ## AuthoritativeOwner
 
