@@ -9,7 +9,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | Objekt                                                         | Listen | Aktionen | Klärfälle |
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
-| [Geschäftspartner](#resource-party)                            | 1      | 6        | 2         |
+| [Geschäftspartner](#resource-party)                            | 1      | 7        | 2         |
 | [Artikel](#resource-item)                                      | 5      | 4        | 3         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 2         |
@@ -19,7 +19,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 10       | 14        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 14       | 3         |
-| [Deckungsbeitrag](#resource-contribution)                      | 0      | 2        | 4         |
+| [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 3        | 6         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 11       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
@@ -69,6 +69,8 @@ Preisgruppen hängen hier.
 
 **Aktionen**
 
+- [Firma als Geschäftspartner erfassen](./commands#command-propose_company_party)
+  (`propose_company_party`)
 - [Geschäftspartner anlegen](./commands#command-create_party) (`create_party`)
 - [Geschäftspartner ändern](./commands#command-update_party) (`update_party`)
 - [Stammdatensatz aktivieren oder deaktivieren](./commands#command-set_master_data_active)
@@ -645,6 +647,8 @@ jedes bestätigte Ergebnis behält seine Prüfung und Wissensgrenze.
 
 - [Entworfene Kostenprüfung vorschlagen](./commands#command-propose_cost_review)
   (`propose_cost_review`)
+- [Firma als Geschäftspartner erfassen](./commands#command-propose_company_party)
+  (`propose_company_party`)
 - [Kostenentscheidung bestätigen](./commands#command-execute_cost_change) (`execute_cost_change`)
 
 **Nachschlagen**

@@ -7042,6 +7042,29 @@ def post_cost_review_proposal(
     }
 
 
+@router.post("/company-party/prepare", status_code=status.HTTP_201_CREATED)
+def post_company_party_prepare(
+    tenant_id: str, request: Request, response: Response, session: DatabaseSession
+):
+    """Propose recording the company as its own business partner (spec 289)."""
+    from reality.services.analytics.reports import caller
+    from reality.services.company_party import propose_company_party, waiting
+
+    try:
+        with caller(optional_request_principal(request)):
+            existing = waiting(session, tenant_id)
+            proposal = existing or propose_company_party(session, tenant_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+    if existing is not None:
+        response.status_code = status.HTTP_200_OK
+    return {
+        "id": proposal.id,
+        "status": proposal.status,
+        "name": json.loads(proposal.input)["name"],
+    }
+
+
 @router.get("/cost-query")
 def get_cost_query(
     tenant_id: str,

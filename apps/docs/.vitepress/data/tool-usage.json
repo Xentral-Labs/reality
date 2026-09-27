@@ -172,6 +172,7 @@
       "tables": ["party", "party_role", "party_group", "party_group_member", "party_hold"],
       "lists": ["view:parties"],
       "actions": [
+        "command:propose_company_party",
         "command:create_party",
         "command:update_party",
         "command:set_master_data_active",
@@ -849,7 +850,11 @@
         "cost_selling_review_member"
       ],
       "lists": [],
-      "actions": ["command:propose_cost_review", "command:execute_cost_change"],
+      "actions": [
+        "command:propose_cost_review",
+        "command:propose_company_party",
+        "command:execute_cost_change"
+      ],
       "reads": [
         "command:commercial_match",
         "command:cost_query",
@@ -14755,6 +14760,54 @@
       "resources": ["accounting", "contribution"]
     },
     {
+      "id": "tool:company_party_record_propose",
+      "kind": "tool",
+      "key": "company_party_record_propose",
+      "label": "Propose the company as its business partner",
+      "area": "cross_functional",
+      "summary": "Propose recording the company itself as a business partner with the role company, named as the company. Use it only when cost_review_draft reports company_party_missing with an action (no choices). It takes no arguments; the server names the partner. It only creates a proposal; a company owner confirms it in Decisions.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "company_party_record_propose",
+      "parameters": [],
+      "guidance": {
+        "purpose": "Propose recording the company itself as a business partner with the role company, so its stock has an owner.",
+        "use_when": [
+          "cost_review_draft reports company_party_missing with an action and no choices."
+        ],
+        "do_not_use_when": [
+          "The company already has a company business partner, or the draft offers choices; then the person picks one."
+        ],
+        "preconditions": ["An ordinary business company without any company business partner."],
+        "refusals": [
+          {
+            "code": "company_party_exists",
+            "description": "A company business partner already exists; nothing is proposed or recorded."
+          },
+          {
+            "code": "company_party_business_only",
+            "description": "Sandboxes, demo and practice companies do not record their own partner here."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "cost.review.draft",
+            "proves": "The draft names the waiting proposal, and after confirmation no longer asks for the company partner."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "A proposal already waiting is returned instead of a second one."
+        }
+      },
+      "read_modes": [],
+      "command": "propose_company_party",
+      "projections": [],
+      "links": ["command:propose_company_party"],
+      "label_de": "Propose the company as its business partner",
+      "resources": ["contribution", "party"]
+    },
+    {
       "id": "tool:cost_query_get",
       "kind": "tool",
       "key": "cost_query_get",
@@ -16515,6 +16568,57 @@
       "links": ["tool:cost_review_propose"],
       "label_de": "Entworfene Kostenprüfung vorschlagen",
       "resources": ["accounting", "contribution"]
+    },
+    {
+      "id": "command:propose_company_party",
+      "kind": "command",
+      "key": "propose_company_party",
+      "label": "Record the company as its business partner",
+      "area": "cross_functional",
+      "summary": "Propose recording the company itself as a business partner with the role company, named as the company; a company owner confirms it in Decisions and only then is the partner recorded.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["tenant", "party", "party_role", "action"],
+      "writes": ["action"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["company_party_record_propose"],
+      "synopses": ["company_party_record_propose"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Propose recording the company itself as a business partner with the role company, so its stock has an owner.",
+        "use_when": [
+          "cost_review_draft reports company_party_missing with an action and no choices."
+        ],
+        "do_not_use_when": [
+          "The company already has a company business partner, or the draft offers choices; then the person picks one."
+        ],
+        "preconditions": ["An ordinary business company without any company business partner."],
+        "refusals": [
+          {
+            "code": "company_party_exists",
+            "description": "A company business partner already exists; nothing is proposed or recorded."
+          },
+          {
+            "code": "company_party_business_only",
+            "description": "Sandboxes, demo and practice companies do not record their own partner here."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "cost.review.draft",
+            "proves": "The draft names the waiting proposal, and after confirmation no longer asks for the company partner."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "A proposal already waiting is returned instead of a second one."
+        }
+      },
+      "links": ["tool:company_party_record_propose"],
+      "label_de": "Firma als Geschäftspartner erfassen",
+      "resources": ["contribution", "party"]
     },
     {
       "id": "command:cost_review_draft",

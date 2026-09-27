@@ -74,8 +74,15 @@ def open_input(
     reason: str | None = None,
     choices: list[str] | None = None,
     default: str | None = None,
+    action: str | None = None,
+    name: str | None = None,
+    proposal_id: str | None = None,
 ) -> dict[str, Any]:
-    """One thing a person must decide or state before the review can be proposed."""
+    """One thing a person must decide or state before the review can be proposed.
+
+    `action` names a command that resolves the input and `name` what it would record
+    (spec 289); `proposal_id` names the proposal already waiting for confirmation.
+    """
     if code not in OPEN_INPUT_CODES:
         raise ValueError(f"Unknown open input {code!r}")
     entry: dict[str, Any] = {"code": code}
@@ -87,6 +94,13 @@ def open_input(
         entry["choices"] = choices
     if default is not None:
         entry["default"] = default
+    for key, value in (
+        ("action", action),
+        ("name", name),
+        ("proposal_id", proposal_id),
+    ):
+        if value is not None:
+            entry[key] = value
     return entry
 
 

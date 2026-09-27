@@ -9,7 +9,7 @@ the technical key stands beside each one.
 | Object                                                           | Lists | Actions | Exceptions to clear |
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
-| [Business partner](#resource-party)                              | 1     | 6       | 2                   |
+| [Business partner](#resource-party)                              | 1     | 7       | 2                   |
 | [Item](#resource-item)                                           | 5     | 4       | 3                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 2                   |
@@ -19,7 +19,7 @@ the technical key stands beside each one.
 | [Invoice and credit note](#resource-invoice)                     | 3     | 10      | 14                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 2                   |
 | [Ledger and accounts](#resource-accounting)                      | 2     | 14      | 3                   |
-| [Contribution margin](#resource-contribution)                    | 0     | 2       | 4                   |
+| [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 3       | 6                   |
 | [Document and source system](#resource-source)                   | 3     | 11      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
@@ -68,6 +68,8 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 
 **Actions**
 
+- [Record the company as its business partner](./commands#command-propose_company_party)
+  (`propose_company_party`)
 - [Create party](./commands#command-create_party) (`create_party`)
 - [Update party](./commands#command-update_party) (`update_party`)
 - [Change master-data lifecycle](./commands#command-set_master_data_active)
@@ -633,6 +635,8 @@ confirmed result retains its review and knowledge boundary.
 **Actions**
 
 - [Propose a drafted cost review](./commands#command-propose_cost_review) (`propose_cost_review`)
+- [Record the company as its business partner](./commands#command-propose_company_party)
+  (`propose_company_party`)
 - [Confirm cost and contribution decision](./commands#command-execute_cost_change)
   (`execute_cost_change`)
 

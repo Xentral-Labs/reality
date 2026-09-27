@@ -491,6 +491,7 @@ families:
       - tool:shipment_receive
       - tool:order_create
       - tool:party_create
+      - tool:company_party_record
       - tool:party_update
       - tool:party_delivery_hold
       - tool:party_delivery_hold_release

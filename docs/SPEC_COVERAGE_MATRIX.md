@@ -1769,3 +1769,18 @@ Feature contract: `docs/features/service-refusals.md`.
   - one translation point, and no comparison with refusal text;
   - de/nl/es for every template and term;
   - the invoice form and the chat panel showing coded refusals in de/nl/es at 390 and 1440 px.
+
+## Every business company knows its own business partner — Spec 289
+
+Feature contracts: `docs/features/company-setup-demo.md` and `docs/features/master_data.md`.
+
+- `packages/reality-core/tests/test_company_party.py`: spec 289 FR-001–FR-008, DR-001, DR-003, DR-004, covering:
+  - a new business company recording its own company partner with a stated source, and keeping exactly one on replay;
+  - sandboxes staying without partners;
+  - the draft offering the prefilled action or naming the waiting proposal;
+  - confirmation recording through master data, and being refused once a partner exists;
+  - several partners keeping the choice;
+  - nothing recorded before confirmation, and no caller-chosen name;
+  - practice companies not being offered the action;
+  - MCP parity.
+- `apps/web/scripts/company-party-contract.test.mjs` and `company-party-browser.mjs`: spec 289 FR-004, FR-006 and FR-007; the draft dialog proposes without sending a name, shows the prefilled name in de/nl/es at 390 and 1440 px, and then names the waiting proposal with its Decisions link.

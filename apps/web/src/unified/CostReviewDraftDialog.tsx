@@ -81,6 +81,20 @@ export function CostReviewDraftDialog({
       !(entry.code === "valuation_method" && answers.method) &&
       !(entry.code === "company_party_missing" && answers.owner_party_id),
   );
+  // Spec 289: propose the company as its own business partner; the draft then names
+  // the waiting proposal, which a company owner confirms in Decisions.
+  const recordCompany = async () => {
+    setBusy(true);
+    try {
+      await api.prepareCompanyParty(tenant);
+      window.dispatchEvent(new Event(recordsChanged));
+      setRevision((value) => value + 1);
+    } catch (reason) {
+      setError(String((reason as Error).message || reason));
+    } finally {
+      setBusy(false);
+    }
+  };
   const submit = async () => {
     if (!draft) return;
     setBusy(true);
@@ -246,6 +260,40 @@ export function CostReviewDraftDialog({
                         ))}
                       </div>
                     )}
+                    {entry.code === "company_party_missing" && entry.proposal_id && (
+                      <div className="mt-2 text-fg-muted" data-company-party-action="waiting">
+                        {t("Waiting for a company owner to confirm.")}{" "}
+                        <a
+                          className="text-accent underline"
+                          href={`/app/decisions?${new URLSearchParams({
+                            tenant,
+                            proposal: entry.proposal_id,
+                          })}`}
+                        >
+                          {t("Review in Decisions")}
+                        </a>
+                      </div>
+                    )}
+                    {entry.code === "company_party_missing" &&
+                      entry.action &&
+                      !entry.proposal_id && (
+                        <div className="mt-2 space-y-2" data-company-party-action="offer">
+                          <div className="text-fg-muted">
+                            {t("{name} will be recorded as your company.").replace(
+                              "{name}",
+                              entry.name || "",
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            className="br-btn"
+                            disabled={busy}
+                            onClick={recordCompany}
+                          >
+                            {t("Record my company as a business partner")}
+                          </button>
+                        </div>
+                      )}
                     {entry.code === "company_party_missing" && (entry.choices || []).length > 0 && (
                       <select
                         className="br-control mt-2 w-full"

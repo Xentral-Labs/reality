@@ -20,6 +20,22 @@ CLI, and JSON API while preserving historical Reality links.
 - Operational screens expose only source system and external ID. Raw source data
   remains available through the Inspector.
 
+## The company's own business partner
+
+The business partner with the role `company` is the company itself; it owns the stock (spec
+289).
+- **New companies:** a new business company gets it at creation (see
+  [Company setup](./company-setup-demo.md)).
+- **Existing companies:** where the cost review draft reports `company_party_missing` without
+  choices, it offers `company_party_record`: one proposal that records the partner under the
+  company's current name after an owner confirms it in Decisions.
+  - The name comes from the server, and the proposal takes no fields.
+  - A proposal already waiting is named instead of a second one.
+  - Confirmation is refused with `company_party_exists` once a company partner exists.
+- **Chat and MCP:** they use `company_party_record_propose`.
+- **Where it is not offered:** the action is offered only in ordinary business companies that
+  can confirm cost decisions.
+
 ## Interfaces
 
 - Web: create from each register; edit and change lifecycle state on detail pages.

@@ -7,6 +7,7 @@
     "chat-stream-browser.mjs",
     "collapsible-navigation-browser.mjs",
     "command-palette-browser.mjs",
+    "company-party-browser.mjs",
     "cost-explanation-browser.mjs",
     "cost-review-draft-browser.mjs",
     "decision-trail-browser.mjs",

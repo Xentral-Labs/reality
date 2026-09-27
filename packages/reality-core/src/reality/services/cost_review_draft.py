@@ -310,8 +310,15 @@ def _inventory(
     if owner not in candidates:
         owner = candidates[0] if len(candidates) == 1 else None
     if owner is None:
+        # Spec 289: without any company partner, offer recording it (or name the
+        # proposal already waiting); among several, the person chooses as before.
+        from reality.services.company_party import offer
+
+        detail = None if candidates else offer(session, tenant)
         open_inputs.append(
-            open_input("company_party_missing", choices=candidates or None)
+            open_input(
+                "company_party_missing", choices=candidates or None, **(detail or {})
+            )
         )
 
     if not movements:
