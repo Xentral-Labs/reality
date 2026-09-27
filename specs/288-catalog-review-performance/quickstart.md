@@ -63,6 +63,14 @@ Observed on 2026-09-27 against the local PostgreSQL development database: 20/20 
 durations ranged from 4.06 ms to 8.82 ms and p95 was 8.30 ms. The pre-change profiled service read
 was approximately 1.54 seconds, including 1.43 seconds of repeated catalog construction.
 
+Live browser verification on 2026-09-27 used a freshly rebuilt development stack rebased onto
+`main`. After restarting only the API process, opening an uncached proposal issued exactly one
+`GET /api/tenants/{tenant}/change-proposals/{proposal}/review` request, returned HTTP 200 in
+196 ms, and opened the review dialog in Chat without route navigation. A subsequent proposal read
+under concurrent background polling completed in 453 ms; this transport-level observation includes
+browser, proxy, database scheduling, and concurrent local development traffic and is not the
+service-level acceptance metric.
+
 ## 6. Required backend suite
 
 ```bash
@@ -71,3 +79,6 @@ make test
 ```
 
 Expected: all required repository checks pass with no schema or migration changes.
+
+Focused verification after rebasing onto `main`: 132 passed and 2 skipped across the catalog,
+Proposal Review, application tool, HTTP, MCP, capability guidance, and benchmark test modules.
