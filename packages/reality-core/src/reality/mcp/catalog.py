@@ -2995,7 +2995,12 @@ MCP_TOOL_CATALOG += (
         "Propose recording the company itself as a business partner with the role company, named as the company. Use it only when cost_review_draft reports company_party_missing with an action (no choices). It takes no arguments; the server names the partner. It only creates a proposal; a company owner confirms it in Decisions.",
         "propose",
         "finance",
-        {"type": "object", "properties": {}, "additionalProperties": False},
+        {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": False,
+        },
         _company_party_record_propose,
     ),
     MCPToolDefinition(
