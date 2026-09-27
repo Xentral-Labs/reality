@@ -55,9 +55,11 @@ Two patterns in the product already solve this for their areas:
 The forms whose submit or confirmation calls an application service and shows its refusal:
 orders, deliveries and shipments, goods receipts, invoices (single, multi-position,
 consolidated), payments and allocations, credits and refunds, financial reversals, corrections,
-customer holds, supply assignments, opening stock, master data, cost review drafts and
-proposal decisions (`apps/web/src/unified/*Card.tsx`, `CostReviewDraftDialog.tsx`,
-`ProposalReviewCard.tsx`). The plan lists the exact service entry points behind them.
+customer holds, supply assignments, opening stock, master data, cost review drafts, and the
+decision on a proposal made by one of these forms (`apps/web/src/unified/*Card.tsx`,
+`CostReviewDraftDialog.tsx`, `ProposalReviewCard.tsx`). Deciding a proposal of another tool in
+`ProposalReviewCard` (for example a chat-proposed payment term) is out of this increment. The
+plan lists the exact service entry points behind the forms.
 
 ### Non-Goals
 
@@ -114,9 +116,9 @@ the unchanged English sentence.
 ### User Story 2 - Values stay in their place (Priority: P1)
 
 A Dutch clerk enters an order whose third line has no amount and reads "Regel 3 heeft een
-opgegeven bedrag nodig; het wordt nooit berekend." In master data, a payment term code that
-already exists is refused with "Betalingstermijncode 'NET30' bestaat al." The line number and
-the code are the ones the service named.
+opgegeven bedrag nodig; het wordt nooit berekend." In master data, a negative lead time is
+refused with "Levertijd in dagen mag niet negatief zijn." The line number is the one the service
+named, and the field name is translated with the sentence.
 
 **Why this priority**: Refusals with values are the most actionable ones; a translation that
 drops or garbles the value is worse than English.
