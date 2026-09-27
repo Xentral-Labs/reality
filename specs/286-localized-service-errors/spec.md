@@ -2,7 +2,7 @@
 
 **Feature Branch**: `286-localized-service-errors`
 **Created**: 2026-09-27
-**Status**: Draft
+**Status**: Implemented (PR #228)
 **Language**: English
 **Input**: "Create the spec for translated service error messages." It comes from the spec 284
 live walk-through: the German invoice form refused a contradiction with the English sentence
@@ -199,6 +199,11 @@ a Dutch translation; the respective test fails and names the file and line or th
 - **Protected terms** ("Evidence", "Reality", ...) stay untranslated in refusal translations,
   as elsewhere.
 - **Old stored receipts** keep their English text without a code and are shown as today.
+- **A field name outside the catalog's terms** (a `term` value nobody listed) is shown as its
+  English word inside the translated sentence; the refusal is never withheld for it.
+- **Request field validation re-raised by a service** (a Pydantic `ValidationError` turned into
+  `InvalidOperation(str(error))`) stays English, like FastAPI's own 422 (see Non-Goals); these
+  sites remain in the ratchet as `later`.
 
 ## Requirements *(mandatory)*
 
