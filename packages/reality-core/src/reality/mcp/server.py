@@ -45,8 +45,16 @@ def error_code(error: RealityError) -> str:
     return next(code for kind, code in ERROR_CODES if isinstance(error, kind))
 
 
-def tool_error_payload(tool_name: str, error: RealityError) -> dict[str, str]:
-    return {"code": error_code(error), "message": str(error), "tool": tool_name}
+def tool_error_payload(tool_name: str, error: RealityError) -> dict[str, Any]:
+    """The English message with the refusal code, else the class code (spec 286)."""
+    payload: dict[str, Any] = {
+        "code": error.code if error.coded else error_code(error),
+        "message": str(error),
+        "tool": tool_name,
+    }
+    if error.coded and error.values:
+        payload["values"] = error.values
+    return payload
 
 
 class RealityServer(MCPServer):

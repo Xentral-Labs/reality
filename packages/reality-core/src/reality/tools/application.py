@@ -3206,13 +3206,17 @@ def _finalize_known_no_effect_failure(
                 {
                     "business_effect": "none",
                     "error": {
-                        "code": (
+                        # Spec 286: the refusal code where one exists, else the class.
+                        "code": error.code
+                        if error.coded
+                        else (
                             "not_found"
                             if isinstance(error, NotFound)
                             else "invalid_operation"
                         ),
                         "type": type(error).__name__,
                         "message": str(error),
+                        **({"values": error.values} if error.coded else {}),
                     },
                     "verification": "verified_no_effect",
                     "safe_next_action": "correct_input_or_prepare_new_proposal",

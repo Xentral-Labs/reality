@@ -1,5 +1,12 @@
 {
   "version": 1,
-  "refusals": {},
+  "refusals": {
+    "action_fields_invalid": {
+      "message": "Check the action fields."
+    },
+    "chat_session_not_found": {
+      "message": "ChatSession not found."
+    }
+  },
   "terms": []
 }

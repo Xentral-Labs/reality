@@ -1424,12 +1424,6 @@
     },
     {
       "path": "reality/services/core.py",
-      "function": "remove_chat_session",
-      "message": "ChatSession not found.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
       "function": "send_chat_message",
       "message": "Enter a question.",
       "scope": "286"

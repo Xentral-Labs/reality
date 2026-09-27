@@ -150,18 +150,42 @@ def test_in_scope_modules_raise_only_coded_or_ratcheted_refusals():
     assert problems == [], "\n".join(problems)
 
 
+def constructed_codes(source: str) -> list[tuple[int, str]]:
+    """Every literal code a catalog refusal class is constructed with, raised or not."""
+    found = []
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        name = (
+            func.id
+            if isinstance(func, ast.Name)
+            else func.attr
+            if isinstance(func, ast.Attribute)
+            else None
+        )
+        if name not in CATALOG_CLASSES:
+            continue
+        for keyword in node.keywords:
+            if (
+                keyword.arg == "code"
+                and isinstance(keyword.value, ast.Constant)
+                and isinstance(keyword.value.value, str)
+            ):
+                found.append((node.lineno, keyword.value.value))
+    return found
+
+
 def test_every_code_in_the_package_is_in_the_catalog_and_every_entry_is_raised():
     catalog = refusals.catalog()
     raised: set[str] = set()
     unknown: list[str] = []
     for path in sorted(SOURCE.rglob("*.py")):
         relative = str(path.relative_to(SOURCE))
-        for site in refusal_sites(path.read_text(encoding="utf-8"), relative):
-            if site.code is None:
-                continue
-            raised.add(site.code)
-            if site.code not in catalog["refusals"]:
-                unknown.append(f"{relative}:{site.line} {site.code}")
+        for line, code in constructed_codes(path.read_text(encoding="utf-8")):
+            raised.add(code)
+            if code not in catalog["refusals"]:
+                unknown.append(f"{relative}:{line} {code}")
     # Codes raised indirectly (a class that passes its own code, a domain refusal)
     # are declared beside the ratchet.
     raised |= set(_load_ratchet().get("indirect_codes", []))

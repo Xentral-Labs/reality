@@ -6699,7 +6699,7 @@ def remove_chat_session(session: OrmSession, tenant_id: str, session_id: str) ->
         .with_for_update()
     )
     if chat_session is None:
-        raise NotFound("ChatSession not found.")
+        raise NotFound(code="chat_session_not_found")
     if chat_message_counts(session, tenant_id, (session_id,)).get(session_id, 0):
         chat_session.archived_at = chat_session.archived_at or now()
     else:

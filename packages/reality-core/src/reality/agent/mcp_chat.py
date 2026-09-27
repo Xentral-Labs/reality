@@ -81,6 +81,8 @@ def _dispatch(session, tenant_id, name, arguments, access) -> tuple[Any, bool]:
         return {
             "error": str(error),
             **({"code": error.code} if getattr(error, "code", None) else {}),
+            # Spec 286: the model reads English plus the refusal's named values.
+            **({"values": error.values} if getattr(error, "values", None) else {}),
         }, True
 
 
