@@ -21557,6 +21557,7 @@ Object.assign(dictionaries.de, {
     "{field} ist erforderlich (höchstens 500 Zeichen).",
   "Account changes require a confirming company owner.":
     "Kontoänderungen erfordern eine bestätigende Firmeneigentümerin oder einen Firmeneigentümer.",
+  "Account confirmation is required.": "Eine Kontobestätigung ist erforderlich.",
   "Account is blocked or has the wrong operational role.":
     "Das Konto ist gesperrt oder hat die falsche operative Rolle.",
   "Account not found.": "Konto nicht gefunden.",
@@ -22426,6 +22427,7 @@ Object.assign(dictionaries.nl, {
   "A {field} of at most 500 characters is required.": "{field} is verplicht (maximaal 500 tekens).",
   "Account changes require a confirming company owner.":
     "Accountwijzigingen vereisen een bevestigende bedrijfseigenaar.",
+  "Account confirmation is required.": "Accountbevestiging is vereist.",
   "Account is blocked or has the wrong operational role.":
     "De rekening is geblokkeerd of heeft de verkeerde operationele rol.",
   "Account not found.": "Account niet gevonden.",
@@ -23282,6 +23284,7 @@ Object.assign(dictionaries.es, {
     "{field} es obligatorio (máximo 500 caracteres).",
   "Account changes require a confirming company owner.":
     "Los cambios de cuenta requieren que un propietario de la empresa los confirme.",
+  "Account confirmation is required.": "Se requiere la confirmación de la cuenta.",
   "Account is blocked or has the wrong operational role.":
     "La cuenta está bloqueada o tiene un rol operativo incorrecto.",
   "Account not found.": "Cuenta no encontrada.",
