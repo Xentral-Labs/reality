@@ -38,8 +38,9 @@ def test_an_invoice_names_every_order_it_bills_and_each_order_names_it(
     session, business
 ):
     """Invoice → each order through the line links; each order → the invoice."""
-    first_order, first = purchase(session, business, "PO-283-" + uuid4().hex[:4])
-    second_order, second = purchase(session, business, "PO-283-" + uuid4().hex[:4])
+    # Same date; the numbers decide the listed order.
+    first_order, first = purchase(session, business, "PO-283-A" + uuid4().hex[:4])
+    second_order, second = purchase(session, business, "PO-283-B" + uuid4().hex[:4])
     proposal = propose_tool(
         session,
         business.tenant.id,

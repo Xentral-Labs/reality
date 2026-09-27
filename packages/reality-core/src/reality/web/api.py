@@ -5320,14 +5320,26 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
         if referenced
         else {}
     )
-    billed_order_documents = [
-        record
-        for order_id in dict.fromkeys(
-            billed_orders[line_id] for line_id in referenced if line_id in billed_orders
-        )
-        if (record := session.get(Document, (tenant_id, order_id))) is not None
-        and record.type in {"sales_order", "purchase_order"}
-    ]
+    # Invoice lines carry no position, so the orders are listed in the order the
+    # billable positions offer them: by date, then number, then identity.
+    billed_order_documents = sorted(
+        (
+            record
+            for order_id in dict.fromkeys(
+                billed_orders[line_id]
+                for line_id in referenced
+                if line_id in billed_orders
+            )
+            if (record := session.get(Document, (tenant_id, order_id))) is not None
+            and record.type in {"sales_order", "purchase_order"}
+        ),
+        key=lambda record: (
+            record.document_date is None,
+            record.document_date or date.min,
+            record.number,
+            record.id,
+        ),
+    )
     source = detail["source"]
     correction = manual_document_line_snapshot(session, tenant_id, record_id)
     pricing = {
