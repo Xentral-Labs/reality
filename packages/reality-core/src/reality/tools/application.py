@@ -190,7 +190,7 @@ def _json_value(value: Any) -> Any:
 def _human_principal(arguments: dict[str, Any]) -> Principal:
     user_id = str(arguments.pop("_confirming_user_id", ""))
     if not user_id:
-        raise InvalidOperation("Membership changes require a confirming human owner.")
+        raise InvalidOperation(code="membership_change_owner_required")
     return Principal(user_id)
 
 
@@ -3352,9 +3352,9 @@ def approve_and_execute_proposal(
         raise InvalidOperation(code="proposal_mutation_tool_invalid")
     arguments = json.loads(candidate.input)
     if tool_name in MEMBERSHIP_MUTATION_TOOLS and confirming_principal is None:
-        raise InvalidOperation("Membership changes require a confirming human owner.")
+        raise InvalidOperation(code="membership_change_owner_required")
     if tool_name in ACCOUNT_MUTATION_TOOLS and confirming_principal is None:
-        raise InvalidOperation("Account confirmation is required.")
+        raise InvalidOperation(code="account_change_owner_required")
 
     from reality.db.core import Tenant
     from reality.services.delivery_actions import REVIEW_KEY, eligible, validate_review

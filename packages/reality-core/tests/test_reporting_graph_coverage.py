@@ -79,6 +79,10 @@ INFRASTRUCTURE = {
     "demo_data_connection",
     "ordinary_company_creation",
     "source_classification_mapping_revision",
+    # Public product feedback is account-scoped interaction metadata, not a
+    # company business record or reporting fact (spec 290).
+    "journey_proposal",
+    "journey_proposal_vote",
 }
 
 # Slices this feature deliberately leaves for later. Each names why, so a deferral
