@@ -86,6 +86,7 @@ from reality.db.core import (
     uid,
 )
 from reality.domain.calendar import InvalidDay, as_day
+from reality.domain.refusals import RefusalMixin
 from reality.domain.stock_scope import movement_at
 from reality.integrations.catalog import connector_catalog, connector_shell
 from reality.services.interaction_recorder import note_event as note_interaction_event
@@ -268,8 +269,25 @@ FILE_INTERPRETER_TARGETS = {
 }
 
 
-class RealityError(Exception):
-    """Base class for business-readable application errors."""
+class RealityError(RefusalMixin, Exception):
+    """Base class for business-readable application errors.
+
+    A refusal may carry a stable code and named values (spec 286). With a code, the
+    English sentence comes from `config/service_refusals.json`; without one, the given
+    sentence is used exactly as before.
+    """
+
+    def __init__(
+        self,
+        message: str | None = None,
+        *args: Any,
+        code: str | None = None,
+        values: dict[str, Any] | None = None,
+    ) -> None:
+        sentence = self._init_refusal(message, code, values)
+        super().__init__(
+            *((sentence, *args) if (message is not None or code) else args)
+        )
 
 
 class NotFound(RealityError):
