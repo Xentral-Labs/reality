@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { reference } from "./tool-catalog-fixture.mjs";
+const catalogEntries = reference.tool_catalog.entries;
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
@@ -64,7 +65,7 @@ await page.route("**/api/**", (route) => {
     page: { total: 0, number: 1, size: 50, pages: 1 },
   });
 });
-const base = process.env.WEB_BASE_URL || "http://localhost:5227";
+const base = process.env.WEB_BASE_URL || process.env.UNIFIED_BASE_URL || "http://localhost:5227";
 try {
   for (const view of ["commands", "views"]) {
     await page.goto(`${base}/app/inspector?tenant=a&inspector_view=${view}`);
@@ -97,18 +98,10 @@ try {
           .locator("[data-tool-capability]")
           .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-tool-capability"))),
       ),
-      new Set([
-        "command:cost_evidence",
-        "command:receipt_cost",
-        "command:inventory_cost",
-        "command:commercial_match",
-        "command:contribution_preview",
-        "command:cost_query",
-        "command:cost_record",
-        "command:reviewed_contribution",
-        "command:execute_cost_change",
-        "mcp:graph_contribution_reviews_list",
-      ]),
+      // The topic lists every capability the composed catalog files under it.
+      new Set(
+        catalogEntries.filter((entry) => entry.topic === "contribution").map((entry) => entry.id),
+      ),
     );
     await page.getByRole("button", { name: "Reset filters", exact: true }).click();
     await page.getByRole("combobox", { name: "Topic", exact: true }).selectOption("stock");

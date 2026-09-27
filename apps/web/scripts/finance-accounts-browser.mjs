@@ -2,7 +2,8 @@
 import { writeFile, unlink, mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
-const base = process.env.REALITY_BROWSER_URL || "http://127.0.0.1:5194";
+const base =
+  process.env.REALITY_BROWSER_URL || process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5194";
 const output = process.env.FINANCE_SCREENSHOTS || "/private/tmp/reality-148-browser";
 await mkdir(output, { recursive: true });
 const harnessFiles = [
@@ -27,6 +28,13 @@ const labels = {
   de: "Operative Konten",
   nl: "Operationele rekeningen",
   es: "Cuentas operativas",
+};
+// The account editor opens from the toolbar's primary action.
+const addLabels = {
+  en: "Add account",
+  de: "Konto hinzufügen",
+  nl: "Rekening toevoegen",
+  es: "Añadir cuenta",
 };
 let captures = 0;
 try {
@@ -84,6 +92,7 @@ try {
           document.documentElement.classList.toggle("dark", theme === "dark");
         }, theme);
         await page.getByText(labels[language], { exact: true }).click();
+        await page.getByRole("button", { name: addLabels[language], exact: true }).click();
         await page.locator('input[name="code"]').waitFor();
         assert.equal(
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -94,7 +103,7 @@ try {
           await page.locator('input[name="code"]').fill("BANK");
           await page.locator('input[name="name"]').fill("Main bank");
           await page.locator('select[name="role"]').selectOption("cash");
-          await page.getByRole("button", { name: "Create account", exact: true }).click();
+          await page.getByRole("button", { name: "Review account change", exact: true }).click();
           await page.getByRole("heading", { name: "Confirm account change" }).waitFor();
           assert.equal(confirmed, 0);
           await page.getByRole("button", { name: "Confirm", exact: true }).click();
