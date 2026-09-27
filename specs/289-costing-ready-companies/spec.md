@@ -2,7 +2,7 @@
 
 **Feature Branch**: `289-costing-ready-companies`
 **Created**: 2026-09-27
-**Status**: Draft
+**Status**: Implemented
 **Language**: English
 **Input**: The owner prioritized the follow-ups from the spec 282 and 284 live walk-throughs. A newly
 created business company cannot finish its first cost review because the company itself is not
@@ -150,6 +150,9 @@ confirmation. The guidance wording for `company_party_missing` names the action.
 - **Company name changed after creation:** the prefilled name is the current company name.
 - **Companies that cannot record master data** (practice, demo, archived): the draft does not
   offer the action, and the command refuses if called.
+- **An empty sandbox** may record business partners as a practice operation, but the action is
+  offered only in ordinary business companies that can confirm cost decisions, so a sandbox
+  keeps no partner of its own and Demo Data can still connect to it.
 - **Tenant boundary:** the partner, the proposal and the draft stay within the tenant.
 
 ## Requirements *(mandatory)*
