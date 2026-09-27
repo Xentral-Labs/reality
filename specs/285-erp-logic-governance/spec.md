@@ -2,7 +2,7 @@
 
 **Feature Branch**: `285-erp-logic-governance`
 **Created**: 2026-09-27
-**Status**: Draft
+**Status**: Approved scope (owner: the initial semantic audit covers the four named critical ERP calculations; all other capabilities receive structural governance only)
 **Language**: English
 **Input**: Make the existing ERP capability package safer to inspect, maintain and extend over time, especially by preventing duplicate business logic across services, tools and adapters. Specify only; do not implement yet.
 
@@ -68,6 +68,15 @@ calculation can create contradictory answers while every individual component st
 - [Tool Usage](../../apps/docs/content/tool-usage/index.md)
 - [Web product contract](../../docs/WEB_SPEC.md)
 - [Company setup and demo production-tool boundary](../../docs/features/company-setup-demo.md)
+
+## Clarifications
+
+### Session 2026-09-27
+
+- Q: Should the initial semantic duplication audit cover inventory availability, commitment
+  fulfilment/open quantity, open financial balances and contribution results, while other ERP
+  capabilities receive structural ownership and adapter-boundary checks only? → A: Yes; the four
+  named critical calculations are the approved initial semantic audit scope.
 
 ## User Scenarios & Testing
 
@@ -344,6 +353,8 @@ ownership fails deterministically. Unrelated business areas produce unchanged ou
   analysis technique or testing framework.
 - Product/domain owner approval is required before planning if the specification review changes the
   critical calculation set or permits any exception to the Constitution.
+- The product/domain owner approved the four critical calculations named in FR-011 on 2026-09-27;
+  extending the semantic audit beyond them requires a separate scope decision.
 - No implementation starts until this draft has been reviewed, all clarifications are resolved, a
   plan passes the Constitution Check, tasks provide requirement/test traceability and analysis has
   no critical finding.
@@ -367,4 +378,3 @@ approval for any discovered behavioral disagreement.
 | FR-018 | US1 and US3 | Externally readable final audit/review record |
 | DR-001–DR-003 | US3 scenarios 1–5 | Provenance and received-versus-derived review |
 | DR-004–DR-007 | US2 and US4 | Tenant/layer parity tests and automated-caller coverage |
-
