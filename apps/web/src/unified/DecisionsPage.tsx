@@ -167,7 +167,7 @@ export function DecisionsPage({
   return (
     <div className="mx-auto max-w-[1200px] space-y-3" data-work-list="decisions">
       {setView && (
-        <RegisterHeader title="Decisions">
+        <RegisterHeader title="Decisions" placement="local">
           <div className="register-tabs">
             <button
               key="pending"

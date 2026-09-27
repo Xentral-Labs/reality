@@ -153,7 +153,16 @@ for (const width of [1440, 390]) {
       if (path.includes("orders_view=customer-orders")) {
         await page.locator("[data-navigation-opener]").click();
         await page.locator("[data-action-launcher] > button").click();
-        await page.getByRole("searchbox", { name: "Search actions", exact: true }).waitFor();
+        await page
+          .locator("[data-action-menu]")
+          .getByRole("combobox", { name: "Search or start an action" })
+          .or(
+            page
+              .locator("[data-action-menu]")
+              .getByRole("textbox", { name: "Search or start an action" }),
+          )
+          .first()
+          .waitFor();
         await page.keyboard.press("Escape");
         await page.locator("[data-navigation-close]").click();
       }
