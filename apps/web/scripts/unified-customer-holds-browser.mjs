@@ -2,6 +2,9 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { reference as discoveryReference } from "./action-discovery-fixture.mjs";
+import { deliveryReview, isDecisionReview } from "./decision-review-fixture.mjs";
+import { startAction } from "./command-palette.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -94,18 +97,8 @@ await page.route("**/api/**", async (route) => {
       ],
       default_tenant_id: "company",
     });
-  if (p.endsWith("/application-reference"))
-    return reply({
-      commands: [
-        {
-          service: "hold_party_delivery",
-          related_services: ["release_party_delivery_hold"],
-          mode: "mutation",
-          adapters: ["Web"],
-        },
-      ],
-      workspaces: [],
-    });
+  // The production action catalog decides which actions a commitment offers.
+  if (p.endsWith("/application-reference")) return reply(discoveryReference);
   if (p.endsWith("/delivery-work")) return reply({ items: [row()], page: pager });
   if (p.includes("/delivery-work/"))
     return reply({
@@ -166,6 +159,10 @@ await page.route("**/api/**", async (route) => {
       return route.abort("failed");
     }
     return reply(latest);
+  }
+  if (isDecisionReview(p)) {
+    const value = proposals.get(p.split("/change-proposals/")[1].split("/")[0]);
+    if (value) return reply(deliveryReview(value));
   }
   if (p.includes("/change-proposals/") && p.endsWith("/approve")) {
     const value = proposals.get(p.split("/change-proposals/")[1].split("/")[0]);
@@ -288,10 +285,9 @@ try {
   assert.equal(proposals.size, 1);
   await layouts("place");
   await dialog.getByRole("button", { name: "Confirm customer hold", exact: true }).click();
-  await dialog.getByText("Customer hold recorded", { exact: true }).waitFor();
+  // A decision opened from its review closes once it is recorded (spec 276).
+  await dialog.waitFor({ state: "detached" });
   assert.equal(confirmations, 1);
-  await dialog.getByRole("button", { name: "Inspect customer", exact: true }).click();
-  await page.getByRole("heading", { name: "Customer evidence", exact: true }).waitFor();
   await casePage();
   await page.getByRole("button", { name: "Release customer delivery hold", exact: true }).click();
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
@@ -304,7 +300,8 @@ try {
   assert.equal(confirmations, 2);
   await page.reload();
   await dialog.getByRole("button", { name: "Recover recorded result", exact: true }).click();
-  await dialog.getByText("Customer hold released", { exact: true }).waitFor();
+  // ... and once its uncertain result is recovered.
+  await dialog.waitFor({ state: "detached" });
   assert.equal(reconciles, 1);
   assert.equal(confirmations, 2);
   await page.goto(`${base}/app/decisions?tenant=company&proposal=hold-1`);
@@ -323,11 +320,7 @@ try {
     .getByText("Proposal discarded. The hold was not changed.", { exact: true })
     .waitFor();
   await casePage();
-  await page.getByText("Actions", { exact: true }).first().click();
-  await page
-    .locator("details[open]")
-    .getByRole("button", { name: "Place customer delivery hold", exact: true })
-    .click();
+  await startAction(page, "Place customer delivery hold");
   await dialog.getByLabel("Search customers", { exact: true }).fill("missing");
   await dialog.getByText("No matching records", { exact: true }).waitFor();
   await dialog.getByLabel("Search customers", { exact: true }).fill("paging");
@@ -338,11 +331,16 @@ try {
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
   await page.waitForURL(/proposal=hold-4/);
   await page.goto(`${base}/app/decisions?tenant=company`);
+  await page.locator("[data-work-list=decisions] [data-work-row]").first().click();
   await page.getByRole("button", { name: "Review proposed changes", exact: true }).click();
   await dialog.getByRole("button", { name: "Confirm customer hold", exact: true }).waitFor();
   latest.review = null;
   await page.goto(`${base}/app/copilot?tenant=company`);
-  await page.getByRole("button", { name: /Review proposed changes/ }).click();
+  await page
+    .locator("[data-chat-decision-list]")
+    .getByRole("button", { name: "Review", exact: true })
+    .first()
+    .click();
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
   await dialog.getByRole("button", { name: "Confirm customer hold", exact: true }).waitFor();
   await dialog.getByRole("button", { name: "Discard proposal", exact: true }).click();

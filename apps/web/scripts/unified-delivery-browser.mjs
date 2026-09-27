@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
 import { reference as discoveryReference } from "./action-discovery-fixture.mjs";
+import { deliveryReview, isDecisionReview } from "./decision-review-fixture.mjs";
+import { startAction } from "./command-palette.mjs";
 if (!process.env.PLAYWRIGHT_MODULE) throw new Error("Set PLAYWRIGHT_MODULE.");
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
@@ -178,6 +180,10 @@ await page.route("**/api/**", async (route) => {
     proposal.status = "rejected";
     return reply({ id: proposal.id, status: "rejected" });
   }
+  if (isDecisionReview(path)) {
+    const proposal = proposed.find((p) => path.includes(`/${p.id}/`));
+    if (proposal) return reply(deliveryReview(proposal));
+  }
   if (path.endsWith("/change-proposals")) {
     const items = proposed
       .filter((p) =>
@@ -235,12 +241,13 @@ try {
       await page.locator("[data-home-pulse]").waitFor();
       const action = tool === "reserve" ? "Reserve stock" : "Record shipment";
       if (entry === "case") {
-        await page.getByRole("link", { name: "Orders & deliveries", exact: true }).click();
+        // Welcome's Commitments tile opens the queue; a row's preview leads to the commitment.
+        await page.locator("main button").filter({ hasText: "Commitments" }).first().click();
+        await page.locator("[data-work-row]").first().click();
         await page.getByRole("button", { name: "Open commitment", exact: true }).first().click();
         await page.getByRole("button", { name: action, exact: true }).click();
       } else if (entry === "launcher") {
-        await page.getByText("Actions", { exact: true }).click();
-        await page.getByRole("button", { name: action, exact: true }).click();
+        await startAction(page, action);
       } else {
         if (!(await page.locator("[data-global-chat]").isVisible()))
           await page.getByRole("button", { name: "Show chat", exact: true }).click();
@@ -248,7 +255,11 @@ try {
           .getByRole("textbox", { name: "Ask about your company" })
           .fill(`Prepare ${tool === "reserve" ? "reservation" : "shipment"}`);
         await page.getByRole("button", { name: "Send question" }).click();
-        await page.getByRole("button").filter({ hasText: "Review proposed changes" }).click();
+        await page
+          .locator("[data-chat-decision-list]")
+          .getByRole("button", { name: "Review", exact: true })
+          .first()
+          .click();
       }
       const dialog = page.getByRole("dialog");
       if (entry !== "chat") {
@@ -269,10 +280,10 @@ try {
         .getByRole("dialog")
         .getByRole("button", { name: "Confirm change", exact: true })
         .click();
-      await page.getByRole("dialog").getByRole("status").filter({ hasText: "Recorded" }).waitFor();
+      // A decision opened from its review closes once it is recorded (spec 276).
+      await page.getByRole("dialog").waitFor({ state: "detached" });
       assert.equal(confirmed, 1);
       await page.screenshot({ path: `${out}/${entry}-${tool}.png`, fullPage: true });
-      await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
     }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${base}/app/work?tenant=${tenant}&commitment=${commitment}`);
@@ -304,10 +315,12 @@ try {
     .getByRole("dialog")
     .getByRole("button", { name: "Confirm change", exact: true })
     .click();
-  await page.getByRole("dialog").getByRole("status").filter({ hasText: "Recorded" }).waitFor();
+  // The decided card closes (spec 276) and does not come back on reload.
+  await page.getByRole("dialog").waitFor({ state: "detached" });
   assert.equal(phase, 3);
   await page.reload();
-  await page.getByRole("dialog").getByRole("status").filter({ hasText: "Recorded" }).waitFor();
+  await page.getByRole("heading", { name: "Müller", exact: true }).waitFor();
+  assert.equal(await page.getByRole("dialog").count(), 0);
   const labels = {
     en: ["Reserve stock", "Review change", "Confirm change", "Discuss with Reality", "Explain"],
     de: [
@@ -376,7 +389,8 @@ try {
           .getByRole("dialog")
           .getByRole("button", { name: labels[language][2], exact: true })
           .click();
-        await page.getByRole("dialog").getByRole("status").waitFor();
+        // The decided card closes (spec 276); the case page shows the result.
+        await page.getByRole("dialog").waitFor({ state: "detached" });
         await shot("result");
       }
     }
