@@ -372,6 +372,11 @@ export type CostReviewDraft = {
     reason?: string;
     choices?: string[];
     default?: string;
+    /** Spec 289: a command that resolves the input, what it would record, or the
+     *  proposal already waiting for confirmation. */
+    action?: string;
+    name?: string;
+    proposal_id?: string;
   }[];
   basis: { kind: string; id: string; role: string }[];
   summary: Record<string, unknown>;
@@ -1994,6 +1999,11 @@ export const api = {
         scope_id: scopeId,
         ...Object.fromEntries(Object.entries(answers).filter(([, value]) => value)),
       })}`,
+    ),
+  prepareCompanyParty: (tenant: string) =>
+    request<{ id: string; status: string; name: string }>(
+      `/api/tenants/${tenant}/company-party/prepare`,
+      { method: "POST" },
     ),
   proposeCostReview: (
     tenant: string,

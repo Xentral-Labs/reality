@@ -43,6 +43,20 @@ Empty-company connection preview lists four products, the demo customer pool (`d
 
 Deploy the API, scheduler and worker from the same core revision and apply migration `0046_company_setup_demo` once. See [Worker deployment](../WORKER_DEPLOYMENT.md). No new timer, broker, cron container or provider credential is required. Browser refresh only reads source status; it is not the source's clock.
 
+## The company's own business partner (spec 289)
+
+Creating an ordinary business company (the `business` environment) also records the company
+itself as a business partner with the role `company`, named as requested, in the same
+transaction. Its SourceRecord (`source_system="reality"`,
+`external_id="company-setup:<request_key>"`) states the requested name, and replaying the
+request keeps exactly one partner.
+
+Empty sandboxes, demo, practice and Storyline companies are unchanged. Demo Data still connects
+only to a sandbox without business partners and adds Harbor Supply itself.
+
+Companies created earlier record the partner from the cost review draft (see
+[Master Data](./master_data.md#the-companys-own-business-partner)).
+
 ## Live company creation
 
 The shared creation request accepts optional strict `live_simulation` (default false), valid only with `international_demo` in a Sandbox. Selecting it and confirming company creation automatically connects Demo Data and starts 60 orders/hour. The owner does not need to configure or start the integration separately. Static demos and later manual connections remain available. No real external integration is automatically authorized.

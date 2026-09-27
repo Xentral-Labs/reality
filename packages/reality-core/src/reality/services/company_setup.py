@@ -20,7 +20,13 @@ from reality.db.core import (
     uid,
 )
 from reality.demo.international import PROFILE_VERSION
-from reality.services.core import Conflict, InvalidOperation, NotFound, create_tenant
+from reality.services.core import (
+    Conflict,
+    InvalidOperation,
+    NotFound,
+    create_party,
+    create_tenant,
+)
 from reality.services.tenant_policy import (
     PlaygroundOperationDenied,
     require_playground_account,
@@ -272,6 +278,24 @@ def create_company(
                 "Production admission is required for an ordinary company."
             )
         tenant = create_tenant(session, name, _commit=False)
+        # Spec 289: the company is its own business partner from the start, so its stock
+        # has an owner. Its source states the request; the replay marker below keeps it
+        # to exactly one.
+        create_party(
+            session,
+            tenant.id,
+            name,
+            "company",
+            roles=["company"],
+            source_system="reality",
+            external_id=f"company-setup:{request_key}",
+            source_payload={
+                "name": name,
+                "roles": ["company"],
+                "request_key": request_key,
+            },
+            _commit=False,
+        )
         session.add(
             TenantMembership(
                 id=uid("tmb"),

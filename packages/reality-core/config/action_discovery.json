@@ -224,6 +224,7 @@
     "cost_query": "accounts",
     "cost_review_draft": "accounts",
     "propose_cost_review": "accounts",
+    "propose_company_party": "accounts",
     "cost_record": "accounts",
     "reviewed_contribution": "accounts",
     "execute_cost_change": "accounts",

@@ -243,7 +243,7 @@
     },
     "company_party_missing": {
       "label": "Your company is not recorded as a business partner",
-      "explanation": "Record your own company as a business partner with the role company in master data, so the stock has an owner."
+      "explanation": "Record your own company as a business partner so the stock has an owner. The cost review offers it with its name filled in, and a company owner confirms it."
     },
     "receipt_cost_incomplete": {
       "label": "A receipt's cost is not confirmed yet",

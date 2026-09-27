@@ -542,6 +542,16 @@ def _party_create(session: Session, tenant_id: str, arguments: dict[str, Any]) -
     }
 
 
+def _company_party_record(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.company_party import record_company_party
+
+    return record_company_party(
+        session, tenant_id, arguments, action_id=arguments.get("_action_id")
+    )
+
+
 def _item_create(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     if "import_file" in arguments:
         from reality.services.item_imports import record_item_import
@@ -2085,6 +2095,13 @@ TOOLS = {
         True,
         _party_create,
     ),
+    "company_party_record": Tool(
+        "company_party_record",
+        "Record the company itself as a business partner with the role company "
+        "after confirmation.",
+        True,
+        _company_party_record,
+    ),
     "item_create": Tool(
         "item_create",
         "Create one or more Items after confirmation.",
@@ -2895,6 +2912,10 @@ def create_change_proposal(
         lock_delivery_state(session, tenant_id)
         delivery_review = review_delivery(session, tenant_id, tool_name, arguments)
     normalized_arguments = dict(arguments)
+    if tool_name == "company_party_record":
+        from reality.services.company_party import proposal_arguments
+
+        normalized_arguments = proposal_arguments(session, tenant_id, arguments)
     if tool_name in FINANCE_COMMANDS:
         normalized_arguments = validate_finance_request(tool_name, arguments)
     if delivery_review:
@@ -3035,6 +3056,8 @@ def create_change_proposal(
         )
         normalized_arguments["expected_revision"] = preview["revision"]
         normalized_arguments["preview_fingerprint"] = preview["request_fingerprint"]
+    if tool_name == "company_party_record":
+        preview["company_party"] = dict(normalized_arguments)
     if tool_name == "fact_observe":
         preview = {
             "source_record_id": normalized_arguments["source_record_id"],

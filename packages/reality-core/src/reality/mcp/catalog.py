@@ -98,6 +98,25 @@ def _read(application_name: str) -> ToolHandler:
     return handler
 
 
+def _company_party_record_propose(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """Spec 289: propose the company's own business partner; the server names it."""
+    from reality.services.company_party import propose_company_party
+
+    if arguments:
+        raise InvalidOperation(code="company_party_arguments_unsupported")
+    proposal = propose_company_party(session, tenant_id)
+    return {
+        "proposal_id": proposal.id,
+        "status": proposal.status,
+        "name": json.loads(proposal.input)["name"],
+    }
+
+
+_company_party_record_propose.application_name = "company_party_record"  # type: ignore[attr-defined]
+
+
 def _cost_review_propose(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2969,6 +2988,20 @@ MCP_TOOL_CATALOG += (
         "finance",
         CostReviewProposeRequest.model_json_schema(),
         _cost_review_propose,
+    ),
+    MCPToolDefinition(
+        "company_party_record_propose",
+        "Propose the company as its business partner",
+        "Propose recording the company itself as a business partner with the role company, named as the company. Use it only when cost_review_draft reports company_party_missing with an action (no choices). It takes no arguments; the server names the partner. It only creates a proposal; a company owner confirms it in Decisions.",
+        "propose",
+        "finance",
+        {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": False,
+        },
+        _company_party_record_propose,
     ),
     MCPToolDefinition(
         "cost_query_get",

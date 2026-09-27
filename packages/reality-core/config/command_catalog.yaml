@@ -265,6 +265,13 @@ commands:
     reads: [item, movement, movement_correction, party, party_role, source_record, document, document_line, financial_component, cost_input_manifest, cost_receipt_basis, cost_attribution_revision, cost_attribution_part, cost_component_basis, cost_scope_review, cost_inventory_review]
     writes: [action]
     effect: Draft the review again from held records and create one proposal for it; a company owner confirms it in Decisions. Nothing else changes.
+  - name: Record the company as its business partner
+    service: propose_company_party
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [tenant, party, party_role, action]
+    writes: [action]
+    effect: Propose recording the company itself as a business partner with the role company, named as the company; a company owner confirms it in Decisions and only then is the partner recorded.
   - name: Draft a cost review
     service: cost_review_draft
     mode: read
@@ -2900,6 +2907,41 @@ capability_guidance:
       do_not_use:
       - scenario: Determine customer debt.
         reason: Use open items.
+  company_party_record_propose:
+    application_tool: company_party_record
+    purpose: Propose recording the company itself as a business partner with the role company, so its stock has an owner.
+    use_when:
+    - cost_review_draft reports company_party_missing with an action and no choices.
+    do_not_use_when:
+    - The company already has a company business partner, or the draft offers choices; then the person picks one.
+    required_context:
+    - Tenant only; the server names the partner after the company.
+    preconditions:
+    - An ordinary business company without any company business partner.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: A proposal already waiting is returned instead of a second one.
+    refusals:
+    - code: company_party_exists
+      description: A company business partner already exists; nothing is proposed or recorded.
+    - code: company_party_business_only
+      description: Sandboxes, demo and practice companies do not record their own partner here.
+    events:
+    - party.created
+    verification_reads:
+    - name: cost.review.draft
+      proves: The draft names the waiting proposal, and after confirmation no longer asks for the company partner.
+    examples:
+      use:
+      - scenario: An owner of an existing company prepares the first cost review and the draft says the company is not a business partner.
+        reason: One confirmed proposal records the company as its business partner.
+      do_not_use:
+      - scenario: Create a customer or supplier.
+        reason: Use party_create through master data.
+    postcondition:
+      kind: reference
+      meaning: One proposal waits for an owner; the partner is recorded only after confirmation.
   cost_review_propose:
     application_tool: cost.change
     purpose: Propose the inventory or contribution review the draft showed, without copying identifiers or arguments.
@@ -4634,6 +4676,7 @@ agent_command_coverage:
   cost_query: {classification: eligible, tools: [cost_query_get]}
   cost_review_draft: {classification: eligible, tools: [cost_review_draft]}
   propose_cost_review: {classification: eligible, tools: [cost_review_propose]}
+  propose_company_party: {classification: eligible, tools: [company_party_record_propose]}
   cost_record: {classification: eligible, tools: [cost_record_get]}
   reviewed_contribution: {classification: eligible, tools: [cost_contribution_get]}
   receipt_cost: {classification: eligible, tools: [cost_receipt_get]}

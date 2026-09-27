@@ -21185,8 +21185,8 @@ Object.assign(dictionaries.de, {
     "FIFO bewertet den Bestand in der Reihenfolge des Eingangs. Einzelbewertung gibt es nur für Serien- oder Chargenartikel.",
   "Your company is not recorded as a business partner":
     "Dein Unternehmen ist nicht als Geschäftspartner erfasst",
-  "Record your own company as a business partner with the role company in master data, so the stock has an owner.":
-    "Lege in den Stammdaten dein eigenes Unternehmen als Geschäftspartner mit der Rolle „Unternehmen“ an, damit der Bestand einen Eigentümer hat.",
+  "Record your own company as a business partner so the stock has an owner. The cost review offers it with its name filled in, and a company owner confirms it.":
+    "Erfasse dein eigenes Unternehmen als Geschäftspartner, damit der Bestand einen Eigentümer hat. Die Kostenprüfung bietet das mit dem Namen deines Unternehmens an, und ein Inhaber bestätigt es.",
   "A receipt's cost is not confirmed yet":
     "Die Kosten eines Wareneingangs sind noch nicht bestätigt",
   "Confirm the cost of this receipt first; then prepare the item's cost review again.":
@@ -21251,8 +21251,8 @@ Object.assign(dictionaries.nl, {
   "FIFO values stock in the order it arrived. Specific selection is only offered for items tracked by serial or lot.":
     "FIFO waardeert de voorraad in de volgorde van binnenkomst. Specifieke selectie is er alleen voor artikelen met serie- of lotnummer.",
   "Your company is not recorded as a business partner": "Je bedrijf is niet als relatie vastgelegd",
-  "Record your own company as a business partner with the role company in master data, so the stock has an owner.":
-    "Leg in de stamgegevens je eigen bedrijf vast als relatie met de rol „bedrijf”, zodat de voorraad een eigenaar heeft.",
+  "Record your own company as a business partner so the stock has an owner. The cost review offers it with its name filled in, and a company owner confirms it.":
+    "Leg je eigen bedrijf vast als zakenpartner, zodat de voorraad een eigenaar heeft. De kostencontrole biedt dit aan met de naam van je bedrijf, en een eigenaar bevestigt het.",
   "A receipt's cost is not confirmed yet":
     "De kosten van een goederenontvangst zijn nog niet bevestigd",
   "Confirm the cost of this receipt first; then prepare the item's cost review again.":
@@ -21318,8 +21318,8 @@ Object.assign(dictionaries.es, {
     "FIFO valora el stock en el orden de llegada. La selección específica solo se ofrece para artículos con número de serie o lote.",
   "Your company is not recorded as a business partner":
     "Tu empresa no está registrada como socio comercial",
-  "Record your own company as a business partner with the role company in master data, so the stock has an owner.":
-    "Registra en los datos maestros tu propia empresa como socio comercial con el rol «empresa», para que el stock tenga propietario.",
+  "Record your own company as a business partner so the stock has an owner. The cost review offers it with its name filled in, and a company owner confirms it.":
+    "Registra tu propia empresa como socio comercial para que el stock tenga propietario. La revisión de costes lo ofrece con el nombre de tu empresa, y un propietario lo confirma.",
   "A receipt's cost is not confirmed yet":
     "El coste de una entrada de mercancía aún no está confirmado",
   "Confirm the cost of this receipt first; then prepare the item's cost review again.":
@@ -24010,4 +24010,41 @@ Object.assign(dictionaries.es, {
   "{label} must be positive and fit four decimal places without rounding.":
     "El campo {label} debe ser positivo y caber en cuatro decimales sin redondeo.",
   "{record} not found.": "No se encontró {record}.",
+});
+
+// Spec 289: the company records itself as a business partner from the cost review draft.
+Object.assign(dictionaries.de, {
+  "Record my company as a business partner": "Mein Unternehmen als Geschäftspartner erfassen",
+  "{name} will be recorded as your company.": "{name} wird als dein Unternehmen erfasst.",
+  "Waiting for a company owner to confirm.": "Wartet auf die Bestätigung durch einen Inhaber.",
+  "A company business partner already exists.":
+    "Ein Geschäftspartner für das eigene Unternehmen ist bereits erfasst.",
+  "Recording the company as a business partner takes no fields; its name is the company's name.":
+    "Das Unternehmen als Geschäftspartner zu erfassen braucht keine Angaben; der Name ist der Name des Unternehmens.",
+  "Only an ordinary business company records itself as a business partner here.":
+    "Nur ein reguläres Unternehmen erfasst sich hier selbst als Geschäftspartner.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Record my company as a business partner": "Mijn bedrijf vastleggen als zakenpartner",
+  "{name} will be recorded as your company.": "{name} wordt vastgelegd als je bedrijf.",
+  "Waiting for a company owner to confirm.": "Wacht op bevestiging door een eigenaar.",
+  "A company business partner already exists.":
+    "Er is al een zakenpartner voor het eigen bedrijf vastgelegd.",
+  "Recording the company as a business partner takes no fields; its name is the company's name.":
+    "Het bedrijf vastleggen als zakenpartner vraagt geen velden; de naam is de naam van het bedrijf.",
+  "Only an ordinary business company records itself as a business partner here.":
+    "Alleen een gewoon bedrijf legt zichzelf hier vast als zakenpartner.",
+});
+
+Object.assign(dictionaries.es, {
+  "Record my company as a business partner": "Registrar mi empresa como socio comercial",
+  "{name} will be recorded as your company.": "{name} se registrará como tu empresa.",
+  "Waiting for a company owner to confirm.": "Esperando la confirmación de un propietario.",
+  "A company business partner already exists.":
+    "Ya existe un socio comercial para la propia empresa.",
+  "Recording the company as a business partner takes no fields; its name is the company's name.":
+    "Registrar la empresa como socio comercial no necesita campos; el nombre es el de la empresa.",
+  "Only an ordinary business company records itself as a business partner here.":
+    "Solo una empresa normal se registra aquí a sí misma como socio comercial.",
 });

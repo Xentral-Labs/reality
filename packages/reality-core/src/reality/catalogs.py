@@ -1079,6 +1079,10 @@ def _service(name: str) -> Any:
         from reality.services.analytics import reports
 
         return getattr(reports, name)
+    if name == "propose_company_party":
+        from reality.services import company_party
+
+        return getattr(company_party, name)
     if hasattr(shipment_service_module, name):
         return getattr(shipment_service_module, name)
     if hasattr(supply_assignment_service_module, name):

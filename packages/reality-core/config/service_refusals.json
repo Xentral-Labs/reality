@@ -127,6 +127,15 @@
     "company_owner_access_required": {
       "message": "Active company owner access required."
     },
+    "company_party_arguments_unsupported": {
+      "message": "Recording the company as a business partner takes no fields; its name is the company's name."
+    },
+    "company_party_business_only": {
+      "message": "Only an ordinary business company records itself as a business partner here."
+    },
+    "company_party_exists": {
+      "message": "A company business partner already exists."
+    },
     "contribution_inputs_changed": {
       "message": "Contribution inputs changed during preview; retry the read."
     },
