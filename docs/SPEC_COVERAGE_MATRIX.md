@@ -1759,6 +1759,8 @@ A permission list is bounded by the catalog it draws from, and both grant paths 
 
 ## Service refusals speak the user's language — Spec 286
 
+Feature contract: `docs/features/service-refusals.md`.
+
 - `packages/reality-core/tests/test_service_refusals.py`: spec 286 FR-001–FR-005, FR-008, DR-004. Coded refusals render their English sentence from the catalog with exact values. Uncoded refusals are unchanged. Domain refusals pass their code through. The web API (400/404/409/422 and the 403 handler), the chat stream, the chat tool result, MCP and failed proposal receipts carry code, template and values.
 - `packages/reality-core/tests/test_refusal_gate.py`: spec 286 FR-006, FR-007, DR-001. A static gate with a shrinking ratchet over the in-scope modules: uncoded or unknown codes, stale ratchet entries and orphan catalog entries fail, with positive and negative controls. No spec 286 refusal remains uncoded.
 - `apps/web/scripts/service-refusals-contract.test.mjs`, `service-refusals-localization.test.mjs` and `service-refusals-browser.mjs`: spec 286 FR-005, FR-006 and FR-009, covering:

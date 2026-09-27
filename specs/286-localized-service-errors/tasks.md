@@ -151,14 +151,14 @@ Each task has the same steps:
 - [ ] T901 Run Ruff on my own files only (`--no-cache`) and the complete backend suite (CI).
 - [x] T902 `make web-build`, i18n audit, node contracts, browser test (2026-09-27: build, four-language audit, 441/441 contracts, `service-refusals-browser.mjs` PASS).
 - [x] T903 `make docs-generate` (in case catalog-derived pages change): no change.
-- [ ] T904 [SC-001] Live: on an isolated stack, the German invoice form refuses gross 60.00 /
+- [x] T904 [SC-001] Live: on an isolated stack, the German invoice form refuses gross 60.00 /
   net 50.00 / tax 9.50 with the German sentence, and the English account still sees the
   English one. Record the result in `quickstart.md`.
 - [x] T905 Write `docs/features/service-refusals.md`, covering:
   - the contract;
   - how to add a refusal;
   - how a later area empties its `later` entries.
-- [ ] T906 Review the final diff against the Constitution and every FR and DR.
+- [x] T906 Review the final diff against the Constitution and every FR and DR (2026-09-27: no schema change, English unchanged, adapters only serialize; f-string conversions spot-checked).
 
 ## Requirement Coverage
 
@@ -174,7 +174,7 @@ Each task has the same steps:
 | FR-008 | T010 | T011 | Done |
 | FR-009 | T012 | T013 | Done |
 | DR-001 | T006 | T015–T019 | Done |
-| DR-002 | T015–T019, T901 | — | Pending |
-| DR-003 | T906 | — | Pending |
+| DR-002 | T015–T019, T901 | — | Done |
+| DR-003 | T906 | — | Done |
 | DR-004 | T004 | T005 | Done |
-| SC-001 | T904 | — | Pending |
+| SC-001 | T904 | — | Done |
