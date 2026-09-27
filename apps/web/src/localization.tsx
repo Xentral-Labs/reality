@@ -19825,6 +19825,38 @@ Object.assign(dictionaries.es, {
 
 // Human-readable decision review (spec 276).
 Object.assign(dictionaries.de, {
+  "Create item": "Artikel erstellen",
+  "Create location": "Lagerort erstellen",
+  "Create payment term": "Zahlungsbedingung erstellen",
+  "Update payment term": "Zahlungsbedingung aktualisieren",
+  "Create one or more Parties after confirmation.":
+    "Erstellt nach der Bestätigung einen oder mehrere Geschäftspartner.",
+  "Create one or more Items after confirmation.":
+    "Erstellt nach der Bestätigung einen oder mehrere Artikel.",
+  "Create one or more Locations after confirmation.":
+    "Erstellt nach der Bestätigung einen oder mehrere Lagerorte.",
+  "Update one or more Parties after confirmation.":
+    "Aktualisiert nach der Bestätigung einen oder mehrere Geschäftspartner.",
+  "Update one or more Items after confirmation.":
+    "Aktualisiert nach der Bestätigung einen oder mehrere Artikel.",
+  "Update one or more Locations after confirmation.":
+    "Aktualisiert nach der Bestätigung einen oder mehrere Lagerorte.",
+  "Create a payment term.": "Erstellt eine Zahlungsbedingung.",
+  "Update a payment term.": "Aktualisiert eine Zahlungsbedingung.",
+  "Due Days": "Zahlungsfrist in Tagen",
+  "Discount Percent": "Skonto in Prozent",
+  "Discount Days": "Skontofrist in Tagen",
+  "Requires Prepayment": "Vorauszahlung erforderlich",
+  "Source System": "Quellsystem",
+  "External Id": "Externe ID",
+  "Source Payload": "Quellnutzlast",
+  Ref: "Referenz",
+  "Parent Ref": "Referenz des übergeordneten Lagerorts",
+  "Parent Location Id": "ID des übergeordneten Lagerorts",
+  "Not yet executed": "Noch nicht ausgeführt",
+  Pending: "Offen",
+  "Proposal to review": "Vorschlag zur Prüfung",
+  "Proposals to review": "Vorschläge zur Prüfung",
   "Decision required": "Entscheidung erforderlich",
   "Review and decide": "Prüfen und entscheiden",
   "Review decision": "Entscheidung prüfen",
@@ -19841,6 +19873,36 @@ Object.assign(dictionaries.de, {
   "System details": "Systemdetails",
 });
 Object.assign(dictionaries.nl, {
+  "Create item": "Artikel aanmaken",
+  "Create location": "Locatie aanmaken",
+  "Create payment term": "Betalingstermijn aanmaken",
+  "Update payment term": "Betalingstermijn bijwerken",
+  "Create one or more Parties after confirmation.":
+    "Maakt na bevestiging een of meer handelspartners aan.",
+  "Create one or more Items after confirmation.": "Maakt na bevestiging een of meer artikelen aan.",
+  "Create one or more Locations after confirmation.":
+    "Maakt na bevestiging een of meer locaties aan.",
+  "Update one or more Parties after confirmation.":
+    "Werkt na bevestiging een of meer handelspartners bij.",
+  "Update one or more Items after confirmation.": "Werkt na bevestiging een of meer artikelen bij.",
+  "Update one or more Locations after confirmation.":
+    "Werkt na bevestiging een of meer locaties bij.",
+  "Create a payment term.": "Maakt een betalingstermijn aan.",
+  "Update a payment term.": "Werkt een betalingstermijn bij.",
+  "Due Days": "Betalingstermijn in dagen",
+  "Discount Percent": "Kortingspercentage",
+  "Discount Days": "Kortingstermijn in dagen",
+  "Requires Prepayment": "Vooruitbetaling vereist",
+  "Source System": "Bronsysteem",
+  "External Id": "Externe ID",
+  "Source Payload": "Brongegevens",
+  Ref: "Referentie",
+  "Parent Ref": "Referentie van bovenliggende locatie",
+  "Parent Location Id": "ID van bovenliggende locatie",
+  "Not yet executed": "Nog niet uitgevoerd",
+  Pending: "Open",
+  "Proposal to review": "Voorstel ter beoordeling",
+  "Proposals to review": "Voorstellen ter beoordeling",
   "Decision required": "Beslissing vereist",
   "Review and decide": "Beoordelen en beslissen",
   "Review decision": "Beslissing beoordelen",
@@ -19857,6 +19919,38 @@ Object.assign(dictionaries.nl, {
   "System details": "Systeemdetails",
 });
 Object.assign(dictionaries.es, {
+  "Create item": "Crear artículo",
+  "Create location": "Crear ubicación",
+  "Create payment term": "Crear condición de pago",
+  "Update payment term": "Actualizar condición de pago",
+  "Create one or more Parties after confirmation.":
+    "Crea uno o varios socios comerciales tras la confirmación.",
+  "Create one or more Items after confirmation.":
+    "Crea uno o varios artículos tras la confirmación.",
+  "Create one or more Locations after confirmation.":
+    "Crea una o varias ubicaciones tras la confirmación.",
+  "Update one or more Parties after confirmation.":
+    "Actualiza uno o varios socios comerciales tras la confirmación.",
+  "Update one or more Items after confirmation.":
+    "Actualiza uno o varios artículos tras la confirmación.",
+  "Update one or more Locations after confirmation.":
+    "Actualiza una o varias ubicaciones tras la confirmación.",
+  "Create a payment term.": "Crea una condición de pago.",
+  "Update a payment term.": "Actualiza una condición de pago.",
+  "Due Days": "Plazo de pago en días",
+  "Discount Percent": "Porcentaje de descuento",
+  "Discount Days": "Plazo de descuento en días",
+  "Requires Prepayment": "Requiere pago anticipado",
+  "Source System": "Sistema de origen",
+  "External Id": "ID externo",
+  "Source Payload": "Datos de origen",
+  Ref: "Referencia",
+  "Parent Ref": "Referencia de la ubicación superior",
+  "Parent Location Id": "ID de la ubicación superior",
+  "Not yet executed": "Aún no ejecutado",
+  Pending: "Pendiente",
+  "Proposal to review": "Propuesta para revisar",
+  "Proposals to review": "Propuestas para revisar",
   "Decision required": "Decisión requerida",
   "Review and decide": "Revisar y decidir",
   "Review decision": "Revisar decisión",

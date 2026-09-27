@@ -4,13 +4,17 @@ import test from "node:test";
 
 const source = (path) => readFileSync(new URL(`../src/unified/${path}`, import.meta.url), "utf8");
 
-test("chat and decisions use the server-owned proposal review class", () => {
+test("chat opens the overlay while decisions retain server-owned review routing", () => {
   const chat = source("ChatPage.tsx");
   const decisions = source("DecisionsPage.tsx");
   const app = source("UnifiedApp.tsx");
   const routing = source("proposalRouting.ts");
 
-  assert.match(chat, /proposalReviewLocation\(proposal\.id, proposal\.review_kind\)/);
+  assert.match(
+    chat,
+    /navigate\(\{ proposal: proposal\.id, importProposal: "", analyticsProposal: "" \}\)/,
+  );
+  assert.doesNotMatch(chat, /proposalReviewLocation/);
   assert.match(decisions, /select\(proposal\.id, proposal\.review_kind\)/);
   assert.match(app, /proposalReviewLocation\(proposal, reviewKind\)/);
   assert.match(routing, /reviewKind === "import"/);

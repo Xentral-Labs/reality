@@ -8,12 +8,37 @@ const source = (name) => fs.readFileSync(path.join(root, "src", "unified", name)
 
 test("Chat presents proposals as business decisions", () => {
   const chat = source("ChatPage.tsx");
+  const presentation = source("proposalPresentation.ts");
   assert.match(chat, /data-chat-decision/u);
-  assert.match(chat, /Decision required/u);
-  assert.match(chat, /This proposed change has not changed your records yet\./u);
-  assert.match(chat, /Review and decide/u);
-  assert.match(chat, /proposalReviewLocation\(proposal\.id, proposal\.review_kind\)/u);
+  assert.match(chat, /\{t\("Pending"\)\}/u);
+  assert.match(chat, /\{t\("Review"\)\}/u);
+  assert.match(presentation, /item_create: "Create item"/u);
+  assert.match(presentation, /location_create: "Create location"/u);
+  assert.match(presentation, /payment_term_create: "Create payment term"/u);
+  assert.match(chat, /proposalBusinessLabel\(proposal\.tool, proposal\.review_label\)/u);
+  assert.match(
+    chat,
+    /navigate\(\{ proposal: proposal\.id, importProposal: "", analyticsProposal: "" \}\)/u,
+  );
+  assert.ok(!chat.includes("proposalReviewLocation"));
+  assert.ok(!chat.includes('t("Decision required")'));
+  assert.ok(!chat.includes("proposal.review_purpose"));
+  assert.ok(!chat.includes("proposal.actor_type"));
+  assert.ok(!chat.includes('t("This proposed change has not changed your records yet.")'));
   assert.ok(!chat.includes('{t("Review proposed changes")} · {proposal.review_label}'));
+});
+
+test("Chat decisions stay compact in the main conversation and dock", () => {
+  const chat = source("ChatPage.tsx");
+  assert.match(chat, /data-chat-decision-list/u);
+  assert.match(chat, /proposals\.length === 1/u);
+  assert.match(chat, /divide-y divide-border-default/u);
+  assert.match(chat, /data-chat-decision=\{proposal\.id\}/u);
+  assert.match(chat, /className="br-btn min-h-9 shrink-0 px-3"/u);
+  assert.match(chat, /max-w-\[680px\]/u);
+  assert.doesNotMatch(chat, /function ChatDecisionCard/u);
+  assert.doesNotMatch(chat, /br-btn br-btn-primary mt-3/u);
+  assert.doesNotMatch(chat, /bg-accent-soft px-5 py-4/u);
 });
 
 test("common proposal review keeps a stable loading and failure dialog", () => {
@@ -22,6 +47,7 @@ test("common proposal review keeps a stable loading and failure dialog", () => {
   assert.match(review, /aria-busy=\{review\.loading\}/u);
   assert.match(review, /ReadState[\s\S]*retry=\{review\.refresh\}/u);
   assert.match(review, /min-h-72 w-\[min\(720px,calc\(100vw-2rem\)\)\]/u);
+  assert.match(review, /proposalBusinessLabel\(data\.tool, data\.label\)/u);
 });
 
 test("order review leads with the business decision and one primary action", () => {

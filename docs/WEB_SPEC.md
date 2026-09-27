@@ -142,9 +142,15 @@ not a Fact, source payload or operational authority.
 ### Human-readable decision review — Spec 276
 
 An ordinary proposal attached to a Chat answer appears as a distinct pending-decision card, not
-as a generic technical button. Business language leads: the card names the proposed action, its
-origin and purpose, states that no change has happened yet, and provides one clear route to the
-canonical review. Internal tool names do not appear in the card's primary content.
+as a generic technical button. Business language leads: the card names the proposed action,
+briefly states that it has not been executed, and provides one clear route to the canonical
+review. It does not repeat origin, purpose or decision language that is already clear from the
+Chat context and review action. Internal tool names do not appear in the card's primary content.
+Multiple ordinary proposals share one counted, bounded list surface with divided compact rows;
+each row retains its own review route and no batch confirmation is implied.
+Opening a proposal from Chat preserves the current conversation and underlying workspace and
+presents the canonical review as an overlay. Specialized review content may be delegated inside
+that overlay; navigation to a workspace is never the primary effect of the Chat review action.
 
 Proposal review opens in a stable, labelled dialog for loading, failure and loaded states. A
 failed read explains the problem and offers retry without attempting any mutation. Order review
@@ -3309,7 +3315,6 @@ definition as an unsaved draft. Opening does not approve or save. Other proposal
 and operations cannot silently become an analysis. Empty My reports offers Create your
 first analysis; a filtered empty list explains the empty search instead.
 
-
 ### Question hierarchy (spec228 FR-018)
 
 The analysis editor has one locally bordered question section headed “How Reality
@@ -3359,6 +3364,7 @@ for date selection instead of silently returning today's state. The catalog desc
 current master-data labels and the unavailable historical reservation/aging dimensions.
 
 ### Compact question sentence (spec 228 FR-019)
+
 The question section uses 14px text, compact neutral bordered controls and a secondary
 chat action. Business grouping captions omit auxiliary identities, duplicate article
 codes and units while the full grouping remains in the query and advanced controls.
@@ -3439,6 +3445,7 @@ selection do not execute business mutations. See the
 [command palette contract](features/command-palette.md) for implemented boundaries
 and [spec 237 verification](../specs/237-global-command-palette/verification.md) for
 remaining release gates, including the unpassed ten-user performance qualification.
+
 ## MCP proposal review parity (spec 249)
 
 Every production MCP mutation uses the same tenant-scoped application proposal and

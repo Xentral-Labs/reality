@@ -2,6 +2,7 @@ import { readChatStream, type ChatReply, type ChatStreamEvent } from "./chatStre
 import { clearPalettePreferences } from "./unified/commandPalettePreferences";
 import type { SignupPreferences } from "./signupPreferences";
 import type { Interaction, InteractionPage } from "./unified/engineRoomModel";
+import { shareInFlight } from "./inflightRead";
 
 export type CompanyProfileManifest = {
   tenant_id: string;
@@ -1541,6 +1542,8 @@ async function sendChatRequest(
   return reply;
 }
 
+const proposalReviewReads = new Map<string, Promise<ProposalReview>>();
+
 export const api = {
   demoDataStatus: (scope: string, signal?: AbortSignal) =>
     request<DemoDataStatus>(scope, { signal }),
@@ -2260,8 +2263,10 @@ export const api = {
         `&q=${encodeURIComponent(query)}&tool=${encodeURIComponent(tool)}`,
     ),
   proposalReview: (tenant: string, proposalId: string) =>
-    request<ProposalReview>(
-      `/api/tenants/${tenant}/change-proposals/${encodeURIComponent(proposalId)}/review`,
+    shareInFlight(proposalReviewReads, `${tenant}:${proposalId}`, () =>
+      request<ProposalReview>(
+        `/api/tenants/${tenant}/change-proposals/${encodeURIComponent(proposalId)}/review`,
+      ),
     ),
   sendCopilotMessage: (
     tenant: string,

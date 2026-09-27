@@ -6,6 +6,7 @@ import { ActionCard } from "./ActionCard";
 import { ReadState } from "./ReadState";
 import { useRead } from "./useCompanyContext";
 import { BusinessFieldList, DecisionActionBar, DecisionReviewHeader } from "./DecisionReview";
+import { proposalBusinessLabel } from "./proposalPresentation";
 
 export function ProposalReviewCard({
   tenant,
@@ -94,12 +95,12 @@ export function ProposalReviewCard({
     >
       <DecisionReviewHeader
         category={data.status === "proposed" ? "Decision required" : "Decision"}
-        title={data.label}
+        title={proposalBusinessLabel(data.tool, data.label)}
         close={close}
         busy={working}
         titleId="proposal-review-title"
       />
-      {data.purpose && <p className="mt-2 text-sm text-fg-default">{data.purpose}</p>}
+      {data.purpose && <p className="mt-2 text-sm text-fg-default">{t(data.purpose)}</p>}
       <p className="mt-2 text-sm text-fg-muted">
         {t(data.actor_type === "agent" ? "Proposed by an agent" : "Prepared for review")} ·{" "}
         {formatDateTime(data.created_at)}

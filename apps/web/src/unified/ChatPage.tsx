@@ -13,8 +13,8 @@ import { AllowanceNotice, ChatComposer } from "./ChatComposer";
 import {
   Archive,
   ArchiveRestore,
-  CheckCircle2,
   ChevronLeft,
+  Clock3,
   History,
   LoaderCircle,
   MoreHorizontal,
@@ -44,57 +44,48 @@ import { t, formatDateTime } from "../localization";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import type { Selection } from "./routing";
-import { proposalReviewLocation } from "./proposalRouting";
+import { proposalBusinessLabel } from "./proposalPresentation";
 
-const chatDecisionLabels: Record<string, string> = {
-  reserve: "Reserve stock",
-  reservation_release: "Release reservation",
-  commitment_hold: "Hold commitment",
-  commitment_hold_release: "Release commitment hold",
-  party_delivery_hold: "Place customer delivery hold",
-  party_delivery_hold_release: "Release customer delivery hold",
-  movement_create: "Record movement",
-  movement_correct: "Correct movement",
-  ledger_reverse: "Reverse posting",
-  order_create: "Create order",
-  sales_invoice_record: "Record sales invoice",
-  supplier_invoice_record: "Record supplier invoice",
-  sales_credit_record: "Record sales credit",
-  customer_refund_post: "Record refund",
-  customer_payment_post: "Record customer payment",
-  supplier_payment_post: "Record supplier payment",
-};
-
-function ChatDecisionCard({ proposal, open }: { proposal: CopilotProposal; open: () => void }) {
+function ChatDecisionList({
+  proposals,
+  open,
+}: {
+  proposals: CopilotProposal[];
+  open: (proposal: CopilotProposal) => void;
+}) {
+  const headingId = useId();
   return (
     <section
-      data-chat-decision
-      className="w-full max-w-3xl overflow-hidden rounded-xl border border-accent/30 bg-surface shadow-sm"
-      aria-labelledby={`chat-decision-${proposal.id}`}
+      data-chat-decision-list
+      className="w-full max-w-[680px] overflow-hidden rounded-xl border border-accent/30 bg-surface shadow-sm"
+      aria-labelledby={headingId}
     >
-      <div className="flex gap-3 border-b border-border-default bg-accent-soft px-5 py-4">
-        <CheckCircle2 aria-hidden="true" className="mt-0.5 shrink-0 text-accent" size={20} />
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-accent">
-            {t("Decision required")}
-          </p>
-          <h3 id={`chat-decision-${proposal.id}`} className="mt-1 font-semibold text-fg-strong">
-            {t(chatDecisionLabels[proposal.tool] || proposal.review_label)}
-          </h3>
-        </div>
+      <div className="border-b border-border-default bg-surface-muted px-4 py-3">
+        <h2 id={headingId} className="text-sm font-semibold text-fg-strong">
+          <span className="mr-1.5 text-accent">{proposals.length}</span>
+          {t(proposals.length === 1 ? "Proposal to review" : "Proposals to review")}
+        </h2>
       </div>
-      <div className="space-y-3 px-5 py-4 text-sm">
-        {proposal.review_purpose && <p>{t(proposal.review_purpose)}</p>}
-        <p className="text-fg-muted">
-          {t(proposal.actor_type === "agent" ? "Proposed by an agent" : "Prepared for your review")}
-        </p>
-        <p className="rounded-lg bg-surface-muted px-3 py-2 text-fg-default">
-          {t("This proposed change has not changed your records yet.")}
-        </p>
-        <button className="br-btn br-btn-primary" onClick={open}>
-          {t("Review and decide")}
-        </button>
-      </div>
+      <ul className="divide-y divide-border-default">
+        {proposals.map((proposal) => (
+          <li
+            key={proposal.id}
+            data-chat-decision={proposal.id}
+            className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-muted"
+          >
+            <Clock3 aria-hidden="true" className="shrink-0 text-accent" size={18} />
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-fg-strong">
+                {t(proposalBusinessLabel(proposal.tool, proposal.review_label))}
+              </h3>
+              <p className="mt-0.5 text-sm text-fg-muted">{t("Pending")}</p>
+            </div>
+            <button className="br-btn min-h-9 shrink-0 px-3" onClick={() => open(proposal)}>
+              {t("Review")}
+            </button>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -891,8 +882,9 @@ export function ChatPage({
             {message.id && message.role === "assistant" && renderMessageEvidence?.(message.id)}
           </article>
         ))}
-        {data.proposals.map((proposal) =>
-          proposal.tool === "graph.reports.change" ? (
+        {data.proposals
+          .filter((proposal) => proposal.tool === "graph.reports.change")
+          .map((proposal) => (
             <GraphReportProposal
               key={proposal.id}
               tenant={selection.tenant}
@@ -916,13 +908,16 @@ export function ChatPage({
                 })
               }
             />
-          ) : (
-            <ChatDecisionCard
-              key={proposal.id}
-              proposal={proposal}
-              open={() => navigate(proposalReviewLocation(proposal.id, proposal.review_kind))}
-            />
-          ),
+          ))}
+        {!!data.proposals.filter((proposal) => proposal.tool !== "graph.reports.change").length && (
+          <ChatDecisionList
+            proposals={data.proposals.filter(
+              (proposal) => proposal.tool !== "graph.reports.change",
+            )}
+            open={(proposal) =>
+              navigate({ proposal: proposal.id, importProposal: "", analyticsProposal: "" })
+            }
+          />
         )}
       </div>
       {sending && (
