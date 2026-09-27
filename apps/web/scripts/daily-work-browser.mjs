@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { isSearchRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -52,7 +53,7 @@ try {
           const reply = (data) =>
             route.fulfill({ contentType: "application/json", body: JSON.stringify(data) });
           if (route.request().method() !== "GET") {
-            writes++;
+            if (!isSearchRead(p)) writes++;
             return reply({});
           }
           if (p === "/api/auth/me")

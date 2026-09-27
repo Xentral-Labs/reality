@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { isSearchRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -17,7 +18,12 @@ page.on("pageerror", (error) => errors.push(error.message));
 await page.route("**/api/**", (route) => {
   const request = route.request();
   const path = new URL(request.url()).pathname;
-  requests.push({ path, method: request.method() });
+  requests.push({
+    path,
+    method: request.method(),
+    // Spec 254: an inactive tab's work count reads one row, not the register.
+    count: new URL(request.url()).searchParams.get("size") === "1",
+  });
   let body = {},
     status = 200;
   if (path === "/api/auth/me")
@@ -171,7 +177,11 @@ try {
     0,
   );
   await area("Source code mappings");
-  await page.getByText("Source code mappings: 0", { exact: true }).waitFor();
+  // An empty mapping list says so instead of counting zero.
+  await page
+    .locator('[aria-label="Source code mappings"]')
+    .getByText("No entries yet.", { exact: true })
+    .waitFor();
   assert.equal(
     await page.getByRole("heading", { name: "New source mapping", exact: true }).count(),
     0,
@@ -242,8 +252,14 @@ try {
   );
   await page.reload();
   await panel("Cost centers").waitFor();
-  if (await page.getByRole("button", { name: "Hide chat", exact: true }).isVisible())
-    await page.getByRole("button", { name: "Hide chat", exact: true }).click();
+  if (
+    await page
+      .locator('.shell-chat-toggle[aria-controls="global-chat"][aria-label="Hide chat"]')
+      .isVisible()
+  )
+    await page
+      .locator('.shell-chat-toggle[aria-controls="global-chat"][aria-label="Hide chat"]')
+      .click();
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
     if (width === 390) {
@@ -268,11 +284,13 @@ try {
   }
   assert.equal(await page.getByLabel("Search finance", { exact: true }).count(), 0);
   assert.deepEqual(
-    requests.filter((row) => /\/finance\/(open-items|payments|journal)$/.test(row.path)),
+    requests.filter(
+      (row) => /\/finance\/(open-items|payments|journal)$/.test(row.path) && !row.count,
+    ),
     [],
   );
   assert.deepEqual(
-    requests.filter((row) => row.method !== "GET"),
+    requests.filter((row) => row.method !== "GET" && !isSearchRead(row.path)),
     [],
   );
   assert.deepEqual(errors, []);

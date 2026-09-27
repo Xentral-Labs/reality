@@ -139,6 +139,10 @@ await page.route("**/api/**", async (route) => {
       revision: 1,
     });
   }
+  // Company-wide and captured cost generations offered beside the reviews; none here.
+  if (url.pathname.endsWith("/graph/company-generation")) return respond({ item: null });
+  if (url.pathname.endsWith("/graph/captured-reports"))
+    return respond({ items: [], next_cursor: null });
   return respond({ detail: `Unexpected fixture request ${url.pathname}` }, 404);
 });
 try {
@@ -163,7 +167,7 @@ try {
   await page.getByRole("tab", { name: "Cypher", exact: true }).click();
   assert.equal(await page.getByRole("textbox", { name: "Cypher query" }).count(), 0);
   await page.getByRole("tab", { name: "Result", exact: true }).click();
-  await page.locator('summary[aria-label="Table actions"]').click();
+  // Save analysis is a visible action, not behind the table menu.
   await page.getByRole("button", { name: "Save analysis", exact: true }).click();
   await page.getByRole("textbox", { name: "Report name" }).fill("Historical inventory");
   await page.getByRole("button", { name: "Save", exact: true }).click();

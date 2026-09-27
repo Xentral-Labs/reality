@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { isSearchRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -43,7 +44,7 @@ await page.route("**/api/**", async (route) => {
     path = url.pathname;
   const reply = (data, status = 200) =>
     route.fulfill({ status, contentType: "application/json", body: JSON.stringify(data) });
-  if (req.method() !== "GET") writes.push(path);
+  if (req.method() !== "GET" && !isSearchRead(path)) writes.push(path);
   if (path === "/api/auth/me")
     return reply({
       id: "u1",
@@ -82,7 +83,8 @@ await page.route("**/api/**", async (route) => {
       has_more: false,
     });
   if (path.endsWith("/change-proposals")) {
-    const history = url.searchParams.get("status") === "history";
+    // The decisions belong to t1; the other company has none.
+    const history = url.searchParams.get("status") === "history" && path.includes("/tenants/t1/");
     const items = history
       ? [
           {
@@ -203,7 +205,17 @@ try {
   await page.locator('[data-journey-event="e3"]').waitFor();
   assert.equal(await page.locator("[data-journey-lane]").count(), 6);
   await page.locator('[data-journey-lane="decision"]').waitFor();
-  assert.equal(await page.locator('[data-journey-event^="decision:"]').count(), 4);
+  // Four decision markers; points closer than 28px are drawn as one cluster that names
+  // how many events it holds.
+  const decisionMarkers = () =>
+    page.evaluate(
+      () =>
+        document.querySelectorAll('[data-journey-event^="decision:"]').length +
+        [...document.querySelectorAll('[data-journey-cluster^="decision:"]')]
+          .map((node) => Number(node.getAttribute("aria-label").match(/· (\d+) ·/)?.[1] || 0))
+          .reduce((sum, count) => sum + count, 0),
+    );
+  assert.equal(await decisionMarkers(), 4);
   await page.getByRole("button", { name: "Choose sales order", exact: true }).click();
   await page.getByRole("button", { name: /SO-10484.*Klara Foods/ }).click();
   assert.equal(await page.locator('[data-journey-event^="decision:"]').count(), 0);
@@ -220,7 +232,11 @@ try {
   assert.ok(older);
   await page.getByRole("button", { name: "Today", exact: true }).click();
   // Today may or may not coincide with fixtures; fit always restores their points.
-  await page.getByRole("button", { name: "Fit history", exact: true }).click();
+  // The time range control's Fit history; an empty range offers the same action inline.
+  await page
+    .getByLabel("Time range")
+    .getByRole("button", { name: "Fit history", exact: true })
+    .click();
   await page.locator('[data-journey-event="e3"]').waitFor();
   await mkdir("/tmp/reality-233-browser", { recursive: true });
   await page.screenshot({ path: "/tmp/reality-233-browser/desktop.png" });
@@ -280,7 +296,7 @@ try {
       `${process.env.WEB_BASE_URL || "http://localhost:5177"}/app/inspector?tenant=t1&inspector_view=overview&lang=${language}`,
     );
     await page.locator('[data-journey-event="e3"]').waitFor();
-    await page.locator(".shell-chat-toggle").click();
+    await page.locator('.shell-chat-toggle[aria-controls="global-chat"]').click();
     await page.locator(".journey-toolbar button").first().click();
     await page.getByRole("button", { name: /SO-10484.*Klara Foods/ }).click();
     await page.locator('[data-journey-event="e3"]').focus();
