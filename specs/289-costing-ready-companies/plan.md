@@ -121,7 +121,8 @@ The source payload holds only the name and role the person requested; nothing is
   The arguments are empty. The name comes from the server, so a client cannot record another
   name.
 - **Proposal:** `create_change_proposal(tenant, "company_party_record", {})` with confirmation
-  required. It is idempotent per request id, like the other proposals.
+  required. It is idempotent per request id, like the other proposals, and is confirmed by the
+  same principals as `party_create` (A3).
 - **Handler at confirmation:**
   - rechecks under the master data lock that no company partner exists; otherwise it refuses
     with `company_party_exists` ("A company business partner already exists.");
@@ -135,6 +136,10 @@ The source payload holds only the name and role the person requested; nothing is
 `company_party_missing` with no candidates carries one of two details:
 - `{"proposal_id": <id>}` while a proposal waits;
 - otherwise `{"action": "company_party_record", "name": <current company name>}`.
+
+The action is offered only where recording master data is allowed
+(`tenant_policy.business_operation_allowed(session, tenant, "create_party")`). In a practice,
+demo or archived company, the input keeps today's plain form (A2).
 
 With candidates it keeps today's `choices`. `domain.open_input` accepts the two optional keys.
 The MCP `cost_review_draft` read returns the same input, so chat and MCP see the same prefilled
@@ -203,6 +208,18 @@ data.
 
 The change is additive. The new command ships with its catalogs and the generated docs.
 Rollback is revert.
+
+## Analysis (2026-09-27)
+
+`$speckit-analyze` over spec, plan and tasks found no CRITICAL findings. Resolved in the
+artifacts:
+
+| ID | Severity | Finding | Resolution |
+|---|---|---|---|
+| A1 | MEDIUM | FR-007 and US3 had the resolution guidance offer the action "with a chat prompt", but guidance entries for draft open inputs carry no prompt. The action lives in the draft's open input (plan). | FR-007 and US3 reworded: the draft input offers the action in the web, chat and MCP; the guidance wording names it. |
+| A2 | MEDIUM | The spec says practice and demo companies are not offered the action, but the plan relied on them refusing cost decisions, while the draft is read there too. | The draft offers the action only where `create_party` is allowed; the command refuses otherwise (spec edge case updated). |
+| A3 | LOW | Who confirms the proposal was not stated. | The same principals as `party_create`. |
+| A4 | LOW | A new business company's first draft may still lack other inputs (opening cost, method), so SC-001 is about `company_party_missing` only. | SC-001 and quickstart check 1 already say so; no change. |
 
 ## Review Risks
 

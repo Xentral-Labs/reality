@@ -123,18 +123,21 @@ master data service as the master data form, and a new draft no longer reports t
 
 In the chat, an owner asks to prepare the cost review for an item. The agent reports that the
 company is not recorded as a business partner and proposes recording it, and the owner confirms
-it as any other proposal. The item's cost explanation offers the same step.
+it as any other proposal. The draft opened from the item's cost explanation offers the same
+step.
 
 **Why this priority**: The chat and the cost explanation are the other two ways people reach
 the draft (spec 279/282), and they must not fall back to a general instruction.
 
-**Independent Test**: The resolution guidance for `company_party_missing` names the action.
-Through MCP, the draft's open input carries the same prefilled proposal arguments as in the web.
+**Independent Test**: Through MCP, the draft's `company_party_missing` input carries the same
+action and prefilled name as in the web, and the propose tool records nothing before
+confirmation. The guidance wording for `company_party_missing` names the action.
 
 **Acceptance Scenarios**:
 
-1. **Given** a company without a company partner, **When** the guidance is read, **Then** the
-   step for `company_party_missing` offers the prefilled action in the web and a chat prompt.
+1. **Given** a company without a company partner, **When** the draft is read through MCP or
+   the web, **Then** its `company_party_missing` input offers the same action with the same
+   prefilled name, and the guidance wording names that action.
 2. **Given** the chat, **When** the agent proposes the partner, **Then** it creates a
    confirmation-required proposal and records nothing before confirmation.
 
@@ -145,7 +148,8 @@ Through MCP, the draft's open input carries the same prefilled proposal argument
 - **A company partner created in master data meanwhile:** the draft uses it, and a waiting
   proposal from the action is refused as no longer needed when it is confirmed.
 - **Company name changed after creation:** the prefilled name is the current company name.
-- **Practice and demo companies:** the action is not offered; they refuse cost decisions anyway.
+- **Companies that cannot record master data** (practice, demo, archived): the draft does not
+  offer the action, and the command refuses if called.
 - **Tenant boundary:** the partner, the proposal and the draft stay within the tenant.
 
 ## Requirements *(mandatory)*
@@ -166,8 +170,9 @@ Through MCP, the draft's open input carries the same prefilled proposal argument
 - **FR-006**: While such a proposal waits for confirmation, the draft MUST name it instead of
   offering another. Once a company partner exists, confirming a waiting proposal MUST be refused
   as no longer needed.
-- **FR-007**: The resolution guidance for `company_party_missing` MUST offer the action in the
-  web and as a chat prompt, and MCP and chat MUST receive the same prefilled arguments.
+- **FR-007**: The draft's `company_party_missing` input MUST offer the same action with the
+  same prefilled name in the web, in chat and through MCP, and the resolution guidance wording
+  for `company_party_missing` MUST name that action.
 - **FR-008**: A company with two or more company partners MUST keep today's choice in the draft.
 
 ### Domain and Traceability Requirements

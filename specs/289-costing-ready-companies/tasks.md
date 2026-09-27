@@ -13,7 +13,7 @@ description: "Requirement-traceable Business Reality implementation tasks"
 
 - [x] T001 Close clarification markers in `specs/289-costing-ready-companies/spec.md` (owner decisions 2026-09-27)
 - [x] T002 All Constitution Check rows PASS in `specs/289-costing-ready-companies/plan.md`
-- [ ] T003 Run `$speckit-analyze` and resolve all CRITICAL findings
+- [x] T003 Run `$speckit-analyze` and resolve all CRITICAL findings (2026-09-27: none CRITICAL; A1–A4 resolved, see plan "Analysis")
 
 ## Phase 2: User Story 1 — new companies (P1)
 
@@ -37,7 +37,8 @@ description: "Requirement-traceable Business Reality implementation tasks"
   - `::test_draft_names_the_waiting_proposal`;
   - `::test_confirmation_is_refused_once_a_partner_exists`;
   - `::test_several_partners_keep_the_choice`;
-  - `::test_no_party_before_confirmation`.
+  - `::test_no_party_before_confirmation`;
+  - `::test_practice_company_is_not_offered_the_action`.
 - [ ] T007 [US2] Implement `core/src/reality/services/company_party.py` (preview, waiting
   proposal, handler) and the tool `company_party_record` in `core/src/reality/tools/application.py`.
 
