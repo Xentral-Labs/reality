@@ -77,6 +77,10 @@ calculation can create contradictory answers while every individual component st
   fulfilment/open quantity, open financial balances and contribution results, while other ERP
   capabilities receive structural ownership and adapter-boundary checks only? → A: Yes; the four
   named critical calculations are the approved initial semantic audit scope.
+- Q: Which reads are governed as root public ERP reads rather than consumers of another governed
+  capability? → A: Read-access tools in the public MCP capability registry, excluding catalog
+  self-description tools; Web-, CLI-, projection- and exception-only reads remain traced consumers
+  unless they already have a catalogued command.
 
 ## User Scenarios & Testing
 
@@ -232,7 +236,9 @@ ownership fails deterministically. Unrelated business areas produce unchanged ou
 ### Functional Requirements
 
 - **FR-001**: The system MUST produce a complete, deterministic governance trace for every
-  catalogued ERP command and every public ERP read.
+  catalogued ERP command and every read-access tool in the public MCP capability registry, except
+  catalog self-description tools. Web-, CLI-, projection- and exception-only reads MUST appear as
+  consumers of those roots unless they already have a catalogued command.
 - **FR-002**: Each governed trace MUST identify the capability's business resource, applicable
   process steps, authoritative owner, public entry points, business effects or data basis,
   verification reads and executable evidence.
@@ -299,8 +305,10 @@ ownership fails deterministically. Unrelated business areas produce unchanged ou
 
 ### Key Entities
 
-- **Governed capability**: A catalogued business command or public business read whose meaning,
-  owner, entry points, effects or data basis, verification and evidence can be traced.
+- **Governed capability**: A catalogued business command or read-access tool in the public MCP
+  capability registry, excluding catalog self-description tools, whose meaning, owner, entry
+  points, effects or data basis, verification and evidence can be traced. Other adapter/view reads
+  are consumers unless they already have a catalogued command.
 - **Authoritative owner**: The single application-level operation responsible for a governed
   mutation or material business calculation. Supporting services and adapters do not become
   additional owners.
@@ -343,6 +351,9 @@ ownership fails deterministically. Unrelated business areas produce unchanged ou
   equivalent; they require explicit product/domain review under FR-013.
 - The current command, resource, event, projection, workspace, exception, fact and MCP catalogs
   remain the starting executable vocabulary rather than being replaced.
+- "Public ERP read" means a read-access tool in the public MCP capability registry, excluding the
+  catalog's own discovery/description reads. Web-, CLI-, projection- and exception-only reads are
+  traced as consumers unless represented by an existing business command.
 - Existing production application services remain the required boundary for CLI, Web, API, Chat,
   MCP, demo and scheduled callers.
 - The initial duplicate-calculation audit is deliberately bounded to the four critical areas named
