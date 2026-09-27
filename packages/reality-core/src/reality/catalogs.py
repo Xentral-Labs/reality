@@ -6,8 +6,9 @@ from copy import deepcopy
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from threading import RLock
 from types import UnionType
-from typing import Any, Union, get_args, get_origin, get_type_hints
+from typing import Any, Union, cast, get_args, get_origin, get_type_hints
 
 import yaml
 
@@ -1117,7 +1118,7 @@ def catalog_code(
     kind: str, key: str, register_readers: dict[str, tuple[Any, ...]]
 ) -> dict[str, Any]:
     """Read bounded function source for validated catalog entries, never caller paths."""
-    catalog = load_application_catalog()
+    catalog = runtime_application_catalog()
     projections = {entry["materialized_as"]: entry for entry in catalog["projections"]}
     commands = {entry["service"]: entry for entry in catalog["commands"]}
     views = {
@@ -1514,9 +1515,29 @@ def load_application_catalog() -> dict[str, Any]:
     }
 
 
-@lru_cache(maxsize=1)
+_RUNTIME_CATALOG_UNSET = object()
+_runtime_catalog_value: dict[str, Any] | object = _RUNTIME_CATALOG_UNSET
+_runtime_catalog_lock = RLock()
+
+
 def _runtime_catalog_snapshot() -> dict[str, Any]:
-    """Validate immutable deployment metadata once; failures are never cached."""
+    """Validate immutable metadata once without publishing partial or failed state."""
+    global _runtime_catalog_value
+
+    if _runtime_catalog_value is not _RUNTIME_CATALOG_UNSET:
+        return cast(dict[str, Any], _runtime_catalog_value)
+
+    with _runtime_catalog_lock:
+        if _runtime_catalog_value is not _RUNTIME_CATALOG_UNSET:
+            return cast(dict[str, Any], _runtime_catalog_value)
+
+        catalog = _build_runtime_catalog_snapshot()
+        _runtime_catalog_value = catalog
+        return catalog
+
+
+def _build_runtime_catalog_snapshot() -> dict[str, Any]:
+    """Build the complete runtime value; callers publish only successful results."""
     from reality.tool_catalog import build_tool_catalog
 
     catalog = load_application_catalog()
@@ -1541,6 +1562,14 @@ def runtime_application_catalog() -> dict[str, Any]:
     return deepcopy(_runtime_catalog_snapshot())
 
 
+def runtime_application_catalog_section(name: str) -> Any:
+    """Return an isolated copy of one validated runtime catalog section."""
+    snapshot = _runtime_catalog_snapshot()
+    if name not in snapshot:
+        raise KeyError(f"Unknown runtime application catalog section: {name}")
+    return deepcopy(snapshot[name])
+
+
 def runtime_tool_catalog() -> dict[str, Any]:
     """Return an isolated copy of the capability classification alone.
 
@@ -1554,4 +1583,7 @@ def runtime_tool_catalog() -> dict[str, Any]:
 
 def clear_runtime_application_catalog() -> None:
     """Reset deployment metadata for explicit development reloads and tests."""
-    _runtime_catalog_snapshot.cache_clear()
+    global _runtime_catalog_value
+
+    with _runtime_catalog_lock:
+        _runtime_catalog_value = _RUNTIME_CATALOG_UNSET

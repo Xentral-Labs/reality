@@ -94,10 +94,10 @@ def proposal_next_step(proposal: ChangeProposal) -> dict[str, Any]:
     """Describe the existing decision boundary without granting decision authority."""
     arguments = _stored_object(proposal.input) or {}
     tool = proposal.type.removeprefix("tool:")
-    from reality.catalogs import load_application_catalog
+    from reality.catalogs import runtime_application_catalog_section
     from reality.tools.finance import FINANCE_COMMANDS
 
-    guidance = load_application_catalog()["capability_guidance"]
+    guidance = runtime_application_catalog_section("capability_guidance")
     verification_reads: list[str] = []
     for entry in guidance.values():
         if entry.get("application_tool") != tool:

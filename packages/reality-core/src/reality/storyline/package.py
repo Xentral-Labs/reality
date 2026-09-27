@@ -366,13 +366,15 @@ class CatalogIndex:
 
 @lru_cache(maxsize=1)
 def catalog_index() -> CatalogIndex:
-    from reality.catalogs import WORKSPACE_CATALOG_FILE, load_application_catalog
+    from reality.catalogs import (
+        WORKSPACE_CATALOG_FILE,
+        runtime_application_catalog_section,
+    )
     from reality.config import config_text
     from reality.mcp.catalog import tool_definitions
     from reality.tools.application import TOOLS
 
-    catalog = load_application_catalog()
-    guidance = catalog.get("capability_guidance") or {}
+    guidance = runtime_application_catalog_section("capability_guidance") or {}
     mcp = {definition.name: definition for definition in tool_definitions()}
     schemas: dict[str, dict[str, Any]] = {}
     for mcp_name, entry in guidance.items():
@@ -391,9 +393,12 @@ def catalog_index() -> CatalogIndex:
         reads=frozenset(name for name, tool in TOOLS.items() if not tool.mutating),
         schemas=schemas,
         views=frozenset(str(view["key"]) for view in workspace.get("views") or []),
-        exception_classes=frozenset(catalog.get("operational_exception_classes") or []),
+        exception_classes=frozenset(
+            runtime_application_catalog_section("operational_exception_classes") or []
+        ),
         fact_predicates=frozenset(
-            str(entry["predicate"]) for entry in catalog.get("fact_predicates") or []
+            str(entry["predicate"])
+            for entry in runtime_application_catalog_section("fact_predicates")
         ),
     )
 
