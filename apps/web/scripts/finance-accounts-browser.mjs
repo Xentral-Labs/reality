@@ -42,6 +42,13 @@ try {
     await writeFile(path, contents, { flag: "wx" });
     created.push(path);
   }
+  // The first load of the harness can make Vite optimize dependencies and reload the page;
+  // load it once and let it settle so the measured pages never reload mid-check.
+  const warmup = await browser.newPage();
+  await warmup.goto(`${base}/finance-acceptance.html?language=en`);
+  await warmup.locator("#root > *").first().waitFor({ timeout: 60_000 });
+  await warmup.waitForLoadState("networkidle");
+  await warmup.close();
   for (const language of ["en", "de", "nl", "es"])
     for (const theme of ["light", "dark"])
       for (const width of [390, 1024, 1440]) {

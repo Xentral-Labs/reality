@@ -39,7 +39,9 @@ await page.route("**/api/**", async (route) => {
     route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
   if (url.pathname.endsWith("/application-reference"))
     return respond({
-      workspaces: [{ actions: [{ command: "reserve" }, { command: "record_movement" }] }],
+      workspaces: [
+        { views: [], actions: [{ command: "reserve" }, { command: "record_movement" }] },
+      ],
     });
   if (url.pathname === "/api/auth/me") return respond(user);
   if (url.pathname === "/api/v1/bootstrap")

@@ -41,7 +41,9 @@ await page.route("**/api/**", async (route) => {
     route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
   if (url.pathname.endsWith("/application-reference"))
     return respond({
-      workspaces: [{ actions: [{ command: "reserve" }, { command: "record_movement" }] }],
+      workspaces: [
+        { views: [], actions: [{ command: "reserve" }, { command: "record_movement" }] },
+      ],
     });
   if (url.pathname === "/api/auth/me") return respond(user);
   if (url.pathname === "/api/v1/bootstrap")
@@ -243,7 +245,7 @@ try {
   await page.waitForFunction(() =>
     document.querySelector("[data-global-chat] textarea").value.includes("Voice draft"),
   );
-  await page.getByRole("button", { name: "Hide chat", exact: true }).click();
+  await page.locator('.shell-chat-toggle[aria-label="Hide chat"]').click();
   assert.equal(await page.evaluate(() => window.voiceStopped), true);
   await page.getByRole("button", { name: "Show chat", exact: true }).click();
   assert.ok((await input.inputValue()).includes("Voice draft"));
@@ -339,29 +341,35 @@ try {
   fresh = true;
   await page.goto(`${base}/app/chat?tenant=tenant_a&lang=en`);
   const chatPage = page.locator("[data-independent-free-play]");
+  // Spec 225 FR-020: history starts closed and opens from the header's History action,
+  // the only inline page action with a disclosure state (any language).
+  const openHistory = async () => {
+    await page.locator('[data-page-action="inline"][aria-expanded="false"]').click();
+    await page.locator("[data-free-play-sessions] [data-chat-session]").first().waitFor();
+  };
   await chatPage.locator("[data-chat-starters] button").first().waitFor();
   assert.equal(await chatPage.locator("[data-chat-starters] button").count(), 3);
   await page.screenshot({ path: "/private/tmp/reality-202-chat-page.png" });
   // FR-023: compact persistent history; retain the larger drawer targets.
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
-    if (width < 1280)
-      await chatPage.getByRole("button", { name: "Conversation history", exact: true }).click();
+    // Spec 225 FR-020: history starts closed at every width and opens from the header.
+    await openHistory();
     const first = await page.locator('[data-chat-session="chat_a"]').boundingBox();
     const second = await page.locator('[data-chat-session="chat_b"]').boundingBox();
     assert.ok(first && second);
     const sidebar = await page.locator("[data-free-play-sessions]").boundingBox();
-    assert.equal(sidebar.width, width >= 1280 ? 288 : 256, "history width");
+    assert.equal(sidebar.width, 320, "history overlay width");
     assert.equal(first.height, width >= 1280 ? 36 : 40, "session button height");
     assert.equal(second.y - first.y, width >= 1280 ? 36 : 44, "session row spacing");
     await page.screenshot({ path: `/private/tmp/reality-session-spacing-${width}.png` });
-    if (width < 1280)
-      await page
-        .locator("[data-free-play-sessions]")
-        .getByRole("button", { name: "Close", exact: true })
-        .click();
+    await page
+      .locator("[data-free-play-sessions]")
+      .getByRole("button", { name: "Close", exact: true })
+      .click();
   }
   await page.setViewportSize({ width: 1440, height: 900 });
+  await openHistory();
 
   // FR-024: keyboard and hover reveal options without changing row geometry.
   const menu = page.locator('[data-chat-session-menu="chat_b"]');
@@ -386,6 +394,7 @@ try {
   await touch.send("Emulation.setTouchEmulationEnabled", { enabled: false });
   await touch.detach();
   await page.goto(`${base}/app/chat?tenant=tenant_a&lang=de`);
+  await openHistory();
   await menu.locator("summary").click();
   const archive = menu.getByRole("button", { name: "Chat archivieren", exact: true });
   await archive.waitFor();
@@ -398,6 +407,7 @@ try {
   assert.equal(label.overflow, false);
   await page.screenshot({ path: "/private/tmp/reality-chat-history-room.png" });
   await page.goto(`${base}/app/chat?tenant=tenant_a&lang=en`);
+  await openHistory();
 
   await page.locator('[data-chat-session-menu="chat_a"] summary').click();
   await page.getByRole("button", { name: "Delete chat", exact: true }).click();

@@ -148,7 +148,9 @@ await page.route("**/api/**", async (route) => {
     });
   if (path.endsWith("/application-reference"))
     return reply({
-      workspaces: [{ actions: [{ command: "reserve" }, { command: "record_movement" }] }],
+      workspaces: [
+        { views: [], actions: [{ command: "reserve" }, { command: "record_movement" }] },
+      ],
     });
   if (path.endsWith("/dashboard"))
     return reply({

@@ -299,8 +299,12 @@ export function CompanySetup({
       className="company-setup-dialog"
       aria-labelledby="company-setup-title"
       onCancel={(event) => {
-        if (busy || pending) event.preventDefault();
-        else close?.();
+        // Close natively before unmounting: React removes the dialog within this event,
+        // before the browser's own close step would return focus to the opener.
+        event.preventDefault();
+        if (busy || pending) return;
+        dialog.current?.close();
+        close?.();
       }}
     >
       {body}
