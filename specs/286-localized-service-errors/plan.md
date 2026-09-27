@@ -28,9 +28,14 @@ pruned to those tools.
 |---|---|---|---|---|
 | Reachable from the in-scope forms | **584** | 428 | 46 | 10 |
 | All sites in the 39 modules holding them | 845 | — | — | — |
+| Chat send path (`core.send_chat_message`, US3) | 31 | 25 | 2 | 0 |
 | All of `services/` and `tools/` | 1,509 | 1,095 | 113 | 34 |
 
-- **Expected catalog:** about 480–500 codes (71 sentences repeat across sites, and some
+- **Chat send path:** 31 sites in 9 modules (`tenant_policy` 11, `core` 6,
+  `supply_assignments` 4, `free_playground`, `security.secrets`, `agent.settings`,
+  `delivery_reads`, `exceptions`, `business_locks`). Some overlap with the forms, so the total
+  is about 610 sites.
+- **Expected catalog:** about 500 codes (71 sentences repeat across sites, and some
   repeats mean different things).
 - **Largest modules:** `core` 213, `costing` 48, `inventory_costing` 44,
   `reference_workspace` 28, `item_imports` 23, `tools.application` 21, `supply_assignments`
@@ -59,7 +64,7 @@ column and gain keys inside it.
 - no Accept-Language, and the server stays language-neutral;
 - no new dependency.
 
-**Scale/Scope**: about 584 raise sites and about 490 codes, each translated into 3 languages,
+**Scale/Scope**: about 610 raise sites and about 500 codes, each translated into 3 languages,
 across 39 modules, plus 6 transport touchpoints and 2 web entry points.
 
 ## Constitution Check *(blocking gate)*
@@ -167,6 +172,10 @@ docs/features/service-refusals.md                                    # NEW durab
   - Statuses stay as they are (400/404/409). The TypeError 422 ("Check the action fields.")
     becomes the coded `action_fields_invalid`.
   - The `draft_changed` 409 keeps its object `detail` and gains the top-level fields.
+  - The `PlaygroundOperationDenied` 403 handler (`web/app.py:79`) renders the same fields; its
+    16 reachable sites get instance codes (the web never branches on the shared class code).
+  - The direct `HTTPException(404, "ChatSession not found.")` in `web/api.py` becomes
+    `raise NotFound(code="chat_session_not_found")` through `api_error`.
 - **Chat stream:** `{"type": "error", "message", "code", "template", "values"}`.
 - **Chat tool result:** `{"error", "code", "values"}`. The model reads English; the outcome code
   in the interactions log becomes the refusal code.
@@ -197,7 +206,8 @@ docs/features/service-refusals.md                                    # NEW durab
 
 ### Gate (`tests/test_refusal_gate.py`)
 
-A pure AST pass over the 39 in-scope modules, whose list lives in `refusal_ratchet.json`
+A pure AST pass over the in-scope modules (the 39 from the forms plus the chat send path's
+modules not already among them), whose list lives in `refusal_ratchet.json`
 beside the entries. It checks four things:
 
 1. Every `raise <refusal class>(...)` has a literal `code=` keyword, or matches a ratchet entry
@@ -250,6 +260,21 @@ None. Rollback is revert: clients ignore the extra keys, and English is unchange
 The change is additive and each area task is independently mergeable in principle. This
 feature ships as one PR with one commit per area, so reviewers can follow the ratchet shrinking.
 Rollback is revert.
+
+## Analysis (2026-09-27)
+
+`$speckit-analyze` over spec, plan and tasks. There are no CRITICAL findings. Every finding is
+resolved in the artifacts:
+
+| ID | Severity | Finding | Resolution |
+|---|---|---|---|
+| A1 | HIGH | US3 promises translated chat stream errors, but the chat send path was not in the inventory, so its refusals would have stayed uncoded and English. The web text comparison "ChatSession not found." comes from a direct `HTTPException` in `web/api.py`, not from a service. | Chat send path measured (31 sites) and added to the scope, the gate modules and task T019a; the `HTTPException` becomes a coded `NotFound` (T009). |
+| A2 | MEDIUM | The 403 `PlaygroundOperationDenied` handler and status were missing from FR-003 and the transport. | 403 added to FR-003; the handler is part of T009, with a test in T008. |
+| A3 | MEDIUM | SC-002 said out-of-scope surfaces behave exactly as before, but a coded refusal is translated wherever the web shows it. | SC-002 reworded: English and behaviour are unchanged for MCP, the chat model and receipts, and uncoded refusals are unchanged everywhere. |
+| A4 | LOW | `output.error.code` of failed proposal receipts changes from the class code to the refusal code. | No consumer in `src/` or `apps/web` (grep, 2026-09-27); recorded in the contract doc (T905). |
+| A5 | LOW | The strict render mode needs a test-environment switch. | `REALITY_STRICT_REFUSALS=1` is set in `core/tests/conftest.py` (T005). |
+| A6 | LOW | The static gate cannot see refusals reached only through `obj.method()` or `getattr`, so FR-006 holds for what the gate sees. | Only 2 refusal raises sit in methods; the ratchet's `scope` marks are reviewed in the PR, and the browser and live checks cover the main forms. |
+| A7 | LOW | Some cards already call `t(error.message)`; with the message localized in `request()` this translates twice. | Harmless (a translated sentence is not a dictionary key); T013 removes the redundant calls. |
 
 ## Review Risks
 

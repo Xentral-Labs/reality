@@ -13,7 +13,7 @@ description: "Requirement-traceable Business Reality implementation tasks"
 
 - [x] T001 Close clarification markers in `specs/286-localized-service-errors/spec.md` (codes with values, forms plus gate, chat included; owner decisions 2026-09-27)
 - [x] T002 All Constitution Check rows PASS in `specs/286-localized-service-errors/plan.md`
-- [ ] T003 Run `$speckit-analyze` and resolve all CRITICAL findings
+- [x] T003 Run `$speckit-analyze` and resolve all CRITICAL findings (2026-09-27: no CRITICAL findings; A1–A7 resolved, see plan "Analysis")
 
 ## Phase 2: Foundation (blocks all stories)
 
@@ -33,11 +33,12 @@ description: "Requirement-traceable Business Reality implementation tasks"
 
   Create `core/config/service_refusals.json` (`version`, `refusals`, `terms`), and give
   `RealityError` in `core/src/reality/services/core.py` `message=None, *, code=None, values=None`.
+  Set `REALITY_STRICT_REFUSALS=1` in `core/tests/conftest.py`.
 - [ ] T006 [P] [FR-007] Write `core/tests/test_refusal_gate.py`. It checks the four gate rules
   from the plan and runs positive and negative controls on synthetic sources.
 - [ ] T007 [FR-007] Add the ratchet and the planning tool:
-  - Create `core/config/refusal_ratchet.json` with the 39 in-scope modules and every uncoded
-    site in them.
+  - Create `core/config/refusal_ratchet.json` with the in-scope modules (the 39 from the forms
+    plus the chat send path's modules) and every uncoded site in them.
   - Mark each entry with `scope: "286"` (reachable from the forms, per `scripts/refusal_reach.py --tight`)
     or `scope: "later"`.
   - Add `scripts/refusal_reach.py` as the advisory planning tool.
@@ -49,10 +50,14 @@ description: "Requirement-traceable Business Reality implementation tasks"
   - `::test_api_sends_code_template_values_per_status` (400/404/409 on the delivery prepare,
     approve and master data routes; 422 `action_fields_invalid`);
   - `::test_uncoded_refusal_shape_is_unchanged`;
-  - `::test_draft_changed_keeps_its_detail_object`.
+  - `::test_draft_changed_keeps_its_detail_object`;
+  - `::test_playground_denied_403_carries_its_refusal_code`;
+  - `::test_chat_session_not_found_is_coded`.
 - [ ] T009 [US1] [FR-003] Implement `RefusalHTTPException` in `api_error`
-  (`core/src/reality/web/api.py`) and its handler (`core/src/reality/web/app.py`), and code the
-  422 "Check the action fields.".
+  (`core/src/reality/web/api.py`) and its handler (`core/src/reality/web/app.py`). Also:
+  - code the 422 "Check the action fields.";
+  - render the same fields in the `PlaygroundOperationDenied` 403 handler;
+  - replace the direct `HTTPException` "ChatSession not found." with a coded `NotFound`.
 - [ ] T010 [P] [US3] [FR-004] [FR-008] Write failing tests:
   - `::test_chat_stream_error_carries_code`;
   - `::test_chat_tool_result_keeps_english_and_adds_values`;
@@ -117,6 +122,10 @@ Each task has the same steps:
   - `item_imports` (reachable sites);
   - `tenant_policy`, `delivery_actions`, `tools.application`, `artifacts`;
   - the remaining `scope: "286"` sites in `core`.
+- [ ] T019a [US3] Chat send path: the 31 sites reachable from `core.send_chat_message` in
+  `tenant_policy`, `core`, `supply_assignments`, `free_playground`, `security.secrets`,
+  `agent.settings`, `delivery_reads`, `exceptions` and `business_locks` (the modules are added to
+  the gate list in T007).
 - [ ] T020 [FR-006] Confirm that no `scope: "286"` ratchet entry remains and that the
   localization contract is green.
 
@@ -152,9 +161,9 @@ Each task has the same steps:
 | FR-001 | T004 | T005 | Pending |
 | FR-002 | T004, T015–T019 | T005 | Pending |
 | FR-003 | T008 | T009 | Pending |
-| FR-004 | T010 | T011 | Pending |
+| FR-004 | T010 | T011, T019a | Pending |
 | FR-005 | T012, T021 | T013 | Pending |
-| FR-006 | T006, T014, T020 | T015–T019 | Pending |
+| FR-006 | T006, T014, T020 | T015–T019a | Pending |
 | FR-007 | T006 | T007 | Pending |
 | FR-008 | T010 | T011 | Pending |
 | FR-009 | T012 | T013 | Pending |

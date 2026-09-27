@@ -59,7 +59,8 @@ customer holds, supply assignments, opening stock, master data, cost review draf
 decision on a proposal made by one of these forms (`apps/web/src/unified/*Card.tsx`,
 `CostReviewDraftDialog.tsx`, `ProposalReviewCard.tsx`). Deciding a proposal of another tool in
 `ProposalReviewCard` (for example a chat-proposed payment term) is out of this increment. The
-plan lists the exact service entry points behind the forms.
+plan lists the exact service entry points behind the forms. The chat panel's send path
+(the refusals that end a chat stream) is in scope as well (US3).
 
 ### Non-Goals
 
@@ -212,7 +213,7 @@ a Dutch translation; the respective test fails and names the file and line or th
   translated, such as a field name), number, amount, quantity or date. The English sentence sent to clients MUST equal the
   template filled with the values.
 - **FR-003**: The web API MUST send the code and values next to the unchanged English sentence
-  for every coded refusal, for every refusal status it returns today (400, 404, 409, 422), and
+  for every coded refusal, for every refusal status it returns today (400, 403, 404, 409, 422), and
   MUST keep the current shape for uncoded refusals.
 - **FR-004**: The chat stream error event and the failed proposal receipt MUST carry the code
   and values next to the English sentence.
@@ -252,8 +253,10 @@ a Dutch translation; the respective test fails and names the file and line or th
 - **SC-001**: In the German, Dutch and Spanish editions, no in-scope form shows an English
   refusal sentence for any refusal its services can raise (proven by the gate and a browser
   test per language).
-- **SC-002**: Out-of-scope surfaces, MCP and the chat model behave exactly as before, apart
-  from the added code and values (existing suites stay green).
+- **SC-002**: MCP clients, the chat model and stored receipts receive exactly the English
+  sentences they receive today, plus the code and values; uncoded refusals behave exactly as
+  before on every surface (existing suites stay green). A coded refusal is shown translated
+  wherever the web displays it, also outside the in-scope forms.
 - **SC-003**: Every FR and DR has an acceptance scenario and executable proof.
 
 ## Assumptions and Dependencies
