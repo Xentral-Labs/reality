@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { openPageActions } from "./page-actions.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -131,8 +132,7 @@ try {
   await go();
 
   await page.locator(".register-actions > summary").waitFor();
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions(page);
   await button("Register source").click();
   await page.getByRole("dialog", { name: "Source configuration", exact: true }).waitFor();
   await page.getByRole("textbox", { name: "Source code", exact: true }).fill(" CATALOG ");
@@ -172,8 +172,7 @@ try {
   });
   await button("Close").click();
   await page.locator(".register-actions > summary").waitFor();
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions(page);
   await button("Register source").click();
   await page.getByRole("textbox", { name: "Source code", exact: true }).fill("catalog");
   await page.getByLabel("Source name", { exact: true }).fill("Duplicate");
@@ -277,8 +276,7 @@ try {
   assert.equal(await panel.locator("article").count(), 5);
   await button("Close").click();
   await page.locator(".register-actions > summary").waitFor();
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions(page);
   await button("Register source").click();
   await page.getByRole("textbox", { name: "Source code", exact: true }).fill("delayed");
   await page.getByLabel("Source name", { exact: true }).fill("Delayed source");

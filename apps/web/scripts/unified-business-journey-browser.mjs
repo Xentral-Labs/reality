@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir, writeFile } from "node:fs/promises";
+import { openPageActions } from "./page-actions.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const fixture = JSON.parse(process.env.JOURNEY_FIXTURE);
 const base = process.env.JOURNEY_BASE_URL;
@@ -106,8 +107,7 @@ try {
   });
   assert.equal(login.status(), 200, await login.text());
   await goto("orders-deliveries", "orders_view=customer-orders");
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions(page);
   await button("New order").click();
   await choose("Company party", fixture.company);
   await choose("Customer", fixture.customer);
