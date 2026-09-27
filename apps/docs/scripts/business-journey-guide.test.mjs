@@ -10,6 +10,7 @@ const component = fs.readFileSync(
   new URL("apps/docs/.vitepress/theme/components/BusinessJourneyGuide.vue", root),
   "utf8",
 );
+const theme = fs.readFileSync(new URL("apps/docs/.vitepress/theme/custom.css", root), "utf8");
 const english = fs.readFileSync(
   new URL("apps/docs/content/getting-started/business-journeys.md", root),
   "utf8",
@@ -51,6 +52,11 @@ test("Docs Ask Reality clears submitted questions and renders readable structure
   assert.match(component, /journey-answer-section/u);
   assert.match(component, /journey-answer-list/u);
   assert.doesNotMatch(component, /\{\{ answer\.text \}\}/u);
+});
+
+test("the accessible question label does not duplicate the visible example prompt", () => {
+  assert.match(component, /class="sr-only" for="journey-question"/u);
+  assert.match(theme, /\.business-journey-page \.sr-only[\s\S]+clip: rect\(0, 0, 0, 0\)/u);
 });
 
 test("Docs Ask Reality shows cited journey IDs and titles in a compact table", () => {
