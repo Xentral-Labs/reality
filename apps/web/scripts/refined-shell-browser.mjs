@@ -170,36 +170,41 @@ try {
   await page.locator("[data-inline-activity]").waitFor();
   assert.equal(new URL(page.url()).searchParams.get("inspector_view"), "history");
   assert.equal(await page.getByRole("dialog", { name: "Activity", exact: true }).count(), 0);
-  assert.ok((await header.innerText()).includes("Activities"));
+  // Spec 266: Activities opens its History tab beside Live.
+  assert.ok((await header.innerText()).includes("History"));
+  assert.ok((await header.innerText()).includes("Live"));
   const launcher = nav.locator("[data-action-launcher]");
   assert.equal(await nav.locator(".shell-navigation-utilities [data-action-launcher]").count(), 0);
   await draft.focus();
   await page.keyboard.press("Control+k");
+  // The palette's search field is a combobox over its result list.
   const palette = page.locator("[data-action-menu]:popover-open");
   await palette.waitFor();
   assert.equal(
-    await palette.getByRole("searchbox").evaluate((n) => n === document.activeElement),
+    await palette.getByRole("combobox").evaluate((n) => n === document.activeElement),
     true,
   );
   const paletteBox = await box(palette);
   assert.ok(Math.abs(paletteBox.x + paletteBox.width / 2 - 720) <= 1);
-  await palette.getByRole("searchbox").fill("no-such-action");
+  await palette.getByRole("combobox").fill("no-such-action");
   await page.keyboard.press("Escape");
   assert.equal(await draft.evaluate((n) => n === document.activeElement), true);
   await page.keyboard.press("Meta+k");
   await palette.waitFor();
-  assert.equal(await palette.getByRole("searchbox").inputValue(), "");
+  assert.equal(await palette.getByRole("combobox").inputValue(), "");
   await page.keyboard.press("Escape");
-  await launcher.getByRole("button", { name: "Search actions", exact: true }).click();
-  await bounded(page.getByRole("dialog", { name: "Actions", exact: true }), 1440);
+  await launcher.getByRole("button", { name: "Search or start an action", exact: true }).click();
+  await bounded(page.getByRole("dialog", { name: "Search or start an action", exact: true }), 1440);
   assert.ok(
-    (await page.getByRole("dialog", { name: "Actions", exact: true }).getByRole("button").count()) >
-      1,
+    (await page
+      .getByRole("dialog", { name: "Search or start an action", exact: true })
+      .getByRole("button")
+      .count()) > 1,
   );
   await page.keyboard.press("Escape");
   assert.equal(
     await launcher
-      .getByRole("button", { name: "Search actions", exact: true })
+      .getByRole("button", { name: "Search or start an action", exact: true })
       .evaluate((n) => n === document.activeElement),
     true,
   );
@@ -257,25 +262,26 @@ try {
       await bounded(page.locator("[data-action-menu]:popover-open"), width);
       if (language === "de") {
         const menu = page.locator("[data-action-menu]:popover-open");
+        // The palette lists actions as options for a typed query, in the account language.
         for (const label of [
           "Versandmeldung erfassen",
           "Paket versenden",
           "Paket empfangen",
           "Tracking-Ereignis erfassen",
           "Tracking-Ereignis korrigieren",
-        ])
-          assert.equal(await menu.getByRole("button", { name: label, exact: true }).count(), 1);
+        ]) {
+          await menu.getByRole("combobox").fill(label);
+          await menu
+            .getByRole("option", { name: new RegExp(`^${label}`) })
+            .first()
+            .waitFor();
+        }
+        await menu.getByRole("combobox").fill("");
         if (width === 1440)
           await page.screenshot({
             path: "/private/tmp/reality-225-browser/command-palette-de.png",
             animations: "disabled",
           });
-        await menu.getByRole("searchbox").fill("Paket");
-        assert.deepEqual(await menu.locator("section button").allTextContents(), [
-          "Paket versenden",
-          "Paket empfangen",
-        ]);
-        await menu.getByRole("searchbox").fill("");
       }
       await page.keyboard.press("Escape");
       if (width < 1024) await nav.locator("[data-navigation-close]").click();
@@ -324,8 +330,9 @@ try {
   await touchPage.locator("[data-navigation-opener]").click();
   await touchPage.locator("[data-action-launcher] > button").click();
   await touchPage
-    .getByRole("dialog", { name: "Actions", exact: true })
-    .getByRole("button", { name: "Available actions", exact: true })
+    .getByRole("dialog", { name: "Search or start an action", exact: true })
+    // Leaving the palette for a page closes the mobile navigation drawer.
+    .getByRole("button", { name: "Browse all tools", exact: true })
     .click();
   assert.equal(await touchPage.locator("[data-primary-navigation]").isVisible(), false);
   await touchPage.keyboard.press("Control+k");
