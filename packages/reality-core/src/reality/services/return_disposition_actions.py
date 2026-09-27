@@ -38,9 +38,7 @@ def review_return_disposition(
         "disposition",
         "quantity",
     } <= set(arguments):
-        raise core.InvalidOperation(
-            "Return disposition fields are incomplete or unsupported."
-        )
+        raise core.InvalidOperation(code="return_disposition_fields_invalid")
     intent = {key: value for key, value in arguments.items() if value is not None}
     state = json.loads(_json(preview_return_disposition(session, tenant_id, **intent)))
     normalized = {
@@ -87,9 +85,7 @@ def assert_no_unresolved_return_disposition(
         if proposal.id != exclude and saved.get("return_movement_id") == arguments.get(
             "return_movement_id"
         ):
-            raise core.InvalidOperation(
-                "An earlier return disposition is unresolved. Check its outcome first."
-            )
+            raise core.InvalidOperation(code="return_disposition_unresolved")
 
 
 def return_disposition_detail(

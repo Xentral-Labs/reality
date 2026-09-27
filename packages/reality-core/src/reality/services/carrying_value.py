@@ -33,7 +33,7 @@ def _row(session: Session, model, tenant: str, identity: str):
         select(model).where(model.tenant_id == tenant, model.id == identity)
     )
     if row is None:
-        raise core.NotFound("Costing scope not found.")
+        raise core.NotFound(code="costing_scope_not_found")
     return row
 
 
@@ -42,7 +42,7 @@ def _inventory_part(session: Session, tenant: str, review: dict, request_part):
         session, CostInventoryMember, tenant, request_part.inventory_member_id
     )
     if member.review_id != review["review_id"]:
-        raise core.NotFound("Costing scope not found.")
+        raise core.NotFound(code="costing_scope_not_found")
     basis = _row(session, CostMovementBasis, tenant, member.movement_basis_id)
     remaining = [
         part
@@ -50,12 +50,12 @@ def _inventory_part(session: Session, tenant: str, review: dict, request_part):
         if part["entry_movement_id"] == basis.movement_id
     ]
     if len(remaining) != 1:
-        raise core.InvalidOperation("Assessment member is not exact remaining inventory.")
+        raise core.InvalidOperation(code="valuation_assessment_member_not_remaining")
     retained = remaining[0]
     available = Decimal(retained["quantity"])
     quantity = request_part.quantity
     if quantity > available:
-        raise core.InvalidOperation("Assessment quantity exceeds remaining inventory.")
+        raise core.InvalidOperation(code="valuation_assessment_quantity_exceeds_remaining")
     acquisition = (Decimal(retained["cost"]) * quantity / available).quantize(
         STEP, rounding=ROUND_HALF_EVEN
     )
@@ -66,7 +66,7 @@ def _inventory_part(session: Session, tenant: str, review: dict, request_part):
         request_part.evidence_source_record_id,
     )
     if request_part.currency != review["currency"]:
-        raise core.InvalidOperation("Assessment currency differs from inventory currency.")
+        raise core.InvalidOperation(code="valuation_assessment_currency_mismatch")
     return AssessmentPart(
         inventory_member_id=member.id,
         quantity=quantity,
@@ -303,7 +303,7 @@ def enrich_inventory_result(
     assessment = session.scalar(statement)
     if assessment is None:
         if assessment_revision_id:
-            raise core.NotFound("Costing scope not found.")
+            raise core.NotFound(code="costing_scope_not_found")
         return {
             **result,
             "carrying_value": None,
@@ -355,7 +355,7 @@ def enrich_inventory_result(
             assessment.kind, current_parts, previous=previous_parts
         )
     except CarryingValueRefusal as error:
-        raise core.InvalidOperation("Valuation assessment integrity mismatch.") from error
+        raise core.InvalidOperation(code="valuation_assessment_integrity_mismatch") from error
     acquisition = Decimal(result["acquisition_value"])
     carrying = (acquisition + bridge.adjustment).quantize(STEP)
     return {

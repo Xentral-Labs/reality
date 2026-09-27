@@ -24,25 +24,21 @@ FIELDS = {"amount", "currency", "evidence_reference"}
 def normalize_opening_cost(value: Any) -> dict[str, str]:
     """Accept exactly the stated amount, its currency and the evidence reference."""
     if not isinstance(value, dict) or set(value) != FIELDS:
-        raise InvalidOperation(
-            "Opening cost needs the stated amount, currency and evidence reference."
-        )
+        raise InvalidOperation(code="opening_cost_fields_required")
     try:
         amount = Decimal(str(value["amount"]))
     except (DecimalError, TypeError, ValueError) as error:
-        raise InvalidOperation("Enter the acquisition value as a number.") from error
+        raise InvalidOperation(code="opening_cost_value_not_number") from error
     if not amount.is_finite() or amount < 0 or amount >= Decimal(10) ** 14:
-        raise InvalidOperation("Enter a non-negative acquisition value.")
+        raise InvalidOperation(code="opening_cost_value_negative")
     if amount != amount.quantize(Decimal("0.0001")):
-        raise InvalidOperation(
-            "The acquisition value supports at most 4 decimal places."
-        )
+        raise InvalidOperation(code="opening_cost_value_scale_exceeded")
     currency = str(value["currency"]).strip().upper()
     if len(currency) != 3 or not currency.isalpha():
-        raise InvalidOperation("Enter a three-letter currency code.")
+        raise InvalidOperation(code="opening_cost_currency_invalid")
     reference = str(value["evidence_reference"]).strip()
     if not reference or len(reference) > 500:
-        raise InvalidOperation("Name the evidence the acquisition value comes from.")
+        raise InvalidOperation(code="opening_cost_evidence_missing")
     # The amount is kept exactly as written, so the statement reads as received.
     return {
         "amount": str(value["amount"]).strip(),

@@ -14,8 +14,6 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
-import pytest
-
 from reality.domain import refusals
 
 SOURCE = Path(__file__).resolve().parents[1] / "src"
@@ -30,6 +28,11 @@ CATALOG_CLASSES = frozenset(
         "Conflict",
         "PlaygroundOperationDenied",
     }
+)
+
+#: Domain refusals (`ValueError`s) that carry catalog codes into the services' re-raise.
+DOMAIN_CLASSES = frozenset(
+    {"DomainRefusal", "CostingRefusal", "ShipmentCompatibilityError"}
 )
 
 
@@ -164,7 +167,7 @@ def constructed_codes(source: str) -> list[tuple[int, str]]:
             if isinstance(func, ast.Attribute)
             else None
         )
-        if name not in CATALOG_CLASSES:
+        if name not in CATALOG_CLASSES | DOMAIN_CLASSES:
             continue
         for keyword in node.keywords:
             if (
@@ -255,9 +258,11 @@ def test_gate_names_an_unknown_code():
     assert any("unknown refusal code 'sample_plain'" in p for p in problems)
 
 
-@pytest.mark.parametrize("scope", ["286"])
-def test_no_spec_286_refusal_remains_uncoded(scope):
-    """FR-006: spec 286 is done when no in-scope ratchet entry remains."""
-    remaining = [e for e in _load_ratchet()["entries"] if e["scope"] == scope]
-    if remaining:
-        pytest.xfail(f"{len(remaining)} spec 286 refusals are not coded yet")
+def test_no_spec_286_refusal_remains_uncoded():
+    """FR-006: every refusal behind the in-scope forms and the chat send path is coded.
+
+    The remaining entries belong to later areas (and to request field validation, which
+    spec 286 leaves in English like FastAPI's 422).
+    """
+    remaining = [e for e in _load_ratchet()["entries"] if e["scope"] != "later"]
+    assert remaining == []

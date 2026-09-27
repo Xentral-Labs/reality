@@ -56,4 +56,4 @@ def lock_delivery_state(session: Session, tenant_id: str) -> None:
         select(Tenant.id).where(Tenant.id == tenant_id).with_for_update()
     )
     if found is None:
-        raise NotFound("Tenant not found.")
+        raise NotFound(code="tenant_not_found")

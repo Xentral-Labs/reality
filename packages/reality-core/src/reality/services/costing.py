@@ -95,7 +95,7 @@ def _row(session, model, tenant, identity):
         select(model).where(model.tenant_id == tenant, model.id == identity)
     )
     if value is None:
-        raise core.NotFound("Costing scope not found.")
+        raise core.NotFound(code="costing_scope_not_found")
     return value
 
 
@@ -112,9 +112,7 @@ def _sequence(session, tenant, *, inputs_only=False, cutoff=None):
 
 def _owner(session, tenant, principal, *, lock=False):
     if principal is None:
-        raise core.InvalidOperation(
-            "An authenticated active company owner is required."
-        )
+        raise core.InvalidOperation(code="costing_authenticated_owner_required")
     from reality.services.tenant_policy import profile_cost_owner_active
 
     if profile_cost_owner_active(session, tenant, principal.user_id):
@@ -132,9 +130,9 @@ def _owner(session, tenant, principal, *, lock=False):
         statement = statement.with_for_update()
     authority = session.execute(statement).first()
     if authority is None:
-        raise core.NotFound("Company not found.")
+        raise core.NotFound(code="company_not_found")
     if authority.role != "owner" or authority.status != "active":
-        raise core.InvalidOperation("An active company owner is required.")
+        raise core.InvalidOperation(code="costing_active_owner_required")
 
 
 def _tenant_member(session, tenant, principal):
@@ -149,7 +147,7 @@ def _tenant_member(session, tenant, principal):
         )
     )
     if membership_id is None:
-        raise core.NotFound("Company not found.")
+        raise core.NotFound(code="company_not_found")
 
 
 def _request(arguments):
@@ -170,16 +168,14 @@ def cost_evidence(
         core.get_tenant(session, tenant_id)
         doc = _row(session, Document, tenant_id, document_id)
         if doc.type not in {"supplier_invoice", "supplier_credit_note"}:
-            raise core.InvalidOperation(
-                "Receipt costs require supplier invoice or credit evidence."
-            )
+            raise core.InvalidOperation(code="receipt_cost_supplier_evidence_required")
         line = (
             _row(session, DocumentLine, tenant_id, document_line_id)
             if document_line_id
             else None
         )
         if line and line.document_id != doc.id:
-            raise core.NotFound("Costing scope not found.")
+            raise core.NotFound(code="costing_scope_not_found")
         if not line and session.scalar(
             select(DocumentLine.id)
             .where(
@@ -187,9 +183,7 @@ def cost_evidence(
             )
             .limit(1)
         ):
-            raise core.InvalidOperation(
-                "Use a received line, not its duplicate document total."
-            )
+            raise core.InvalidOperation(code="receipt_cost_use_line_not_total")
         received = components._received(session, tenant_id, doc, line)
         component = components._component(
             session, tenant_id, doc.id, line.id if line else None
@@ -198,9 +192,7 @@ def cost_evidence(
             components._stored_amounts(component) != received["amounts"]
             or component.currency != received["currency"]
         ):
-            raise core.Conflict(
-                "Received evidence changed; record replacement evidence instead."
-            )
+            raise core.Conflict(code="receipt_cost_evidence_changed")
         return {
             **received,
             "event_sequence": _sequence(session, tenant_id),
@@ -215,9 +207,7 @@ def _movement(session, tenant, identity):
         or movement.quantity <= 0
         or movement.resolves_movement_id
     ):
-        raise core.InvalidOperation(
-            "This slice supports positive goods receipts, not returns or inventory valuation."
-        )
+        raise core.InvalidOperation(code="receipt_cost_positive_receipts_only")
     return movement
 
 
@@ -250,7 +240,7 @@ def _resolve_allocation(session, tenant, request: Allocate) -> tuple[Assign, dic
     try:
         allocation = allocate_weighted(capacity, request.allocation_total, resolved)
     except ValueError as error:
-        raise core.InvalidOperation(str(error)) from error
+        raise core.InvalidOperation.from_refusal(error) from error
     parts = [
         {
             "movement_id": target.target_id,
@@ -356,9 +346,7 @@ def _attributions(session, tenant, receipt_id, cursor):
     )
     result = list(session.scalars(statement))
     if len(result) > LIMIT:
-        raise core.InvalidOperation(
-            "Receipt cost scope exceeds the supported 100 component bound."
-        )
+        raise core.InvalidOperation(code="receipt_cost_scope_component_bound")
     return result
 
 
@@ -452,19 +440,17 @@ def _calculate(session, tenant, basis, attributions, corrections):
                 )
                 if conversion.from_code != component.currency:
                     raise core.InvalidOperation(
-                        "Conversion source currency does not match retained evidence."
+                        code="cost_conversion_currency_mismatch_retained"
                     )
                 conversions[part.id] = conversion
                 part_currencies.add(conversion.to_code)
             else:
                 part_currencies.add(component.currency)
         if len(part_currencies) > 1:
-            raise core.InvalidOperation("One attribution cannot mix target currencies.")
+            raise core.InvalidOperation(code="cost_attribution_mixed_target_currencies")
         part_currency = next(iter(part_currencies), component.currency)
         if currency and currency != part_currency:
-            raise core.InvalidOperation(
-                "Receipt costs with different currencies require reviewed conversion."
-            )
+            raise core.InvalidOperation(code="receipt_cost_currencies_need_conversion")
         currency = part_currency
         if not _basis_supported(attribution):
             missing.add("tax_basis_incomplete")
@@ -523,9 +509,7 @@ def _manifest_members(
             )
         )
         if len(members[key]) > LIMIT:
-            raise core.InvalidOperation(
-                "Receipt cost manifest exceeds the supported scope."
-            )
+            raise core.InvalidOperation(code="receipt_cost_manifest_scope_exceeded")
     return members
 
 
@@ -537,12 +521,10 @@ def _verify_manifest(
         or manifest.algorithm_version != "receipt-v1"
         or manifest.input_schema_version != 1
     ):
-        raise core.InvalidOperation("Unsupported receipt cost manifest.")
+        raise core.InvalidOperation(code="receipt_cost_manifest_unsupported")
     members = _manifest_members(session, tenant, manifest)
     if _hash(members) != manifest.content_hash:
-        raise core.InvalidOperation(
-            "Retained receipt cost manifest is incomplete or corrupt."
-        )
+        raise core.InvalidOperation(code="receipt_cost_manifest_corrupt")
 
 
 def _current_receipt_manifest_members(
@@ -577,7 +559,7 @@ def receipt_cost(
         basis = _receipt(session, tenant_id, movement_id)
         if basis is None:
             if manifest_id:
-                raise core.NotFound("Costing scope not found.")
+                raise core.NotFound(code="costing_scope_not_found")
             return {
                 "movement_id": movement_id,
                 "event_sequence": cursor,
@@ -599,7 +581,7 @@ def receipt_cost(
                     CostManifestReceipt.receipt_basis_id == basis.id,
                 )
             ):
-                raise core.NotFound("Costing scope not found.")
+                raise core.NotFound(code="costing_scope_not_found")
             cursor = manifest.target_event_sequence
             attributions = list(
                 session.scalars(
@@ -744,7 +726,7 @@ def receipt_cost(
 
 def _check_change(session, tenant, request):
     if request.expected_event_sequence != _sequence(session, tenant):
-        raise core.Conflict("Costing preview is stale; reload the held evidence.")
+        raise core.Conflict(code="costing_preview_stale")
     allocation = None
     if isinstance(request, Allocate):
         request, allocation = _resolve_allocation(session, tenant, request)
@@ -785,7 +767,7 @@ def _check_change(session, tenant, request):
             session, tenant, request.document_id, request.document_line_id
         )
         if received["evidence_hash"] != request.expected_evidence_hash:
-            raise core.Conflict("Costing evidence preview is stale.")
+            raise core.Conflict(code="costing_evidence_preview_stale")
         from reality.db.contribution import CostSellingPart
         from reality.services.selling_costs import _family_used
 
@@ -806,14 +788,10 @@ def _check_change(session, tenant, request):
             _family_used(session, tenant, identity, CostSellingPart)
             for identity in checked_basis_ids
         ):
-            raise core.InvalidOperation(
-                "Selling evidence cannot be assigned or replaced as acquisition cost."
-            )
+            raise core.InvalidOperation(code="cost_selling_evidence_not_acquisition")
         raw = received["amounts"][request.basis]
         if raw is None:
-            raise core.InvalidOperation(
-                "The selected received amount is missing; it cannot be recomputed."
-            )
+            raise core.InvalidOperation(code="cost_received_amount_missing")
         tax = request.nonrecoverable_tax_amount
         stated_tax = received["amounts"]["tax"]
         if tax and (
@@ -822,51 +800,43 @@ def _check_change(session, tenant, request):
             or (tax > 0) != (Decimal(stated_tax) > 0)
         ):
             raise core.InvalidOperation(
-                "Nonrecoverable share exceeds or contradicts received tax."
+                code="cost_nonrecoverable_share_contradicts_tax"
             )
         if tax and (
             request.selected_basis_tax_inclusion != "excluded"
             or request.tax_treatment not in {"mixed", "nonrecoverable"}
         ):
-            raise core.InvalidOperation(
-                "Tax cannot be counted twice or assigned as recoverable."
-            )
+            raise core.InvalidOperation(code="cost_tax_double_or_recoverable")
         if (
             request.selected_basis_tax_inclusion == "excluded"
             and request.tax_treatment == "nonrecoverable"
             and (stated_tax is None or tax != Decimal(stated_tax))
         ):
-            raise core.InvalidOperation(
-                "Nonrecoverable tax requires the complete stated tax share."
-            )
+            raise core.InvalidOperation(code="cost_nonrecoverable_tax_needs_full_share")
         if request.tax_treatment == "mixed" and (
             stated_tax is None or not ZERO < abs(tax) < abs(Decimal(stated_tax))
         ):
-            raise core.InvalidOperation(
-                "Mixed tax requires an explicit partial received tax share."
-            )
+            raise core.InvalidOperation(code="cost_mixed_tax_needs_partial_share")
         if (
             request.basis == "net"
             and request.selected_basis_tax_inclusion == "included"
         ):
-            raise core.InvalidOperation("Received net cannot include input tax.")
+            raise core.InvalidOperation(code="cost_received_net_includes_input_tax")
         if (
             request.basis == "gross"
             and request.selected_basis_tax_inclusion == "excluded"
         ):
-            raise core.InvalidOperation("Received gross cannot exclude its stated tax.")
+            raise core.InvalidOperation(code="cost_received_gross_excludes_tax")
         if (
             request.tax_treatment == "not_applicable"
             and stated_tax is not None
             and Decimal(stated_tax) != ZERO
         ):
-            raise core.InvalidOperation(
-                "Stated nonzero tax cannot be declared not applicable."
-            )
+            raise core.InvalidOperation(code="cost_stated_tax_not_applicable")
         try:
             validate_shares(request.parts, Decimal(raw), tax)
         except ValueError as error:
-            raise core.InvalidOperation(str(error)) from error
+            raise core.InvalidOperation.from_refusal(error) from error
         for part in request.parts:
             conversion = None
             if part.conversion_basis_revision_id:
@@ -877,7 +847,7 @@ def _check_change(session, tenant, request):
                 )
                 if conversion.from_code != received["currency"]:
                     raise core.InvalidOperation(
-                        "Conversion source currency does not match received evidence."
+                        code="cost_conversion_currency_mismatch_received"
                     )
             movement = _movement(session, tenant, part.movement_id)
             if session.scalar(
@@ -886,12 +856,10 @@ def _check_change(session, tenant, request):
                     MovementCorrection.original_movement_id == movement.id,
                 )
             ):
-                raise core.InvalidOperation(
-                    "Assign to the replacement receipt, not a corrected original."
-                )
+                raise core.InvalidOperation(code="cost_assign_to_replacement_receipt")
             item = _row(session, Item, tenant, movement.item_id)
             if not item.unit:
-                raise core.InvalidOperation("An evidenced base unit is required.")
+                raise core.InvalidOperation(code="cost_evidenced_base_unit_required")
             basis = _receipt(session, tenant, movement.id)
             if basis:
                 current = _attributions(
@@ -920,7 +888,7 @@ def _check_change(session, tenant, request):
                 )
                 if prospective > LIMIT:
                     raise core.InvalidOperation(
-                        "Receipt cost component bound would be exceeded."
+                        code="receipt_cost_component_bound_exceeded"
                     )
                 for a in current:
                     cb = _row(session, CostComponentBasis, tenant, a.component_basis_id)
@@ -932,7 +900,7 @@ def _check_change(session, tenant, request):
                     )
                     if c.currency != target_currency:
                         raise core.InvalidOperation(
-                            "Receipt currency conversion is not supported by this slice."
+                            code="receipt_cost_conversion_unsupported"
                         )
         if received["component_id"]:
             admitted = session.scalar(
@@ -947,7 +915,7 @@ def _check_change(session, tenant, request):
                     CostComponentReplacement.previous_basis_id == admitted.id,
                 )
             ):
-                raise core.InvalidOperation("Replaced evidence cannot be reassigned.")
+                raise core.InvalidOperation(code="cost_replaced_evidence_reassign")
         if isinstance(request, Replace):
             previous = _row(
                 session, CostComponentBasis, tenant, request.previous_component_basis_id
@@ -962,19 +930,17 @@ def _check_change(session, tenant, request):
                 )
             ):
                 raise core.InvalidOperation(
-                    "Replacement requires fresh distinct evidence."
+                    code="cost_replacement_needs_distinct_evidence"
                 )
             if old_component.currency != received["currency"]:
-                raise core.InvalidOperation(
-                    "Replacement cannot silently change currency."
-                )
+                raise core.InvalidOperation(code="cost_replacement_changes_currency")
             if session.scalar(
                 select(CostComponentReplacement.id).where(
                     CostComponentReplacement.tenant_id == tenant,
                     CostComponentReplacement.previous_basis_id == previous.id,
                 )
             ):
-                raise core.Conflict("Evidence was already replaced.")
+                raise core.Conflict(code="cost_evidence_already_replaced")
         result = {
             "received": received,
             "assigned_effect": _money(
@@ -998,25 +964,21 @@ def _check_change(session, tenant, request):
     if isinstance(request, Withdraw):
         basis = _row(session, CostComponentBasis, tenant, request.component_basis_id)
         if _latest(session, tenant, basis.id, request.expected_event_sequence) is None:
-            raise core.InvalidOperation("No attribution to withdraw.")
+            raise core.InvalidOperation(code="cost_no_attribution_to_withdraw")
         return {
             "component_basis_id": basis.id,
             "effect": "Withdraw current attribution; retain history",
         }
     result = receipt_cost(session, tenant, request.movement_id)
     if "receipt_basis_id" not in result:
-        raise core.InvalidOperation(
-            "Admit evidenced receipt costs before reviewing scope."
-        )
+        raise core.InvalidOperation(code="cost_admit_receipt_costs_first")
     present = {row["category"] for row in result["trace"]}
     for category in request.categories:
         if (
             category.disposition in {"confirmed_zero", "not_applicable"}
             and category.category in present
         ):
-            raise core.InvalidOperation(
-                "A category with attributed costs cannot be declared zero/not applicable."
-            )
+            raise core.InvalidOperation(code="cost_category_with_costs_not_zero")
     return {
         "receipt": result,
         "categories": [c.model_dump() for c in request.categories],
@@ -1198,9 +1160,7 @@ def execute_cost_change(
 ) -> dict:
     """Execute one bound, explicitly confirmed owner decision in the caller transaction."""
     if not confirmed:
-        raise core.InvalidOperation(
-            "Explicit confirmation is required for cost decisions."
-        )
+        raise core.InvalidOperation(code="cost_decision_confirmation_required")
     lock_delivery_state(session, tenant_id)
     _owner(session, tenant_id, Principal(actor_id) if actor_id else None, lock=True)
     action = _row(session, ChangeProposal, tenant_id, action_id)
@@ -1208,11 +1168,11 @@ def execute_cost_change(
     if action.type != "tool:cost.change" or _request(
         json.loads(action.input)
     ).model_dump(mode="json") != request.model_dump(mode="json"):
-        raise core.InvalidOperation("Cost decision is not bound to this proposal.")
+        raise core.InvalidOperation(code="cost_decision_not_bound_to_proposal")
     if action.status == "executed":
         return json.loads(action.output)
     if action.status != "proposed":
-        raise core.InvalidOperation("Cost proposal is not available for execution.")
+        raise core.InvalidOperation(code="cost_proposal_not_executable")
     core._require_business_mutation(session, tenant_id, "execute_cost_change")
     with session.begin_nested():
         review = _check_change(session, tenant_id, request)

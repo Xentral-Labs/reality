@@ -21417,3 +21417,2597 @@ Object.assign(dictionaries.es, {
   "Check the action fields.": "Revisa los campos de la acción.",
   "ChatSession not found.": "No se encontró el chat.",
 });
+
+// Spec 286: coded service refusals of the in-scope forms and the chat send path.
+Object.assign(dictionaries.de, {
+  "A Party can have at most 20 email addresses.":
+    "Ein Geschäftspartner kann höchstens 20 E-Mail-Adressen haben.",
+  "A Party cannot contain duplicate email addresses.":
+    "Ein Geschäftspartner darf keine doppelten E-Mail-Adressen enthalten.",
+  "A billed reference must point at an order line.":
+    "Ein abgerechneter Verweis muss auf eine Auftragsposition zeigen.",
+  "A billed reference must stay on one side of the business.":
+    "Ein abgerechneter Verweis muss auf einer Seite des Geschäfts bleiben (Verkauf oder Einkauf).",
+  "A bounded request identity is required.": "Eine begrenzte Anfrage-ID ist erforderlich.",
+  "A cancellation requires a reason.": "Für eine Stornierung brauchst du einen Grund.",
+  "A category with attributed costs cannot be declared zero/not applicable.":
+    "Eine Kategorie mit zugeordneten Kosten kann nicht als null/nicht zutreffend erklärt werden.",
+  "A compensating Movement cannot be corrected.":
+    "Ein kompensierendes Movement kann nicht korrigiert werden.",
+  "A credit note carries no stated net and tax here.":
+    "Eine Gutschrift hat hier keine angegebenen Netto- und Steuerbeträge.",
+  "A credit reason is required.": "Ein Gutschriftsgrund ist erforderlich.",
+  "A current review and explicit confirmation are required.":
+    "Eine aktuelle Prüfung und eine ausdrückliche Bestätigung sind erforderlich.",
+  "A default location cannot be removed; choose another location.":
+    "Ein Standardlagerort kann nicht entfernt werden; wähle einen anderen Lagerort.",
+  "A default unit of at most 500 characters is required.":
+    "Eine Standardeinheit mit höchstens 500 Zeichen ist erforderlich.",
+  "A delivery guard requires a sales invoice.": "Eine Lieferprüfung braucht eine Ausgangsrechnung.",
+  "A delivery guard requires a single sales order line.":
+    "Eine Lieferprüfung braucht genau eine Verkaufsauftragsposition.",
+  "A financial execution for this record is unresolved. Check its outcome first.":
+    "Eine Finanzausführung für diesen Datensatz ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "A hold note must be text.": "Eine Sperrnotiz muss Text sein.",
+  "A location cannot be its own parent.":
+    "Ein Lagerort kann nicht sein eigener übergeordneter Lagerort sein.",
+  "A manual document requires a stated total; it is never calculated.":
+    "Ein manueller Beleg braucht einen angegebenen Gesamtbetrag; er wird nie berechnet.",
+  "A manual document requires at least one line.":
+    "Ein manueller Beleg braucht mindestens eine Position.",
+  "A movement fulfils an announcement of its own delivery only.":
+    "Eine Lagerbewegung erfüllt nur eine Ankündigung ihrer eigenen Lieferung.",
+  "A new complete receipt review is required before inventory confirmation.":
+    "Vor der Bestätigung des Bestands ist eine neue, vollständige Prüfung der Wareneingänge nötig.",
+  "A resolution must concern the same item as the return.":
+    "Eine Erledigung muss denselben Artikel wie die Retoure betreffen.",
+  "A resolution must name a return.": "Eine Erledigung muss eine Retoure angeben.",
+  "A resolution must take the goods out of the location they came back to.":
+    "Eine Erledigung muss die Ware aus dem Lagerort entnehmen, in den sie zurückkam.",
+  "A retained allocation cannot exceed its active reservation.":
+    "Eine verbleibende Zuteilung darf ihre aktive Reservation nicht überschreiten.",
+  "A reversing posting group cannot be reversed.":
+    "Eine Stornobuchungsgruppe kann nicht storniert werden.",
+  "A revision must restate a date, a quantity, or both.":
+    "Eine Revision muss ein Datum, eine Menge oder beides neu angeben.",
+  "A revision must state a readable date.": "Eine Revision muss ein lesbares Datum angeben.",
+  "A selected price entry requires a supported commercial document and item.":
+    "Ein ausgewählter Preiseintrag braucht einen unterstützten Handelsbeleg und Artikel.",
+  "A serial movement must have quantity 1.":
+    "Eine Lagerbewegung mit Seriennummer muss die Menge 1 haben.",
+  "A serial reservation must have quantity 1.":
+    "Eine Reservierung mit Seriennummer muss die Menge 1 haben.",
+  "A verified, enabled account is required for Playground.":
+    "Für den Playground ist ein bestätigtes, aktiviertes Konto erforderlich.",
+  "A zero allocation belongs in explicit scope review.":
+    "Eine Verteilung von null gehört in eine ausdrückliche Umfangsprüfung.",
+  "A {field} of at most 500 characters is required.":
+    "{field} ist erforderlich (höchstens 500 Zeichen).",
+  "Account changes require a confirming company owner.":
+    "Kontoänderungen erfordern eine bestätigende Firmeneigentümerin oder einen Firmeneigentümer.",
+  "Account is blocked or has the wrong operational role.":
+    "Das Konto ist gesperrt oder hat die falsche operative Rolle.",
+  "Account not found.": "Konto nicht gefunden.",
+  "Active company owner access required.": "Aktiver Zugriff als Unternehmensinhaber erforderlich.",
+  "Active payment term '{code}' not found.": "Aktive Zahlungsbedingung '{code}' nicht gefunden.",
+  "Active tool proposal not found.": "Aktiver Werkzeugvorschlag nicht gefunden.",
+  "Adjustment reason is required.": "Ein Grund für die Bestandsanpassung ist erforderlich.",
+  "Adjustment requires exactly one location direction.":
+    "Eine Bestandsanpassung erfordert genau eine Lagerort-Richtung.",
+  "Admit evidenced receipt costs before reviewing scope.":
+    "Übernimm belegte Wareneingangskosten, bevor du den Umfang prüfst.",
+  "Admitted inventory movement input changed.":
+    "Die übernommenen Daten der Lagerbewegung haben sich geändert.",
+  "Admitted opening stock input changed.":
+    "Die übernommenen Daten des Anfangsbestands haben sich geändert.",
+  "Allocation exceeds the credit or open invoice amount.":
+    "Die Zuordnung übersteigt den Gutschriftsbetrag oder den offenen Rechnungsbetrag.",
+  "Allocation exceeds the invoice open amount.":
+    "Die Zuordnung übersteigt den offenen Rechnungsbetrag.",
+  "Allocation exceeds the unallocated payment amount.":
+    "Die Zuordnung übersteigt den nicht zugeordneten Zahlungsbetrag.",
+  "Allocation total": "Verteilungssumme",
+  "Allocation total exceeds the received source capacity.":
+    "Die Verteilungssumme übersteigt den erhaltenen Ausgangsbetrag.",
+  "Allocation total must preserve the source bucket sign.":
+    "Die Verteilungssumme muss das Vorzeichen des Ausgangsbetrags behalten.",
+  "Allocation weights must be positive.": "Verteilungsgewichte müssen positiv sein.",
+  "Allows stock": "Bestand erlaubt",
+  "Amount must be an exact finite decimal with at most four decimal places.":
+    "Der Betrag muss eine exakte, endliche Dezimalzahl mit höchstens vier Nachkommastellen sein.",
+  "An active company owner is required.": "Ein aktiver Firmeninhaber ist erforderlich.",
+  "An authenticated active company owner is required.":
+    "Ein angemeldeter aktiver Firmeninhaber ist erforderlich.",
+  "An earlier action for this commitment is unresolved. Check its outcome first.":
+    "Eine frühere Aktion für dieses Commitment ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "An earlier delivery execution is unresolved. Check its outcome first.":
+    "Eine frühere Lieferausführung ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "An earlier overlapping execution is unresolved. Check its outcome first.":
+    "Eine frühere überschneidende Ausführung ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "An earlier return disposition is unresolved. Check its outcome first.":
+    "Eine frühere Retourenentscheidung ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "An earlier supply assignment is unresolved. Check its outcome first.":
+    "Eine frühere Zugangszuordnung ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "An evidenced base unit is required.": "Eine belegte Basiseinheit ist erforderlich.",
+  "An exact file-import configuration is required.":
+    "Eine genaue Konfiguration für den Dateiimport ist erforderlich.",
+  "An exact record and review revision are required.":
+    "Ein genauer Datensatz und der geprüfte Stand sind erforderlich.",
+  "An existing credit spans other evidence. Inspect its attribution first.":
+    "Eine bestehende Gutschrift umfasst andere Belege. Prüfe zuerst ihre Zuordnung.",
+  "An identical order execution is unresolved. Check its outcome first.":
+    "Eine identische Auftragsausführung ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "An invoice carries at most {limit} positions.":
+    "Eine Rechnung hat höchstens {limit} Positionen.",
+  "An invoice credit execution is unresolved. Check its outcome first.":
+    "Eine Ausführung einer Rechnungsgutschrift ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "An invoice execution for this order line is unresolved. Check its outcome first.":
+    "Eine Rechnungsausführung für diese Auftragsposition ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "An older order-linked credit has no invoice attribution. Inspect it before crediting this invoice.":
+    "Eine ältere auftragsbezogene Gutschrift ist keiner Rechnung zugeordnet. Prüfe sie, bevor du diese Rechnung gutschreibst.",
+  "An older order-linked credit has no invoice attribution. Inspect it before crediting this position.":
+    "Eine ältere auftragsbezogene Gutschrift ist keiner Rechnung zugeordnet. Prüfe sie, bevor du diese Position gutschreibst.",
+  "An order requires at least one item line.":
+    "Ein Auftrag braucht mindestens eine Artikelposition.",
+  "An overlapping financial action is unresolved. Check its outcome first.":
+    "Eine überschneidende Finanzaktion ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "An overlapping item creation is unresolved. Check its outcome first.":
+    "Eine überlappende Artikelanlage ist ungeklärt. Prüfe zuerst ihr Ergebnis.",
+  "Announced quantity": "Angekündigte Menge",
+  "Artifact storage key is invalid.": "Der Ablageschlüssel des Artefakts ist ungültig.",
+  "Assessment currency differs from inventory currency.":
+    "Die Währung der Bewertung weicht von der Bestandswährung ab.",
+  "Assessment member is not exact remaining inventory.":
+    "Die Position der Bewertung ist kein genauer Restbestand.",
+  "Assessment quantity exceeds remaining inventory.":
+    "Die Bewertungsmenge übersteigt den Restbestand.",
+  "Assign to the replacement receipt, not a corrected original.":
+    "Ordne dem Ersatz-Wareneingang zu, nicht dem korrigierten Original.",
+  "Assigned shares exceed the received bucket.":
+    "Die zugeordneten Anteile übersteigen den erhaltenen Betrag.",
+  "At least one Item is required.": "Mindestens ein Artikel ist erforderlich.",
+  "At least one Location is required.": "Mindestens ein Lagerort ist erforderlich.",
+  "At least one Party is required.": "Mindestens ein Geschäftspartner ist erforderlich.",
+  "At least one allocation target is required.": "Mindestens ein Verteilungsziel ist erforderlich.",
+  "At least one update record is required.": "Mindestens ein Änderungsdatensatz ist erforderlich.",
+  "Billing availability requires an order line.":
+    "Die abrechenbare Menge braucht eine Auftragsposition.",
+  BusinessEvent: "Geschäftsereignis",
+  "CSV column names must be at most 500 characters.":
+    "CSV-Spaltennamen dürfen höchstens 500 Zeichen lang sein.",
+  "CSV contains an invalid null character.": "Die CSV-Datei enthält ein ungültiges Nullzeichen.",
+  ChangeProposal: "Änderungsvorschlag",
+  ChatSession: "Chat",
+  "Check the supported replacement fields.": "Prüfe die unterstützten Ersatzfelder.",
+  "Choose an item and a destination location.": "Wähle einen Artikel und einen Ziellagerplatz.",
+  "Choose the exact retained reservation IDs and quantities, then prepare a fresh review.":
+    "Wähle die genauen IDs und Mengen der verbleibenden Reservations und bereite dann eine neue Prüfung vor.",
+  "Commitment cancellation fields are incomplete or unsupported.":
+    "Die Angaben zur Stornierung des Commitment sind unvollständig oder werden nicht unterstützt.",
+  "Commitment cancellation reason is required.":
+    "Ein Grund für die Stornierung des Commitment ist erforderlich.",
+  "Commitment is on hold ({reason}); release it before execution.":
+    "Commitment ist gesperrt ({reason}); gib es vor der Ausführung frei.",
+  "Commitment revision fields are incomplete or unsupported.":
+    "Die Angaben zur Revision des Commitment sind unvollständig oder werden nicht unterstützt.",
+  "Commitment was not found.": "Commitment wurde nicht gefunden.",
+  "Company not found.": "Firma nicht gefunden.",
+  "Compensating Movements cannot be corrected.":
+    "Kompensierende Movements können nicht korrigiert werden.",
+  "Context annotations are created by the server.":
+    "Kontextanmerkungen werden vom Server erstellt.",
+  "Contribution inputs changed during preview; retry the read.":
+    "Die Eingaben des Deckungsbeitrags haben sich während der Vorschau geändert; lies erneut.",
+  "Conversion kind does not match the requested use.":
+    "Die Art der Umrechnung passt nicht zur angeforderten Verwendung.",
+  "Conversion source currency does not match received evidence.":
+    "Die Ausgangswährung der Umrechnung passt nicht zur erhaltenen Evidence.",
+  "Conversion source currency does not match retained evidence.":
+    "Die Ausgangswährung der Umrechnung passt nicht zur gespeicherten Evidence.",
+  "Cost decision is not bound to this proposal.":
+    "Die Kostenentscheidung gehört nicht zu diesem Vorschlag.",
+  "Cost proposal is not available for execution.":
+    "Der Kostenvorschlag steht nicht zur Ausführung bereit.",
+  "Costing evidence preview is stale.": "Die Evidence-Vorschau der Kalkulation ist veraltet.",
+  "Costing preview is stale; reload the held evidence.":
+    "Die Kalkulationsvorschau ist veraltet; lade die vorhandene Evidence neu.",
+  "Costing scope not found.": "Kalkulationsumfang nicht gefunden.",
+  "Counterparty role does not match shipment purpose.":
+    "Die Rolle des Geschäftspartners passt nicht zum Sendungszweck.",
+  "Credit amount exceeds the remaining invoice amount.":
+    "Der Gutschriftsbetrag übersteigt den verbleibenden Rechnungsbetrag.",
+  "Credit fields are incomplete or unsupported.":
+    "Die Felder der Gutschrift sind unvollständig oder nicht unterstützt.",
+  "Credit limit cannot be negative.": "Das Kreditlimit darf nicht negativ sein.",
+  "Credit note is already posted.": "Die Gutschrift ist bereits gebucht.",
+  "Credit note posting is reversed.": "Die Buchung der Gutschrift ist storniert.",
+  "Credit note total": "Gutschriftsbetrag",
+  "Credit position fields are incomplete or unsupported.":
+    "Die Felder der Gutschriftsposition sind unvollständig oder nicht unterstützt.",
+  "Credit positions must be distinct.": "Die Gutschriftspositionen müssen verschieden sein.",
+  "Credit quantity exceeds returned, not yet credited goods.":
+    "Die Gutschriftsmenge übersteigt die zurückgegebene, noch nicht gutgeschriebene Ware.",
+  "Credit quantity exceeds the remaining invoice quantity.":
+    "Die Gutschriftsmenge übersteigt die verbleibende Rechnungsmenge.",
+  "Credit requires a posted invoice without reversed posting groups.":
+    "Eine Gutschrift erfordert eine gebuchte Rechnung ohne stornierte Buchungsgruppen.",
+  "Current contribution preview requires READ COMMITTED.":
+    "Die aktuelle Deckungsbeitragsvorschau erfordert READ COMMITTED.",
+  "Customer commitment was not found.": "Commitment des Kunden wurde nicht gefunden.",
+  "Customer demand requires one customer commitment; stock replenishment requires none.":
+    "Kundenbedarf erfordert genau ein Commitment des Kunden; Lagerauffüllung erfordert keines.",
+  "Customer dispatch requires a delivery commitment.":
+    "Der Warenausgang an Kunden erfordert eine Lieferverpflichtung.",
+  "Customer dispatch requires a valid movement quantity.":
+    "Der Warenausgang an Kunden erfordert eine gültige Bewegungsmenge.",
+  "Customer has an active delivery hold; release it before shipment.":
+    "Für den Kunden besteht eine aktive Liefersperre; hebe sie vor dem Warenausgang auf.",
+  "Customer-delivery order not found.": "Kundenauftrag zur Lieferung nicht gefunden.",
+  "Date/time must be a valid ISO 8601 value.":
+    "Datum/Uhrzeit muss ein gültiger ISO-8601-Wert sein.",
+  "Default currency must be a three-letter code.":
+    "Die Standardwährung muss ein dreistelliger Buchstabencode sein.",
+  "Default location id": "Standardlagerort-ID",
+  "Delivery not found.": "Lieferung nicht gefunden.",
+  "Delivery quantity": "Liefermenge",
+  "Demand coverage requires a customer commitment.":
+    "Die Bedarfsdeckung erfordert ein Commitment des Kunden.",
+  "Document date must use YYYY-MM-DD.": "Das Belegdatum muss das Format YYYY-MM-DD haben.",
+  "Document is not a credit note.": "Der Beleg ist keine Gutschrift.",
+  "Document is not a sales invoice.": "Der Beleg ist keine Ausgangsrechnung.",
+  "Document is not a supplier invoice.": "Der Beleg ist keine Eingangsrechnung.",
+  "Document line does not belong to the document.": "Die Belegposition gehört nicht zum Beleg.",
+  DocumentLine: "Belegposition",
+  DunningNotice: "Mahnung",
+  "Duplicate Location batch reference: {reference}":
+    "Doppelte Batch-Referenz eines Lagerorts: {reference}",
+  "Duplicate allocation target.": "Das Verteilungsziel ist doppelt angegeben.",
+  "Duplicate target/category/bucket.": "Ziel, Kategorie und Betragsart sind doppelt angegeben.",
+  "Duplicate update target: {record_id}": "Doppeltes Änderungsziel: {record_id}",
+  "Each retained allocation must name only reservation_id and quantity.":
+    "Jede verbleibende Zuteilung darf nur reservation_id und quantity angeben.",
+  "Each shipment movement must be an object.":
+    "Jede Lagerbewegung einer Sendung muss ein Objekt sein.",
+  "Email addresses must use an ASCII domain.":
+    "E-Mail-Adressen müssen eine ASCII-Domain verwenden.",
+  "Enter a non-negative acquisition value.": "Gib einen nicht negativen Anschaffungswert ein.",
+  "Enter a question.": "Gib eine Frage ein.",
+  "Enter a three-letter currency code.": "Gib einen dreistelligen Währungscode ein.",
+  "Enter a valid email address.": "Gib eine gültige E-Mail-Adresse ein.",
+  "Enter a valid occurrence time.": "Gib einen gültigen Zeitpunkt ein.",
+  "Enter the acquisition value as a number.": "Gib den Anschaffungswert als Zahl ein.",
+  "Every allocation target requires an opaque identity.":
+    "Jedes Verteilungsziel braucht eine eindeutige Kennung.",
+  "Every opening stock requires exact cost and ownership evidence.":
+    "Jeder Anfangsbestand erfordert genaue Nachweise zu Kosten und Eigentum.",
+  "Every receipt requires exact cost and ownership evidence; missing movement IDs: {missing}; unexpected movement IDs: {unexpected}.":
+    "Jeder Wareneingang erfordert genaue Nachweise zu Kosten und Eigentum; fehlende Bewegungs-IDs: {missing}; unerwartete Bewegungs-IDs: {unexpected}.",
+  "Evidence was already replaced.": "Die Evidence wurde bereits ersetzt.",
+  "Explicit confirmation is required for cost decisions.":
+    "Für Kostenentscheidungen ist eine ausdrückliche Bestätigung erforderlich.",
+  "Explicit economic consumption must cover every shipment exactly.":
+    "Der ausdrückliche wirtschaftliche Verbrauch muss jeden Warenausgang genau abdecken.",
+  "Explicit retained allocations are only accepted when active reservation identities require a choice.":
+    "Ausdrücklich beibehaltene Zuteilungen werden nur akzeptiert, wenn die Identitäten aktiver Reservierungen eine Auswahl erfordern.",
+  "External id": "Externe ID",
+  "Finance action does not match the confirmed Playground review.":
+    "Die Finanzaktion passt nicht zur bestätigten Playground-Prüfung.",
+  "Finance changes require a confirmed proposal.":
+    "Finanzänderungen erfordern einen bestätigten Vorschlag.",
+  "Financial evidence is at or before the opening cutover; reconcile coverage before posting.":
+    "Die Finanz-Evidence liegt am oder vor dem Eröffnungsstichtag; gleiche die Abdeckung ab, bevor du buchst.",
+  FinancialComponent: "Finanzbestandteil",
+  "Fulfillment commitment not found.": "Commitment für die Auslieferung nicht gefunden.",
+  Gross_amount: "Bruttobetrag",
+  HandlingUnit: "Ladeeinheit",
+  ImportJob: "Importauftrag",
+  "Internal review metadata cannot be supplied as intent.":
+    "Interne Prüfungsmetadaten können nicht als Absicht übergeben werden.",
+  "Inventory action input integrity mismatch.":
+    "Die Eingabedaten der Bestandsaktion sind nicht konsistent.",
+  "Inventory admission requires READ COMMITTED input capture.":
+    "Die Bestandsübernahme erfordert eine Eingabeerfassung mit READ COMMITTED.",
+  "Inventory correction chain is incomplete.": "Die Korrekturkette des Bestands ist unvollständig.",
+  "Inventory correction requires one exact event.":
+    "Eine Bestandskorrektur erfordert genau ein Ereignis.",
+  "Inventory history contains unsupported movement classification: every {movement_type} must be explicit.":
+    "Der Bestandsverlauf enthält eine nicht unterstützte Bewegungseinstufung: Jede Bewegung vom Typ {movement_type} muss ausdrücklich eingestuft sein.",
+  "Inventory history contains unsupported movement kinds.":
+    "Der Bestandsverlauf enthält nicht unterstützte Bewegungsarten.",
+  "Inventory history does not support the declared empty opening.":
+    "Der Bestandsverlauf passt nicht zum angegebenen leeren Anfangsbestand.",
+  "Inventory input integrity mismatch.": "Die Bestandsdaten sind nicht konsistent.",
+  "Inventory movement bound exceeded.": "Die Obergrenze für Lagerbewegungen ist überschritten.",
+  "Inventory movement requires one exact recorded event.":
+    "Eine Lagerbewegung erfordert genau ein erfasstes Ereignis.",
+  "Inventory opening integrity mismatch.": "Die Daten des Anfangsbestands sind nicht konsistent.",
+  "Inventory ownership integrity mismatch.":
+    "Die Eigentumsdaten des Bestands sind nicht konsistent.",
+  "Inventory ownership must partition every effective movement.":
+    "Das Bestandseigentum muss jede wirksame Lagerbewegung vollständig aufteilen.",
+  "Inventory ownership portion bound exceeded.":
+    "Die Obergrenze für Eigentumsanteile am Bestand ist überschritten.",
+  "Inventory ownership portions must conserve movement quantity.":
+    "Die Eigentumsanteile müssen die Menge der Lagerbewegung genau ergeben.",
+  "Inventory ownership references an unavailable movement.":
+    "Das Bestandseigentum verweist auf eine nicht verfügbare Lagerbewegung.",
+  "Inventory receipt bound exceeded.": "Die Obergrenze für Wareneingänge ist überschritten.",
+  "Inventory receipt currency/base unit is incompatible.":
+    "Währung oder Basiseinheit des Wareneingangs ist nicht kompatibel.",
+  "Inventory receipt review integrity mismatch.":
+    "Die Prüfung der Wareneingänge ist nicht konsistent.",
+  "Inventory settlement exceeds its reviewed customer return.":
+    "Die Bestandsabrechnung übersteigt ihre geprüfte Kundenretoure.",
+  "Inventory settlement must resolve one reviewed customer return.":
+    "Eine Bestandsabrechnung muss genau eine geprüfte Kundenretoure auflösen.",
+  "Invoice credit fields require an invoice and positions.":
+    "Felder für eine Rechnungsgutschrift brauchen eine Rechnung und Positionen.",
+  "Invoice fields are incomplete or unsupported.":
+    "Die Rechnungsfelder sind unvollständig oder nicht unterstützt.",
+  "Invoice has no posted control-account entry.":
+    "Die Rechnung hat keine gebuchte Sammelkontobuchung.",
+  "Invoice position fields are incomplete or unsupported.":
+    "Die Felder der Rechnungsposition sind unvollständig oder nicht unterstützt.",
+  "Invoice position not found.": "Rechnungsposition nicht gefunden.",
+  "Invoice positions must be distinct.": "Rechnungspositionen müssen eindeutig sein.",
+  "Invoice positions must belong to one party.":
+    "Rechnungspositionen müssen zu einem Geschäftspartner gehören.",
+  "Invoice positions must share one currency.":
+    "Rechnungspositionen müssen dieselbe Währung haben.",
+  "Invoice posting is reversed.": "Die Buchung der Rechnung ist storniert.",
+  "Invoice quantity exceeds the order line.": "Die Rechnungsmenge übersteigt die Auftragsposition.",
+  "Invoice quantity exceeds the remaining billable quantity.":
+    "Die Rechnungsmenge übersteigt die verbleibende abrechenbare Menge.",
+  "Invoice requires a purchase order line.": "Die Rechnung braucht eine Bestellposition.",
+  "Invoice requires a sales order line.": "Die Rechnung braucht eine Verkaufsauftragsposition.",
+  "Invoice values must fit four decimal places without rounding.":
+    "Rechnungswerte müssen ohne Rundung in vier Nachkommastellen passen.",
+  "Item SKU, name, and unit are required.": "Artikel-SKU, Name und Einheit sind erforderlich.",
+  "Item import requires a confirmed proposal.":
+    "Der Artikelimport erfordert einen bestätigten Vorschlag.",
+  "Item not found.": "Artikel nicht gefunden.",
+  "Item type must be stocked, service, or charge.":
+    "Der Artikeltyp muss stocked, service oder charge sein.",
+  "Later Movements depend on this stock; correct dependent Movements first.":
+    "Spätere Movements hängen von diesem Bestand ab; korrigiere zuerst die abhängigen Movements.",
+  "Later tracked-identity Movements depend on this stock; correct them first.":
+    "Spätere Movements mit nachverfolgter Identität hängen von diesem Bestand ab; korrigiere sie zuerst.",
+  "Lead time days": "Lieferzeit (Tage)",
+  "Lead time days cannot be negative.": "Die Lieferzeit in Tagen darf nicht negativ sein.",
+  "Ledger posting group cannot be empty.": "Die Buchungsgruppe darf nicht leer sein.",
+  "Ledger posting group is not balanced.": "Die Buchungsgruppe ist nicht ausgeglichen.",
+  "Ledger posting group must balance debits and credits.":
+    "Die Buchungsgruppe muss Soll und Haben ausgleichen.",
+  "Ledger posting group must use one currency.":
+    "Die Buchungsgruppe muss eine einzige Währung verwenden.",
+  "Ledger posting group must use one party.":
+    "Die Buchungsgruppe muss einen einzigen Geschäftspartner verwenden.",
+  "Ledger posting group not found.": "Buchungsgruppe nicht gefunden.",
+  "Ledger posting group was already reversed; reload its chain.":
+    "Die Buchungsgruppe wurde bereits storniert; lade ihre Kette neu.",
+  "Ledger reversal preview is stale; reload and preview again.":
+    "Die Stornierungsvorschau ist veraltet; lade neu und erstelle die Vorschau erneut.",
+  "Ledger reversal preview no longer matches the request.":
+    "Die Stornierungsvorschau passt nicht mehr zur Anfrage.",
+  "Ledger reversal reason is required.": "Ein Stornierungsgrund ist erforderlich.",
+  LedgerEntry: "Buchung",
+  "Line unit and type are required.": "Einheit und Typ der Position sind erforderlich.",
+  "Line {index} requires a stated amount; it is never calculated.":
+    "Position {index} braucht einen angegebenen Betrag; er wird nie berechnet.",
+  "Location does not allow physical stock.": "Der Lagerort erlaubt keinen physischen Bestand.",
+  "Location hierarchy cannot contain a cycle.":
+    "Die Lagerorthierarchie darf keinen Zyklus enthalten.",
+  "Location name and type are required.": "Name und Typ des Lagerorts sind erforderlich.",
+  "Location parent_ref must reference an earlier record in the same batch: {reference}":
+    "parent_ref eines Lagerorts muss auf einen früheren Datensatz im selben Batch verweisen: {reference}",
+  "Locations are incomplete for {movement_type}.":
+    "Die Lagerorte sind für {movement_type} unvollständig.",
+  "Lot does not belong to the movement item.":
+    "Die Charge gehört nicht zum Artikel der Lagerbewegung.",
+  "Lot-tracked items cannot use serial identity.":
+    "Chargengeführte Artikel können keine Seriennummer verwenden.",
+  "Lot-tracked items require a lot.": "Chargengeführte Artikel benötigen eine Charge.",
+  "Manual order source could not be recorded.":
+    "Die Quelle des manuellen Auftrags konnte nicht erfasst werden.",
+  "Map only SKU, name and unit.": "Ordne nur SKU, Name und Einheit zu.",
+  Mapping: "Zuordnung",
+  "Master data changed since review; reload the record.":
+    "Die Stammdaten wurden seit der Prüfung geändert; lade den Datensatz neu.",
+  "Master data proposal not found.": "Stammdatenvorschlag nicht gefunden.",
+  "Master data record not found.": "Stammdatensatz nicht gefunden.",
+  "Master-data event must match its reviewed action.":
+    "Das Stammdatenereignis muss zu seiner geprüften Aktion passen.",
+  "Master-data service differs from the reviewed action.":
+    "Der Stammdatendienst weicht von der geprüften Aktion ab.",
+  "Membership changes require a confirming human owner.":
+    "Änderungen an Mitgliedschaften erfordern eine bestätigende menschliche Eigentümerin oder einen Eigentümer.",
+  "Minimum quantity": "Mindestmenge",
+  "Missing account default for {role}. Configure finance accounts first.":
+    "Standardkonto für {role} fehlt. Richte zuerst die Finanzkonten ein.",
+  "Mixed tax requires an explicit partial received tax share.":
+    "Gemischte Steuer erfordert einen ausdrücklichen Teilanteil der erhaltenen Steuer.",
+  "More than one item matches; name the item by its SKU.":
+    "Mehr als ein Artikel passt; nenne den Artikel über seine SKU.",
+  "Movement correction preview is stale; reload and preview again.":
+    "Die Vorschau der Korrektur des Movement ist veraltet; lade neu und erstelle die Vorschau erneut.",
+  "Movement correction preview no longer matches the request.":
+    "Die Vorschau der Korrektur des Movement stimmt nicht mehr mit der Anfrage überein.",
+  "Movement correction reason is required.":
+    "Ein Grund für die Korrektur des Movement ist erforderlich.",
+  "Movement does not match the commitment.": "Das Movement passt nicht zur Verpflichtung.",
+  "Movement does not match the single confirmed Playground action.":
+    "Das Movement passt nicht zur einzigen bestätigten Playground-Aktion.",
+  "Movement exceeds physical stock.": "Das Movement überschreitet den physischen Bestand.",
+  "Movement exceeds stock for the selected identity.":
+    "Das Movement überschreitet den Bestand der ausgewählten Identität.",
+  "Movement exceeds the commitment's open quantity.":
+    "Das Movement überschreitet die offene Menge der Verpflichtung.",
+  "Movement not found.": "Movement nicht gefunden.",
+  "Movement type does not match the shipment purpose.":
+    "Die Movement-Art passt nicht zum Sendungszweck.",
+  "Movement type does not match the shipment purpose; permitted value: {expected}.":
+    "Die Movement-Art passt nicht zum Sendungszweck; zulässiger Wert: {expected}.",
+  "Movement was already corrected; reload its correction chain.":
+    "Das Movement wurde bereits korrigiert; lade seine Korrekturkette neu.",
+  "Name the evidence the acquisition value comes from.":
+    "Nenne den Nachweis, aus dem der Anschaffungswert stammt.",
+  "Net plus tax differs from the invoice gross.":
+    "Netto plus Steuer weicht vom Bruttobetrag der Rechnung ab.",
+  "No attribution to withdraw.": "Keine Zuordnung zum Zurückziehen vorhanden.",
+  "Nonrecoverable share exceeds or contradicts received tax.":
+    "Der nicht abziehbare Anteil übersteigt die erhaltene Steuer oder widerspricht ihr.",
+  "Nonrecoverable tax requires the complete stated tax share.":
+    "Nicht abziehbare Steuer erfordert den vollständigen ausgewiesenen Steueranteil.",
+  "Obtain a delivery review before confirming this proposal.":
+    "Hole eine Lieferprüfung ein, bevor du diesen Vorschlag bestätigst.",
+  "One attribution cannot mix target currencies.":
+    "Eine Zuordnung darf keine Zielwährungen mischen.",
+  "Only a confirmed opening stock carries a cost.":
+    "Nur ein bestätigter Anfangsbestand trägt Kosten.",
+  "Only active reservations can be released. Prepare a fresh review.":
+    "Nur aktive Reservations können freigegeben werden. Bereite eine neue Prüfung vor.",
+  "Only an open announcement can be fulfilled.": "Nur eine offene Ankündigung kann erfüllt werden.",
+  "Only an open commitment can be cancelled.": "Nur ein offenes Commitment kann storniert werden.",
+  "Only an open commitment can be revised.": "Nur ein offenes Commitment kann revidiert werden.",
+  "Only open commitments can be put on hold.": "Nur offene Commitments können gesperrt werden.",
+  "Only open customer delivery commitments can be reserved.":
+    "Nur offene Lieferverpflichtungen gegenüber Kunden können reserviert werden.",
+  "Only returning goods fulfil an announced customer return.":
+    "Nur zurückkommende Ware erfüllt eine angekündigte Kundenretoure.",
+  "Only stocked items can have physical movements.":
+    "Nur Lagerartikel können physische Lagerbewegungen haben.",
+  "Opening cost needs the stated amount, currency and evidence reference.":
+    "Die Anfangskosten brauchen den angegebenen Betrag, die Währung und einen Nachweis.",
+  "Opening cutover coverage requires an explicit original date or actual cash timestamp.":
+    "Die Abdeckung des Eröffnungsstichtags erfordert ein ausdrückliches Originaldatum oder einen tatsächlichen Zahlungszeitpunkt.",
+  "Opening evidence must be created once by the confirmed opening import.":
+    "Eröffnungs-Evidence darf nur einmal durch den bestätigten Eröffnungsimport angelegt werden.",
+  "Opening stock accepts only item, destination, quantity, optional time and optional acquisition cost.":
+    "Ein Anfangsbestand akzeptiert nur Artikel, Ziel, Menge, optional einen Zeitpunkt und optional Anschaffungskosten.",
+  OpeningScope: "Eröffnungsumfang",
+  "Order direction must be sales or purchase.":
+    "Die Auftragsrichtung muss Verkauf oder Einkauf sein.",
+  "Order line not found.": "Auftragsposition nicht gefunden.",
+  "Original source item is already represented by opening evidence; inspect it without posting again.":
+    "Der ursprüngliche Quelleneintrag ist bereits durch Eröffnungs-Evidence abgebildet; prüfe ihn, ohne erneut zu buchen.",
+  "Package does not belong to the shipment.": "Das Paket gehört nicht zu dieser Sendung.",
+  "Packaged execution requires at least one movement.":
+    "Eine Ausführung mit Paketen erfordert mindestens eine Lagerbewegung.",
+  "Parent location id": "ID des übergeordneten Lagerorts",
+  "Party email labels can contain at most 80 characters.":
+    "Bezeichnungen von E-Mail-Adressen eines Geschäftspartners dürfen höchstens 80 Zeichen lang sein.",
+  "Party name is required.": "Der Name des Geschäftspartners ist erforderlich.",
+  "Party roles must be company, customer, or supplier.":
+    "Geschäftspartnerrollen müssen Unternehmen, Kunde oder Lieferant sein.",
+  PartyGroup: "Partnergruppe",
+  "Payment amount supports at most four decimal places without rounding.":
+    "Der Zahlungsbetrag erlaubt höchstens vier Nachkommastellen ohne Rundung.",
+  "Payment exceeds the open customer receivable.":
+    "Die Zahlung übersteigt die offene Forderung an den Kunden.",
+  "Payment exceeds the open invoice amount.": "Die Zahlung übersteigt den offenen Rechnungsbetrag.",
+  "Payment exceeds the open supplier payable.":
+    "Die Zahlung übersteigt die offene Verbindlichkeit gegenüber dem Lieferanten.",
+  "Payment fields are incomplete or unsupported.":
+    "Die Zahlungsfelder sind unvollständig oder nicht unterstützt.",
+  "Payment reference must be text.": "Die Zahlungsreferenz muss Text sein.",
+  "Payment requires a {document_type}.": "Die Zahlung braucht einen Beleg vom Typ {document_type}.",
+  "Payment term code": "Zahlungsbedingungscode",
+  PaymentTerm: "Zahlungsbedingung",
+  "Playground action identity does not match the confirmed proposal.":
+    "Die Aktions-ID im Playground passt nicht zum bestätigten Vorschlag.",
+  "Playground decision context is no longer valid.":
+    "Der Entscheidungskontext im Playground ist nicht mehr gültig.",
+  "Playground does not support this operation.": "Der Playground unterstützt diese Aktion nicht.",
+  "Playground internal scopes cannot access business operations.":
+    "Interne Playground-Bereiche haben keinen Zugriff auf Geschäftsaktionen.",
+  "Playground run not found.": "Playground-Durchlauf nicht gefunden.",
+  PriceList: "Preisliste",
+  PriceListEntry: "Preislisteneintrag",
+  "Priority must be low, normal, high, or urgent.":
+    "Die Priorität muss low, normal, high oder urgent sein.",
+  "Profile authority does not permit this operation.":
+    "Die Berechtigung des Profils erlaubt diese Aktion nicht.",
+  "Profile costing authority is unavailable.":
+    "Die Kalkulationsberechtigung des Profils ist nicht verfügbar.",
+  "Projected state is only valid for a read-only preview.":
+    "Ein projizierter Zustand ist nur für eine schreibgeschützte Vorschau zulässig.",
+  "Proposal cannot be confirmed from status {status}.":
+    "Der Vorschlag kann im Status {status} nicht bestätigt werden.",
+  "Proposal cannot be rejected from status {status}.":
+    "Der Vorschlag kann im Status {status} nicht abgelehnt werden.",
+  "Proposal execution is in progress or its outcome is unknown; reconcile by proposal ID before taking further action.":
+    "Die Ausführung des Vorschlags läuft noch oder ihr Ergebnis ist unbekannt; kläre sie anhand der Vorschlags-ID, bevor du weiter handelst.",
+  "Proposal is no longer available for confirmation.":
+    "Der Vorschlag steht nicht mehr zur Bestätigung bereit.",
+  "Proposal not found.": "Vorschlag nicht gefunden.",
+  "Proposal references an invalid mutation tool.":
+    "Der Vorschlag verweist auf ein ungültiges Änderungswerkzeug.",
+  "Proposed shipment quantity must be positive and open.":
+    "Die vorgeschlagene Versandmenge muss positiv und noch offen sein.",
+  "Quantity and amount values must be finite.": "Mengen und Beträge müssen endliche Werte sein.",
+  "REALITY_ARTIFACT_STORAGE must be 'file' or 's3'.":
+    "REALITY_ARTIFACT_STORAGE muss 'file' oder 's3' sein.",
+  "REALITY_S3_BUCKET is required for S3 artifact storage.":
+    "REALITY_S3_BUCKET ist für die S3-Artefaktablage erforderlich.",
+  "Read tools do not need a proposal.": "Lesewerkzeuge brauchen keinen Vorschlag.",
+  "Readiness requires a customer-delivery commitment.":
+    "Die Versandbereitschaft erfordert ein Commitment zur Kundenlieferung.",
+  "Receipt cost component bound would be exceeded.":
+    "Die Grenze der Kostenkomponenten des Wareneingangs würde überschritten.",
+  "Receipt cost manifest exceeds the supported scope.":
+    "Das Manifest der Wareneingangskosten überschreitet den unterstützten Umfang.",
+  "Receipt cost quantity differs from inventory input.":
+    "Die Kostenmenge des Wareneingangs weicht von den Bestandsdaten ab.",
+  "Receipt cost scope exceeds the supported 100 component bound.":
+    "Der Umfang der Wareneingangskosten überschreitet die unterstützte Grenze von 100 Komponenten.",
+  "Receipt costs require supplier invoice or credit evidence.":
+    "Wareneingangskosten erfordern eine Lieferantenrechnung oder Gutschrift als Evidence.",
+  "Receipt costs with different currencies require reviewed conversion.":
+    "Wareneingangskosten in verschiedenen Währungen erfordern eine geprüfte Umrechnung.",
+  "Receipt currency conversion is not supported by this slice.":
+    "Die Währungsumrechnung beim Wareneingang wird in diesem Ausbauschritt nicht unterstützt.",
+  "Received component currency contradicts the document.":
+    "Die Währung der erhaltenen Komponente widerspricht dem Beleg.",
+  "Received evidence changed; record replacement evidence instead.":
+    "Die erhaltene Evidence hat sich geändert; erfasse stattdessen eine Ersatz-Evidence.",
+  "Received finance line detail must be an object.":
+    "Die empfangenen Finanzdetails der Position müssen ein Objekt sein.",
+  "Received gross cannot exclude its stated tax.":
+    "Der erhaltene Bruttobetrag darf seine ausgewiesene Steuer nicht ausschließen.",
+  "Received gross contradicts the normalized evidence.":
+    "Der erhaltene Bruttobetrag widerspricht der normalisierten Evidence.",
+  "Received net cannot include input tax.":
+    "Der erhaltene Nettobetrag darf keine Vorsteuer enthalten.",
+  "Refund exceeds the open credit amount.":
+    "Die Rückzahlung übersteigt den offenen Gutschriftsbetrag.",
+  "Refund exceeds what the credit note still owes.":
+    "Die Rückzahlung übersteigt den noch offenen Betrag der Gutschrift.",
+  "Refund fields are incomplete or unsupported.":
+    "Die Felder der Rückzahlung sind unvollständig oder nicht unterstützt.",
+  "Refund reference must be text.": "Die Referenz der Rückzahlung muss Text sein.",
+  "Replaced evidence cannot be reassigned.": "Ersetzte Evidence kann nicht neu zugeordnet werden.",
+  "Replacement cannot silently change currency.":
+    "Ein Ersatz darf die Währung nicht stillschweigend ändern.",
+  "Replacement must be another event on the shipment.":
+    "Der Ersatz muss ein anderes Ereignis derselben Sendung sein.",
+  "Replacement requires fresh distinct evidence.":
+    "Ein Ersatz erfordert neue, eigenständige Evidence.",
+  "Request identity already belongs to another intent.":
+    "Die Anfrage-ID gehört bereits zu einer anderen Absicht.",
+  "Request identity already belongs to another supply assignment.":
+    "Die Anfrage-ID gehört bereits zu einer anderen Zugangszuordnung.",
+  "Request identity was already used for a different change.":
+    "Diese Anfrage-ID wurde bereits für eine andere Änderung verwendet.",
+  "Reservation does not match the confirmed Playground review.":
+    "Die Reservation passt nicht zur bestätigten Playground-Prüfung.",
+  "Reservation not found.": "Reservation nicht gefunden.",
+  "Reservation release cannot emit another event type.":
+    "Die Freigabe einer Reservation kann keinen anderen Ereignistyp erzeugen.",
+  "Resolutions exceed what came back.": "Die Erledigungen überschreiten die zurückgekommene Menge.",
+  "Retained allocation quantity": "Menge der beibehaltenen Zuteilung",
+  "Retained allocation total cannot exceed revised open quantity.":
+    "Die Summe der verbleibenden Zuteilungen darf die revidierte offene Menge nicht überschreiten.",
+  "Retained allocations must name distinct active reservations for this commitment.":
+    "Verbleibende Zuteilungen müssen unterschiedliche aktive Reservations dieses Commitment angeben.",
+  "Retained receipt cost manifest is incomplete or corrupt.":
+    "Das gespeicherte Manifest der Wareneingangskosten ist unvollständig oder beschädigt.",
+  "Return disposition exceeds unresolved arrived quantity.":
+    "Die Retourenentscheidung übersteigt die noch offene eingegangene Menge.",
+  "Return disposition fields are incomplete or unsupported.":
+    "Die Felder der Retourenentscheidung sind unvollständig oder nicht unterstützt.",
+  "Return disposition requires a customer-return Movement with type return.":
+    "Die Retourenentscheidung erfordert eine Kundenretoure als Movement mit der Art return.",
+  "Return disposition requires the arrived return's customer-delivery commitment.":
+    "Die Retourenentscheidung erfordert die Lieferverpflichtung zur eingegangenen Retoure.",
+  "Return disposition requires the arrived return's destination location.":
+    "Die Retourenentscheidung erfordert den Ziellagerplatz der eingegangenen Retoure.",
+  "Return exceeds what was shipped against the commitment.":
+    "Die Retoure überschreitet die gegen die Verpflichtung versandte Menge.",
+  "Return movement was not found.": "Die Retourenbewegung wurde nicht gefunden.",
+  ReturnAnnouncement: "Retourenankündigung",
+  "Reversal fields are incomplete or unsupported.":
+    "Die Felder der Stornierung sind unvollständig oder nicht unterstützt.",
+  "Reversal preview does not match this reason.":
+    "Die Vorschau der Stornierung passt nicht zu diesem Grund.",
+  "Reversing posting groups cannot be reversed.":
+    "Stornobuchungsgruppen können nicht storniert werden.",
+  "Review this action in its Playground run.": "Prüfe diese Aktion in ihrem Playground-Durchlauf.",
+  "Revised quantity": "Geänderte Menge",
+  "Row {row}: SKU {sku} already exists in this company.":
+    "Zeile {row}: SKU {sku} existiert in diesem Unternehmen bereits.",
+  "Row {row}: duplicate SKU {sku} in this file.":
+    "Zeile {row}: doppelte SKU {sku} in dieser Datei.",
+  "Row {row}: the number of fields differs from the header.":
+    "Zeile {row}: Die Anzahl der Felder weicht von der Kopfzeile ab.",
+  "Row {row}: {field} is required and must be at most 500 characters.":
+    "Zeile {row}: {field} ist erforderlich und darf höchstens 500 Zeichen lang sein.",
+  "S3 artifacts must be accessed through materialize_artifact().":
+    "Auf S3-Artefakte muss über materialize_artifact() zugegriffen werden.",
+  "Sales invoice is already posted.": "Die Ausgangsrechnung ist bereits gebucht.",
+  "Scrap or loss requires a reason.": "Verschrottung oder Verlust erfordert einen Grund.",
+  "Secret not found.": "Secret nicht gefunden.",
+  "Select a customer delivery for contextual assistance.":
+    "Wähle eine Kundenlieferung für kontextbezogene Hilfe aus.",
+  "Select a customer invoice.": "Wähle eine Ausgangsrechnung.",
+  "Select an open customer commitment.": "Wähle ein offenes Commitment des Kunden.",
+  "Select an open supplier commitment.": "Wähle ein offenes Commitment des Lieferanten.",
+  "Select at least one credit position.": "Wähle mindestens eine Gutschriftsposition.",
+  "Select at least one invoice position.": "Wähle mindestens eine Rechnungsposition aus.",
+  "Selected price entry does not reproduce the agreed line context.":
+    "Der ausgewählte Preiseintrag gibt den vereinbarten Positionskontext nicht wieder.",
+  "Selling evidence cannot be assigned or replaced as acquisition cost.":
+    "Verkaufs-Evidence kann nicht als Anschaffungskosten zugeordnet oder ersetzt werden.",
+  "Serial unit does not belong to the movement item.":
+    "Die Seriennummer gehört nicht zum Artikel der Lagerbewegung.",
+  "Serial unit does not belong to the selected lot.":
+    "Die Seriennummer gehört nicht zur ausgewählten Charge.",
+  "Serial unit is already in physical stock.":
+    "Die Seriennummer ist bereits im physischen Bestand.",
+  "Serial-tracked items require a serial unit.":
+    "Seriennummerngeführte Artikel benötigen eine Seriennummer.",
+  SerialUnit: "Seriennummer",
+  "Settlement entries must be opposite sides of one control account.":
+    "Ausgleichsbuchungen müssen gegenüberliegende Seiten eines Sammelkontos sein.",
+  "Settlement entries must belong to active posting groups.":
+    "Ausgleichsbuchungen müssen zu aktiven Buchungsgruppen gehören.",
+  "Settlement entries must belong to the same party.":
+    "Ausgleichsbuchungen müssen zum selben Geschäftspartner gehören.",
+  "Settlement entries must use the same currency.":
+    "Ausgleichsbuchungen müssen dieselbe Währung verwenden.",
+  "Settlement requires control accounts.": "Der Ausgleich braucht Sammelkonten.",
+  "Settlement target is not a settleable document.":
+    "Das Ausgleichsziel ist kein ausgleichbarer Beleg.",
+  "Several items match: {names}. Ask which one.":
+    "Mehrere Artikel passen: {names}. Frage nach, welcher gemeint ist.",
+  "Shares must preserve their source bucket sign.":
+    "Anteile müssen das Vorzeichen ihres Ausgangsbetrags behalten.",
+  "Shipment blocked: {blockers} (required {required_amount} {required_currency}, received {received_amount} {received_currency}).":
+    "Versand gesperrt: {blockers} (erforderlich {required_amount} {required_currency}, eingegangen {received_amount} {received_currency}).",
+  "Shipment direction does not match its purpose.":
+    "Die Richtung der Sendung passt nicht zu ihrem Zweck.",
+  "Shipment event correction reason is required.":
+    "Für die Korrektur des Sendungsereignisses ist ein Grund erforderlich.",
+  "Shipment event is already superseded.": "Das Sendungsereignis ist bereits ersetzt.",
+  ShipmentEvent: "Sendungsereignis",
+  ShipmentPackage: "Packstück",
+  Sku: "SKU",
+  "Source artifact not found.": "Quellartefakt nicht gefunden.",
+  "Source capacity": "Ausgangsbetrag",
+  "Source code must use 1–100 lowercase letters, numbers, dots, dashes or underscores.":
+    "Der Quellcode muss aus 1–100 Kleinbuchstaben, Ziffern, Punkten, Bindestrichen oder Unterstrichen bestehen.",
+  "Source system and external ID must be provided together.":
+    "Source-System und externe ID müssen gemeinsam angegeben werden.",
+  SourceArtifact: "Quelldatei",
+  SourceCapability: "Quellfunktion",
+  SourceRecord: "SourceRecord",
+  SourceSystem: "Quellsystem",
+  "State net and tax on each invoice position.":
+    "Gib Netto und Steuer für jede Rechnungsposition an.",
+  "Stated invoice amounts accept net, tax, base, gross and currency only.":
+    "Angegebene Rechnungsbeträge erlauben nur Netto, Steuer, Basis, Brutto und Währung.",
+  "Stated nonzero tax cannot be declared not applicable.":
+    "Eine ausgewiesene Steuer ungleich null kann nicht als nicht zutreffend erklärt werden.",
+  "SubledgerAccount not found.": "Nebenbuchkonto nicht gefunden.",
+  "Supplier commitment was not found.": "Commitment des Lieferanten wurde nicht gefunden.",
+  "Supplier credit note total": "Betrag der Lieferantengutschrift",
+  "Supplier invoice is already posted.": "Die Eingangsrechnung ist bereits gebucht.",
+  "Supplier return exceeds what was received against the commitment.":
+    "Die Lieferantenretoure überschreitet die gegen die Verpflichtung erhaltene Menge.",
+  "Supply and demand items must match.": "Die Artikel von Zugang und Bedarf müssen übereinstimmen.",
+  "Supply and demand locations must match.":
+    "Die Lagerorte von Zugang und Bedarf müssen übereinstimmen.",
+  "Supply assignment exceeds open customer demand.":
+    "Die Zuordnung übersteigt den offenen Kundenbedarf.",
+  "Supply assignment exceeds unassigned supplier quantity.":
+    "Die Zuordnung übersteigt die noch nicht zugeordnete Lieferantenmenge.",
+  "Supply assignment fields are incomplete or unsupported.":
+    "Die Angaben zur Zugangszuordnung sind unvollständig oder werden nicht unterstützt.",
+  "Supply assignment quantity must be a decimal.":
+    "Die Menge der Zugangszuordnung muss eine Dezimalzahl sein.",
+  "Supply assignment quantity must be positive.": "Die zugeordnete Zulaufmenge muss positiv sein.",
+  "Supply assignment quantity must fit four decimal places without rounding.":
+    "Die Menge der Zugangszuordnung muss ohne Rundung in vier Nachkommastellen passen.",
+  "Supply coverage requires a supplier commitment.":
+    "Die Zugangsdeckung erfordert ein Commitment des Lieferanten.",
+  "Tax cannot be counted twice or assigned as recoverable.":
+    "Steuer kann nicht doppelt gezählt oder als abziehbar zugeordnet werden.",
+  "Tax cost direction must follow the selected amount for the same receipt.":
+    "Die Kostenrichtung der Steuer muss dem gewählten Betrag desselben Wareneingangs folgen.",
+  Tenant: "Unternehmen",
+  "Tenant not found.": "Firma nicht gefunden.",
+  "The acquisition value supports at most 4 decimal places.":
+    "Der Anschaffungswert erlaubt höchstens 4 Nachkommastellen.",
+  "The action contains unsupported fields.": "Die Aktion enthält nicht unterstützte Felder.",
+  "The configured AI API key cannot be decrypted.":
+    "Der konfigurierte KI-API-Schlüssel kann nicht entschlüsselt werden.",
+  "The configured AI API key is detached from its session.":
+    "Der konfigurierte KI-API-Schlüssel ist von seiner Sitzung getrennt.",
+  "The configured secret cannot be decrypted.":
+    "Das konfigurierte Secret kann nicht entschlüsselt werden.",
+  "The correction contains unsupported fields.": "Die Korrektur enthält nicht unterstützte Felder.",
+  "The customer role must remain on a customer record.":
+    "Die Kundenrolle muss auf einem Kundendatensatz bleiben.",
+  "The delivery changed. Prepare a fresh invoice review.":
+    "Die Lieferung hat sich geändert. Bereite eine neue Rechnungsprüfung vor.",
+  "The delivery changed. Prepare a fresh review.":
+    "Die Lieferung hat sich geändert. Verwirf den Vorschlag und bereite eine neue Prüfung vor.",
+  "The financial context changed. Prepare a fresh review.":
+    "Der Finanzkontext hat sich geändert. Verwirf den Vorschlag und bereite eine neue Prüfung vor.",
+  "The invoice delivery evidence is missing or ambiguous.":
+    "Der Liefernachweis zur Rechnung fehlt oder ist mehrdeutig.",
+  "The invoice delivery guard is invalid.": "Die Lieferprüfung der Rechnung ist ungültig.",
+  "The invoice delivery unit cannot be verified.":
+    "Die Liefereinheit der Rechnung kann nicht geprüft werden.",
+  "The item import changed. Prepare a fresh review.":
+    "Der Artikelimport hat sich geändert. Verwirf den Vorschlag und bereite eine neue Prüfung vor.",
+  "The order contains an invalid value.": "Der Auftrag enthält einen ungültigen Wert.",
+  "The order has missing or unsupported fields.":
+    "Der Auftrag hat fehlende oder nicht unterstützte Felder.",
+  "The original file no longer matches its recorded hash.":
+    "Die Originaldatei stimmt nicht mehr mit ihrem erfassten Hash überein.",
+  "The payment context changed. Prepare a fresh review.":
+    "Der Zahlungskontext hat sich geändert. Verwirf den Vorschlag und bereite eine neue Prüfung vor.",
+  "The revised quantity requires an explicit retained reservation choice because active allocations use different locations or tracking identities.":
+    "Die geänderte Menge erfordert eine ausdrückliche Auswahl der beizubehaltenden Reservierung, weil aktive Zuteilungen unterschiedliche Lagerorte oder Nachverfolgungsidentitäten verwenden.",
+  "The sandbox companion is read-only.": "Das Sandbox-Begleitunternehmen ist schreibgeschützt.",
+  "The selected received amount is missing; it cannot be recomputed.":
+    "Der ausgewählte erhaltene Betrag fehlt; er kann nicht neu berechnet werden.",
+  "The stated currency differs from the invoice.":
+    "Die angegebene Währung weicht von der Rechnung ab.",
+  "The stated gross differs from the position's gross.":
+    "Der angegebene Bruttobetrag weicht vom Bruttobetrag der Position ab.",
+  "The stated {field} must be a non-negative amount.":
+    "Der angegebene Wert für {field} muss ein nicht negativer Betrag sein.",
+  "The stated {field} must be a number.": "Der angegebene Wert für {field} muss eine Zahl sein.",
+  "The supplier role must remain on a supplier record.":
+    "Die Lieferantenrolle muss auf einem Lieferantendatensatz bleiben.",
+  "This Movement already has a correction chain.":
+    "Dieses Movement hat bereits eine Korrekturkette.",
+  "This Playground run is read-only or not ready.":
+    "Dieser Playground-Durchlauf ist schreibgeschützt oder nicht bereit.",
+  "This action is not supported by the delivery review.":
+    "Diese Aktion wird von der Lieferprüfung nicht unterstützt.",
+  "This delivery has no active own hold. Prepare a fresh review.":
+    "Diese Lieferung hat keine aktive eigene Sperre. Bereite eine neue Prüfung vor.",
+  "This delivery is already on hold. Prepare a fresh review.":
+    "Diese Lieferung ist bereits gesperrt. Bereite eine neue Prüfung vor.",
+  "This exact order is already recorded. Open the existing order instead.":
+    "Genau dieser Auftrag ist bereits erfasst. Öffne stattdessen den vorhandenen Auftrag.",
+  "This file interpretation was already recorded. Inspect its original result.":
+    "Diese Dateiauswertung wurde bereits erfasst. Sieh dir ihr ursprüngliches Ergebnis an.",
+  "This is not a shipment action.": "Das ist keine Versandaktion.",
+  "This posting group has already been reversed.": "Diese Buchungsgruppe wurde bereits storniert.",
+  "This proposal uses its existing review workspace.":
+    "Dieser Vorschlag verwendet seinen bestehenden Prüfbereich.",
+  "This return disposition requires a destination location.":
+    "Diese Retourenentscheidung erfordert einen Ziellagerplatz.",
+  "This slice supports positive goods receipts, not returns or inventory valuation.":
+    "Dieser Ausbauschritt unterstützt positive Wareneingänge, keine Retouren oder Bestandsbewertung.",
+  "Tool not found.": "Werkzeug nicht gefunden.",
+  "Tracking type": "Rückverfolgungsart",
+  "Tracking type must be none, lot, or serial.":
+    "Die Nachverfolgungsart muss none, lot oder serial sein.",
+  "Type, number, party, and currency are required.":
+    "Typ, Nummer, Geschäftspartner und Währung sind erforderlich.",
+  "Unsupported commitment action.": "Nicht unterstützte Commitment-Aktion.",
+  "Unsupported commitment type.": "Nicht unterstützte Art der Verpflichtung.",
+  "Unsupported cost review draft kind.": "Nicht unterstützte Art des Kostenprüfungsentwurfs.",
+  "Unsupported hold reason.": "Nicht unterstützter Sperrgrund.",
+  "Unsupported inventory base unit or future cutoff.":
+    "Nicht unterstützte Basiseinheit des Bestands oder Stichtag in der Zukunft.",
+  "Unsupported inventory calculation: {reason}": "Nicht unterstützte Bestandsberechnung: {reason}",
+  "Unsupported inventory review version.": "Nicht unterstützte Version der Bestandsprüfung.",
+  "Unsupported item import fields.": "Nicht unterstützte Felder für den Artikelimport.",
+  "Unsupported master data family.": "Nicht unterstützte Stammdatenart.",
+  "Unsupported master data fields: {fields}.": "Nicht unterstützte Stammdatenfelder: {fields}.",
+  "Unsupported master data operation.": "Nicht unterstützte Stammdatenaktion.",
+  "Unsupported movement type.": "Nicht unterstützte Art der Lagerbewegung.",
+  "Unsupported movement type. Expected one of: {types}.":
+    "Nicht unterstützte Bewegungsart. Erwartet wird eine von: {types}.",
+  "Unsupported operational document type. Expected one of: {types}.":
+    "Nicht unterstützter operativer Belegtyp. Erwartet wird einer von: {types}.",
+  "Unsupported receipt cost manifest.": "Nicht unterstütztes Manifest der Wareneingangskosten.",
+  "Unsupported received finance detail contract.":
+    "Nicht unterstützter Vertrag für erhaltene Finanzdetails.",
+  "Unsupported replacement fields.": "Nicht unterstützte Ersatzfelder.",
+  "Unsupported return disposition.": "Nicht unterstützte Retourenentscheidung.",
+  "Unsupported shipment event kind or reporter.":
+    "Nicht unterstützte Art oder Meldequelle des Sendungsereignisses.",
+  "Unsupported shipment event reporter.": "Nicht unterstützte Meldequelle des Sendungsereignisses.",
+  "Unsupported shipment field(s): {fields}": "Nicht unterstützte Sendungsfelder: {fields}",
+  "Unsupported shipment movement field(s): {fields}":
+    "Nicht unterstützte Felder der Lagerbewegung: {fields}",
+  "Unsupported shipment purpose.": "Dieser Sendungszweck wird nicht unterstützt.",
+  "Unsupported shipment purpose; permitted values: {values}.":
+    "Nicht unterstützter Sendungszweck; zulässige Werte: {values}.",
+  "Unsupported supply assignment purpose.": "Nicht unterstützter Zweck der Zugangszuordnung.",
+  "Untracked items cannot use lot or serial identity.":
+    "Nicht nachverfolgte Artikel können keine Charge oder Seriennummer verwenden.",
+  "Update records require an opaque ID.": "Änderungsdatensätze benötigen eine opake ID.",
+  "Use a received line, not its duplicate document total.":
+    "Verwende eine erhaltene Position, nicht die doppelte Belegsumme.",
+  "Use either invoice lines or a single order line.":
+    "Verwende entweder Rechnungspositionen oder eine einzelne Auftragsposition.",
+  "Use either invoice positions or legacy return-credit fields.":
+    "Verwende entweder Rechnungspositionen oder die alten Retouren-Gutschriftsfelder.",
+  "Use either parent_ref for this batch or parent_location_id for an existing Location.":
+    "Verwende entweder parent_ref für diesen Batch oder parent_location_id für einen bestehenden Lagerort.",
+  "Use the existing practice action policy.":
+    "Verwende die bestehende Richtlinie für Übungsaktionen.",
+  "Use the reviewed practice actions for this company.":
+    "Nutze für dieses Unternehmen die geprüften Übungsaktionen.",
+  "Valuation assessment integrity mismatch.":
+    "Die Daten der Bestandsbewertung sind nicht konsistent.",
+  "Your {count} available AI questions are used. Resets at {resets_at}. You can keep exploring your company.":
+    "Deine {count} verfügbaren KI-Fragen sind aufgebraucht. Zurückgesetzt um {resets_at}. Du kannst dein Unternehmen weiter erkunden.",
+  "allocation amount": "Zuordnungsbetrag",
+  base: "Basis",
+  "credit amount": "Gutschriftsbetrag",
+  gross: "Brutto",
+  "line amount": "Positionsbetrag",
+  name: "Bezeichnung",
+  net: "Netto",
+  quantity: "Menge",
+  sku: "SKU",
+  tax: "Steuer",
+  type: "Typ",
+  unit: "Einheit",
+  "{family} changed since proposal review; create a new proposal.":
+    "{family} wurde seit der Prüfung des Vorschlags geändert; erstelle einen neuen Vorschlag.",
+  "{field} cannot be negative.": "{field} darf nicht negativ sein.",
+  "{field} must be a number.": "{field} muss eine Zahl sein.",
+  "{field} must be a whole number.": "{field} muss eine ganze Zahl sein.",
+  "{field} must be greater than zero.": "{field} muss größer als null sein.",
+  "{field} must be one of: {options}.": "{field} muss einer dieser Werte sein: {options}.",
+  "{field} must be text.": "{field} muss Text sein.",
+  "{field} must be true or false.": "{field} muss wahr oder falsch sein.",
+  "{field} must fit the four decimal contract.":
+    "{field} darf höchstens vier Nachkommastellen haben.",
+  "{label} must be a decimal value.": "{label} muss ein Dezimalwert sein.",
+  "{label} must be positive and fit four decimal places without rounding.":
+    "{label} muss positiv sein und ohne Rundung in vier Nachkommastellen passen.",
+  "{record} not found.": "{record} wurde nicht gefunden.",
+});
+
+Object.assign(dictionaries.nl, {
+  "A Party can have at most 20 email addresses.":
+    "Een relatie kan maximaal 20 e-mailadressen hebben.",
+  "A Party cannot contain duplicate email addresses.":
+    "Een relatie mag geen dubbele e-mailadressen bevatten.",
+  "A billed reference must point at an order line.":
+    "Een gefactureerde verwijzing moet naar een orderregel wijzen.",
+  "A billed reference must stay on one side of the business.":
+    "Een gefactureerde verwijzing moet aan één kant van het bedrijf blijven (verkoop of inkoop).",
+  "A bounded request identity is required.": "Een begrensde aanvraag-ID is vereist.",
+  "A cancellation requires a reason.": "Voor een annulering is een reden nodig.",
+  "A category with attributed costs cannot be declared zero/not applicable.":
+    "Een categorie met toegewezen kosten kan niet als nul/niet van toepassing worden verklaard.",
+  "A compensating Movement cannot be corrected.":
+    "Een compenserend Movement kan niet worden gecorrigeerd.",
+  "A credit note carries no stated net and tax here.":
+    "Een creditnota heeft hier geen opgegeven netto en btw.",
+  "A credit reason is required.": "Een reden voor de creditering is vereist.",
+  "A current review and explicit confirmation are required.":
+    "Een actuele controle en een expliciete bevestiging zijn vereist.",
+  "A default location cannot be removed; choose another location.":
+    "Een standaardlocatie kan niet worden verwijderd; kies een andere locatie.",
+  "A default unit of at most 500 characters is required.":
+    "Een standaardeenheid van maximaal 500 tekens is vereist.",
+  "A delivery guard requires a sales invoice.": "Een leveringscontrole vereist een verkoopfactuur.",
+  "A delivery guard requires a single sales order line.":
+    "Een leveringscontrole vereist één verkooporderregel.",
+  "A financial execution for this record is unresolved. Check its outcome first.":
+    "Een financiële uitvoering voor dit record is nog onduidelijk. Controleer eerst het resultaat.",
+  "A hold note must be text.": "Een blokkadenotitie moet tekst zijn.",
+  "A location cannot be its own parent.":
+    "Een locatie kan niet haar eigen bovenliggende locatie zijn.",
+  "A manual document requires a stated total; it is never calculated.":
+    "Een handmatig document vereist een opgegeven totaal; dat wordt nooit berekend.",
+  "A manual document requires at least one line.":
+    "Een handmatig document vereist minstens één regel.",
+  "A movement fulfils an announcement of its own delivery only.":
+    "Een voorraadbeweging vervult alleen een aankondiging van haar eigen levering.",
+  "A new complete receipt review is required before inventory confirmation.":
+    "Vóór de voorraadbevestiging is een nieuwe, volledige controle van de goederenontvangsten nodig.",
+  "A resolution must concern the same item as the return.":
+    "Een afhandeling moet hetzelfde artikel betreffen als de retour.",
+  "A resolution must name a return.": "Een afhandeling moet een retour noemen.",
+  "A resolution must take the goods out of the location they came back to.":
+    "Een afhandeling moet de goederen uit de locatie halen waar ze zijn teruggekomen.",
+  "A retained allocation cannot exceed its active reservation.":
+    "Een behouden toewijzing mag haar actieve Reservation niet overschrijden.",
+  "A reversing posting group cannot be reversed.":
+    "Een terugdraaiende boekingsgroep kan niet worden teruggedraaid.",
+  "A revision must restate a date, a quantity, or both.":
+    "Een herziening moet een datum, een hoeveelheid of beide opnieuw vermelden.",
+  "A revision must state a readable date.": "Een herziening moet een leesbare datum vermelden.",
+  "A selected price entry requires a supported commercial document and item.":
+    "Een geselecteerde prijsregel vereist een ondersteund handelsdocument en artikel.",
+  "A serial movement must have quantity 1.":
+    "Een voorraadbeweging met serienummer moet hoeveelheid 1 hebben.",
+  "A serial reservation must have quantity 1.":
+    "Een reservering met serienummer moet hoeveelheid 1 hebben.",
+  "A verified, enabled account is required for Playground.":
+    "Voor de Playground is een geverifieerd, actief account vereist.",
+  "A zero allocation belongs in explicit scope review.":
+    "Een verdeling van nul hoort in een uitdrukkelijke omvangcontrole.",
+  "A {field} of at most 500 characters is required.": "{field} is verplicht (maximaal 500 tekens).",
+  "Account changes require a confirming company owner.":
+    "Accountwijzigingen vereisen een bevestigende bedrijfseigenaar.",
+  "Account is blocked or has the wrong operational role.":
+    "De rekening is geblokkeerd of heeft de verkeerde operationele rol.",
+  "Account not found.": "Account niet gevonden.",
+  "Active company owner access required.": "Actieve toegang als bedrijfseigenaar vereist.",
+  "Active payment term '{code}' not found.": "Actieve betalingstermijn '{code}' niet gevonden.",
+  "Active tool proposal not found.": "Actief toolvoorstel niet gevonden.",
+  "Adjustment reason is required.": "Een reden voor de voorraadcorrectie is verplicht.",
+  "Adjustment requires exactly one location direction.":
+    "Een voorraadcorrectie vereist precies één locatierichting.",
+  "Admit evidenced receipt costs before reviewing scope.":
+    "Neem onderbouwde ontvangstkosten op voordat je het bereik beoordeelt.",
+  "Admitted inventory movement input changed.":
+    "De opgenomen gegevens van de voorraadbeweging zijn gewijzigd.",
+  "Admitted opening stock input changed.":
+    "De opgenomen gegevens van de beginvoorraad zijn gewijzigd.",
+  "Allocation exceeds the credit or open invoice amount.":
+    "De toewijzing overschrijdt het crediteringsbedrag of het openstaande factuurbedrag.",
+  "Allocation exceeds the invoice open amount.":
+    "De toewijzing overschrijdt het openstaande factuurbedrag.",
+  "Allocation exceeds the unallocated payment amount.":
+    "De toewijzing overschrijdt het niet-toegewezen betalingsbedrag.",
+  "Allocation total": "Verdeeltotaal",
+  "Allocation total exceeds the received source capacity.":
+    "Het verdeeltotaal overschrijdt het ontvangen bronbedrag.",
+  "Allocation total must preserve the source bucket sign.":
+    "Het verdeeltotaal moet het teken van het bronbedrag behouden.",
+  "Allocation weights must be positive.": "Verdeelgewichten moeten positief zijn.",
+  "Allows stock": "Voorraad toegestaan",
+  "Amount must be an exact finite decimal with at most four decimal places.":
+    "Het bedrag moet een exact, eindig decimaal getal zijn met maximaal vier decimalen.",
+  "An active company owner is required.": "Een actieve bedrijfseigenaar is vereist.",
+  "An authenticated active company owner is required.":
+    "Een aangemelde actieve bedrijfseigenaar is vereist.",
+  "An earlier action for this commitment is unresolved. Check its outcome first.":
+    "Een eerdere actie voor deze Commitment is nog onduidelijk. Controleer eerst het resultaat.",
+  "An earlier delivery execution is unresolved. Check its outcome first.":
+    "Een eerdere leveringsuitvoering is nog onduidelijk. Controleer eerst het resultaat.",
+  "An earlier overlapping execution is unresolved. Check its outcome first.":
+    "Een eerdere overlappende uitvoering is onopgelost. Controleer eerst de uitkomst.",
+  "An earlier return disposition is unresolved. Check its outcome first.":
+    "Een eerdere retourbestemming is onopgelost. Controleer eerst de uitkomst.",
+  "An earlier supply assignment is unresolved. Check its outcome first.":
+    "Een eerdere aanvoertoewijzing is nog onduidelijk. Controleer eerst het resultaat.",
+  "An evidenced base unit is required.": "Een onderbouwde basiseenheid is vereist.",
+  "An exact file-import configuration is required.":
+    "Een exacte configuratie voor de bestandsimport is vereist.",
+  "An exact record and review revision are required.":
+    "Een exact record en de gecontroleerde revisie zijn vereist.",
+  "An existing credit spans other evidence. Inspect its attribution first.":
+    "Een bestaande creditering omvat ander bewijs. Controleer eerst de toerekening.",
+  "An identical order execution is unresolved. Check its outcome first.":
+    "Een identieke orderuitvoering is nog onduidelijk. Controleer eerst het resultaat.",
+  "An invoice carries at most {limit} positions.": "Een factuur bevat maximaal {limit} regels.",
+  "An invoice credit execution is unresolved. Check its outcome first.":
+    "Een uitvoering van een factuurcreditering is onopgelost. Controleer eerst de uitkomst.",
+  "An invoice execution for this order line is unresolved. Check its outcome first.":
+    "Een factuuruitvoering voor deze orderregel is nog onduidelijk. Controleer eerst het resultaat.",
+  "An older order-linked credit has no invoice attribution. Inspect it before crediting this invoice.":
+    "Een oudere ordergebonden creditering is niet aan een factuur toegerekend. Controleer die voordat je deze factuur crediteert.",
+  "An older order-linked credit has no invoice attribution. Inspect it before crediting this position.":
+    "Een oudere ordergebonden creditering is niet aan een factuur toegerekend. Controleer die voordat je deze regel crediteert.",
+  "An order requires at least one item line.": "Een order vereist minstens één artikelregel.",
+  "An overlapping financial action is unresolved. Check its outcome first.":
+    "Een overlappende financiële actie is onopgelost. Controleer eerst de uitkomst.",
+  "An overlapping item creation is unresolved. Check its outcome first.":
+    "Een overlappende artikelaanmaak is onopgelost. Controleer eerst het resultaat.",
+  "Announced quantity": "Aangekondigde hoeveelheid",
+  "Artifact storage key is invalid.": "De opslagsleutel van het artefact is ongeldig.",
+  "Assessment currency differs from inventory currency.":
+    "De valuta van de waardering wijkt af van de voorraadvaluta.",
+  "Assessment member is not exact remaining inventory.":
+    "De positie van de waardering is geen exacte resterende voorraad.",
+  "Assessment quantity exceeds remaining inventory.":
+    "De waarderingshoeveelheid overschrijdt de resterende voorraad.",
+  "Assign to the replacement receipt, not a corrected original.":
+    "Wijs toe aan de vervangende ontvangst, niet aan het gecorrigeerde origineel.",
+  "Assigned shares exceed the received bucket.":
+    "De toegewezen aandelen overschrijden het ontvangen bedrag.",
+  "At least one Item is required.": "Er is minimaal één artikel vereist.",
+  "At least one Location is required.": "Er is minimaal één locatie vereist.",
+  "At least one Party is required.": "Er is minimaal één relatie vereist.",
+  "At least one allocation target is required.": "Er is minstens één verdeeldoel nodig.",
+  "At least one update record is required.": "Er is minimaal één wijzigingsrecord vereist.",
+  "Billing availability requires an order line.":
+    "De factureerbare hoeveelheid vereist een orderregel.",
+  BusinessEvent: "Bedrijfsgebeurtenis",
+  "CSV column names must be at most 500 characters.":
+    "CSV-kolomnamen mogen maximaal 500 tekens lang zijn.",
+  "CSV contains an invalid null character.": "Het CSV-bestand bevat een ongeldig nulteken.",
+  ChangeProposal: "Wijzigingsvoorstel",
+  ChatSession: "Chatgesprek",
+  "Check the supported replacement fields.": "Controleer de ondersteunde vervangende velden.",
+  "Choose an item and a destination location.": "Kies een artikel en een bestemmingslocatie.",
+  "Choose the exact retained reservation IDs and quantities, then prepare a fresh review.":
+    "Kies de exacte ID's en hoeveelheden van de behouden Reservations en bereid daarna een nieuwe controle voor.",
+  "Commitment cancellation fields are incomplete or unsupported.":
+    "De velden voor het annuleren van de Commitment zijn onvolledig of worden niet ondersteund.",
+  "Commitment cancellation reason is required.":
+    "Een reden voor het annuleren van de Commitment is vereist.",
+  "Commitment is on hold ({reason}); release it before execution.":
+    "Commitment is geblokkeerd ({reason}); geef het vrij vóór uitvoering.",
+  "Commitment revision fields are incomplete or unsupported.":
+    "De velden voor de herziening van de Commitment zijn onvolledig of worden niet ondersteund.",
+  "Commitment was not found.": "Commitment is niet gevonden.",
+  "Company not found.": "Bedrijf niet gevonden.",
+  "Compensating Movements cannot be corrected.":
+    "Compenserende Movements kunnen niet worden gecorrigeerd.",
+  "Context annotations are created by the server.":
+    "Contextannotaties worden door de server aangemaakt.",
+  "Contribution inputs changed during preview; retry the read.":
+    "De invoer van de dekkingsbijdrage is tijdens het voorbeeld gewijzigd; lees opnieuw.",
+  "Conversion kind does not match the requested use.":
+    "Het soort omrekening past niet bij het gevraagde gebruik.",
+  "Conversion source currency does not match received evidence.":
+    "De bronvaluta van de omrekening komt niet overeen met de ontvangen Evidence.",
+  "Conversion source currency does not match retained evidence.":
+    "De bronvaluta van de omrekening komt niet overeen met de bewaarde Evidence.",
+  "Cost decision is not bound to this proposal.":
+    "De kostenbeslissing hoort niet bij dit voorstel.",
+  "Cost proposal is not available for execution.":
+    "Het kostenvoorstel is niet beschikbaar voor uitvoering.",
+  "Costing evidence preview is stale.": "Het Evidence-voorbeeld van de kostprijs is verouderd.",
+  "Costing preview is stale; reload the held evidence.":
+    "Het kostprijsvoorbeeld is verouderd; laad de aanwezige Evidence opnieuw.",
+  "Costing scope not found.": "Kostprijsbereik niet gevonden.",
+  "Counterparty role does not match shipment purpose.":
+    "De rol van de tegenpartij past niet bij het doel van de zending.",
+  "Credit amount exceeds the remaining invoice amount.":
+    "Het crediteringsbedrag overschrijdt het resterende factuurbedrag.",
+  "Credit fields are incomplete or unsupported.":
+    "De velden van de creditering zijn onvolledig of niet ondersteund.",
+  "Credit limit cannot be negative.": "De kredietlimiet mag niet negatief zijn.",
+  "Credit note is already posted.": "De creditnota is al geboekt.",
+  "Credit note posting is reversed.": "De boeking van de creditnota is teruggedraaid.",
+  "Credit note total": "Totaal creditnota",
+  "Credit position fields are incomplete or unsupported.":
+    "De velden van de crediteringsregel zijn onvolledig of niet ondersteund.",
+  "Credit positions must be distinct.": "De crediteringsregels moeten verschillend zijn.",
+  "Credit quantity exceeds returned, not yet credited goods.":
+    "De creditnotahoeveelheid overschrijdt de geretourneerde, nog niet gecrediteerde goederen.",
+  "Credit quantity exceeds the remaining invoice quantity.":
+    "De crediteringshoeveelheid overschrijdt de resterende factuurhoeveelheid.",
+  "Credit requires a posted invoice without reversed posting groups.":
+    "Een creditering vereist een geboekte factuur zonder teruggedraaide boekingsgroepen.",
+  "Current contribution preview requires READ COMMITTED.":
+    "Het huidige voorbeeld van de dekkingsbijdrage vereist READ COMMITTED.",
+  "Customer commitment was not found.": "Commitment van de klant is niet gevonden.",
+  "Customer demand requires one customer commitment; stock replenishment requires none.":
+    "Klantvraag vereist één Commitment van een klant; voorraadaanvulling vereist er geen.",
+  "Customer dispatch requires a delivery commitment.":
+    "Een verzending naar een klant vereist een leveringsverplichting.",
+  "Customer dispatch requires a valid movement quantity.":
+    "Een verzending naar een klant vereist een geldige bewegingshoeveelheid.",
+  "Customer has an active delivery hold; release it before shipment.":
+    "De klant heeft een actieve leveringsblokkade; hef deze op vóór verzending.",
+  "Customer-delivery order not found.": "Klantorder voor levering niet gevonden.",
+  "Date/time must be a valid ISO 8601 value.": "Datum/tijd moet een geldige ISO 8601-waarde zijn.",
+  "Default currency must be a three-letter code.":
+    "De standaardvaluta moet een code van drie letters zijn.",
+  "Default location id": "ID standaardlocatie",
+  "Delivery not found.": "Levering niet gevonden.",
+  "Delivery quantity": "Leverhoeveelheid",
+  "Demand coverage requires a customer commitment.":
+    "Vraagdekking vereist een Commitment van een klant.",
+  "Document date must use YYYY-MM-DD.": "De documentdatum moet de notatie YYYY-MM-DD gebruiken.",
+  "Document is not a credit note.": "Het document is geen creditnota.",
+  "Document is not a sales invoice.": "Het document is geen verkoopfactuur.",
+  "Document is not a supplier invoice.": "Het document is geen leveranciersfactuur.",
+  "Document line does not belong to the document.": "De documentregel hoort niet bij het document.",
+  DocumentLine: "Documentregel",
+  DunningNotice: "Aanmaning",
+  "Duplicate Location batch reference: {reference}":
+    "Dubbele batchreferentie van een locatie: {reference}",
+  "Duplicate allocation target.": "Het verdeeldoel komt dubbel voor.",
+  "Duplicate target/category/bucket.": "Doel, categorie en bedragsoort komen dubbel voor.",
+  "Duplicate update target: {record_id}": "Dubbel wijzigingsdoel: {record_id}",
+  "Each retained allocation must name only reservation_id and quantity.":
+    "Elke behouden toewijzing mag alleen reservation_id en quantity noemen.",
+  "Each shipment movement must be an object.":
+    "Elke voorraadbeweging van een zending moet een object zijn.",
+  "Email addresses must use an ASCII domain.": "E-mailadressen moeten een ASCII-domein gebruiken.",
+  "Enter a non-negative acquisition value.": "Voer een niet-negatieve aanschaffingswaarde in.",
+  "Enter a question.": "Voer een vraag in.",
+  "Enter a three-letter currency code.": "Voer een valutacode van drie letters in.",
+  "Enter a valid email address.": "Voer een geldig e-mailadres in.",
+  "Enter a valid occurrence time.": "Voer een geldig tijdstip in.",
+  "Enter the acquisition value as a number.": "Voer de aanschaffingswaarde in als getal.",
+  "Every allocation target requires an opaque identity.":
+    "Elk verdeeldoel heeft een unieke identiteit nodig.",
+  "Every opening stock requires exact cost and ownership evidence.":
+    "Elke beginvoorraad vereist exacte bewijzen van kosten en eigendom.",
+  "Every receipt requires exact cost and ownership evidence; missing movement IDs: {missing}; unexpected movement IDs: {unexpected}.":
+    "Elke goederenontvangst vereist exacte bewijzen van kosten en eigendom; ontbrekende bewegings-ID's: {missing}; onverwachte bewegings-ID's: {unexpected}.",
+  "Evidence was already replaced.": "De Evidence is al vervangen.",
+  "Explicit confirmation is required for cost decisions.":
+    "Voor kostenbeslissingen is een expliciete bevestiging vereist.",
+  "Explicit economic consumption must cover every shipment exactly.":
+    "Het expliciete economische verbruik moet elke uitlevering precies dekken.",
+  "Explicit retained allocations are only accepted when active reservation identities require a choice.":
+    "Expliciet behouden toewijzingen worden alleen geaccepteerd als de identiteiten van actieve reserveringen een keuze vereisen.",
+  "External id": "Externe ID",
+  "Finance action does not match the confirmed Playground review.":
+    "De financiële actie komt niet overeen met de bevestigde Playground-controle.",
+  "Finance changes require a confirmed proposal.":
+    "Financiële wijzigingen vereisen een bevestigd voorstel.",
+  "Financial evidence is at or before the opening cutover; reconcile coverage before posting.":
+    "De financiële Evidence ligt op of vóór de openingsdatum; stem de dekking af voordat je boekt.",
+  FinancialComponent: "Financieel onderdeel",
+  "Fulfillment commitment not found.": "Commitment voor de uitlevering niet gevonden.",
+  Gross_amount: "Bruto bedrag",
+  HandlingUnit: "Laadeenheid",
+  ImportJob: "Importtaak",
+  "Internal review metadata cannot be supplied as intent.":
+    "Interne controlemetadata kunnen niet als intentie worden meegegeven.",
+  "Inventory action input integrity mismatch.":
+    "De invoergegevens van de voorraadactie zijn niet consistent.",
+  "Inventory admission requires READ COMMITTED input capture.":
+    "Voorraadopname vereist invoerregistratie met READ COMMITTED.",
+  "Inventory correction chain is incomplete.": "De correctieketen van de voorraad is onvolledig.",
+  "Inventory correction requires one exact event.":
+    "Een voorraadcorrectie vereist precies één gebeurtenis.",
+  "Inventory history contains unsupported movement classification: every {movement_type} must be explicit.":
+    "De voorraadhistorie bevat een niet-ondersteunde classificatie van bewegingen: elke beweging van het type {movement_type} moet expliciet zijn.",
+  "Inventory history contains unsupported movement kinds.":
+    "De voorraadhistorie bevat niet-ondersteunde soorten bewegingen.",
+  "Inventory history does not support the declared empty opening.":
+    "De voorraadhistorie past niet bij de opgegeven lege beginvoorraad.",
+  "Inventory input integrity mismatch.": "De voorraadgegevens zijn niet consistent.",
+  "Inventory movement bound exceeded.": "De limiet voor voorraadbewegingen is overschreden.",
+  "Inventory movement requires one exact recorded event.":
+    "Een voorraadbeweging vereist precies één vastgelegde gebeurtenis.",
+  "Inventory opening integrity mismatch.": "De gegevens van de beginvoorraad zijn niet consistent.",
+  "Inventory ownership integrity mismatch.":
+    "De eigendomsgegevens van de voorraad zijn niet consistent.",
+  "Inventory ownership must partition every effective movement.":
+    "Het voorraadeigendom moet elke geldige voorraadbeweging volledig verdelen.",
+  "Inventory ownership portion bound exceeded.":
+    "De limiet voor eigendomsdelen van de voorraad is overschreden.",
+  "Inventory ownership portions must conserve movement quantity.":
+    "De eigendomsdelen moeten precies de hoeveelheid van de voorraadbeweging opleveren.",
+  "Inventory ownership references an unavailable movement.":
+    "Het voorraadeigendom verwijst naar een niet-beschikbare voorraadbeweging.",
+  "Inventory receipt bound exceeded.": "De limiet voor goederenontvangsten is overschreden.",
+  "Inventory receipt currency/base unit is incompatible.":
+    "Valuta of basiseenheid van de goederenontvangst is niet compatibel.",
+  "Inventory receipt review integrity mismatch.":
+    "De controle van de goederenontvangsten is niet consistent.",
+  "Inventory settlement exceeds its reviewed customer return.":
+    "De voorraadafrekening overschrijdt de gecontroleerde klantretour.",
+  "Inventory settlement must resolve one reviewed customer return.":
+    "Een voorraadafrekening moet precies één gecontroleerde klantretour afhandelen.",
+  "Invoice credit fields require an invoice and positions.":
+    "Velden voor een factuurcreditering vereisen een factuur en regels.",
+  "Invoice fields are incomplete or unsupported.":
+    "De factuurvelden zijn onvolledig of worden niet ondersteund.",
+  "Invoice has no posted control-account entry.":
+    "De factuur heeft geen geboekte post op de centralisatierekening.",
+  "Invoice position fields are incomplete or unsupported.":
+    "De velden van de factuurregel zijn onvolledig of worden niet ondersteund.",
+  "Invoice position not found.": "Factuurregel niet gevonden.",
+  "Invoice positions must be distinct.": "Factuurregels moeten uniek zijn.",
+  "Invoice positions must belong to one party.": "Factuurregels moeten bij één relatie horen.",
+  "Invoice positions must share one currency.": "Factuurregels moeten dezelfde valuta hebben.",
+  "Invoice posting is reversed.": "De boeking van de factuur is teruggedraaid.",
+  "Invoice quantity exceeds the order line.": "De factuurhoeveelheid overschrijdt de orderregel.",
+  "Invoice quantity exceeds the remaining billable quantity.":
+    "De factuurhoeveelheid overschrijdt de resterende factureerbare hoeveelheid.",
+  "Invoice requires a purchase order line.": "De factuur vereist een inkooporderregel.",
+  "Invoice requires a sales order line.": "De factuur vereist een verkooporderregel.",
+  "Invoice values must fit four decimal places without rounding.":
+    "Factuurwaarden moeten zonder afronding in vier decimalen passen.",
+  "Item SKU, name, and unit are required.": "Artikel-SKU, naam en eenheid zijn verplicht.",
+  "Item import requires a confirmed proposal.": "De artikelimport vereist een bevestigd voorstel.",
+  "Item not found.": "Artikel niet gevonden.",
+  "Item type must be stocked, service, or charge.":
+    "Het artikeltype moet stocked, service of charge zijn.",
+  "Later Movements depend on this stock; correct dependent Movements first.":
+    "Latere Movements zijn afhankelijk van deze voorraad; corrigeer eerst de afhankelijke Movements.",
+  "Later tracked-identity Movements depend on this stock; correct them first.":
+    "Latere Movements met getraceerde identiteit zijn afhankelijk van deze voorraad; corrigeer die eerst.",
+  "Lead time days": "Levertijd (dagen)",
+  "Lead time days cannot be negative.": "De levertijd in dagen mag niet negatief zijn.",
+  "Ledger posting group cannot be empty.": "De boekingsgroep mag niet leeg zijn.",
+  "Ledger posting group is not balanced.": "De boekingsgroep is niet in evenwicht.",
+  "Ledger posting group must balance debits and credits.":
+    "De boekingsgroep moet debet en credit in evenwicht brengen.",
+  "Ledger posting group must use one currency.": "De boekingsgroep moet één valuta gebruiken.",
+  "Ledger posting group must use one party.": "De boekingsgroep moet één relatie gebruiken.",
+  "Ledger posting group not found.": "Boekingsgroep niet gevonden.",
+  "Ledger posting group was already reversed; reload its chain.":
+    "De boekingsgroep is al teruggedraaid; laad de keten opnieuw.",
+  "Ledger reversal preview is stale; reload and preview again.":
+    "Het voorbeeld van de terugdraaiing is verouderd; laad opnieuw en bekijk het voorbeeld nogmaals.",
+  "Ledger reversal preview no longer matches the request.":
+    "Het voorbeeld van de terugdraaiing komt niet meer overeen met het verzoek.",
+  "Ledger reversal reason is required.": "Een reden voor terugdraaiing is verplicht.",
+  LedgerEntry: "Boeking",
+  "Line unit and type are required.": "Eenheid en type van de regel zijn verplicht.",
+  "Line {index} requires a stated amount; it is never calculated.":
+    "Regel {index} vereist een opgegeven bedrag; dat wordt nooit berekend.",
+  "Location does not allow physical stock.": "De locatie staat geen fysieke voorraad toe.",
+  "Location hierarchy cannot contain a cycle.": "De locatiehiërarchie mag geen cyclus bevatten.",
+  "Location name and type are required.": "Naam en type van de locatie zijn verplicht.",
+  "Location parent_ref must reference an earlier record in the same batch: {reference}":
+    "parent_ref van een locatie moet verwijzen naar een eerder record in dezelfde batch: {reference}",
+  "Locations are incomplete for {movement_type}.":
+    "De locaties zijn onvolledig voor {movement_type}.",
+  "Lot does not belong to the movement item.":
+    "De partij hoort niet bij het artikel van de voorraadbeweging.",
+  "Lot-tracked items cannot use serial identity.":
+    "Artikelen met partijtracering kunnen geen serienummer gebruiken.",
+  "Lot-tracked items require a lot.": "Artikelen met partijtracering vereisen een partij.",
+  "Manual order source could not be recorded.":
+    "De bron van de handmatige order kon niet worden vastgelegd.",
+  "Map only SKU, name and unit.": "Koppel alleen SKU, naam en eenheid.",
+  Mapping: "Koppeling",
+  "Master data changed since review; reload the record.":
+    "De stamgegevens zijn sinds de controle gewijzigd; laad het record opnieuw.",
+  "Master data proposal not found.": "Voorstel voor stamgegevens niet gevonden.",
+  "Master data record not found.": "Stamgegevensrecord niet gevonden.",
+  "Master-data event must match its reviewed action.":
+    "De stamgegevensgebeurtenis moet overeenkomen met de gecontroleerde actie.",
+  "Master-data service differs from the reviewed action.":
+    "De stamgegevensdienst wijkt af van de gecontroleerde actie.",
+  "Membership changes require a confirming human owner.":
+    "Wijzigingen in lidmaatschappen vereisen een bevestigende menselijke eigenaar.",
+  "Minimum quantity": "Minimale hoeveelheid",
+  "Missing account default for {role}. Configure finance accounts first.":
+    "Standaardrekening voor {role} ontbreekt. Stel eerst de financiële rekeningen in.",
+  "Mixed tax requires an explicit partial received tax share.":
+    "Gemengde belasting vereist een expliciet deel van de ontvangen belasting.",
+  "More than one item matches; name the item by its SKU.":
+    "Meer dan één artikel komt overeen; noem het artikel bij zijn SKU.",
+  "Movement correction preview is stale; reload and preview again.":
+    "Het voorbeeld van de correctie van het Movement is verouderd; laad opnieuw en bekijk het voorbeeld opnieuw.",
+  "Movement correction preview no longer matches the request.":
+    "Het voorbeeld van de correctie van het Movement komt niet meer overeen met het verzoek.",
+  "Movement correction reason is required.":
+    "Een reden voor de correctie van het Movement is verplicht.",
+  "Movement does not match the commitment.": "Het Movement komt niet overeen met de verplichting.",
+  "Movement does not match the single confirmed Playground action.":
+    "Het Movement komt niet overeen met de enige bevestigde Playground-actie.",
+  "Movement exceeds physical stock.": "Het Movement overschrijdt de fysieke voorraad.",
+  "Movement exceeds stock for the selected identity.":
+    "Het Movement overschrijdt de voorraad van de geselecteerde identiteit.",
+  "Movement exceeds the commitment's open quantity.":
+    "Het Movement overschrijdt de open hoeveelheid van de verplichting.",
+  "Movement not found.": "Movement niet gevonden.",
+  "Movement type does not match the shipment purpose.":
+    "Het Movement-type past niet bij het doel van de zending.",
+  "Movement type does not match the shipment purpose; permitted value: {expected}.":
+    "Het Movement-type past niet bij het doel van de zending; toegestane waarde: {expected}.",
+  "Movement was already corrected; reload its correction chain.":
+    "Het Movement is al gecorrigeerd; laad de correctieketen opnieuw.",
+  "Name the evidence the acquisition value comes from.":
+    "Noem het bewijs waaruit de aanschaffingswaarde komt.",
+  "Net plus tax differs from the invoice gross.":
+    "Netto plus btw wijkt af van het brutobedrag van de factuur.",
+  "No attribution to withdraw.": "Geen toewijzing om in te trekken.",
+  "Nonrecoverable share exceeds or contradicts received tax.":
+    "Het niet-aftrekbare deel overschrijdt de ontvangen belasting of spreekt die tegen.",
+  "Nonrecoverable tax requires the complete stated tax share.":
+    "Niet-aftrekbare belasting vereist het volledige vermelde belastingdeel.",
+  "Obtain a delivery review before confirming this proposal.":
+    "Vraag een leveringscontrole aan voordat je dit voorstel bevestigt.",
+  "One attribution cannot mix target currencies.": "Eén toewijzing kan geen doelvaluta's mengen.",
+  "Only a confirmed opening stock carries a cost.":
+    "Alleen een bevestigde beginvoorraad draagt kosten.",
+  "Only active reservations can be released. Prepare a fresh review.":
+    "Alleen actieve Reservations kunnen worden vrijgegeven. Bereid een nieuwe controle voor.",
+  "Only an open announcement can be fulfilled.": "Alleen een open aankondiging kan worden vervuld.",
+  "Only an open commitment can be cancelled.": "Alleen een open Commitment kan worden geannuleerd.",
+  "Only an open commitment can be revised.": "Alleen een open Commitment kan worden herzien.",
+  "Only open commitments can be put on hold.": "Alleen open Commitments kunnen worden geblokkeerd.",
+  "Only open customer delivery commitments can be reserved.":
+    "Alleen open leveringsverplichtingen aan klanten kunnen worden gereserveerd.",
+  "Only returning goods fulfil an announced customer return.":
+    "Alleen terugkomende goederen vervullen een aangekondigde klantretour.",
+  "Only stocked items can have physical movements.":
+    "Alleen voorraadartikelen kunnen fysieke voorraadbewegingen hebben.",
+  "Opening cost needs the stated amount, currency and evidence reference.":
+    "De beginkosten hebben het opgegeven bedrag, de valuta en een bewijsverwijzing nodig.",
+  "Opening cutover coverage requires an explicit original date or actual cash timestamp.":
+    "De dekking van de openingsdatum vereist een expliciete oorspronkelijke datum of een werkelijk betalingstijdstip.",
+  "Opening evidence must be created once by the confirmed opening import.":
+    "Openings-Evidence mag alleen eenmaal door de bevestigde openingsimport worden aangemaakt.",
+  "Opening stock accepts only item, destination, quantity, optional time and optional acquisition cost.":
+    "Beginvoorraad accepteert alleen artikel, bestemming, hoeveelheid, optioneel een tijdstip en optioneel aanschaffingskosten.",
+  OpeningScope: "Openingsomvang",
+  "Order direction must be sales or purchase.": "De orderrichting moet verkoop of inkoop zijn.",
+  "Order line not found.": "Orderregel niet gevonden.",
+  "Original source item is already represented by opening evidence; inspect it without posting again.":
+    "Het oorspronkelijke bronitem wordt al door openings-Evidence weergegeven; bekijk het zonder opnieuw te boeken.",
+  "Package does not belong to the shipment.": "Het pakket hoort niet bij deze zending.",
+  "Packaged execution requires at least one movement.":
+    "Een uitvoering met pakketten vereist minstens één voorraadbeweging.",
+  "Parent location id": "ID bovenliggende locatie",
+  "Party email labels can contain at most 80 characters.":
+    "Labels van e-mailadressen van een relatie mogen maximaal 80 tekens bevatten.",
+  "Party name is required.": "De naam van de relatie is verplicht.",
+  "Party roles must be company, customer, or supplier.":
+    "Rollen van de zakenpartner moeten bedrijf, klant of leverancier zijn.",
+  PartyGroup: "Partnergroep",
+  "Payment amount supports at most four decimal places without rounding.":
+    "Het betalingsbedrag ondersteunt maximaal vier decimalen zonder afronding.",
+  "Payment exceeds the open customer receivable.":
+    "De betaling overschrijdt de openstaande debiteurenvordering.",
+  "Payment exceeds the open invoice amount.":
+    "De betaling overschrijdt het openstaande factuurbedrag.",
+  "Payment exceeds the open supplier payable.":
+    "De betaling overschrijdt de openstaande crediteurenschuld.",
+  "Payment fields are incomplete or unsupported.":
+    "De betalingsvelden zijn onvolledig of worden niet ondersteund.",
+  "Payment reference must be text.": "De betalingsreferentie moet tekst zijn.",
+  "Payment requires a {document_type}.":
+    "De betaling vereist een document van het type {document_type}.",
+  "Payment term code": "Code betalingstermijn",
+  PaymentTerm: "Betalingsvoorwaarde",
+  "Playground action identity does not match the confirmed proposal.":
+    "De actie-ID in de Playground komt niet overeen met het bevestigde voorstel.",
+  "Playground decision context is no longer valid.":
+    "De beslissingscontext in de Playground is niet meer geldig.",
+  "Playground does not support this operation.": "De Playground ondersteunt deze bewerking niet.",
+  "Playground internal scopes cannot access business operations.":
+    "Interne Playground-scopes hebben geen toegang tot bedrijfsbewerkingen.",
+  "Playground run not found.": "Playground-run niet gevonden.",
+  PriceList: "Prijslijst",
+  PriceListEntry: "Prijslijstregel",
+  "Priority must be low, normal, high, or urgent.":
+    "De prioriteit moet low, normal, high of urgent zijn.",
+  "Profile authority does not permit this operation.":
+    "De bevoegdheid van het profiel staat deze bewerking niet toe.",
+  "Profile costing authority is unavailable.":
+    "De kostprijsbevoegdheid van het profiel is niet beschikbaar.",
+  "Projected state is only valid for a read-only preview.":
+    "Een geprojecteerde toestand is alleen geldig voor een alleen-lezen voorbeeld.",
+  "Proposal cannot be confirmed from status {status}.":
+    "Het voorstel kan niet worden bevestigd vanuit status {status}.",
+  "Proposal cannot be rejected from status {status}.":
+    "Het voorstel kan niet worden afgewezen vanuit status {status}.",
+  "Proposal execution is in progress or its outcome is unknown; reconcile by proposal ID before taking further action.":
+    "De uitvoering van het voorstel loopt nog of het resultaat is onbekend; stem af op voorstel-ID voordat je verder handelt.",
+  "Proposal is no longer available for confirmation.":
+    "Het voorstel is niet meer beschikbaar voor bevestiging.",
+  "Proposal not found.": "Voorstel niet gevonden.",
+  "Proposal references an invalid mutation tool.":
+    "Het voorstel verwijst naar een ongeldige wijzigingstool.",
+  "Proposed shipment quantity must be positive and open.":
+    "De voorgestelde verzendhoeveelheid moet positief en nog open zijn.",
+  "Quantity and amount values must be finite.":
+    "Hoeveelheden en bedragen moeten eindige waarden zijn.",
+  "REALITY_ARTIFACT_STORAGE must be 'file' or 's3'.":
+    "REALITY_ARTIFACT_STORAGE moet 'file' of 's3' zijn.",
+  "REALITY_S3_BUCKET is required for S3 artifact storage.":
+    "REALITY_S3_BUCKET is vereist voor S3-artefactopslag.",
+  "Read tools do not need a proposal.": "Leestools hebben geen voorstel nodig.",
+  "Readiness requires a customer-delivery commitment.":
+    "Verzendgereedheid vereist een Commitment voor klantlevering.",
+  "Receipt cost component bound would be exceeded.":
+    "De grens van kostencomponenten van de ontvangst zou worden overschreden.",
+  "Receipt cost manifest exceeds the supported scope.":
+    "Het manifest van de ontvangstkosten overschrijdt het ondersteunde bereik.",
+  "Receipt cost quantity differs from inventory input.":
+    "De kostenhoeveelheid van de goederenontvangst wijkt af van de voorraadgegevens.",
+  "Receipt cost scope exceeds the supported 100 component bound.":
+    "Het bereik van de ontvangstkosten overschrijdt de ondersteunde grens van 100 componenten.",
+  "Receipt costs require supplier invoice or credit evidence.":
+    "Ontvangstkosten vereisen een leveranciersfactuur of creditnota als Evidence.",
+  "Receipt costs with different currencies require reviewed conversion.":
+    "Ontvangstkosten in verschillende valuta's vereisen een beoordeelde omrekening.",
+  "Receipt currency conversion is not supported by this slice.":
+    "Valutaomrekening bij ontvangst wordt in deze fase niet ondersteund.",
+  "Received component currency contradicts the document.":
+    "De valuta van de ontvangen component spreekt het document tegen.",
+  "Received evidence changed; record replacement evidence instead.":
+    "De ontvangen Evidence is gewijzigd; leg in plaats daarvan vervangende Evidence vast.",
+  "Received finance line detail must be an object.":
+    "De ontvangen financiële regeldetails moeten een object zijn.",
+  "Received gross cannot exclude its stated tax.":
+    "Het ontvangen brutobedrag mag de vermelde belasting niet uitsluiten.",
+  "Received gross contradicts the normalized evidence.":
+    "Het ontvangen brutobedrag spreekt de genormaliseerde Evidence tegen.",
+  "Received net cannot include input tax.":
+    "Het ontvangen nettobedrag mag geen voorbelasting bevatten.",
+  "Refund exceeds the open credit amount.":
+    "De terugbetaling overschrijdt het openstaande creditbedrag.",
+  "Refund exceeds what the credit note still owes.":
+    "De terugbetaling overschrijdt wat de creditnota nog verschuldigd is.",
+  "Refund fields are incomplete or unsupported.":
+    "De velden van de terugbetaling zijn onvolledig of worden niet ondersteund.",
+  "Refund reference must be text.": "De referentie van de terugbetaling moet tekst zijn.",
+  "Replaced evidence cannot be reassigned.":
+    "Vervangen Evidence kan niet opnieuw worden toegewezen.",
+  "Replacement cannot silently change currency.":
+    "Vervanging mag de valuta niet stilzwijgend wijzigen.",
+  "Replacement must be another event on the shipment.":
+    "De vervanging moet een andere gebeurtenis van dezelfde zending zijn.",
+  "Replacement requires fresh distinct evidence.":
+    "Vervanging vereist nieuwe, afzonderlijke Evidence.",
+  "Request identity already belongs to another intent.":
+    "De aanvraag-ID hoort al bij een andere intentie.",
+  "Request identity already belongs to another supply assignment.":
+    "De aanvraag-ID hoort al bij een andere aanvoertoewijzing.",
+  "Request identity was already used for a different change.":
+    "Deze aanvraag-ID is al gebruikt voor een andere wijziging.",
+  "Reservation does not match the confirmed Playground review.":
+    "De Reservation komt niet overeen met de bevestigde Playground-controle.",
+  "Reservation not found.": "Reservation niet gevonden.",
+  "Reservation release cannot emit another event type.":
+    "Het vrijgeven van een Reservation kan geen ander gebeurtenistype opleveren.",
+  "Resolutions exceed what came back.": "De afhandelingen overschrijden wat is teruggekomen.",
+  "Retained allocation quantity": "Hoeveelheid behouden toewijzing",
+  "Retained allocation total cannot exceed revised open quantity.":
+    "Het totaal van de behouden toewijzingen mag de herziene open hoeveelheid niet overschrijden.",
+  "Retained allocations must name distinct active reservations for this commitment.":
+    "Behouden toewijzingen moeten verschillende actieve Reservations van deze Commitment noemen.",
+  "Retained receipt cost manifest is incomplete or corrupt.":
+    "Het bewaarde manifest van de ontvangstkosten is onvolledig of beschadigd.",
+  "Return disposition exceeds unresolved arrived quantity.":
+    "De retourbestemming overschrijdt de nog open ontvangen hoeveelheid.",
+  "Return disposition fields are incomplete or unsupported.":
+    "De velden van de retourbestemming zijn onvolledig of niet ondersteund.",
+  "Return disposition requires a customer-return Movement with type return.":
+    "De retourbestemming vereist een klantretour-Movement van het type return.",
+  "Return disposition requires the arrived return's customer-delivery commitment.":
+    "De retourbestemming vereist de leveringsverplichting van de ontvangen retour.",
+  "Return disposition requires the arrived return's destination location.":
+    "De retourbestemming vereist de bestemmingslocatie van de ontvangen retour.",
+  "Return exceeds what was shipped against the commitment.":
+    "De retour overschrijdt wat tegen de verplichting is verzonden.",
+  "Return movement was not found.": "De retourbeweging is niet gevonden.",
+  ReturnAnnouncement: "Retouraankondiging",
+  "Reversal fields are incomplete or unsupported.":
+    "De velden van de terugdraaiing zijn onvolledig of niet ondersteund.",
+  "Reversal preview does not match this reason.":
+    "Het voorbeeld van de terugdraaiing past niet bij deze reden.",
+  "Reversing posting groups cannot be reversed.":
+    "Tegenboekingsgroepen kunnen niet worden teruggedraaid.",
+  "Review this action in its Playground run.": "Controleer deze actie in haar Playground-run.",
+  "Revised quantity": "Herziene hoeveelheid",
+  "Row {row}: SKU {sku} already exists in this company.":
+    "Rij {row}: SKU {sku} bestaat al in dit bedrijf.",
+  "Row {row}: duplicate SKU {sku} in this file.": "Rij {row}: dubbele SKU {sku} in dit bestand.",
+  "Row {row}: the number of fields differs from the header.":
+    "Rij {row}: het aantal velden wijkt af van de kopregel.",
+  "Row {row}: {field} is required and must be at most 500 characters.":
+    "Rij {row}: {field} is verplicht en mag maximaal 500 tekens lang zijn.",
+  "S3 artifacts must be accessed through materialize_artifact().":
+    "S3-artefacten moeten via materialize_artifact() worden benaderd.",
+  "Sales invoice is already posted.": "De verkoopfactuur is al geboekt.",
+  "Scrap or loss requires a reason.": "Afkeuring of verlies vereist een reden.",
+  "Secret not found.": "Secret niet gevonden.",
+  "Select a customer delivery for contextual assistance.":
+    "Selecteer een klantlevering voor contextuele hulp.",
+  "Select a customer invoice.": "Kies een verkoopfactuur.",
+  "Select an open customer commitment.": "Kies een open Commitment van een klant.",
+  "Select an open supplier commitment.": "Kies een open Commitment van een leverancier.",
+  "Select at least one credit position.": "Kies minstens één crediteringsregel.",
+  "Select at least one invoice position.": "Selecteer minstens één factuurregel.",
+  "Selected price entry does not reproduce the agreed line context.":
+    "De geselecteerde prijsregel komt niet overeen met de afgesproken regelcontext.",
+  "Selling evidence cannot be assigned or replaced as acquisition cost.":
+    "Verkoop-Evidence kan niet als aanschafkosten worden toegewezen of vervangen.",
+  "Serial unit does not belong to the movement item.":
+    "Het serienummer hoort niet bij het artikel van de voorraadbeweging.",
+  "Serial unit does not belong to the selected lot.":
+    "Het serienummer hoort niet bij de geselecteerde partij.",
+  "Serial unit is already in physical stock.": "Het serienummer is al in fysieke voorraad.",
+  "Serial-tracked items require a serial unit.":
+    "Artikelen met serienummertracering vereisen een serienummer.",
+  SerialUnit: "Serienummer",
+  "Settlement entries must be opposite sides of one control account.":
+    "Vereffeningsposten moeten tegenovergestelde zijden van één centralisatierekening zijn.",
+  "Settlement entries must belong to active posting groups.":
+    "Vereffeningsposten moeten bij actieve boekingsgroepen horen.",
+  "Settlement entries must belong to the same party.":
+    "Vereffeningsposten moeten bij dezelfde relatie horen.",
+  "Settlement entries must use the same currency.":
+    "Vereffeningsposten moeten dezelfde valuta gebruiken.",
+  "Settlement requires control accounts.": "Vereffening vereist centralisatierekeningen.",
+  "Settlement target is not a settleable document.":
+    "Het vereffeningsdoel is geen vereffenbaar document.",
+  "Several items match: {names}. Ask which one.":
+    "Meerdere artikelen komen overeen: {names}. Vraag welke bedoeld is.",
+  "Shares must preserve their source bucket sign.":
+    "Aandelen moeten het teken van hun bronbedrag behouden.",
+  "Shipment blocked: {blockers} (required {required_amount} {required_currency}, received {received_amount} {received_currency}).":
+    "Verzending geblokkeerd: {blockers} (vereist {required_amount} {required_currency}, ontvangen {received_amount} {received_currency}).",
+  "Shipment direction does not match its purpose.":
+    "De richting van de zending past niet bij het doel.",
+  "Shipment event correction reason is required.":
+    "Voor de correctie van de zendingsgebeurtenis is een reden vereist.",
+  "Shipment event is already superseded.": "De zendingsgebeurtenis is al vervangen.",
+  ShipmentEvent: "Zendingsgebeurtenis",
+  ShipmentPackage: "Pakket",
+  Sku: "SKU",
+  "Source artifact not found.": "Bronartefact niet gevonden.",
+  "Source capacity": "Bronbedrag",
+  "Source code must use 1–100 lowercase letters, numbers, dots, dashes or underscores.":
+    "De broncode moet bestaan uit 1–100 kleine letters, cijfers, punten, streepjes of underscores.",
+  "Source system and external ID must be provided together.":
+    "Source-systeem en externe ID moeten samen worden opgegeven.",
+  SourceArtifact: "Bronbestand",
+  SourceCapability: "Bronfunctie",
+  SourceRecord: "SourceRecord",
+  SourceSystem: "Bronsysteem",
+  "State net and tax on each invoice position.": "Geef netto en btw op bij elke factuurregel.",
+  "Stated invoice amounts accept net, tax, base, gross and currency only.":
+    "Opgegeven factuurbedragen accepteren alleen netto, btw, grondslag, bruto en valuta.",
+  "Stated nonzero tax cannot be declared not applicable.":
+    "Een vermelde belasting die niet nul is, kan niet als niet van toepassing worden verklaard.",
+  "SubledgerAccount not found.": "Subgrootboekrekening niet gevonden.",
+  "Supplier commitment was not found.": "Commitment van de leverancier is niet gevonden.",
+  "Supplier credit note total": "Totaal leverancierscreditnota",
+  "Supplier invoice is already posted.": "De leveranciersfactuur is al geboekt.",
+  "Supplier return exceeds what was received against the commitment.":
+    "De leveranciersretour overschrijdt wat tegen de verplichting is ontvangen.",
+  "Supply and demand items must match.": "De artikelen van aanvoer en vraag moeten overeenkomen.",
+  "Supply and demand locations must match.":
+    "De locaties van aanvoer en vraag moeten overeenkomen.",
+  "Supply assignment exceeds open customer demand.":
+    "De toewijzing overschrijdt de openstaande klantvraag.",
+  "Supply assignment exceeds unassigned supplier quantity.":
+    "De toewijzing overschrijdt de nog niet toegewezen leveranciershoeveelheid.",
+  "Supply assignment fields are incomplete or unsupported.":
+    "De velden van de aanvoertoewijzing zijn onvolledig of worden niet ondersteund.",
+  "Supply assignment quantity must be a decimal.":
+    "De hoeveelheid van de aanvoertoewijzing moet een decimaal getal zijn.",
+  "Supply assignment quantity must be positive.":
+    "De toegewezen aanvoerhoeveelheid moet positief zijn.",
+  "Supply assignment quantity must fit four decimal places without rounding.":
+    "De hoeveelheid van de aanvoertoewijzing moet zonder afronding in vier decimalen passen.",
+  "Supply coverage requires a supplier commitment.":
+    "Aanvoerdekking vereist een Commitment van een leverancier.",
+  "Tax cannot be counted twice or assigned as recoverable.":
+    "Belasting kan niet dubbel worden geteld of als aftrekbaar worden toegewezen.",
+  "Tax cost direction must follow the selected amount for the same receipt.":
+    "De kostenrichting van de belasting moet het gekozen bedrag van dezelfde ontvangst volgen.",
+  Tenant: "Bedrijf",
+  "Tenant not found.": "Bedrijf niet gevonden.",
+  "The acquisition value supports at most 4 decimal places.":
+    "De aanschaffingswaarde ondersteunt maximaal 4 decimalen.",
+  "The action contains unsupported fields.": "De actie bevat niet-ondersteunde velden.",
+  "The configured AI API key cannot be decrypted.":
+    "De geconfigureerde AI-API-sleutel kan niet worden ontsleuteld.",
+  "The configured AI API key is detached from its session.":
+    "De geconfigureerde AI-API-sleutel is losgekoppeld van zijn sessie.",
+  "The configured secret cannot be decrypted.":
+    "Het geconfigureerde secret kan niet worden ontsleuteld.",
+  "The correction contains unsupported fields.": "De correctie bevat niet-ondersteunde velden.",
+  "The customer role must remain on a customer record.":
+    "De klantrol moet op een klantrecord blijven.",
+  "The delivery changed. Prepare a fresh invoice review.":
+    "De levering is gewijzigd. Bereid een nieuwe factuurcontrole voor.",
+  "The delivery changed. Prepare a fresh review.":
+    "De levering is gewijzigd. Verwerp het voorstel en bereid een nieuwe controle voor.",
+  "The financial context changed. Prepare a fresh review.":
+    "De financiële context is gewijzigd. Verwerp het voorstel en bereid een nieuwe controle voor.",
+  "The invoice delivery evidence is missing or ambiguous.":
+    "Het leveringsbewijs van de factuur ontbreekt of is dubbelzinnig.",
+  "The invoice delivery guard is invalid.": "De leveringscontrole van de factuur is ongeldig.",
+  "The invoice delivery unit cannot be verified.":
+    "De leveringseenheid van de factuur kan niet worden gecontroleerd.",
+  "The item import changed. Prepare a fresh review.":
+    "De artikelimport is gewijzigd. Verwerp het voorstel en bereid een nieuwe controle voor.",
+  "The order contains an invalid value.": "De order bevat een ongeldige waarde.",
+  "The order has missing or unsupported fields.":
+    "De order heeft ontbrekende of niet-ondersteunde velden.",
+  "The original file no longer matches its recorded hash.":
+    "Het originele bestand komt niet meer overeen met de vastgelegde hash.",
+  "The payment context changed. Prepare a fresh review.":
+    "De betalingscontext is gewijzigd. Verwerp het voorstel en bereid een nieuwe controle voor.",
+  "The revised quantity requires an explicit retained reservation choice because active allocations use different locations or tracking identities.":
+    "De herziene hoeveelheid vereist een expliciete keuze van de te behouden reservering, omdat actieve toewijzingen verschillende locaties of traceringsidentiteiten gebruiken.",
+  "The sandbox companion is read-only.": "Het sandbox-begeleidingsbedrijf is alleen-lezen.",
+  "The selected received amount is missing; it cannot be recomputed.":
+    "Het geselecteerde ontvangen bedrag ontbreekt; het kan niet opnieuw worden berekend.",
+  "The stated currency differs from the invoice.": "De opgegeven valuta wijkt af van de factuur.",
+  "The stated gross differs from the position's gross.":
+    "Het opgegeven brutobedrag wijkt af van het brutobedrag van de regel.",
+  "The stated {field} must be a non-negative amount.":
+    "De opgegeven waarde voor {field} moet een niet-negatief bedrag zijn.",
+  "The stated {field} must be a number.": "De opgegeven waarde voor {field} moet een getal zijn.",
+  "The supplier role must remain on a supplier record.":
+    "De leveranciersrol moet op een leveranciersrecord blijven.",
+  "This Movement already has a correction chain.": "Deze Movement heeft al een correctieketen.",
+  "This Playground run is read-only or not ready.":
+    "Deze Playground-run is alleen-lezen of niet gereed.",
+  "This action is not supported by the delivery review.":
+    "Deze actie wordt niet ondersteund door de leveringscontrole.",
+  "This delivery has no active own hold. Prepare a fresh review.":
+    "Deze levering heeft geen actieve eigen blokkade. Bereid een nieuwe controle voor.",
+  "This delivery is already on hold. Prepare a fresh review.":
+    "Deze levering is al geblokkeerd. Bereid een nieuwe controle voor.",
+  "This exact order is already recorded. Open the existing order instead.":
+    "Precies deze order is al vastgelegd. Open in plaats daarvan de bestaande order.",
+  "This file interpretation was already recorded. Inspect its original result.":
+    "Deze bestandsinterpretatie is al vastgelegd. Bekijk het oorspronkelijke resultaat.",
+  "This is not a shipment action.": "Dit is geen verzendactie.",
+  "This posting group has already been reversed.": "Deze boekingsgroep is al teruggedraaid.",
+  "This proposal uses its existing review workspace.":
+    "Dit voorstel gebruikt zijn bestaande controlewerkruimte.",
+  "This return disposition requires a destination location.":
+    "Deze retourbestemming vereist een bestemmingslocatie.",
+  "This slice supports positive goods receipts, not returns or inventory valuation.":
+    "Deze fase ondersteunt positieve goederenontvangsten, geen retouren of voorraadwaardering.",
+  "Tool not found.": "Tool niet gevonden.",
+  "Tracking type": "Traceringstype",
+  "Tracking type must be none, lot, or serial.":
+    "Het traceringstype moet none, lot of serial zijn.",
+  "Type, number, party, and currency are required.":
+    "Type, nummer, relatie en valuta zijn verplicht.",
+  "Unsupported commitment action.": "Niet-ondersteunde Commitment-actie.",
+  "Unsupported commitment type.": "Niet-ondersteund type verplichting.",
+  "Unsupported cost review draft kind.": "Niet-ondersteund soort concept voor kostenbeoordeling.",
+  "Unsupported hold reason.": "Niet-ondersteunde blokkadereden.",
+  "Unsupported inventory base unit or future cutoff.":
+    "Niet-ondersteunde basiseenheid van de voorraad of peildatum in de toekomst.",
+  "Unsupported inventory calculation: {reason}": "Niet-ondersteunde voorraadberekening: {reason}",
+  "Unsupported inventory review version.": "Niet-ondersteunde versie van de voorraadcontrole.",
+  "Unsupported item import fields.": "Niet-ondersteunde velden voor de artikelimport.",
+  "Unsupported master data family.": "Niet-ondersteunde soort stamgegevens.",
+  "Unsupported master data fields: {fields}.": "Niet-ondersteunde stamgegevensvelden: {fields}.",
+  "Unsupported master data operation.": "Niet-ondersteunde bewerking op stamgegevens.",
+  "Unsupported movement type.": "Niet-ondersteund type voorraadbeweging.",
+  "Unsupported movement type. Expected one of: {types}.":
+    "Niet-ondersteund bewegingstype. Verwacht wordt een van: {types}.",
+  "Unsupported operational document type. Expected one of: {types}.":
+    "Niet-ondersteund operationeel documenttype. Verwacht wordt een van: {types}.",
+  "Unsupported receipt cost manifest.": "Niet-ondersteund manifest van ontvangstkosten.",
+  "Unsupported received finance detail contract.":
+    "Niet-ondersteund contract voor ontvangen financiële details.",
+  "Unsupported replacement fields.": "Niet-ondersteunde vervangende velden.",
+  "Unsupported return disposition.": "Niet-ondersteunde retourbestemming.",
+  "Unsupported shipment event kind or reporter.":
+    "Niet-ondersteund soort of melder van de zendingsgebeurtenis.",
+  "Unsupported shipment event reporter.": "Niet-ondersteunde melder van de zendingsgebeurtenis.",
+  "Unsupported shipment field(s): {fields}": "Niet-ondersteunde zendingsvelden: {fields}",
+  "Unsupported shipment movement field(s): {fields}":
+    "Niet-ondersteunde velden van de voorraadbeweging: {fields}",
+  "Unsupported shipment purpose.": "Dit zendingsdoel wordt niet ondersteund.",
+  "Unsupported shipment purpose; permitted values: {values}.":
+    "Niet-ondersteund doel van de zending; toegestane waarden: {values}.",
+  "Unsupported supply assignment purpose.": "Niet-ondersteund doel van de aanvoertoewijzing.",
+  "Untracked items cannot use lot or serial identity.":
+    "Niet-getraceerde artikelen kunnen geen partij of serienummer gebruiken.",
+  "Update records require an opaque ID.": "Wijzigingsrecords vereisen een opake ID.",
+  "Use a received line, not its duplicate document total.":
+    "Gebruik een ontvangen regel, niet het dubbele documenttotaal.",
+  "Use either invoice lines or a single order line.":
+    "Gebruik factuurregels of één orderregel, niet beide.",
+  "Use either invoice positions or legacy return-credit fields.":
+    "Gebruik factuurregels of de oude retourcreditvelden, niet beide.",
+  "Use either parent_ref for this batch or parent_location_id for an existing Location.":
+    "Gebruik parent_ref voor deze batch of parent_location_id voor een bestaande locatie, niet beide.",
+  "Use the existing practice action policy.": "Gebruik het bestaande beleid voor oefenacties.",
+  "Use the reviewed practice actions for this company.":
+    "Gebruik voor dit bedrijf de gecontroleerde oefenacties.",
+  "Valuation assessment integrity mismatch.":
+    "De gegevens van de voorraadwaardering zijn niet consistent.",
+  "Your {count} available AI questions are used. Resets at {resets_at}. You can keep exploring your company.":
+    "Je {count} beschikbare AI-vragen zijn gebruikt. Wordt teruggezet op {resets_at}. Je kunt je bedrijf blijven verkennen.",
+  "allocation amount": "toewijzingsbedrag",
+  base: "grondslag",
+  "credit amount": "crediteringsbedrag",
+  gross: "bruto",
+  "line amount": "regelbedrag",
+  name: "Naam",
+  net: "netto",
+  quantity: "hoeveelheid",
+  sku: "SKU",
+  tax: "btw",
+  type: "Soort",
+  unit: "Eenheid",
+  "{family} changed since proposal review; create a new proposal.":
+    "{family} is gewijzigd sinds de beoordeling van het voorstel; maak een nieuw voorstel.",
+  "{field} cannot be negative.": "{field} mag niet negatief zijn.",
+  "{field} must be a number.": "{field} moet een getal zijn.",
+  "{field} must be a whole number.": "{field} moet een geheel getal zijn.",
+  "{field} must be greater than zero.": "{field} moet groter dan nul zijn.",
+  "{field} must be one of: {options}.": "{field} moet een van deze waarden zijn: {options}.",
+  "{field} must be text.": "{field} moet tekst zijn.",
+  "{field} must be true or false.": "{field} moet waar of onwaar zijn.",
+  "{field} must fit the four decimal contract.": "{field} mag hoogstens vier decimalen hebben.",
+  "{label} must be a decimal value.": "Het veld {label} moet een decimale waarde zijn.",
+  "{label} must be positive and fit four decimal places without rounding.":
+    "Het veld {label} moet positief zijn en zonder afronding in vier decimalen passen.",
+  "{record} not found.": "{record} is niet gevonden.",
+});
+
+Object.assign(dictionaries.es, {
+  "A Party can have at most 20 email addresses.":
+    "Un socio puede tener como máximo 20 direcciones de correo electrónico.",
+  "A Party cannot contain duplicate email addresses.":
+    "Un socio no puede contener direcciones de correo electrónico duplicadas.",
+  "A billed reference must point at an order line.":
+    "Una referencia facturada debe apuntar a una línea de pedido.",
+  "A billed reference must stay on one side of the business.":
+    "Una referencia facturada debe quedarse en un lado del negocio (venta o compra).",
+  "A bounded request identity is required.": "Se requiere un identificador de solicitud acotado.",
+  "A cancellation requires a reason.": "Una cancelación requiere un motivo.",
+  "A category with attributed costs cannot be declared zero/not applicable.":
+    "Una categoría con costes atribuidos no puede declararse cero/no aplicable.",
+  "A compensating Movement cannot be corrected.": "Un Movement compensatorio no se puede corregir.",
+  "A credit note carries no stated net and tax here.":
+    "Una nota de crédito no lleva aquí neto ni impuesto indicados.",
+  "A credit reason is required.": "Se requiere un motivo del abono.",
+  "A current review and explicit confirmation are required.":
+    "Se requieren una revisión actual y una confirmación explícita.",
+  "A default location cannot be removed; choose another location.":
+    "No se puede quitar una ubicación predeterminada; elige otra ubicación.",
+  "A default unit of at most 500 characters is required.":
+    "Se requiere una unidad predeterminada de como máximo 500 caracteres.",
+  "A delivery guard requires a sales invoice.":
+    "Una comprobación de entrega requiere una factura de venta.",
+  "A delivery guard requires a single sales order line.":
+    "Una comprobación de entrega requiere una única línea de pedido de venta.",
+  "A financial execution for this record is unresolved. Check its outcome first.":
+    "Una ejecución financiera de este registro está sin resolver. Comprueba primero su resultado.",
+  "A hold note must be text.": "Una nota de bloqueo debe ser texto.",
+  "A location cannot be its own parent.":
+    "Una ubicación no puede ser su propia ubicación superior.",
+  "A manual document requires a stated total; it is never calculated.":
+    "Un documento manual requiere un total indicado; nunca se calcula.",
+  "A manual document requires at least one line.":
+    "Un documento manual requiere al menos una línea.",
+  "A movement fulfils an announcement of its own delivery only.":
+    "Un movimiento solo cumple un anuncio de su propia entrega.",
+  "A new complete receipt review is required before inventory confirmation.":
+    "Antes de confirmar el inventario se requiere una nueva revisión completa de las entradas.",
+  "A resolution must concern the same item as the return.":
+    "Una resolución debe referirse al mismo artículo que la devolución.",
+  "A resolution must name a return.": "Una resolución debe indicar una devolución.",
+  "A resolution must take the goods out of the location they came back to.":
+    "Una resolución debe sacar la mercancía de la ubicación a la que volvió.",
+  "A retained allocation cannot exceed its active reservation.":
+    "Una asignación conservada no puede superar su Reservation activa.",
+  "A reversing posting group cannot be reversed.":
+    "Un grupo de asientos de reversión no se puede revertir.",
+  "A revision must restate a date, a quantity, or both.":
+    "Una revisión debe volver a indicar una fecha, una cantidad o ambas.",
+  "A revision must state a readable date.": "Una revisión debe indicar una fecha legible.",
+  "A selected price entry requires a supported commercial document and item.":
+    "Una entrada de precio seleccionada requiere un documento comercial y un artículo compatibles.",
+  "A serial movement must have quantity 1.":
+    "Un movimiento con número de serie debe tener cantidad 1.",
+  "A serial reservation must have quantity 1.":
+    "Una reserva con número de serie debe tener cantidad 1.",
+  "A verified, enabled account is required for Playground.":
+    "Se requiere una cuenta verificada y habilitada para el Playground.",
+  "A zero allocation belongs in explicit scope review.":
+    "Un reparto de cero corresponde a una revisión explícita del alcance.",
+  "A {field} of at most 500 characters is required.":
+    "{field} es obligatorio (máximo 500 caracteres).",
+  "Account changes require a confirming company owner.":
+    "Los cambios de cuenta requieren que un propietario de la empresa los confirme.",
+  "Account is blocked or has the wrong operational role.":
+    "La cuenta está bloqueada o tiene un rol operativo incorrecto.",
+  "Account not found.": "Cuenta no encontrada.",
+  "Active company owner access required.":
+    "Se requiere acceso activo como propietario de la empresa.",
+  "Active payment term '{code}' not found.": "No se encontró el plazo de pago activo '{code}'.",
+  "Active tool proposal not found.": "Propuesta de herramienta activa no encontrada.",
+  "Adjustment reason is required.": "El motivo del ajuste de existencias es obligatorio.",
+  "Adjustment requires exactly one location direction.":
+    "Un ajuste de existencias requiere exactamente una dirección de ubicación.",
+  "Admit evidenced receipt costs before reviewing scope.":
+    "Admite los costes de recepción respaldados antes de revisar el ámbito.",
+  "Admitted inventory movement input changed.":
+    "Los datos admitidos del movimiento de inventario han cambiado.",
+  "Admitted opening stock input changed.":
+    "Los datos admitidos de las existencias iniciales han cambiado.",
+  "Allocation exceeds the credit or open invoice amount.":
+    "La asignación supera el importe del abono o el importe pendiente de la factura.",
+  "Allocation exceeds the invoice open amount.":
+    "La asignación supera el importe pendiente de la factura.",
+  "Allocation exceeds the unallocated payment amount.":
+    "La asignación supera el importe del pago sin asignar.",
+  "Allocation total": "Total del reparto",
+  "Allocation total exceeds the received source capacity.":
+    "El total del reparto supera el importe de origen recibido.",
+  "Allocation total must preserve the source bucket sign.":
+    "El total del reparto debe conservar el signo del importe de origen.",
+  "Allocation weights must be positive.": "Los pesos de reparto deben ser positivos.",
+  "Allows stock": "Permite existencias",
+  "Amount must be an exact finite decimal with at most four decimal places.":
+    "El importe debe ser un decimal exacto y finito con un máximo de cuatro decimales.",
+  "An active company owner is required.": "Se requiere un propietario activo de la empresa.",
+  "An authenticated active company owner is required.":
+    "Se requiere un propietario activo y autenticado de la empresa.",
+  "An earlier action for this commitment is unresolved. Check its outcome first.":
+    "Una acción anterior sobre este Commitment está sin resolver. Comprueba primero su resultado.",
+  "An earlier delivery execution is unresolved. Check its outcome first.":
+    "Una ejecución de entrega anterior está sin resolver. Comprueba primero su resultado.",
+  "An earlier overlapping execution is unresolved. Check its outcome first.":
+    "Una ejecución anterior superpuesta está sin resolver. Comprueba primero su resultado.",
+  "An earlier return disposition is unresolved. Check its outcome first.":
+    "Una disposición de devolución anterior está sin resolver. Comprueba primero su resultado.",
+  "An earlier supply assignment is unresolved. Check its outcome first.":
+    "Una asignación de suministro anterior está sin resolver. Comprueba primero su resultado.",
+  "An evidenced base unit is required.": "Se requiere una unidad base respaldada por evidencia.",
+  "An exact file-import configuration is required.":
+    "Se requiere una configuración exacta de importación de archivos.",
+  "An exact record and review revision are required.":
+    "Se requieren un registro exacto y la revisión revisada.",
+  "An existing credit spans other evidence. Inspect its attribution first.":
+    "Un abono existente abarca otra evidencia. Revisa primero su atribución.",
+  "An identical order execution is unresolved. Check its outcome first.":
+    "Una ejecución de pedido idéntica está sin resolver. Comprueba primero su resultado.",
+  "An invoice carries at most {limit} positions.": "Una factura tiene como máximo {limit} líneas.",
+  "An invoice credit execution is unresolved. Check its outcome first.":
+    "Una ejecución de abono de factura está sin resolver. Comprueba primero su resultado.",
+  "An invoice execution for this order line is unresolved. Check its outcome first.":
+    "Una ejecución de factura para esta línea de pedido está sin resolver. Comprueba primero su resultado.",
+  "An older order-linked credit has no invoice attribution. Inspect it before crediting this invoice.":
+    "Un abono anterior vinculado al pedido no está atribuido a ninguna factura. Revísalo antes de abonar esta factura.",
+  "An older order-linked credit has no invoice attribution. Inspect it before crediting this position.":
+    "Un abono anterior vinculado al pedido no está atribuido a ninguna factura. Revísalo antes de abonar esta línea.",
+  "An order requires at least one item line.": "Un pedido requiere al menos una línea de artículo.",
+  "An overlapping financial action is unresolved. Check its outcome first.":
+    "Una acción financiera superpuesta está sin resolver. Comprueba primero su resultado.",
+  "An overlapping item creation is unresolved. Check its outcome first.":
+    "Hay una creación de artículos superpuesta sin resolver. Revisa primero su resultado.",
+  "Announced quantity": "Cantidad anunciada",
+  "Artifact storage key is invalid.": "La clave de almacenamiento del artefacto no es válida.",
+  "Assessment currency differs from inventory currency.":
+    "La moneda de la valoración difiere de la moneda del inventario.",
+  "Assessment member is not exact remaining inventory.":
+    "El elemento de la valoración no es inventario restante exacto.",
+  "Assessment quantity exceeds remaining inventory.":
+    "La cantidad de la valoración supera el inventario restante.",
+  "Assign to the replacement receipt, not a corrected original.":
+    "Asigna a la recepción de sustitución, no al original corregido.",
+  "Assigned shares exceed the received bucket.":
+    "Las partes asignadas superan el importe recibido.",
+  "At least one Item is required.": "Se requiere al menos un artículo.",
+  "At least one Location is required.": "Se requiere al menos una ubicación.",
+  "At least one Party is required.": "Se requiere al menos un socio.",
+  "At least one allocation target is required.": "Se necesita al menos un destino de reparto.",
+  "At least one update record is required.": "Se requiere al menos un registro de actualización.",
+  "Billing availability requires an order line.":
+    "La disponibilidad de facturación requiere una línea de pedido.",
+  BusinessEvent: "Evento de negocio",
+  "CSV column names must be at most 500 characters.":
+    "Los nombres de columna del CSV deben tener como máximo 500 caracteres.",
+  "CSV contains an invalid null character.": "El CSV contiene un carácter nulo no válido.",
+  ChangeProposal: "Propuesta de cambio",
+  ChatSession: "Chat",
+  "Check the supported replacement fields.": "Revisa los campos de sustitución admitidos.",
+  "Choose an item and a destination location.": "Elige un artículo y una ubicación de destino.",
+  "Choose the exact retained reservation IDs and quantities, then prepare a fresh review.":
+    "Elige los ID y las cantidades exactos de las Reservations que se conservan y luego prepara una nueva revisión.",
+  "Commitment cancellation fields are incomplete or unsupported.":
+    "Los campos de cancelación del Commitment están incompletos o no se admiten.",
+  "Commitment cancellation reason is required.":
+    "Se requiere un motivo de cancelación del Commitment.",
+  "Commitment is on hold ({reason}); release it before execution.":
+    "El Commitment está bloqueado ({reason}); libéralo antes de ejecutarlo.",
+  "Commitment revision fields are incomplete or unsupported.":
+    "Los campos de revisión del Commitment están incompletos o no se admiten.",
+  "Commitment was not found.": "No se encontró el Commitment.",
+  "Company not found.": "No se encontró la empresa.",
+  "Compensating Movements cannot be corrected.":
+    "Los Movements compensatorios no se pueden corregir.",
+  "Context annotations are created by the server.":
+    "Las anotaciones de contexto las crea el servidor.",
+  "Contribution inputs changed during preview; retry the read.":
+    "Los datos del margen de contribución cambiaron durante la vista previa; vuelve a leer.",
+  "Conversion kind does not match the requested use.":
+    "El tipo de conversión no coincide con el uso solicitado.",
+  "Conversion source currency does not match received evidence.":
+    "La moneda de origen de la conversión no coincide con la Evidence recibida.",
+  "Conversion source currency does not match retained evidence.":
+    "La moneda de origen de la conversión no coincide con la Evidence conservada.",
+  "Cost decision is not bound to this proposal.":
+    "La decisión de costes no está vinculada a esta propuesta.",
+  "Cost proposal is not available for execution.":
+    "La propuesta de costes no está disponible para su ejecución.",
+  "Costing evidence preview is stale.":
+    "La vista previa de la Evidence del costeo está desactualizada.",
+  "Costing preview is stale; reload the held evidence.":
+    "La vista previa del costeo está desactualizada; vuelve a cargar la Evidence disponible.",
+  "Costing scope not found.": "Ámbito de costeo no encontrado.",
+  "Counterparty role does not match shipment purpose.":
+    "El rol de la contraparte no coincide con la finalidad del envío.",
+  "Credit amount exceeds the remaining invoice amount.":
+    "El importe del abono supera el importe restante de la factura.",
+  "Credit fields are incomplete or unsupported.":
+    "Los campos del abono están incompletos o no se admiten.",
+  "Credit limit cannot be negative.": "El límite de crédito no puede ser negativo.",
+  "Credit note is already posted.": "La nota de crédito ya está contabilizada.",
+  "Credit note posting is reversed.": "El asiento de la nota de crédito está revertido.",
+  "Credit note total": "Total de la nota de crédito",
+  "Credit position fields are incomplete or unsupported.":
+    "Los campos de la línea de abono están incompletos o no se admiten.",
+  "Credit positions must be distinct.": "Las líneas de abono deben ser distintas.",
+  "Credit quantity exceeds returned, not yet credited goods.":
+    "La cantidad del abono supera la mercancía devuelta aún no abonada.",
+  "Credit quantity exceeds the remaining invoice quantity.":
+    "La cantidad del abono supera la cantidad restante de la factura.",
+  "Credit requires a posted invoice without reversed posting groups.":
+    "Un abono requiere una factura contabilizada sin grupos de asientos revertidos.",
+  "Current contribution preview requires READ COMMITTED.":
+    "La vista previa actual del margen de contribución requiere READ COMMITTED.",
+  "Customer commitment was not found.": "No se encontró el Commitment del cliente.",
+  "Customer demand requires one customer commitment; stock replenishment requires none.":
+    "La demanda de cliente requiere un Commitment de cliente; la reposición de existencias no requiere ninguno.",
+  "Customer dispatch requires a delivery commitment.":
+    "El envío a un cliente requiere un compromiso de entrega.",
+  "Customer dispatch requires a valid movement quantity.":
+    "El envío a un cliente requiere una cantidad de movimiento válida.",
+  "Customer has an active delivery hold; release it before shipment.":
+    "El cliente tiene un bloqueo de entrega activo; levántalo antes del envío.",
+  "Customer-delivery order not found.": "Pedido de entrega al cliente no encontrado.",
+  "Date/time must be a valid ISO 8601 value.": "La fecha/hora debe ser un valor ISO 8601 válido.",
+  "Default currency must be a three-letter code.":
+    "La moneda predeterminada debe ser un código de tres letras.",
+  "Default location id": "ID de ubicación predeterminada",
+  "Delivery not found.": "Entrega no encontrada.",
+  "Delivery quantity": "Cantidad de entrega",
+  "Demand coverage requires a customer commitment.":
+    "La cobertura de demanda requiere un Commitment de cliente.",
+  "Document date must use YYYY-MM-DD.": "La fecha del documento debe tener el formato YYYY-MM-DD.",
+  "Document is not a credit note.": "El documento no es una nota de crédito.",
+  "Document is not a sales invoice.": "El documento no es una factura de venta.",
+  "Document is not a supplier invoice.": "El documento no es una factura del proveedor.",
+  "Document line does not belong to the document.":
+    "La línea del documento no pertenece al documento.",
+  DocumentLine: "Línea del documento",
+  DunningNotice: "Aviso de reclamación",
+  "Duplicate Location batch reference: {reference}":
+    "Referencia de lote de ubicación duplicada: {reference}",
+  "Duplicate allocation target.": "El destino de reparto está duplicado.",
+  "Duplicate target/category/bucket.":
+    "El destino, la categoría y el tipo de importe están duplicados.",
+  "Duplicate update target: {record_id}": "Destino de actualización duplicado: {record_id}",
+  "Each retained allocation must name only reservation_id and quantity.":
+    "Cada asignación conservada debe indicar solo reservation_id y quantity.",
+  "Each shipment movement must be an object.": "Cada movimiento de un envío debe ser un objeto.",
+  "Email addresses must use an ASCII domain.":
+    "Las direcciones de correo electrónico deben usar un dominio ASCII.",
+  "Enter a non-negative acquisition value.": "Introduce un valor de adquisición no negativo.",
+  "Enter a question.": "Escribe una pregunta.",
+  "Enter a three-letter currency code.": "Introduce un código de moneda de tres letras.",
+  "Enter a valid email address.": "Introduce una dirección de correo electrónico válida.",
+  "Enter a valid occurrence time.": "Introduce una hora válida.",
+  "Enter the acquisition value as a number.": "Introduce el valor de adquisición como número.",
+  "Every allocation target requires an opaque identity.":
+    "Cada destino de reparto necesita un identificador único.",
+  "Every opening stock requires exact cost and ownership evidence.":
+    "Cada existencia inicial requiere pruebas exactas de coste y propiedad.",
+  "Every receipt requires exact cost and ownership evidence; missing movement IDs: {missing}; unexpected movement IDs: {unexpected}.":
+    "Cada entrada de mercancía requiere pruebas exactas de coste y propiedad; ID de movimiento que faltan: {missing}; ID de movimiento inesperados: {unexpected}.",
+  "Evidence was already replaced.": "La Evidence ya fue sustituida.",
+  "Explicit confirmation is required for cost decisions.":
+    "Las decisiones de costes requieren una confirmación explícita.",
+  "Explicit economic consumption must cover every shipment exactly.":
+    "El consumo económico explícito debe cubrir exactamente cada envío.",
+  "Explicit retained allocations are only accepted when active reservation identities require a choice.":
+    "Las asignaciones conservadas explícitas solo se aceptan cuando las identidades de las reservas activas requieren una elección.",
+  "External id": "ID externo",
+  "Finance action does not match the confirmed Playground review.":
+    "La acción financiera no coincide con la revisión confirmada del Playground.",
+  "Finance changes require a confirmed proposal.":
+    "Los cambios financieros requieren una propuesta confirmada.",
+  "Financial evidence is at or before the opening cutover; reconcile coverage before posting.":
+    "La Evidence financiera es igual o anterior al corte de apertura; concilia la cobertura antes de contabilizar.",
+  FinancialComponent: "Componente financiero",
+  "Fulfillment commitment not found.": "Commitment de preparación de pedidos no encontrado.",
+  Gross_amount: "Monto bruto",
+  HandlingUnit: "Unidad de carga",
+  ImportJob: "Tarea de importación",
+  "Internal review metadata cannot be supplied as intent.":
+    "Los metadatos internos de revisión no se pueden indicar como intención.",
+  "Inventory action input integrity mismatch.":
+    "Los datos de entrada de la acción de inventario no son íntegros.",
+  "Inventory admission requires READ COMMITTED input capture.":
+    "La admisión de inventario requiere una captura de entrada con READ COMMITTED.",
+  "Inventory correction chain is incomplete.":
+    "La cadena de correcciones del inventario está incompleta.",
+  "Inventory correction requires one exact event.":
+    "Una corrección de inventario requiere exactamente un evento.",
+  "Inventory history contains unsupported movement classification: every {movement_type} must be explicit.":
+    "El historial de inventario contiene una clasificación de movimientos no compatible: cada movimiento de tipo {movement_type} debe ser explícito.",
+  "Inventory history contains unsupported movement kinds.":
+    "El historial de inventario contiene tipos de movimiento no compatibles.",
+  "Inventory history does not support the declared empty opening.":
+    "El historial de inventario no admite las existencias iniciales vacías declaradas.",
+  "Inventory input integrity mismatch.": "Los datos de inventario no son íntegros.",
+  "Inventory movement bound exceeded.": "Se ha superado el límite de movimientos de inventario.",
+  "Inventory movement requires one exact recorded event.":
+    "Un movimiento de inventario requiere exactamente un evento registrado.",
+  "Inventory opening integrity mismatch.":
+    "Los datos de las existencias iniciales no son íntegros.",
+  "Inventory ownership integrity mismatch.":
+    "Los datos de propiedad del inventario no son íntegros.",
+  "Inventory ownership must partition every effective movement.":
+    "La propiedad del inventario debe repartir cada movimiento efectivo.",
+  "Inventory ownership portion bound exceeded.":
+    "Se ha superado el límite de partes de propiedad del inventario.",
+  "Inventory ownership portions must conserve movement quantity.":
+    "Las partes de propiedad deben conservar la cantidad del movimiento.",
+  "Inventory ownership references an unavailable movement.":
+    "La propiedad del inventario hace referencia a un movimiento no disponible.",
+  "Inventory receipt bound exceeded.": "Se ha superado el límite de entradas de mercancía.",
+  "Inventory receipt currency/base unit is incompatible.":
+    "La moneda o la unidad base de la entrada de mercancía no es compatible.",
+  "Inventory receipt review integrity mismatch.":
+    "La revisión de las entradas de mercancía no es íntegra.",
+  "Inventory settlement exceeds its reviewed customer return.":
+    "La liquidación de inventario supera su devolución de cliente revisada.",
+  "Inventory settlement must resolve one reviewed customer return.":
+    "Una liquidación de inventario debe resolver una devolución de cliente revisada.",
+  "Invoice credit fields require an invoice and positions.":
+    "Los campos de abono de factura requieren una factura y líneas.",
+  "Invoice fields are incomplete or unsupported.":
+    "Los campos de la factura están incompletos o no son compatibles.",
+  "Invoice has no posted control-account entry.":
+    "La factura no tiene ningún asiento contabilizado en la cuenta colectiva.",
+  "Invoice position fields are incomplete or unsupported.":
+    "Los campos de la línea de factura están incompletos o no son compatibles.",
+  "Invoice position not found.": "Línea de factura no encontrada.",
+  "Invoice positions must be distinct.": "Las líneas de factura deben ser distintas.",
+  "Invoice positions must belong to one party.":
+    "Las líneas de factura deben pertenecer a un solo socio comercial.",
+  "Invoice positions must share one currency.": "Las líneas de factura deben compartir una moneda.",
+  "Invoice posting is reversed.": "El asiento de la factura está revertido.",
+  "Invoice quantity exceeds the order line.":
+    "La cantidad de la factura supera la línea de pedido.",
+  "Invoice quantity exceeds the remaining billable quantity.":
+    "La cantidad de la factura supera la cantidad facturable restante.",
+  "Invoice requires a purchase order line.": "La factura requiere una línea de pedido de compra.",
+  "Invoice requires a sales order line.": "La factura requiere una línea de pedido de venta.",
+  "Invoice values must fit four decimal places without rounding.":
+    "Los valores de la factura deben caber en cuatro decimales sin redondeo.",
+  "Item SKU, name, and unit are required.":
+    "El SKU, el nombre y la unidad del artículo son obligatorios.",
+  "Item import requires a confirmed proposal.":
+    "La importación de artículos requiere una propuesta confirmada.",
+  "Item not found.": "Artículo no encontrado.",
+  "Item type must be stocked, service, or charge.":
+    "El tipo de artículo debe ser stocked, service o charge.",
+  "Later Movements depend on this stock; correct dependent Movements first.":
+    "Movements posteriores dependen de estas existencias; corrige primero los Movements dependientes.",
+  "Later tracked-identity Movements depend on this stock; correct them first.":
+    "Movements posteriores con identidad trazada dependen de estas existencias; corrígelos primero.",
+  "Lead time days": "Plazo de entrega (días)",
+  "Lead time days cannot be negative.": "El plazo de entrega en días no puede ser negativo.",
+  "Ledger posting group cannot be empty.": "El grupo de asientos no puede estar vacío.",
+  "Ledger posting group is not balanced.": "El grupo de asientos no está cuadrado.",
+  "Ledger posting group must balance debits and credits.":
+    "El grupo de asientos debe cuadrar el debe y el haber.",
+  "Ledger posting group must use one currency.": "El grupo de asientos debe usar una sola moneda.",
+  "Ledger posting group must use one party.":
+    "El grupo de asientos debe usar un solo socio comercial.",
+  "Ledger posting group not found.": "No se encontró el grupo de asientos.",
+  "Ledger posting group was already reversed; reload its chain.":
+    "El grupo de asientos ya se revirtió; vuelve a cargar su cadena.",
+  "Ledger reversal preview is stale; reload and preview again.":
+    "La vista previa de la reversión está desactualizada; vuelve a cargar y genera otra vista previa.",
+  "Ledger reversal preview no longer matches the request.":
+    "La vista previa de la reversión ya no coincide con la solicitud.",
+  "Ledger reversal reason is required.": "El motivo de la reversión es obligatorio.",
+  LedgerEntry: "Asiento",
+  "Line unit and type are required.": "La unidad y el tipo de la línea son obligatorios.",
+  "Line {index} requires a stated amount; it is never calculated.":
+    "La línea {index} requiere un importe indicado; nunca se calcula.",
+  "Location does not allow physical stock.": "La ubicación no admite existencias físicas.",
+  "Location hierarchy cannot contain a cycle.":
+    "La jerarquía de ubicaciones no puede contener un ciclo.",
+  "Location name and type are required.": "El nombre y el tipo de la ubicación son obligatorios.",
+  "Location parent_ref must reference an earlier record in the same batch: {reference}":
+    "El parent_ref de una ubicación debe referirse a un registro anterior del mismo lote: {reference}",
+  "Locations are incomplete for {movement_type}.":
+    "Las ubicaciones están incompletas para {movement_type}.",
+  "Lot does not belong to the movement item.": "El lote no pertenece al artículo del movimiento.",
+  "Lot-tracked items cannot use serial identity.":
+    "Los artículos con trazabilidad por lote no pueden usar número de serie.",
+  "Lot-tracked items require a lot.": "Los artículos con trazabilidad por lote requieren un lote.",
+  "Manual order source could not be recorded.": "No se pudo registrar el origen del pedido manual.",
+  "Map only SKU, name and unit.": "Asigna solo SKU, nombre y unidad.",
+  Mapping: "Asignación",
+  "Master data changed since review; reload the record.":
+    "Los datos maestros cambiaron desde la revisión; vuelve a cargar el registro.",
+  "Master data proposal not found.": "Propuesta de datos maestros no encontrada.",
+  "Master data record not found.": "Registro de datos maestros no encontrado.",
+  "Master-data event must match its reviewed action.":
+    "El evento de datos maestros debe coincidir con su acción revisada.",
+  "Master-data service differs from the reviewed action.":
+    "El servicio de datos maestros difiere de la acción revisada.",
+  "Membership changes require a confirming human owner.":
+    "Los cambios de membresía requieren que un propietario humano los confirme.",
+  "Minimum quantity": "Cantidad mínima",
+  "Missing account default for {role}. Configure finance accounts first.":
+    "Falta la cuenta predeterminada para {role}. Configura primero las cuentas financieras.",
+  "Mixed tax requires an explicit partial received tax share.":
+    "El impuesto mixto requiere una parte explícita del impuesto recibido.",
+  "More than one item matches; name the item by its SKU.":
+    "Coincide más de un artículo; indica el artículo por su SKU.",
+  "Movement correction preview is stale; reload and preview again.":
+    "La vista previa de la corrección del Movement está desactualizada; vuelve a cargar y genera la vista previa de nuevo.",
+  "Movement correction preview no longer matches the request.":
+    "La vista previa de la corrección del Movement ya no coincide con la solicitud.",
+  "Movement correction reason is required.":
+    "El motivo de la corrección del Movement es obligatorio.",
+  "Movement does not match the commitment.": "El Movement no coincide con el compromiso.",
+  "Movement does not match the single confirmed Playground action.":
+    "El Movement no coincide con la única acción confirmada del Playground.",
+  "Movement exceeds physical stock.": "El Movement supera las existencias físicas.",
+  "Movement exceeds stock for the selected identity.":
+    "El Movement supera las existencias de la identidad seleccionada.",
+  "Movement exceeds the commitment's open quantity.":
+    "El Movement supera la cantidad abierta del compromiso.",
+  "Movement not found.": "Movement no encontrado.",
+  "Movement type does not match the shipment purpose.":
+    "El tipo de Movement no coincide con la finalidad del envío.",
+  "Movement type does not match the shipment purpose; permitted value: {expected}.":
+    "El tipo de Movement no coincide con la finalidad del envío; valor permitido: {expected}.",
+  "Movement was already corrected; reload its correction chain.":
+    "El Movement ya se corrigió; vuelve a cargar su cadena de correcciones.",
+  "Name the evidence the acquisition value comes from.":
+    "Indica la prueba de la que procede el valor de adquisición.",
+  "Net plus tax differs from the invoice gross.":
+    "El neto más el impuesto difiere del bruto de la factura.",
+  "No attribution to withdraw.": "No hay ninguna atribución que retirar.",
+  "Nonrecoverable share exceeds or contradicts received tax.":
+    "La parte no deducible supera el impuesto recibido o lo contradice.",
+  "Nonrecoverable tax requires the complete stated tax share.":
+    "El impuesto no deducible requiere la parte completa del impuesto indicado.",
+  "Obtain a delivery review before confirming this proposal.":
+    "Obtén una revisión de entrega antes de confirmar esta propuesta.",
+  "One attribution cannot mix target currencies.":
+    "Una atribución no puede mezclar monedas de destino.",
+  "Only a confirmed opening stock carries a cost.":
+    "Solo unas existencias iniciales confirmadas llevan un coste.",
+  "Only active reservations can be released. Prepare a fresh review.":
+    "Solo se pueden liberar Reservations activas. Prepara una nueva revisión.",
+  "Only an open announcement can be fulfilled.": "Solo se puede cumplir un anuncio abierto.",
+  "Only an open commitment can be cancelled.": "Solo se puede cancelar un Commitment abierto.",
+  "Only an open commitment can be revised.": "Solo se puede revisar un Commitment abierto.",
+  "Only open commitments can be put on hold.": "Solo se pueden bloquear Commitments abiertos.",
+  "Only open customer delivery commitments can be reserved.":
+    "Solo se pueden reservar compromisos de entrega a clientes abiertos.",
+  "Only returning goods fulfil an announced customer return.":
+    "Solo la mercancía devuelta cumple una devolución de cliente anunciada.",
+  "Only stocked items can have physical movements.":
+    "Solo los artículos en existencias pueden tener movimientos físicos.",
+  "Opening cost needs the stated amount, currency and evidence reference.":
+    "El coste inicial necesita el importe indicado, la moneda y la referencia de la prueba.",
+  "Opening cutover coverage requires an explicit original date or actual cash timestamp.":
+    "La cobertura del corte de apertura requiere una fecha original explícita o una marca de tiempo real del cobro o pago.",
+  "Opening evidence must be created once by the confirmed opening import.":
+    "La Evidence de apertura solo puede crearse una vez mediante la importación de apertura confirmada.",
+  "Opening stock accepts only item, destination, quantity, optional time and optional acquisition cost.":
+    "Las existencias iniciales solo aceptan artículo, destino, cantidad, hora opcional y coste de adquisición opcional.",
+  OpeningScope: "Alcance de apertura",
+  "Order direction must be sales or purchase.": "La dirección del pedido debe ser venta o compra.",
+  "Order line not found.": "No se encontró la línea de pedido.",
+  "Original source item is already represented by opening evidence; inspect it without posting again.":
+    "El elemento de origen ya está representado por Evidence de apertura; revísalo sin volver a contabilizar.",
+  "Package does not belong to the shipment.": "El paquete no pertenece al envío.",
+  "Packaged execution requires at least one movement.":
+    "Una ejecución con paquetes requiere al menos un movimiento.",
+  "Parent location id": "ID de ubicación superior",
+  "Party email labels can contain at most 80 characters.":
+    "Las etiquetas de correo electrónico de un socio pueden tener como máximo 80 caracteres.",
+  "Party name is required.": "El nombre del socio es obligatorio.",
+  "Party roles must be company, customer, or supplier.":
+    "Los roles del socio comercial deben ser empresa, cliente o proveedor.",
+  PartyGroup: "Grupo de socios",
+  "Payment amount supports at most four decimal places without rounding.":
+    "El importe del pago admite como máximo cuatro decimales sin redondeo.",
+  "Payment exceeds the open customer receivable.":
+    "El pago supera la cuenta por cobrar pendiente del cliente.",
+  "Payment exceeds the open invoice amount.": "El pago supera el importe pendiente de la factura.",
+  "Payment exceeds the open supplier payable.":
+    "El pago supera la cuenta por pagar pendiente al proveedor.",
+  "Payment fields are incomplete or unsupported.":
+    "Los campos del pago están incompletos o no son compatibles.",
+  "Payment reference must be text.": "La referencia del pago debe ser texto.",
+  "Payment requires a {document_type}.": "El pago requiere un documento del tipo {document_type}.",
+  "Payment term code": "Código de plazo de pago",
+  PaymentTerm: "Condición de pago",
+  "Playground action identity does not match the confirmed proposal.":
+    "La identidad de la acción del Playground no coincide con la propuesta confirmada.",
+  "Playground decision context is no longer valid.":
+    "El contexto de decisión del Playground ya no es válido.",
+  "Playground does not support this operation.": "El Playground no admite esta operación.",
+  "Playground internal scopes cannot access business operations.":
+    "Los ámbitos internos del Playground no pueden acceder a operaciones de negocio.",
+  "Playground run not found.": "Ejecución del Playground no encontrada.",
+  PriceList: "Lista de precios",
+  PriceListEntry: "Entrada de la lista de precios",
+  "Priority must be low, normal, high, or urgent.":
+    "La prioridad debe ser low, normal, high o urgent.",
+  "Profile authority does not permit this operation.":
+    "La autorización del perfil no permite esta operación.",
+  "Profile costing authority is unavailable.":
+    "La autorización de costes del perfil no está disponible.",
+  "Projected state is only valid for a read-only preview.":
+    "Un estado proyectado solo es válido para una vista previa de solo lectura.",
+  "Proposal cannot be confirmed from status {status}.":
+    "La propuesta no se puede confirmar desde el estado {status}.",
+  "Proposal cannot be rejected from status {status}.":
+    "La propuesta no se puede rechazar desde el estado {status}.",
+  "Proposal execution is in progress or its outcome is unknown; reconcile by proposal ID before taking further action.":
+    "La ejecución de la propuesta está en curso o su resultado es desconocido; concílialo por ID de propuesta antes de hacer nada más.",
+  "Proposal is no longer available for confirmation.":
+    "La propuesta ya no está disponible para confirmarse.",
+  "Proposal not found.": "Propuesta no encontrada.",
+  "Proposal references an invalid mutation tool.":
+    "La propuesta hace referencia a una herramienta de modificación no válida.",
+  "Proposed shipment quantity must be positive and open.":
+    "La cantidad de envío propuesta debe ser positiva y estar pendiente.",
+  "Quantity and amount values must be finite.":
+    "Las cantidades y los importes deben ser valores finitos.",
+  "REALITY_ARTIFACT_STORAGE must be 'file' or 's3'.":
+    "REALITY_ARTIFACT_STORAGE debe ser 'file' o 's3'.",
+  "REALITY_S3_BUCKET is required for S3 artifact storage.":
+    "REALITY_S3_BUCKET es obligatorio para el almacenamiento de artefactos en S3.",
+  "Read tools do not need a proposal.": "Las herramientas de lectura no necesitan una propuesta.",
+  "Readiness requires a customer-delivery commitment.":
+    "La disponibilidad de envío requiere un Commitment de entrega al cliente.",
+  "Receipt cost component bound would be exceeded.":
+    "Se superaría el límite de componentes de coste de la recepción.",
+  "Receipt cost manifest exceeds the supported scope.":
+    "El manifiesto de costes de recepción supera el ámbito admitido.",
+  "Receipt cost quantity differs from inventory input.":
+    "La cantidad de coste de la entrada difiere de los datos de inventario.",
+  "Receipt cost scope exceeds the supported 100 component bound.":
+    "El ámbito de costes de recepción supera el límite admitido de 100 componentes.",
+  "Receipt costs require supplier invoice or credit evidence.":
+    "Los costes de recepción requieren una factura o abono de proveedor como Evidence.",
+  "Receipt costs with different currencies require reviewed conversion.":
+    "Los costes de recepción en distintas monedas requieren una conversión revisada.",
+  "Receipt currency conversion is not supported by this slice.":
+    "La conversión de moneda de la recepción no se admite en esta fase.",
+  "Received component currency contradicts the document.":
+    "La moneda del componente recibido contradice el documento.",
+  "Received evidence changed; record replacement evidence instead.":
+    "La Evidence recibida ha cambiado; registra en su lugar una Evidence de sustitución.",
+  "Received finance line detail must be an object.":
+    "El detalle financiero recibido de la línea debe ser un objeto.",
+  "Received gross cannot exclude its stated tax.":
+    "El bruto recibido no puede excluir su impuesto indicado.",
+  "Received gross contradicts the normalized evidence.":
+    "El bruto recibido contradice la Evidence normalizada.",
+  "Received net cannot include input tax.": "El neto recibido no puede incluir el IVA soportado.",
+  "Refund exceeds the open credit amount.": "El reembolso supera el importe de crédito pendiente.",
+  "Refund exceeds what the credit note still owes.":
+    "El reembolso supera lo que aún se adeuda por la nota de crédito.",
+  "Refund fields are incomplete or unsupported.":
+    "Los campos del reembolso están incompletos o no son compatibles.",
+  "Refund reference must be text.": "La referencia del reembolso debe ser texto.",
+  "Replaced evidence cannot be reassigned.": "La Evidence sustituida no puede reasignarse.",
+  "Replacement cannot silently change currency.":
+    "La sustitución no puede cambiar la moneda de forma silenciosa.",
+  "Replacement must be another event on the shipment.":
+    "El reemplazo debe ser otro evento del mismo envío.",
+  "Replacement requires fresh distinct evidence.":
+    "La sustitución requiere Evidence nueva y distinta.",
+  "Request identity already belongs to another intent.":
+    "El identificador de solicitud ya pertenece a otra intención.",
+  "Request identity already belongs to another supply assignment.":
+    "El identificador de solicitud ya pertenece a otra asignación de suministro.",
+  "Request identity was already used for a different change.":
+    "Este identificador de solicitud ya se usó para otro cambio.",
+  "Reservation does not match the confirmed Playground review.":
+    "La Reservation no coincide con la revisión confirmada del Playground.",
+  "Reservation not found.": "Reservation no encontrada.",
+  "Reservation release cannot emit another event type.":
+    "La liberación de una Reservation no puede emitir otro tipo de evento.",
+  "Resolutions exceed what came back.": "Las resoluciones superan lo que se devolvió.",
+  "Retained allocation quantity": "Cantidad de la asignación conservada",
+  "Retained allocation total cannot exceed revised open quantity.":
+    "El total de asignaciones conservadas no puede superar la cantidad abierta revisada.",
+  "Retained allocations must name distinct active reservations for this commitment.":
+    "Las asignaciones conservadas deben indicar Reservations activas distintas de este Commitment.",
+  "Retained receipt cost manifest is incomplete or corrupt.":
+    "El manifiesto de costes de recepción conservado está incompleto o dañado.",
+  "Return disposition exceeds unresolved arrived quantity.":
+    "La disposición de devolución supera la cantidad recibida pendiente.",
+  "Return disposition fields are incomplete or unsupported.":
+    "Los campos de la disposición de devolución están incompletos o no se admiten.",
+  "Return disposition requires a customer-return Movement with type return.":
+    "La disposición de devolución requiere un Movement de devolución de cliente con tipo return.",
+  "Return disposition requires the arrived return's customer-delivery commitment.":
+    "La disposición de devolución requiere el compromiso de entrega al cliente de la devolución recibida.",
+  "Return disposition requires the arrived return's destination location.":
+    "La disposición de devolución requiere la ubicación de destino de la devolución recibida.",
+  "Return exceeds what was shipped against the commitment.":
+    "La devolución supera lo enviado contra el compromiso.",
+  "Return movement was not found.": "No se encontró el movimiento de devolución.",
+  ReturnAnnouncement: "Aviso de devolución",
+  "Reversal fields are incomplete or unsupported.":
+    "Los campos de la reversión están incompletos o no se admiten.",
+  "Reversal preview does not match this reason.":
+    "La vista previa de la reversión no coincide con este motivo.",
+  "Reversing posting groups cannot be reversed.":
+    "Los grupos de asientos de anulación no se pueden anular.",
+  "Review this action in its Playground run.": "Revisa esta acción en su ejecución del Playground.",
+  "Revised quantity": "Cantidad revisada",
+  "Row {row}: SKU {sku} already exists in this company.":
+    "Fila {row}: el SKU {sku} ya existe en esta empresa.",
+  "Row {row}: duplicate SKU {sku} in this file.":
+    "Fila {row}: SKU {sku} duplicado en este archivo.",
+  "Row {row}: the number of fields differs from the header.":
+    "Fila {row}: el número de campos difiere del encabezado.",
+  "Row {row}: {field} is required and must be at most 500 characters.":
+    "Fila {row}: {field} es obligatorio y debe tener como máximo 500 caracteres.",
+  "S3 artifacts must be accessed through materialize_artifact().":
+    "Se debe acceder a los artefactos de S3 mediante materialize_artifact().",
+  "Sales invoice is already posted.": "La factura de venta ya está contabilizada.",
+  "Scrap or loss requires a reason.": "El desecho o la pérdida requiere un motivo.",
+  "Secret not found.": "Secreto no encontrado.",
+  "Select a customer delivery for contextual assistance.":
+    "Selecciona una entrega al cliente para recibir ayuda contextual.",
+  "Select a customer invoice.": "Selecciona una factura de cliente.",
+  "Select an open customer commitment.": "Selecciona un Commitment de cliente abierto.",
+  "Select an open supplier commitment.": "Selecciona un Commitment de proveedor abierto.",
+  "Select at least one credit position.": "Selecciona al menos una línea de abono.",
+  "Select at least one invoice position.": "Selecciona al menos una línea de factura.",
+  "Selected price entry does not reproduce the agreed line context.":
+    "La entrada de precio seleccionada no reproduce el contexto de línea acordado.",
+  "Selling evidence cannot be assigned or replaced as acquisition cost.":
+    "La Evidence de venta no puede asignarse ni sustituirse como coste de adquisición.",
+  "Serial unit does not belong to the movement item.":
+    "El número de serie no pertenece al artículo del movimiento.",
+  "Serial unit does not belong to the selected lot.":
+    "El número de serie no pertenece al lote seleccionado.",
+  "Serial unit is already in physical stock.":
+    "El número de serie ya está en las existencias físicas.",
+  "Serial-tracked items require a serial unit.":
+    "Los artículos con trazabilidad por número de serie requieren un número de serie.",
+  SerialUnit: "Número de serie",
+  "Settlement entries must be opposite sides of one control account.":
+    "Los asientos de liquidación deben ser lados opuestos de una misma cuenta colectiva.",
+  "Settlement entries must belong to active posting groups.":
+    "Los asientos de liquidación deben pertenecer a grupos de asientos activos.",
+  "Settlement entries must belong to the same party.":
+    "Los asientos de liquidación deben pertenecer al mismo socio comercial.",
+  "Settlement entries must use the same currency.":
+    "Los asientos de liquidación deben usar la misma moneda.",
+  "Settlement requires control accounts.": "La liquidación requiere cuentas colectivas.",
+  "Settlement target is not a settleable document.":
+    "El destino de la liquidación no es un documento liquidable.",
+  "Several items match: {names}. Ask which one.":
+    "Coinciden varios artículos: {names}. Pregunta cuál es.",
+  "Shares must preserve their source bucket sign.":
+    "Las partes deben conservar el signo de su importe de origen.",
+  "Shipment blocked: {blockers} (required {required_amount} {required_currency}, received {received_amount} {received_currency}).":
+    "Envío bloqueado: {blockers} (requerido {required_amount} {required_currency}, recibido {received_amount} {received_currency}).",
+  "Shipment direction does not match its purpose.":
+    "La dirección del envío no coincide con su propósito.",
+  "Shipment event correction reason is required.":
+    "Se requiere un motivo para corregir el evento de envío.",
+  "Shipment event is already superseded.": "El evento de envío ya está sustituido.",
+  ShipmentEvent: "Evento del envío",
+  ShipmentPackage: "Bulto",
+  Sku: "SKU",
+  "Source artifact not found.": "Artefacto de origen no encontrado.",
+  "Source capacity": "Importe de origen",
+  "Source code must use 1–100 lowercase letters, numbers, dots, dashes or underscores.":
+    "El código de origen debe usar de 1 a 100 letras minúsculas, números, puntos, guiones o guiones bajos.",
+  "Source system and external ID must be provided together.":
+    "El sistema Source y el ID externo deben indicarse juntos.",
+  SourceArtifact: "Archivo de origen",
+  SourceCapability: "Función de origen",
+  SourceRecord: "SourceRecord",
+  SourceSystem: "Sistema de origen",
+  "State net and tax on each invoice position.":
+    "Indica el neto y el impuesto en cada línea de factura.",
+  "Stated invoice amounts accept net, tax, base, gross and currency only.":
+    "Los importes indicados de la factura solo admiten neto, impuesto, base, bruto y moneda.",
+  "Stated nonzero tax cannot be declared not applicable.":
+    "Un impuesto indicado distinto de cero no puede declararse no aplicable.",
+  "SubledgerAccount not found.": "Cuenta auxiliar no encontrada.",
+  "Supplier commitment was not found.": "No se encontró el Commitment del proveedor.",
+  "Supplier credit note total": "Total de la nota de crédito del proveedor",
+  "Supplier invoice is already posted.": "La factura del proveedor ya está contabilizada.",
+  "Supplier return exceeds what was received against the commitment.":
+    "La devolución a proveedor supera lo recibido contra el compromiso.",
+  "Supply and demand items must match.": "Los artículos de suministro y demanda deben coincidir.",
+  "Supply and demand locations must match.":
+    "Las ubicaciones de suministro y demanda deben coincidir.",
+  "Supply assignment exceeds open customer demand.":
+    "La asignación supera la demanda abierta del cliente.",
+  "Supply assignment exceeds unassigned supplier quantity.":
+    "La asignación supera la cantidad del proveedor aún no asignada.",
+  "Supply assignment fields are incomplete or unsupported.":
+    "Los campos de la asignación de suministro están incompletos o no se admiten.",
+  "Supply assignment quantity must be a decimal.":
+    "La cantidad de la asignación de suministro debe ser un número decimal.",
+  "Supply assignment quantity must be positive.":
+    "La cantidad de suministro asignada debe ser positiva.",
+  "Supply assignment quantity must fit four decimal places without rounding.":
+    "La cantidad de la asignación de suministro debe caber en cuatro decimales sin redondeo.",
+  "Supply coverage requires a supplier commitment.":
+    "La cobertura de suministro requiere un Commitment de proveedor.",
+  "Tax cannot be counted twice or assigned as recoverable.":
+    "El impuesto no puede contarse dos veces ni asignarse como deducible.",
+  "Tax cost direction must follow the selected amount for the same receipt.":
+    "La dirección del coste del impuesto debe seguir al importe elegido de la misma recepción.",
+  Tenant: "Empresa",
+  "Tenant not found.": "No se encontró la empresa.",
+  "The acquisition value supports at most 4 decimal places.":
+    "El valor de adquisición admite como máximo 4 decimales.",
+  "The action contains unsupported fields.": "La acción contiene campos no admitidos.",
+  "The configured AI API key cannot be decrypted.":
+    "No se puede descifrar la clave de API de IA configurada.",
+  "The configured AI API key is detached from its session.":
+    "La clave de API de IA configurada está desvinculada de su sesión.",
+  "The configured secret cannot be decrypted.": "No se puede descifrar el secreto configurado.",
+  "The correction contains unsupported fields.": "La corrección contiene campos no admitidos.",
+  "The customer role must remain on a customer record.":
+    "El rol de cliente debe permanecer en un registro de cliente.",
+  "The delivery changed. Prepare a fresh invoice review.":
+    "La entrega cambió. Prepara una nueva revisión de la factura.",
+  "The delivery changed. Prepare a fresh review.":
+    "La entrega ha cambiado. Descarta la propuesta y prepara una nueva revisión.",
+  "The financial context changed. Prepare a fresh review.":
+    "El contexto financiero ha cambiado. Descarta la propuesta y prepara una nueva revisión.",
+  "The invoice delivery evidence is missing or ambiguous.":
+    "La prueba de entrega de la factura falta o es ambigua.",
+  "The invoice delivery guard is invalid.":
+    "La comprobación de entrega de la factura no es válida.",
+  "The invoice delivery unit cannot be verified.":
+    "No se puede verificar la unidad de entrega de la factura.",
+  "The item import changed. Prepare a fresh review.":
+    "La importación de artículos ha cambiado. Descarta la propuesta y prepara una nueva revisión.",
+  "The order contains an invalid value.": "El pedido contiene un valor no válido.",
+  "The order has missing or unsupported fields.":
+    "El pedido tiene campos que faltan o no son compatibles.",
+  "The original file no longer matches its recorded hash.":
+    "El archivo original ya no coincide con su hash registrado.",
+  "The payment context changed. Prepare a fresh review.":
+    "El contexto del pago ha cambiado. Descarta la propuesta y prepara una nueva revisión.",
+  "The revised quantity requires an explicit retained reservation choice because active allocations use different locations or tracking identities.":
+    "La cantidad revisada requiere elegir explícitamente la reserva que se conserva, porque las asignaciones activas usan ubicaciones o identidades de trazabilidad distintas.",
+  "The sandbox companion is read-only.": "La empresa acompañante del sandbox es de solo lectura.",
+  "The selected received amount is missing; it cannot be recomputed.":
+    "Falta el importe recibido seleccionado; no puede volver a calcularse.",
+  "The stated currency differs from the invoice.":
+    "La moneda indicada difiere de la de la factura.",
+  "The stated gross differs from the position's gross.":
+    "El bruto indicado difiere del bruto de la línea.",
+  "The stated {field} must be a non-negative amount.":
+    "El valor indicado de {field} debe ser un importe no negativo.",
+  "The stated {field} must be a number.": "El valor indicado de {field} debe ser un número.",
+  "The supplier role must remain on a supplier record.":
+    "El rol de proveedor debe permanecer en un registro de proveedor.",
+  "This Movement already has a correction chain.":
+    "Este Movement ya tiene una cadena de correcciones.",
+  "This Playground run is read-only or not ready.":
+    "Esta ejecución del Playground es de solo lectura o no está lista.",
+  "This action is not supported by the delivery review.":
+    "La revisión de entregas no admite esta acción.",
+  "This delivery has no active own hold. Prepare a fresh review.":
+    "Esta entrega no tiene un bloqueo propio activo. Prepara una nueva revisión.",
+  "This delivery is already on hold. Prepare a fresh review.":
+    "Esta entrega ya está bloqueada. Prepara una nueva revisión.",
+  "This exact order is already recorded. Open the existing order instead.":
+    "Este mismo pedido ya está registrado. Abre el pedido existente en su lugar.",
+  "This file interpretation was already recorded. Inspect its original result.":
+    "Esta interpretación del archivo ya se registró. Revisa su resultado original.",
+  "This is not a shipment action.": "Esta no es una acción de envío.",
+  "This posting group has already been reversed.": "Este grupo de asientos ya se ha anulado.",
+  "This proposal uses its existing review workspace.":
+    "Esta propuesta usa su espacio de revisión existente.",
+  "This return disposition requires a destination location.":
+    "Esta disposición de devolución requiere una ubicación de destino.",
+  "This slice supports positive goods receipts, not returns or inventory valuation.":
+    "Esta fase admite entradas de mercancía positivas, no devoluciones ni valoración de inventario.",
+  "Tool not found.": "Herramienta no encontrada.",
+  "Tracking type": "Tipo de trazabilidad",
+  "Tracking type must be none, lot, or serial.":
+    "El tipo de trazabilidad debe ser none, lot o serial.",
+  "Type, number, party, and currency are required.":
+    "El tipo, el número, el socio comercial y la moneda son obligatorios.",
+  "Unsupported commitment action.": "Acción de Commitment no admitida.",
+  "Unsupported commitment type.": "Tipo de compromiso no admitido.",
+  "Unsupported cost review draft kind.": "Tipo de borrador de revisión de costes no admitido.",
+  "Unsupported hold reason.": "Motivo de bloqueo no admitido.",
+  "Unsupported inventory base unit or future cutoff.":
+    "Unidad base de inventario no compatible o fecha de corte futura.",
+  "Unsupported inventory calculation: {reason}": "Cálculo de inventario no compatible: {reason}",
+  "Unsupported inventory review version.": "Versión de revisión de inventario no compatible.",
+  "Unsupported item import fields.": "Campos de importación de artículos no admitidos.",
+  "Unsupported master data family.": "Tipo de datos maestros no admitido.",
+  "Unsupported master data fields: {fields}.": "Campos de datos maestros no admitidos: {fields}.",
+  "Unsupported master data operation.": "Operación de datos maestros no admitida.",
+  "Unsupported movement type.": "Tipo de movimiento no admitido.",
+  "Unsupported movement type. Expected one of: {types}.":
+    "Tipo de movimiento no admitido. Se espera uno de: {types}.",
+  "Unsupported operational document type. Expected one of: {types}.":
+    "Tipo de documento operativo no admitido. Se espera uno de: {types}.",
+  "Unsupported receipt cost manifest.": "Manifiesto de costes de recepción no admitido.",
+  "Unsupported received finance detail contract.":
+    "Contrato de detalle financiero recibido no admitido.",
+  "Unsupported replacement fields.": "Campos de sustitución no admitidos.",
+  "Unsupported return disposition.": "Disposición de devolución no admitida.",
+  "Unsupported shipment event kind or reporter.":
+    "Tipo o informante del evento de envío no admitido.",
+  "Unsupported shipment event reporter.": "Informante del evento de envío no admitido.",
+  "Unsupported shipment field(s): {fields}": "Campos de envío no admitidos: {fields}",
+  "Unsupported shipment movement field(s): {fields}":
+    "Campos del movimiento de envío no admitidos: {fields}",
+  "Unsupported shipment purpose.": "Este propósito de envío no es compatible.",
+  "Unsupported shipment purpose; permitted values: {values}.":
+    "Finalidad de envío no admitida; valores permitidos: {values}.",
+  "Unsupported supply assignment purpose.": "Finalidad de asignación de suministro no admitida.",
+  "Untracked items cannot use lot or serial identity.":
+    "Los artículos sin trazabilidad no pueden usar lote ni número de serie.",
+  "Update records require an opaque ID.": "Los registros de actualización requieren un ID opaco.",
+  "Use a received line, not its duplicate document total.":
+    "Usa una línea recibida, no el total duplicado del documento.",
+  "Use either invoice lines or a single order line.":
+    "Usa líneas de factura o una única línea de pedido, no ambas.",
+  "Use either invoice positions or legacy return-credit fields.":
+    "Usa líneas de factura o los campos antiguos de abono por devolución, no ambos.",
+  "Use either parent_ref for this batch or parent_location_id for an existing Location.":
+    "Usa parent_ref para este lote o parent_location_id para una ubicación existente, no ambos.",
+  "Use the existing practice action policy.":
+    "Usa la política existente para acciones de práctica.",
+  "Use the reviewed practice actions for this company.":
+    "Usa las acciones de práctica revisadas para esta empresa.",
+  "Valuation assessment integrity mismatch.":
+    "Los datos de la valoración de inventario no son íntegros.",
+  "Your {count} available AI questions are used. Resets at {resets_at}. You can keep exploring your company.":
+    "Tus {count} preguntas de IA disponibles se han agotado. Se restablecen el {resets_at}. Puedes seguir explorando tu empresa.",
+  "allocation amount": "importe de asignación",
+  base: "base imponible",
+  "credit amount": "importe del abono",
+  gross: "bruto",
+  "line amount": "importe de línea",
+  name: "Nombre",
+  net: "neto",
+  quantity: "cantidad",
+  sku: "SKU",
+  tax: "impuesto",
+  type: "Tipo",
+  unit: "Unidad",
+  "{family} changed since proposal review; create a new proposal.":
+    "{family} cambió desde la revisión de la propuesta; crea una nueva propuesta.",
+  "{field} cannot be negative.": "{field} no puede ser negativo.",
+  "{field} must be a number.": "{field} debe ser un número.",
+  "{field} must be a whole number.": "{field} debe ser un número entero.",
+  "{field} must be greater than zero.": "{field} debe ser mayor que cero.",
+  "{field} must be one of: {options}.": "{field} debe ser uno de estos valores: {options}.",
+  "{field} must be text.": "{field} debe ser texto.",
+  "{field} must be true or false.": "{field} debe ser verdadero o falso.",
+  "{field} must fit the four decimal contract.": "{field} admite como máximo cuatro decimales.",
+  "{label} must be a decimal value.": "El campo {label} debe ser un valor decimal.",
+  "{label} must be positive and fit four decimal places without rounding.":
+    "El campo {label} debe ser positivo y caber en cuatro decimales sin redondeo.",
+  "{record} not found.": "No se encontró {record}.",
+});

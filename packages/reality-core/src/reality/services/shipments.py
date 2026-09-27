@@ -44,7 +44,7 @@ def _record(session: Session, model, tenant_id: str, record_id: str):
         select(model).where(model.tenant_id == tenant_id, model.id == record_id)
     )
     if value is None:
-        raise NotFound(f"{model.__name__} not found.")
+        raise NotFound(code="record_not_found", values={"record": model.__name__})
     return value
 
 
@@ -73,7 +73,7 @@ def record_shipment_notice(
     try:
         validate_shipment_direction(purpose, direction)
     except ShipmentCompatibilityError as error:
-        raise InvalidOperation(str(error)) from error
+        raise InvalidOperation.from_refusal(error) from error
     _record(session, Party, tenant_id, counterparty_id)
     role = required_party_role(purpose)
     if not session.scalar(
@@ -85,10 +85,10 @@ def record_shipment_notice(
             )
         )
     ):
-        raise InvalidOperation("Counterparty role does not match shipment purpose.")
+        raise InvalidOperation(code="shipment_counterparty_role_mismatch")
     _validate_source(session, tenant_id, source_record_id)
     if reporter_type not in REPORTER_TYPES:
-        raise InvalidOperation("Unsupported shipment event reporter.")
+        raise InvalidOperation(code="shipment_event_reporter_unsupported")
     shipment = Shipment(
         id=uid("shp"),
         tenant_id=tenant_id,
@@ -158,11 +158,11 @@ def record_shipment_event(
 ) -> ShipmentEvent:
     _record(session, Shipment, tenant_id, shipment_id)
     if event_type not in EVENT_TYPES or reporter_type not in REPORTER_TYPES:
-        raise InvalidOperation("Unsupported shipment event kind or reporter.")
+        raise InvalidOperation(code="shipment_event_kind_or_reporter_unsupported")
     if shipment_package_id:
         package = _record(session, ShipmentPackage, tenant_id, shipment_package_id)
         if package.shipment_id != shipment_id:
-            raise InvalidOperation("Package does not belong to the shipment.")
+            raise InvalidOperation(code="shipment_package_not_on_shipment")
     _validate_source(session, tenant_id, source_record_id)
     if external_event_id:
         existing = session.scalar(
@@ -223,12 +223,12 @@ def supersede_shipment_event(
 ) -> ShipmentEventSupersession:
     event = _record(session, ShipmentEvent, tenant_id, event_id)
     if not reason.strip():
-        raise InvalidOperation("Shipment event correction reason is required.")
+        raise InvalidOperation(code="shipment_event_correction_reason_required")
     replacement = None
     if replacement_event_id:
         replacement = _record(session, ShipmentEvent, tenant_id, replacement_event_id)
         if replacement.shipment_id != event.shipment_id or replacement.id == event.id:
-            raise InvalidOperation("Replacement must be another event on the shipment.")
+            raise InvalidOperation(code="shipment_event_replacement_invalid")
     _validate_source(session, tenant_id, source_record_id)
     existing = session.scalar(
         select(ShipmentEventSupersession).where(
@@ -286,14 +286,12 @@ def record_packaged_execution(
         for movement_arguments in movements:
             commitment_id = movement_arguments.get("commitment_id")
             if not commitment_id:
-                raise InvalidOperation(
-                    "Customer dispatch requires a delivery commitment."
-                )
+                raise InvalidOperation(code="customer_dispatch_commitment_missing")
             try:
                 proposed_quantity = Decimal(str(movement_arguments["quantity"]))
             except (KeyError, ValueError, ArithmeticError):
                 raise InvalidOperation(
-                    "Customer dispatch requires a valid movement quantity."
+                    code="customer_dispatch_quantity_invalid"
                 ) from None
             readiness = fulfillment_readiness(
                 session,
@@ -303,11 +301,14 @@ def record_packaged_execution(
             )
             if not readiness.ship_ready:
                 raise InvalidOperation(
-                    "Shipment blocked: "
-                    + ", ".join(readiness.blocker_codes)
-                    + f" (required {readiness.required_amount} "
-                    + f"{readiness.currency}, received "
-                    + f"{readiness.received_amount} {readiness.currency})."
+                    code="shipment_blocked_readiness",
+                    values={
+                        "blockers": ", ".join(readiness.blocker_codes),
+                        "required_amount": readiness.required_amount,
+                        "required_currency": readiness.currency,
+                        "received_amount": readiness.received_amount,
+                        "received_currency": readiness.currency,
+                    },
                 )
     shipment, package, notice = record_shipment_notice(
         session,
@@ -333,7 +334,7 @@ def record_packaged_execution(
     for movement_arguments in movements:
         supplied_type = movement_arguments.get("movement_type", expected_type)
         if supplied_type != expected_type:
-            raise InvalidOperation("Movement type does not match the shipment purpose.")
+            raise InvalidOperation(code="shipment_movement_type_mismatch")
         arguments = {**movement_arguments, "movement_type": supplied_type}
         arguments.pop("shipment_package_id", None)
         created.append(
@@ -348,7 +349,7 @@ def record_packaged_execution(
             )
         )
     if not created:
-        raise InvalidOperation("Packaged execution requires at least one movement.")
+        raise InvalidOperation(code="shipment_execution_movement_missing")
     if commit:
         session.commit()
     return {

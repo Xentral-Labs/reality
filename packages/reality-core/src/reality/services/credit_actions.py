@@ -59,12 +59,10 @@ def _released(
 def _credit_context(session: Session, tenant: str, invoice_id: str) -> dict[str, Any]:
     invoice = core._tenant_record(session, Document, tenant, invoice_id)
     if invoice.type != "sales_invoice":
-        raise core.InvalidOperation("Select a customer invoice.")
+        raise core.InvalidOperation(code="credit_invoice_required")
     _, groups, reversals = _released(session, tenant, invoice.id)
     if not groups or reversals:
-        raise core.InvalidOperation(
-            "Credit requires a posted invoice without reversed posting groups."
-        )
+        raise core.InvalidOperation(code="credit_invoice_not_posted")
     invoice_lines = list(
         session.scalars(
             select(DocumentLine)
@@ -103,9 +101,7 @@ def _credit_context(session: Session, tenant: str, invoice_id: str) -> dict[str,
             )
         )
         if not targets <= set(ids):
-            raise core.InvalidOperation(
-                "An existing credit spans other evidence. Inspect its attribution first."
-            )
+            raise core.InvalidOperation(code="credit_spans_other_evidence")
     credited_amount = sum(
         (
             doc.gross_amount
@@ -198,7 +194,9 @@ def _exact(value: Any, label: str, *, zero: bool = False) -> Decimal:
     try:
         amount = core.decimal(value)
     except (DecimalInvalidOperation, ValueError, TypeError) as error:
-        raise core.InvalidOperation(f"{label} must be a decimal value.") from error
+        raise core.InvalidOperation(
+            code="credit_value_not_decimal", values={"label": label}
+        ) from error
     if (
         amount < 0
         or (not zero and amount == 0)
@@ -206,7 +204,7 @@ def _exact(value: Any, label: str, *, zero: bool = False) -> Decimal:
         or amount != amount.quantize(Decimal("0.0001"))
     ):
         raise core.InvalidOperation(
-            f"{label} must be positive and fit four decimal places without rounding."
+            code="credit_value_not_exact", values={"label": label}
         )
     return amount
 
@@ -223,18 +221,16 @@ def _preview_credit(
         "allocation_amount",
     }
     if not fields <= arguments.keys() or arguments.keys() - fields - {"effective_at"}:
-        raise core.InvalidOperation("Credit fields are incomplete or unsupported.")
+        raise core.InvalidOperation(code="credit_fields_invalid")
     reason = arguments["reason"].strip() if isinstance(arguments["reason"], str) else ""
     if not reason:
-        raise core.InvalidOperation("A credit reason is required.")
+        raise core.InvalidOperation(code="credit_reason_required")
     context = _credit_context(session, tenant, arguments["invoice_id"])
     if any(row["legacy_credit_ids"] for row in context["positions"]):
-        raise core.InvalidOperation(
-            "An older order-linked credit has no invoice attribution. Inspect it before crediting this invoice."
-        )
+        raise core.InvalidOperation(code="credit_unattributed_order_credit_invoice")
     rows = arguments["lines"]
     if not isinstance(rows, list) or not rows:
-        raise core.InvalidOperation("Select at least one credit position.")
+        raise core.InvalidOperation(code="credit_positions_required")
     selected = []
     seen = set()
     for row in rows:
@@ -243,39 +239,31 @@ def _preview_credit(
             "quantity",
             "gross_amount",
         }:
-            raise core.InvalidOperation(
-                "Credit position fields are incomplete or unsupported."
-            )
+            raise core.InvalidOperation(code="credit_position_fields_invalid")
         id_ = row["invoice_line_id"]
         if not isinstance(id_, str) or id_ in seen:
-            raise core.InvalidOperation("Credit positions must be distinct.")
+            raise core.InvalidOperation(code="credit_positions_not_distinct")
         seen.add(id_)
         line = next((p for p in context["positions"] if p["id"] == id_), None)
         if not line:
-            raise core.NotFound("Invoice position not found.")
+            raise core.NotFound(code="invoice_position_not_found")
         if line["legacy_credit_ids"]:
             raise core.InvalidOperation(
-                "An older order-linked credit has no invoice attribution. Inspect it before crediting this position."
+                code="credit_unattributed_order_credit_position"
             )
         quantity = _exact(row["quantity"], "quantity")
         amount = _exact(row["gross_amount"], "line amount")
         if quantity > line["remaining"]:
-            raise core.InvalidOperation(
-                "Credit quantity exceeds the remaining invoice quantity."
-            )
+            raise core.InvalidOperation(code="credit_quantity_exceeds_invoice")
         selected.append(
             {"invoice_line_id": id_, "quantity": quantity, "gross_amount": amount}
         )
     amount = _exact(arguments["gross_amount"], "credit amount")
     allocation = _exact(arguments["allocation_amount"], "allocation amount", zero=True)
     if amount > context["remaining_amount"]:
-        raise core.InvalidOperation(
-            "Credit amount exceeds the remaining invoice amount."
-        )
+        raise core.InvalidOperation(code="credit_amount_exceeds_invoice")
     if allocation > min(amount, context["open_amount"]):
-        raise core.InvalidOperation(
-            "Allocation exceeds the credit or open invoice amount."
-        )
+        raise core.InvalidOperation(code="credit_allocation_exceeds_open")
     effective = core.utc_datetime(arguments.get("effective_at"))
     document, lines = core._preview_manual_document_input(
         session,
@@ -451,9 +439,7 @@ def _assert_credit_overlap(
         if p.id != exclude and json.loads(p.input).get("invoice_id") == arguments.get(
             "invoice_id"
         ):
-            raise core.InvalidOperation(
-                "An invoice credit execution is unresolved. Check its outcome first."
-            )
+            raise core.InvalidOperation(code="credit_execution_unresolved")
 
 
 def _credit_evidence(

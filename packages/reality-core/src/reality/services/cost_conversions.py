@@ -81,5 +81,5 @@ def read_basis(session, tenant, identity, *, kind=None):
 
     row = _row(session, CostConversionBasisRevision, tenant, identity)
     if kind is not None and row.kind != kind:
-        raise core.InvalidOperation("Conversion kind does not match the requested use.")
+        raise core.InvalidOperation(code="cost_conversion_kind_mismatch")
     return row

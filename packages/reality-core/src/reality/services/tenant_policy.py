@@ -235,9 +235,7 @@ def _current_decision(session: Session, tenant_id: str) -> _DecisionAuthority | 
         or authority.connection.closed
         or authority.connection.invalidated
     ):
-        raise PlaygroundOperationDenied(
-            "Playground decision context is no longer valid."
-        )
+        raise PlaygroundOperationDenied(code="playground_decision_context_invalid")
     require_playground_run(session, authority.run_id, authority.user_id, for_write=True)
     return authority
 
@@ -271,7 +269,7 @@ def require_proposal_decision(
             .where(PlaygroundStep.id == playground_step)
         )
     if playground_step is not None and not storyline_step:
-        raise PlaygroundOperationDenied("Review this action in its Playground run.")
+        raise PlaygroundOperationDenied(code="playground_review_in_run")
     require_business_operation(session, tenant_id, operation)
 
 
@@ -334,9 +332,7 @@ def require_decision_action(
             action_id != authority.proposal_id
             or event_type != f"{family}.{'created' if mode == 'create' else 'updated'}"
         ):
-            raise PlaygroundOperationDenied(
-                "Master-data event must match its reviewed action."
-            )
+            raise PlaygroundOperationDenied(code="playground_master_event_mismatch")
         return
     release_decision = (
         authority is not None
@@ -349,9 +345,7 @@ def require_decision_action(
         == "tool:reservation_release"
     )
     if release_decision and event_type not in {None, "reservation.released"}:
-        raise PlaygroundOperationDenied(
-            "Reservation release cannot emit another event type."
-        )
+        raise PlaygroundOperationDenied(code="playground_release_event_type_invalid")
     shipment_decision = (
         authority is not None
         and session.scalar(
@@ -397,9 +391,7 @@ def require_decision_action(
             and event_type != "movement.recorded"
         )
     ):
-        raise PlaygroundOperationDenied(
-            "Playground action identity does not match the confirmed proposal."
-        )
+        raise PlaygroundOperationDenied(code="playground_action_identity_mismatch")
 
 
 def require_decision_release(
@@ -420,9 +412,7 @@ def require_decision_release(
         )
         != "tool:reservation_release"
     ):
-        raise PlaygroundOperationDenied(
-            "Reservation does not match the confirmed Playground review."
-        )
+        raise PlaygroundOperationDenied(code="playground_reservation_mismatch")
 
 
 def require_decision_finance(
@@ -457,9 +447,7 @@ def require_decision_finance(
             .limit(1)
         )
     ):
-        raise PlaygroundOperationDenied(
-            "Finance action does not match the confirmed Playground review."
-        )
+        raise PlaygroundOperationDenied(code="playground_finance_action_mismatch")
 
 
 def require_decision_movement(
@@ -500,9 +488,7 @@ def require_decision_movement(
             .limit(1)
         )
     ):
-        raise PlaygroundOperationDenied(
-            "Movement does not match the single confirmed Playground action."
-        )
+        raise PlaygroundOperationDenied(code="playground_movement_mismatch")
 
 
 @contextmanager
@@ -649,9 +635,7 @@ def require_master_call(
         )
         != f"tool:{tool}"
     ):
-        raise PlaygroundOperationDenied(
-            "Master-data service differs from the reviewed action."
-        )
+        raise PlaygroundOperationDenied(code="playground_master_service_mismatch")
 
 
 @contextmanager
@@ -737,7 +721,7 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
         tenant = session.get(Tenant, tenant_id)
         if run.status == "initializing" and tenant.archived_at is None:
             return
-        raise PlaygroundOperationDenied("Profile costing authority is unavailable.")
+        raise PlaygroundOperationDenied(code="playground_costing_authority_unavailable")
     profile = _profile_authority.get()
     if (
         profile
@@ -749,9 +733,7 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
     ):
         return
     if profile is not None:
-        raise PlaygroundOperationDenied(
-            "Profile authority does not permit this operation."
-        )
+        raise PlaygroundOperationDenied(code="playground_profile_operation_denied")
     decision = _current_decision(session, tenant_id)
     if (
         decision
@@ -939,7 +921,7 @@ def require_playground_run(
     The caller must still enforce the supported action, confirmation and run lock.
     """
     if not user_id:
-        raise NotFound("Playground run not found.")
+        raise NotFound(code="playground_run_not_found")
     with session.no_autoflush:
         result = session.execute(
             select(
@@ -964,16 +946,12 @@ def require_playground_run(
             .execution_options(populate_existing=True)
         ).one_or_none()
     if result is None:
-        raise NotFound("Playground run not found.")
+        raise NotFound(code="playground_run_not_found")
     run, owner, tenant_archived_at = result
     if not account_eligible(session, owner, allow_pending=True):
-        raise PlaygroundOperationDenied(
-            "A verified, enabled account is required for Playground."
-        )
+        raise PlaygroundOperationDenied(code="playground_account_not_eligible")
     if for_write and (run.status != "active" or tenant_archived_at is not None):
-        raise PlaygroundOperationDenied(
-            "This Playground run is read-only or not ready."
-        )
+        raise PlaygroundOperationDenied(code="playground_run_not_writable")
     return run
 
 
@@ -1182,19 +1160,17 @@ def require_business_operation(
             session, tenant_id
         ):
             return
-        raise PlaygroundOperationDenied("The sandbox companion is read-only.")
+        raise PlaygroundOperationDenied(code="sandbox_companion_read_only")
     if (
         _seed_authority.get() is not None
         or _profile_authority.get() is not None
         or _proposal_authority.get() is not None
         or _decision_authority.get() is not None
     ):
-        raise PlaygroundOperationDenied(
-            "Playground internal scopes cannot access business operations."
-        )
+        raise PlaygroundOperationDenied(code="playground_internal_scope_denied")
     purpose = _company_purpose(session, tenant_id)
     if purpose is None:
-        raise NotFound("Company not found.")
+        raise NotFound(code="company_not_found")
     if (
         purpose == "playground"
         and operation in _PRACTICE_APP_OPERATIONS
@@ -1202,7 +1178,7 @@ def require_business_operation(
     ):
         return
     if purpose != "business":
-        raise PlaygroundOperationDenied("Playground does not support this operation.")
+        raise PlaygroundOperationDenied(code="playground_operation_unsupported")
 
 
 _PROFILE_OPERATIONS = _SEED_OPERATIONS | frozenset(

@@ -108,9 +108,7 @@ def assert_no_unresolved(
             candidate.type.removeprefix("tool:"),
             json.loads(candidate.input),
         ):
-            raise InvalidOperation(
-                "An earlier overlapping execution is unresolved. Check its outcome first."
-            )
+            raise InvalidOperation(code="movement_correction_execution_unresolved")
 
 
 def correction_state(
@@ -197,7 +195,7 @@ def review_correction(
         "preview_fingerprint",
     }
     if set(arguments) - allowed:
-        raise InvalidOperation("The correction contains unsupported fields.")
+        raise InvalidOperation(code="movement_correction_fields_unsupported")
     preview = preview_movement_correction(
         session,
         tenant_id,

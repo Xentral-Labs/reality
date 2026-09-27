@@ -4,7 +4,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { parseCatalogs } from "./i18n-audit-lib.mjs";
-import { invariantTerms } from "./i18n-invariants.mjs";
+import { invariantTerms, languageEquivalentTerms } from "./i18n-invariants.mjs";
 
 // Spec 286 FR-006: every coded refusal and every translated term reads in each language,
 // with the placeholders the service fills and the protected domain terms kept.
@@ -36,7 +36,11 @@ for (const language of ["de", "nl", "es"])
     for (const source of texts) {
       const value = catalogs[language].get(source);
       if (!value?.trim()) problems.push(`missing: ${source}`);
-      else if (value === source && !invariantTerms.has(source))
+      else if (
+        value === source &&
+        !invariantTerms.has(source) &&
+        !languageEquivalentTerms[language].has(source)
+      )
         problems.push(`untranslated: ${source}`);
       else if (placeholders(value) !== placeholders(source))
         problems.push(`placeholders differ: ${source} → ${value}`);

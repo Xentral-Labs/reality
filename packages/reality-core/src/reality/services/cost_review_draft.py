@@ -47,7 +47,7 @@ def cost_review_draft(
 ) -> dict[str, Any]:
     """Return complete review arguments, or the open inputs a person still owes."""
     if kind not in {"inventory", "contribution"}:
-        raise core.InvalidOperation("Unsupported cost review draft kind.")
+        raise core.InvalidOperation(code="cost_review_draft_kind_unsupported")
     with session.no_autoflush:
         core.get_tenant(session, tenant)
         if kind == "contribution":
@@ -76,9 +76,7 @@ def _item_scope(session: Session, tenant: str, reference: str) -> str:
         if len(matches) == 1:
             return matches[0]
         if len(matches) > 1:
-            raise core.InvalidOperation(
-                "More than one item matches; name the item by its SKU."
-            )
+            raise core.InvalidOperation(code="cost_review_item_ambiguous_use_sku")
     # Last, a unique partial match on SKU or name ("282" for "Stehlampe 282").
     escaped = (
         reference.strip()
@@ -103,8 +101,10 @@ def _item_scope(session: Session, tenant: str, reference: str) -> str:
         return candidates[0].id
     if candidates:
         names = ", ".join(f"{row.name} ({row.sku})" for row in candidates[:5])
-        raise core.InvalidOperation(f"Several items match: {names}. Ask which one.")
-    raise core.NotFound("Item not found.")
+        raise core.InvalidOperation(
+            code="cost_review_items_several_match", values={"names": names}
+        )
+    raise core.NotFound(code="item_not_found")
 
 
 def _row(session: Session, model, tenant: str, identity: str):

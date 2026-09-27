@@ -934,7 +934,7 @@ def _movement_create(
             arguments.get("movement_type") != "opening_stock"
             or not arguments["action_id"]
         ):
-            raise InvalidOperation("Only a confirmed opening stock carries a cost.")
+            raise InvalidOperation(code="movement_cost_requires_opening_stock")
         # Spec 282: the opening points to the statement of its stated cost.
         arguments["source_record_id"] = record_opening_cost_statement(
             session,
@@ -2510,7 +2510,7 @@ from reality.tools.finance import (
 
 
 def _confirmed_account_only(session, tenant_id, arguments):
-    raise InvalidOperation("Finance changes require a confirmed proposal.")
+    raise InvalidOperation(code="finance_change_confirmation_required")
 
 
 def _adjustment_context_read(session, tenant_id, arguments):
@@ -2840,9 +2840,9 @@ def create_change_proposal(
     require_proposal_creation(session, tenant_id, tool_name, arguments)
     tool = TOOLS.get(tool_name)
     if tool is None:
-        raise NotFound("Tool not found.")
+        raise NotFound(code="proposal_tool_not_found")
     if not tool.mutating:
-        raise InvalidOperation("Read tools do not need a proposal.")
+        raise InvalidOperation(code="proposal_read_tool_not_needed")
     if tool_name == "document_create":
         from reality.services.core import validate_manual_operational_document_type
 
@@ -3246,14 +3246,12 @@ def approve_and_execute_proposal(
         )
     )
     if candidate is None:
-        raise NotFound("Proposal not found.")
+        raise NotFound(code="proposal_not_found")
     if candidate.type == "tool:cost.change":
         from reality.services.costing import _owner
 
         if not confirmed:
-            raise InvalidOperation(
-                "Explicit confirmation is required for cost decisions."
-            )
+            raise InvalidOperation(code="cost_decision_confirmation_required")
         _owner(session, tenant_id, confirming_principal)
     if candidate.type == "tool:graph.reports.change":
         from reality.services.analytics.proposals import reveal
@@ -3273,22 +3271,20 @@ def approve_and_execute_proposal(
         return candidate
     require_proposal_decision(session, tenant_id, proposal_id, "proposal_execute")
     if candidate.status == "executing":
-        raise InvalidOperation(
-            "Proposal execution is in progress or its outcome is unknown; reconcile by proposal ID before taking further action."
-        )
+        raise InvalidOperation(code="proposal_execution_in_progress")
     if candidate.status == "rejected":
-        raise NotFound("Active tool proposal not found.")
+        raise NotFound(code="proposal_active_not_found")
     if candidate.status != "proposed":
         raise InvalidOperation(
-            f"Proposal cannot be confirmed from status {candidate.status}."
+            code="proposal_confirm_status_invalid", values={"status": candidate.status}
         )
     tool_name = candidate.type.removeprefix("tool:")
     tool = TOOLS.get(tool_name)
     if tool is None or not tool.mutating:
-        raise InvalidOperation("Proposal references an invalid mutation tool.")
+        raise InvalidOperation(code="proposal_mutation_tool_invalid")
     arguments = json.loads(candidate.input)
     if tool_name in MEMBERSHIP_MUTATION_TOOLS and confirming_principal is None:
-        raise InvalidOperation("Membership changes require a confirming human owner.")
+        raise InvalidOperation(code="membership_change_owner_required")
 
     from reality.db.core import Tenant
     from reality.services.delivery_actions import REVIEW_KEY, eligible, validate_review
@@ -3305,15 +3301,11 @@ def approve_and_execute_proposal(
         )
         and tool_name not in {"party_delivery_hold", "party_delivery_hold_release"}
     ):
-        raise InvalidOperation(
-            "Obtain a delivery review before confirming this proposal."
-        )
+        raise InvalidOperation(code="delivery_review_required")
     if REVIEW_KEY in arguments and (
         not confirmed or review_token != arguments[REVIEW_KEY]["token"]
     ):
-        raise InvalidOperation(
-            "A current review and explicit confirmation are required."
-        )
+        raise InvalidOperation(code="review_confirmation_required")
 
     if tool_name in FINANCE_COMMANDS:
         import os
@@ -3323,9 +3315,7 @@ def approve_and_execute_proposal(
         if confirming_principal is not None:
             require_owner(session, tenant_id, confirming_principal)
         elif os.environ.get("REALITY_AUTH_MODE") != "disabled":
-            raise InvalidOperation(
-                "Account changes require a confirming company owner."
-            )
+            raise InvalidOperation(code="account_change_owner_required")
         try:
             if tool_name in {
                 ADJUSTMENT_COMMAND,
@@ -3350,9 +3340,7 @@ def approve_and_execute_proposal(
             if proposal.status == "executed":
                 return proposal
             if proposal.status != "proposed":
-                raise InvalidOperation(
-                    "Proposal is no longer available for confirmation."
-                )
+                raise InvalidOperation(code="proposal_no_longer_available")
             with executing_proposal(tenant_id, proposal.id):
                 result = execute_finance_command(
                     session,
@@ -3404,15 +3392,13 @@ def approve_and_execute_proposal(
             )
         )
         if proposal is None:
-            raise NotFound("Proposal not found.")
+            raise NotFound(code="proposal_not_found")
         if proposal.status == "executed":
             return proposal
         if proposal.status == "executing":
-            raise InvalidOperation(
-                "Proposal execution is in progress or its outcome is unknown; reconcile by proposal ID before taking further action."
-            )
+            raise InvalidOperation(code="proposal_execution_in_progress")
         raise InvalidOperation(
-            f"Proposal cannot be confirmed from status {proposal.status}."
+            code="proposal_confirm_status_invalid", values={"status": proposal.status}
         )
     proposal = session.get(ChangeProposal, {"tenant_id": tenant_id, "id": claimed_id})
     if REVIEW_KEY in arguments:
@@ -3579,12 +3565,12 @@ def reject_proposal(
         )
     )
     if existing is None:
-        raise NotFound("Proposal not found.")
+        raise NotFound(code="proposal_not_found")
     if existing.status == "rejected":
         return existing
     if existing.status != "proposed":
         raise InvalidOperation(
-            f"Proposal cannot be rejected from status {existing.status}."
+            code="proposal_reject_status_invalid", values={"status": existing.status}
         )
     require_proposal_decision(session, tenant_id, proposal_id, "proposal_reject")
     proposal = existing

@@ -26,14 +26,14 @@ def artifact_root() -> Path:
 def storage_backend() -> str:
     backend = os.environ.get("REALITY_ARTIFACT_STORAGE", "file").strip().lower()
     if backend not in {"file", "s3"}:
-        raise InvalidOperation("REALITY_ARTIFACT_STORAGE must be 'file' or 's3'.")
+        raise InvalidOperation(code="artifact_storage_backend_invalid")
     return backend
 
 
 def _s3_bucket() -> str:
     bucket = os.environ.get("REALITY_S3_BUCKET", "").strip()
     if not bucket:
-        raise InvalidOperation("REALITY_S3_BUCKET is required for S3 artifact storage.")
+        raise InvalidOperation(code="artifact_s3_bucket_required")
     return bucket
 
 
@@ -49,13 +49,11 @@ def _s3_client():
 
 def artifact_path(artifact: SourceArtifact) -> Path:
     if storage_backend() != "file":
-        raise InvalidOperation(
-            "S3 artifacts must be accessed through materialize_artifact()."
-        )
+        raise InvalidOperation(code="artifact_s3_path_unsupported")
     root = artifact_root().resolve()
     path = (root / artifact.storage_key).resolve()
     if root not in path.parents:
-        raise InvalidOperation("Artifact storage key is invalid.")
+        raise InvalidOperation(code="artifact_storage_key_invalid")
     return path
 
 
@@ -161,7 +159,7 @@ def get_artifact(session: Session, tenant_id: str, artifact_id: str) -> SourceAr
         )
     )
     if artifact is None:
-        raise NotFound("Source artifact not found.")
+        raise NotFound(code="source_artifact_not_found")
     return artifact
 
 

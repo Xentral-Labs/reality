@@ -95,10 +95,7 @@ def render(code: str, values: dict[str, Any] | None) -> tuple[str, dict[str, str
         raise ValueError(
             f"Refusal {code!r} values {sorted(texts)} differ from {sorted(declared)}"
         )
-    terms = set(catalog()["terms"])
-    for name, kind in declared.items():
-        if kind == "term" and texts.get(name) not in terms and _strict():
-            raise ValueError(f"Refusal {code!r} term {texts.get(name)!r} is not listed")
+    # A `term` value outside `terms` is allowed: the web shows the English word.
     sentence = _PLACEHOLDER.sub(
         lambda match: texts.get(match.group(1), match.group(0)), entry["message"]
     )
@@ -155,3 +152,24 @@ class RefusalMixin:
         entry = catalog()["refusals"].get(code)
         self.template = entry["message"] if entry else None
         return sentence
+
+    @classmethod
+    def from_refusal(cls, error: BaseException):
+        """Re-raise another refusal as this class, keeping its code and values."""
+        if getattr(error, "coded", False):
+            return cls(code=error.code, values=error.values)
+        return cls(str(error))
+
+
+class DomainRefusal(RefusalMixin, ValueError):
+    """A domain rule's refusal: a `ValueError` that can carry a code and values."""
+
+    def __init__(
+        self,
+        message: str | None = None,
+        *,
+        code: str | None = None,
+        values: dict[str, Any] | None = None,
+    ) -> None:
+        sentence = self._init_refusal(message, code, values)
+        super().__init__(*((sentence,) if (message is not None or code) else ()))

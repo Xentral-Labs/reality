@@ -259,15 +259,13 @@ def _read(session: Session, tenant: str, document_line_id: str) -> dict:
         core.get_tenant(session, tenant)
         if session.connection().get_isolation_level() != "READ COMMITTED":
             raise core.InvalidOperation(
-                "Current contribution preview requires READ COMMITTED."
+                code="contribution_preview_requires_read_committed"
             )
         before = _sequence(session, tenant)
         billed = _row(session, DocumentLine, tenant, document_line_id)
         result = _candidate(session, tenant, billed)
         if before != _sequence(session, tenant):
-            raise core.Conflict(
-                "Contribution inputs changed during preview; retry the read."
-            )
+            raise core.Conflict(code="contribution_inputs_changed")
         result["candidate_hash"] = (
             _hash(result) if result["state"] == "candidate" else None
         )

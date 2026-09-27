@@ -52,7 +52,7 @@ def _tenant(session: OrmSession, tenant_id: str, *, lock: bool = False) -> Tenan
         statement = statement.with_for_update()
     tenant = session.scalar(statement)
     if tenant is None:
-        raise NotFound("Company not found.")
+        raise NotFound(code="company_not_found")
     return tenant
 
 
@@ -74,9 +74,9 @@ def require_owner(
     _tenant(session, tenant_id)
     membership = _active_membership(session, tenant_id, principal.user_id)
     if membership is None:
-        raise NotFound("Company not found.")
+        raise NotFound(code="company_not_found")
     if membership.role != "owner":
-        raise InvalidOperation("Active company owner access required.")
+        raise InvalidOperation(code="company_owner_access_required")
     return membership
 
 

@@ -48,31 +48,26 @@ def _intent(arguments: dict[str, Any]) -> dict[str, Any]:
         "opening_cost",
     }
     if set(arguments) - allowed or arguments.get("movement_type") != "opening_stock":
-        raise InvalidOperation(
-            "Opening stock accepts only item, destination, quantity, optional time "
-            "and optional acquisition cost."
-        )
+        raise InvalidOperation(code="opening_stock_fields_unsupported")
     for name in ("item_id", "to_location_id"):
         if not isinstance(arguments.get(name), str) or not arguments[name]:
-            raise InvalidOperation("Choose an item and a destination location.")
+            raise InvalidOperation(code="opening_stock_item_location_required")
     try:
         qty = positive(arguments.get("quantity", ""))
     except (DecimalError, TypeError, ValueError) as error:
-        raise InvalidOperation("Enter a valid positive quantity.") from error
+        raise InvalidOperation(code="opening_stock_quantity_invalid") from error
     if (
         qty >= Decimal(100000000000000)
         or qty * 10000 != (qty * 10000).to_integral_value()
     ):
-        raise InvalidOperation(
-            "Opening quantity supports at most 14 integer and 4 decimal places."
-        )
+        raise InvalidOperation(code="opening_stock_quantity_scale_exceeded")
     intent = {
         key: arguments[key] for key in ("movement_type", "item_id", "to_location_id")
     }
     intent["quantity"] = _quantity(qty)
     if arguments.get("occurred_at"):
         if not isinstance(arguments["occurred_at"], str):
-            raise InvalidOperation("Enter a valid occurrence time.")
+            raise InvalidOperation(code="opening_stock_occurred_at_invalid")
         intent["occurred_at"] = utc_datetime(arguments["occurred_at"]).isoformat()
     if arguments.get("opening_cost") is not None:
         from reality.services.opening_cost import normalize_opening_cost
@@ -90,9 +85,7 @@ def review_opening(
     item = _tenant_record(session, Item, tenant_id, intent["item_id"])
     location = _tenant_record(session, Location, tenant_id, intent["to_location_id"])
     if item.tracking_type != "none":
-        raise InvalidOperation(
-            "This opening stock form supports items without lot or serial tracking."
-        )
+        raise InvalidOperation(code="opening_stock_tracked_item_unsupported")
     movement = {key: value for key, value in intent.items() if key != "opening_cost"}
     _append_movement(session, tenant_id, **movement, validate_only=True)
     physical = stock_at(session, tenant_id, item.id, location.id)
@@ -177,9 +170,7 @@ def assert_opening_overlap(
         if current is None:
             current = action_keys(session, tenant_id, tool, arguments)
         if current & action_keys(session, tenant_id, other_tool, other):
-            raise InvalidOperation(
-                "An overlapping stock action is unresolved. Check its outcome first."
-            )
+            raise InvalidOperation(code="opening_stock_overlap_unresolved")
 
 
 def opening_detail(

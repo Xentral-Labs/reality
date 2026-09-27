@@ -184,9 +184,7 @@ def _assert_financial_overlap(
         if keys is None:
             keys = _financial_keys(session, tenant_id, tool, intent)
         if keys & _financial_keys(session, tenant_id, other, json.loads(p.input)):
-            raise core.InvalidOperation(
-                "An overlapping financial action is unresolved. Check its outcome first."
-            )
+            raise core.InvalidOperation(code="financial_action_unresolved")
 
 
 def _reversal_effects(session: Session, tenant_id: str, group: str) -> dict[str, Any]:
@@ -349,7 +347,7 @@ def _review_reversal(
         or arguments.keys() - allowed
         or not isinstance(arguments["reason"], str)
     ):
-        raise core.InvalidOperation("Reversal fields are incomplete or unsupported.")
+        raise core.InvalidOperation(code="reversal_fields_invalid")
     session.expire_all()
     preview = core.preview_ledger_reversal(
         session, tenant_id, arguments["posting_group_id"], reason=arguments["reason"]
@@ -358,14 +356,12 @@ def _review_reversal(
         arguments.get("expected_revision")
         and arguments["expected_revision"] != preview["revision"]
     ):
-        raise core.InvalidOperation(
-            "The financial context changed. Prepare a fresh review."
-        )
+        raise core.InvalidOperation(code="review_financial_context_changed")
     if (
         arguments.get("preview_fingerprint")
         and arguments["preview_fingerprint"] != preview["request_fingerprint"]
     ):
-        raise core.InvalidOperation("Reversal preview does not match this reason.")
+        raise core.InvalidOperation(code="reversal_preview_reason_mismatch")
     for row in preview["inverse_entries"]:
         row["effective_at"] = None
     state = {

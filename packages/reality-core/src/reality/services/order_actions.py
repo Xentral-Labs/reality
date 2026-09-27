@@ -139,9 +139,7 @@ def assert_no_unresolved_order(
             saved.get(key) == clean.get(key)
             for key in ("company_party_id", "counterparty_id", "location_id")
         ):
-            raise InvalidOperation(
-                "An identical order execution is unresolved. Check its outcome first."
-            )
+            raise InvalidOperation(code="order_execution_unresolved")
 
 
 def _evidence(

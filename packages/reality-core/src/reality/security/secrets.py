@@ -104,14 +104,14 @@ def resolve_secret(session: Session, tenant_id: str, secret_id: str) -> str:
         )
     )
     if record is None:
-        raise NotFound("Secret not found.")
+        raise NotFound(code="secret_not_found")
     try:
         data_key = _master_key().decrypt(record.encrypted_data_key.encode())
         clear_value = AESGCM(data_key).decrypt(
             _decoded(record.nonce), _decoded(record.ciphertext), _aad(record)
         )
     except (InvalidToken, ValueError) as error:
-        raise NotFound("The configured secret cannot be decrypted.") from error
+        raise NotFound(code="secret_undecryptable") from error
     record.last_used_at = now()
     _audit(session, record, "used")
     session.flush()

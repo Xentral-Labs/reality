@@ -3624,7 +3624,7 @@ def operational_exceptions(
     if session.scalar(select(Tenant.id).where(Tenant.id == tenant_id)) is None:
         from reality.services.core import NotFound
 
-        raise NotFound("Tenant not found.")
+        raise NotFound(code="tenant_not_found")
     instant = as_of or datetime.now(UTC)
     if instant.tzinfo is None:
         instant = instant.replace(tzinfo=UTC)

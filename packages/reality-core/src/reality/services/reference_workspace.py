@@ -42,7 +42,7 @@ REFERENCE_TOOLS = {
 
 def _base(tenant_id: str, family: str):
     if family not in FAMILIES:
-        raise InvalidOperation("Unsupported master data family.")
+        raise InvalidOperation(code="master_data_family_unsupported")
     model = FAMILIES[family]
     query = select(model).where(model.tenant_id == tenant_id)
     if model is Party:
@@ -225,7 +225,7 @@ def reference_detail(
     model, statement = _base(tenant_id, family)
     record = session.scalar(statement.where(model.id == record_id))
     if record is None:
-        raise NotFound("Master data record not found.")
+        raise NotFound(code="master_data_record_not_found")
     core_family = "party" if model is Party else family
     snapshot = master_data_update_snapshot(session, tenant_id, core_family, record.id)
     codes = _source_identity(session, tenant_id, record.source_record_id)
@@ -266,9 +266,9 @@ def reference_detail(
 def require_ordinary_workspace(session: Session, tenant_id: str) -> None:
     tenant = session.scalar(select(Tenant).where(Tenant.id == tenant_id))
     if tenant is None:
-        raise NotFound("Company not found.")
+        raise NotFound(code="company_not_found")
     if tenant.purpose == "playground":
-        raise InvalidOperation("Use the reviewed practice actions for this company.")
+        raise InvalidOperation(code="practice_company_requires_reviewed_actions")
 
 
 PARTY_ROLES = ("company", "customer", "supplier")
@@ -318,7 +318,10 @@ def _normalize(key: str, rule: Any, value: Any) -> Any:
     label = key.replace("_", " ")
     if rule == "flag":
         if not isinstance(value, bool):
-            raise InvalidOperation(f"{label.capitalize()} must be true or false.")
+            raise InvalidOperation(
+                code="master_data_field_not_boolean",
+                values={"field": label.capitalize()},
+            )
         return value
     if rule == "roles":
         if (
@@ -328,50 +331,72 @@ def _normalize(key: str, rule: Any, value: Any) -> Any:
                 not isinstance(role, str) or role not in PARTY_ROLES for role in value
             )
         ):
-            raise InvalidOperation(
-                "Party roles must be company, customer, or supplier."
-            )
+            raise InvalidOperation(code="party_roles_invalid")
         return sorted(set(value))
     if rule == "count":
         if isinstance(value, bool) or not isinstance(value, (int, str)):
-            raise InvalidOperation(f"{label.capitalize()} must be a whole number.")
+            raise InvalidOperation(
+                code="master_data_field_not_whole_number",
+                values={"field": label.capitalize()},
+            )
         try:
             number = int(str(value).strip())
         except ValueError:
-            raise InvalidOperation(f"{label.capitalize()} must be a whole number.")
+            raise InvalidOperation(
+                code="master_data_field_not_whole_number",
+                values={"field": label.capitalize()},
+            )
         if number < 0:
-            raise InvalidOperation(f"{label.capitalize()} cannot be negative.")
+            raise InvalidOperation(
+                code="master_data_field_negative", values={"field": label.capitalize()}
+            )
         return number
     if rule in {"money", "factor"}:
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
-            raise InvalidOperation(f"{label.capitalize()} must be a number.")
+            raise InvalidOperation(
+                code="master_data_field_not_number",
+                values={"field": label.capitalize()},
+            )
         try:
             amount = decimal(str(value).strip())
         except (ArithmeticError, ValueError):
-            raise InvalidOperation(f"{label.capitalize()} must be a number.")
+            raise InvalidOperation(
+                code="master_data_field_not_number",
+                values={"field": label.capitalize()},
+            )
         if rule == "money" and amount < 0:
-            raise InvalidOperation(f"{label.capitalize()} cannot be negative.")
+            raise InvalidOperation(
+                code="master_data_field_negative", values={"field": label.capitalize()}
+            )
         if rule == "factor" and amount <= 0:
-            raise InvalidOperation(f"{label.capitalize()} must be greater than zero.")
+            raise InvalidOperation(
+                code="master_data_field_not_positive",
+                values={"field": label.capitalize()},
+            )
         return _decimal_audit_value(amount)
     if not isinstance(value, str):
-        raise InvalidOperation(f"{label.capitalize()} must be text.")
+        raise InvalidOperation(
+            code="master_data_field_not_text", values={"field": label.capitalize()}
+        )
     text = value.strip()
     if rule == "required":
         if not text or len(text) > 500:
-            raise InvalidOperation(f"A {label} of at most 500 characters is required.")
+            raise InvalidOperation(
+                code="master_data_field_required", values={"field": label}
+            )
         return text
     if rule == "currency":
         text = text.upper() or "EUR"
         if not re.fullmatch(r"[A-Z]{3}", text):
-            raise InvalidOperation("Default currency must be a three-letter code.")
+            raise InvalidOperation(code="party_default_currency_invalid")
         return text
     if rule == "reference":
         return text or None
     if isinstance(rule, tuple):
         if text not in rule[1]:
             raise InvalidOperation(
-                f"{label.capitalize()} must be one of: {', '.join(rule[1])}."
+                code="master_data_field_choice_invalid",
+                values={"field": label.capitalize(), "options": ", ".join(rule[1])},
             )
         return text
     return text
@@ -396,16 +421,17 @@ def prepare_reference(
 
     _base(tenant_id, family)
     if operation not in {"create", "update"}:
-        raise InvalidOperation("Unsupported master data operation.")
+        raise InvalidOperation(code="master_data_operation_unsupported")
     if not request_id or len(request_id) > 200:
-        raise InvalidOperation("A bounded request identity is required.")
+        raise InvalidOperation(code="request_identity_invalid")
     core_family = "party" if family in {"customer", "supplier"} else family
     rules = FIELD_RULES[core_family]
     control = {"id", "expected_revision"} if operation == "update" else set()
     unknown = set(record) - set(rules) - control
     if unknown:
         raise InvalidOperation(
-            "Unsupported master data fields: " + ", ".join(sorted(unknown)) + "."
+            code="master_data_fields_unsupported",
+            values={"fields": ", ".join(sorted(unknown))},
         )
     intent = {
         key: _normalize(key, rules[key], value)
@@ -415,7 +441,7 @@ def prepare_reference(
     for key in control:
         value = record.get(key)
         if not isinstance(value, str) or not value.strip():
-            raise InvalidOperation("An exact record and review revision are required.")
+            raise InvalidOperation(code="master_data_record_revision_required")
         intent[key] = value.strip()
     if operation == "create":
         for key, rule in rules.items():
@@ -423,11 +449,16 @@ def prepare_reference(
                 default = CREATE_DEFAULTS.get(core_family, {}).get(key)
                 if default is None:
                     raise InvalidOperation(
-                        f"A {key.replace('_', ' ')} of at most 500 characters is required."
+                        code="master_data_field_required",
+                        values={"field": key.replace("_", " ")},
                     )
                 intent[key] = default
     if core_family == "party" and "roles" in intent and family not in intent["roles"]:
-        raise InvalidOperation(f"The {family} role must remain on a {family} record.")
+        raise (
+            InvalidOperation(code="party_customer_role_required")
+            if family == "customer"
+            else InvalidOperation(code="party_supplier_role_required")
+        )
     tool = f"{core_family}_{operation}"
     identity = (
         "act_"
@@ -451,30 +482,24 @@ def prepare_reference(
             or not same_role
             or any(prior.get(key) != value for key, value in intent.items())
         ):
-            raise InvalidOperation(
-                "Request identity was already used for a different change."
-            )
+            raise InvalidOperation(code="master_data_request_identity_reused")
         return existing
     if operation == "update":
         detail = reference_detail(session, tenant_id, family, intent["id"])
         if detail["expected_revision"] != intent["expected_revision"]:
-            raise InvalidOperation(
-                "Master data changed since review; reload the record."
-            )
+            raise InvalidOperation(code="master_data_revision_stale")
         canonical = {**_editable_values(core_family, detail), **intent}
         if (
             core_family == "item"
             and detail["default_location_id"]
             and canonical["default_location_id"] is None
         ):
-            raise InvalidOperation(
-                "A default location cannot be removed; choose another location."
-            )
+            raise InvalidOperation(code="item_default_location_removal")
         if (
             core_family == "location"
             and canonical["parent_location_id"] == intent["id"]
         ):
-            raise InvalidOperation("A location cannot be its own parent.")
+            raise InvalidOperation(code="location_own_parent")
     else:
         canonical = dict(intent)
         if core_family == "party":
@@ -503,7 +528,7 @@ def reference_proposal(
         )
     )
     if proposal is None or proposal.type.removeprefix("tool:") not in REFERENCE_TOOLS:
-        raise NotFound("Master data proposal not found.")
+        raise NotFound(code="master_data_proposal_not_found")
     output = json.loads(proposal.output or "{}")
     return {
         "id": proposal.id,

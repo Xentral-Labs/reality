@@ -81,17 +81,16 @@ def test_values_are_exact_strings(catalog):
     assert str(error) == "The amount 59.5000 is due on 2026-09-27."
 
 
-def test_strict_mode_refuses_unknown_code_and_terms(catalog, monkeypatch):
+def test_strict_mode_refuses_unknown_code(catalog, monkeypatch):
     with pytest.raises(ValueError, match="Unknown refusal code"):
         InvalidOperation(code="sample_unknown")
-    with pytest.raises(ValueError, match="term"):
-        InvalidOperation(code="sample_field", values={"field": "Not a listed term"})
-    # Production never hides a refusal behind a catalog mistake: it falls back to English.
-    monkeypatch.setenv("REALITY_STRICT_REFUSALS", "0")
-    fallback = InvalidOperation(
+    # A term outside the catalog's terms is allowed: the web shows the English word.
+    unlisted = InvalidOperation(
         code="sample_field", values={"field": "Not a listed term"}
     )
-    assert str(fallback) == "Not a listed term cannot be negative."
+    assert str(unlisted) == "Not a listed term cannot be negative."
+    # Production never hides a refusal behind a catalog mistake: it falls back to English.
+    monkeypatch.setenv("REALITY_STRICT_REFUSALS", "0")
     unknown = InvalidOperation(code="sample_unknown")
     assert unknown.code == "sample_unknown" and str(unknown) == "sample_unknown"
     assert refusals.payload(unknown) is None
@@ -102,6 +101,22 @@ def test_uncoded_refusal_is_unchanged(catalog):
     assert str(error) == "Net plus tax differs from the invoice gross."
     assert error.code is None and error.values == {}
     assert refusals.payload(error) is None
+
+
+def test_domain_refusals_pass_their_code_through(catalog):
+    from reality.domain.refusals import DomainRefusal
+
+    domain = DomainRefusal(code="sample_line", values={"index": 4})
+    assert isinstance(domain, ValueError) and domain.code == "sample_line"
+    wrapped = InvalidOperation.from_refusal(domain)
+    assert (wrapped.code, wrapped.values, str(wrapped)) == (
+        "sample_line",
+        {"index": "4"},
+        "Line 4 requires a stated amount; it is never calculated.",
+    )
+    # An uncoded domain error keeps its English sentence.
+    plain = InvalidOperation.from_refusal(ValueError("Plain domain refusal."))
+    assert plain.code is None and str(plain) == "Plain domain refusal."
 
 
 def test_class_codes_of_existing_subclasses_are_kept():

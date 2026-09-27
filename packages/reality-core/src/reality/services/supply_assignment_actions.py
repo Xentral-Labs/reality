@@ -32,9 +32,7 @@ def review_supply_assignment(
         "purpose",
         "customer_commitment_id",
     } and set(arguments) != {"supplier_commitment_id", "quantity", "purpose"}:
-        raise core.InvalidOperation(
-            "Supply assignment fields are incomplete or unsupported."
-        )
+        raise core.InvalidOperation(code="supply_assignment_fields_invalid")
     intent = {
         **arguments,
         "customer_commitment_id": arguments.get("customer_commitment_id"),
@@ -79,9 +77,7 @@ def assert_no_unresolved_supply_assignment(
         if proposal.id != exclude and saved.get(
             "supplier_commitment_id"
         ) == arguments.get("supplier_commitment_id"):
-            raise core.InvalidOperation(
-                "An earlier supply assignment is unresolved. Check its outcome first."
-            )
+            raise core.InvalidOperation(code="supply_assignment_unresolved")
 
 
 def supply_assignment_detail(
