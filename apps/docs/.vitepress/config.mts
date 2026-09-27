@@ -9,6 +9,7 @@ const normalizedUrl = (value: string | undefined, fallback: string) =>
 const siteUrl = normalizedUrl(process.env.SITE_URL, "https://runreality.ai");
 const appUrl = normalizedUrl(process.env.APP_URL, "https://app.runreality.ai");
 const docsUrl = normalizedUrl(process.env.DOCS_URL, "https://docs.runreality.ai");
+const apiUrl = normalizedUrl(process.env.API_URL, "http://localhost:8000");
 
 type LocaleKey = "root" | "de";
 
@@ -56,6 +57,7 @@ type NavigationCopy = {
   setupAndOperate: string;
   storylines: string;
   demoData: string;
+  businessJourneys: string;
   environment: string;
   docsUrls: string;
   glossary: string;
@@ -120,6 +122,7 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     setupAndOperate: "Set up and operate",
     storylines: "Storylines",
     demoData: "Demo data guide",
+    businessJourneys: "Business Journey Guide",
     environment: "Environment",
     docsUrls: "Configure Docs links",
     glossary: "Glossary",
@@ -182,6 +185,7 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     setupAndOperate: "Einrichten & Betreiben",
     storylines: "Storylines",
     demoData: "Demo-Datensatz",
+    businessJourneys: "Business Journey Guide",
     environment: "Umgebung",
     docsUrls: "Docs-Links konfigurieren",
     glossary: "Glossar",
@@ -231,6 +235,10 @@ const sidebar = (locale: LocaleKey) => {
       items: [
         { text: labels.gettingStarted, link: route(locale, "/getting-started/") },
         { text: labels.demoData, link: route(locale, "/getting-started/demo-data") },
+        {
+          text: labels.businessJourneys,
+          link: route(locale, "/getting-started/business-journeys"),
+        },
         { text: labels.storylines, link: route(locale, "/storylines/") },
       ],
     },
@@ -496,6 +504,9 @@ export default defineConfig({
   title: "Reality Docs",
   description: "Understand, integrate, deploy, and operate the Reality commerce core.",
   cleanUrls: true,
+  vite: {
+    define: { __API_URL__: JSON.stringify(apiUrl) },
+  },
   head: [
     ["meta", { name: "theme-color", content: "#6755f5" }],
     ...feeds.map(
@@ -519,6 +530,7 @@ export default defineConfig({
   },
   async buildEnd(config) {
     await buildFeeds(config);
+    fs.cpSync(path.resolve(config.srcDir, "../public"), config.outDir, { recursive: true });
   },
   transformPageData(pageData) {
     const actions = pageData.frontmatter.hero?.actions as Array<{ link?: string }> | undefined;

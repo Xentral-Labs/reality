@@ -1784,3 +1784,14 @@ Feature contracts: `docs/features/company-setup-demo.md` and `docs/features/mast
   - practice companies not being offered the action;
   - MCP parity.
 - `apps/web/scripts/company-party-contract.test.mjs` and `company-party-browser.mjs`: spec 289 FR-004, FR-006 and FR-007; the draft dialog proposes without sending a name, shows the prefilled name in de/nl/es at 390 and 1440 px, and then names the waiting proposal with its Decisions link.
+
+## Business Journey Guide — Spec 290
+
+Feature contract: `docs/features/business-journey-guide.md`.
+
+- `packages/reality-core/tests/test_business_journey_catalog.py`: canonical 228-entry parity, schema integrity, status/evidence rules and public evidence separation.
+- `packages/reality-core/tests/test_business_journey_questions.py`: deterministic bilingual matching, cited status-bounded answers and normal Reality Chat routing.
+- `packages/reality-core/tests/test_business_journey_api.py`: anonymous read-only catalog/question HTTP contracts and bounded inputs.
+- `packages/reality-core/tests/test_business_journey_proposals.py`: confirmed proposal creation, privacy validation and one reversible vote per account.
+- `packages/reality-core/tests/test_business_journey_migration.py`: additive upgrade/downgrade parity and a real concurrent PostgreSQL vote race retaining one active account/proposal relationship.
+- `apps/docs/scripts/business-journey-guide.test.mjs` and `business-journey-widget.test.mjs`: generated public guide completeness plus the accessible public chatbot embed contract.

@@ -9,6 +9,7 @@ import { api, APIError, type AuthUser, type Tenant, type Bootstrap } from "../ap
 import { t } from "../localization";
 import { readThemePreference, storeThemePreference, type ThemePreference } from "../theme";
 import { type Selection } from "./routing";
+import { JourneySuggestions } from "./JourneySuggestions";
 
 type Preferences = Pick<AuthUser, "display_name" | "language" | "locale" | "timezone">;
 const preferences = (user: AuthUser): Preferences => ({
@@ -85,6 +86,11 @@ export function SettingsPage({
         >
           <h2 className="mb-4 text-sm font-medium text-fg-strong">{t("Usage")}</h2>
           <UsageSettings tenant={company.id} />
+        </section>
+      )}
+      {view === "personal" && (
+        <section className="min-w-0 rounded-xl border border-border-default bg-surface p-5 sm:p-7">
+          <JourneySuggestions />
         </section>
       )}
       {view !== "personal" && target && managedCompany && (

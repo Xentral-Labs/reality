@@ -370,7 +370,7 @@ resources:
         die die Daten noch nicht beantworten.
     synonyms: [proposal, approval, exception, attention, missing information, Vorschlag, Freigabe, Abweichung, Klärfall, Timeline, Verlauf]
     tables: []
-    match: "proposal|reality_gap|capability_describe|capability_catalog|business_records_discover|^exception|activity|timeline"
+    match: "proposal|reality_gap|business_journey|capability_describe|capability_catalog|business_records_discover|^exception|activity|timeline"
     views: [activity]
     projections: [exceptions, timeline]
     exceptions: []
@@ -573,6 +573,9 @@ processes:
 labels:
   de:
     commands:
+      business_journey_guide: Reality-Fähigkeit im Business Journey Guide prüfen
+      business_journey_proposal_create: Business Journey vorschlagen
+      business_journey_vote_set: Stimme für Business-Journey-Vorschlag setzen
       cost_evidence: Empfangene Anschaffungskosten anzeigen
       inventory_cost: Bestand zu Anschaffungskosten anzeigen
       contribution_preview: Deckungsbeitragsvorschau prüfen

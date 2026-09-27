@@ -23,7 +23,7 @@ the technical key stands beside each one.
 | [Return](#resource-return)                                       | 0     | 3       | 6                   |
 | [Document and source system](#resource-source)                   | 3     | 11      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
-| [Approvals, exceptions and open questions](#resource-governance) | 3     | 0       | 0                   |
+| [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
 
 ## Analytics report {#resource-analytics}
 
@@ -821,6 +821,18 @@ Abweichung, Klärfall, Timeline, Verlauf
 - [Activity](./views#view-activity) (`activity`)
 - [Operational Exceptions](./views#projection-exceptions) (`exceptions`)
 - [Timeline](./views#projection-timeline) (`timeline`)
+
+**Actions**
+
+- [Suggest a Business Journey](./commands#command-business_journey_proposal_create)
+  (`business_journey_proposal_create`)
+- [Set a Business Journey suggestion vote](./commands#command-business_journey_vote_set)
+  (`business_journey_vote_set`)
+
+**Look up**
+
+- [Ask the Business Journey Guide](./commands#command-business_journey_guide)
+  (`business_journey_guide`)
 
 **Underneath:** Agent tools without a command:
 [`capability_catalog`](./commands#tool-capability_catalog),

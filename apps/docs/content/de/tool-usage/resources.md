@@ -23,7 +23,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Retoure](#resource-return)                                    | 0      | 3        | 6         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 11       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
-| [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 0        | 0         |
+| [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
 
 ## Auswertung {#resource-analytics}
 
@@ -834,6 +834,18 @@ Freigabe, Abweichung, Klärfall, Timeline, Verlauf
 - [Verlauf](./views#view-activity) (`activity`)
 - [Abweichungen](./views#projection-exceptions) (`exceptions`)
 - [Verlauf](./views#projection-timeline) (`timeline`)
+
+**Aktionen**
+
+- [Business Journey vorschlagen](./commands#command-business_journey_proposal_create)
+  (`business_journey_proposal_create`)
+- [Stimme für Business-Journey-Vorschlag setzen](./commands#command-business_journey_vote_set)
+  (`business_journey_vote_set`)
+
+**Nachschlagen**
+
+- [Reality-Fähigkeit im Business Journey Guide prüfen](./commands#command-business_journey_guide)
+  (`business_journey_guide`)
 
 **Darunter:** Agenten-Tools ohne Geschäftsaktion:
 [`capability_catalog`](./commands#tool-capability_catalog),

@@ -36,6 +36,7 @@ web-build:
 	cd apps/web && npm run format:check && npm run test:i18n && npm run i18n:audit && npm run build
 docs-generate:
 	PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-catalog-reference.py
+	PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-journey-guide.py
 docs-catalog-check: docs-generate
 	git diff --exit-code -- apps/docs/content/tool-usage apps/docs/content/de/tool-usage apps/docs/content/storylines apps/docs/content/de/storylines apps/docs/content/public/storylines apps/docs/.vitepress/data
 docs-build: docs-generate

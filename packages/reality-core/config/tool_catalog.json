@@ -217,6 +217,9 @@
     "return_disposition_summary": "shipping",
     "supply_coverage": "orders",
     "capability_catalog": "evidence",
+    "business_journey_guide": "evidence",
+    "business_journey_suggest_propose": "review",
+    "business_journey_vote_propose": "review",
     "capability_describe": "evidence",
     "business_records_discover": "evidence",
     "interpretation_coverage": "evidence",
@@ -261,6 +264,7 @@
     "graph_interpret": "analytics"
   },
   "understand_tools": [
+    "business_journey_guide",
     "capability_catalog",
     "capability_describe",
     "shipment_explain",

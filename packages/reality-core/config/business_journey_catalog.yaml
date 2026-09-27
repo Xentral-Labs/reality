@@ -1,0 +1,4337 @@
+version: 1
+entries:
+- id: A01
+  section: Order intake and order changes
+  title: 'Standard order: one customer, one line, in stock'
+  question: Is it committed, reserved, shipped, invoiced, paid?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is it committed, reserved, shipped, invoiced, paid?'
+  limitations: &id001 []
+  keywords: []
+  question_examples:
+  - 'Standard order: one customer, one line, in stock'
+  - Is it committed, reserved, shipped, invoiced, paid?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_order_to_cash.py::test_order_to_cash_business_story
+    note: Shopify order is reserved with no shortage and shipped in two parts, then invoiced, partly paid and credited; open quantity and open amount are asserted, and the trace reaches the raw payload.
+- id: A02
+  section: Order intake and order changes
+  title: Order with 30 lines from several warehouses
+  question: What is open per line and per location?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: What is open per line and per location?'
+  limitations: &id002
+  - Only part of this journey is currently proven.
+  keywords: []
+  question_examples:
+  - Order with 30 lines from several warehouses
+  - What is open per line and per location?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_unified_order_entry.py::test_multiline_review_trace_and_replay
+    note: Only 2 lines are tested. `order_create` takes one `location_id` per order (services/order_actions.py), so no test shows open quantity per line and per location across warehouses.
+- id: A03
+  section: Order intake and order changes
+  title: Same item twice in one order (discounted and free)
+  question: Are the two lines kept as separate commitments?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Are the two lines kept as separate commitments?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Same item twice in one order (discounted and free)
+  - Are the two lines kept as separate commitments?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_unified_order_entry.py::test_multiline_review_trace_and_replay
+    note: The same `item_id` on two lines gives two commitments with their own amounts. The discounted-versus-free case itself is not tested.
+- id: A04
+  section: Order intake and order changes
+  title: Customer raises the quantity after a partial delivery
+  question: What is still open after the revision?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: What is still open after the revision?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Customer raises the quantity after a partial delivery
+  - What is still open after the revision?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/finance/test_commercial_edges.py::test_higher_revision_allows_only_the_new_quantity; tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated
+    note: An upward revision is tested only with no delivery before it. No test raises the quantity after a partial shipment and asserts what is still open.
+- id: A05
+  section: Order intake and order changes
+  title: Customer lowers the quantity below the delivered quantity
+  question: Is the revision refused or does it demand a return?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is the revision refused or does it demand a return?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Customer lowers the quantity below the delivered quantity
+  - Is the revision refused or does it demand a return?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived
+    note: The revision is accepted and marks the commitment fulfilled, neither refused nor turned into a return demand. Only the supplier side is tested, and no exception class reports the excess delivery.
+- id: A06
+  section: Order intake and order changes
+  title: One line cancelled, the rest stays
+  question: Is only that commitment closed and its reservation released?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is only that commitment closed and its reservation released?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - One line cancelled, the rest stays
+  - Is only that commitment closed and its reservation released?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_commitment_actions.py::test_reviewed_cancellation_closes_open_remainder_and_releases_controls
+    note: Cancelling one commitment releases its reservation and hold. No multi-line order test asserts that the other lines stay open and reserved.
+- id: A07
+  section: Order intake and order changes
+  title: Whole order cancelled after reservation
+  question: Are all reservations released?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Are all reservations released?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Whole order cancelled after reservation
+  - Are all reservations released?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_inventory_and_fulfillment.py::test_cancel_preserves_commitment_and_releases_allocation
+    note: There is no order-level cancel, only `cancel_commitment` per commitment. No test cancels every line of a reserved order.
+- id: A08
+  section: Order intake and order changes
+  title: Cancelled after picking, before shipment
+  question: Does the stock go back, and is that visible?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Does the stock go back, and is that visible?'
+  limitations: &id003
+  - The current model or services do not support this complete journey.
+  keywords: []
+  question_examples:
+  - Cancelled after picking, before shipment
+  - Does the stock go back, and is that visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/services/core.py (no picking concept)
+    note: There is no picking or staging record, so "picked but not shipped" and the stock going back cannot be represented.
+- id: A09
+  section: Order intake and order changes
+  title: '"Cancelled" after shipment'
+  question: Is it treated as a return or refusal, not a cancellation?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is it treated as a return or refusal, not a cancellation?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - '"Cancelled" after shipment'
+  - Is it treated as a return or refusal, not a cancellation?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record[cancelled_at-10]; services/core.py::cancel_commitment
+    note: A `cancelled_at` sent after full shipment is held for review with no effect, and a direct cancel of a fulfilled commitment is refused. Neither is a test that classifies it as a return or a refusal.
+- id: A10
+  section: Order intake and order changes
+  title: Customer swaps a variant/size in an open order
+  question: Old commitment closed, new one opened, history kept?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Old commitment closed, new one opened, history kept?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Customer swaps a variant/size in an open order
+  - Old commitment closed, new one opened, history kept?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_document_corrections.py::test_manual_line_economic_changes_lock_after_reality_but_description_remains_correctable
+    note: Adding a line is blocked once Reality exists, and Shopify changes are held for review, so no path swaps a variant on the same order while keeping its history.
+- id: A11
+  section: Order intake and order changes
+  title: Delivery address changes after release, before shipment
+  question: Which address does the shipment use, and is the change traceable?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Which address does the shipment use, and is the change traceable?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Delivery address changes after release, before shipment
+  - Which address does the shipment use, and is the change traceable?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/db/core.py (Document.ship_to_party_id; Shipment has only counterparty_id)
+    note: Ship-to exists only on the document. A shipment carries no address, so which address a shipment used cannot be answered.
+- id: A12
+  section: Order intake and order changes
+  title: Requested delivery date in the future
+  question: When should stock be reserved?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: When should stock be reserved?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Requested delivery date in the future
+  - When should stock be reserved?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/services/core.py::reserve
+    note: Reservation is explicit, and no rule uses `due_at` or `requested_delivery_at` to decide when to reserve.
+- id: A13
+  section: Order intake and order changes
+  title: Different requested dates per line
+  question: Is each line's promise dated separately?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is each line''s promise dated separately?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Different requested dates per line
+  - Is each line's promise dated separately?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_orders_and_shipments.py::test_each_order_line_keeps_its_own_promised_date
+    note: Two lines carry their own promised date; a third falls back to the order's requested delivery date.
+- id: A14
+  section: Order intake and order changes
+  title: Quote converted to an order with changed quantities/prices
+  question: Are quote and order separate evidence with a link?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Are quote and order separate evidence with a link?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Quote converted to an order with changed quantities/prices
+  - Are quote and order separate evidence with a link?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/services/core.py::MANUAL_OPERATIONAL_DOCUMENT_TYPES
+    note: There is no quote document type and no quote-to-order link. Spec 259 is a pricing preview only.
+- id: A15
+  section: Order intake and order changes
+  title: Same order arrives twice (webhook retry)
+  question: Exactly one commitment?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Exactly one commitment?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Same order arrives twice (webhook retry)
+  - Exactly one commitment?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_shopify_and_explain.py::test_shopify_ingestion_is_lossless_idempotent_and_traceable
+    note: Re-sending the payload with its keys reordered still gives exactly one SourceRecord, Document and Commitment.
+- id: A16
+  section: Order intake and order changes
+  title: Shop sends a new version of the same order
+  question: New source version, revised commitment, no overwrite?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: New source version, revised commitment, no overwrite?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Shop sends a new version of the same order
+  - New source version, revised commitment, no overwrite?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record; tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation
+    note: 'A new version with a supersedes link is stored without overwriting, but the commitment is never revised: the change is held as `needs_review` (spec 081).'
+- id: A17
+  section: Order intake and order changes
+  title: Shop order contains an unknown item
+  question: Is the line kept and the gap visible?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is the line kept and the gap visible?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Shop order contains an unknown item
+  - Is the line kept and the gap visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_shopify_and_explain.py::test_source_survives_interpretation_failure; tests/operational_exceptions/test_derivation.py::test_source_interpretation_failure
+    note: The source is kept and the failure is visible, but the whole order is not interpreted. The line is not kept as a DocumentLine alongside the gap.
+- id: A18
+  section: Order intake and order changes
+  title: Order price differs from list price
+  question: Is the stated price recorded, not recomputed?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the stated price recorded, not recomputed?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Order price differs from list price
+  - Is the stated price recorded, not recomputed?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_pricing.py::test_document_line_retains_agreed_entry_when_current_price_changes, ::test_manual_agreement_remains_valid_without_pricing_entry
+    note: The stated price is kept against the list price. Order entry also keeps a stated gross of 24.91 against 2 x 12.50.
+- id: A19
+  section: Order intake and order changes
+  title: Zero-price line (sample, gift, replacement)
+  question: Committed and shipped without revenue?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Committed and shipped without revenue?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Zero-price line (sample, gift, replacement)
+  - Committed and shipped without revenue?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_commercial_matching_services.py::test_free_goods_keep_inventory_cost_and_zero_revenue
+    note: Only the zero-revenue invoice side is tested. No zero-price order line is shown committed and shipped.
+- id: A20
+  section: Order intake and order changes
+  title: Two orders of one customer to be shipped together
+  question: Can one shipment fulfil both?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Can one shipment fulfil both?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Two orders of one customer to be shipped together
+  - Can one shipment fulfil both?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_orders_and_shipments.py::test_one_shipment_fulfils_two_orders_of_the_same_customer
+    note: One shipment and one package fulfil two orders (3 and 5); 8 promised, 8 dispatched.
+- id: A21
+  section: Order intake and order changes
+  title: One order split across two delivery addresses
+  question: Can lines/quantities go to different recipients?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Can lines/quantities go to different recipients?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - One order split across two delivery addresses
+  - Can lines/quantities go to different recipients?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/db/core.py (Commitment.to_party_id, Shipment.counterparty_id)
+    note: A commitment has no per-line recipient or address, so lines cannot be split across two delivery addresses.
+- id: A22
+  section: Order intake and order changes
+  title: Order parked or held (clarification, fraud check)
+  question: Why is it not moving, and who lifts it?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Why is it not moving, and who lifts it?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Order parked or held (clarification, fraud check)
+  - Why is it not moving, and who lifts it?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_commitment_holds.py::test_hold_blocks_reservation_and_movement_until_released, ::test_the_release_is_recorded_by_the_release_operation; tests/operational_exceptions/test_derivation.py (`commitment_hold_unreleased`)
+    note: The hold's reason code blocks execution, the release is recorded, and an unreleased hold is surfaced.
+- id: A23
+  section: Order intake and order changes
+  title: Blanket order with call-offs
+  question: See M01.
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: See M01.'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Blanket order with call-offs
+  - See M01.
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: (see M01); no blanket or call-off concept in src/reality
+    note: There is no frame-contract or call-off structure.
+- id: A24
+  section: Order intake and order changes
+  title: Line added later that should ride with the open shipment
+  question: Does the added commitment join the pending delivery?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Does the added commitment join the pending delivery?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Line added later that should ride with the open shipment
+  - Does the added commitment join the pending delivery?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/services/shipments.py::record_packaged_execution
+    note: Outbound shipments only exist at dispatch, with no pending delivery to join, and adding a line after Reality exists is blocked.
+- id: B01
+  section: Availability, reservation and backorder
+  title: 'Too little stock: partial reservation, rest backordered'
+  question: Reserved vs uncovered quantity per line?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Reserved vs uncovered quantity per line?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - 'Too little stock: partial reservation, rest backordered'
+  - Reserved vs uncovered quantity per line?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_inventory_and_fulfillment.py::test_shortage_reservation_and_release; tests/test_application_tools.py::test_reservation_receipts_classify_none_partial_and_complete
+    note: Reserving 30 against 20 on hand reserves 20 and reports 10 short; the receipt reports `effect=partial` with `remaining_work`.
+- id: B02
+  section: Availability, reservation and backorder
+  title: No stock at all
+  question: Is the whole commitment uncovered and flagged?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the whole commitment uncovered and flagged?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - No stock at all
+  - Is the whole commitment uncovered and flagged?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_outgoing_commitment_at_risk; tests/test_application_tools.py::test_reservation_receipts_classify_none_partial_and_complete
+    note: With no stock the whole promise is `outgoing_commitment_at_risk` (cause insufficient_reservation), and the receipt reports `effect=none`.
+- id: B03
+  section: Availability, reservation and backorder
+  title: Two orders compete for the last units
+  question: Who gets them, by which rule?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Who gets them, by which rule?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Two orders compete for the last units
+  - Who gets them, by which rule?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/068-promise-coverage-exceptions/spec.md (Non-Goals); tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock_impact
+    note: 'No allocation or priority rule exists: whoever reserves first gets the units, and only a `competing_commitments` count is reported.'
+- id: B04
+  section: Availability, reservation and backorder
+  title: Re-reservation to a more important customer
+  question: Is the move from one commitment to another traceable?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the move from one commitment to another traceable?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Re-reservation to a more important customer
+  - Is the move from one commitment to another traceable?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_stock_and_returns.py::test_stock_reserved_for_one_customer_can_be_moved_to_a_more_important_one
+    note: Release then reserve moves the stock with exact per-commitment figures and ordered events. Nothing links the two steps unless the caller passes one action id.
+- id: B05
+  section: Availability, reservation and backorder
+  title: Stock exists but is blocked (quality, quarantine, expiry)
+  question: Is blocked stock excluded from availability?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is blocked stock excluded from availability?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Stock exists but is blocked (quality, quarantine, expiry)
+  - Is blocked stock excluded from availability?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: docs/features/inventory.md ("Nothing is blocked"); tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes
+    note: There is no blocked-stock state; exclusion only works by moving goods to another location (for example a quarantine disposition transfer), and expired stock is deliberately still available.
+- id: B06
+  section: Availability, reservation and backorder
+  title: Stock exists in the wrong warehouse
+  question: Is a transfer needed, and is availability per location?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is a transfer needed, and is availability per location?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Stock exists in the wrong warehouse
+  - Is a transfer needed, and is availability per location?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_stock_at_location.py::test_quantities_stay_at_the_exact_location, ::test_scoped_reservations_hold_that_location_only; docs/features/reservations.md
+    note: Availability is judged at the exact location, but nothing proposes the transfer, and no test reserves against stock that sits elsewhere.
+- id: B07
+  section: Availability, reservation and backorder
+  title: Stock only on order (open purchase)
+  question: Can it be promised (available to promise)?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Can it be promised (available to promise)?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Stock only on order (open purchase)
+  - Can it be promised (available to promise)?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt
+    note: Open PO quantity can be assigned to protect a customer promise (`protecting_supply`); there is no dated available-to-promise calculation.
+- id: B08
+  section: Availability, reservation and backorder
+  title: Receipt resolves backorders
+  question: Which commitment is served first?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Which commitment is served first?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Receipt resolves backorders
+  - Which commitment is served first?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_supply_coverage.py::test_purchasing_sales_and_inventory_views_reconcile_without_double_counting
+    note: A receipt reserves nothing automatically (the test asserts 0 reservations); a supply assignment names the intended customer, but no serving order exists.
+- id: B09
+  section: Availability, reservation and backorder
+  title: Receipt covers only part of the backorders
+  question: Which remain uncovered?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Which remain uncovered?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Receipt covers only part of the backorders
+  - Which remain uncovered?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_supply_coverage.py::test_purchasing_sales_and_inventory_views_reconcile_without_double_counting
+    note: The partial receipt is reconciled on the supplier side, but no test asserts which customer promises stay uncovered afterwards.
+- id: B10
+  section: Availability, reservation and backorder
+  title: Customer refuses partial delivery
+  question: Reserved but deliberately not shipped — why?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Reserved but deliberately not shipped — why?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Customer refuses partial delivery
+  - Reserved but deliberately not shipped — why?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_fulfillment_readiness.py::test_readiness_combines_stock_reservation_and_active_hold; tests/test_commitment_holds.py::test_a_held_promise_cannot_be_shipped
+    note: A reasoned commitment hold can explain "reserved but not shipped"; there is no ship-complete or no-partial-delivery rule.
+- id: B11
+  section: Availability, reservation and backorder
+  title: Partial delivery allowed up to two parcels
+  question: Is the limit enforceable or at least visible?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Is the limit enforceable or at least visible?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Partial delivery allowed up to two parcels
+  - Is the limit enforceable or at least visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/fulfillment_readiness.py (blocker set)
+    note: No per-order or per-customer limit on partial deliveries or parcel count exists.
+- id: B12
+  section: Availability, reservation and backorder
+  title: Reservation lapses because prepayment did not arrive
+  question: Is the reservation released after the deadline?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Is the reservation released after the deadline?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Reservation lapses because prepayment did not arrive
+  - Is the reservation released after the deadline?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py `Reservation` (no deadline column); tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside
+    note: Prepayment only blocks shipment; a reservation has no lapse date and is never released automatically.
+- id: B13
+  section: Availability, reservation and backorder
+  title: Count difference leaves a reservation uncovered
+  question: Is the reservation flagged as no longer backed by stock?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the reservation flagged as no longer backed by stock?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Count difference leaves a reservation uncovered
+  - Is the reservation flagged as no longer backed by stock?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock, ::test_reservation_exceeds_stock_references_are_opaque
+    note: A stocktake loss raises `reservation_exceeds_stock` naming the reservations; it is judged per item across locations and blames no single promise.
+- id: B14
+  section: Availability, reservation and backorder
+  title: Oversold across channels (shop and marketplace)
+  question: Is the overcommitment visible?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is the overcommitment visible?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Oversold across channels (shop and marketplace)
+  - Is the overcommitment visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_outgoing_commitment_at_risk
+    note: Each unreserved promise is flagged, but there is no channel dimension and no aggregate "demand exceeds stock" view.
+- id: B15
+  section: Availability, reservation and backorder
+  title: Safety stock withheld from B2C, given to key accounts
+  question: Can availability differ per channel/party?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Can availability differ per channel/party?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Safety stock withheld from B2C, given to key accounts
+  - Can availability differ per channel/party?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: docs/features/inventory.md (Available = physical − reserved)
+    note: Availability is one number per item and location; there is no safety stock and no per-channel or per-party availability.
+- id: B16
+  section: Availability, reservation and backorder
+  title: Channel quotas (e.g. 20 % for Amazon)
+  question: Can stock be earmarked per channel?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Can stock be earmarked per channel?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Channel quotas (e.g. 20 % for Amazon)
+  - Can stock be earmarked per channel?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py `Reservation`/`Location`
+    note: There is no earmark or quota concept for a channel.
+- id: B17
+  section: Availability, reservation and backorder
+  title: 'Batch/expiry: customer demands minimum remaining shelf life'
+  question: Is only eligible stock reserved?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Is only eligible stock reserved?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - 'Batch/expiry: customer demands minimum remaining shelf life'
+  - Is only eligible stock reserved?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: docs/features/inventory.md ("choosing which lot ships is an allocation policy this product has never had")
+    note: A lot may be reserved explicitly, but no minimum-remaining-shelf-life eligibility check exists.
+- id: B18
+  section: Availability, reservation and backorder
+  title: Serial-numbered item reserved by serial number
+  question: Does the reservation name the unit?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Does the reservation name the unit?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Serial-numbered item reserved by serial number
+  - Does the reservation name the unit?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_inventory_tracking_reservations.py::test_serial_reservation_identifies_exact_unit_and_quantity_one, ::test_confirmed_chat_tool_reserves_exact_serial_unit
+    note: The reservation names the exact serial unit, with quantity one.
+- id: C01
+  section: Payment and release
+  title: 'Prepayment: ship only after payment'
+  question: Why is it held, and when is it released?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Why is it held, and when is it released?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - 'Prepayment: ship only after payment'
+  - Why is it held, and when is it released?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_fulfillment_readiness.py::test_prepayment_readiness_uses_stated_order_and_active_allocation; tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside
+    note: Blockers `prepayment_invoice_missing`/`prepayment_required` block dispatch and clear once the payment is allocated; order_explain reports the reason.
+- id: C02
+  section: Payment and release
+  title: Prepayment short-paid
+  question: Release or not, within which tolerance?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Release or not, within which tolerance?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Prepayment short-paid
+  - Release or not, within which tolerance?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside (pays 40 of 100, stays blocked); tests/finance/test_settlement_flows.py::test_underpayment_optional_reduction_and_independent_inverse
+    note: Tolerance is zero on purpose (docs/features/payment_matching.md); a residual closes only through a confirmed `accepted_small_remainder` adjustment.
+- id: C03
+  section: Payment and release
+  title: Prepayment overpaid
+  question: Does a customer credit balance appear?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Does a customer credit balance appear?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Prepayment overpaid
+  - Does a customer credit balance appear?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_payment_intake.py::test_over_payment_settles_the_invoice_and_keeps_the_excess_as_credit; tests/finance/test_settlement_flows.py::test_excess_credit_reuse_refund_and_refund_inverse
+    note: The excess shows as available customer credit; it is tested on a plain invoice, not on a prepayment order.
+- id: C04
+  section: Payment and release
+  title: One payment for two prepaid orders
+  question: Is the payment allocated to both?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is the payment allocated to both?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - One payment for two prepaid orders
+  - Is the payment allocated to both?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_ledger.py::test_one_payment_can_settle_multiple_invoices_tenant_safely
+    note: One payment settling several invoices is proven, but no test checks fulfillment_readiness of two prepaid orders fed by one payment.
+- id: C05
+  section: Payment and release
+  title: Payment without a usable reference
+  question: Unallocated, later allocated by a person?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Unallocated, later allocated by a person?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Payment without a usable reference
+  - Unallocated, later allocated by a person?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_payment_intake.py::test_candidates_have_reasons_and_write_nothing; ::test_ambiguous_reference_produces_candidates_and_allocation_ends_them
+    note: Money is recorded unallocated, tier-3 candidates carry reasons and write nothing, and an explicit allocate_settlement ends them.
+- id: C06
+  section: Payment and release
+  title: Payment arrives after the order was cancelled
+  question: Is a refund owed?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is a refund owed?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Payment arrives after the order was cancelled
+  - Is a refund owed?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_finance.py::test_payment_after_a_cancelled_prepayment_order_stays_credit_and_is_refunded
+    note: Payment after cancellation stays unallocated as customer credit (119) and is refunded through the confirmed settlement proposal.
+- id: C07
+  section: Payment and release
+  title: 'Credit limit exceeded: order held, released by a person'
+  question: Who released it, and why?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Who released it, and why?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - 'Credit limit exceeded: order held, released by a person'
+  - Who released it, and why?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_credit_limit_exceeded; tests/test_unified_customer_holds.py::test_review_place_release_history_and_replay
+    note: The exception and a reviewed hold/release (with actor) are each tested; nothing links the exception to a hold, and there is no automatic credit hold.
+- id: C08
+  section: Payment and release
+  title: Limit exceeded by overdue items, not by order value
+  question: Does the hold name the overdue items?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Does the hold name the overdue items?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Limit exceeded by overdue items, not by order value
+  - Does the hold name the overdue items?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: src/reality/services/exceptions.py::_credit_limit_exceeded_exceptions; tests/operational_exceptions/test_derivation.py::test_credit_exposure_uses_the_shared_open_items
+    note: Exposure comes from open invoices only (order value never counts) and names all open invoice ids, not the overdue ones; no test asserts the named items.
+- id: C09
+  section: Payment and release
+  title: 'Card/PayPal/Klarna: authorization ≠ capture'
+  question: Are authorization and capture separate facts?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Are authorization and capture separate facts?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - 'Card/PayPal/Klarna: authorization ≠ capture'
+  - Are authorization and capture separate facts?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/148-accounting-journal-cost-centers/spec.md FR-049/FR-050 (specified, not implemented)
+    note: No authorization or capture record; payment intake has only an unused `money_path` string.
+- id: C10
+  section: Payment and release
+  title: Authorization expires before a late partial shipment
+  question: Is the uncovered remainder visible?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Is the uncovered remainder visible?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Authorization expires before a late partial shipment
+  - Is the uncovered remainder visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/148-accounting-journal-cost-centers/trade-finance-controls.md
+    note: Authorizations are not modeled, so an expired authorization and the uncovered remainder cannot be shown.
+- id: C11
+  section: Payment and release
+  title: B2B invoice with 30 days net, 2 % discount within 10 days
+  question: Due dates and discount window correct?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Due dates and discount window correct?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - B2B invoice with 30 days net, 2 % discount within 10 days
+  - Due dates and discount window correct?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_payment_terms.py::test_the_discount_deadline_is_one_shared_rule; tests/test_ledger.py::test_invoice_due_date_rule
+    note: Due date and discount date come from one shared rule in the aging register; the fixture is a supplier invoice, and sales invoices use the same rule.
+- id: C12
+  section: Payment and release
+  title: Discount taken after the discount window
+  question: Is the short payment flagged?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the short payment flagged?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Discount taken after the discount window
+  - Is the short payment flagged?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_a_discount_taken_explains_the_remainder
+    note: A discount deducted after the window gets no `early_payment_discount_taken` reason, so it stays a plain overdue receivable.
+- id: C13
+  section: Payment and release
+  title: Cash on delivery
+  question: Payment tied to the shipment?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Payment tied to the shipment?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Cash on delivery
+  - Payment tied to the shipment?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: none
+    note: No cash-on-delivery payment path; payments cannot be tied to a shipment.
+- id: C14
+  section: Payment and release
+  title: 30 % down payment, rest before shipment
+  question: Is the hold released only after the remainder?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is the hold released only after the remainder?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - 30 % down payment, rest before shipment
+  - Is the hold released only after the remainder?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_fulfillment_safety_parity.py (40 then 60 releases only at 100); tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice
+    note: Release only after the remainder is proven; a 30 % deposit before any invoice is not tied to the order (the FR-051 earmark is not built) and readiness reports `prepayment_invoice_missing`.
+- id: C15
+  section: Payment and release
+  title: Chargeback / returned direct debit after shipment
+  question: Does the receivable reopen?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Does the receivable reopen?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Chargeback / returned direct debit after shipment
+  - Does the receivable reopen?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_ledger_reversals.py::test_payment_reversal_preserves_allocation_history_and_reopens_invoice
+    note: Reversing a payment reopens the receivable; there is no chargeback or returned-debit event, fee or provider dispute (spec 148 FR-050, not built).
+- id: C16
+  section: Payment and release
+  title: Customer delivery block (dunning, insolvency)
+  question: Why does nothing ship to this party?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Why does nothing ship to this party?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Customer delivery block (dunning, insolvency)
+  - Why does nothing ship to this party?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_party_delivery_holds.py::test_customer_delivery_hold_blocks_only_shipment; tests/test_fulfillment_readiness.py::test_readiness_combines_stock_reservation_and_active_hold
+    note: A party hold with reason and note blocks only shipments; readiness names the hold. There is no dedicated dunning or insolvency reason code.
+- id: C17
+  section: Payment and release
+  title: Fraud check holds and releases an order
+  question: Hold and release both recorded?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Hold and release both recorded?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Fraud check holds and releases an order
+  - Hold and release both recorded?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_commitment_holds.py::test_hold_blocks_reservation_and_movement_until_released; ::test_the_release_is_recorded_by_the_release_operation
+    note: Hold and release are both recorded generically (`compliance`/`manual_review`); there is no fraud reason and no hold driven by a source fraud signal.
+- id: C18
+  section: Payment and release
+  title: Voucher or gift card as (part) payment
+  question: Is the voucher a settlement of the receivable?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Is the voucher a settlement of the receivable?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Voucher or gift card as (part) payment
+  - Is the voucher a settlement of the receivable?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/finance/settlement.py REASONS (no voucher)
+    note: Vouchers and gift cards are not a settlement instrument; only cash, credit notes, deposits and the four adjustment reasons exist.
+- id: D01
+  section: Picking, shipment, split and merge
+  title: 'Partial delivery: 3 of 5 shipped'
+  question: Open 2, shipped 3?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Open 2, shipped 3?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - 'Partial delivery: 3 of 5 shipped'
+  - Open 2, shipped 3?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_inventory_and_fulfillment.py::test_partial_shipments_derive_fulfillment_and_consume_reservations
+    note: Asserts fulfilled 10 / open 20, then fulfilled after the remainder ships; the remaining reservation is used up too.
+- id: D02
+  section: Picking, shipment, split and merge
+  title: Two warehouses, two parcels, one order
+  question: Movements per location, one commitment?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Movements per location, one commitment?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Two warehouses, two parcels, one order
+  - Movements per location, one commitment?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/services/fulfillment_readiness.py (readiness at the commitment location only)
+    note: 'A reservation sits only at the commitment''s location and dispatch readiness checks only that location, so part-stock in a second warehouse blocks the shipment. Shipping from the second location consumed the first location''s reservation; fixed in #202.'
+- id: D03
+  section: Picking, shipment, split and merge
+  title: Several orders of one customer in one shipment
+  question: One shipment fulfils several commitments?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: One shipment fulfils several commitments?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Several orders of one customer in one shipment
+  - One shipment fulfils several commitments?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_orders_and_shipments.py::test_one_package_carries_several_commitments_of_one_customer
+    note: One package fulfils three commitments over two items by their own quantities (0, 0 and 1 open).
+- id: D04
+  section: Picking, shipment, split and merge
+  title: Picking error caught before shipment
+  question: Corrected without a false movement?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Corrected without a false movement?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Picking error caught before shipment
+  - Corrected without a false movement?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/db/core.py (no picking record; only Reservation → Movement)
+    note: Picking is not modelled, so there is no record for a caught picking error to correct.
+- id: D05
+  section: Picking, shipment, split and merge
+  title: Picking error found by the customer
+  question: Wrong item shipped, right item still open?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Wrong item shipped, right item still open?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Picking error found by the customer
+  - Wrong item shipped, right item still open?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/services/core.py `_append_movement` ("Movement does not match the commitment")
+    note: A shipment of the wrong item cannot name the commitment it was meant for; it can only be recorded unlinked, as an unexplained movement.
+- id: D06
+  section: Picking, shipment, split and merge
+  title: Picker finds less stock than recorded
+  question: Count correction plus uncovered reservation?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Count correction plus uncovered reservation?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Picker finds less stock than recorded
+  - Count correction plus uncovered reservation?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock
+    note: A stocktake-loss adjustment raises reservation_exceeds_stock with the shortfall; the entry clears on receipt.
+- id: D07
+  section: Picking, shipment, split and merge
+  title: Parcel lost, carrier insurance pays
+  question: Goods gone, claim receivable, customer still served?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Goods gone, claim receivable, customer still served?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Parcel lost, carrier insurance pays
+  - Goods gone, claim receivable, customer still served?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/db/core.py ShipmentEvent (`delivery_exception` only)
+    note: No carrier-claim receivable. The lost shipment still counts as fulfilment unless it is corrected. No test uses delivery_exception.
+- id: D08
+  section: Picking, shipment, split and merge
+  title: Parcel undeliverable, returns
+  question: Stock back, commitment reopened?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Stock back, commitment reopened?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Parcel undeliverable, returns
+  - Stock back, commitment reopened?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/079-returns-connect/spec.md (kept promise stays kept); tests/test_returns.py::test_a_return_leaves_the_promise_kept
+    note: Stock comes back, but a return can never reopen the commitment. "Undeliverable" and "returned by customer" are not told apart.
+- id: D09
+  section: Picking, shipment, split and merge
+  title: Delivery refused
+  question: Same as D08 with a reason?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Same as D08 with a reason?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Delivery refused
+  - Same as D08 with a reason?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: same as D08
+    note: Same as D08. Also, a return Movement has no reason; only ReturnAnnouncement carries one.
+- id: D10
+  section: Picking, shipment, split and merge
+  title: 'Drop shipping: supplier ships directly'
+  question: Customer served without own stock movement?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Customer served without own stock movement?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - 'Drop shipping: supplier ships directly'
+  - Customer served without own stock movement?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/services/core.py (fulfilment derives only from own stock `shipment` Movements)
+    note: 'No drop-ship path: a commitment cannot be fulfilled without a movement out of own stock.'
+- id: D11
+  section: Picking, shipment, split and merge
+  title: 'Partial drop shipping: part own stock, part supplier'
+  question: Both paths fulfil one commitment?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Both paths fulfil one commitment?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - 'Partial drop shipping: part own stock, part supplier'
+  - Both paths fulfil one commitment?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: same as D10
+    note: 'Same as D10: no supplier-direct fulfilment path to combine with own stock.'
+- id: D12
+  section: Picking, shipment, split and merge
+  title: 3PL confirms shipments late
+  question: Is the lag visible and later closed?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is the lag visible and later closed?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - 3PL confirms shipments late
+  - Is the lag visible and later closed?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_order_stalled, ::test_lag_classes_clear_through_reality, ::test_a_backdated_shipment_cannot_drag_the_norm
+    note: The lag shows as order_stalled and clears on shipment. No test separates when the goods left from when the 3PL confirmed it.
+- id: D13
+  section: Picking, shipment, split and merge
+  title: Pallet freight with booked delivery slot
+  question: Shipment dated to the slot?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Shipment dated to the slot?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Pallet freight with booked delivery slot
+  - Shipment dated to the slot?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/db/core.py Shipment/ShipmentEvent (no slot/appointment field)
+    note: There is no booked delivery slot record, only movement occurred_at and carrier events.
+- id: D14
+  section: Picking, shipment, split and merge
+  title: Export to a third country (customs, proof of export)
+  question: Is the export evidence linked?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Is the export evidence linked?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Export to a third country (customs, proof of export)
+  - Is the export evidence linked?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py Shipment/Document (no customs or export-proof link)
+    note: Export evidence could only sit in a lossless payload; nothing typed links it to the shipment.
+- id: D15
+  section: Picking, shipment, split and merge
+  title: Customer pickup
+  question: Fulfilled without a carrier?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Fulfilled without a carrier?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Customer pickup
+  - Fulfilled without a carrier?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_inventory_and_fulfillment.py::test_partial_shipments_derive_fulfillment_and_consume_reservations
+    note: Fulfilment without carrier or package works, but pickup is not recorded or tested as a mode of its own.
+- id: D16
+  section: Picking, shipment, split and merge
+  title: Free replacement shipment without a new order
+  question: Why did stock leave, and for which commitment?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Why did stock leave, and for which commitment?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Free replacement shipment without a new order
+  - Why did stock leave, and for which commitment?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_international_demo.py::test_supported_edge_cases_are_source_backed_and_traceable (exchange_replacement, SO-033/SO-034)
+    note: The replacement uses a new zero-price order. A commitment without a document is possible but untested.
+- id: D17
+  section: Picking, shipment, split and merge
+  title: Shipment confirmation arrives before the order
+  question: Is it held until the order arrives, then linked?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Is it held until the order arrives, then linked?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Shipment confirmation arrives before the order
+  - Is it held until the order arrives, then linked?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/services/core.py SOURCE_INTERPRETERS (no shipment interpreter)
+    note: No shipment source is interpreted, so nothing holds an early confirmation and links it later.
+- id: D18
+  section: Picking, shipment, split and merge
+  title: Shipment reported twice
+  question: Exactly one movement?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Exactly one movement?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Shipment reported twice
+  - Exactly one movement?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_shipment_actions.py::test_receive_confirmation_replays_one_atomic_package; tests/test_unified_delivery_actions.py::test_same_preparation_and_confirmation_have_one_effect
+    note: Replaying a proposal is idempotent. A duplicate shipment report from a source is never ingested, so that case is untested.
+- id: D19
+  section: Picking, shipment, split and merge
+  title: Returnable packaging or deposit (pallets, crates)
+  question: Is the deposit owed and tracked?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Is the deposit owed and tracked?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Returnable packaging or deposit (pallets, crates)
+  - Is the deposit owed and tracked?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py (no deposit or returnable-packaging concept)
+    note: Nothing tracks returnable packaging or the deposit owed.
+- id: E01
+  section: Customer invoice and credit note
+  title: One invoice per partial delivery
+  question: Shipped but not invoiced = 0?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Shipped but not invoiced = 0?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - One invoice per partial delivery
+  - Shipped but not invoiced = 0?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_shipped_not_billed; ::test_billing_sums_across_invoices
+    note: Unbilled quantity per order line falls to zero as partial invoices arrive.
+- id: E02
+  section: Customer invoice and credit note
+  title: Monthly collective invoice over several shipments
+  question: One invoice, several deliveries?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: One invoice, several deliveries?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Monthly collective invoice over several shipments
+  - One invoice, several deliveries?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_finance.py::test_one_monthly_invoice_bills_the_deliveries_of_three_orders
+    note: The month's deliveries of three orders are read from `invoice_billable_positions` and billed on one guided invoice; `shipped_not_billed` clears and nothing remains billable (spec 283).
+- id: E03
+  section: Customer invoice and credit note
+  title: Invoice before delivery (prepayment, pro forma)
+  question: Invoiced but not shipped visible?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Invoiced but not shipped visible?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Invoice before delivery (prepayment, pro forma)
+  - Invoiced but not shipped visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_fulfillment_readiness.py::test_prepayment_readiness_uses_stated_order_and_active_allocation
+    note: Invoicing before shipment works; there is no sales-side "billed not shipped" observation (only purchase-side `billed_not_received`) and no pro-forma document type.
+- id: E04
+  section: Customer invoice and credit note
+  title: 'Invoice corrected: reversal plus new invoice'
+  question: Never overwritten?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Never overwritten?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - 'Invoice corrected: reversal plus new invoice'
+  - Never overwritten?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_partial_invoicing_rebilling.py::test_partial_reversal_rebilling_and_historical_proof; tests/test_ledger_reversals.py::test_reversal_appends_exact_inverse_and_preserves_original
+    note: The exact inverse is appended and the original stays; billing becomes available again for the new invoice.
+- id: E05
+  section: Customer invoice and credit note
+  title: Partial credit note without returned goods
+  question: Receivable reduced, stock unchanged?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Receivable reduced, stock unchanged?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Partial credit note without returned goods
+  - Receivable reduced, stock unchanged?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_unified_invoice_credit.py::test_partial_multi_credit_without_return_and_exact_recovery; ::test_financial_credit_does_not_require_return_exception
+    note: The receivable drops with zero Movements and no `credited_not_returned`.
+- id: E06
+  section: Customer invoice and credit note
+  title: Credit note with returned goods
+  question: Both linked to the return?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Both linked to the return?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Credit note with returned goods
+  - Both linked to the return?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_returned_not_credited; ::test_invoice_linked_credit_clears_returned_not_credited_through_shortest_links
+    note: Return and credit meet on the order line through the shortest links, not through a direct link from the credit to the return movement.
+- id: E07
+  section: Customer invoice and credit note
+  title: Invoice differs from the order (quantity/price)
+  question: Is the difference visible?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is the difference visible?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Invoice differs from the order (quantity/price)
+  - Is the difference visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_invoice_price_differs; ::test_shipped_not_billed
+    note: Price differences and under-billing are visible; billing more than was shipped on the sales side is not reported.
+- id: E08
+  section: Customer invoice and credit note
+  title: Shipping cost, small-quantity surcharge, payment fees
+  question: Charges separate from goods?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Charges separate from goods?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Shipping cost, small-quantity surcharge, payment fees
+  - Charges separate from goods?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_a_restocking_fee_is_a_charge_not_a_smaller_credit; ::test_non_deliverable_lines_are_never_reported
+    note: Fee as a separate charge and freight lines are handled (the freight test is purchase-side); no sales-invoice freight or surcharge test, and PSP payment fees are not built.
+- id: E09
+  section: Customer invoice and credit note
+  title: Invoice addressed to another party than the recipient
+  question: Bill-to ≠ ship-to kept?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Bill-to ≠ ship-to kept?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Invoice addressed to another party than the recipient
+  - Bill-to ≠ ship-to kept?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_finance.py::test_invoice_billed_to_the_orderer_keeps_a_different_ship_to_party
+    note: Invoice, AR and balance name the orderer; ship-to is reachable through the billed order line. The invoice document itself carries no ship-to.
+- id: E10
+  section: Customer invoice and credit note
+  title: E-invoice (XRechnung/ZUGFeRD)
+  question: Stored losslessly as a source artifact?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Stored losslessly as a source artifact?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - E-invoice (XRechnung/ZUGFeRD)
+  - Stored losslessly as a source artifact?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_finance.py::test_e_invoice_xml_is_stored_losslessly_as_traceable_source_evidence
+    note: XRechnung bytes (BOM, CRLF, umlauts) round-trip exactly with hash and size; the source stays unmapped, no interpreter exists.
+- id: E11
+  section: Customer invoice and credit note
+  title: Down-payment invoice and final invoice
+  question: Down payment offset in the final invoice?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Down payment offset in the final invoice?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Down-payment invoice and final invoice
+  - Down payment offset in the final invoice?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice
+    note: Deposit clearing into the final invoice is proven; there is no down-payment invoice document, and the final invoice does not state the offset.
+- id: E12
+  section: Customer invoice and credit note
+  title: Rounding difference between lines and total
+  question: Stated totals recorded, not recomputed?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Stated totals recorded, not recomputed?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Rounding difference between lines and total
+  - Stated totals recorded, not recomputed?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_multi_position_invoices.py::test_stated_values_and_recovery; tests/test_credit_notes.py::test_the_stated_total_is_what_posts; tests/test_documents.py::test_recording_requires_a_stated_total
+    note: The header total (209.1234) is kept and posted independently of the line amounts.
+- id: F01
+  section: Returns and complaints
+  title: B2C withdrawal within 14 days, full refund
+  question: Stock back, refund owed and paid?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Stock back, refund owed and paid?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - B2C withdrawal within 14 days, full refund
+  - Stock back, refund owed and paid?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_credit_notes.py::test_a_paid_invoice_can_still_be_credited, ::test_a_credit_may_be_refunded; tests/test_returns.py::test_a_return_may_name_the_delivery_it_reverses
+    note: Each piece is tested alone; no one story runs return, credit and paid refund on one order.
+- id: F02
+  section: Returns and complaints
+  title: 'Partial return: 2 of 5'
+  question: Returned 2, kept 3?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Returned 2, kept 3?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - 'Partial return: 2 of 5'
+  - Returned 2, kept 3?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_returned_goods_are_not_reported_as_unbilled, ::test_returned_not_credited
+    note: Returned 4 or 6 against kept quantity is asserted through shipped_not_billed and returned_not_credited.
+- id: F03
+  section: Returns and complaints
+  title: Different item returned than announced
+  question: Announced vs arrived visible?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Announced vs arrived visible?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Different item returned than announced
+  - Announced vs arrived visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_stock_and_returns.py::test_a_different_item_returned_does_not_fulfil_the_announcement
+    note: A foreign item cannot fulfil the announcement; it stands unexplained, and the announcement stays outstanding until the announced item arrives.
+- id: F04
+  section: Returns and complaints
+  title: Unannounced return
+  question: Accepted and linked later?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Accepted and linked later?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Unannounced return
+  - Accepted and linked later?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_return_announcements.py::test_the_parcel_names_its_announcement; tests/scenarios/test_normal_month.py::test_the_month_ends_with_exactly_these_exceptions
+    note: Accepting an unannounced return is tested. Linking an orphan return later (e.g. via correct_movement) is not.
+- id: F05
+  section: Returns and complaints
+  title: Damaged return, partial refund
+  question: Disposition and refund independent?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Disposition and refund independent?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Damaged return, partial refund
+  - Disposition and refund independent?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_a_restocking_fee_is_a_charge_not_a_smaller_credit; tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes
+    note: A reduced credit and the disposition are tested separately; no damaged-return story combines them.
+- id: F06
+  section: Returns and complaints
+  title: 'Mixed disposition: restock, quarantine, scrap, back to supplier'
+  question: Arrived = sum of dispositions?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Arrived = sum of dispositions?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - 'Mixed disposition: restock, quarantine, scrap, back to supplier'
+  - Arrived = sum of dispositions?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes; tests/scenarios/test_b2b_operational_chain.py::test_supply_and_return_reconciliations_are_exact
+    note: Arrived 5 = restock 2 + quarantine 1 + scrap 1 + back to supplier 1; over-disposition is refused.
+- id: F07
+  section: Returns and complaints
+  title: 'Exchange: return plus new delivery, no money'
+  question: Two commitments, no refund?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Two commitments, no refund?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - 'Exchange: return plus new delivery, no money'
+  - Two commitments, no refund?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_international_demo.py::test_supported_edge_cases_are_source_backed_and_traceable (exchange_replacement)
+    note: Only the order of the return and replacement movements is asserted; "no refund / no money moved" is not.
+- id: F08
+  section: Returns and complaints
+  title: Refund before the return arrives (goodwill)
+  question: Refund paid, return still expected?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Refund paid, return still expected?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Refund before the return arrives (goodwill)
+  - Refund paid, return still expected?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_credited_not_returned
+    note: A credit before the goods arrive is covered. The refund payment and a "return still expected" signal are not asserted.
+- id: F09
+  section: Returns and complaints
+  title: Return announced, never arrives
+  question: Stale announcement visible?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Stale announcement visible?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Return announced, never arrives
+  - Stale announcement visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived, ::test_an_announcement_with_no_stated_day_is_judged_by_the_learned_rhythm
+    note: A stale announcement is reported by the stated date or the learned rhythm, and clears on arrival.
+- id: F10
+  section: Returns and complaints
+  title: Warranty repair via the manufacturer
+  question: Goods out and back, ownership clear?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Goods out and back, ownership clear?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Warranty repair via the manufacturer
+  - Goods out and back, ownership clear?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/services/return_dispositions.py (return_to_supplier is terminal)
+    note: Goods cannot go out for repair and come back while staying owned.
+- id: F11
+  section: Returns and complaints
+  title: Complaint without return (photo), credit note
+  question: Credit without movement?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Credit without movement?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Complaint without return (photo), credit note
+  - Credit without movement?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_credited_not_returned (first assertion); tests/scenarios/test_international_demo.py price_only_credit
+    note: A credit with no return raises nothing ("a decision, not a discrepancy"); the price-only allowance reduces the invoice.
+- id: F12
+  section: Returns and complaints
+  title: Marketplace refunds first, goods later or never
+  question: Refund and return independent?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Refund and return independent?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Marketplace refunds first, goods later or never
+  - Refund and return independent?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_credited_not_returned
+    note: Credit and return are independent, but no marketplace refund source is interpreted or tested.
+- id: F13
+  section: Returns and complaints
+  title: Return after month-end for a prior-month invoice
+  question: Correct period for the credit?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Correct period for the credit?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Return after month-end for a prior-month invoice
+  - Correct period for the credit?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_finance.py::test_return_credit_after_month_end_books_in_the_next_month
+    note: Invoice ledger entries fall in August, the credit in September, by stated dates.
+- id: G01
+  section: 'Purchasing: demand and purchase order'
+  title: Reorder for a specific customer backorder
+  question: Is the purchase linked to the customer commitment?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the purchase linked to the customer commitment?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Reorder for a specific customer backorder
+  - Is the purchase linked to the customer commitment?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt; tests/scenarios/test_b2b_operational_chain.py::test_supply_and_return_reconciliations_are_exact
+    note: An explicit `customer_demand` assignment links the PO commitment to the customer commitment (`protecting_supply`).
+- id: G02
+  section: 'Purchasing: demand and purchase order'
+  title: Reorder for stock at reorder point
+  question: Is the demand explained?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Is the demand explained?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Reorder for stock at reorder point
+  - Is the demand explained?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_supply_assignments.py (purpose `stock_replenishment`)
+    note: The purpose of stock demand can be stated, but there is no reorder point or trigger (no `reorder` concept anywhere in src).
+- id: G03
+  section: 'Purchasing: demand and purchase order'
+  title: 'Mixed purchase: customer, stock and unassigned'
+  question: Ordered = assigned + stock + unassigned?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Ordered = assigned + stock + unassigned?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - 'Mixed purchase: customer, stock and unassigned'
+  - Ordered = assigned + stock + unassigned?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_b2b_operational_chain.py::test_supply_and_return_reconciliations_are_exact
+    note: Asserts 10 = 6 customer + 2 stock + 2 unassigned for PO-010.
+- id: G04
+  section: 'Purchasing: demand and purchase order'
+  title: One purchase order with several delivery dates per line
+  question: Is each schedule line a separate promise?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Is each schedule line a separate promise?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - One purchase order with several delivery dates per line
+  - Is each schedule line a separate promise?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: src/reality/db/core.py `uq_commitment_document_line_type`
+    note: Only one supplier_delivery commitment is allowed per PO line, so several schedule lines per line cannot be represented.
+- id: G05
+  section: 'Purchasing: demand and purchase order'
+  title: Purchase against a supplier framework agreement
+  question: Call-offs against a contract?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Call-offs against a contract?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Purchase against a supplier framework agreement
+  - Call-offs against a contract?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: —
+    note: No framework agreement or call-off concept exists.
+- id: G06
+  section: 'Purchasing: demand and purchase order'
+  title: Minimum order quantity / pack size forces more
+  question: Surplus visible as stock-bound?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Surplus visible as stock-bound?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Minimum order quantity / pack size forces more
+  - Surplus visible as stock-bound?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt
+    note: Surplus shows up as stock or unassigned supply; MOQ and pack size are not modelled or tested.
+- id: G07
+  section: 'Purchasing: demand and purchase order'
+  title: Tiered purchase prices
+  question: Stated price recorded?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Stated price recorded?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Tiered purchase prices
+  - Stated price recorded?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_invoice_price_differs; services/core.py::create_price_list_entry
+    note: The stated line `unit_price` is kept and compared; supplier tiered prices are not tested (price tiers look sales-side).
+- id: G08
+  section: 'Purchasing: demand and purchase order'
+  title: Purchase order in foreign currency (USD, CNY)
+  question: Currency kept, conversion at posting?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Currency kept, conversion at posting?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Purchase order in foreign currency (USD, CNY)
+  - Currency kept, conversion at posting?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py Commitment.currency; tests/test_payment_runs.py::test_a_run_is_one_currency
+    note: 'Currency is kept and cross-currency is refused; nothing converts at posting (docs/features/ledger.md Non-goals: FX revaluation).'
+- id: G09
+  section: 'Purchasing: demand and purchase order'
+  title: Supplier confirms different quantity/price/date
+  question: Confirmed vs ordered visible?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Confirmed vs ordered visible?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Supplier confirms different quantity/price/date
+  - Confirmed vs ordered visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated, ::test_one_statement_can_restate_both
+    note: Confirmed quantity/date are revisions against the original; a confirmed *price* cannot be stated.
+- id: G10
+  section: 'Purchasing: demand and purchase order'
+  title: Supplier never confirms
+  question: Unconfirmed purchase flagged?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Unconfirmed purchase flagged?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Supplier never confirms
+  - Unconfirmed purchase flagged?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: —
+    note: No acknowledgement expectation, so an unconfirmed PO is never flagged (only overdue after the due date).
+- id: G11
+  section: 'Purchasing: demand and purchase order'
+  title: Supplier moves the date several times
+  question: Revision history and latest promise?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Revision history and latest promise?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Supplier moves the date several times
+  - Revision history and latest promise?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_commitment_revisions.py::test_a_new_date_never_erases_the_old_one, ::test_the_date_in_force_is_the_latest_stated
+    note: Append-only revisions; the latest one is in force.
+- id: G12
+  section: 'Purchasing: demand and purchase order'
+  title: Purchase cancelled after supplier produced
+  question: Cancellation cost or refusal recorded?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Cancellation cost or refusal recorded?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Purchase cancelled after supplier produced
+  - Cancellation cost or refusal recorded?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_international_demo.py::test_purchases_cover_the_whole_chain (S09 cancelled)
+    note: Cancellation before receipt works; cancellation cost or supplier refusal cannot be recorded.
+- id: G13
+  section: 'Purchasing: demand and purchase order'
+  title: Purchase reduced after the customer order was cancelled
+  question: Demand chain updated?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Demand chain updated?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Purchase reduced after the customer order was cancelled
+  - Demand chain updated?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_supply_assignments.py::test_partial_reversal_is_append_only_and_idempotent
+    note: The assignment is reversed manually with a reason; nothing ties the customer cancellation to the purchase reduction.
+- id: G14
+  section: 'Purchasing: demand and purchase order'
+  title: Two suppliers for the same item, split sourcing
+  question: Both purchases cover one demand?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Both purchases cover one demand?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Two suppliers for the same item, split sourcing
+  - Both purchases cover one demand?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_purchasing.py::test_two_suppliers_purchases_together_protect_one_customer_promise
+    note: '6 + 4 from two suppliers protect a demand of 10. Defect found: protection could reach 11 of 10; fixed in #201.'
+- id: G15
+  section: 'Purchasing: demand and purchase order'
+  title: Drop-ship purchase order for a customer order
+  question: Linked to the sales commitment?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Linked to the sales commitment?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Drop-ship purchase order for a customer order
+  - Linked to the sales commitment?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/242-inventory-cost-contribution/spec.md (drop shipping only listed as edge case)
+    note: No drop-ship commitment type or supplier-to-customer link.
+- id: G16
+  section: 'Purchasing: demand and purchase order'
+  title: Import by sea (8 weeks), one container, many purchases
+  question: In-transit per purchase?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: In-transit per purchase?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Import by sea (8 weeks), one container, many purchases
+  - In-transit per purchase?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: src/reality/services/shipments.py (`announced` quantity always None)
+    note: Inbound notices/`in_transit` events carry no per-commitment contents, so in-transit per purchase cannot be derived.
+- id: G17
+  section: 'Purchasing: demand and purchase order'
+  title: Purchase of non-stock items (service, consumables)
+  question: No stock movement expected?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: No stock movement expected?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Purchase of non-stock items (service, consumables)
+  - No stock movement expected?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_non_deliverable_lines_are_never_reported; tests/test_free_supplier_invoice.py::test_free_supplier_invoice_is_source_backed_atomic_and_has_no_stock_effect
+    note: A PO line with no commitment expects no receipt.
+- id: H01
+  section: Goods receipt and supplier deviations
+  title: Receipt exactly as ordered
+  question: Purchase fulfilled?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Purchase fulfilled?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Receipt exactly as ordered
+  - Purchase fulfilled?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_procure_to_pay.py::test_procure_to_pay_business_story
+    note: Fulfilled 20 of 20 through two receipts.
+- id: H02
+  section: Goods receipt and supplier deviations
+  title: Under-delivery, rest later
+  question: Open remainder?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Open remainder?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Under-delivery, rest later
+  - Open remainder?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_unified_receipt_release.py::test_partial_receipt_review_replay_and_trace; tests/scenarios/test_storyline_purchase_to_pay.py (receipt/rest-receipt)
+    note: Open remainder 5 after 3 of 8.
+- id: H03
+  section: Goods receipt and supplier deviations
+  title: Under-delivery, rest never
+  question: Remainder closed through a confirmed revision with a reason?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Remainder closed through a confirmed revision with a reason? An agent can prepare the revision; a person confirms the mutation.'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Under-delivery, rest never
+  - Remainder closed through a confirmed revision with a reason?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_commitment_revisions.py::test_shrinking_to_what_arrived_finishes_the_promise
+    note: A downward revision closes the rest; the revision's note and who made it are not asserted.
+- id: H04
+  section: Goods receipt and supplier deviations
+  title: Over-delivery accepted
+  question: Surplus visible?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Surplus visible?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Over-delivery accepted
+  - Surplus visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/core.py "Movement exceeds the commitment's open quantity"; tests/test_unified_receipt_release.py (excess refused)
+    note: 'Over-receipt is refused. Workaround: revise upward first (finance/test_commercial_edges.py::test_higher_revision_allows_only_the_new_quantity, sales-side); no surplus signal.'
+- id: H05
+  section: Goods receipt and supplier deviations
+  title: Over-delivery rejected or returned
+  question: Supplier return linked?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Supplier return linked?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Over-delivery rejected or returned
+  - Supplier return linked?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/core.py supplier_return bound
+    note: A supplier return must reference a received delivery, and the surplus cannot be received against the PO.
+- id: H06
+  section: Goods receipt and supplier deviations
+  title: Wrong item delivered
+  question: Received item ≠ ordered item visible?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Received item ≠ ordered item visible?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Wrong item delivered
+  - Received item ≠ ordered item visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/core.py "Movement does not match the commitment"
+    note: Wrong item cannot be tied to the PO; it only appears as an unexplained receipt.
+- id: H07
+  section: Goods receipt and supplier deviations
+  title: Substitute/successor item delivered
+  question: Accepted against the purchase with a link?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Accepted against the purchase with a link?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Substitute/successor item delivered
+  - Accepted against the purchase with a link?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: —
+    note: No substitute/successor item link on receipt.
+- id: H08
+  section: Goods receipt and supplier deviations
+  title: Damaged goods, part to quarantine
+  question: Quarantine not available?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Quarantine not available?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Damaged goods, part to quarantine
+  - Quarantine not available?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/return_dispositions.py (customer returns only)
+    note: Location has no availability status; inbound quarantine is not modelled.
+- id: H09
+  section: Goods receipt and supplier deviations
+  title: Receipt without purchase order (free, sample, misdelivery)
+  question: Why did stock arrive?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Why did stock arrive?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Receipt without purchase order (free, sample, misdelivery)
+  - Why did stock arrive?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_unexplained_movement_warning_does_not_suppress_exception
+    note: An unlinked receipt is flagged; a stated reason (sample/free) is not tested.
+- id: H10
+  section: Goods receipt and supplier deviations
+  title: One delivery for several purchase orders
+  question: Split across purchases?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Split across purchases?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - One delivery for several purchase orders
+  - Split across purchases?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_purchasing.py::test_one_inbound_package_is_split_across_several_purchase_orders
+    note: One package receives 5 for PO-A and 4 for PO-B; shipment_explain reports 9.
+- id: H11
+  section: Goods receipt and supplier deviations
+  title: Delivery earlier than confirmed
+  question: Early receipt recorded?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Early receipt recorded?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Delivery earlier than confirmed
+  - Early receipt recorded?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_purchasing.py::test_early_receipt_fulfils_the_purchase_and_keeps_its_due_date
+    note: Receipt before the due date fulfils the purchase and keeps the due date; no read names a receipt "early", it is derivable.
+- id: H12
+  section: Goods receipt and supplier deviations
+  title: Receipt recorded before the purchase order exists
+  question: Linked later?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Linked later?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Receipt recorded before the purchase order exists
+  - Linked later?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_purchasing.py::test_receipt_before_purchase_order_is_linked_later_by_replacement
+    note: An unexplained receipt is linked to the later PO by correct_movement; stock unchanged, PO fulfilled, exception cleared.
+- id: H13
+  section: Goods receipt and supplier deviations
+  title: Receipt with batches, expiry, serial numbers
+  question: Recorded per lot?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Recorded per lot?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Receipt with batches, expiry, serial numbers
+  - Recorded per lot?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_inventory_tracking_reservations.py::test_lot_quantity_can_be_received_reserved_and_shipped_on_a_pallet, ::test_a_lot_carries_the_stated_best_before; tests/scenarios/test_international_demo.py (SER-0001 receipt)
+    note: Lot, expiry and serial on receipt, though not against a PO commitment.
+- id: H14
+  section: Goods receipt and supplier deviations
+  title: Wrong receipt recorded, then corrected
+  question: Reversal movement, not overwrite?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Reversal movement, not overwrite?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Wrong receipt recorded, then corrected
+  - Reversal movement, not overwrite?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_movement_corrections.py::test_void_receipt_appends_exact_correction_and_preserves_original
+    note: A compensating movement; the original is preserved.
+- id: H15
+  section: Goods receipt and supplier deviations
+  title: Quality inspection releases days later
+  question: Received but not released?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Received but not released?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Quality inspection releases days later
+  - Received but not released?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/116-unified-receipt-release (reservation release, not QC)
+    note: No inspection hold or received-but-not-released state.
+- id: H16
+  section: Goods receipt and supplier deviations
+  title: Receipt for a customer-specific purchase (cross-docking)
+  question: Goes straight to the waiting commitment?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Goes straight to the waiting commitment?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Receipt for a customer-specific purchase (cross-docking)
+  - Goes straight to the waiting commitment?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: docs/features/b2b-operational-chain.md; tests/test_supply_assignments.py
+    note: The assignment states intent; the receipt does not reserve for the waiting commitment and no test asserts it.
+- id: H17
+  section: Goods receipt and supplier deviations
+  title: Advice says 100, 96 arrive
+  question: Advised vs received visible?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Advised vs received visible?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Advice says 100, 96 arrive
+  - Advised vs received visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_shipment_story.py::test_supplier_notice_has_zero_effect_then_package_receipt_changes_stock (`announced` None)
+    note: Advised quantities are not recorded, so advised vs received cannot be compared.
+- id: H18
+  section: Goods receipt and supplier deviations
+  title: Return to supplier with supplier credit
+  question: Movement and credit linked?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Movement and credit linked?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Return to supplier with supplier credit
+  - Movement and credit linked?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_supplier_return_not_credited, ::test_supplier_credit_not_returned; tests/test_returns.py::test_goods_go_back_to_the_supplier
+    note: Return and credit reconciled per PO line.
+- id: H19
+  section: Goods receipt and supplier deviations
+  title: Freight and duty arrive later and change landed cost
+  question: Cost re-allocated to the receipt?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Cost re-allocated to the receipt?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Freight and duty arrive later and change landed cost
+  - Cost re-allocated to the receipt?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_costing_services.py::test_receipt_a_and_retained_review_survive_late_cost
+    note: Late duty makes the reviewed receipt cost stale; the old manifest is kept.
+- id: I01
+  section: Supplier invoice and payment
+  title: 'Three-way match: purchase = receipt = invoice'
+  question: Match confirmed?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Match confirmed?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - 'Three-way match: purchase = receipt = invoice'
+  - Match confirmed?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_storyline_purchase_to_pay.py; tests/operational_exceptions/test_derivation.py::test_received_but_not_yet_billed_is_not_reported
+    note: A match shows only as no findings; no positive "matched" answer and no clean three-way test.
+- id: I02
+  section: Supplier invoice and payment
+  title: Invoiced quantity > received quantity
+  question: Difference flagged?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Difference flagged?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Invoiced quantity > received quantity
+  - Difference flagged?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_received_but_not_yet_billed_is_not_reported; tests/scenarios/test_storyline_purchase_to_pay.py (billed_not_received raised/cleared)
+    note: ''
+- id: I03
+  section: Supplier invoice and payment
+  title: Invoiced price ≠ purchase price
+  question: Price variance flagged?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Price variance flagged?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Invoiced price ≠ purchase price
+  - Price variance flagged?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_storyline_purchase_to_pay.py::test_the_default_path_raises_and_clears_every_finding_by_rule
+    note: '`invoice_price_differs` on the supplier invoice remains at month end.'
+- id: I04
+  section: Supplier invoice and payment
+  title: Invoice before receipt
+  question: Invoiced but not received visible?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Invoiced but not received visible?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Invoice before receipt
+  - Invoiced but not received visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_billed_not_received
+    note: Billed 6, received 0, clears on receipt.
+- id: I05
+  section: Supplier invoice and payment
+  title: One invoice for several purchase orders
+  question: Allocated per purchase?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Allocated per purchase?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - One invoice for several purchase orders
+  - Allocated per purchase?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_purchasing.py::test_one_supplier_invoice_bills_lines_of_two_purchase_orders
+    note: One guided supplier invoice bills lines of two purchase orders, allocated per purchase (spec 283).
+- id: I06
+  section: Supplier invoice and payment
+  title: Several partial invoices for one purchase
+  question: Sum vs purchase?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Sum vs purchase?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Several partial invoices for one purchase
+  - Sum vs purchase?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_billing_sums_across_invoices
+    note: Summing across invoices is tested on the sales side only.
+- id: I07
+  section: Supplier invoice and payment
+  title: Freight invoice from a third party for a purchase
+  question: Linked to the receipt cost?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Linked to the receipt cost?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Freight invoice from a third party for a purchase
+  - Linked to the receipt cost?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_costing_services.py (inbound_freight attribution)
+    note: Freight is attributed to a receipt, but the evidence is from the goods supplier; a third-party carrier invoice is untested.
+- id: I08
+  section: Supplier invoice and payment
+  title: Supplier credit note for defective goods
+  question: Payable reduced?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Payable reduced?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Supplier credit note for defective goods
+  - Payable reduced?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_credit_notes.py::test_netting_leaves_the_remainder_open; tests/scenarios/test_storyline_purchase_to_pay.py::test_the_credit_branch_pays_less_and_keeps_the_quantity_finding
+    note: ''
+- id: I09
+  section: Supplier invoice and payment
+  title: Down payment to the supplier before production
+  question: Prepayment offset later?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Prepayment offset later?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Down payment to the supplier before production
+  - Prepayment offset later?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice[supplier]
+    note: The deposit is not linked to the PO.
+- id: I10
+  section: Supplier invoice and payment
+  title: Payment with discount; partial payment; offset with credit
+  question: Settlement allocations correct?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Settlement allocations correct?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Payment with discount; partial payment; offset with credit
+  - Settlement allocations correct?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_storyline_purchase_to_pay.py (discount-full, credit-allocate, discount-net); tests/test_ledger.py::test_supplier_invoice_and_partial_payment_leave_open_payable
+    note: ''
+- id: I11
+  section: Supplier invoice and payment
+  title: Exchange difference between USD invoice and payment
+  question: FX difference posted?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: FX difference posted?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Exchange difference between USD invoice and payment
+  - FX difference posted?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: docs/features/ledger.md Non-goals (FX revaluation); ledger rejects cross-currency
+    note: No realized FX difference posting; revaluation is out, the realized difference is not stated either way.
+- id: I12
+  section: Supplier invoice and payment
+  title: Duplicate supplier invoice
+  question: Detected, not double-posted?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Detected, not double-posted?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Duplicate supplier invoice
+  - Detected, not double-posted?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_duplicate_supplier_invoice; tests/test_payment_runs.py::test_the_duplicate_rule_has_one_home; tests/test_ledger.py::test_duplicate_invoice_posting_and_overpayment_are_rejected
+    note: Detected, and payment runs refuse it.
+- id: J01
+  section: Warehouse and stock
+  title: Transfer between warehouses with transit time
+  question: Stock in transit?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Stock in transit?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Transfer between warehouses with transit time
+  - Stock in transit?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: docs/features/movements.md (transfer has both source and destination)
+    note: A transfer is one instant movement with no in-transit state; spec 242 FR-008 mentions transit for valuation only.
+- id: J02
+  section: Warehouse and stock
+  title: Stock count with gains and losses
+  question: Count movements with reason?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Count movements with reason?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Stock count with gains and losses
+  - Count movements with reason?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock ("stocktake loss"); tests/test_inventory_and_fulfillment.py::test_adjustment_requires_reason
+    note: Losses and gains are recorded as reasoned adjustments; there is no count record (counted vs book quantity) and no test of a stocktake gain.
+- id: J03
+  section: Warehouse and stock
+  title: Cycle count of single bins during operation
+  question: Correct during open picks?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Correct during open picks?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Cycle count of single bins during operation
+  - Correct during open picks?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/ (no count or pick concept)
+    note: There are no count sessions and no picking state, so a cycle count during open picks cannot be represented.
+- id: J04
+  section: Warehouse and stock
+  title: Shrinkage, theft, breakage with reason
+  question: Movement with reason?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Movement with reason?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Shrinkage, theft, breakage with reason
+  - Movement with reason?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_inventory_and_fulfillment.py::test_transfer_return_and_reasoned_adjustment_reconcile_by_location, ::test_adjustment_requires_reason
+    note: A write-off adjustment requires a reason and reconciles by location; the reason is free text, not a code.
+- id: J05
+  section: Warehouse and stock
+  title: Expired stock blocked and scrapped
+  question: Excluded from availability, then scrapped?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Excluded from availability, then scrapped?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Expired stock blocked and scrapped
+  - Excluded from availability, then scrapped?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_inventory_tracking_reservations.py::test_expiry_blocks_nothing; tests/operational_exceptions/test_derivation.py::test_stock_expired
+    note: Expired lots are reported (`stock_expired`) but deliberately not excluded from availability; scrapping is a plain adjustment.
+- id: J06
+  section: Warehouse and stock
+  title: Negative stock because shipment was booked before receipt
+  question: Negative visible and explained?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Negative visible and explained?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Negative stock because shipment was booked before receipt
+  - Negative visible and explained?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/core.py ("Movement exceeds physical stock."); tests/test_inventory_and_fulfillment.py::test_cannot_ship_more_than_stock
+    note: Outbound movements above physical stock are refused, so negative stock cannot occur or be explained.
+- id: J07
+  section: Warehouse and stock
+  title: 3PL stock differs from own records
+  question: Reconciliation difference visible?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Reconciliation difference visible?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - 3PL stock differs from own records
+  - Reconciliation difference visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: —
+    note: No external or 3PL stock observation exists to compare with movement-derived stock.
+- id: J08
+  section: Warehouse and stock
+  title: Consignment stock at the customer (still ours)
+  question: Owned but elsewhere?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Owned but elsewhere?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Consignment stock at the customer (still ours)
+  - Owned but elsewhere?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_stock_and_returns.py::test_consignment_stock_at_a_customer_site_stays_counted_as_ours
+    note: Stock at a consignment location stays in the company total and is available only there. Ownership and valuation are not asserted (a location has no party link).
+- id: J09
+  section: Warehouse and stock
+  title: Consignment from the supplier (here, not ours)
+  question: Held but not owned?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Held but not owned?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Consignment from the supplier (here, not ours)
+  - Held but not owned?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_inventory_costing_services.py::test_inventory_two_owner_receipt_excludes_consigned_stock
+    note: Valuation leaves out the supplier-owned part of a receipt; physical stock and availability do not distinguish owner.
+- id: J10
+  section: Warehouse and stock
+  title: Stock valuation after a freight surcharge
+  question: Valuation re-derived?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Valuation re-derived?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Stock valuation after a freight surcharge
+  - Valuation re-derived?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_inventory_costing_services.py::test_inventory_late_cost_requires_receipt_review_and_preserves_old_basis
+    note: Late inbound freight re-derives acquisition value (420 → 440) after a fresh review and keeps the old basis.
+- id: J11
+  section: Warehouse and stock
+  title: Re-labelling item A into item B
+  question: Paired movements?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Paired movements?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Re-labelling item A into item B
+  - Paired movements?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: docs/features/movements.md (movement types)
+    note: Re-labelling can only be two unrelated adjustments; no relation pairs the out-movement of A with the in-movement of B.
+- id: K01
+  section: Kits, bills of material and variants
+  title: Kit sold, shipped from components
+  question: Availability = minimum of components?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Availability = minimum of components?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Kit sold, shipped from components
+  - Availability = minimum of components?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/core.py create_item (`item_type` in stocked/service/charge)
+    note: There is no kit or bill-of-materials structure, so kit availability cannot be derived from components.
+- id: K02
+  section: Kits, bills of material and variants
+  title: One component missing, no partial kit allowed
+  question: Whole kit held?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Whole kit held?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - One component missing, no partial kit allowed
+  - Whole kit held?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/core.py create_item
+    note: There is no kit concept, so the whole kit cannot be held when one component is missing.
+- id: K03
+  section: Kits, bills of material and variants
+  title: Return of a single component from a kit
+  question: Component back, kit credit partial?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Component back, kit credit partial?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Return of a single component from a kit
+  - Component back, kit credit partial?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/core.py create_item
+    note: A component can be returned as its own item, but there is no kit link, so no partial kit credit can be derived.
+- id: K04
+  section: Kits, bills of material and variants
+  title: 'Light assembly: components consumed, finished item produced'
+  question: Paired movements?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Paired movements?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - 'Light assembly: components consumed, finished item produced'
+  - Paired movements?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: 'specs/242-inventory-cost-contribution/spec.md (Non-Goals: no production/WIP)'
+    note: There is no assembly or production movement that pairs components consumed with the finished item produced.
+- id: K05
+  section: Kits, bills of material and variants
+  title: Variant item (size/colour) purchased together
+  question: Per-variant stock?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Per-variant stock?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Variant item (size/colour) purchased together
+  - Per-variant stock?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_stock_at_location.py::test_pair_holds_only_this_item_at_this_location
+    note: Each variant as its own item gets its own stock; there is no parent/variant grouping and no test with several variants.
+- id: K06
+  section: Kits, bills of material and variants
+  title: Bundle price split across components (revenue, tax)
+  question: Split stated or derived?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Split stated or derived?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Bundle price split across components (revenue, tax)
+  - Split stated or derived?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_commercial_matching_services.py::test_shipping_kit_production_direct_cost_and_unresolved_wip_are_explicit
+    note: A `kit_input` role exists for cost matching only; there is no bundle-to-component revenue or tax split, so lines carry only stated amounts.
+- id: L01
+  section: E-commerce and marketplaces
+  title: 'Amazon FBA: stock at Amazon, sales/returns/fees via reports'
+  question: Stock at an external location?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Stock at an external location?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - 'Amazon FBA: stock at Amazon, sales/returns/fees via reports'
+  - Stock at an external location?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_stock_and_returns.py::test_stock_at_an_external_fulfilment_location_is_sold_from_there
+    note: Stock at an external fulfilment location is reserved and shipped from there. No marketplace report interpreter exists.
+- id: L02
+  section: E-commerce and marketplaces
+  title: Marketplace order shipped by us with a deadline
+  question: Deadline at risk visible?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Deadline at risk visible?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Marketplace order shipped by us with a deadline
+  - Deadline at risk visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_overdue_outgoing_customer_commitment, ::test_at_risk_unchanged_before_due_date
+    note: Generic due_at classes only. A fully reserved order near its deadline is not flagged until overdue. No marketplace source.
+- id: L03
+  section: E-commerce and marketplaces
+  title: 'Marketplace payout: one payment for hundreds of orders minus fees and refunds'
+  question: Each order settled, fees as charges?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Each order settled, fees as charges?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - 'Marketplace payout: one payment for hundreds of orders minus fees and refunds'
+  - Each order settled, fees as charges?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/148-accounting-journal-cost-centers/spec.md FR-050; docs/features/payment_matching.md Non-goals
+    note: 'Payout and fee matching is specified but not implemented: no payout or provider-clearing code exists.'
+- id: L04
+  section: E-commerce and marketplaces
+  title: Shopify order partially refunded in the shop
+  question: Refund recorded from the source?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Refund recorded from the source?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Shopify order partially refunded in the shop
+  - Refund recorded from the source?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_unified_customer_refund.py::test_original_refund_source_is_preserved; specs/081-shopify-update-guard
+    note: A refund can cite a SourceRecord. The Shopify interpreter ignores refunds, and a refunded (changed) order goes to needs_review.
+- id: L05
+  section: E-commerce and marketplaces
+  title: Shopify order edited after import
+  question: New version, revised commitment?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: New version, revised commitment?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Shopify order edited after import
+  - New version, revised commitment?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record; tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation
+    note: 'The new version is stored, but the commitment is deliberately not revised: it is held as needs_review.'
+- id: L06
+  section: E-commerce and marketplaces
+  title: Pre-order of an item not yet available
+  question: Commitment without stock, dated?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Commitment without stock, dated?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Pre-order of an item not yet available
+  - Commitment without stock, dated?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_inventory_and_fulfillment.py::test_shortage_reservation_and_release; tests/operational_exceptions/test_derivation.py::test_at_risk_unchanged_before_due_date
+    note: A dated commitment without stock shows as a shortage or at_risk. A pre-order backed by expected supply is not tested.
+- id: L07
+  section: E-commerce and marketplaces
+  title: 'Black Friday: 10,000 orders in two hours'
+  question: Throughput and correct reservations?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Throughput and correct reservations?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - 'Black Friday: 10,000 orders in two hours'
+  - Throughput and correct reservations?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/033-large-tenant-register-benchmark; tests/test_unified_delivery_actions.py::test_two_connections_cannot_overallocate_or_execute_two_stale_reviews; specs/181-scale-foundations (Draft)
+    note: Concurrent reservation safety and the 10k read baseline are proven. Ingest throughput is not.
+- id: L08
+  section: E-commerce and marketplaces
+  title: Subscription order, payment fails
+  question: Recurring commitment held?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Recurring commitment held?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Subscription order, payment fails
+  - Recurring commitment held?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py Commitment (no recurrence)
+    note: No recurring or subscription commitment; holds exist only per single commitment.
+- id: L09
+  section: E-commerce and marketplaces
+  title: 'Promotion: free item above EUR 50'
+  question: Zero-price line?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Zero-price line?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - 'Promotion: free item above EUR 50'
+  - Zero-price line?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_orders_and_shipments.py::test_shopify_free_promotion_item_is_its_own_zero_price_line_and_commitment
+    note: A Shopify gift line at 0.00 becomes its own line and commitment; the raw line payload is kept.
+- id: L10
+  section: E-commerce and marketplaces
+  title: Guest order, later with an account (duplicate party)
+  question: Parties merged, history kept?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Parties merged, history kept?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Guest order, later with an account (duplicate party)
+  - Parties merged, history kept?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/ (no party merge or duplicate-of service)
+    note: Duplicate parties cannot be merged with history kept.
+- id: L11
+  section: E-commerce and marketplaces
+  title: 'OSS: EU consumer, destination-country VAT'
+  question: Tax rate as stated by the source?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Tax rate as stated by the source?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - 'OSS: EU consumer, destination-country VAT'
+  - Tax rate as stated by the source?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py Document/DocumentLine (no tax fields); docs/features/demo-data-catalog.md "Deliberate limitations"
+    note: The tax rate lives only in the raw payload; the Shopify interpreter does not record it.
+- id: L12
+  section: E-commerce and marketplaces
+  title: Shipment to Switzerland/UK (customs, DDP/DAP)
+  question: Duties and incoterm recorded?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Duties and incoterm recorded?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Shipment to Switzerland/UK (customs, DDP/DAP)
+  - Duties and incoterm recorded?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py (no incoterm, duty or customs fields)
+    note: Duties and incoterms are not represented beyond the lossless payload.
+- id: M01
+  section: B2B specifics
+  title: Blanket order for 10,000 units with monthly call-offs
+  question: Called off vs remaining?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Called off vs remaining?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Blanket order for 10,000 units with monthly call-offs
+  - Called off vs remaining?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/src/reality/db/core.py (Commitment, CommitmentRevision)
+    note: There's no blanket-order or call-off relation, so "called off vs remaining" across child orders can't be represented.
+- id: M02
+  section: B2B specifics
+  title: Customer-specific prices, item numbers and names
+  question: Customer item number maps to our item?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Customer item number maps to our item?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Customer-specific prices, item numbers and names
+  - Customer item number maps to our item?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_pricing.py::test_pricing_resolves_direct_group_default_and_quantity_tiers; tests/test_price_quote_mcp.py::test_price_quote_matches_canonical_service_and_exposes_direct_provenance
+    note: Customer-specific prices are proven, but there is no model for a customer item number or name mapped to an Item.
+- id: M03
+  section: B2B specifics
+  title: EDI chain ORDERS → ORDRSP → DESADV → INVOIC → REMADV
+  question: Each message a source, linked?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Each message a source, linked?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - EDI chain ORDERS → ORDRSP → DESADV → INVOIC → REMADV
+  - Each message a source, linked?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_master_data_api.py::test_api_ingests_arbitrary_source_as_unmapped
+    note: EDI messages can only be stored as unmapped sources; there are no ORDERS/ORDRSP/DESADV/INVOIC/REMADV interpreters or links between messages.
+- id: M04
+  section: B2B specifics
+  title: ORDCHG after confirmation
+  question: Revised commitment?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Revised commitment?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - ORDCHG after confirmation
+  - Revised commitment?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated; tests/scenarios/test_b2b_operational_integrity.py::test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly; tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record
+    note: Manual `commitment_revise` is proven; a customer ORDCHG source does not create a revision (a changed Shopify order is held for review instead).
+- id: M05
+  section: B2B specifics
+  title: 'Retail chain: central warehouse plus store delivery'
+  question: Several recipients per order?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Several recipients per order?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - 'Retail chain: central warehouse plus store delivery'
+  - Several recipients per order?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py Document.ship_to_party_id
+    note: Only one ship-to per document header, so several recipients per order can't be stated.
+- id: M06
+  section: B2B specifics
+  title: 'Customer rule: cancel backorders instead of delivering later'
+  question: Remainder closed by rule with reason?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Remainder closed by rule with reason?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - 'Customer rule: cancel backorders instead of delivering later'
+  - Remainder closed by rule with reason?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_commitment_revisions.py::test_shrinking_to_what_arrived_finishes_the_promise; specs/085-close-stale-promises/spec.md
+    note: There is no party-level "no backorders" rule; the remainder can only be closed by hand (revise or cancel with a reason).
+- id: M07
+  section: B2B specifics
+  title: Customer-prescribed delivery note or pallet label
+  question: Out of core scope?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Out of core scope?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Customer-prescribed delivery note or pallet label
+  - Out of core scope?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: docs/ideas/attachments.md (HandlingUnit label idea only)
+    note: No label or delivery-note output exists, and no doc states it is out of core scope, so "out" can't be cited.
+- id: M08
+  section: B2B specifics
+  title: Customer deducts penalty or marketing contribution
+  question: Short payment with reason?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Short payment with reason?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Customer deducts penalty or marketing contribution
+  - Short payment with reason?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/finance/test_settlement_flows.py::test_underpayment_optional_reduction_and_independent_inverse, ::test_supplier_reduction_requires_agreement_and_combined_limit; services/finance/settlement.py REASONS
+    note: The `agreed_deduction` reason exists and is tested on the supplier side only; no customer penalty or marketing-contribution short payment is tested.
+- id: M09
+  section: B2B specifics
+  title: Annual rebate at year end
+  question: Rebate credit?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Rebate credit?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Annual rebate at year end
+  - Rebate credit?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_unified_invoice_credit.py::test_financial_credit_does_not_require_return_exception; specs/004-master-data/spec.md Non-Goals ("rebates")
+    note: A credit without goods can carry a rebate; rebate agreements and year-end accrual are an explicit non-goal.
+- id: M10
+  section: B2B specifics
+  title: Orderer, recipient, bill-to and payer are four parties
+  question: Roles kept separate?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Roles kept separate?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Orderer, recipient, bill-to and payer are four parties
+  - Roles kept separate?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py Document (party_id, ship_to_party_id); tests/test_operational_fields.py::test_document_and_commitment_operational_fields
+    note: Only orderer and ship-to are typed; there is no bill-to or payer role on documents or settlement.
+- id: M11
+  section: B2B specifics
+  title: Customer is also a supplier (netting)
+  question: Receivable and payable offset?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Receivable and payable offset?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Customer is also a supplier (netting)
+  - Receivable and payable offset?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/core.py allocate_settlement ("must be opposite sides of one control account"); specs/170-party-balances/spec.md Non-Goals
+    note: One party can hold both roles, but a receivable can't be offset against a payable.
+- id: M12
+  section: B2B specifics
+  title: Sample or loan with return obligation
+  question: Goods out, return expected?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Goods out, return expected?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Sample or loan with return obligation
+  - Goods out, return expected?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py ReturnAnnouncement; `create_commitment` allows only customer_delivery/supplier_delivery
+    note: There's no loan or sample commitment. A shipment would count as a sale (shipped_not_billed); a ReturnAnnouncement only comes close.
+- id: N01
+  section: Finance, tax and currency
+  title: Intra-community supply (VAT-exempt, VAT ID)
+  question: Stated tax recorded?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Stated tax recorded?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Intra-community supply (VAT-exempt, VAT ID)
+  - Stated tax recorded?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/finance/test_components.py::test_zero_unknown_and_gross_basis_are_distinct; tests/finance/test_source_mappings.py::test_source_mapping_preview_confirmation_and_no_financial_effect ("EU" case)
+    note: Stated net/tax and explicit case codes are kept; no intra-community sale story (zero tax plus Party.tax_identifier).
+- id: N02
+  section: Finance, tax and currency
+  title: Reverse charge on purchase
+  question: Stated tax recorded?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Stated tax recorded?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Reverse charge on purchase
+  - Stated tax recorded?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/finance/test_components.py::test_received_net_split_and_partial_revision_preserve_gross (supplier kind)
+    note: Stated components on supplier invoices are kept; no reverse-charge case is tested.
+- id: N03
+  section: Finance, tax and currency
+  title: Sale in CHF or USD, payment in EUR
+  question: Currency and FX difference?
+  status: out_of_scope
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Currency and FX difference?'
+  limitations: &id004
+  - This journey is deliberately outside the current product scope.
+  keywords: []
+  question_examples:
+  - Sale in CHF or USD, payment in EUR
+  - Currency and FX difference?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: docs/features/ledger.md Non-goals (FX revaluation); specs/148-accounting-journal-cost-centers/spec.md (no accounting-currency conversion)
+    note: Foreign-currency invoices are supported, but cross-currency allocation is refused, so a EUR payment on a CHF invoice stays unallocated and no FX difference exists.
+- id: N04
+  section: Finance, tax and currency
+  title: Dunning in three levels, then collection
+  question: Dunning notices from open items?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Dunning notices from open items?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Dunning in three levels, then collection
+  - Dunning notices from open items?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/finance/test_commercial_edges.py::test_dunning_notice_keeps_invoice_and_posts_optional_fee; ::test_mcp_dunning_context_record_detail_list_and_reverse
+    note: Manual notices at levels 1–3 with a fee exist (only levels 1 and 2 are tested); no escalation sequence, no collection handover, and runs from open items are a non-goal (spec 247).
+- id: N05
+  section: Finance, tax and currency
+  title: Bad debt write-off
+  question: Receivable closed with reason?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Receivable closed with reason?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Bad debt write-off
+  - Receivable closed with reason?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/finance/test_commercial_edges.py::test_bad_debt_uses_dedicated_expense_and_never_creates_credit
+    note: A partial `bad_debt` adjustment with a reason posts to bad-debt expense and creates no credit.
+- id: N06
+  section: Finance, tax and currency
+  title: Open items per party incl. credits and prepayments
+  question: Party balance correct?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Party balance correct?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Open items per party incl. credits and prepayments
+  - Party balance correct?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/finance/test_party_balances.py::test_party_rows_sum_open_items_and_credits
+    note: Open items, overpayments and credit notes per party and currency are correct; deposits and prepayments are not part of any balance test.
+- id: N07
+  section: Finance, tax and currency
+  title: Handover to DATEV/external accounting, later correction
+  question: Reversal after export?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Reversal after export?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Handover to DATEV/external accounting, later correction
+  - Reversal after export?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/148-accounting-journal-cost-centers/spec.md FR-012 (export package specified, not implemented)
+    note: No handoff or export package exists, so "reversal after export" cannot be represented; the reversal itself exists.
+- id: N08
+  section: Finance, tax and currency
+  title: VAT rate change at a cut-off date
+  question: Rate per invoice date?
+  status: out_of_scope
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Rate per invoice date?'
+  limitations: *id004
+  keywords: []
+  question_examples:
+  - VAT rate change at a cut-off date
+  - Rate per invoice date?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/148-accounting-journal-cost-centers/spec.md Non-goals (no tax engine or tax calculation)
+    note: Reality stores stated tax and never determines a rate, so rate by invoice date is the source's job.
+- id: O01
+  section: Master data and identity
+  title: Item number renamed
+  question: History intact (numbers are not identity)?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: History intact (numbers are not identity)?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Item number renamed
+  - History intact (numbers are not identity)?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_reference_workspace.py::test_full_item_edit_changes_inventory_behaviour; tests/test_master_data_parity.py::test_cli_and_api_produce_equivalent_authoritative_lifecycle_state; tests/test_operational_previews.py::test_document_keeps_description_sku_and_received_totals
+    note: SKU edits are proven and lines keep the SKU they stated; no test asserts that movements, stock and old documents stay intact after a rename.
+- id: O02
+  section: Master data and identity
+  title: Two parties merged as duplicates
+  question: History of both kept?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: History of both kept?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Two parties merged as duplicates
+  - History of both kept?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: — (no merge service in services/)
+    note: There is no party merge or duplicate-resolution operation.
+- id: O03
+  section: Master data and identity
+  title: Customer moves; old orders keep the old address
+  question: Address as stated per document?
+  status: out_of_scope
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Address as stated per document?'
+  limitations: *id004
+  keywords: []
+  question_examples:
+  - Customer moves; old orders keep the old address
+  - Address as stated per document?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/004-master-data/spec.md Non-Goals ("postal addresses")
+    note: Addresses exist only in lossless party or source payloads; no test proves an old order shows the old address.
+- id: O04
+  section: Master data and identity
+  title: Item delisted with open orders or purchases
+  question: Open commitments still served?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Open commitments still served?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Item delisted with open orders or purchases
+  - Open commitments still served?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_catalog_orders_and_shipments.py::test_delisted_item_still_serves_its_open_commitment
+    note: An inactive item is still reserved and shipped for its open commitment.
+- id: O05
+  section: Master data and identity
+  title: 'Unit conversion: buy in cartons of 12, sell in pieces'
+  question: Quantities comparable?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Quantities comparable?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - 'Unit conversion: buy in cartons of 12, sell in pieces'
+  - Quantities comparable?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_a_stated_conversion_lets_the_comparison_happen, ::test_an_inexact_conversion_is_declined, ::test_units_not_comparable
+    note: The purchase_unit/conversion_factor comparison only runs inside exception classes; receipts and stock are not converted (receipt-costing.md excludes unit conversion).
+- id: O06
+  section: Master data and identity
+  title: Supplier item number ≠ own number, several suppliers
+  question: Supplier item mapping?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Supplier item mapping?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Supplier item number ≠ own number, several suppliers
+  - Supplier item mapping?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: db/core.py Item (no supplier reference table)
+    note: There's no supplier item number or per-supplier item mapping.
+- id: P01
+  section: Sources and integration
+  title: Same event delivered twice
+  question: Idempotent?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Idempotent?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Same event delivered twice
+  - Idempotent?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_shopify_and_explain.py::test_shopify_ingestion_is_lossless_idempotent_and_traceable; tests/test_source_ingestion.py::test_unknown_source_is_stored_idempotently_as_unmapped; tests/test_payment_intake.py::test_replay_of_the_same_source_records_no_second_cash_entry
+    note: Idempotency is proven for orders, unmapped sources and payments.
+- id: P02
+  section: Sources and integration
+  title: Events out of order
+  question: Linked correctly once complete?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Linked correctly once complete?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Events out of order
+  - Linked correctly once complete?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_shopify_and_explain.py::test_stale_and_conflicting_webhooks_are_stored_but_not_interpreted, ::test_first_version_failure_retries_but_changed_version_requires_review
+    note: A stale webhook is stored but ignored, and an order is linked once its item exists. No test covers cross-record ordering, such as a payment or invoice arriving before its order and linking later.
+- id: P03
+  section: Sources and integration
+  title: Source corrects an earlier record
+  question: New version, not overwrite?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: New version, not overwrite?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Source corrects an earlier record
+  - New version, not overwrite?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation; tests/test_document_corrections.py::test_external_document_correction_appends_immutable_source_version
+    note: A correction creates a new version with a supersedes link and keeps the original payload.
+- id: P04
+  section: Sources and integration
+  title: Source deletes an order afterwards
+  question: Commitment closed with source reason?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Commitment closed with source reason?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Source deletes an order afterwards
+  - Commitment closed with source reason?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record[cancelled_at-*]
+    note: A source cancellation is stored and held for review, and the commitment stays open. `cancel_commitment(source_record_id=...)` exists, but no test closes a commitment with a source reason.
+- id: P05
+  section: Sources and integration
+  title: Incomplete payload accepted
+  question: Gap visible?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Gap visible?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Incomplete payload accepted
+  - Gap visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_interpretation_coverage.py::test_unsupported_and_historical_sources_have_explicit_coverage; tests/test_unified_order_entry.py::test_missing_or_ambiguous_evidence_is_not_success
+    note: Unsupported and failed payloads are visible. No test accepts a partially complete payload and flags the missing field.
+- id: P06
+  section: Sources and integration
+  title: Two systems contradict each other
+  question: Contradiction visible?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Contradiction visible?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Two systems contradict each other
+  - Contradiction visible?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_shipment_story.py::test_supplier_source_payload_and_carrier_warehouse_discrepancy_remain_distinct; tests/test_provenance.py::test_several_contributing_systems_are_disclosed
+    note: Only the carrier-versus-warehouse contradiction is surfaced. There is no general check when two systems state different values.
+- id: P07
+  section: Sources and integration
+  title: Integration down for a day, then catches up
+  question: No duplicates, silent source detected?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: No duplicates, silent source detected?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Integration down for a day, then catches up
+  - No duplicates, silent source detected?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/operational_exceptions/test_derivation.py::test_silent_source, ::test_silent_source_clears_when_delivery_resumes
+    note: Silence is detected and clears when deliveries resume. No test replays a day's backlog and asserts no duplicates in the same story.
+- id: P08
+  section: Sources and integration
+  title: Legacy import at go-live (opening stock, open items, open orders)
+  question: Opening balances traceable?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Opening balances traceable?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Legacy import at go-live (opening stock, open items, open orders)
+  - Opening balances traceable?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: packages/reality-core/tests/test_unified_opening_stock.py::test_opening_review_adds_and_replay_is_inert; tests/finance/test_opening.py::test_four_directions_are_residual_positions_without_cash_or_turnover
+    note: Opening stock and opening open items are traceable. Open orders already partly delivered at go-live are not proven.
+- id: Q01
+  section: Time and period
+  title: 'Month-end: shipped not invoiced, invoiced not shipped'
+  question: Both lists correct?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Both lists correct?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - 'Month-end: shipped not invoiced, invoiced not shipped'
+  - Both lists correct?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_normal_month.py::test_the_month_ends_with_exactly_these_exceptions
+    note: Shipped-not-invoiced is proven; the sales side has no invoiced-not-shipped class (billed_not_received is purchase side only).
+- id: Q02
+  section: Time and period
+  title: Backdated posting into a closed period
+  question: Refused or flagged?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Refused or flagged?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Backdated posting into a closed period
+  - Refused or flagged?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/184-period-close/spec.md (stub, "no period record")
+    note: There's no period or close record, so a backdated posting is neither refused nor flagged.
+- id: Q03
+  section: Time and period
+  title: Stock as of 31 December
+  question: Point-in-time stock?
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Point-in-time stock?'
+  limitations: *id001
+  keywords: []
+  question_examples:
+  - Stock as of 31 December
+  - Point-in-time stock?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_analysis_positions_history.py::test_detail_inventory_conserves_locations_and_unknown_tracking, ::test_later_stock_compensation_does_not_rewrite_earlier_snapshot, ::test_cutoff_excludes_next_midnight_and_late_allocation_endpoint
+    note: Point-in-time stock with an explicit cutoff is asserted, including that later corrections don't rewrite it.
+- id: Q04
+  section: Time and period
+  title: Year end with open backorders and purchases
+  question: Carried over correctly?
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Carried over correctly?'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Year end with open backorders and purchases
+  - Carried over correctly?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/184-period-close/spec.md
+    note: With no period concept there is no carry-over; open promises simply stay open, and no test crosses a year boundary.
+- id: Q05
+  section: Time and period
+  title: 'Time zones: order at 23:30 in New York'
+  question: Stored in UTC, dated correctly?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Stored in UTC, dated correctly?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - 'Time zones: order at 23:30 in New York'
+  - Stored in UTC, dated correctly?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_operational_fields.py::test_document_and_commitment_operational_fields
+    note: Offset timestamps are proven to normalize to UTC; there is no company time zone, and no test pins the day a late-evening local order falls on (`domain/calendar.as_day` takes the text's local day).
+- id: R01
+  section: Combined stress stories
+  title: Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged
+  question: Every quantity and every euro reconciles at the end.
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Every quantity and every euro reconciles at the end.'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged
+  - Every quantity and every euro reconciles at the end.
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside; tests/scenarios/test_b2b_operational_integrity.py::test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly; tests/scenarios/test_procure_to_pay.py::test_procure_to_pay_business_story; tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes
+    note: Prepayment gating, revise/cancel, partial receipt and damaged-return pieces exist separately; no one test reconciles every quantity and euro.
+- id: R02
+  section: Combined stress stories
+  title: Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels
+  question: Cancelled demand leaves the purchase assignment.
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Cancelled demand leaves the purchase assignment.'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels
+  - Cancelled demand leaves the purchase assignment.
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt, ::test_partial_reversal_is_append_only_and_idempotent; tests/test_incremental_derivation.py::test_a_cancelled_promise_leaves_the_demand_it_was_counted_in
+    note: '`supply_assignments._effective_rows` ignores customer status, so a cancelled demand keeps its purchase assignment until someone reverses it by hand; there''s no combined test.'
+- id: R03
+  section: Combined stress stories
+  title: Drop shipment with wrong item; customer returns it to us instead of the supplier
+  question: Ownership and credits on both sides.
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Ownership and credits on both sides.'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Drop shipment with wrong item; customer returns it to us instead of the supplier
+  - Ownership and credits on both sides.
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: specs/242-inventory-cost-contribution/spec.md (drop shipping listed only as an edge case)
+    note: There is no drop-shipment model (supplier ships to the customer, no own stock).
+- id: R04
+  section: Combined stress stories
+  title: Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees
+  question: Every position allocated.
+  status: missing
+  evidence_level: none
+  summary: 'Reality evaluates: Every position allocated.'
+  limitations: *id003
+  keywords: []
+  question_examples:
+  - Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees
+  - Every position allocated.
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: services/payment_intake.py (refuses references to several invoices); tests/test_payment_intake.py::test_two_invoices_for_one_order_and_a_consolidated_invoice_yield_no_allocation
+    note: There's no payout, fee or chargeback allocation across many orders.
+- id: R05
+  section: Combined stress stories
+  title: EDI customer sends ORDCHG after a partial delivery was advised
+  question: Revision respects what already shipped.
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Revision respects what already shipped.'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - EDI customer sends ORDCHG after a partial delivery was advised
+  - Revision respects what already shipped.
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived, ::test_shrinking_to_what_arrived_finishes_the_promise
+    note: Revising after a partial fulfilment is proven on commitments; there's no EDI ORDCHG or advice source.
+- id: R06
+  section: Combined stress stories
+  title: 'Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting'
+  question: Landed cost and customer allocation.
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Landed cost and customer allocation.'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - 'Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting'
+  - Landed cost and customer allocation.
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: docs/features/receipt-costing.md (freight/duty categories; FX excluded); tests/test_cost_allocation_services.py::test_weighted_preview_and_confirmation_retain_exact_existing_parts; tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt
+    note: Freight/duty landed cost and customer assignment exist; USD rate conversion is out of the costing slice, and there's no combined container test.
+- id: R07
+  section: Combined stress stories
+  title: Month-end count difference uncovers three reservations
+  question: Who is postponed, and how is it explained?
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Who is postponed, and how is it explained?'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Month-end count difference uncovers three reservations
+  - Who is postponed, and how is it explained?
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock, ::test_reservation_exceeds_stock_impact, ::test_reservation_exceeds_stock_references_are_opaque
+    note: A stocktake loss surfaces the competing reservations (2, not 3), and by design no promise is named as postponed.
+- id: R08
+  section: Combined stress stories
+  title: Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit
+  question: Hold reason names all facts.
+  status: partial
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Hold reason names all facts.'
+  limitations: *id002
+  keywords: []
+  question_examples:
+  - Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit
+  - Hold reason names all facts.
+  tools: []
+  demo_references: []
+  product_paths: []
+  related_journeys: []
+  internal_evidence:
+  - reference: tests/operational_exceptions/test_derivation.py::test_credit_limit_exceeded; tests/test_unified_customer_holds.py::test_customer_hold_http_actor_and_practice
+    note: credit_limit_exceeded sums open invoices only; it ignores the new order, available credit and payables, and no hold reason combines them.

@@ -1,0 +1,69 @@
+public_questions:
+  - name: english_supplier_shortage
+    locale: en
+    question: What happens when a supplier delivers too little?
+    expected_ids: [H02]
+  - name: german_supplier_shortage
+    locale: de
+    question: Was passiert, wenn ein Lieferant zu wenig liefert?
+    expected_ids: [H02]
+  - name: english_supplier_overdelivery
+    locale: en
+    question: What happens when a supplier delivers too much?
+    expected_ids: [H04]
+  - name: german_supplier_overdelivery
+    locale: de
+    question: Was passiert, wenn ein Lieferant zu viel liefert?
+    expected_ids: [H04]
+  - name: combined_supplier_variance
+    locale: en
+    question: Can Reality explain when a supplier delivers too little or too much?
+    expected_ids: [H02, H04]
+
+duplicate_proposals:
+  - name: english_supplier_shortage_paraphrase
+    existing:
+      title: Supplier receipt shortage
+      business_question: What happens when a supplier delivers too little?
+      expected_outcome: Preserve the advised quantity, actual receipt and open remainder.
+      process_area: receiving
+    candidate:
+      title: Missing units from vendor delivery
+      business_question: Can we handle an under-delivery from a supplier?
+      expected_outcome: Show received units and the outstanding remainder.
+      process_area: receiving
+  - name: german_supplier_shortage_paraphrase
+    existing:
+      title: Supplier delivers less than ordered
+      business_question: What if our supplier sends too little stock?
+      expected_outcome: Keep the receipt and remaining purchase quantity visible.
+      process_area: receiving
+    candidate:
+      title: Unterlieferung durch Lieferant
+      business_question: Was passiert, wenn ein Lieferant zu wenig liefert?
+      expected_outcome: Wareneingang und offene Restmenge sollen sichtbar bleiben.
+      process_area: receiving
+  - name: payment_paraphrase
+    existing:
+      title: Customer pays an invoice in parts
+      business_question: Can several partial payments settle one customer invoice?
+      expected_outcome: Show each payment and the remaining invoice balance.
+      process_area: payments
+    candidate:
+      title: Multiple payments for one invoice
+      business_question: What happens when an invoice is paid in several installments?
+      expected_outcome: Track every payment and the outstanding balance.
+      process_area: payments
+
+unrelated_proposals:
+  - name: supplier_shortage_is_not_customer_payment
+    existing:
+      title: Supplier receipt shortage
+      business_question: What happens when a supplier delivers too little?
+      expected_outcome: Preserve the actual receipt and open remainder.
+      process_area: receiving
+    candidate:
+      title: Customer payment allocation
+      business_question: How is a bank payment assigned to a customer invoice?
+      expected_outcome: Show the payment allocation and invoice balance.
+      process_area: payments

@@ -6941,6 +6941,35 @@ def add_chat_assistant_message(
     return message
 
 
+def business_journey_guide(
+    session: OrmSession, tenant_id: str, arguments: dict[str, Any]
+) -> dict[str, object]:
+    """Expose the canonical read tool to the executable application catalog."""
+    from reality.tools.business_journeys import business_journey_guide as read_guide
+
+    return read_guide(session, tenant_id, arguments)
+
+
+def business_journey_proposal_create(
+    session: OrmSession, tenant_id: str, arguments: dict[str, Any]
+) -> dict[str, object]:
+    """Expose confirmed journey suggestion execution to the command catalog."""
+    from reality.tools.business_journeys import (
+        business_journey_proposal_create as create,
+    )
+
+    return create(session, tenant_id, arguments)
+
+
+def business_journey_vote_set(
+    session: OrmSession, tenant_id: str, arguments: dict[str, Any]
+) -> dict[str, object]:
+    """Expose confirmed journey voting to the command catalog."""
+    from reality.tools.business_journeys import business_journey_vote_set as set_vote
+
+    return set_vote(session, tenant_id, arguments)
+
+
 @wrap_chat
 def send_chat_message(
     session: OrmSession,
@@ -7002,7 +7031,55 @@ def send_chat_message(
     )
     managed_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     managed_workspace_id = os.environ.get("ANTHROPIC_WORKSPACE_ID", "").strip()
-    if own_provider or managed_key:
+    normalized_capability_question = original_message.casefold()
+    capability_question = any(
+        phrase in normalized_capability_question
+        for phrase in (
+            "can reality",
+            "does reality",
+            "what happens if",
+            "what if",
+            "kann reality",
+            "kann man mit reality",
+            "unterstützt reality",
+            "was passiert, wenn",
+            "was passiert wenn",
+        )
+    )
+    if capability_question:
+        from reality.tools.application import run_read_tool
+        from reality.tools.business_journeys import guide_actor_context
+
+        with guide_actor_context(actor_user_id):
+            guide_answer = run_read_tool(
+                session,
+                tenant_id,
+                "business_journey_guide",
+                {
+                    "question": original_message,
+                    "locale": "de" if language.lower().startswith("de") else "en",
+                },
+            )
+        reply = str(guide_answer["text"])
+        citations = guide_answer["citations"]
+        if citations:
+            assert isinstance(citations, list)
+            reply += "\n\nBusiness Journey Guide: " + ", ".join(
+                str(item) for item in citations
+            )
+        internal_evidence = guide_answer.get("internal_evidence")
+        if internal_evidence:
+            assert isinstance(internal_evidence, dict)
+            references = [
+                str(item["reference"])
+                for items in internal_evidence.values()
+                for item in items
+                if isinstance(item, dict) and item.get("reference")
+            ]
+            if references:
+                reply += "\nInternal evidence: " + ", ".join(references)
+        turn_outcome = "fallback"
+    elif own_provider or managed_key:
         import asyncio
 
         from reality.agent.mcp_chat import reply_via_anthropic_tools, reply_via_tools

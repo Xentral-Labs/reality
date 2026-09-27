@@ -443,6 +443,66 @@ class AppUser(Base):
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class JourneyProposal(Base):
+    """Account-scoped product feedback, never tenant business state."""
+
+    __tablename__ = "journey_proposal"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('proposed', 'under_review', 'planned', 'in_progress', "
+            "'available', 'declined', 'out_of_scope')",
+            name="ck_journey_proposal_status",
+        ),
+        CheckConstraint(
+            "process_area IN ('orders', 'availability', 'payments', 'shipping', "
+            "'invoicing', 'returns', 'purchasing', 'receiving', 'payables', "
+            "'warehouse', 'products', 'commerce', 'b2b', 'finance', "
+            "'master_data', 'sources', 'time', 'combined')",
+            name="ck_journey_proposal_process_area",
+        ),
+    )
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    creator_account_id: Mapped[str] = mapped_column(
+        ForeignKey("app_user.id"), index=True
+    )
+    title: Mapped[str] = mapped_column(String(200))
+    business_question: Mapped[str] = mapped_column(String(1000))
+    expected_outcome: Mapped[str] = mapped_column(String(2000))
+    process_area: Mapped[str] = mapped_column(String(32), index=True)
+    business_context: Mapped[str] = mapped_column(String(1000), default="")
+    normalized_fingerprint: Mapped[str] = mapped_column(String(64), index=True)
+    status: Mapped[str] = mapped_column(
+        String(24), default="proposed", server_default="proposed", index=True
+    )
+    public_rationale: Mapped[str] = mapped_column(String(2000), default="")
+    available_journey_id: Mapped[str | None] = mapped_column(String(3), default=None)
+    reviewed_by_account_id: Mapped[str | None] = mapped_column(
+        ForeignKey("app_user.id"), default=None, index=True
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class JourneyProposalVote(Base):
+    __tablename__ = "journey_proposal_vote"
+    __table_args__ = (
+        UniqueConstraint(
+            "proposal_id", "account_id", name="uq_journey_proposal_vote_account"
+        ),
+    )
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    proposal_id: Mapped[str] = mapped_column(
+        ForeignKey("journey_proposal.id", ondelete="CASCADE"), index=True
+    )
+    account_id: Mapped[str] = mapped_column(ForeignKey("app_user.id"), index=True)
+    active: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default=text("true")
+    )
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class EmailVerificationCode(Base):
     __tablename__ = "email_verification_code"
     id: Mapped[str] = mapped_column(String, primary_key=True)

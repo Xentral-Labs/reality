@@ -14,6 +14,7 @@ from reality.mcp.principal import (
     current_mcp_principal,
     mcp_principal_context,
 )
+from reality.services.business_journeys import PROCESS_AREAS
 from reality.services.core import (
     MANUAL_OPERATIONAL_DOCUMENT_TYPES,
     MAX_INVOICE_POSITIONS,
@@ -525,6 +526,31 @@ PAGE_PROPERTIES = {
 }
 
 MCP_TOOL_CATALOG = (
+    MCPToolDefinition(
+        "business_journey_guide",
+        "Ask about Reality capabilities",
+        "Answer whether Reality supports a business situation using cited, release-reviewed Business Journey Guide entries.",
+        "read",
+        "Discovery",
+        _object_schema(
+            {
+                "question": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 1000,
+                    "description": "Business situation to check against the published Business Journey Guide.",
+                },
+                "locale": {
+                    "type": "string",
+                    "enum": ["en", "de"],
+                    "default": "en",
+                    "description": "Language for the deterministic capability conclusion.",
+                },
+            },
+            required=("question",),
+        ),
+        _read("business_journey_guide"),
+    ),
     MCPToolDefinition(
         "capability_catalog",
         "Discover business capabilities",
@@ -2355,6 +2381,57 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         _object_schema(
             {"capability_id": STRING, "is_active": BOOLEAN},
             required=("capability_id", "is_active"),
+        ),
+    ),
+    (
+        "business_journey_suggest_propose",
+        "Suggest a Business Journey",
+        "business_journey_proposal_create",
+        _object_schema(
+            {
+                "title": {"type": "string", "minLength": 3, "maxLength": 200},
+                "business_question": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 1000,
+                },
+                "expected_outcome": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 2000,
+                },
+                "process_area": {
+                    "type": "string",
+                    "enum": sorted(PROCESS_AREAS),
+                },
+                "business_context": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "default": "",
+                },
+            },
+            required=(
+                "title",
+                "business_question",
+                "expected_outcome",
+                "process_area",
+            ),
+        ),
+    ),
+    (
+        "business_journey_vote_propose",
+        "Vote for a Business Journey suggestion",
+        "business_journey_vote_set",
+        _object_schema(
+            {
+                "proposal_id": STRING,
+                "active": {
+                    "type": "boolean",
+                    "default": True,
+                    "description": "True votes; false withdraws the account's vote.",
+                },
+            },
+            required=("proposal_id", "active"),
         ),
     ),
 )

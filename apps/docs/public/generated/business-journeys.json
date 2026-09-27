@@ -1,0 +1,4660 @@
+{
+  "version": 1,
+  "statuses": {
+    "supported": "Proven end to end by executable evidence.",
+    "partial": "Only part of the journey is currently proven.",
+    "recognition_only": "Related evidence is recognizable; the full journey is not proven.",
+    "missing": "The current model or services do not support the complete journey.",
+    "out_of_scope": "Deliberately outside the current product scope."
+  },
+  "entries": [
+    {
+      "id": "A01",
+      "section": "Order intake and order changes",
+      "title": "Standard order: one customer, one line, in stock",
+      "question": "Is it committed, reserved, shipped, invoiced, paid?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is it committed, reserved, shipped, invoiced, paid?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Standard order: one customer, one line, in stock",
+        "Is it committed, reserved, shipped, invoiced, paid?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A02",
+      "section": "Order intake and order changes",
+      "title": "Order with 30 lines from several warehouses",
+      "question": "What is open per line and per location?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: What is open per line and per location?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Order with 30 lines from several warehouses",
+        "What is open per line and per location?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A03",
+      "section": "Order intake and order changes",
+      "title": "Same item twice in one order (discounted and free)",
+      "question": "Are the two lines kept as separate commitments?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Are the two lines kept as separate commitments?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Same item twice in one order (discounted and free)",
+        "Are the two lines kept as separate commitments?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A04",
+      "section": "Order intake and order changes",
+      "title": "Customer raises the quantity after a partial delivery",
+      "question": "What is still open after the revision?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: What is still open after the revision?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer raises the quantity after a partial delivery",
+        "What is still open after the revision?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A05",
+      "section": "Order intake and order changes",
+      "title": "Customer lowers the quantity below the delivered quantity",
+      "question": "Is the revision refused or does it demand a return?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is the revision refused or does it demand a return?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer lowers the quantity below the delivered quantity",
+        "Is the revision refused or does it demand a return?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A06",
+      "section": "Order intake and order changes",
+      "title": "One line cancelled, the rest stays",
+      "question": "Is only that commitment closed and its reservation released?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is only that commitment closed and its reservation released?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "One line cancelled, the rest stays",
+        "Is only that commitment closed and its reservation released?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A07",
+      "section": "Order intake and order changes",
+      "title": "Whole order cancelled after reservation",
+      "question": "Are all reservations released?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Are all reservations released?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Whole order cancelled after reservation",
+        "Are all reservations released?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A08",
+      "section": "Order intake and order changes",
+      "title": "Cancelled after picking, before shipment",
+      "question": "Does the stock go back, and is that visible?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Does the stock go back, and is that visible?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Cancelled after picking, before shipment",
+        "Does the stock go back, and is that visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A09",
+      "section": "Order intake and order changes",
+      "title": "\"Cancelled\" after shipment",
+      "question": "Is it treated as a return or refusal, not a cancellation?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is it treated as a return or refusal, not a cancellation?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "\"Cancelled\" after shipment",
+        "Is it treated as a return or refusal, not a cancellation?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A10",
+      "section": "Order intake and order changes",
+      "title": "Customer swaps a variant/size in an open order",
+      "question": "Old commitment closed, new one opened, history kept?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Old commitment closed, new one opened, history kept?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer swaps a variant/size in an open order",
+        "Old commitment closed, new one opened, history kept?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A11",
+      "section": "Order intake and order changes",
+      "title": "Delivery address changes after release, before shipment",
+      "question": "Which address does the shipment use, and is the change traceable?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Which address does the shipment use, and is the change traceable?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Delivery address changes after release, before shipment",
+        "Which address does the shipment use, and is the change traceable?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A12",
+      "section": "Order intake and order changes",
+      "title": "Requested delivery date in the future",
+      "question": "When should stock be reserved?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: When should stock be reserved?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Requested delivery date in the future",
+        "When should stock be reserved?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A13",
+      "section": "Order intake and order changes",
+      "title": "Different requested dates per line",
+      "question": "Is each line's promise dated separately?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is each line's promise dated separately?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Different requested dates per line",
+        "Is each line's promise dated separately?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A14",
+      "section": "Order intake and order changes",
+      "title": "Quote converted to an order with changed quantities/prices",
+      "question": "Are quote and order separate evidence with a link?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Are quote and order separate evidence with a link?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Quote converted to an order with changed quantities/prices",
+        "Are quote and order separate evidence with a link?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A15",
+      "section": "Order intake and order changes",
+      "title": "Same order arrives twice (webhook retry)",
+      "question": "Exactly one commitment?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Exactly one commitment?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Same order arrives twice (webhook retry)",
+        "Exactly one commitment?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A16",
+      "section": "Order intake and order changes",
+      "title": "Shop sends a new version of the same order",
+      "question": "New source version, revised commitment, no overwrite?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: New source version, revised commitment, no overwrite?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Shop sends a new version of the same order",
+        "New source version, revised commitment, no overwrite?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A17",
+      "section": "Order intake and order changes",
+      "title": "Shop order contains an unknown item",
+      "question": "Is the line kept and the gap visible?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is the line kept and the gap visible?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Shop order contains an unknown item",
+        "Is the line kept and the gap visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A18",
+      "section": "Order intake and order changes",
+      "title": "Order price differs from list price",
+      "question": "Is the stated price recorded, not recomputed?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the stated price recorded, not recomputed?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Order price differs from list price",
+        "Is the stated price recorded, not recomputed?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A19",
+      "section": "Order intake and order changes",
+      "title": "Zero-price line (sample, gift, replacement)",
+      "question": "Committed and shipped without revenue?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Committed and shipped without revenue?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Zero-price line (sample, gift, replacement)",
+        "Committed and shipped without revenue?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A20",
+      "section": "Order intake and order changes",
+      "title": "Two orders of one customer to be shipped together",
+      "question": "Can one shipment fulfil both?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Can one shipment fulfil both?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Two orders of one customer to be shipped together",
+        "Can one shipment fulfil both?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A21",
+      "section": "Order intake and order changes",
+      "title": "One order split across two delivery addresses",
+      "question": "Can lines/quantities go to different recipients?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Can lines/quantities go to different recipients?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "One order split across two delivery addresses",
+        "Can lines/quantities go to different recipients?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A22",
+      "section": "Order intake and order changes",
+      "title": "Order parked or held (clarification, fraud check)",
+      "question": "Why is it not moving, and who lifts it?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Why is it not moving, and who lifts it?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Order parked or held (clarification, fraud check)",
+        "Why is it not moving, and who lifts it?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A23",
+      "section": "Order intake and order changes",
+      "title": "Blanket order with call-offs",
+      "question": "See M01.",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: See M01.",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Blanket order with call-offs",
+        "See M01."
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "A24",
+      "section": "Order intake and order changes",
+      "title": "Line added later that should ride with the open shipment",
+      "question": "Does the added commitment join the pending delivery?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Does the added commitment join the pending delivery?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Line added later that should ride with the open shipment",
+        "Does the added commitment join the pending delivery?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B01",
+      "section": "Availability, reservation and backorder",
+      "title": "Too little stock: partial reservation, rest backordered",
+      "question": "Reserved vs uncovered quantity per line?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Reserved vs uncovered quantity per line?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Too little stock: partial reservation, rest backordered",
+        "Reserved vs uncovered quantity per line?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B02",
+      "section": "Availability, reservation and backorder",
+      "title": "No stock at all",
+      "question": "Is the whole commitment uncovered and flagged?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the whole commitment uncovered and flagged?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "No stock at all",
+        "Is the whole commitment uncovered and flagged?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B03",
+      "section": "Availability, reservation and backorder",
+      "title": "Two orders compete for the last units",
+      "question": "Who gets them, by which rule?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Who gets them, by which rule?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Two orders compete for the last units",
+        "Who gets them, by which rule?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B04",
+      "section": "Availability, reservation and backorder",
+      "title": "Re-reservation to a more important customer",
+      "question": "Is the move from one commitment to another traceable?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the move from one commitment to another traceable?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Re-reservation to a more important customer",
+        "Is the move from one commitment to another traceable?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B05",
+      "section": "Availability, reservation and backorder",
+      "title": "Stock exists but is blocked (quality, quarantine, expiry)",
+      "question": "Is blocked stock excluded from availability?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is blocked stock excluded from availability?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Stock exists but is blocked (quality, quarantine, expiry)",
+        "Is blocked stock excluded from availability?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B06",
+      "section": "Availability, reservation and backorder",
+      "title": "Stock exists in the wrong warehouse",
+      "question": "Is a transfer needed, and is availability per location?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is a transfer needed, and is availability per location?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Stock exists in the wrong warehouse",
+        "Is a transfer needed, and is availability per location?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B07",
+      "section": "Availability, reservation and backorder",
+      "title": "Stock only on order (open purchase)",
+      "question": "Can it be promised (available to promise)?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Can it be promised (available to promise)?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Stock only on order (open purchase)",
+        "Can it be promised (available to promise)?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B08",
+      "section": "Availability, reservation and backorder",
+      "title": "Receipt resolves backorders",
+      "question": "Which commitment is served first?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Which commitment is served first?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Receipt resolves backorders",
+        "Which commitment is served first?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B09",
+      "section": "Availability, reservation and backorder",
+      "title": "Receipt covers only part of the backorders",
+      "question": "Which remain uncovered?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Which remain uncovered?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Receipt covers only part of the backorders",
+        "Which remain uncovered?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B10",
+      "section": "Availability, reservation and backorder",
+      "title": "Customer refuses partial delivery",
+      "question": "Reserved but deliberately not shipped — why?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Reserved but deliberately not shipped — why?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer refuses partial delivery",
+        "Reserved but deliberately not shipped — why?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B11",
+      "section": "Availability, reservation and backorder",
+      "title": "Partial delivery allowed up to two parcels",
+      "question": "Is the limit enforceable or at least visible?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Is the limit enforceable or at least visible?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Partial delivery allowed up to two parcels",
+        "Is the limit enforceable or at least visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B12",
+      "section": "Availability, reservation and backorder",
+      "title": "Reservation lapses because prepayment did not arrive",
+      "question": "Is the reservation released after the deadline?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Is the reservation released after the deadline?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Reservation lapses because prepayment did not arrive",
+        "Is the reservation released after the deadline?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B13",
+      "section": "Availability, reservation and backorder",
+      "title": "Count difference leaves a reservation uncovered",
+      "question": "Is the reservation flagged as no longer backed by stock?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the reservation flagged as no longer backed by stock?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Count difference leaves a reservation uncovered",
+        "Is the reservation flagged as no longer backed by stock?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B14",
+      "section": "Availability, reservation and backorder",
+      "title": "Oversold across channels (shop and marketplace)",
+      "question": "Is the overcommitment visible?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is the overcommitment visible?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Oversold across channels (shop and marketplace)",
+        "Is the overcommitment visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B15",
+      "section": "Availability, reservation and backorder",
+      "title": "Safety stock withheld from B2C, given to key accounts",
+      "question": "Can availability differ per channel/party?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Can availability differ per channel/party?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Safety stock withheld from B2C, given to key accounts",
+        "Can availability differ per channel/party?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B16",
+      "section": "Availability, reservation and backorder",
+      "title": "Channel quotas (e.g. 20 % for Amazon)",
+      "question": "Can stock be earmarked per channel?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Can stock be earmarked per channel?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Channel quotas (e.g. 20 % for Amazon)",
+        "Can stock be earmarked per channel?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B17",
+      "section": "Availability, reservation and backorder",
+      "title": "Batch/expiry: customer demands minimum remaining shelf life",
+      "question": "Is only eligible stock reserved?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Is only eligible stock reserved?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Batch/expiry: customer demands minimum remaining shelf life",
+        "Is only eligible stock reserved?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "B18",
+      "section": "Availability, reservation and backorder",
+      "title": "Serial-numbered item reserved by serial number",
+      "question": "Does the reservation name the unit?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Does the reservation name the unit?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Serial-numbered item reserved by serial number",
+        "Does the reservation name the unit?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C01",
+      "section": "Payment and release",
+      "title": "Prepayment: ship only after payment",
+      "question": "Why is it held, and when is it released?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Why is it held, and when is it released?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Prepayment: ship only after payment",
+        "Why is it held, and when is it released?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C02",
+      "section": "Payment and release",
+      "title": "Prepayment short-paid",
+      "question": "Release or not, within which tolerance?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Release or not, within which tolerance?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Prepayment short-paid",
+        "Release or not, within which tolerance?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C03",
+      "section": "Payment and release",
+      "title": "Prepayment overpaid",
+      "question": "Does a customer credit balance appear?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Does a customer credit balance appear?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Prepayment overpaid",
+        "Does a customer credit balance appear?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C04",
+      "section": "Payment and release",
+      "title": "One payment for two prepaid orders",
+      "question": "Is the payment allocated to both?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is the payment allocated to both?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "One payment for two prepaid orders",
+        "Is the payment allocated to both?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C05",
+      "section": "Payment and release",
+      "title": "Payment without a usable reference",
+      "question": "Unallocated, later allocated by a person?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Unallocated, later allocated by a person?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Payment without a usable reference",
+        "Unallocated, later allocated by a person?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C06",
+      "section": "Payment and release",
+      "title": "Payment arrives after the order was cancelled",
+      "question": "Is a refund owed?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is a refund owed?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Payment arrives after the order was cancelled",
+        "Is a refund owed?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C07",
+      "section": "Payment and release",
+      "title": "Credit limit exceeded: order held, released by a person",
+      "question": "Who released it, and why?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Who released it, and why?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Credit limit exceeded: order held, released by a person",
+        "Who released it, and why?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C08",
+      "section": "Payment and release",
+      "title": "Limit exceeded by overdue items, not by order value",
+      "question": "Does the hold name the overdue items?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Does the hold name the overdue items?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Limit exceeded by overdue items, not by order value",
+        "Does the hold name the overdue items?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C09",
+      "section": "Payment and release",
+      "title": "Card/PayPal/Klarna: authorization ≠ capture",
+      "question": "Are authorization and capture separate facts?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Are authorization and capture separate facts?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Card/PayPal/Klarna: authorization ≠ capture",
+        "Are authorization and capture separate facts?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C10",
+      "section": "Payment and release",
+      "title": "Authorization expires before a late partial shipment",
+      "question": "Is the uncovered remainder visible?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Is the uncovered remainder visible?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Authorization expires before a late partial shipment",
+        "Is the uncovered remainder visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C11",
+      "section": "Payment and release",
+      "title": "B2B invoice with 30 days net, 2 % discount within 10 days",
+      "question": "Due dates and discount window correct?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Due dates and discount window correct?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "B2B invoice with 30 days net, 2 % discount within 10 days",
+        "Due dates and discount window correct?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C12",
+      "section": "Payment and release",
+      "title": "Discount taken after the discount window",
+      "question": "Is the short payment flagged?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the short payment flagged?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Discount taken after the discount window",
+        "Is the short payment flagged?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C13",
+      "section": "Payment and release",
+      "title": "Cash on delivery",
+      "question": "Payment tied to the shipment?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Payment tied to the shipment?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Cash on delivery",
+        "Payment tied to the shipment?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C14",
+      "section": "Payment and release",
+      "title": "30 % down payment, rest before shipment",
+      "question": "Is the hold released only after the remainder?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is the hold released only after the remainder?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "30 % down payment, rest before shipment",
+        "Is the hold released only after the remainder?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C15",
+      "section": "Payment and release",
+      "title": "Chargeback / returned direct debit after shipment",
+      "question": "Does the receivable reopen?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Does the receivable reopen?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Chargeback / returned direct debit after shipment",
+        "Does the receivable reopen?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C16",
+      "section": "Payment and release",
+      "title": "Customer delivery block (dunning, insolvency)",
+      "question": "Why does nothing ship to this party?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Why does nothing ship to this party?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Customer delivery block (dunning, insolvency)",
+        "Why does nothing ship to this party?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C17",
+      "section": "Payment and release",
+      "title": "Fraud check holds and releases an order",
+      "question": "Hold and release both recorded?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Hold and release both recorded?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Fraud check holds and releases an order",
+        "Hold and release both recorded?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "C18",
+      "section": "Payment and release",
+      "title": "Voucher or gift card as (part) payment",
+      "question": "Is the voucher a settlement of the receivable?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Is the voucher a settlement of the receivable?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Voucher or gift card as (part) payment",
+        "Is the voucher a settlement of the receivable?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D01",
+      "section": "Picking, shipment, split and merge",
+      "title": "Partial delivery: 3 of 5 shipped",
+      "question": "Open 2, shipped 3?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Open 2, shipped 3?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Partial delivery: 3 of 5 shipped",
+        "Open 2, shipped 3?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D02",
+      "section": "Picking, shipment, split and merge",
+      "title": "Two warehouses, two parcels, one order",
+      "question": "Movements per location, one commitment?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Movements per location, one commitment?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Two warehouses, two parcels, one order",
+        "Movements per location, one commitment?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D03",
+      "section": "Picking, shipment, split and merge",
+      "title": "Several orders of one customer in one shipment",
+      "question": "One shipment fulfils several commitments?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: One shipment fulfils several commitments?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Several orders of one customer in one shipment",
+        "One shipment fulfils several commitments?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D04",
+      "section": "Picking, shipment, split and merge",
+      "title": "Picking error caught before shipment",
+      "question": "Corrected without a false movement?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Corrected without a false movement?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Picking error caught before shipment",
+        "Corrected without a false movement?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D05",
+      "section": "Picking, shipment, split and merge",
+      "title": "Picking error found by the customer",
+      "question": "Wrong item shipped, right item still open?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Wrong item shipped, right item still open?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Picking error found by the customer",
+        "Wrong item shipped, right item still open?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D06",
+      "section": "Picking, shipment, split and merge",
+      "title": "Picker finds less stock than recorded",
+      "question": "Count correction plus uncovered reservation?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Count correction plus uncovered reservation?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Picker finds less stock than recorded",
+        "Count correction plus uncovered reservation?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D07",
+      "section": "Picking, shipment, split and merge",
+      "title": "Parcel lost, carrier insurance pays",
+      "question": "Goods gone, claim receivable, customer still served?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Goods gone, claim receivable, customer still served?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Parcel lost, carrier insurance pays",
+        "Goods gone, claim receivable, customer still served?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D08",
+      "section": "Picking, shipment, split and merge",
+      "title": "Parcel undeliverable, returns",
+      "question": "Stock back, commitment reopened?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Stock back, commitment reopened?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Parcel undeliverable, returns",
+        "Stock back, commitment reopened?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D09",
+      "section": "Picking, shipment, split and merge",
+      "title": "Delivery refused",
+      "question": "Same as D08 with a reason?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Same as D08 with a reason?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Delivery refused",
+        "Same as D08 with a reason?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D10",
+      "section": "Picking, shipment, split and merge",
+      "title": "Drop shipping: supplier ships directly",
+      "question": "Customer served without own stock movement?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Customer served without own stock movement?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Drop shipping: supplier ships directly",
+        "Customer served without own stock movement?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D11",
+      "section": "Picking, shipment, split and merge",
+      "title": "Partial drop shipping: part own stock, part supplier",
+      "question": "Both paths fulfil one commitment?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Both paths fulfil one commitment?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Partial drop shipping: part own stock, part supplier",
+        "Both paths fulfil one commitment?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D12",
+      "section": "Picking, shipment, split and merge",
+      "title": "3PL confirms shipments late",
+      "question": "Is the lag visible and later closed?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is the lag visible and later closed?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "3PL confirms shipments late",
+        "Is the lag visible and later closed?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D13",
+      "section": "Picking, shipment, split and merge",
+      "title": "Pallet freight with booked delivery slot",
+      "question": "Shipment dated to the slot?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Shipment dated to the slot?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Pallet freight with booked delivery slot",
+        "Shipment dated to the slot?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D14",
+      "section": "Picking, shipment, split and merge",
+      "title": "Export to a third country (customs, proof of export)",
+      "question": "Is the export evidence linked?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Is the export evidence linked?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Export to a third country (customs, proof of export)",
+        "Is the export evidence linked?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D15",
+      "section": "Picking, shipment, split and merge",
+      "title": "Customer pickup",
+      "question": "Fulfilled without a carrier?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Fulfilled without a carrier?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer pickup",
+        "Fulfilled without a carrier?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D16",
+      "section": "Picking, shipment, split and merge",
+      "title": "Free replacement shipment without a new order",
+      "question": "Why did stock leave, and for which commitment?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Why did stock leave, and for which commitment?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Free replacement shipment without a new order",
+        "Why did stock leave, and for which commitment?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D17",
+      "section": "Picking, shipment, split and merge",
+      "title": "Shipment confirmation arrives before the order",
+      "question": "Is it held until the order arrives, then linked?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Is it held until the order arrives, then linked?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Shipment confirmation arrives before the order",
+        "Is it held until the order arrives, then linked?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D18",
+      "section": "Picking, shipment, split and merge",
+      "title": "Shipment reported twice",
+      "question": "Exactly one movement?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Exactly one movement?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Shipment reported twice",
+        "Exactly one movement?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "D19",
+      "section": "Picking, shipment, split and merge",
+      "title": "Returnable packaging or deposit (pallets, crates)",
+      "question": "Is the deposit owed and tracked?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Is the deposit owed and tracked?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Returnable packaging or deposit (pallets, crates)",
+        "Is the deposit owed and tracked?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E01",
+      "section": "Customer invoice and credit note",
+      "title": "One invoice per partial delivery",
+      "question": "Shipped but not invoiced = 0?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Shipped but not invoiced = 0?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "One invoice per partial delivery",
+        "Shipped but not invoiced = 0?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E02",
+      "section": "Customer invoice and credit note",
+      "title": "Monthly collective invoice over several shipments",
+      "question": "One invoice, several deliveries?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: One invoice, several deliveries?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Monthly collective invoice over several shipments",
+        "One invoice, several deliveries?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E03",
+      "section": "Customer invoice and credit note",
+      "title": "Invoice before delivery (prepayment, pro forma)",
+      "question": "Invoiced but not shipped visible?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Invoiced but not shipped visible?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Invoice before delivery (prepayment, pro forma)",
+        "Invoiced but not shipped visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E04",
+      "section": "Customer invoice and credit note",
+      "title": "Invoice corrected: reversal plus new invoice",
+      "question": "Never overwritten?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Never overwritten?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Invoice corrected: reversal plus new invoice",
+        "Never overwritten?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E05",
+      "section": "Customer invoice and credit note",
+      "title": "Partial credit note without returned goods",
+      "question": "Receivable reduced, stock unchanged?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Receivable reduced, stock unchanged?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Partial credit note without returned goods",
+        "Receivable reduced, stock unchanged?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E06",
+      "section": "Customer invoice and credit note",
+      "title": "Credit note with returned goods",
+      "question": "Both linked to the return?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Both linked to the return?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Credit note with returned goods",
+        "Both linked to the return?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E07",
+      "section": "Customer invoice and credit note",
+      "title": "Invoice differs from the order (quantity/price)",
+      "question": "Is the difference visible?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is the difference visible?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Invoice differs from the order (quantity/price)",
+        "Is the difference visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E08",
+      "section": "Customer invoice and credit note",
+      "title": "Shipping cost, small-quantity surcharge, payment fees",
+      "question": "Charges separate from goods?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Charges separate from goods?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Shipping cost, small-quantity surcharge, payment fees",
+        "Charges separate from goods?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E09",
+      "section": "Customer invoice and credit note",
+      "title": "Invoice addressed to another party than the recipient",
+      "question": "Bill-to ≠ ship-to kept?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Bill-to ≠ ship-to kept?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Invoice addressed to another party than the recipient",
+        "Bill-to ≠ ship-to kept?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E10",
+      "section": "Customer invoice and credit note",
+      "title": "E-invoice (XRechnung/ZUGFeRD)",
+      "question": "Stored losslessly as a source artifact?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Stored losslessly as a source artifact?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "E-invoice (XRechnung/ZUGFeRD)",
+        "Stored losslessly as a source artifact?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E11",
+      "section": "Customer invoice and credit note",
+      "title": "Down-payment invoice and final invoice",
+      "question": "Down payment offset in the final invoice?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Down payment offset in the final invoice?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Down-payment invoice and final invoice",
+        "Down payment offset in the final invoice?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "E12",
+      "section": "Customer invoice and credit note",
+      "title": "Rounding difference between lines and total",
+      "question": "Stated totals recorded, not recomputed?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Stated totals recorded, not recomputed?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Rounding difference between lines and total",
+        "Stated totals recorded, not recomputed?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F01",
+      "section": "Returns and complaints",
+      "title": "B2C withdrawal within 14 days, full refund",
+      "question": "Stock back, refund owed and paid?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Stock back, refund owed and paid?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "B2C withdrawal within 14 days, full refund",
+        "Stock back, refund owed and paid?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F02",
+      "section": "Returns and complaints",
+      "title": "Partial return: 2 of 5",
+      "question": "Returned 2, kept 3?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Returned 2, kept 3?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Partial return: 2 of 5",
+        "Returned 2, kept 3?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F03",
+      "section": "Returns and complaints",
+      "title": "Different item returned than announced",
+      "question": "Announced vs arrived visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Announced vs arrived visible?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Different item returned than announced",
+        "Announced vs arrived visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F04",
+      "section": "Returns and complaints",
+      "title": "Unannounced return",
+      "question": "Accepted and linked later?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Accepted and linked later?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Unannounced return",
+        "Accepted and linked later?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F05",
+      "section": "Returns and complaints",
+      "title": "Damaged return, partial refund",
+      "question": "Disposition and refund independent?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Disposition and refund independent?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Damaged return, partial refund",
+        "Disposition and refund independent?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F06",
+      "section": "Returns and complaints",
+      "title": "Mixed disposition: restock, quarantine, scrap, back to supplier",
+      "question": "Arrived = sum of dispositions?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Arrived = sum of dispositions?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Mixed disposition: restock, quarantine, scrap, back to supplier",
+        "Arrived = sum of dispositions?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F07",
+      "section": "Returns and complaints",
+      "title": "Exchange: return plus new delivery, no money",
+      "question": "Two commitments, no refund?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Two commitments, no refund?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Exchange: return plus new delivery, no money",
+        "Two commitments, no refund?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F08",
+      "section": "Returns and complaints",
+      "title": "Refund before the return arrives (goodwill)",
+      "question": "Refund paid, return still expected?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Refund paid, return still expected?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Refund before the return arrives (goodwill)",
+        "Refund paid, return still expected?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F09",
+      "section": "Returns and complaints",
+      "title": "Return announced, never arrives",
+      "question": "Stale announcement visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Stale announcement visible?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Return announced, never arrives",
+        "Stale announcement visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F10",
+      "section": "Returns and complaints",
+      "title": "Warranty repair via the manufacturer",
+      "question": "Goods out and back, ownership clear?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Goods out and back, ownership clear?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Warranty repair via the manufacturer",
+        "Goods out and back, ownership clear?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F11",
+      "section": "Returns and complaints",
+      "title": "Complaint without return (photo), credit note",
+      "question": "Credit without movement?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Credit without movement?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Complaint without return (photo), credit note",
+        "Credit without movement?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F12",
+      "section": "Returns and complaints",
+      "title": "Marketplace refunds first, goods later or never",
+      "question": "Refund and return independent?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Refund and return independent?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Marketplace refunds first, goods later or never",
+        "Refund and return independent?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "F13",
+      "section": "Returns and complaints",
+      "title": "Return after month-end for a prior-month invoice",
+      "question": "Correct period for the credit?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Correct period for the credit?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Return after month-end for a prior-month invoice",
+        "Correct period for the credit?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G01",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Reorder for a specific customer backorder",
+      "question": "Is the purchase linked to the customer commitment?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the purchase linked to the customer commitment?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Reorder for a specific customer backorder",
+        "Is the purchase linked to the customer commitment?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G02",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Reorder for stock at reorder point",
+      "question": "Is the demand explained?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Is the demand explained?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Reorder for stock at reorder point",
+        "Is the demand explained?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G03",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Mixed purchase: customer, stock and unassigned",
+      "question": "Ordered = assigned + stock + unassigned?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Ordered = assigned + stock + unassigned?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Mixed purchase: customer, stock and unassigned",
+        "Ordered = assigned + stock + unassigned?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G04",
+      "section": "Purchasing: demand and purchase order",
+      "title": "One purchase order with several delivery dates per line",
+      "question": "Is each schedule line a separate promise?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Is each schedule line a separate promise?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "One purchase order with several delivery dates per line",
+        "Is each schedule line a separate promise?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G05",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Purchase against a supplier framework agreement",
+      "question": "Call-offs against a contract?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Call-offs against a contract?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Purchase against a supplier framework agreement",
+        "Call-offs against a contract?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G06",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Minimum order quantity / pack size forces more",
+      "question": "Surplus visible as stock-bound?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Surplus visible as stock-bound?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Minimum order quantity / pack size forces more",
+        "Surplus visible as stock-bound?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G07",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Tiered purchase prices",
+      "question": "Stated price recorded?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Stated price recorded?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Tiered purchase prices",
+        "Stated price recorded?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G08",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Purchase order in foreign currency (USD, CNY)",
+      "question": "Currency kept, conversion at posting?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Currency kept, conversion at posting?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Purchase order in foreign currency (USD, CNY)",
+        "Currency kept, conversion at posting?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G09",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Supplier confirms different quantity/price/date",
+      "question": "Confirmed vs ordered visible?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Confirmed vs ordered visible?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Supplier confirms different quantity/price/date",
+        "Confirmed vs ordered visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G10",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Supplier never confirms",
+      "question": "Unconfirmed purchase flagged?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Unconfirmed purchase flagged?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Supplier never confirms",
+        "Unconfirmed purchase flagged?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G11",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Supplier moves the date several times",
+      "question": "Revision history and latest promise?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Revision history and latest promise?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Supplier moves the date several times",
+        "Revision history and latest promise?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G12",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Purchase cancelled after supplier produced",
+      "question": "Cancellation cost or refusal recorded?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Cancellation cost or refusal recorded?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Purchase cancelled after supplier produced",
+        "Cancellation cost or refusal recorded?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G13",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Purchase reduced after the customer order was cancelled",
+      "question": "Demand chain updated?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Demand chain updated?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Purchase reduced after the customer order was cancelled",
+        "Demand chain updated?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G14",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Two suppliers for the same item, split sourcing",
+      "question": "Both purchases cover one demand?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Both purchases cover one demand?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Two suppliers for the same item, split sourcing",
+        "Both purchases cover one demand?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G15",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Drop-ship purchase order for a customer order",
+      "question": "Linked to the sales commitment?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Linked to the sales commitment?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Drop-ship purchase order for a customer order",
+        "Linked to the sales commitment?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G16",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Import by sea (8 weeks), one container, many purchases",
+      "question": "In-transit per purchase?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: In-transit per purchase?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Import by sea (8 weeks), one container, many purchases",
+        "In-transit per purchase?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "G17",
+      "section": "Purchasing: demand and purchase order",
+      "title": "Purchase of non-stock items (service, consumables)",
+      "question": "No stock movement expected?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: No stock movement expected?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Purchase of non-stock items (service, consumables)",
+        "No stock movement expected?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H01",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Receipt exactly as ordered",
+      "question": "Purchase fulfilled?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Purchase fulfilled?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Receipt exactly as ordered",
+        "Purchase fulfilled?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H02",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Under-delivery, rest later",
+      "question": "Open remainder?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Open remainder?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Under-delivery, rest later",
+        "Open remainder?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H03",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Under-delivery, rest never",
+      "question": "Remainder closed through a confirmed revision with a reason?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Remainder closed through a confirmed revision with a reason? An agent can prepare the revision; a person confirms the mutation.",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Under-delivery, rest never",
+        "Remainder closed through a confirmed revision with a reason?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H04",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Over-delivery accepted",
+      "question": "Surplus visible?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Surplus visible?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Over-delivery accepted",
+        "Surplus visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H05",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Over-delivery rejected or returned",
+      "question": "Supplier return linked?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Supplier return linked?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Over-delivery rejected or returned",
+        "Supplier return linked?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H06",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Wrong item delivered",
+      "question": "Received item ≠ ordered item visible?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Received item ≠ ordered item visible?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Wrong item delivered",
+        "Received item ≠ ordered item visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H07",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Substitute/successor item delivered",
+      "question": "Accepted against the purchase with a link?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Accepted against the purchase with a link?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Substitute/successor item delivered",
+        "Accepted against the purchase with a link?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H08",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Damaged goods, part to quarantine",
+      "question": "Quarantine not available?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Quarantine not available?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Damaged goods, part to quarantine",
+        "Quarantine not available?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H09",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Receipt without purchase order (free, sample, misdelivery)",
+      "question": "Why did stock arrive?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Why did stock arrive?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Receipt without purchase order (free, sample, misdelivery)",
+        "Why did stock arrive?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H10",
+      "section": "Goods receipt and supplier deviations",
+      "title": "One delivery for several purchase orders",
+      "question": "Split across purchases?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Split across purchases?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "One delivery for several purchase orders",
+        "Split across purchases?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H11",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Delivery earlier than confirmed",
+      "question": "Early receipt recorded?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Early receipt recorded?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Delivery earlier than confirmed",
+        "Early receipt recorded?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H12",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Receipt recorded before the purchase order exists",
+      "question": "Linked later?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Linked later?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Receipt recorded before the purchase order exists",
+        "Linked later?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H13",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Receipt with batches, expiry, serial numbers",
+      "question": "Recorded per lot?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Recorded per lot?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Receipt with batches, expiry, serial numbers",
+        "Recorded per lot?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H14",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Wrong receipt recorded, then corrected",
+      "question": "Reversal movement, not overwrite?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Reversal movement, not overwrite?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Wrong receipt recorded, then corrected",
+        "Reversal movement, not overwrite?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H15",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Quality inspection releases days later",
+      "question": "Received but not released?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Received but not released?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Quality inspection releases days later",
+        "Received but not released?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H16",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Receipt for a customer-specific purchase (cross-docking)",
+      "question": "Goes straight to the waiting commitment?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Goes straight to the waiting commitment?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Receipt for a customer-specific purchase (cross-docking)",
+        "Goes straight to the waiting commitment?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H17",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Advice says 100, 96 arrive",
+      "question": "Advised vs received visible?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Advised vs received visible?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Advice says 100, 96 arrive",
+        "Advised vs received visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H18",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Return to supplier with supplier credit",
+      "question": "Movement and credit linked?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Movement and credit linked?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Return to supplier with supplier credit",
+        "Movement and credit linked?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "H19",
+      "section": "Goods receipt and supplier deviations",
+      "title": "Freight and duty arrive later and change landed cost",
+      "question": "Cost re-allocated to the receipt?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Cost re-allocated to the receipt?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Freight and duty arrive later and change landed cost",
+        "Cost re-allocated to the receipt?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I01",
+      "section": "Supplier invoice and payment",
+      "title": "Three-way match: purchase = receipt = invoice",
+      "question": "Match confirmed?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Match confirmed?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Three-way match: purchase = receipt = invoice",
+        "Match confirmed?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I02",
+      "section": "Supplier invoice and payment",
+      "title": "Invoiced quantity > received quantity",
+      "question": "Difference flagged?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Difference flagged?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Invoiced quantity > received quantity",
+        "Difference flagged?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I03",
+      "section": "Supplier invoice and payment",
+      "title": "Invoiced price ≠ purchase price",
+      "question": "Price variance flagged?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Price variance flagged?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Invoiced price ≠ purchase price",
+        "Price variance flagged?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I04",
+      "section": "Supplier invoice and payment",
+      "title": "Invoice before receipt",
+      "question": "Invoiced but not received visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Invoiced but not received visible?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Invoice before receipt",
+        "Invoiced but not received visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I05",
+      "section": "Supplier invoice and payment",
+      "title": "One invoice for several purchase orders",
+      "question": "Allocated per purchase?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Allocated per purchase?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "One invoice for several purchase orders",
+        "Allocated per purchase?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I06",
+      "section": "Supplier invoice and payment",
+      "title": "Several partial invoices for one purchase",
+      "question": "Sum vs purchase?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Sum vs purchase?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Several partial invoices for one purchase",
+        "Sum vs purchase?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I07",
+      "section": "Supplier invoice and payment",
+      "title": "Freight invoice from a third party for a purchase",
+      "question": "Linked to the receipt cost?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Linked to the receipt cost?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Freight invoice from a third party for a purchase",
+        "Linked to the receipt cost?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I08",
+      "section": "Supplier invoice and payment",
+      "title": "Supplier credit note for defective goods",
+      "question": "Payable reduced?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Payable reduced?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Supplier credit note for defective goods",
+        "Payable reduced?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I09",
+      "section": "Supplier invoice and payment",
+      "title": "Down payment to the supplier before production",
+      "question": "Prepayment offset later?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Prepayment offset later?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Down payment to the supplier before production",
+        "Prepayment offset later?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I10",
+      "section": "Supplier invoice and payment",
+      "title": "Payment with discount; partial payment; offset with credit",
+      "question": "Settlement allocations correct?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Settlement allocations correct?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Payment with discount; partial payment; offset with credit",
+        "Settlement allocations correct?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I11",
+      "section": "Supplier invoice and payment",
+      "title": "Exchange difference between USD invoice and payment",
+      "question": "FX difference posted?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: FX difference posted?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Exchange difference between USD invoice and payment",
+        "FX difference posted?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "I12",
+      "section": "Supplier invoice and payment",
+      "title": "Duplicate supplier invoice",
+      "question": "Detected, not double-posted?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Detected, not double-posted?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Duplicate supplier invoice",
+        "Detected, not double-posted?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J01",
+      "section": "Warehouse and stock",
+      "title": "Transfer between warehouses with transit time",
+      "question": "Stock in transit?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Stock in transit?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Transfer between warehouses with transit time",
+        "Stock in transit?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J02",
+      "section": "Warehouse and stock",
+      "title": "Stock count with gains and losses",
+      "question": "Count movements with reason?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Count movements with reason?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Stock count with gains and losses",
+        "Count movements with reason?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J03",
+      "section": "Warehouse and stock",
+      "title": "Cycle count of single bins during operation",
+      "question": "Correct during open picks?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Correct during open picks?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Cycle count of single bins during operation",
+        "Correct during open picks?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J04",
+      "section": "Warehouse and stock",
+      "title": "Shrinkage, theft, breakage with reason",
+      "question": "Movement with reason?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Movement with reason?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Shrinkage, theft, breakage with reason",
+        "Movement with reason?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J05",
+      "section": "Warehouse and stock",
+      "title": "Expired stock blocked and scrapped",
+      "question": "Excluded from availability, then scrapped?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Excluded from availability, then scrapped?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Expired stock blocked and scrapped",
+        "Excluded from availability, then scrapped?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J06",
+      "section": "Warehouse and stock",
+      "title": "Negative stock because shipment was booked before receipt",
+      "question": "Negative visible and explained?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Negative visible and explained?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Negative stock because shipment was booked before receipt",
+        "Negative visible and explained?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J07",
+      "section": "Warehouse and stock",
+      "title": "3PL stock differs from own records",
+      "question": "Reconciliation difference visible?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Reconciliation difference visible?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "3PL stock differs from own records",
+        "Reconciliation difference visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J08",
+      "section": "Warehouse and stock",
+      "title": "Consignment stock at the customer (still ours)",
+      "question": "Owned but elsewhere?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Owned but elsewhere?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Consignment stock at the customer (still ours)",
+        "Owned but elsewhere?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J09",
+      "section": "Warehouse and stock",
+      "title": "Consignment from the supplier (here, not ours)",
+      "question": "Held but not owned?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Held but not owned?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Consignment from the supplier (here, not ours)",
+        "Held but not owned?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J10",
+      "section": "Warehouse and stock",
+      "title": "Stock valuation after a freight surcharge",
+      "question": "Valuation re-derived?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Valuation re-derived?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Stock valuation after a freight surcharge",
+        "Valuation re-derived?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "J11",
+      "section": "Warehouse and stock",
+      "title": "Re-labelling item A into item B",
+      "question": "Paired movements?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Paired movements?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Re-labelling item A into item B",
+        "Paired movements?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "K01",
+      "section": "Kits, bills of material and variants",
+      "title": "Kit sold, shipped from components",
+      "question": "Availability = minimum of components?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Availability = minimum of components?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Kit sold, shipped from components",
+        "Availability = minimum of components?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "K02",
+      "section": "Kits, bills of material and variants",
+      "title": "One component missing, no partial kit allowed",
+      "question": "Whole kit held?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Whole kit held?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "One component missing, no partial kit allowed",
+        "Whole kit held?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "K03",
+      "section": "Kits, bills of material and variants",
+      "title": "Return of a single component from a kit",
+      "question": "Component back, kit credit partial?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Component back, kit credit partial?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Return of a single component from a kit",
+        "Component back, kit credit partial?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "K04",
+      "section": "Kits, bills of material and variants",
+      "title": "Light assembly: components consumed, finished item produced",
+      "question": "Paired movements?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Paired movements?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Light assembly: components consumed, finished item produced",
+        "Paired movements?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "K05",
+      "section": "Kits, bills of material and variants",
+      "title": "Variant item (size/colour) purchased together",
+      "question": "Per-variant stock?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Per-variant stock?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Variant item (size/colour) purchased together",
+        "Per-variant stock?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "K06",
+      "section": "Kits, bills of material and variants",
+      "title": "Bundle price split across components (revenue, tax)",
+      "question": "Split stated or derived?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Split stated or derived?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Bundle price split across components (revenue, tax)",
+        "Split stated or derived?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L01",
+      "section": "E-commerce and marketplaces",
+      "title": "Amazon FBA: stock at Amazon, sales/returns/fees via reports",
+      "question": "Stock at an external location?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Stock at an external location?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Amazon FBA: stock at Amazon, sales/returns/fees via reports",
+        "Stock at an external location?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L02",
+      "section": "E-commerce and marketplaces",
+      "title": "Marketplace order shipped by us with a deadline",
+      "question": "Deadline at risk visible?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Deadline at risk visible?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Marketplace order shipped by us with a deadline",
+        "Deadline at risk visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L03",
+      "section": "E-commerce and marketplaces",
+      "title": "Marketplace payout: one payment for hundreds of orders minus fees and refunds",
+      "question": "Each order settled, fees as charges?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Each order settled, fees as charges?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Marketplace payout: one payment for hundreds of orders minus fees and refunds",
+        "Each order settled, fees as charges?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L04",
+      "section": "E-commerce and marketplaces",
+      "title": "Shopify order partially refunded in the shop",
+      "question": "Refund recorded from the source?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Refund recorded from the source?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Shopify order partially refunded in the shop",
+        "Refund recorded from the source?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L05",
+      "section": "E-commerce and marketplaces",
+      "title": "Shopify order edited after import",
+      "question": "New version, revised commitment?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: New version, revised commitment?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Shopify order edited after import",
+        "New version, revised commitment?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L06",
+      "section": "E-commerce and marketplaces",
+      "title": "Pre-order of an item not yet available",
+      "question": "Commitment without stock, dated?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Commitment without stock, dated?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Pre-order of an item not yet available",
+        "Commitment without stock, dated?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L07",
+      "section": "E-commerce and marketplaces",
+      "title": "Black Friday: 10,000 orders in two hours",
+      "question": "Throughput and correct reservations?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Throughput and correct reservations?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Black Friday: 10,000 orders in two hours",
+        "Throughput and correct reservations?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L08",
+      "section": "E-commerce and marketplaces",
+      "title": "Subscription order, payment fails",
+      "question": "Recurring commitment held?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Recurring commitment held?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Subscription order, payment fails",
+        "Recurring commitment held?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L09",
+      "section": "E-commerce and marketplaces",
+      "title": "Promotion: free item above EUR 50",
+      "question": "Zero-price line?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Zero-price line?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Promotion: free item above EUR 50",
+        "Zero-price line?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L10",
+      "section": "E-commerce and marketplaces",
+      "title": "Guest order, later with an account (duplicate party)",
+      "question": "Parties merged, history kept?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Parties merged, history kept?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Guest order, later with an account (duplicate party)",
+        "Parties merged, history kept?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L11",
+      "section": "E-commerce and marketplaces",
+      "title": "OSS: EU consumer, destination-country VAT",
+      "question": "Tax rate as stated by the source?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Tax rate as stated by the source?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "OSS: EU consumer, destination-country VAT",
+        "Tax rate as stated by the source?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "L12",
+      "section": "E-commerce and marketplaces",
+      "title": "Shipment to Switzerland/UK (customs, DDP/DAP)",
+      "question": "Duties and incoterm recorded?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Duties and incoterm recorded?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Shipment to Switzerland/UK (customs, DDP/DAP)",
+        "Duties and incoterm recorded?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M01",
+      "section": "B2B specifics",
+      "title": "Blanket order for 10,000 units with monthly call-offs",
+      "question": "Called off vs remaining?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Called off vs remaining?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Blanket order for 10,000 units with monthly call-offs",
+        "Called off vs remaining?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M02",
+      "section": "B2B specifics",
+      "title": "Customer-specific prices, item numbers and names",
+      "question": "Customer item number maps to our item?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Customer item number maps to our item?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer-specific prices, item numbers and names",
+        "Customer item number maps to our item?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M03",
+      "section": "B2B specifics",
+      "title": "EDI chain ORDERS → ORDRSP → DESADV → INVOIC → REMADV",
+      "question": "Each message a source, linked?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Each message a source, linked?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "EDI chain ORDERS → ORDRSP → DESADV → INVOIC → REMADV",
+        "Each message a source, linked?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M04",
+      "section": "B2B specifics",
+      "title": "ORDCHG after confirmation",
+      "question": "Revised commitment?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Revised commitment?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "ORDCHG after confirmation",
+        "Revised commitment?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M05",
+      "section": "B2B specifics",
+      "title": "Retail chain: central warehouse plus store delivery",
+      "question": "Several recipients per order?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Several recipients per order?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Retail chain: central warehouse plus store delivery",
+        "Several recipients per order?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M06",
+      "section": "B2B specifics",
+      "title": "Customer rule: cancel backorders instead of delivering later",
+      "question": "Remainder closed by rule with reason?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Remainder closed by rule with reason?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer rule: cancel backorders instead of delivering later",
+        "Remainder closed by rule with reason?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M07",
+      "section": "B2B specifics",
+      "title": "Customer-prescribed delivery note or pallet label",
+      "question": "Out of core scope?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Out of core scope?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer-prescribed delivery note or pallet label",
+        "Out of core scope?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M08",
+      "section": "B2B specifics",
+      "title": "Customer deducts penalty or marketing contribution",
+      "question": "Short payment with reason?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Short payment with reason?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer deducts penalty or marketing contribution",
+        "Short payment with reason?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M09",
+      "section": "B2B specifics",
+      "title": "Annual rebate at year end",
+      "question": "Rebate credit?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Rebate credit?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Annual rebate at year end",
+        "Rebate credit?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M10",
+      "section": "B2B specifics",
+      "title": "Orderer, recipient, bill-to and payer are four parties",
+      "question": "Roles kept separate?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Roles kept separate?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Orderer, recipient, bill-to and payer are four parties",
+        "Roles kept separate?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M11",
+      "section": "B2B specifics",
+      "title": "Customer is also a supplier (netting)",
+      "question": "Receivable and payable offset?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Receivable and payable offset?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer is also a supplier (netting)",
+        "Receivable and payable offset?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "M12",
+      "section": "B2B specifics",
+      "title": "Sample or loan with return obligation",
+      "question": "Goods out, return expected?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Goods out, return expected?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Sample or loan with return obligation",
+        "Goods out, return expected?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "N01",
+      "section": "Finance, tax and currency",
+      "title": "Intra-community supply (VAT-exempt, VAT ID)",
+      "question": "Stated tax recorded?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Stated tax recorded?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Intra-community supply (VAT-exempt, VAT ID)",
+        "Stated tax recorded?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "N02",
+      "section": "Finance, tax and currency",
+      "title": "Reverse charge on purchase",
+      "question": "Stated tax recorded?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Stated tax recorded?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Reverse charge on purchase",
+        "Stated tax recorded?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "N03",
+      "section": "Finance, tax and currency",
+      "title": "Sale in CHF or USD, payment in EUR",
+      "question": "Currency and FX difference?",
+      "status": "out_of_scope",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Currency and FX difference?",
+      "limitations": [
+        "This journey is deliberately outside the current product scope."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Sale in CHF or USD, payment in EUR",
+        "Currency and FX difference?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "N04",
+      "section": "Finance, tax and currency",
+      "title": "Dunning in three levels, then collection",
+      "question": "Dunning notices from open items?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Dunning notices from open items?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Dunning in three levels, then collection",
+        "Dunning notices from open items?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "N05",
+      "section": "Finance, tax and currency",
+      "title": "Bad debt write-off",
+      "question": "Receivable closed with reason?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Receivable closed with reason?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Bad debt write-off",
+        "Receivable closed with reason?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "N06",
+      "section": "Finance, tax and currency",
+      "title": "Open items per party incl. credits and prepayments",
+      "question": "Party balance correct?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Party balance correct?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Open items per party incl. credits and prepayments",
+        "Party balance correct?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "N07",
+      "section": "Finance, tax and currency",
+      "title": "Handover to DATEV/external accounting, later correction",
+      "question": "Reversal after export?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Reversal after export?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Handover to DATEV/external accounting, later correction",
+        "Reversal after export?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "N08",
+      "section": "Finance, tax and currency",
+      "title": "VAT rate change at a cut-off date",
+      "question": "Rate per invoice date?",
+      "status": "out_of_scope",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Rate per invoice date?",
+      "limitations": [
+        "This journey is deliberately outside the current product scope."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "VAT rate change at a cut-off date",
+        "Rate per invoice date?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "O01",
+      "section": "Master data and identity",
+      "title": "Item number renamed",
+      "question": "History intact (numbers are not identity)?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: History intact (numbers are not identity)?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Item number renamed",
+        "History intact (numbers are not identity)?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "O02",
+      "section": "Master data and identity",
+      "title": "Two parties merged as duplicates",
+      "question": "History of both kept?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: History of both kept?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Two parties merged as duplicates",
+        "History of both kept?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "O03",
+      "section": "Master data and identity",
+      "title": "Customer moves; old orders keep the old address",
+      "question": "Address as stated per document?",
+      "status": "out_of_scope",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Address as stated per document?",
+      "limitations": [
+        "This journey is deliberately outside the current product scope."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer moves; old orders keep the old address",
+        "Address as stated per document?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "O04",
+      "section": "Master data and identity",
+      "title": "Item delisted with open orders or purchases",
+      "question": "Open commitments still served?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Open commitments still served?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Item delisted with open orders or purchases",
+        "Open commitments still served?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "O05",
+      "section": "Master data and identity",
+      "title": "Unit conversion: buy in cartons of 12, sell in pieces",
+      "question": "Quantities comparable?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Quantities comparable?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Unit conversion: buy in cartons of 12, sell in pieces",
+        "Quantities comparable?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "O06",
+      "section": "Master data and identity",
+      "title": "Supplier item number ≠ own number, several suppliers",
+      "question": "Supplier item mapping?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Supplier item mapping?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Supplier item number ≠ own number, several suppliers",
+        "Supplier item mapping?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "P01",
+      "section": "Sources and integration",
+      "title": "Same event delivered twice",
+      "question": "Idempotent?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Idempotent?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Same event delivered twice",
+        "Idempotent?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "P02",
+      "section": "Sources and integration",
+      "title": "Events out of order",
+      "question": "Linked correctly once complete?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Linked correctly once complete?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Events out of order",
+        "Linked correctly once complete?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "P03",
+      "section": "Sources and integration",
+      "title": "Source corrects an earlier record",
+      "question": "New version, not overwrite?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: New version, not overwrite?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Source corrects an earlier record",
+        "New version, not overwrite?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "P04",
+      "section": "Sources and integration",
+      "title": "Source deletes an order afterwards",
+      "question": "Commitment closed with source reason?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Commitment closed with source reason?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Source deletes an order afterwards",
+        "Commitment closed with source reason?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "P05",
+      "section": "Sources and integration",
+      "title": "Incomplete payload accepted",
+      "question": "Gap visible?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Gap visible?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Incomplete payload accepted",
+        "Gap visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "P06",
+      "section": "Sources and integration",
+      "title": "Two systems contradict each other",
+      "question": "Contradiction visible?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Contradiction visible?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Two systems contradict each other",
+        "Contradiction visible?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "P07",
+      "section": "Sources and integration",
+      "title": "Integration down for a day, then catches up",
+      "question": "No duplicates, silent source detected?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: No duplicates, silent source detected?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Integration down for a day, then catches up",
+        "No duplicates, silent source detected?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "P08",
+      "section": "Sources and integration",
+      "title": "Legacy import at go-live (opening stock, open items, open orders)",
+      "question": "Opening balances traceable?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Opening balances traceable?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Legacy import at go-live (opening stock, open items, open orders)",
+        "Opening balances traceable?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "Q01",
+      "section": "Time and period",
+      "title": "Month-end: shipped not invoiced, invoiced not shipped",
+      "question": "Both lists correct?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Both lists correct?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Month-end: shipped not invoiced, invoiced not shipped",
+        "Both lists correct?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "Q02",
+      "section": "Time and period",
+      "title": "Backdated posting into a closed period",
+      "question": "Refused or flagged?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Refused or flagged?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Backdated posting into a closed period",
+        "Refused or flagged?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "Q03",
+      "section": "Time and period",
+      "title": "Stock as of 31 December",
+      "question": "Point-in-time stock?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Point-in-time stock?",
+      "limitations": [],
+      "keywords": [],
+      "question_examples": [
+        "Stock as of 31 December",
+        "Point-in-time stock?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "Q04",
+      "section": "Time and period",
+      "title": "Year end with open backorders and purchases",
+      "question": "Carried over correctly?",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Carried over correctly?",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Year end with open backorders and purchases",
+        "Carried over correctly?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "Q05",
+      "section": "Time and period",
+      "title": "Time zones: order at 23:30 in New York",
+      "question": "Stored in UTC, dated correctly?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Stored in UTC, dated correctly?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Time zones: order at 23:30 in New York",
+        "Stored in UTC, dated correctly?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "R01",
+      "section": "Combined stress stories",
+      "title": "Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged",
+      "question": "Every quantity and every euro reconciles at the end.",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Every quantity and every euro reconciles at the end.",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged",
+        "Every quantity and every euro reconciles at the end."
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "R02",
+      "section": "Combined stress stories",
+      "title": "Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels",
+      "question": "Cancelled demand leaves the purchase assignment.",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Cancelled demand leaves the purchase assignment.",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels",
+        "Cancelled demand leaves the purchase assignment."
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "R03",
+      "section": "Combined stress stories",
+      "title": "Drop shipment with wrong item; customer returns it to us instead of the supplier",
+      "question": "Ownership and credits on both sides.",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Ownership and credits on both sides.",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Drop shipment with wrong item; customer returns it to us instead of the supplier",
+        "Ownership and credits on both sides."
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "R04",
+      "section": "Combined stress stories",
+      "title": "Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees",
+      "question": "Every position allocated.",
+      "status": "missing",
+      "evidence_level": "none",
+      "summary": "Reality evaluates: Every position allocated.",
+      "limitations": [
+        "The current model or services do not support this complete journey."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees",
+        "Every position allocated."
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "R05",
+      "section": "Combined stress stories",
+      "title": "EDI customer sends ORDCHG after a partial delivery was advised",
+      "question": "Revision respects what already shipped.",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Revision respects what already shipped.",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "EDI customer sends ORDCHG after a partial delivery was advised",
+        "Revision respects what already shipped."
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "R06",
+      "section": "Combined stress stories",
+      "title": "Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting",
+      "question": "Landed cost and customer allocation.",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Landed cost and customer allocation.",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting",
+        "Landed cost and customer allocation."
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "R07",
+      "section": "Combined stress stories",
+      "title": "Month-end count difference uncovers three reservations",
+      "question": "Who is postponed, and how is it explained?",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Who is postponed, and how is it explained?",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Month-end count difference uncovers three reservations",
+        "Who is postponed, and how is it explained?"
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    },
+    {
+      "id": "R08",
+      "section": "Combined stress stories",
+      "title": "Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit",
+      "question": "Hold reason names all facts.",
+      "status": "partial",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Hold reason names all facts.",
+      "limitations": [
+        "Only part of this journey is currently proven."
+      ],
+      "keywords": [],
+      "question_examples": [
+        "Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit",
+        "Hold reason names all facts."
+      ],
+      "tools": [],
+      "demo_references": [],
+      "product_paths": [],
+      "related_journeys": []
+    }
+  ]
+}

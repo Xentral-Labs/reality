@@ -244,6 +244,29 @@ parameter_descriptions:
   value: Scalar observation value validated and canonicalized by its predicate contract.
 
 commands:
+  - name: Ask the Business Journey Guide
+    service: business_journey_guide
+    mode: read
+    adapters: [Web, API, MCP, Chat]
+    reads: []
+    writes: []
+    effect: Match one bounded capability question against the release-reviewed static journey catalog and return cited status and limitations without reading company data.
+  - name: Suggest a Business Journey
+    service: business_journey_proposal_create
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    confirmation: required
+    reads: [journey_proposal]
+    writes: [journey_proposal]
+    effect: Creates one account-authored product suggestion after showing matching published journeys and open suggestions.
+  - name: Set a Business Journey suggestion vote
+    service: business_journey_vote_set
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    confirmation: required
+    reads: [journey_proposal, journey_proposal_vote]
+    writes: [journey_proposal_vote]
+    effect: Sets or withdraws the confirming account's single reversible vote and derives the public count from active votes.
   - name: Read reviewed partial commercial match
     service: commercial_match
     mode: read
@@ -1413,6 +1436,33 @@ commands:
     effect: Records one explicit physical outcome for part or all of an arrived customer return without implying a credit.
 
 capability_guidance:
+  business_journey_guide:
+    kind: read
+    application_tool: business_journey_guide
+    purpose: Answer whether Reality supports a business situation using release-reviewed journey evidence and explicit limitations.
+    use_when: [A person asks whether Reality can handle a business situation or what happens in a named scenario.]
+    do_not_use_when: [The question asks for current company records or requests an operational change.]
+    required_context: [A bounded capability question and an optional English or German locale.]
+    data_basis: [business_journey_catalog]
+    limitations: [The guide describes product capability and never proves that a specific company has matching records.]
+    freshness: Reads the immutable journey catalog shipped with the running release and writes no business or question data.
+    empty_result: A not-established result means the published catalog does not prove the requested capability.
+    refusal_behavior: Empty, overlong or unsupported-locale questions are refused without reading company data.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: discovery
+      proves: [The answer status and cited journey IDs agree with the release-reviewed catalog.]
+      does_not_prove: [That a specific company contains matching evidence or that a missing capability is planned.]
+    unknown_when: [No catalog entry reaches the deterministic match threshold.]
+    next_steps: [Open the cited Business Journey Guide entries or ask an operational company question separately.]
+    examples:
+      use:
+      - scenario: "Can Reality handle a supplier delivering too little?"
+        reason: The guide can cite the under-delivery journey and its evidence ceiling.
+      do_not_use:
+      - scenario: "Which supplier deliveries are short today?"
+        reason: Current company records require tenant-scoped operational reads.
   price_quote_read:
     kind: read
     application_tool: price_quote
@@ -4621,6 +4671,9 @@ reachable_mutations_that_are_not_commands:
   set_source_system_base_url: Records where a configured source system can be opened in a browser. Integration configuration, not something an operator asks the business to do; it changes no business record.
 
 agent_command_coverage:
+  business_journey_guide: {classification: eligible, tools: [business_journey_guide]}
+  business_journey_proposal_create: {classification: eligible, tools: [business_journey_suggest_propose]}
+  business_journey_vote_set: {classification: eligible, tools: [business_journey_vote_propose]}
   invoice_credit_context: {classification: eligible, tools: [invoice_credit_context]}
   billable_positions: {classification: eligible, tools: [invoice_billable_positions]}
   dunning_context: {classification: eligible, tools: [finance_dunning_context]}

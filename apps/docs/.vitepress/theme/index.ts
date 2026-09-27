@@ -6,6 +6,7 @@ import PostMeta from "./components/PostMeta.vue";
 import Subscribe from "./components/Subscribe.vue";
 import ProductLink from "./components/ProductLink.vue";
 import ToolUsage from "./components/ToolUsage.vue";
+import BusinessJourneyGuide from "./components/BusinessJourneyGuide.vue";
 import "./custom.css";
 import "./tool-usage.css";
 
@@ -18,5 +19,6 @@ export default {
     app.component("Subscribe", Subscribe);
     app.component("ProductLink", ProductLink);
     app.component("ToolUsage", ToolUsage);
+    app.component("BusinessJourneyGuide", BusinessJourneyGuide);
   },
 };

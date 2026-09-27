@@ -4144,3 +4144,60 @@ export const searchApi = {
       signal,
     }),
 };
+
+export type JourneyProposal = {
+  id: string;
+  title: string;
+  business_question: string;
+  expected_outcome: string;
+  process_area: string;
+  status: string;
+  public_rationale: string;
+  available_journey_id: string | null;
+  vote_count: number;
+  voted: boolean;
+  created_at: string;
+  business_context?: string;
+  similarity_score?: number;
+};
+
+export type JourneyMatch = {
+  id: string;
+  title: string;
+  status: string;
+  score: number;
+};
+
+export type JourneyProposalPreview = {
+  requires_confirmation: true;
+  journey_matches: JourneyMatch[];
+  proposal_matches: JourneyProposal[];
+};
+
+export type JourneyProposalInput = {
+  title: string;
+  business_question: string;
+  expected_outcome: string;
+  process_area: string;
+  business_context?: string;
+  confirmed: boolean;
+};
+
+export const journeyProposalApi = {
+  list: () => request<JourneyProposal[]>("/api/auth/journey-proposals"),
+  submit: (body: JourneyProposalInput) =>
+    request<JourneyProposal | JourneyProposalPreview>("/api/auth/journey-proposals", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  vote: (id: string) =>
+    request<JourneyProposal>(`/api/auth/journey-proposals/${encodeURIComponent(id)}/vote`, {
+      method: "POST",
+      body: JSON.stringify({ confirmed: true }),
+    }),
+  withdrawVote: (id: string) =>
+    request<JourneyProposal>(`/api/auth/journey-proposals/${encodeURIComponent(id)}/vote`, {
+      method: "DELETE",
+      body: JSON.stringify({ confirmed: true }),
+    }),
+};

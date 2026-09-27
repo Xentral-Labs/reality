@@ -161,6 +161,10 @@ MEMBERSHIP_MUTATION_TOOLS = {
     "invitation_revoke",
     "member_remove",
 }
+ACCOUNT_MUTATION_TOOLS = MEMBERSHIP_MUTATION_TOOLS | {
+    "business_journey_proposal_create",
+    "business_journey_vote_set",
+}
 
 
 @dataclass(frozen=True)
@@ -1835,7 +1839,35 @@ def _proposal_execution_receipt(
     return result
 
 
+from reality.tools.business_journeys import (
+    business_journey_guide as _business_journey_guide,
+)
+from reality.tools.business_journeys import (
+    business_journey_proposal_create as _business_journey_proposal_create,
+)
+from reality.tools.business_journeys import (
+    business_journey_vote_set as _business_journey_vote_set,
+)
+
 TOOLS = {
+    "business_journey_guide": Tool(
+        "business_journey_guide",
+        "Ask what Reality supports and receive cited Business Journey Guide evidence.",
+        False,
+        _business_journey_guide,
+    ),
+    "business_journey_proposal_create": Tool(
+        "business_journey_proposal_create",
+        "Create a reviewed Business Journey suggestion for the confirming account.",
+        True,
+        _business_journey_proposal_create,
+    ),
+    "business_journey_vote_set": Tool(
+        "business_journey_vote_set",
+        "Set or withdraw the confirming account's vote for a Business Journey suggestion.",
+        True,
+        _business_journey_vote_set,
+    ),
     "capability_describe": Tool(
         "capability_describe",
         "Describe the safe use and verification path of one public agent capability.",
@@ -3084,6 +3116,19 @@ def create_change_proposal(
             "target": {target_key: target_value},
             "requires_confirmation": True,
         }
+    if tool_name == "business_journey_proposal_create":
+        from reality.services.business_journeys import prepare_proposal
+
+        preview = prepare_proposal(session, **normalized_arguments)
+    if tool_name == "business_journey_vote_set":
+        from reality.services.business_journeys import prepare_vote
+
+        preview = prepare_vote(
+            session,
+            None,
+            str(normalized_arguments.get("proposal_id", "")),
+            active=bool(normalized_arguments.get("active", True)),
+        )
     if tool_name == "graph.reports.change":
         from reality.services.analytics.proposals import prepare
         from reality.services.analytics.reports import CALLER
@@ -3307,7 +3352,9 @@ def approve_and_execute_proposal(
         raise InvalidOperation(code="proposal_mutation_tool_invalid")
     arguments = json.loads(candidate.input)
     if tool_name in MEMBERSHIP_MUTATION_TOOLS and confirming_principal is None:
-        raise InvalidOperation(code="membership_change_owner_required")
+        raise InvalidOperation("Membership changes require a confirming human owner.")
+    if tool_name in ACCOUNT_MUTATION_TOOLS and confirming_principal is None:
+        raise InvalidOperation("Account confirmation is required.")
 
     from reality.db.core import Tenant
     from reality.services.delivery_actions import REVIEW_KEY, eligible, validate_review
@@ -3507,7 +3554,7 @@ def approve_and_execute_proposal(
         "shipment_event_supersede",
     }:
         arguments["_action_id"] = proposal.id
-    if tool_name in MEMBERSHIP_MUTATION_TOOLS:
+    if tool_name in ACCOUNT_MUTATION_TOOLS:
         arguments["_confirming_user_id"] = confirming_principal.user_id
     from reality.playground.actions import MASTER_TOOLS
     from reality.services.tenant_policy import master_tool_execution

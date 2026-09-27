@@ -9,10 +9,12 @@ all reach the same operation.
 
 | Key                                                                               | Label                                      | Area                       | Agent tools                                                                                                                                                                                  | Reach via                               |
 | --------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| [`business_journey_proposal_create`](#command-business_journey_proposal_create)   | Suggest a Business Journey                 | Agent governance           | `business_journey_suggest_propose`                                                                                                                                                           | Web · API · MCP · Chat                  |
 | [`create_invitation`](#command-create_invitation)                                 | Invite company member                      | Company & access           | `member_invite_propose`                                                                                                                                                                      | Web · API · MCP · Chat                  |
 | [`remove_member`](#command-remove_member)                                         | Remove company member                      | Company & access           | `member_remove_propose`                                                                                                                                                                      | Web · API · MCP · Chat                  |
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation                  | Company & access           | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation                  | Company & access           | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
+| [`business_journey_guide`](#command-business_journey_guide)                       | Ask the Business Journey Guide             | Cross-functional           | `business_journey_guide`                                                                                                                                                                     | Web · API · MCP · Chat                  |
 | [`assign_supply`](#command-assign_supply)                                         | Assign incoming supply to customer demand  | Cross-functional           | `supply_assign_propose`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report                | Cross-functional           | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision     | Cross-functional           | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
@@ -30,6 +32,7 @@ all reach the same operation.
 | [`record_notice`](#command-record_notice)                                         | Record dunning notice                      | Cross-functional           | `finance_dunning_record_propose`                                                                                                                                                             | Web · MCP · Chat                        |
 | [`propose_company_party`](#command-propose_company_party)                         | Record the company as its business partner | Cross-functional           | `company_party_record_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`reverse_notice`](#command-reverse_notice)                                       | Reverse dunning notice                     | Cross-functional           | `finance_dunning_reverse_propose`                                                                                                                                                            | Web · MCP · Chat                        |
+| [`business_journey_vote_set`](#command-business_journey_vote_set)                 | Set a Business Journey suggestion vote     | Cross-functional           | `business_journey_vote_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
 | [`accept_adjustment`](#command-accept_adjustment)                                 | Accept settlement reduction                | Finance                    | `finance_adjustment_propose`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`assign_component`](#command-assign_component)                                   | Assign received financial component        | Finance                    | `finance_component_assign_propose`                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`create_account`](#command-create_account)                                       | Create operational account                 | Finance                    | `finance_create_account_propose`                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -125,6 +128,52 @@ all reach the same operation.
 | [`record_shipment_notice`](#command-record_shipment_notice)                       | Record shipment notice                     | Warehouse & logistics      | `shipment_notice_record_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`state_lot_expiry`](#command-state_lot_expiry)                                   | State lot expiry                           | Warehouse & logistics      | `lot_expiry_state_propose`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
 | [`supersede_shipment_event`](#command-supersede_shipment_event)                   | Supersede shipment event                   | Warehouse & logistics      | `shipment_event_supersede_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
+
+## Agent governance
+
+### `business_journey_proposal_create` — Suggest a Business Journey {#command-business_journey_proposal_create}
+
+Creates one account-authored product suggestion after showing matching published journeys and open
+suggestions.
+
+**Synopsis**
+
+```text
+business_journey_suggest_propose title business_question expected_outcome process_area [business_context]
+```
+
+**Reach via:** Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `journey_proposal` · Writes: `journey_proposal`
+
+**See also:** agent tool
+[`business_journey_suggest_propose`](./commands#tool-business_journey_suggest_propose)
+
+#### `business_journey_suggest_propose` — Suggest a Business Journey {#tool-business_journey_suggest_propose}
+
+Prepare this business mutation without changing state. Suggest a Business Journey. Human
+confirmation is required.
+
+**Synopsis**
+
+```text
+business_journey_suggest_propose title business_question expected_outcome process_area [business_context]
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                | Type     | Required | Description                                                                                                                                                                                                          | Default |
+| ------------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `title`             | `string` | yes      | —                                                                                                                                                                                                                    | —       |
+| `business_question` | `string` | yes      | —                                                                                                                                                                                                                    | —       |
+| `expected_outcome`  | `string` | yes      | —                                                                                                                                                                                                                    | —       |
+| `process_area`      | `string` | yes      | `availability`, `b2b`, `combined`, `commerce`, `finance`, `invoicing`, `master_data`, `orders`, `payables`, `payments`, `products`, `purchasing`, `receiving`, `returns`, `shipping`, `sources`, `time`, `warehouse` | —       |
+| `business_context`  | `string` | no       | —                                                                                                                                                                                                                    | —       |
+
+**See also:** command
+[`business_journey_proposal_create`](./commands#command-business_journey_proposal_create)
 
 ## Company & access
 
@@ -6114,6 +6163,64 @@ document_create_propose document_type number party_id lines gross_amount [curren
 
 ## Cross-functional
 
+### `business_journey_guide` — Ask the Business Journey Guide {#command-business_journey_guide}
+
+Match one bounded capability question against the release-reviewed static journey catalog and return
+cited status and limitations without reading company data.
+
+**Synopsis**
+
+```text
+business_journey_guide question [locale]
+```
+
+**Reach via:** Web · API · MCP · Chat
+
+**Effect:** Reads: — · Writes: —
+
+**See also:** agent tool [`business_journey_guide`](./commands#tool-business_journey_guide)
+
+#### `business_journey_guide` — Ask about Reality capabilities {#tool-business_journey_guide}
+
+Answer whether Reality supports a business situation using cited, release-reviewed Business Journey
+Guide entries.
+
+**Synopsis**
+
+```text
+business_journey_guide question [locale]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query               | Kind                        | Default |
+| ---------------------------- | --------------------------- | ------- |
+| `MCP business_journey_guide` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Answer whether Reality supports a business situation using release-reviewed journey evidence and
+explicit limitations.
+
+**Use when**
+
+- A person asks whether Reality can handle a business situation or what happens in a named scenario.
+
+**Do not use when**
+
+- The question asks for current company records or requests an operational change.
+
+**Parameters**
+
+| Name       | Type     | Required | Description                                                               | Default |
+| ---------- | -------- | -------- | ------------------------------------------------------------------------- | ------- |
+| `question` | `string` | yes      | Business situation to check against the published Business Journey Guide. | —       |
+| `locale`   | `string` | no       | Language for the deterministic capability conclusion. `en`, `de`          | `en`    |
+
+**See also:** command [`business_journey_guide`](./commands#command-business_journey_guide)
+
 ### `assign_supply` — Assign incoming supply to customer demand {#command-assign_supply}
 
 Assigns an explicit quantity of an incoming supplier commitment to a compatible customer commitment
@@ -7359,6 +7466,46 @@ Reverse one owner-confirmed manual reminder and its fee effect without deleting 
 **Verify with:** `finance.dunning.notice` — Reversal identity and fee outcome are retained.
 
 **See also:** command [`reverse_notice`](./commands#command-reverse_notice)
+
+### `business_journey_vote_set` — Set a Business Journey suggestion vote {#command-business_journey_vote_set}
+
+Sets or withdraws the confirming account's single reversible vote and derives the public count from
+active votes.
+
+**Synopsis**
+
+```text
+business_journey_vote_propose proposal_id active
+```
+
+**Reach via:** Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `journey_proposal`, `journey_proposal_vote` · Writes: `journey_proposal_vote`
+
+**See also:** agent tool
+[`business_journey_vote_propose`](./commands#tool-business_journey_vote_propose)
+
+#### `business_journey_vote_propose` — Vote for a Business Journey suggestion {#tool-business_journey_vote_propose}
+
+Prepare this business mutation without changing state. Vote for a Business Journey suggestion. Human
+confirmation is required.
+
+**Synopsis**
+
+```text
+business_journey_vote_propose proposal_id active
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name          | Type      | Required | Description                                     | Default |
+| ------------- | --------- | -------- | ----------------------------------------------- | ------- |
+| `proposal_id` | `string`  | yes      | —                                               | —       |
+| `active`      | `boolean` | yes      | True votes; false withdraws the account's vote. | `True`  |
+
+**See also:** command [`business_journey_vote_set`](./commands#command-business_journey_vote_set)
 
 ## Agent tools without a business command
 

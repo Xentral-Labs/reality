@@ -31,6 +31,11 @@ from reality.web.company_setup_api import is_account_setup_path
 from reality.web.company_setup_api import router as company_setup_router
 from reality.web.demo_data_api import router as demo_data_router
 from reality.web.interactions_api import router as interactions_router
+from reality.web.journey_guide_api import account_router as journey_account_router
+from reality.web.journey_guide_api import admin_router as journey_admin_router
+from reality.web.journey_guide_api import internal_router as journey_internal_router
+from reality.web.journey_guide_api import proposal_router as journey_proposal_router
+from reality.web.journey_guide_api import router as journey_guide_router
 from reality.web.mcp_authorization import router as mcp_authorization_router
 from reality.web.playground import router as playground_router
 from reality.web.storyline_api import account_router as storyline_account_router
@@ -44,6 +49,8 @@ def configured_url(name: str, default: str) -> str:
 
 API_URL = configured_url("API_URL", "http://127.0.0.1:8000")
 APP_URL = configured_url("APP_URL", "http://localhost:8080")
+SITE_URL = configured_url("SITE_URL", "http://localhost:8082")
+DOCS_URL = configured_url("DOCS_URL", "http://localhost:8083")
 
 
 @asynccontextmanager
@@ -101,7 +108,7 @@ async def refusal_http_exception(
     )
 
 
-allowed_origins = [APP_URL]
+allowed_origins = [APP_URL, SITE_URL, DOCS_URL]
 if APP_URL in {"http://localhost:8080", "http://127.0.0.1:8080"}:
     allowed_origins.extend(["http://localhost:5173", "http://127.0.0.1:5173"])
 app.add_middleware(
@@ -258,6 +265,9 @@ async def protect_application_api(request: Request, call_next):
         "/api/auth/invitations/inspect",
         "/api/auth/invitations/signup",
         "/api/v1/system/status",
+        "/api/journey-guide",
+        "/api/journey-guide/questions",
+        "/api/journey-proposals",
         "/healthz",
     }
     if not path.startswith("/api/") or path in public_paths:
@@ -314,6 +324,11 @@ async def protect_application_api(request: Request, call_next):
 app.include_router(auth_router)
 app.include_router(auth_admin_router)
 app.include_router(interactions_router)
+app.include_router(journey_guide_router)
+app.include_router(journey_proposal_router)
+app.include_router(journey_account_router)
+app.include_router(journey_admin_router)
+app.include_router(journey_internal_router)
 app.include_router(api_router)
 app.include_router(public_api_router)
 app.include_router(playground_router)

@@ -16,11 +16,13 @@ WORKDIR /app
 ARG APP_URL=https://app.runreality.ai
 ARG SITE_URL=https://runreality.ai
 ARG DOCS_URL=https://docs.runreality.ai
+ARG API_URL=https://api.runreality.ai
 ARG ANALYTICS_SCRIPT_URL=
 ARG ANALYTICS_WEBSITE_ID=
 ENV APP_URL=${APP_URL} \
     SITE_URL=${SITE_URL} \
     DOCS_URL=${DOCS_URL} \
+    API_URL=${API_URL} \
     ANALYTICS_SCRIPT_URL=${ANALYTICS_SCRIPT_URL} \
     ANALYTICS_WEBSITE_ID=${ANALYTICS_WEBSITE_ID}
 COPY apps/docs/package*.json ./
