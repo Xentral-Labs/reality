@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { isSearchRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -144,7 +145,10 @@ try {
     .waitFor();
   await Promise.all([
     page.waitForResponse((r) => r.url().includes("/inspector/commitment/com%2F1")),
-    page.getByRole("dialog").getByRole("button", { name: "com/1", exact: true }).click(),
+    page
+      .getByRole("dialog")
+      .getByRole("button", { name: /com\/1$/ })
+      .click(),
   ]);
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Related observations", exact: true }).first().click();
@@ -218,7 +222,7 @@ try {
           fullPage: true,
         });
       }
-  assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
+  assert.equal(requests.filter((r) => r.method !== "GET" && !isSearchRead(r.path)).length, 0);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: exact subject/source navigation, keyboard and reload, raw values, filters, empty/retry, no writes and 16 localized screenshots.",

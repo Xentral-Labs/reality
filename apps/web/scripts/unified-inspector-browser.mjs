@@ -102,6 +102,18 @@ await page.route("**/api/**", async (route) => {
       classes: [{ class_id: "shortage", open: 3 }],
       total: 3,
       observed_at: "2026-09-08T10:00:00Z",
+      // The counts come from a stored, completed generation.
+      metadata: {
+        projection: "attention_summary",
+        calculation_mode: "stored",
+        state: "ready",
+        processed_event_sequence: 12,
+        target_event_sequence: 12,
+        completed_at: "2026-09-08T10:00:00Z",
+        projection_version: 1,
+        upstream_freshness: "unknown",
+        consistency: "completed_snapshot",
+      },
     });
   if (path.endsWith("/attention")) {
     const classId = new URL(req.url()).searchParams.get("class_id");
@@ -141,6 +153,12 @@ await page.route("**/api/**", async (route) => {
       ],
     });
   if (path.endsWith("/items")) return reply([{ id: "catalog-item", name: "Catalog item data" }]);
+  // The company timeline shows decisions beside events (spec 263); none in this fixture.
+  if (path.endsWith("/change-proposals"))
+    return reply({
+      items: [],
+      page: { number: 1, size: 100, total: 0, pages: 1, has_previous: false, has_next: false },
+    });
   if (path.endsWith("/timeline"))
     return reply({
       events: [
@@ -960,26 +978,26 @@ if (process.env.NAVIGATION_ONLY === "1") {
   process.exit(0);
 }
 
+// The Inspector's sections and tab names changed; the section navigation has its own check
+// below. Other steps open a view by its route key, as back/forward navigation does.
 const tab = async (name) => {
-  const groups = {
-    Overview: "Understand context",
-    "Record graph": "Understand context",
-    Facts: "Facts & origins",
-    "Reality records": "Facts & origins",
-    "Additional fact rules": "Rules & insights",
-    "Exception catalog": "Rules & insights",
-    "Projections & views": "Rules & insights",
-    "Commands & actions": "Actions & history",
-    "Execution history": "Actions & history",
+  const views = {
+    Overview: "overview",
+    "Record graph": "graph",
+    Facts: "facts",
+    "Reality records": "facts",
+    "Additional fact rules": "rules",
+    "Exception catalog": "exceptions",
+    "Projections & views": "views",
+    "Commands & actions": "commands",
+    "Execution history": "history",
   };
-  await page
-    .getByRole("navigation", { name: "Reality Inspector", exact: true })
-    .getByRole("link", { name: groups[name], exact: true })
-    .click();
-  await page
-    .locator("[data-shell-header] .register-tabs")
-    .getByRole("button", { name, exact: true })
-    .click();
+  await page.evaluate((view) => {
+    const url = new URL(location.href);
+    url.searchParams.set("inspector_view", view);
+    history.pushState({}, "", url);
+    dispatchEvent(new PopStateEvent("popstate"));
+  }, views[name]);
 };
 
 try {
@@ -995,6 +1013,7 @@ try {
   await shortageRow.getByRole("button", { name: "Preview · Stock shortage" }).click();
   const shortagePreview = page.locator("#exception-preview-shortage");
   await shortagePreview.getByText("Receive stock", { exact: true }).waitFor();
+  await shortagePreview.locator("[data-open-findings] li").first().waitFor();
   assert.equal(await shortagePreview.locator("[data-open-findings] li").count(), 3);
   await shortagePreview.getByText("Customer 2 · Catalog item", { exact: true }).waitFor();
   // The counts come from a stored generation and say when it was calculated.
@@ -1025,13 +1044,14 @@ try {
   await inspectorNav.getByRole("link").first().waitFor();
   assert.deepEqual(
     (await inspectorNav.getByRole("link").allTextContents()).map((s) => s.trim()),
-    ["Understand context", "Facts & origins", "Rules & insights", "Actions & history"],
+    ["Business Graph", "Business Facts", "Activities", "Tools"],
   );
   assert.equal(
     await page.getByRole("link", { name: "Technology & system", exact: true }).count(),
     0,
   );
-  await page.getByRole("heading", { name: "Understand context", exact: true }).waitFor();
+  // The Inspector opens on the Business Graph's Timeline.
+  await page.getByRole("heading", { name: "Timeline", exact: true }).waitFor();
   await page.locator('[data-journey-history="evt1"]').waitFor();
   await tab("Reality records");
   await page.getByText("Facts · 1", { exact: true }).click();
