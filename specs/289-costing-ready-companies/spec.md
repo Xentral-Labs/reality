@@ -34,8 +34,8 @@ the tenant.").
   confirmed creation request carries it, and its evidence is that request.
 - **Existing companies:** where the cost review draft reports `company_party_missing` and no
   company partner exists, it offers one action, "Record my company as a business partner",
-  prefilled with the company's name. The action goes through the normal master data proposal
-  and its confirmation. After confirmation the draft uses that partner.
+  prefilled with the company's name. The action is a proposal that an owner confirms in
+  Decisions, and it records through the master data service. After confirmation the draft uses that partner.
 - **Guidance:** the resolution guidance for `company_party_missing` points to this action
   instead of a general instruction to open master data.
 
@@ -160,8 +160,9 @@ Through MCP, the draft's open input carries the same prefilled proposal argument
 - **FR-004**: When a company has no company partner, the cost review draft's `company_party_missing`
   input MUST offer a prefilled proposal that records the company as a business partner with the
   role company, named as the company.
-- **FR-005**: The offered action MUST use the same master data proposal and confirmation as
-  the master data form. Nothing is recorded before confirmation.
+- **FR-005**: The offered action MUST record through the same master data service as the
+  master data form, after the same proposal review and confirmation as any other decision.
+  Nothing is recorded before confirmation.
 - **FR-006**: While such a proposal waits for confirmation, the draft MUST name it instead of
   offering another. Once a company partner exists, confirming a waiting proposal MUST be refused
   as no longer needed.
