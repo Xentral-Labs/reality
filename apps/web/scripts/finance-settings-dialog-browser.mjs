@@ -267,8 +267,8 @@ try {
       0,
     );
     await inspectToolbar(panel(section));
-    if (await page.getByRole("button", { name: "Hide chat", exact: true }).isVisible())
-      await page.getByRole("button", { name: "Hide chat", exact: true }).click();
+    if (await page.locator('.shell-chat-toggle[aria-label="Hide chat"]').isVisible())
+      await page.locator('.shell-chat-toggle[aria-label="Hide chat"]').click();
     await page.setViewportSize({ width: 390, height: 900 });
     await inspectToolbar(panel(section));
     await page.screenshot({ path: `${out}/${section.replaceAll(" ", "-")}-list-mobile.png` });

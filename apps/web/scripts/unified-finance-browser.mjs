@@ -11,6 +11,8 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 page.setDefaultTimeout(12000);
 const requests = [],
   errors = [];
+// Search resolution is a POST read (the server admits it as one), not a write.
+const isWrite = (r) => r.method !== "GET" && !r.path.endsWith("/search/resolve");
 page.on("pageerror", (e) => errors.push(e.message));
 let language = "en",
   fail = false;
@@ -252,7 +254,7 @@ try {
   await page.locator('[data-projection-freshness="ready"]').waitFor();
   if (process.env.NOTICE_SPACING_ONLY) {
     assert.deepEqual(errors, []);
-    assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
+    assert.equal(requests.filter(isWrite).length, 0);
     console.log(
       "Notice spacing: desktop/mobile, four states, nested/standalone and refresh passed.",
     );
@@ -377,7 +379,7 @@ try {
   assert.ok(requests.some((r) => r.query.includes("flow=customer-balances")));
   const balances = await page.locator("[data-finance-controls]").innerText();
   assert.ok(balances.includes("380") && balances.includes("150"));
-  await page.getByLabel("Side").selectOption("supplier");
+  await page.getByLabel("Side", { exact: true }).selectOption("supplier");
   await page.waitForFunction(() => location.search.includes("balance_side=supplier"));
   assert.ok(requests.some((r) => r.query.includes("flow=supplier-balances")));
   await page.getByLabel("Credit only").check();
@@ -389,7 +391,7 @@ try {
   assert.ok(requests.some((r) => r.query.includes("party_id=party_1")));
   await page.getByRole("button", { name: "All parties", exact: true }).click();
   await page.waitForFunction(() => !location.search.includes("party_id"));
-  assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
+  assert.equal(requests.filter(isWrite).length, 0);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: three finance tabs, complete currency controls, paging, filters, inline preview reload, company reset, retry, no writes and 48 localized screenshots.",

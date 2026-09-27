@@ -9,12 +9,16 @@
     "decision-trail-browser.mjs",
     "demo-data-stall-browser.mjs",
     "empty-chat-history-browser.mjs",
+    "entry-progress-browser.mjs",
     "fact-rule-wizard-browser.mjs",
+    "finance-settings-dialog-browser.mjs",
     "guided-rules-browser.mjs",
     "home-live-browser.mjs",
+    "inbox-decision-badge-browser.mjs",
     "invoice-net-tax-browser.mjs",
     "mcp-oauth-browser.mjs",
     "operational-integrity-browser.mjs",
+    "page-introduction-browser.mjs",
     "page-title-counts-browser.mjs",
     "price-resolution-browser.mjs",
     "projection-freshness-browser.mjs",
@@ -23,6 +27,7 @@
     "service-refusals-browser.mjs",
     "signup-preferences-browser.mjs",
     "unified-credit-entry-browser.mjs",
+    "unified-finance-browser.mjs",
     "unified-financial-reversal-browser.mjs",
     "unified-invoice-entry-browser.mjs",
     "unified-opening-stock-browser.mjs",
@@ -30,6 +35,7 @@
     "unified-payment-entry-browser.mjs",
     "unified-refund-entry-browser.mjs",
     "unified-source-configuration-browser.mjs",
-    "verification-return-browser.mjs"
+    "verification-return-browser.mjs",
+    "workspace-tab-counts-browser.mjs"
   ]
 }

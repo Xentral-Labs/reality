@@ -57,6 +57,8 @@ await page.route("**/api/**", async (route) => {
   }
   return reply({});
 });
+// The verification form also offers "send a new code"; the submit button is the other one.
+const submit = page.locator("form button:not([type=button])");
 try {
   await page.goto(`${base}/signup?lang=de`);
   await page
@@ -66,21 +68,21 @@ try {
   await page.locator("input[name=email]").fill(user.email);
   await page.locator("input[name=password]").fill("Synthetic-password-only");
   await page.locator("input[type=checkbox]").check();
-  await page.locator("form button").click();
-  assert.equal(await page.locator("form button").isDisabled(), true);
+  await submit.click();
+  assert.equal(await submit.isDisabled(), true);
   await page.waitForURL("**/verify-email?lang=de");
   await page.locator("input.auth-code").waitFor();
-  await page.locator("form button").click();
+  await submit.click();
   await page
     .getByRole("status")
     .filter({ hasText: "Deine E-Mail-Adresse wird bestätigt" })
     .waitFor({ timeout: 900 });
-  assert.equal(await page.locator("form button").isDisabled(), true);
+  assert.equal(await submit.isDisabled(), true);
   await page.locator(".auth-error").waitFor();
-  assert.equal(await page.locator("form button").isEnabled(), true);
+  assert.equal(await submit.isEnabled(), true);
   assert.equal(verificationPosts, 1);
   failedVerification = false;
-  await page.locator("form button").click();
+  await submit.click();
   await page.waitForURL("**/app?lang=de");
   await page
     .getByRole("status")
@@ -88,6 +90,8 @@ try {
     .waitFor({ timeout: 900 });
   await page.getByRole("status").filter({ hasText: "Dein Arbeitsbereich wird geladen" }).waitFor();
   await page.getByRole("status").filter({ hasText: "Dein Zugang wird geladen" }).waitFor();
+  // Spec 198: a first entry chooses its start before the company is prepared.
+  await page.locator("[data-entry-choice] [data-start=international_demo]").click();
   await page.getByRole("status").filter({ hasText: "Deine Demo-Firma wird vorbereitet" }).waitFor();
   await page.screenshot({ path: "/private/tmp/reality-190-entry-progress.png" });
   await page.getByRole("button", { name: "Erneut versuchen", exact: true }).waitFor();
