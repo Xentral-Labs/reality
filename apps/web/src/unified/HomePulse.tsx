@@ -143,14 +143,18 @@ function HomePulseBody({
           </button>
         ))}
       </div>
-      {watchLive && (
-        <button className="br-btn" onClick={watchLive} data-home-engine-room>
-          <Radio size={15} />
-          {t("Watch live")}
-        </button>
-      )}
     </div>
   );
+  const liveAction = watchLive ? (
+    <button
+      className="inline-flex items-center gap-1 rounded-sm text-xs font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+      onClick={watchLive}
+      data-home-engine-room
+    >
+      <Radio size={13} aria-hidden="true" />
+      {t("Watch live")}
+    </button>
+  ) : undefined;
   return (
     <section data-home-pulse="" className="min-w-0 space-y-5 text-[13px]">
       {/* Readiness is quiet while everything works and speaks up only when it does not. */}
@@ -175,7 +179,14 @@ function HomePulseBody({
       )}
       {lead}
       {data ? (
-        <ActivityGraph data={data} days={days} tenant={tenant} stale={stale} controls={period} />
+        <ActivityGraph
+          data={data}
+          days={days}
+          tenant={tenant}
+          stale={stale}
+          controls={period}
+          liveAction={liveAction}
+        />
       ) : (
         <div>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

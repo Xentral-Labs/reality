@@ -18,6 +18,7 @@ export function ActivityGraph({
   tenant,
   stale,
   controls,
+  liveAction,
 }: {
   data: ActivityVolume;
   days: number;
@@ -25,6 +26,8 @@ export function ActivityGraph({
   stale: boolean;
   /** The period control; it belongs to the graph, so it sits in the graph's header. */
   controls?: ReactNode;
+  /** Contextual navigation grouped with the live status, separate from graph filtering. */
+  liveAction?: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(800),
@@ -127,18 +130,21 @@ export function ActivityGraph({
     <div ref={root} className="min-w-0" data-activity-graph="">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="flex items-center gap-2 font-medium">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-medium">
             {t("Recorded business activity")}
-            {!stale && (
-              <span
-                data-activity-live=""
-                className="inline-flex items-center gap-1 text-xs font-normal text-fg-muted"
-                title={`${t("Updated")}: ${formatDateTime(data.observed_at)}`}
-              >
-                <span aria-hidden="true" className="activity-live-dot" />
-                {t("Live")}
-              </span>
-            )}
+            <span className="inline-flex items-center gap-2">
+              {!stale && (
+                <span
+                  data-activity-live=""
+                  className="inline-flex items-center gap-1 text-xs font-normal text-fg-muted"
+                  title={`${t("Updated")}: ${formatDateTime(data.observed_at)}`}
+                >
+                  <span aria-hidden="true" className="activity-live-dot" />
+                  {t("Live")}
+                </span>
+              )}
+              {liveAction}
+            </span>
           </p>
           <p className="mt-0.5 text-xs text-fg-muted">
             {formatNumber(groupSize * 30)} {t("minutes per bar")}
