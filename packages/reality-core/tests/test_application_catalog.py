@@ -1,5 +1,7 @@
 import pathlib
 import re
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 import yaml
@@ -680,3 +682,115 @@ def test_runtime_catalog_retries_failed_validation(monkeypatch):
         assert len(calls) == 2
     finally:
         catalogs.clear_runtime_application_catalog()
+
+
+def test_runtime_catalog_section_is_isolated_and_reuses_one_snapshot(monkeypatch):
+    calls = []
+
+    def build():
+        calls.append(True)
+        return {"capability_guidance": {"example": {"purpose": "Original"}}}
+
+    catalogs.clear_runtime_application_catalog()
+    monkeypatch.setattr(catalogs, "load_application_catalog", build)
+    monkeypatch.setattr(
+        "reality.tool_catalog.build_tool_catalog", lambda _: {"entries": []}
+    )
+    try:
+        first = catalogs.runtime_application_catalog_section("capability_guidance")
+        first["example"]["purpose"] = "Changed"
+        second = catalogs.runtime_application_catalog_section("capability_guidance")
+
+        assert second == {"example": {"purpose": "Original"}}
+        assert len(calls) == 1
+        with pytest.raises(KeyError, match="missing"):
+            catalogs.runtime_application_catalog_section("missing")
+    finally:
+        catalogs.clear_runtime_application_catalog()
+
+
+def test_runtime_catalog_concurrent_first_read_publishes_one_build(monkeypatch):
+    calls = []
+
+    def build():
+        calls.append(True)
+        time.sleep(0.05)
+        return {"capability_guidance": {"example": {"purpose": "Shared"}}}
+
+    catalogs.clear_runtime_application_catalog()
+    monkeypatch.setattr(catalogs, "load_application_catalog", build)
+    monkeypatch.setattr(
+        "reality.tool_catalog.build_tool_catalog", lambda _: {"entries": []}
+    )
+    try:
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            results = list(
+                executor.map(
+                    lambda _: catalogs.runtime_application_catalog_section(
+                        "capability_guidance"
+                    ),
+                    range(8),
+                )
+            )
+
+        assert (
+            results
+            == [
+                {"example": {"purpose": "Shared"}},
+            ]
+            * 8
+        )
+        assert len(calls) == 1
+    finally:
+        catalogs.clear_runtime_application_catalog()
+
+
+def test_runtime_catalog_waiting_caller_recovers_after_failed_build(monkeypatch):
+    calls = []
+
+    def build():
+        calls.append(True)
+        time.sleep(0.05)
+        if len(calls) == 1:
+            raise ValueError("Catalog drift")
+        return {"capability_guidance": {"example": {"purpose": "Recovered"}}}
+
+    catalogs.clear_runtime_application_catalog()
+    monkeypatch.setattr(catalogs, "load_application_catalog", build)
+    monkeypatch.setattr(
+        "reality.tool_catalog.build_tool_catalog", lambda _: {"entries": []}
+    )
+    try:
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [
+                executor.submit(
+                    catalogs.runtime_application_catalog_section,
+                    "capability_guidance",
+                )
+                for _ in range(4)
+            ]
+            outcomes = []
+            for future in futures:
+                try:
+                    outcomes.append(future.result())
+                except ValueError as error:
+                    outcomes.append(str(error))
+
+        assert outcomes.count("Catalog drift") == 1
+        assert outcomes.count({"example": {"purpose": "Recovered"}}) == 3
+        assert len(calls) == 2
+    finally:
+        catalogs.clear_runtime_application_catalog()
+
+
+def test_production_runtime_catalog_callers_use_the_shared_boundary():
+    root = pathlib.Path(__file__).parents[1] / "src" / "reality"
+    callers = []
+    for path in root.rglob("*.py"):
+        for line_number, line in enumerate(path.read_text().splitlines(), start=1):
+            if not line.lstrip().startswith("def ") and re.search(
+                r"(?<!runtime_)load_application_catalog\(\)", line
+            ):
+                callers.append((path.relative_to(root).as_posix(), line_number))
+
+    assert [path for path, _ in callers] == ["catalogs.py"]

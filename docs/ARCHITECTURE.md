@@ -96,6 +96,13 @@ explicitly defines public use cases instead of treating every mutating helper as
 Command. The Fact predicate catalog stays empty until repeated core behavior proves a
 stable vocabulary.
 
+Runtime services and tools read this deployment vocabulary through one validated,
+process-local application-catalog snapshot. Narrow consumers receive isolated copies of only the
+section they need; API, MCP, Web, CLI and other adapters do not own separate catalog caches.
+Mutable tenant records, authorization, service responses and mutations never enter this snapshot.
+The raw catalog builder remains explicit for validation, generation and tests, while a failed
+runtime initialization is not retained and can be retried.
+
 ## External Finance mapping boundary
 
 Finance target maintenance uses the existing owner-confirmed application tools,

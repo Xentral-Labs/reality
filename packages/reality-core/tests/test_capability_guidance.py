@@ -41,7 +41,9 @@ READ_TOOLS = {
 }
 
 
-def test_capability_lookup_resolves_public_and_unique_application_names(session, business):
+def test_capability_lookup_resolves_public_and_unique_application_names(
+    session, business
+):
     public = run_read_tool(
         session,
         business.tenant.id,
@@ -74,16 +76,16 @@ def test_capability_lookup_refuses_ambiguous_application_identity(
 
     monkeypatch.setattr(
         catalogs,
-        "load_application_catalog",
-        lambda: {
-            "capability_guidance": {
-                "first_public": {"application_tool": "shared"},
-                "second_public": {"application_tool": "shared"},
-            }
+        "runtime_application_catalog_section",
+        lambda section: {
+            "first_public": {"application_tool": "shared"},
+            "second_public": {"application_tool": "shared"},
         },
     )
 
-    with pytest.raises(InvalidOperation, match="ambiguous.*first_public.*second_public"):
+    with pytest.raises(
+        InvalidOperation, match="ambiguous.*first_public.*second_public"
+    ):
         run_read_tool(
             session,
             business.tenant.id,
@@ -143,9 +145,7 @@ def test_commitment_action_guidance_distinguishes_revision_from_cancellation():
     assert "retained_allocations" in " ".join(
         guidance["commitment_revise_propose"]["preconditions"]
     )
-    assert "reason" in " ".join(
-        guidance["commitment_cancel_propose"]["preconditions"]
-    )
+    assert "reason" in " ".join(guidance["commitment_cancel_propose"]["preconditions"])
 
 
 def test_all_public_business_read_capabilities_are_complete_and_distinct():

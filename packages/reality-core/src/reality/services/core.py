@@ -750,12 +750,12 @@ def _canonical_fact_value(contract: dict[str, Any], value: Any) -> str:
 
 
 def _fact_contract(predicate: str) -> dict[str, Any]:
-    from reality.catalogs import load_application_catalog
+    from reality.catalogs import runtime_application_catalog_section
 
     entry = next(
         (
             item
-            for item in load_application_catalog()["fact_predicates"]
+            for item in runtime_application_catalog_section("fact_predicates")
             if item["predicate"] == predicate
         ),
         None,

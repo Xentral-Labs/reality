@@ -1469,10 +1469,10 @@ def _capability_describe(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
     del session, tenant_id
-    from reality.catalogs import load_application_catalog
+    from reality.catalogs import runtime_application_catalog_section
 
     requested_name = str(arguments.get("tool_name", "")).strip()
-    catalog = load_application_catalog()["capability_guidance"]
+    catalog = runtime_application_catalog_section("capability_guidance")
     canonical_name = requested_name if requested_name in catalog else ""
     if not canonical_name:
         candidates = [
@@ -3368,9 +3368,7 @@ def approve_and_execute_proposal(
             session.commit()
             return proposal
         except (InvalidOperation, NotFound) as error:
-            _finalize_known_no_effect_failure(
-                session, tenant_id, proposal_id, error
-            )
+            _finalize_known_no_effect_failure(session, tenant_id, proposal_id, error)
             raise
         except Exception:
             session.rollback()
@@ -3549,9 +3547,7 @@ def approve_and_execute_proposal(
             # transaction is rolled back. Retain that terminal fact instead of
             # stranding the action in `executing` or making rejected input retryable.
             # Unexpected exceptions still leave the durable execution claim intact.
-            _finalize_known_no_effect_failure(
-                session, tenant_id, proposal_id, error
-            )
+            _finalize_known_no_effect_failure(session, tenant_id, proposal_id, error)
             raise
     proposal.status = "executed"
     proposal.output = json.dumps(_json_value(result), sort_keys=True)
