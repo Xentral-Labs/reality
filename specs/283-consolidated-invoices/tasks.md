@@ -54,42 +54,53 @@ Tests come before the implementation they prove. Paths are relative to the repos
 
 ## FR-006 — Billable positions read
 
-- [ ] T011 [US1][US2] Write failing read proofs in
+- [x] T011 [US1][US2] Write failing read proofs in
   `packages/reality-core/tests/test_invoice_billable_positions.py`: grouping by order,
   exclusion of fully billed and cancelled lines, party/currency scope, tenant isolation,
   limit with truthful total, HTTP and MCP parity, and a statement count that does not grow
   per order line.
-- [ ] T012 [US1][US2] Implement `billable_positions` in
+- [x] T012 [US1][US2] Implement `billable_positions` in
   `packages/reality-core/src/reality/services/invoice_billing.py` (move `_order_line_billing`
   there, re-export from core); register MCP read `invoice_billable_positions` in
   `mcp/catalog.py` and `tools/application.py`; add HTTP route in `web/api.py`.
-- [ ] T013 Complete the new-surface gates: `config/tenant_isolation_catalog.yaml` and pinned
+- [x] T013 Complete the new-surface gates: `config/tenant_isolation_catalog.yaml` and pinned
   counts, MCP topic and capability guidance, `config/resource_catalog.yaml` (`labels.de`),
   `config/command_catalog.yaml` read entry and invoice effect texts; run `make docs-generate`.
 
 ## US3 — Web and Inspector
 
-- [ ] T014 [US3] Write failing FR-008 Inspector proof in
+- [x] T014 [US3] Write failing FR-008 Inspector proof in
   `packages/reality-core/tests/test_consolidated_invoices.py`: invoice Inspector groups
   referenced positions by order and links each order; each order's billing evidence names the
   invoice.
-- [ ] T015 [US3] Implement FR-008 in `packages/reality-core/src/reality/web/api.py`
+- [x] T015 [US3] Implement FR-008 in `packages/reality-core/src/reality/web/api.py`
   `document_inspector`.
-- [ ] T016 [US1][US3] Extend `apps/web/scripts/unified-invoice-entry-browser.mjs` with the party
+- [x] T016 [US1][US3] Extend `apps/web/scripts/unified-invoice-entry-browser.mjs` with the party
   mode (pick positions of two orders, review lists both orders, edit restores) before the UI.
-- [ ] T017 [US1][US3] Implement FR-006/FR-007 in `apps/web/src/unified/InvoiceCard.tsx`,
+- [x] T017 [US1][US3] Implement FR-006/FR-007 in `apps/web/src/unified/InvoiceCard.tsx`,
   `apps/web/src/api.ts` and `apps/web/src/localization.tsx` (en/de/nl/es, German
   "Sammelrechnung"), including the new blocker detail string.
 
 ## Verification and review
 
-- [ ] T018 (I05 guided path done with T004) Add E02
+- [x] T018 (I05 guided path done with T004) Add E02
   to `tests/scenarios/test_catalog_finance.py` (#203 is on main); update
   `docs/scenarios/coverage.md`, `docs/features/order_to_cash.md`,
   `docs/features/procure_to_pay.md` and `docs/SPEC_COVERAGE_MATRIX.md`.
-- [ ] T019 Run focused suites, the full backend suite in CI order, web build, i18n audit, node
+- [x] T019 (full suite in CI order: 4510 passed, 10 skipped; two migration tests hit a local PostgreSQL `max_locks_per_transaction` limit under load and passed on rerun; web build, format, i18n, 422 node contract tests green) Run focused suites, the full backend suite in CI order, web build, i18n audit, node
   contract tests and the invoice browser script; review the diff against spec and
   Constitution; mark tasks done only on green evidence.
+
+## Deviations recorded during implementation
+
+- T012: `_order_line_billing` stayed in core and is imported; moving it would only have churned
+  its many callers. The billable read reuses it and the shared movement path unchanged.
+- A4: the statement count is independent of fully billed history (SQL prefilter), not of the
+  number of open candidates, which the 200-position bound limits.
+- T016/T017: order reversed. The browser proof first could not run because the script already
+  failed on main (a race opening the page-action menu before action discovery loaded, and three
+  labels and two review hosts renamed since spec 276). The fixture was repaired; the party flow
+  passes, and against main's InvoiceCard it fails exactly at "Collect positions".
 
 ## Dependencies
 

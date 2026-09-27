@@ -204,7 +204,7 @@ resources:
         und Währung.
     synonyms: [receivable, payable, open item, credit note, billing, Ausgangsrechnung, Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, Gutschrift]
     tables: []
-    match: "invoice|credit_note|sales_credit|credit(s)?$|billed|receipt_unbilled|receivable|payable|discount|open_items|open_financial|party_balances"
+    match: "invoice|credit_note|sales_credit|credit(s)?$|billed|billable|receipt_unbilled|receivable|payable|discount|open_items|open_financial|party_balances"
     views: [open_items, documents]
     projections: [open_financial_items]
     exceptions:
@@ -656,6 +656,7 @@ labels:
       record_supplier_invoice: Eingangsrechnung erfassen
       record_free_supplier_invoice: Freie Eingangsrechnung erfassen
       invoice_credit_context: Gutschriftfähige Rechnungspositionen anzeigen
+      billable_positions: Abrechenbare Auftragspositionen anzeigen
       dunning_context: Mahnkontext anzeigen
       notices: Mahnungen anzeigen
       notice_detail: Mahnung anzeigen

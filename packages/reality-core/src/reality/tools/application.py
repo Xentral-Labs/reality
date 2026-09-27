@@ -1179,6 +1179,14 @@ def _invoice_credit_context(
     return invoice_credit_context(session, tenant_id, arguments["invoice_id"])
 
 
+def _invoice_billable_positions(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.invoice_billing import billable_positions
+
+    return billable_positions(session, tenant_id, **arguments)
+
+
 def _supplier_invoice_free_record(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2337,6 +2345,12 @@ TOOLS = {
         False,
         _invoice_credit_context,
     ),
+    "invoice_billable_positions": Tool(
+        "invoice_billable_positions",
+        "Read a party's delivered or received order positions not yet fully billed, grouped by order.",
+        False,
+        _invoice_billable_positions,
+    ),
     "supplier_invoice_free_record": Tool(
         "supplier_invoice_free_record",
         "Record source-stated supplier invoice evidence and its payable without an order.",
@@ -3318,9 +3332,7 @@ def approve_and_execute_proposal(
             session.commit()
             return proposal
         except (InvalidOperation, NotFound) as error:
-            _finalize_known_no_effect_failure(
-                session, tenant_id, proposal_id, error
-            )
+            _finalize_known_no_effect_failure(session, tenant_id, proposal_id, error)
             raise
         except Exception:
             session.rollback()
@@ -3499,9 +3511,7 @@ def approve_and_execute_proposal(
             # transaction is rolled back. Retain that terminal fact instead of
             # stranding the action in `executing` or making rejected input retryable.
             # Unexpected exceptions still leave the durable execution claim intact.
-            _finalize_known_no_effect_failure(
-                session, tenant_id, proposal_id, error
-            )
+            _finalize_known_no_effect_failure(session, tenant_id, proposal_id, error)
             raise
     proposal.status = "executed"
     proposal.output = json.dumps(_json_value(result), sort_keys=True)

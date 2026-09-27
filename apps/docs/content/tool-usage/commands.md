@@ -50,6 +50,7 @@ all reach the same operation.
 | [`post_supplier_payment`](#command-post_supplier_payment)                         | Post supplier payment                     | Finance                    | `supplier_payment_post_propose`                                                                                                                                                              | CLI · Web · MCP · Chat                  |
 | [`post_supplier_refund`](#command-post_supplier_refund)                           | Post supplier refund                      | Finance                    | `supplier_refund_post_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`preview_payment_run`](#command-preview_payment_run)                             | Preview payment run                       | Finance                    | `payment_run_preview`                                                                                                                                                                        | Web · MCP · Chat                        |
+| [`billable_positions`](#command-billable_positions)                               | Read billable invoice positions           | Finance                    | `invoice_billable_positions`                                                                                                                                                                 | Web · API · MCP · Chat                  |
 | [`component_history`](#command-component_history)                                 | Read component assignment history         | Finance                    | `finance_component_history`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`list_references`](#command-list_references)                                     | Read finance references                   | Finance                    | `finance_references`                                                                                                                                                                         | CLI · Web · MCP · Chat                  |
 | [`invoice_credit_context`](#command-invoice_credit_context)                       | Read invoice credit context               | Finance                    | `invoice_credit_context`                                                                                                                                                                     | Web · MCP · Chat                        |
@@ -2625,6 +2626,67 @@ per currency, and what was withheld.
 
 **See also:** command [`preview_payment_run`](./commands#command-preview_payment_run)
 
+### `billable_positions` — Read billable invoice positions {#command-billable_positions}
+
+Lists one party's delivered or received order positions not yet fully billed, grouped by order,
+without recording an invoice.
+
+**Synopsis**
+
+```text
+invoice_billable_positions direction party_id currency [limit]
+```
+
+**Reach via:** Web · API · MCP · Chat
+
+**Effect:** Reads: `party`, `document`, `document_line`, `commitment`, `movement`, `ledger_entry`,
+`ledger_reversal` · Writes: —
+
+**See also:** agent tool [`invoice_billable_positions`](./commands#tool-invoice_billable_positions)
+
+#### `invoice_billable_positions` — Billable order positions {#tool-invoice_billable_positions}
+
+Read one party's delivered or received order positions that are not yet fully billed, grouped by
+order, for one consolidated invoice.
+
+**Synopsis**
+
+```text
+invoice_billable_positions direction party_id currency [limit]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                   | Kind                        | Default |
+| -------------------------------- | --------------------------- | ------- |
+| `MCP invoice_billable_positions` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+List one party's order positions that were delivered or received and are not yet fully billed,
+grouped by order, for one consolidated invoice.
+
+**Use when**
+
+- One customer or supplier invoice over several orders of one party must be prepared.
+
+**Do not use when**
+
+- A single order's billing is needed; read that order's billing availability instead.
+
+**Parameters**
+
+| Name        | Type      | Required | Description                                                                                   | Default |
+| ----------- | --------- | -------- | --------------------------------------------------------------------------------------------- | ------- |
+| `direction` | `string`  | yes      | Business flow direction, such as sales or purchase, incoming or outgoing. `sales`, `purchase` | —       |
+| `party_id`  | `string`  | yes      | Opaque identity of the customer, supplier, or other operational party.                        | —       |
+| `currency`  | `string`  | yes      | ISO 4217 currency code for monetary values.                                                   | —       |
+| `limit`     | `integer` | no       | Maximum number of records or jobs processed by this invocation.                               | —       |
+
+**See also:** command [`billable_positions`](./commands#command-billable_positions)
+
 ### `component_history` — Read component assignment history {#command-component_history}
 
 Separate received values from owner-confirmed internal classification and exact cost-center shares;
@@ -3545,7 +3607,8 @@ line links exist.
 
 ### `record_sales_invoice` — Record sales invoice {#command-record_sales_invoice}
 
-Records a stated invoice against one order line and posts its receivable atomically.
+Records a stated invoice against one or more order lines of one customer and posts its receivable
+atomically.
 
 **Synopsis**
 
@@ -3604,8 +3667,8 @@ sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount num
 
 ### `record_supplier_invoice` — Record supplier invoice {#command-record_supplier_invoice}
 
-Records stated supplier invoice evidence linked to a purchase order line and posts its payable
-atomically.
+Records stated supplier invoice evidence linked to one or more purchase order lines of one supplier
+and posts its payable atomically.
 
 **Synopsis**
 

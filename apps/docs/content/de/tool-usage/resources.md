@@ -431,6 +431,8 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 
 - [Gutschriftfähige Rechnungspositionen anzeigen](./commands#command-invoice_credit_context)
   (`invoice_credit_context`)
+- [Abrechenbare Auftragspositionen anzeigen](./commands#command-billable_positions)
+  (`billable_positions`)
 
 **Klärfälle**
 

@@ -52,6 +52,11 @@ surface. Until it is booked, `overdue_payable`, `purchase_discount_available` an
 early-payment discount reason cannot see it, and no supplier credit can be netted against it.
 See [the ledger](./ledger.md).
 
+One supplier invoice may bill received positions of several purchase orders of one supplier in
+one currency (spec 283). The guided entry collects them from `invoice_billable_positions`: what the
+company still holds (received less sent back) and is not yet billed, grouped by purchase order.
+Each invoice line links to its own order line, so `billed_not_received` stays per line.
+
 ## Supplier Acknowledgements
 
 A supplier that acknowledges an order with a different date is the ordinary event in every

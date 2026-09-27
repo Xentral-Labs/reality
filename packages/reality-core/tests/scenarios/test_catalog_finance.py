@@ -507,3 +507,91 @@ def test_return_credit_after_month_end_books_in_the_next_month(session, business
     assert revenue(september, october) == Decimal("-50.0000")
     assert core.open_invoice_amount(session, tenant, invoice.id) == Decimal("100.0000")
     assert core.open_invoice_amount(session, tenant, note.id) == Decimal("50.0000")
+
+
+# --- E02 ---------------------------------------------------------------------
+
+
+def test_one_monthly_invoice_bills_the_deliveries_of_three_orders(session, business):
+    """E02: the month's deliveries of one customer are billed on one invoice."""
+    from reality.services.exceptions import operational_exceptions
+    from reality.services.invoice_billing import billable_positions
+
+    tenant = business.tenant.id
+    core.record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "20",
+        to_location_id=business.location.id,
+    )
+    for index, shipped in enumerate(("2", "3", "1"), 1):
+        _, _, _, commitments = _sales_order(
+            session,
+            business,
+            f"SO-E02-{index}",
+            [_order_line(business, "3", "10.00", "30.00")],
+            "30.00",
+            document_date=f"2026-09-0{index}",
+        )
+        core.record_movement(
+            session,
+            tenant,
+            "shipment",
+            business.item.id,
+            shipped,
+            from_location_id=business.location.id,
+            commitment_id=commitments[0].id,
+        )
+
+    def unbilled():
+        return {
+            row.record_id
+            for row in operational_exceptions(
+                session, tenant, as_of=datetime(2026, 9, 30, tzinfo=UTC)
+            )
+            if row.class_id == "shipped_not_billed"
+        }
+
+    month = billable_positions(
+        session,
+        tenant,
+        direction="sales",
+        party_id=business.customer.id,
+        currency="EUR",
+    )
+    assert [order["number"] for order in month["orders"]] == [
+        "SO-E02-1",
+        "SO-E02-2",
+        "SO-E02-3",
+    ]
+    positions = [p for order in month["orders"] for p in order["positions"]]
+    assert [p["billable"] for p in positions] == [Decimal(2), Decimal(3), Decimal(1)]
+    assert unbilled() == {p["order_line_id"] for p in positions}
+
+    core.record_sales_invoice(
+        session,
+        tenant,
+        lines=[
+            {
+                "order_line_id": p["order_line_id"],
+                "quantity": str(p["billable"]),
+                "gross_amount": str(p["billable"] * 10),
+            }
+            for p in positions
+        ],
+        gross_amount="60.00",
+        number="INV-E02-2026-09",
+        effective_at=datetime(2026, 9, 30, 12, tzinfo=UTC),
+    )
+
+    assert unbilled() == set()
+    after = billable_positions(
+        session,
+        tenant,
+        direction="sales",
+        party_id=business.customer.id,
+        currency="EUR",
+    )
+    assert (after["total"], after["orders"]) == (0, [])

@@ -2446,6 +2446,23 @@ MCP_TOOL_CATALOG += (
         _read("invoice_credit_context"),
     ),
     MCPToolDefinition(
+        "invoice_billable_positions",
+        "Billable order positions",
+        "Read one party's delivered or received order positions that are not yet fully billed, grouped by order, for one consolidated invoice.",
+        "read",
+        "finance",
+        _object_schema(
+            {
+                "direction": {"type": "string", "enum": ["sales", "purchase"]},
+                "party_id": STRING,
+                "currency": STRING,
+                "limit": {"type": "integer", "minimum": 1, "maximum": 200},
+            },
+            required=("direction", "party_id", "currency"),
+        ),
+        _read("invoice_billable_positions"),
+    ),
+    MCPToolDefinition(
         "finance_settlement_context",
         "Payment and credit context",
         "Read an invoice or original credit and matching invoice choices.",

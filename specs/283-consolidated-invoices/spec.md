@@ -2,7 +2,8 @@
 
 **Language**: English
 **Created**: 2026-09-26 (merged as 280 in #207; renumbered to 283 because #210 also merged a spec 280)
-**Status**: Accepted by the owner on 2026-09-26 (see Clarifications).
+**Status**: Accepted by the owner on 2026-09-26 (see Clarifications). Implemented: FR-001–005,
+FR-007, FR-009 and FR-010 in #212; FR-006 and FR-008 in #214, completing all tasks.
 
 ## Context and Intent
 
