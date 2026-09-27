@@ -1,3 +1,4 @@
+import { APIError, refusalError } from "./apiError";
 import { readChatStream, type ChatReply, type ChatStreamEvent } from "./chatStream";
 import { clearPalettePreferences } from "./unified/commandPalettePreferences";
 import type { SignupPreferences } from "./signupPreferences";
@@ -1414,15 +1415,7 @@ export type MovementCorrectionResult = {
   replayed: boolean;
 };
 
-export class APIError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    public code?: string,
-  ) {
-    super(message);
-  }
-}
+export { APIError } from "./apiError";
 
 /** Dispatched after a write succeeds, so counts that a write can move re-read themselves. */
 export const recordsChanged = "reality:records-changed";
@@ -1491,15 +1484,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       window.dispatchEvent(new Event("reality:session-expired"));
     }
     const payload = await response.json().catch(() => null);
-    throw new APIError(
-      typeof payload?.detail === "string"
-        ? payload.detail
-        : typeof payload?.detail?.message === "string"
-          ? payload.detail.message
-          : `Reality API returned ${response.status}`,
-      response.status,
-      payload?.code || payload?.detail?.code,
-    );
+    throw refusalError(payload, response.status, `Reality API returned ${response.status}`);
   }
   announceWrite(path, init);
   if (response.status === 204) return undefined as T;
@@ -1523,13 +1508,7 @@ async function sendChatRequest(
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new APIError(
-      typeof payload?.detail === "string"
-        ? payload.detail
-        : payload?.detail?.message || `Reality API returned ${response.status}`,
-      response.status,
-      payload?.code || payload?.detail?.code,
-    );
+    throw refusalError(payload, response.status, `Reality API returned ${response.status}`);
   }
   // Older servers can still complete this explicitly sent request as JSON.
   if (response.headers.get("content-type")?.includes("application/json")) {
@@ -1537,7 +1516,10 @@ async function sendChatRequest(
     announceWrite(path, init);
     return reply;
   }
-  const reply = await readChatStream(response, onEvent);
+  const reply = await readChatStream(response, onEvent).catch((error: unknown) => {
+    const refusal = (error as { refusal?: unknown }).refusal;
+    throw refusal ? refusalError(refusal, 0, (error as Error).message) : error;
+  });
   announceWrite(path, init);
   return reply;
 }

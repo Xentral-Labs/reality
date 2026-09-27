@@ -21401,3 +21401,19 @@ Object.assign(dictionaries.nl, {
 Object.assign(dictionaries.es, {
   "Source of the value": "Base del valor",
 });
+
+// Spec 286: service refusals, keyed by the catalog's English template.
+Object.assign(dictionaries.de, {
+  "Check the action fields.": "Prüfe die Felder der Aktion.",
+  "ChatSession not found.": "Der Chat wurde nicht gefunden.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Check the action fields.": "Controleer de velden van de actie.",
+  "ChatSession not found.": "Het chatgesprek is niet gevonden.",
+});
+
+Object.assign(dictionaries.es, {
+  "Check the action fields.": "Revisa los campos de la acción.",
+  "ChatSession not found.": "No se encontró el chat.",
+});

@@ -144,7 +144,7 @@ export function ChatPage({
         selection.session &&
         error instanceof APIError &&
         error.status === 404 &&
-        error.message === "ChatSession not found."
+        error.code === "chat_session_not_found"
       ) {
         throw new APIError(
           error.message,
