@@ -40,9 +40,23 @@ test("Docs Ask Reality uses the same public answer service as the website widget
   assert.match(component, /fetch\(`\$\{__API_URL__\}\/api\/journey-guide\/questions`/u);
   assert.match(component, /body: JSON\.stringify\(\{ question: value, locale: props\.locale \}\)/u);
   assert.match(component, /answer\.value = await response\.json\(\)/u);
-  assert.match(component, /answer\.text/u);
+  assert.match(component, /answer\.value\.text/u);
   assert.match(component, /answer\.citations/u);
   assert.match(component, /aria-busy/u);
+});
+
+test("Docs Ask Reality clears submitted questions and renders readable structured answers", () => {
+  assert.match(component, /question\.value = ""/u);
+  assert.match(component, /structuredAnswer/u);
+  assert.match(component, /journey-answer-section/u);
+  assert.match(component, /journey-answer-list/u);
+  assert.doesNotMatch(component, /\{\{ answer\.text \}\}/u);
+});
+
+test("Docs Ask Reality shows cited journey IDs and titles in a compact table", () => {
+  assert.match(component, /class="journey-citations"/u);
+  assert.match(component, /citationTitle\(id\)/u);
+  assert.match(component, /<table/u);
 });
 
 test("question answering and catalog browsing are presented as separate tasks", () => {

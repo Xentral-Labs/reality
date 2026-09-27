@@ -128,6 +128,51 @@ const filtered = computed(() =>
   ),
 );
 
+type AnswerBlock =
+  | { type: "heading"; text: string }
+  | { type: "list"; items: string[] }
+  | { type: "paragraph"; text: string };
+
+function plainInline(value: string) {
+  return value.replace(/\*\*([^*]+)\*\*/gu, "$1").trim();
+}
+
+const structuredAnswer = computed<AnswerBlock[]>(() => {
+  if (!answer.value) return [];
+  const text = answer.value.text.replace(
+    /\s+\*\*(So geht(?: es)?|Praktischer Workflow|Tools|Grenze|Wichtige Lücke):?\*\*\s*/giu,
+    "\n\n**$1**\n\n",
+  );
+  return text
+    .split(/\n{2,}/u)
+    .map((block): AnswerBlock | null => {
+      const lines = block
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+      if (!lines.length) return null;
+      if (lines.length === 1 && /^\*\*[^*]+\*\*$/u.test(lines[0])) {
+        return { type: "heading", text: plainInline(lines[0]).replace(/:$/u, "") };
+      }
+      if (lines.every((line) => /^[-•]\s+/u.test(line))) {
+        return {
+          type: "list",
+          items: lines.map((line) => plainInline(line.replace(/^[-•]\s+/u, ""))),
+        };
+      }
+      return { type: "paragraph", text: plainInline(lines.join(" ")) };
+    })
+    .filter((block): block is AnswerBlock => block !== null);
+});
+
+function citationTitle(id: string) {
+  return (
+    answer.value?.matches.find((entry) => entry.id === id)?.title ||
+    catalog.entries.find((entry) => entry.id === id)?.title ||
+    id
+  );
+}
+
 function localFallback(value: string): GuideAnswer {
   const normalized = value
     .replace(/zu wenig|unterliefer\w*/giu, "under delivery remainder receipt")
@@ -153,6 +198,7 @@ function localFallback(value: string): GuideAnswer {
 async function ask() {
   const value = question.value.trim();
   if (!value || asking.value) return;
+  question.value = "";
   asking.value = true;
   askFailed.value = false;
   answer.value = null;
@@ -215,12 +261,30 @@ async function ask() {
           }}</span>
           <span v-if="askFailed" class="journey-fallback">{{ labels.unavailable }}</span>
         </div>
-        <p class="journey-answer-text">{{ answer.text }}</p>
+        <div class="journey-answer-text">
+          <template v-for="(block, index) in structuredAnswer" :key="index">
+            <h3 v-if="block.type === 'heading'" class="journey-answer-section">
+              {{ block.text }}
+            </h3>
+            <ul v-else-if="block.type === 'list'" class="journey-answer-list">
+              <li v-for="item in block.items" :key="item">{{ item }}</li>
+            </ul>
+            <p v-else>{{ block.text }}</p>
+          </template>
+        </div>
         <div v-if="answer.citations.length" class="journey-answer-sources">
           <strong>{{ labels.sources }}</strong>
-          <div>
-            <a v-for="id in answer.citations" :key="id" :href="`#${id}`">{{ id }}</a>
-          </div>
+          <table class="journey-citations">
+            <tbody>
+              <tr v-for="id in answer.citations" :key="id">
+                <td class="journey-citation-id">{{ id }}</td>
+                <td class="journey-citation-title">{{ citationTitle(id) }}</td>
+                <td class="journey-citation-open">
+                  <a :href="`#${id}`" :aria-label="`${citationTitle(id)} (${id})`">↗</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
         <a
           v-if="answer.status === 'not_established'"

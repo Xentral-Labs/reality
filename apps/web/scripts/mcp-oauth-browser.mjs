@@ -433,6 +433,7 @@ async function grantManagementJourney() {
       });
     if (path === "/api/auth/mcp-grants" && request.method() === "GET")
       return reply({ grants: [personal] });
+    if (path === "/api/auth/journey-proposals" && request.method() === "GET") return reply([]);
     if (path === "/api/tenants/main/settings/mcp/grants" && request.method() === "GET")
       return reply({ grants: [company] });
     if (path.endsWith("/mcp-grants/personal/revoke")) {

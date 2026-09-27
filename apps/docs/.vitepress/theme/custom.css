@@ -237,9 +237,29 @@
 
 .journey-answer-text {
   margin: 16px 0;
-  white-space: pre-line;
   font-size: 1rem;
   line-height: 1.7;
+}
+
+.journey-answer-text p {
+  margin: 0 0 12px;
+}
+
+.journey-answer-section {
+  margin: 18px 0 7px;
+  color: var(--vp-c-brand-1);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.journey-answer-list {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.journey-answer-list li {
+  margin: 5px 0;
 }
 
 .journey-fallback {
@@ -252,20 +272,53 @@
   border-top: 1px solid var(--vp-c-divider);
 }
 
-.journey-answer-sources > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.journey-citations {
+  width: 100%;
   margin-top: 9px;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
-.journey-answer-sources a {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--vp-c-brand-soft);
+.journey-citations tr + tr {
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+.journey-citations td {
+  padding: 7px 4px;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.journey-citation-id {
+  width: 48px;
+  color: var(--vp-c-brand-1);
+  font-weight: 800;
+}
+
+.journey-citation-title {
+  overflow: hidden;
+  color: var(--vp-c-text-2);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.journey-citation-open {
+  width: 34px;
+  text-align: right;
+}
+
+.journey-citation-open a {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
   text-decoration: none;
-  font-size: 0.8rem;
-  font-weight: 700;
+}
+
+.journey-citation-open a:hover {
+  background: var(--vp-c-brand-soft);
 }
 
 .journey-suggest {
