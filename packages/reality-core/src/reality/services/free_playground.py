@@ -212,13 +212,17 @@ def reserve_managed_question(
         select(AppUser).where(AppUser.id == account).with_for_update()
     )
     if user is None:
-        raise NotFound("Account not found.")
+        raise NotFound(code="account_not_found")
     instant = now()
     current = _allowance(session, account, instant=instant)
     if current["remaining"] == 0:
         session.rollback()
         raise InvalidOperation(
-            f"Your {DAILY_LIMIT + current['bonus_questions']} available AI questions are used. Resets at {current['resets_at']}. You can keep exploring your company."
+            code="playground_question_limit_reached",
+            values={
+                "count": DAILY_LIMIT + current["bonus_questions"],
+                "resets_at": current["resets_at"],
+            },
         )
     session.add(
         SecurityAuditEvent(

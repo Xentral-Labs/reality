@@ -278,12 +278,12 @@ def delivery_case(
         )
     )
     if kind not in {"customer_delivery", "supplier_delivery"}:
-        raise NotFound("Delivery not found.")
+        raise NotFound(code="delivery_not_found")
     row = session.execute(
         _query(tenant_id, kind).where(Commitment.id == commitment_id)
     ).first()
     if row is None:
-        raise NotFound("Delivery not found.")
+        raise NotFound(code="delivery_not_found")
     commitment = row[0]
     links = []
     document_id = commitment.document_id

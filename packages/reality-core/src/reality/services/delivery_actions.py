@@ -96,9 +96,8 @@ def validate_public_movement_type(movement_type: object) -> str:
     normalized = str(movement_type).strip()
     if normalized not in PUBLIC_MOVEMENT_TYPES:
         raise InvalidOperation(
-            "Unsupported movement type. Expected one of: "
-            + ", ".join(PUBLIC_MOVEMENT_TYPES)
-            + "."
+            code="movement_type_unsupported",
+            values={"types": ", ".join(PUBLIC_MOVEMENT_TYPES)},
         )
     return normalized
 
@@ -146,7 +145,7 @@ def action_commitment(
             .execution_options(populate_existing=True)
         )
         if reservation is None:
-            raise NotFound("Reservation not found.")
+            raise NotFound(code="reservation_not_found")
         return reservation.commitment_id
     return str(arguments.get("commitment_id", ""))
 
@@ -163,7 +162,7 @@ def release_snapshot(
         .execution_options(populate_existing=True)
     )
     if reservation is None:
-        raise NotFound("Reservation not found.")
+        raise NotFound(code="reservation_not_found")
     return {
         "id": reservation.id,
         "commitment_id": reservation.commitment_id,
@@ -228,9 +227,9 @@ def review_delivery(
 
         return review_correction(session, tenant_id, arguments)
     if not eligible(tool, arguments):
-        raise InvalidOperation("This action is not supported by the delivery review.")
+        raise InvalidOperation(code="delivery_review_action_unsupported")
     if any(key.startswith("_") for key in arguments):
-        raise InvalidOperation("Internal review metadata cannot be supplied as intent.")
+        raise InvalidOperation(code="review_metadata_in_intent")
     allowed = {
         "commitment_id",
         "quantity",
@@ -257,7 +256,7 @@ def review_delivery(
         if tool == "commitment_hold":
             allowed |= {"reason_code", "note"}
     if set(arguments) - allowed:
-        raise InvalidOperation("The action contains unsupported fields.")
+        raise InvalidOperation(code="delivery_action_fields_unsupported")
     intent = dict(arguments)
     reservation_state = None
     holds_state = None
@@ -269,9 +268,7 @@ def review_delivery(
             session, tenant_id, str(intent.get("reservation_id", ""))
         )
         if reservation_state["status"] != "active":
-            raise InvalidOperation(
-                "Only active reservations can be released. Prepare a fresh review."
-            )
+            raise InvalidOperation(code="reservation_release_not_active")
         effect = {"released": reservation_state["quantity"]}
         result = {}
     elif tool == "reserve":
@@ -406,12 +403,12 @@ def prepare_delivery_action(
     from reality.tools.application import create_change_proposal
 
     if not request_id or len(request_id) > 200:
-        raise InvalidOperation("A bounded request identity is required.")
+        raise InvalidOperation(code="request_identity_invalid")
     tenant = session.scalar(select(Tenant).where(Tenant.id == tenant_id))
     if tenant is None:
-        raise NotFound("Tenant not found.")
+        raise NotFound(code="tenant_not_found")
     if tenant.purpose == "playground":
-        raise InvalidOperation("Use the existing practice action policy.")
+        raise InvalidOperation(code="delivery_practice_policy_required")
     lock_delivery_state(session, tenant_id)
     identity = (
         "act_"
@@ -429,9 +426,7 @@ def prepare_delivery_action(
         if old.type != f"tool:{tool}" or saved[REVIEW_KEY][
             "request_arguments"
         ] != json.loads(_json(arguments)):
-            raise InvalidOperation(
-                "Request identity already belongs to another intent."
-            )
+            raise InvalidOperation(code="request_identity_other_intent")
         return old
     assert_no_unresolved_action(session, tenant_id, tool, arguments)
     review = review_delivery(session, tenant_id, tool, arguments)
@@ -458,33 +453,29 @@ def validate_review(
 ) -> dict[str, Any]:
     review = arguments.get(REVIEW_KEY)
     if not review or not confirmed or token != review["token"]:
-        raise InvalidOperation(
-            "A current review and explicit confirmation are required."
-        )
+        raise InvalidOperation(code="review_confirmation_required")
     intent = {key: value for key, value in arguments.items() if key != REVIEW_KEY}
     current = review_delivery(session, tenant_id, tool, intent)
     if current["token"] != review["token"]:
-        raise InvalidOperation(
-            "The payment context changed. Prepare a fresh review."
+        raise (
+            InvalidOperation(code="review_payment_context_changed")
             if tool in PAYMENT_TOOLS
-            else "The financial context changed. Prepare a fresh review."
+            else InvalidOperation(code="review_financial_context_changed")
             if tool == "ledger_reverse"
-            else "The item import changed. Prepare a fresh review."
+            else InvalidOperation(code="review_item_import_changed")
             if tool == "item_create"
-            else "The stock context changed. Prepare a fresh review."
+            else InvalidOperation(code="review_stock_context_changed")
             if is_opening(tool, arguments)
-            else "The customer hold changed. Prepare a fresh review."
+            else InvalidOperation(code="review_customer_hold_changed")
             if tool in CUSTOMER_HOLD_TOOLS
-            else "The delivery changed. Prepare a fresh review."
+            else InvalidOperation(code="review_delivery_changed")
         )
     if (
         tool == "commitment_revise"
         and current["effect"].get("selection_required")
         and not current["intent"].get("retained_allocations")
     ):
-        raise InvalidOperation(
-            "Choose the exact retained reservation IDs and quantities, then prepare a fresh review."
-        )
+        raise InvalidOperation(code="retained_reservations_choice_required")
     return intent
 
 
@@ -497,9 +488,9 @@ def get_delivery_proposal(
         )
     )
     if proposal is None:
-        raise NotFound("Proposal not found.")
+        raise NotFound(code="proposal_not_found")
     if not eligible(proposal.type.removeprefix("tool:"), json.loads(proposal.input)):
-        raise InvalidOperation("This proposal uses its existing review workspace.")
+        raise InvalidOperation(code="proposal_uses_existing_workspace")
     return proposal
 
 
@@ -857,7 +848,7 @@ def assert_no_unresolved_delivery(
         )
     )
     if commitment is None:
-        raise NotFound("Delivery not found.")
+        raise NotFound(code="delivery_not_found")
     pool_location = location_id or commitment.location_id
     same_pool = select(Commitment.id).where(
         Commitment.tenant_id == tenant_id,
@@ -898,9 +889,7 @@ def assert_no_unresolved_delivery(
     if exclude:
         unresolved = unresolved.where(ChangeProposal.id != exclude)
     if session.scalar(unresolved.limit(1)):
-        raise InvalidOperation(
-            "An earlier delivery execution is unresolved. Check its outcome first."
-        )
+        raise InvalidOperation(code="delivery_execution_unresolved")
 
 
 def reconcile_delivery(
@@ -1000,7 +989,7 @@ def require_delivery_principal(session: Session, tenant_id: str, principal) -> N
         .execution_options(populate_existing=True)
     )
     if user is None or (user.status != "active" and not user.is_platform_admin):
-        raise NotFound("Company not found.")
+        raise NotFound(code="company_not_found")
     if not user.is_platform_admin and not session.scalar(
         select(TenantMembership.id).where(
             TenantMembership.tenant_id == tenant_id,
@@ -1008,4 +997,4 @@ def require_delivery_principal(session: Session, tenant_id: str, principal) -> N
             TenantMembership.status == "active",
         )
     ):
-        raise NotFound("Company not found.")
+        raise NotFound(code="company_not_found")

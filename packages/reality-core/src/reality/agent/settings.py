@@ -103,7 +103,7 @@ def decrypt_secret(value: str) -> str:
     try:
         return _fernet().decrypt(value.encode()).decode()
     except InvalidToken as error:
-        raise NotFound("The configured AI API key cannot be decrypted.") from error
+        raise NotFound(code="ai_api_key_undecryptable") from error
 
 
 def ai_settings(session: Session, tenant_id: str) -> AISettings:
@@ -188,7 +188,7 @@ def save_ai_settings(
 def configured_api_key(settings: AISettings) -> str:
     session = object_session(settings)
     if session is None:
-        raise NotFound("The configured AI API key is detached from its session.")
+        raise NotFound(code="ai_api_key_detached")
     require_business_operation(session, settings.tenant_id, "ai_key_resolve")
     if settings.api_key_secret_id:
         secret_store.KEY_PATH = KEY_PATH

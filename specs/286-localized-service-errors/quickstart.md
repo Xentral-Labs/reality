@@ -26,4 +26,7 @@ in the account settings: one in German, one in English.
 
 | Check | Result | Date |
 |---|---|---|
-| Checks 1–5 (T904) | — | — |
+| Check 1 (SC-001): the German invoice form refuses gross 60.00 / net 50.00 / tax 9.50 with "Netto plus Steuer weicht vom Bruttobetrag der Rechnung ab." (isolated stack, order SO-284-muji9b2z) | PASS | 2026-09-27 |
+| Check 2: the same request through the API returns 400 with the unchanged English `detail`, `code: stated_invoice_net_tax_gross_mismatch` and its `template` | PASS | 2026-09-27 |
+| Checks 3–4 (Dutch values and field names, Spanish chat panel) | PASS with fixtures (`service-refusals-browser.mjs`) | 2026-09-27 |
+| Check 5 (MCP English message with the refusal code) | PASS (`test_service_refusals.py::test_mcp_error_uses_refusal_code`) | 2026-09-27 |

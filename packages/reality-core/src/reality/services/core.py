@@ -86,6 +86,7 @@ from reality.db.core import (
     uid,
 )
 from reality.domain.calendar import InvalidDay, as_day
+from reality.domain.refusals import RefusalMixin
 from reality.domain.stock_scope import movement_at
 from reality.integrations.catalog import connector_catalog, connector_shell
 from reality.services.interaction_recorder import note_event as note_interaction_event
@@ -131,9 +132,8 @@ def validate_manual_operational_document_type(document_type: object) -> str:
     normalized = str(document_type).strip()
     if normalized not in MANUAL_OPERATIONAL_DOCUMENT_TYPES:
         raise InvalidOperation(
-            "Unsupported operational document type. Expected one of: "
-            + ", ".join(MANUAL_OPERATIONAL_DOCUMENT_TYPES)
-            + "."
+            code="operational_document_type_unsupported",
+            values={"types": ", ".join(MANUAL_OPERATIONAL_DOCUMENT_TYPES)},
         )
     return normalized
 
@@ -268,8 +268,25 @@ FILE_INTERPRETER_TARGETS = {
 }
 
 
-class RealityError(Exception):
-    """Base class for business-readable application errors."""
+class RealityError(RefusalMixin, Exception):
+    """Base class for business-readable application errors.
+
+    A refusal may carry a stable code and named values (spec 286). With a code, the
+    English sentence comes from `config/service_refusals.json`; without one, the given
+    sentence is used exactly as before.
+    """
+
+    def __init__(
+        self,
+        message: str | None = None,
+        *args: Any,
+        code: str | None = None,
+        values: dict[str, Any] | None = None,
+    ) -> None:
+        sentence = self._init_refusal(message, code, values)
+        super().__init__(
+            *((sentence, *args) if (message is not None or code) else args)
+        )
 
 
 class NotFound(RealityError):
@@ -428,7 +445,7 @@ def discover_business_records(
 def decimal(value: Decimal | float | str) -> Decimal:
     result = Decimal(str(value))
     if not result.is_finite():
-        raise InvalidOperation("Quantity and amount values must be finite.")
+        raise InvalidOperation(code="quantity_amount_not_finite")
     return result
 
 
@@ -441,11 +458,11 @@ def _normalize_party_email(value: str) -> str:
         or normalized.endswith("@")
         or "." not in normalized.rsplit("@", 1)[1]
     ):
-        raise InvalidOperation("Enter a valid email address.")
+        raise InvalidOperation(code="party_email_invalid")
     try:
         normalized.encode("ascii")
     except UnicodeEncodeError as error:
-        raise InvalidOperation("Email addresses must use an ASCII domain.") from error
+        raise InvalidOperation(code="party_email_domain_not_ascii") from error
     return normalized
 
 
@@ -453,7 +470,7 @@ def _party_email_values(values: list[dict[str, Any]] | None) -> list[dict[str, s
     if values is None:
         return []
     if len(values) > 20:
-        raise InvalidOperation("A Party can have at most 20 email addresses.")
+        raise InvalidOperation(code="party_email_too_many")
     normalized_values: list[dict[str, str]] = []
     seen: set[str] = set()
     for value in values:
@@ -461,11 +478,9 @@ def _party_email_values(values: list[dict[str, Any]] | None) -> list[dict[str, s
         normalized = _normalize_party_email(email)
         label = str(value.get("label") or "").strip()
         if len(label) > 80:
-            raise InvalidOperation(
-                "Party email labels can contain at most 80 characters."
-            )
+            raise InvalidOperation(code="party_email_label_too_long")
         if normalized in seen:
-            raise InvalidOperation("A Party cannot contain duplicate email addresses.")
+            raise InvalidOperation(code="party_email_duplicate")
         seen.add(normalized)
         normalized_values.append(
             {"email": email, "normalized_email": normalized, "label": label}
@@ -504,7 +519,9 @@ def _replace_party_emails(
 def positive(value: Decimal | float | str, field: str = "quantity") -> Decimal:
     result = decimal(value)
     if result <= ZERO:
-        raise InvalidOperation(f"{field.capitalize()} must be greater than zero.")
+        raise InvalidOperation(
+            code="master_data_field_not_positive", values={"field": field.capitalize()}
+        )
     return result
 
 
@@ -517,9 +534,7 @@ def utc_datetime(value: datetime | str | None) -> datetime | None:
         try:
             parsed = datetime.fromisoformat(value)
         except ValueError as error:
-            raise InvalidOperation(
-                "Date/time must be a valid ISO 8601 value."
-            ) from error
+            raise InvalidOperation(code="datetime_not_iso8601") from error
     if parsed.tzinfo is None:
         return parsed.replace(tzinfo=UTC)
     return parsed.astimezone(UTC)
@@ -927,13 +942,13 @@ def _tenant_record(session: OrmSession, model, tenant_id: str, record_id: str):
             select(Tenant).where(Tenant.id == tenant_id, Tenant.id == record_id)
         )
         if record is None:
-            raise NotFound("Tenant not found.")
+            raise NotFound(code="tenant_not_found")
         return record
     record = session.scalar(
         select(model).where(model.tenant_id == tenant_id, model.id == record_id)
     )
     if record is None:
-        raise NotFound(f"{model.__name__} not found.")
+        raise NotFound(code="record_not_found", values={"record": model.__name__})
     return record
 
 
@@ -1209,7 +1224,7 @@ def payment_term_by_code(
         query = query.where(PaymentTerm.is_active.is_(True))
     term = session.scalar(query)
     if term is None:
-        raise NotFound(f"Active payment term '{code}' not found.")
+        raise NotFound(code="payment_term_active_not_found", values={"code": code})
     return term
 
 
@@ -1908,9 +1923,7 @@ def create_master_source_record(
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     source_system, external_id = source_system.strip(), external_id.strip()
     if bool(source_system) != bool(external_id):
-        raise InvalidOperation(
-            "Source system and external ID must be provided together."
-        )
+        raise InvalidOperation(code="master_source_system_external_id_pair")
     if not source_system:
         return None
     source, created, _ = store_source_record(
@@ -2118,12 +2131,12 @@ def create_party(
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     name = name.strip()
     if not name:
-        raise InvalidOperation("Party name is required.")
+        raise InvalidOperation(code="party_name_required")
     selected_roles = list(dict.fromkeys(roles or [party_type]))
     if not selected_roles or any(
         role not in {"company", "customer", "supplier"} for role in selected_roles
     ):
-        raise InvalidOperation("Party roles must be company, customer, or supplier.")
+        raise InvalidOperation(code="party_roles_invalid")
     source = (
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
         if source_record_id
@@ -2156,7 +2169,7 @@ def create_party(
         tax_identifier=tax_identifier.strip(),
     )
     if party.credit_limit < ZERO:
-        raise InvalidOperation("Credit limit cannot be negative.")
+        raise InvalidOperation(code="party_credit_limit_negative")
     session.add(party)
     session.flush()
     session.add_all(
@@ -2207,16 +2220,16 @@ def create_item(
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     sku, name, unit = sku.strip(), name.strip(), unit.strip()
     if not sku or not name or not unit:
-        raise InvalidOperation("Item SKU, name, and unit are required.")
+        raise InvalidOperation(code="item_sku_name_unit_required")
     if item_type not in {"stocked", "service", "charge"}:
-        raise InvalidOperation("Item type must be stocked, service, or charge.")
+        raise InvalidOperation(code="item_type_invalid")
     if tracking_type not in {"none", "lot", "serial"}:
-        raise InvalidOperation("Tracking type must be none, lot, or serial.")
+        raise InvalidOperation(code="item_tracking_type_invalid")
     if default_location_id:
         _tenant_record(session, Location, tenant_id, default_location_id)
     factor = positive(conversion_factor, "conversion factor")
     if lead_time_days < 0:
-        raise InvalidOperation("Lead time days cannot be negative.")
+        raise InvalidOperation(code="item_lead_time_negative")
     source = (
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
         if source_record_id
@@ -2283,7 +2296,7 @@ def create_location(
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     name, location_type = name.strip(), location_type.strip()
     if not name or not location_type:
-        raise InvalidOperation("Location name and type are required.")
+        raise InvalidOperation(code="location_name_type_required")
     if parent_location_id:
         _tenant_record(session, Location, tenant_id, parent_location_id)
     source = (
@@ -2340,7 +2353,7 @@ def create_parties(
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     if not records:
-        raise InvalidOperation("At least one Party is required.")
+        raise InvalidOperation(code="party_batch_empty")
     created: list[Party] = []
     try:
         for record in records:
@@ -2386,7 +2399,7 @@ def create_items(
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     if not records:
-        raise InvalidOperation("At least one Item is required.")
+        raise InvalidOperation(code="item_batch_empty")
     created: list[Item] = []
     try:
         for record in records:
@@ -2431,7 +2444,7 @@ def create_locations(
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     if not records:
-        raise InvalidOperation("At least one Location is required.")
+        raise InvalidOperation(code="location_batch_empty")
     created: list[Location] = []
     local_references: dict[str, str] = {}
     try:
@@ -2441,17 +2454,17 @@ def create_locations(
             parent_location_id = record.get("parent_location_id")
             if reference and reference in local_references:
                 raise InvalidOperation(
-                    f"Duplicate Location batch reference: {reference}"
+                    code="location_batch_reference_duplicate",
+                    values={"reference": reference},
                 )
             if parent_reference and parent_location_id:
-                raise InvalidOperation(
-                    "Use either parent_ref for this batch or parent_location_id for an existing Location."
-                )
+                raise InvalidOperation(code="location_parent_ref_and_id_conflict")
             if parent_reference:
                 parent_location_id = local_references.get(parent_reference)
                 if parent_location_id is None:
                     raise InvalidOperation(
-                        f"Location parent_ref must reference an earlier record in the same batch: {parent_reference}"
+                        code="location_parent_ref_not_earlier",
+                        values={"reference": parent_reference},
                     )
             location = create_location(
                 session,
@@ -2570,22 +2583,25 @@ def master_data_update_snapshot(
         return _location_update_snapshot(
             _tenant_record(session, Location, tenant_id, record_id)
         )
-    raise InvalidOperation("Unsupported master data family.")
+    raise InvalidOperation(code="master_data_family_unsupported")
 
 
 def preview_master_data_updates(
     session: OrmSession, tenant_id: str, family: str, records: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
     if not records:
-        raise InvalidOperation("At least one update record is required.")
+        raise InvalidOperation(code="master_data_update_batch_empty")
     seen: set[str] = set()
     preview: list[dict[str, Any]] = []
     for record in records:
         record_id = str(record.get("id") or "")
         if not record_id:
-            raise InvalidOperation("Update records require an opaque ID.")
+            raise InvalidOperation(code="master_data_update_id_required")
         if record_id in seen:
-            raise InvalidOperation(f"Duplicate update target: {record_id}")
+            raise InvalidOperation(
+                code="master_data_update_target_duplicate",
+                values={"record_id": record_id},
+            )
         seen.add(record_id)
         before = master_data_update_snapshot(session, tenant_id, family, record_id)
         after = dict(before)
@@ -2685,12 +2701,12 @@ def update_party(
     before = _party_update_snapshot(session, tenant_id, party)
     name = name.strip()
     if not name:
-        raise InvalidOperation("Party name is required.")
+        raise InvalidOperation(code="party_name_required")
     selected_roles = list(dict.fromkeys(roles or [party_type]))
     if not selected_roles or any(
         role not in {"company", "customer", "supplier"} for role in selected_roles
     ):
-        raise InvalidOperation("Party roles must be company, customer, or supplier.")
+        raise InvalidOperation(code="party_roles_invalid")
     source = update_master_source_reference(
         session,
         tenant_id,
@@ -2742,7 +2758,7 @@ def update_party(
     if credit_limit is not None:
         party.credit_limit = decimal(credit_limit)
         if party.credit_limit < ZERO:
-            raise InvalidOperation("Credit limit cannot be negative.")
+            raise InvalidOperation(code="party_credit_limit_negative")
     if tax_identifier is not None:
         party.tax_identifier = tax_identifier.strip()
     if emails is not None:
@@ -2790,7 +2806,7 @@ def update_item(
     before = _item_update_snapshot(item)
     sku, name, unit = sku.strip(), name.strip(), unit.strip()
     if not sku or not name or not unit:
-        raise InvalidOperation("Item SKU, name, and unit are required.")
+        raise InvalidOperation(code="item_sku_name_unit_required")
     source = update_master_source_reference(
         session,
         tenant_id,
@@ -2805,11 +2821,11 @@ def update_item(
     item.source_record_id = source.id if source else None
     if item_type is not None:
         if item_type not in {"stocked", "service", "charge"}:
-            raise InvalidOperation("Item type must be stocked, service, or charge.")
+            raise InvalidOperation(code="item_type_invalid")
         item.item_type = item_type
     if tracking_type is not None:
         if tracking_type not in {"none", "lot", "serial"}:
-            raise InvalidOperation("Tracking type must be none, lot, or serial.")
+            raise InvalidOperation(code="item_tracking_type_invalid")
         item.tracking_type = tracking_type
     if default_location_id:
         _tenant_record(session, Location, tenant_id, default_location_id)
@@ -2820,7 +2836,7 @@ def update_item(
         item.conversion_factor = positive(conversion_factor, "conversion factor")
     if lead_time_days is not None:
         if lead_time_days < 0:
-            raise InvalidOperation("Lead time days cannot be negative.")
+            raise InvalidOperation(code="item_lead_time_negative")
         item.lead_time_days = lead_time_days
     changes = _field_changes(before, _item_update_snapshot(item))
     if changes:
@@ -2859,14 +2875,14 @@ def update_location(
     before = _location_update_snapshot(location)
     name, location_type = name.strip(), location_type.strip()
     if not name or not location_type:
-        raise InvalidOperation("Location name and type are required.")
+        raise InvalidOperation(code="location_name_type_required")
     if parent_location_id == location.id:
-        raise InvalidOperation("A location cannot be its own parent.")
+        raise InvalidOperation(code="location_own_parent")
     ancestor_id = parent_location_id
     while ancestor_id:
         ancestor = _tenant_record(session, Location, tenant_id, ancestor_id)
         if ancestor.id == location.id:
-            raise InvalidOperation("Location hierarchy cannot contain a cycle.")
+            raise InvalidOperation(code="location_hierarchy_cycle")
         ancestor_id = ancestor.parent_location_id
     source = update_master_source_reference(
         session,
@@ -2909,7 +2925,8 @@ def _assert_update_revision(
     current = master_data_update_snapshot(session, tenant_id, family, record["id"])
     if expected != _snapshot_revision(current):
         raise InvalidOperation(
-            f"{family.capitalize()} changed since proposal review; create a new proposal."
+            code="master_data_changed_since_review",
+            values={"family": family.capitalize()},
         )
 
 
@@ -2925,7 +2942,7 @@ def update_parties(
 
     require_master_call(session, tenant_id, "party_update", records, action_id)
     if not records:
-        raise InvalidOperation("At least one Party is required.")
+        raise InvalidOperation(code="party_batch_empty")
     preview_master_data_updates(session, tenant_id, "party", records)
     updated: list[Party] = []
     try:
@@ -2971,7 +2988,7 @@ def update_items(
 
     require_master_call(session, tenant_id, "item_update", records, action_id)
     if not records:
-        raise InvalidOperation("At least one Item is required.")
+        raise InvalidOperation(code="item_batch_empty")
     preview_master_data_updates(session, tenant_id, "item", records)
     updated: list[Item] = []
     try:
@@ -3017,7 +3034,7 @@ def update_locations(
 
     require_master_call(session, tenant_id, "location_update", records, action_id)
     if not records:
-        raise InvalidOperation("At least one Location is required.")
+        raise InvalidOperation(code="location_batch_empty")
     preview_master_data_updates(session, tenant_id, "location", records)
     updated: list[Location] = []
     try:
@@ -3106,9 +3123,9 @@ def create_commitment(
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     if commitment_type not in {"customer_delivery", "supplier_delivery"}:
-        raise InvalidOperation("Unsupported commitment type.")
+        raise InvalidOperation(code="commitment_type_unsupported")
     if priority not in {"low", "normal", "high", "urgent"}:
-        raise InvalidOperation("Priority must be low, normal, high, or urgent.")
+        raise InvalidOperation(code="commitment_priority_invalid")
     for model, record_id in [
         (Party, from_party_id),
         (Party, to_party_id),
@@ -3121,7 +3138,7 @@ def create_commitment(
     if document_line_id:
         line = _tenant_record(session, DocumentLine, tenant_id, document_line_id)
         if document_id and line.document_id != document_id:
-            raise InvalidOperation("Document line does not belong to the document.")
+            raise InvalidOperation(code="commitment_document_line_mismatch")
     commitment = Commitment(
         id=uid("com"),
         tenant_id=tenant_id,
@@ -3498,19 +3515,19 @@ def revise_commitment(
         .with_for_update()
     )
     if commitment is None:
-        raise NotFound("Commitment was not found.")
+        raise NotFound(code="commitment_not_found")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     if commitment.status != "open":
-        raise InvalidOperation("Only an open commitment can be revised.")
+        raise InvalidOperation(code="commitment_revise_not_open")
     stated_due = utc_datetime(due_at) if due_at is not None else None
     if due_at is not None and stated_due is None:
-        raise InvalidOperation("A revision must state a readable date.")
+        raise InvalidOperation(code="revision_date_unreadable")
     stated_quantity = (
         positive(quantity, "revised quantity") if quantity is not None else None
     )
     if stated_due is None and stated_quantity is None:
-        raise InvalidOperation("A revision must restate a date, a quantity, or both.")
+        raise InvalidOperation(code="revision_needs_date_or_quantity")
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
     active_allocations: list[Reservation] = []
@@ -3546,23 +3563,18 @@ def revise_commitment(
             if revised_open > ZERO and len(identities) > 1:
                 if retained_allocations is None:
                     raise InvalidOperation(
-                        "The revised quantity requires an explicit retained reservation "
-                        "choice because active allocations use different locations or "
-                        "tracking identities."
+                        code="revision_retained_reservation_choice_required"
                     )
                 by_id = {row.id: row for row in active_allocations}
                 selected_ids: set[str] = set()
                 for selected in retained_allocations:
                     if set(selected) != {"reservation_id", "quantity"}:
                         raise InvalidOperation(
-                            "Each retained allocation must name only reservation_id and quantity."
+                            code="retained_allocation_fields_invalid"
                         )
                     reservation_id = str(selected["reservation_id"])
                     if reservation_id in selected_ids or reservation_id not in by_id:
-                        raise InvalidOperation(
-                            "Retained allocations must name distinct active reservations "
-                            "for this commitment."
-                        )
+                        raise InvalidOperation(code="retained_allocations_not_distinct")
                     selected_ids.add(reservation_id)
                     selected_quantity = positive(
                         selected["quantity"], "retained allocation quantity"
@@ -3570,7 +3582,7 @@ def revise_commitment(
                     original = by_id[reservation_id]
                     if selected_quantity > decimal(original.quantity):
                         raise InvalidOperation(
-                            "A retained allocation cannot exceed its active reservation."
+                            code="retained_allocation_exceeds_reservation"
                         )
                     retained_specs.append((original, selected_quantity))
                 retained_quantity = sum(
@@ -3578,14 +3590,11 @@ def revise_commitment(
                 )
                 if retained_quantity > revised_open:
                     raise InvalidOperation(
-                        "Retained allocation total cannot exceed revised open quantity."
+                        code="retained_allocation_exceeds_open_quantity"
                     )
             else:
                 if retained_allocations:
-                    raise InvalidOperation(
-                        "Explicit retained allocations are only accepted when active "
-                        "reservation identities require a choice."
-                    )
+                    raise InvalidOperation(code="retained_allocations_not_needed")
                 retained_quantity = revised_open
     revision = CommitmentRevision(
         id=uid("rev"),
@@ -3763,20 +3772,20 @@ def _validate_inventory_identity(
         else None
     )
     if lot and lot.item_id != item.id:
-        raise InvalidOperation("Lot does not belong to the movement item.")
+        raise InvalidOperation(code="inventory_lot_item_mismatch")
     if serial and serial.item_id != item.id:
-        raise InvalidOperation("Serial unit does not belong to the movement item.")
+        raise InvalidOperation(code="inventory_serial_item_mismatch")
     if serial and lot and serial.lot_id != lot.id:
-        raise InvalidOperation("Serial unit does not belong to the selected lot.")
+        raise InvalidOperation(code="inventory_serial_lot_mismatch")
     if item.tracking_type == "none" and (lot or serial):
-        raise InvalidOperation("Untracked items cannot use lot or serial identity.")
+        raise InvalidOperation(code="inventory_untracked_identity_given")
     if item.tracking_type == "lot":
         if serial:
-            raise InvalidOperation("Lot-tracked items cannot use serial identity.")
+            raise InvalidOperation(code="inventory_lot_tracked_serial_given")
         if require_tracked_identity and not lot:
-            raise InvalidOperation("Lot-tracked items require a lot.")
+            raise InvalidOperation(code="inventory_lot_required")
     if item.tracking_type == "serial" and require_tracked_identity and not serial:
-        raise InvalidOperation("Serial-tracked items require a serial unit.")
+        raise InvalidOperation(code="inventory_serial_required")
     return handling_unit, lot, serial
 
 
@@ -3862,9 +3871,7 @@ def _preview_reservation(
     commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
     require_not_held(session, tenant_id, commitment_id)
     if commitment.type != "customer_delivery" or commitment.status != "open":
-        raise InvalidOperation(
-            "Only open customer delivery commitments can be reserved."
-        )
+        raise InvalidOperation(code="reservation_commitment_not_reservable")
     item = _tenant_record(session, Item, tenant_id, commitment.item_id)
     _, _, serial = _validate_inventory_identity(
         session,
@@ -3896,7 +3903,7 @@ def _preview_reservation(
         else positive(quantity)
     )
     if serial_unit_id and requested != Decimal(1):
-        raise InvalidOperation("A serial reservation must have quantity 1.")
+        raise InvalidOperation(code="reservation_serial_quantity_not_one")
     requested = min(requested, max(ZERO, remaining - already))
     aggregate_available = max(
         ZERO,
@@ -4806,7 +4813,7 @@ def validate_commitment_movement_quantity(
     """Shared non-mutating fulfillment bound for review and execution."""
     _tenant_record(session, Commitment, tenant_id, commitment_id)
     if positive(quantity) > open_quantity(session, tenant_id, commitment_id):
-        raise InvalidOperation("Movement exceeds the commitment's open quantity.")
+        raise InvalidOperation(code="movement_exceeds_commitment_open_quantity")
 
 
 def _excluded_stock_effect(
@@ -4877,18 +4884,18 @@ def _append_movement(
     _correcting: Movement | None = None,
 ) -> Movement | dict[str, Any]:
     if _correcting is not None and not validate_only:
-        raise InvalidOperation("Projected state is only valid for a read-only preview.")
+        raise InvalidOperation(code="movement_projected_state_not_preview")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     qty = positive(quantity)
     item = _tenant_record(session, Item, tenant_id, item_id)
     if item.item_type != "stocked":
-        raise InvalidOperation("Only stocked items can have physical movements.")
+        raise InvalidOperation(code="movement_item_not_stocked")
     for location_id in (from_location_id, to_location_id):
         if location_id:
             location = _tenant_record(session, Location, tenant_id, location_id)
             if not location.allows_stock:
-                raise InvalidOperation("Location does not allow physical stock.")
+                raise InvalidOperation(code="movement_location_not_physical")
     commitment = (
         _tenant_record(session, Commitment, tenant_id, commitment_id)
         if commitment_id
@@ -4915,7 +4922,7 @@ def _append_movement(
                 shipment.purpose, shipment.direction, movement_type
             )
         except ShipmentCompatibilityError as error:
-            raise InvalidOperation(str(error)) from error
+            raise InvalidOperation.from_refusal(error) from error
     _, _, serial = _validate_inventory_identity(
         session,
         tenant_id,
@@ -4928,7 +4935,7 @@ def _append_movement(
     if serial and serial.lot_id:
         lot_id = serial.lot_id
     if serial_unit_id and qty != Decimal(1):
-        raise InvalidOperation("A serial movement must have quantity 1.")
+        raise InvalidOperation(code="movement_serial_quantity_not_one")
     requirements = {
         "opening_stock": (False, True),
         "receipt": (False, True),
@@ -4943,18 +4950,19 @@ def _append_movement(
     }
     if movement_type == "adjustment":
         if bool(from_location_id) == bool(to_location_id):
-            raise InvalidOperation(
-                "Adjustment requires exactly one location direction."
-            )
+            raise InvalidOperation(code="movement_adjustment_direction_invalid")
         if not reason or not reason.strip():
-            raise InvalidOperation("Adjustment reason is required.")
+            raise InvalidOperation(code="movement_adjustment_reason_required")
         needs_from, needs_to = bool(from_location_id), bool(to_location_id)
     elif movement_type in requirements:
         needs_from, needs_to = requirements[movement_type]
     else:
-        raise InvalidOperation("Unsupported movement type.")
+        raise InvalidOperation(code="movement_type_unknown")
     if (needs_from and not from_location_id) or (needs_to and not to_location_id):
-        raise InvalidOperation(f"Locations are incomplete for {movement_type}.")
+        raise InvalidOperation(
+            code="movement_locations_incomplete",
+            values={"movement_type": movement_type},
+        )
     if (
         movement_type in {"shipment", "transfer", "supplier_return"}
         or (movement_type == "adjustment" and from_location_id)
@@ -4962,7 +4970,7 @@ def _append_movement(
         stock_at(session, tenant_id, item_id, from_location_id)
         - _excluded_stock_effect(_correcting, item_id, from_location_id)
     ) < qty:
-        raise InvalidOperation("Movement exceeds physical stock.")
+        raise InvalidOperation(code="movement_exceeds_physical_stock")
     if (
         from_location_id
         and (handling_unit_id or lot_id or serial_unit_id)
@@ -4985,7 +4993,7 @@ def _append_movement(
         )
         < qty
     ):
-        raise InvalidOperation("Movement exceeds stock for the selected identity.")
+        raise InvalidOperation(code="movement_exceeds_identity_stock")
     if serial_unit_id and movement_type in {"opening_stock", "receipt", "return"}:
         serial_in = session.scalar(
             select(func.coalesce(func.sum(Movement.quantity), 0)).where(
@@ -5009,7 +5017,7 @@ def _append_movement(
             )
             > ZERO
         ):
-            raise InvalidOperation("Serial unit is already in physical stock.")
+            raise InvalidOperation(code="movement_serial_already_in_stock")
     announcement = None
     if return_announcement_id:
         # Resolved before the commitment is judged, so a caller naming an
@@ -5019,17 +5027,13 @@ def _append_movement(
             session, ReturnAnnouncement, tenant_id, return_announcement_id
         )
         if movement_type != "return":
-            raise InvalidOperation(
-                "Only returning goods fulfil an announced customer return."
-            )
+            raise InvalidOperation(code="movement_announcement_needs_return")
         if announcement.status != "open":
-            raise InvalidOperation("Only an open announcement can be fulfilled.")
+            raise InvalidOperation(code="movement_announcement_not_open")
         # The check that makes the reference mean something. Without it any
         # return could claim to fulfil any customer's announcement.
         if announcement.commitment_id != commitment_id:
-            raise InvalidOperation(
-                "A movement fulfils an announcement of its own delivery only."
-            )
+            raise InvalidOperation(code="movement_announcement_other_delivery")
     if commitment:
         # A return names the delivery it reverses, and each side is reversed by
         # its own kind: a customer delivery by goods coming back, a supplier
@@ -5040,15 +5044,13 @@ def _append_movement(
             else {"receipt", "supplier_return"}
         )
         if movement_type not in allowed or commitment.item_id != item_id:
-            raise InvalidOperation("Movement does not match the commitment.")
+            raise InvalidOperation(code="movement_commitment_mismatch")
         if (
             movement_type == "shipment"
             and commitment.type == "customer_delivery"
             and active_party_delivery_hold(session, tenant_id, commitment.to_party_id)
         ):
-            raise InvalidOperation(
-                "Customer has an active delivery hold; release it before shipment."
-            )
+            raise InvalidOperation(code="movement_customer_delivery_hold")
         if movement_type == "return":
             # One rule answers what can still come back, and this path is its
             # caller rather than its owner: an announcement of a return has to
@@ -5061,9 +5063,7 @@ def _append_movement(
                     session, tenant_id, commitment.id, "return", _correcting
                 )
             ):
-                raise InvalidOperation(
-                    "Return exceeds what was shipped against the commitment."
-                )
+                raise InvalidOperation(code="movement_return_exceeds_shipped")
         elif movement_type == "supplier_return":
             # The same reasoning in the other direction, and it matters more
             # here: a supplier delivery is usually received in full, so its open
@@ -5076,9 +5076,7 @@ def _append_movement(
                 session, tenant_id, commitment.id, "supplier_return", _correcting
             )
             if qty > received - already_gone:
-                raise InvalidOperation(
-                    "Supplier return exceeds what was received against the commitment."
-                )
+                raise InvalidOperation(code="movement_supplier_return_exceeds_received")
         else:
             if _correcting is None:
                 validate_commitment_movement_quantity(
@@ -5097,7 +5095,7 @@ def _append_movement(
                 )
                 if qty > projected_open:
                     raise InvalidOperation(
-                        "Movement exceeds the commitment's open quantity."
+                        code="movement_exceeds_commitment_open_quantity"
                     )
     resolved_return = None
     if resolves_movement_id:
@@ -5105,21 +5103,17 @@ def _append_movement(
             session, Movement, tenant_id, resolves_movement_id
         )
         if resolved_return.type != "return":
-            raise InvalidOperation("A resolution must name a return.")
+            raise InvalidOperation(code="movement_resolution_return_required")
         if resolved_return.item_id != item_id:
-            raise InvalidOperation(
-                "A resolution must concern the same item as the return."
-            )
+            raise InvalidOperation(code="movement_resolution_item_mismatch")
         # The one physical check available: goods can only be settled out of
         # the place they came back to. Without it any outward movement could
         # claim to settle any return.
         if not from_location_id or from_location_id != resolved_return.to_location_id:
-            raise InvalidOperation(
-                "A resolution must take the goods out of the location they came back to."
-            )
+            raise InvalidOperation(code="movement_resolution_location_mismatch")
         already = movement_quantity_resolving(session, tenant_id, resolved_return.id)
         if qty > decimal(resolved_return.quantity) - already:
-            raise InvalidOperation("Resolutions exceed what came back.")
+            raise InvalidOperation(code="movement_resolutions_exceed_return")
     if validate_only:
         return {
             "quantity": qty,
@@ -5375,7 +5369,7 @@ def movement_correction_snapshot(
         )
     )
     if movement is None:
-        raise NotFound("Movement not found.")
+        raise NotFound(code="movement_not_found")
     relation, role = _movement_correction_relation_for_member(
         session, tenant_id, movement_id
     )
@@ -5441,20 +5435,20 @@ def preview_movement_correction(
     replacement: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if not isinstance(reason, str):
-        raise InvalidOperation("Movement correction reason is required.")
+        raise InvalidOperation(code="movement_correction_reason_required")
     normalized_reason = reason.strip()
     if not normalized_reason:
-        raise InvalidOperation("Movement correction reason is required.")
+        raise InvalidOperation(code="movement_correction_reason_required")
     snapshot = movement_correction_snapshot(session, tenant_id, movement_id)
     if not snapshot["correctable"]:
-        raise InvalidOperation(snapshot["guidance"])
+        if snapshot["role"] == "compensation":
+            raise InvalidOperation(code="movement_compensation_not_correctable")
+        raise InvalidOperation(code="movement_correction_chain_exists")
     original = _tenant_record(session, Movement, tenant_id, movement_id)
     if original.to_location_id and stock_at(
         session, tenant_id, original.item_id, original.to_location_id
     ) < decimal(original.quantity):
-        raise InvalidOperation(
-            "Later Movements depend on this stock; correct dependent Movements first."
-        )
+        raise InvalidOperation(code="movement_correction_later_dependents")
     if (
         original.to_location_id
         and (original.handling_unit_id or original.lot_id or original.serial_unit_id)
@@ -5469,9 +5463,7 @@ def preview_movement_correction(
         )
         < decimal(original.quantity)
     ):
-        raise InvalidOperation(
-            "Later tracked-identity Movements depend on this stock; correct them first."
-        )
+        raise InvalidOperation(code="movement_correction_later_identity_dependents")
     normalized_replacement = None
     if replacement is not None:
         allowed = {
@@ -5493,7 +5485,7 @@ def preview_movement_correction(
             or set(replacement) - allowed
             or not {"type", "item_id", "quantity"} <= set(replacement)
         ):
-            raise InvalidOperation("Check the supported replacement fields.")
+            raise InvalidOperation(code="movement_correction_fields_check")
         normalized_replacement = {
             key: (str(value) if isinstance(value, Decimal) else value)
             for key, value in sorted(replacement.items())
@@ -5580,7 +5572,7 @@ def correct_movement(
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     normalized_reason = reason.strip()
     if not normalized_reason:
-        raise InvalidOperation("Movement correction reason is required.")
+        raise InvalidOperation(code="movement_correction_reason_required")
     normalized_replacement = None
     if replacement is not None:
         normalized_replacement = {
@@ -5601,9 +5593,9 @@ def correct_movement(
             .with_for_update()
         )
         if original is None:
-            raise NotFound("Movement not found.")
+            raise NotFound(code="movement_not_found")
         if preview_fingerprint and preview_fingerprint != fingerprint:
-            raise Conflict("Movement correction preview no longer matches the request.")
+            raise Conflict(code="movement_correction_preview_mismatch")
         compensation_relation = session.scalar(
             select(MovementCorrection).where(
                 MovementCorrection.tenant_id == tenant_id,
@@ -5611,7 +5603,7 @@ def correct_movement(
             )
         )
         if compensation_relation:
-            raise InvalidOperation("A compensating Movement cannot be corrected.")
+            raise InvalidOperation(code="movement_correction_compensating")
         existing = session.scalar(
             select(MovementCorrection).where(
                 MovementCorrection.tenant_id == tenant_id,
@@ -5620,9 +5612,7 @@ def correct_movement(
         )
         if existing:
             if existing.request_fingerprint != fingerprint:
-                raise Conflict(
-                    "Movement was already corrected; reload its correction chain."
-                )
+                raise Conflict(code="movement_already_corrected")
             return MovementCorrectionResult(
                 existing.id,
                 existing.original_movement_id,
@@ -5633,18 +5623,14 @@ def correct_movement(
             )
         current_snapshot = movement_correction_snapshot(session, tenant_id, movement_id)
         if expected_revision and expected_revision != current_snapshot["revision"]:
-            raise Conflict(
-                "Movement correction preview is stale; reload and preview again."
-            )
+            raise Conflict(code="movement_correction_preview_stale")
 
         compensation_from = original.to_location_id
         compensation_to = original.from_location_id
         if compensation_from and stock_at(
             session, tenant_id, original.item_id, compensation_from
         ) < decimal(original.quantity):
-            raise InvalidOperation(
-                "Later Movements depend on this stock; correct dependent Movements first."
-            )
+            raise InvalidOperation(code="movement_correction_later_dependents")
         if (
             compensation_from
             and (
@@ -5661,9 +5647,7 @@ def correct_movement(
             )
             < decimal(original.quantity)
         ):
-            raise InvalidOperation(
-                "Later tracked-identity Movements depend on this stock; correct them first."
-            )
+            raise InvalidOperation(code="movement_correction_later_identity_dependents")
         compensation = Movement(
             id=uid("mov"),
             tenant_id=tenant_id,
@@ -5725,7 +5709,7 @@ def correct_movement(
                 commit=False,
             )
             if replacement_data:
-                raise InvalidOperation("Unsupported replacement fields.")
+                raise InvalidOperation(code="movement_replacement_fields_unsupported")
             correction.replacement_movement_id = replacement_movement.id
         session.flush()
         affected_commitments = {
@@ -5795,7 +5779,7 @@ def cancel_commitment(
     _require_business_mutation(session, tenant_id, "cancel_commitment")
     stated_reason = reason.strip()
     if not stated_reason:
-        raise InvalidOperation("A cancellation requires a reason.")
+        raise InvalidOperation(code="commitment_cancel_reason_required")
     commitment = session.scalar(
         select(Commitment)
         .where(
@@ -5805,13 +5789,13 @@ def cancel_commitment(
         .with_for_update()
     )
     if commitment is None:
-        raise NotFound("Commitment was not found.")
+        raise NotFound(code="commitment_not_found")
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     if commitment.status != "open":
-        raise InvalidOperation("Only an open commitment can be cancelled.")
+        raise InvalidOperation(code="commitment_cancel_not_open")
     commitment.status = "cancelled"
     commitment.cancelled_at = now()
     released_reservation_ids = []
@@ -5876,7 +5860,7 @@ def require_not_held(session: OrmSession, tenant_id: str, commitment_id: str) ->
     hold = active_commitment_hold(session, tenant_id, commitment_id)
     if hold:
         raise InvalidOperation(
-            f"Commitment is on hold ({hold.reason_code}); release it before execution."
+            code="commitment_on_hold", values={"reason": hold.reason_code}
         )
 
 
@@ -5886,9 +5870,9 @@ def _validate_commitment_hold(
     """Shared read-only prerequisites for a delivery hold."""
     commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
     if commitment.status != "open":
-        raise InvalidOperation("Only open commitments can be put on hold.")
+        raise InvalidOperation(code="commitment_hold_not_open")
     if not isinstance(reason_code, str) or reason_code not in HOLD_REASONS:
-        raise InvalidOperation("Unsupported hold reason.")
+        raise InvalidOperation(code="hold_reason_unsupported")
     return commitment
 
 
@@ -6232,7 +6216,7 @@ def hold_party_delivery(
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Party, tenant_id, party_id)
     if reason_code not in HOLD_REASONS:
-        raise InvalidOperation("Unsupported hold reason.")
+        raise InvalidOperation(code="hold_reason_unsupported")
     existing = active_party_delivery_hold(session, tenant_id, party_id)
     if existing:
         return existing
@@ -6681,7 +6665,7 @@ def remove_chat_session(session: OrmSession, tenant_id: str, session_id: str) ->
         .with_for_update()
     )
     if chat_session is None:
-        raise NotFound("ChatSession not found.")
+        raise NotFound(code="chat_session_not_found")
     if chat_message_counts(session, tenant_id, (session_id,)).get(session_id, 0):
         chat_session.archived_at = chat_session.archived_at or now()
     else:
@@ -6975,11 +6959,11 @@ def send_chat_message(
     turn_outcome = "fallback"
     turn_started = time.perf_counter()
     if not message.strip():
-        raise InvalidOperation("Enter a question.")
+        raise InvalidOperation(code="chat_question_required")
     chat_session = _tenant_record(session, ChatSession, tenant_id, session_id)
     context_prefix = "\x1ereality.context.v1:"
     if message.startswith(context_prefix):
-        raise InvalidOperation("Context annotations are created by the server.")
+        raise InvalidOperation(code="chat_context_annotations_server_only")
     original_message = message
     stored_message = message
     if context_commitment_id:
@@ -6987,9 +6971,7 @@ def send_chat_message(
             session, Commitment, tenant_id, context_commitment_id
         )
         if commitment.type != "customer_delivery":
-            raise InvalidOperation(
-                "Select a customer delivery for contextual assistance."
-            )
+            raise InvalidOperation(code="chat_customer_delivery_context_required")
         stored_message = context_prefix + json.dumps(
             {
                 "commitment_id": commitment.id,
@@ -7329,21 +7311,19 @@ def _preview_manual_document_input(
         currency.strip().upper(),
     )
     if not document_type or not number or not party_id or not currency:
-        raise InvalidOperation("Type, number, party, and currency are required.")
+        raise InvalidOperation(code="manual_document_header_required")
     _tenant_record(session, Party, tenant_id, party_id)
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
     if ship_to_party_id:
         _tenant_record(session, Party, tenant_id, ship_to_party_id)
     if not lines:
-        raise InvalidOperation("A manual document requires at least one line.")
+        raise InvalidOperation(code="manual_document_lines_required")
 
     if gross_amount is None or str(gross_amount).strip() == "":
         # A total that disagrees with the lines is the finding, so it is stated
         # rather than derived. See Constitution principle VIII.
-        raise InvalidOperation(
-            "A manual document requires a stated total; it is never calculated."
-        )
+        raise InvalidOperation(code="manual_document_total_required")
 
     normalized: list[dict[str, Any]] = []
     for index, raw in enumerate(lines, start=1):
@@ -7523,24 +7503,24 @@ def _preview_manual_order(
         "ship_to_party_id",
     }
     if set(arguments) - required - optional or required - set(arguments):
-        raise InvalidOperation("The order has missing or unsupported fields.")
+        raise InvalidOperation(code="manual_order_fields_invalid")
     if not isinstance(arguments["direction"], str):
-        raise InvalidOperation("Order direction must be sales or purchase.")
+        raise InvalidOperation(code="manual_order_direction_invalid")
     direction = arguments["direction"].strip().lower()
     if direction not in {"sales", "purchase"}:
-        raise InvalidOperation("Order direction must be sales or purchase.")
+        raise InvalidOperation(code="manual_order_direction_invalid")
     lines = arguments["lines"]
     if (
         not isinstance(lines, list)
         or not lines
         or any(not isinstance(line, dict) for line in lines)
     ):
-        raise InvalidOperation("An order requires at least one item line.")
+        raise InvalidOperation(code="manual_order_lines_required")
     if arguments.get("document_date"):
         try:
             date.fromisoformat(arguments["document_date"])
         except (TypeError, ValueError) as error:
-            raise InvalidOperation("Document date must use YYYY-MM-DD.") from error
+            raise InvalidOperation(code="document_date_format_invalid") from error
     for model, key in (
         (Party, "company_party_id"),
         (Party, "counterparty_id"),
@@ -7561,7 +7541,7 @@ def _preview_manual_order(
         for line in normalized:
             _tenant_record(session, Item, tenant_id, line["item_id"])
     except (TypeError, ValueError, ArithmeticError, AttributeError) as error:
-        raise InvalidOperation("The order contains an invalid value.") from error
+        raise InvalidOperation(code="manual_order_value_invalid") from error
     if check_existing:
         payload = {
             "currency": "EUR",
@@ -7589,9 +7569,7 @@ def _preview_manual_order(
             )
         )
         if existing:
-            raise InvalidOperation(
-                "This exact order is already recorded. Open the existing order instead."
-            )
+            raise InvalidOperation(code="manual_order_already_recorded")
     return {"document": values, "lines": normalized, "direction": direction}
 
 
@@ -7659,7 +7637,7 @@ def create_manual_order(
             action_id=action_id,
         )
         if source is None:  # pragma: no cover - manual source identity is complete
-            raise InvalidOperation("Manual order source could not be recorded.")
+            raise InvalidOperation(code="manual_order_source_not_recorded")
         document, document_lines = create_manual_document_with_lines(
             session,
             tenant_id,
@@ -7784,7 +7762,7 @@ def _document_day(value: date | datetime | str | None) -> date | None:
     try:
         return as_day(value)
     except InvalidDay as error:
-        raise InvalidOperation("Document date must use YYYY-MM-DD.") from error
+        raise InvalidOperation(code="document_date_format_invalid") from error
 
 
 def _document_pricing_effective_at(
@@ -7815,9 +7793,7 @@ def _validate_selected_price_entry(
     _tenant_record(session, PriceListEntry, tenant_id, entry_id)
     direction = _pricing_direction(document_type)
     if direction is None or not line["item_id"]:
-        raise InvalidOperation(
-            "A selected price entry requires a supported commercial document and item."
-        )
+        raise InvalidOperation(code="selected_price_entry_context_unsupported")
     selected = resolve_price(
         session,
         tenant_id,
@@ -7836,9 +7812,7 @@ def _validate_selected_price_entry(
         or selected.currency != currency
         or selected.unit != line["unit"]
     ):
-        raise InvalidOperation(
-            "Selected price entry does not reproduce the agreed line context."
-        )
+        raise InvalidOperation(code="selected_price_entry_context_mismatch")
 
 
 def _line_decimal_text(value: Decimal | float | str) -> str:
@@ -7857,11 +7831,9 @@ def _validate_billed_document_line(
     if document_type == "credit_note" and agreed_document.type == "sales_invoice":
         return billed.id
     if agreed_document.type not in {"sales_order", "purchase_order"}:
-        raise InvalidOperation("A billed reference must point at an order line.")
+        raise InvalidOperation(code="billed_reference_not_order_line")
     if _pricing_direction(agreed_document.type) != _pricing_direction(document_type):
-        raise InvalidOperation(
-            "A billed reference must stay on one side of the business."
-        )
+        raise InvalidOperation(code="billed_reference_side_mismatch")
     return billed.id
 
 
@@ -7881,13 +7853,13 @@ def _normalize_manual_line_input(
         # Never quantity times unit price: a rebate or the source's own rounding
         # makes that product wrong, and recomputing it would hide the difference.
         raise InvalidOperation(
-            f"Line {index} requires a stated amount; it is never calculated."
+            code="manual_line_amount_required", values={"index": index}
         )
     gross_amount = decimal(raw_total)
     unit = str(raw.get("unit") or (item.unit if item else "pcs")).strip()
     line_type = str(raw.get("line_type") or "item").strip()
     if not unit or not line_type:
-        raise InvalidOperation("Line unit and type are required.")
+        raise InvalidOperation(code="manual_line_unit_type_required")
     promised_at = str(raw.get("promised_at") or "").strip()
     utc_datetime(promised_at)
     billed_document_line_id = (
@@ -7899,7 +7871,7 @@ def _normalize_manual_line_input(
         )
     finance_detail = raw.get("reality_finance_v1")
     if finance_detail is not None and not isinstance(finance_detail, dict):
-        raise InvalidOperation("Received finance line detail must be an object.")
+        raise InvalidOperation(code="received_finance_line_detail_not_object")
     return {
         "id": str(raw.get("id") or "").strip() or None,
         "source_line_id": str(raw.get("source_line_id") or index).strip(),
@@ -8518,7 +8490,7 @@ def post_ledger(
     if debit != credit or any(
         side not in {"debit", "credit"} for _, side, _ in postings
     ):
-        raise InvalidOperation("Ledger posting group must balance debits and credits.")
+        raise InvalidOperation(code="ledger_posting_group_must_balance")
     from reality.services.finance.accounts import resolve_account
 
     resolved = {
@@ -8526,7 +8498,7 @@ def post_ledger(
         for role, _, _ in postings
     }
     if not postings:
-        raise InvalidOperation("Ledger posting group cannot be empty.")
+        raise InvalidOperation(code="ledger_posting_group_empty")
     group_id = uid("pst")
     posting_time = effective_at or now()
     entries = [
@@ -8618,7 +8590,7 @@ def _ledger_group_entries(
         query = query.with_for_update()
     entries = list(session.scalars(query.order_by(LedgerEntry.id)))
     if not entries:
-        raise NotFound("Ledger posting group not found.")
+        raise NotFound(code="ledger_posting_group_not_found")
     debit = sum(
         (decimal(entry.amount) for entry in entries if entry.debit_credit == "debit"),
         ZERO,
@@ -8630,11 +8602,11 @@ def _ledger_group_entries(
     if debit != credit or any(
         entry.debit_credit not in {"debit", "credit"} for entry in entries
     ):
-        raise InvalidOperation("Ledger posting group is not balanced.")
+        raise InvalidOperation(code="ledger_posting_group_not_balanced")
     if len({entry.currency for entry in entries}) != 1:
-        raise InvalidOperation("Ledger posting group must use one currency.")
+        raise InvalidOperation(code="ledger_posting_group_currency_mixed")
     if len({entry.party_id for entry in entries}) != 1:
-        raise InvalidOperation("Ledger posting group must use one party.")
+        raise InvalidOperation(code="ledger_posting_group_party_mixed")
     return entries
 
 
@@ -8763,10 +8735,12 @@ def preview_ledger_reversal(
 ) -> dict[str, Any]:
     normalized_reason = reason.strip()
     if not normalized_reason:
-        raise InvalidOperation("Ledger reversal reason is required.")
+        raise InvalidOperation(code="ledger_reversal_reason_required")
     snapshot = ledger_reversal_snapshot(session, tenant_id, posting_group_id)
     if not snapshot["reversible"]:
-        raise InvalidOperation(snapshot["guidance"])
+        if snapshot["role"] == "reversing":
+            raise InvalidOperation(code="posting_group_reversing_not_reversible")
+        raise InvalidOperation(code="posting_group_already_reversed")
     inverse = [
         {
             **entry,
@@ -8811,14 +8785,14 @@ def reverse_ledger_posting_group(
     lock_delivery_state(session, tenant_id)
     normalized_reason = reason.strip()
     if not normalized_reason:
-        raise InvalidOperation("Ledger reversal reason is required.")
+        raise InvalidOperation(code="ledger_reversal_reason_required")
     fingerprint = _ledger_reversal_fingerprint(
         tenant_id, posting_group_id, normalized_reason
     )
     try:
         entries = _ledger_group_entries(session, tenant_id, posting_group_id, lock=True)
         if preview_fingerprint and preview_fingerprint != fingerprint:
-            raise Conflict("Ledger reversal preview no longer matches the request.")
+            raise Conflict(code="ledger_reversal_preview_mismatch")
         existing, role = _ledger_reversal_for_group(
             session, tenant_id, posting_group_id
         )
@@ -8835,15 +8809,11 @@ def reverse_ledger_posting_group(
                     True,
                 )
             if role == "reversing":
-                raise InvalidOperation("A reversing posting group cannot be reversed.")
-            raise Conflict(
-                "Ledger posting group was already reversed; reload its chain."
-            )
+                raise InvalidOperation(code="ledger_reversing_group_not_reversible")
+            raise Conflict(code="ledger_posting_group_already_reversed")
         snapshot = ledger_reversal_snapshot(session, tenant_id, posting_group_id)
         if expected_revision and expected_revision != snapshot["revision"]:
-            raise Conflict(
-                "Ledger reversal preview is stale; reload and preview again."
-            )
+            raise Conflict(code="ledger_reversal_preview_stale")
         reversing_group_id = uid("pst")
         reversed_at = now()
         inverse_entries = [
@@ -8936,7 +8906,7 @@ def record_sales_invoice(
     """Record stated invoice evidence and its receivable, never generate a total."""
     _require_business_mutation(session, tenant_id, "record_sales_invoice")
     if lines is not None and delivery_guard is not None:
-        raise InvalidOperation("A delivery guard requires a single sales order line.")
+        raise InvalidOperation(code="invoice_delivery_guard_single_order_line")
     if lines is not None:
         arguments = {
             "lines": lines,
@@ -8945,9 +8915,9 @@ def record_sales_invoice(
             "effective_at": effective_at,
         }
         if order_line_id is not None or quantity is not None:
-            raise InvalidOperation("Use either invoice lines or a single order line.")
+            raise InvalidOperation(code="invoice_lines_or_order_line_exclusive")
         if reality_finance_v1 is not None:
-            raise InvalidOperation("State net and tax on each invoice position.")
+            raise InvalidOperation(code="invoice_position_net_tax_required")
         return _record_multi_order_invoice(
             session, tenant_id, "sales", arguments, action_id
         )
@@ -8989,9 +8959,9 @@ def record_supplier_invoice(
             "effective_at": effective_at,
         }
         if order_line_id is not None or quantity is not None:
-            raise InvalidOperation("Use either invoice lines or a single order line.")
+            raise InvalidOperation(code="invoice_lines_or_order_line_exclusive")
         if reality_finance_v1 is not None:
-            raise InvalidOperation("State net and tax on each invoice position.")
+            raise InvalidOperation(code="invoice_position_net_tax_required")
         return _record_multi_order_invoice(
             session, tenant_id, "purchase", arguments, action_id
         )
@@ -9071,7 +9041,7 @@ def _order_line_billing(
         "purchase_order": "supplier_invoice",
     }.get(order.type)
     if invoice_type is None:
-        raise InvalidOperation("Billing availability requires an order line.")
+        raise InvalidOperation(code="billing_availability_order_line_required")
     evidence = []
     billed = ZERO
     for invoice_line, invoice in session.execute(
@@ -9160,7 +9130,7 @@ def _validate_invoice_delivery_guard(
         or guard["unit"] != line.unit
         or not isinstance(guard["unbilled_quantity"], str)
     ):
-        raise InvalidOperation("The invoice delivery guard is invalid.")
+        raise InvalidOperation(code="invoice_delivery_guard_invalid")
     commitments = list(
         session.scalars(
             select(Commitment.id).where(
@@ -9171,19 +9141,19 @@ def _validate_invoice_delivery_guard(
         )
     )
     if len(commitments) != 1:
-        raise InvalidOperation("The invoice delivery evidence is missing or ambiguous.")
+        raise InvalidOperation(code="invoice_delivery_evidence_ambiguous")
     kept, billed = kept_and_billed_quantity(session, tenant_id, commitments[0], line)
     if kept <= ZERO:
-        raise InvalidOperation("The delivery changed. Prepare a fresh invoice review.")
+        raise InvalidOperation(code="invoice_delivery_changed")
     if billed is None:
-        raise InvalidOperation("The invoice delivery unit cannot be verified.")
+        raise InvalidOperation(code="invoice_delivery_unit_unverifiable")
     unbilled = kept - billed
     if (
         unbilled <= ZERO
         or quantity > unbilled
         or unbilled != positive(guard["unbilled_quantity"], "delivery quantity")
     ):
-        raise InvalidOperation("The delivery changed. Prepare a fresh invoice review.")
+        raise InvalidOperation(code="invoice_delivery_changed")
 
 
 MAX_INVOICE_POSITIONS = 200
@@ -9204,11 +9174,9 @@ def _stated_invoice_amounts(
     if detail is None:
         return None
     if not isinstance(detail, dict) or set(detail) - _STATED_AMOUNT_KEYS:
-        raise InvalidOperation(
-            "Stated invoice amounts accept net, tax, base, gross and currency only."
-        )
+        raise InvalidOperation(code="stated_invoice_amount_fields_invalid")
     if detail.get("version", 1) != 1:
-        raise InvalidOperation("Unsupported received finance detail contract.")
+        raise InvalidOperation(code="received_finance_detail_unsupported")
     values = {}
     for key in ("net", "tax", "base", "gross"):
         if detail.get(key) is None:
@@ -9216,20 +9184,22 @@ def _stated_invoice_amounts(
         try:
             value = Decimal(str(detail[key]))
         except (ArithmeticError, TypeError, ValueError) as error:
-            raise InvalidOperation(f"The stated {key} must be a number.") from error
-        if not value.is_finite() or value < 0 or value >= Decimal(100000000000000):
-            raise InvalidOperation(f"The stated {key} must be a non-negative amount.")
-        if value != value.quantize(Decimal("0.0001")):
             raise InvalidOperation(
-                "Invoice values must fit four decimal places without rounding."
+                code="stated_invoice_amount_not_number", values={"field": key}
+            ) from error
+        if not value.is_finite() or value < 0 or value >= Decimal(100000000000000):
+            raise InvalidOperation(
+                code="stated_invoice_amount_negative", values={"field": key}
             )
+        if value != value.quantize(Decimal("0.0001")):
+            raise InvalidOperation(code="invoice_values_precision_exceeded")
         values[key] = value
     if "gross" in values and values["gross"] != gross:
-        raise InvalidOperation("The stated gross differs from the position's gross.")
+        raise InvalidOperation(code="stated_invoice_gross_mismatch")
     if detail.get("currency", currency) != currency:
-        raise InvalidOperation("The stated currency differs from the invoice.")
+        raise InvalidOperation(code="stated_invoice_currency_mismatch")
     if "net" in values and "tax" in values and values["net"] + values["tax"] != gross:
-        raise InvalidOperation("Net plus tax differs from the invoice gross.")
+        raise InvalidOperation(code="stated_invoice_net_tax_gross_mismatch")
     return detail
 
 
@@ -9242,13 +9212,14 @@ def _preview_order_invoice(
         if not required <= arguments.keys() or arguments.keys() - required - {
             "effective_at"
         }:
-            raise InvalidOperation("Invoice fields are incomplete or unsupported.")
+            raise InvalidOperation(code="invoice_fields_invalid")
         selections = arguments["lines"]
         if not isinstance(selections, list) or not selections:
-            raise InvalidOperation("Select at least one invoice position.")
+            raise InvalidOperation(code="invoice_positions_required")
         if len(selections) > MAX_INVOICE_POSITIONS:
             raise InvalidOperation(
-                f"An invoice carries at most {MAX_INVOICE_POSITIONS} positions."
+                code="invoice_positions_limit_exceeded",
+                values={"limit": MAX_INVOICE_POSITIONS},
             )
         previews = []
         seen = set()
@@ -9269,14 +9240,12 @@ def _preview_order_invoice(
                     "reality_finance_v1",
                 }
             ):
-                raise InvalidOperation(
-                    "Invoice position fields are incomplete or unsupported."
-                )
+                raise InvalidOperation(code="invoice_position_fields_invalid")
             if (
                 not isinstance(selection["order_line_id"], str)
                 or selection["order_line_id"] in seen
             ):
-                raise InvalidOperation("Invoice positions must be distinct.")
+                raise InvalidOperation(code="invoice_positions_not_distinct")
             seen.add(selection["order_line_id"])
             previews.append(
                 _preview_order_invoice(
@@ -9293,9 +9262,9 @@ def _preview_order_invoice(
         # A consolidated invoice may bill several orders (spec 283), but only of one
         # party in one currency: the invoice states one debtor and one amount.
         if len({row["party_id"] for row in previews}) != 1:
-            raise InvalidOperation("Invoice positions must belong to one party.")
+            raise InvalidOperation(code="invoice_positions_party_mixed")
         if len({row["currency"] for row in previews}) != 1:
-            raise InvalidOperation("Invoice positions must share one currency.")
+            raise InvalidOperation(code="invoice_positions_currency_mixed")
         first = previews[0]
         amount = positive(arguments["gross_amount"], "gross_amount")
         for value in [
@@ -9305,9 +9274,7 @@ def _preview_order_invoice(
             if value >= Decimal(100000000000000) or value != value.quantize(
                 Decimal("0.0001")
             ):
-                raise InvalidOperation(
-                    "Invoice values must fit four decimal places without rounding."
-                )
+                raise InvalidOperation(code="invoice_values_precision_exceeded")
         document, lines = _preview_manual_document_input(
             session,
             tenant_id,
@@ -9354,31 +9321,31 @@ def _preview_order_invoice(
         "reality_finance_v1",
         "delivery_guard",
     }:
-        raise InvalidOperation("Invoice fields are incomplete or unsupported.")
+        raise InvalidOperation(code="invoice_fields_invalid")
     line = _tenant_record(session, DocumentLine, tenant_id, arguments["order_line_id"])
     order = _tenant_record(session, Document, tenant_id, line.document_id)
     if direction not in {"sales", "purchase"} or order.type != f"{direction}_order":
-        raise InvalidOperation(f"Invoice requires a {direction} order line.")
+        raise (
+            InvalidOperation(code="invoice_requires_sales_order_line")
+            if direction == "sales"
+            else InvalidOperation(code="invoice_requires_purchase_order_line")
+        )
     quantity = positive(arguments["quantity"], "quantity")
     amount = positive(arguments["gross_amount"], "gross_amount")
     for value in (quantity, amount):
         if value >= Decimal(100000000000000) or value != value.quantize(
             Decimal("0.0001")
         ):
-            raise InvalidOperation(
-                "Invoice values must fit four decimal places without rounding."
-            )
+            raise InvalidOperation(code="invoice_values_precision_exceeded")
     if quantity > _order_line_billing(session, tenant_id, line.id)["remaining"]:
-        raise InvalidOperation(
-            "Invoice quantity exceeds the remaining billable quantity."
-        )
+        raise InvalidOperation(code="invoice_quantity_exceeds_billable")
     stated = _stated_invoice_amounts(
         arguments.get("reality_finance_v1"), amount, order.currency
     )
     guard = arguments.get("delivery_guard")
     if "delivery_guard" in arguments:
         if direction != "sales":
-            raise InvalidOperation("A delivery guard requires a sales invoice.")
+            raise InvalidOperation(code="invoice_delivery_guard_sales_only")
         _validate_invoice_delivery_guard(session, tenant_id, line, quantity, guard)
     effective = utc_datetime(arguments.get("effective_at"))
     document, lines = _preview_manual_document_input(
@@ -9549,7 +9516,7 @@ def _record_order_invoice(
     from reality.services.tenant_policy import require_decision_finance
 
     if credit and finance_detail is not None:
-        raise InvalidOperation("A credit note carries no stated net and tax here.")
+        raise InvalidOperation(code="credit_note_stated_amounts_unsupported")
     stated = (
         {"reality_finance_v1": finance_detail} if finance_detail is not None else {}
     )
@@ -9588,7 +9555,7 @@ def _record_order_invoice(
             .with_for_update()
         )
         if line is None:
-            raise NotFound("Order line not found.")
+            raise NotFound(code="order_line_not_found")
         creation = None
         if not credit:
             creation = _preview_order_invoice(
@@ -9611,19 +9578,21 @@ def _record_order_invoice(
             )
         order = _tenant_record(session, Document, tenant_id, line.document_id)
         if order.type != f"{direction}_order":
-            raise InvalidOperation(f"Invoice requires a {direction} order line.")
+            raise (
+                InvalidOperation(code="invoice_requires_sales_order_line")
+                if direction == "sales"
+                else InvalidOperation(code="invoice_requires_purchase_order_line")
+            )
         quantity, gross_amount = (
             positive(quantity, "quantity"),
             positive(gross_amount, "gross_amount"),
         )
         if quantity > line.quantity:
-            raise InvalidOperation("Invoice quantity exceeds the order line.")
+            raise InvalidOperation(code="invoice_quantity_exceeds_order_line")
         if credit and quantity > uncredited_return_quantity(
             session, tenant_id, line.id
         ):
-            raise InvalidOperation(
-                "Credit quantity exceeds returned, not yet credited goods."
-            )
+            raise InvalidOperation(code="credit_quantity_exceeds_returned")
         effective_at = effective_at or now()
         payload = {
             **(
@@ -9753,9 +9722,7 @@ def record_sales_credit(
         from reality.services.credit_actions import _record_invoice_credit
 
         if order_line_id is not None or quantity is not None:
-            raise InvalidOperation(
-                "Use either invoice positions or legacy return-credit fields."
-            )
+            raise InvalidOperation(code="sales_credit_positions_or_legacy_exclusive")
         return _record_invoice_credit(
             session,
             tenant_id,
@@ -9771,9 +9738,7 @@ def record_sales_credit(
             action_id,
         )
     if reason is not None or allocation_amount is not None:
-        raise InvalidOperation(
-            "Invoice credit fields require an invoice and positions."
-        )
+        raise InvalidOperation(code="sales_credit_invoice_fields_incomplete")
     return _record_order_invoice(
         session,
         tenant_id,
@@ -9800,9 +9765,9 @@ def post_sales_invoice(
     _require_business_mutation(session, tenant_id, "post_sales_invoice")
     document = _tenant_record(session, Document, tenant_id, document_id)
     if document.type != "sales_invoice":
-        raise InvalidOperation("Document is not a sales invoice.")
+        raise InvalidOperation(code="sales_invoice_document_type_invalid")
     if account_balance(session, tenant_id, "sales_revenue", document.id) != ZERO:
-        raise InvalidOperation("Sales invoice is already posted.")
+        raise InvalidOperation(code="sales_invoice_already_posted")
     return post_ledger(
         session,
         tenant_id,
@@ -9830,7 +9795,7 @@ def _preview_invoice_payment(
         "source_record_id",
         "effective_at",
     }:
-        raise InvalidOperation("Payment fields are incomplete or unsupported.")
+        raise InvalidOperation(code="payment_fields_invalid")
     invoice = _tenant_record(session, Document, tenant_id, arguments["invoice_id"])
     expected = {
         "customer": "sales_invoice",
@@ -9838,32 +9803,33 @@ def _preview_invoice_payment(
         "customer_refund": "credit_note",
     }.get(direction)
     if expected is None or invoice.type != expected:
-        raise InvalidOperation(f"Payment requires a {expected}.")
+        raise InvalidOperation(
+            code="payment_document_type_mismatch",
+            values={"document_type": str(expected)},
+        )
     control = _settlement_control_entry(session, tenant_id, invoice.id)
     if _ledger_reversal_for_group(session, tenant_id, control.posting_group_id)[0]:
-        raise InvalidOperation(
-            "Credit note posting is reversed."
+        raise (
+            InvalidOperation(code="credit_note_posting_reversed")
             if direction == "customer_refund"
-            else "Invoice posting is reversed."
+            else InvalidOperation(code="invoice_posting_reversed")
         )
     amount = positive(arguments["amount"], "amount")
     opened = open_invoice_amount(session, tenant_id, invoice.id)
     if amount > opened:
-        raise InvalidOperation(
-            "Refund exceeds the open credit amount."
+        raise (
+            InvalidOperation(code="refund_exceeds_open_credit")
             if direction == "customer_refund"
-            else "Payment exceeds the open invoice amount."
+            else InvalidOperation(code="payment_exceeds_open_invoice")
         )
     if amount != amount.quantize(Decimal("0.0001")):
-        raise InvalidOperation(
-            "Payment amount supports at most four decimal places without rounding."
-        )
+        raise InvalidOperation(code="payment_amount_precision_exceeded")
     reference = arguments.get("payment_number")
     if reference is not None and not isinstance(reference, str):
-        raise InvalidOperation(
-            "Refund reference must be text."
+        raise (
+            InvalidOperation(code="refund_reference_not_text")
             if direction == "customer_refund"
-            else "Payment reference must be text."
+            else InvalidOperation(code="payment_reference_not_text")
         )
     source_id = arguments.get("source_record_id") or None
     if source_id:
@@ -9939,7 +9905,7 @@ def post_customer_payment(
         invoice = _tenant_record(session, Document, tenant_id, invoice_id)
         amount = positive(amount, "amount")
         if amount > open_invoice_amount(session, tenant_id, invoice.id):
-            raise InvalidOperation("Payment exceeds the open customer receivable.")
+            raise InvalidOperation(code="payment_exceeds_open_receivable")
         entries = record_customer_payment(
             session,
             tenant_id,
@@ -10038,9 +10004,9 @@ def post_sales_credit_note(
     _require_business_mutation(session, tenant_id, "post_sales_credit_note")
     document = _tenant_record(session, Document, tenant_id, credit_note_id)
     if document.type != "credit_note":
-        raise InvalidOperation("Document is not a credit note.")
+        raise InvalidOperation(code="credit_note_document_type_invalid")
     if account_balance(session, tenant_id, "sales_revenue", document.id) != ZERO:
-        raise InvalidOperation("Credit note is already posted.")
+        raise InvalidOperation(code="credit_note_already_posted")
     amount = positive(document.gross_amount, "credit note total")
     return post_ledger(
         session,
@@ -10121,7 +10087,7 @@ def _preview_customer_refund(
         "source_record_id",
         "effective_at",
     }:
-        raise InvalidOperation("Refund fields are incomplete or unsupported.")
+        raise InvalidOperation(code="refund_fields_invalid")
     from reality.services.credit_actions import _exact
 
     amount = _exact(arguments["amount"], "Refund amount")
@@ -10185,10 +10151,10 @@ def post_customer_refund(
         amount = preview["creation"]["amount"]
         note = _tenant_record(session, Document, tenant_id, credit_note_id)
         if note.type != "credit_note":
-            raise InvalidOperation("Document is not a credit note.")
+            raise InvalidOperation(code="credit_note_document_type_invalid")
         amount = positive(amount, "amount")
         if amount > open_invoice_amount(session, tenant_id, note.id):
-            raise InvalidOperation("Refund exceeds what the credit note still owes.")
+            raise InvalidOperation(code="refund_exceeds_credit_note_owed")
         entries = record_customer_refund(
             session,
             tenant_id,
@@ -10262,9 +10228,9 @@ def post_supplier_invoice(
     _require_business_mutation(session, tenant_id, "post_supplier_invoice")
     document = _tenant_record(session, Document, tenant_id, document_id)
     if document.type != "supplier_invoice":
-        raise InvalidOperation("Document is not a supplier invoice.")
+        raise InvalidOperation(code="supplier_invoice_document_type_invalid")
     if account_balance(session, tenant_id, "accounts_payable", document.id) != ZERO:
-        raise InvalidOperation("Supplier invoice is already posted.")
+        raise InvalidOperation(code="supplier_invoice_already_posted")
     return post_ledger(
         session,
         tenant_id,
@@ -10333,11 +10299,11 @@ def post_supplier_payment(
         source_record_id = preview["creation"]["source_record_id"]
         invoice = _tenant_record(session, Document, tenant_id, invoice_id)
         if invoice.type != "supplier_invoice":
-            raise InvalidOperation("Document is not a supplier invoice.")
+            raise InvalidOperation(code="supplier_invoice_document_type_invalid")
         amount = positive(amount, "amount")
         open_payable = open_invoice_amount(session, tenant_id, invoice.id)
         if amount > open_payable:
-            raise InvalidOperation("Payment exceeds the open supplier payable.")
+            raise InvalidOperation(code="payment_exceeds_open_payable")
         entries = record_supplier_payment(
             session,
             tenant_id,
@@ -10454,7 +10420,7 @@ def _settlement_control_entry(
     invoice = _tenant_record(session, Document, tenant_id, invoice_id)
     control = SETTLEMENT_CONTROL.get(invoice.type)
     if control is None:
-        raise InvalidOperation("Settlement target is not a settleable document.")
+        raise InvalidOperation(code="settlement_target_not_settleable")
     account, side = control
     entry = session.scalar(
         select(LedgerEntry).where(
@@ -10465,7 +10431,7 @@ def _settlement_control_entry(
         )
     )
     if entry is None:
-        raise InvalidOperation("Invoice has no posted control-account entry.")
+        raise InvalidOperation(code="invoice_control_entry_missing")
     return entry
 
 
@@ -10696,25 +10662,21 @@ def allocate_settlement(
         payment.account_id != invoice.account_id
         or payment.debit_credit == invoice.debit_credit
     ):
-        raise InvalidOperation(
-            "Settlement entries must be opposite sides of one control account."
-        )
+        raise InvalidOperation(code="settlement_entries_not_opposite")
     if payment.party_id != invoice.party_id or payment.party_id is None:
-        raise InvalidOperation("Settlement entries must belong to the same party.")
+        raise InvalidOperation(code="settlement_entries_party_mixed")
     if payment.account not in {"accounts_receivable", "accounts_payable"}:
-        raise InvalidOperation("Settlement requires control accounts.")
+        raise InvalidOperation(code="settlement_control_accounts_required")
     from reality.services.finance.accounts import resolve_account
 
     resolve_account(session, tenant_id, payment.account, payment.account_id)
     if payment.currency != invoice.currency:
-        raise InvalidOperation("Settlement entries must use the same currency.")
+        raise InvalidOperation(code="settlement_entries_currency_mixed")
     if (
         _ledger_reversal_for_group(session, tenant_id, payment.posting_group_id)[0]
         or _ledger_reversal_for_group(session, tenant_id, invoice.posting_group_id)[0]
     ):
-        raise InvalidOperation(
-            "Settlement entries must belong to active posting groups."
-        )
+        raise InvalidOperation(code="settlement_entries_inactive_groups")
     allocated_payment = sum(
         (
             decimal(row.amount)
@@ -10724,10 +10686,10 @@ def allocate_settlement(
         ZERO,
     )
     if amount > decimal(payment.amount) - decimal(allocated_payment):
-        raise InvalidOperation("Allocation exceeds the unallocated payment amount.")
+        raise InvalidOperation(code="allocation_exceeds_unallocated_payment")
     invoice_document = _tenant_record(session, Document, tenant_id, invoice.document_id)
     if amount > open_invoice_amount(session, tenant_id, invoice_document.id):
-        raise InvalidOperation("Allocation exceeds the invoice open amount.")
+        raise InvalidOperation(code="allocation_exceeds_invoice_open")
     allocation = SettlementAllocation(
         id=uid("set"),
         tenant_id=tenant_id,

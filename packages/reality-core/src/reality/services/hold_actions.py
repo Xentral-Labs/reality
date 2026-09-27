@@ -46,19 +46,15 @@ def review_hold(
             session, tenant_id, cid, intent.get("reason_code", "")
         )
         if holds:
-            raise InvalidOperation(
-                "This delivery is already on hold. Prepare a fresh review."
-            )
+            raise InvalidOperation(code="delivery_hold_already_active")
         note = intent.get("note", "")
         if not isinstance(note, str):
-            raise InvalidOperation("A hold note must be text.")
+            raise InvalidOperation(code="hold_note_not_text")
         intent["note"] = note.strip()
         effect = {"holds_set": "1"}
     else:
         if not holds:
-            raise InvalidOperation(
-                "This delivery has no active own hold. Prepare a fresh review."
-            )
+            raise InvalidOperation(code="delivery_hold_not_active")
         effect = {"holds_released": str(len(holds))}
     return [snapshot(hold) for hold in holds], effect
 

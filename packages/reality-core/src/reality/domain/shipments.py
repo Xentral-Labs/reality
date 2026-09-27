@@ -3,8 +3,10 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
+from reality.domain.refusals import DomainRefusal
 
-class ShipmentCompatibilityError(ValueError):
+
+class ShipmentCompatibilityError(DomainRefusal):
     """A shipment purpose, direction, or physical movement contradicts another."""
 
 
@@ -31,11 +33,9 @@ REPORTER_TYPES = frozenset({"company", "counterparty", "carrier", "integration"}
 def validate_shipment_direction(purpose: str, direction: str) -> None:
     expected = PURPOSES.get(purpose)
     if expected is None:
-        raise ShipmentCompatibilityError("Unsupported shipment purpose.")
+        raise ShipmentCompatibilityError(code="shipment_purpose_unknown")
     if direction != expected[0]:
-        raise ShipmentCompatibilityError(
-            "Shipment direction does not match its purpose."
-        )
+        raise ShipmentCompatibilityError(code="shipment_direction_mismatch")
 
 
 def validate_movement_compatibility(
@@ -43,14 +43,12 @@ def validate_movement_compatibility(
 ) -> None:
     validate_shipment_direction(purpose, direction)
     if movement_type != PURPOSES[purpose][1]:
-        raise ShipmentCompatibilityError(
-            "Movement type does not match the shipment purpose."
-        )
+        raise ShipmentCompatibilityError(code="shipment_movement_type_mismatch")
 
 
 def required_party_role(purpose: str) -> str:
     if purpose not in PURPOSES:
-        raise ShipmentCompatibilityError("Unsupported shipment purpose.")
+        raise ShipmentCompatibilityError(code="shipment_purpose_unknown")
     return PURPOSES[purpose][2]
 
 

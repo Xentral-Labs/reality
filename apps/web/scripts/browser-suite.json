@@ -20,6 +20,7 @@
     "projection-freshness-browser.mjs",
     "register-footer-browser.mjs",
     "sandbox-simulation-entry-browser.mjs",
+    "service-refusals-browser.mjs",
     "signup-preferences-browser.mjs",
     "unified-credit-entry-browser.mjs",
     "unified-financial-reversal-browser.mjs",

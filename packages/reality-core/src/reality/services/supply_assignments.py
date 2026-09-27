@@ -23,12 +23,10 @@ def _decimal(value: Any) -> Decimal:
         result = Decimal(str(value))
     except Exception as error:
         raise core.InvalidOperation(
-            "Supply assignment quantity must be a decimal."
+            code="supply_assignment_quantity_not_decimal"
         ) from error
     if not result.is_finite() or result != result.quantize(Decimal("0.0001")):
-        raise core.InvalidOperation(
-            "Supply assignment quantity must fit four decimal places without rounding."
-        )
+        raise core.InvalidOperation(code="supply_assignment_quantity_precision")
     return result
 
 
@@ -109,9 +107,9 @@ def supply_coverage(
         else None
     )
     if supplier and supplier.type != "supplier_delivery":
-        raise core.InvalidOperation("Supply coverage requires a supplier commitment.")
+        raise core.InvalidOperation(code="supply_coverage_supplier_commitment_required")
     if customer and customer.type != "customer_delivery":
-        raise core.InvalidOperation("Demand coverage requires a customer commitment.")
+        raise core.InvalidOperation(code="demand_coverage_customer_commitment_required")
     rows = _effective_rows(
         session,
         tenant_id,
@@ -192,32 +190,34 @@ def preview_supply_assignment(
     customer_commitment_id: str | None = None,
 ) -> dict[str, Any]:
     if purpose not in {"customer_demand", "stock_replenishment"}:
-        raise core.InvalidOperation("Unsupported supply assignment purpose.")
+        raise core.InvalidOperation(code="supply_assignment_purpose_unsupported")
     if (purpose == "customer_demand") != bool(customer_commitment_id):
-        raise core.InvalidOperation(
-            "Customer demand requires one customer commitment; stock replenishment requires none."
-        )
+        raise core.InvalidOperation(code="supply_assignment_customer_commitment_count")
     qty = _decimal(quantity)
     supplier = core._tenant_record(
         session, Commitment, tenant_id, supplier_commitment_id
     )
     if supplier.type != "supplier_delivery" or supplier.status != "open":
-        raise core.InvalidOperation("Select an open supplier commitment.")
+        raise core.InvalidOperation(
+            code="supply_assignment_supplier_commitment_not_open"
+        )
     customer = None
     if customer_commitment_id:
         customer = core._tenant_record(
             session, Commitment, tenant_id, customer_commitment_id
         )
         if customer.type != "customer_delivery" or customer.status != "open":
-            raise core.InvalidOperation("Select an open customer commitment.")
+            raise core.InvalidOperation(
+                code="supply_assignment_customer_commitment_not_open"
+            )
         if supplier.item_id != customer.item_id:
-            raise core.InvalidOperation("Supply and demand items must match.")
+            raise core.InvalidOperation(code="supply_assignment_items_mismatch")
         if (
             supplier.location_id
             and customer.location_id
             and supplier.location_id != customer.location_id
         ):
-            raise core.InvalidOperation("Supply and demand locations must match.")
+            raise core.InvalidOperation(code="supply_assignment_locations_mismatch")
     supplier_view = supply_coverage(
         session, tenant_id, supplier_commitment_id=supplier.id
     )["supplier"]
@@ -241,7 +241,7 @@ def preview_supply_assignment(
             else None,
         )
     except ValueError as error:
-        raise core.InvalidOperation(str(error)) from error
+        raise core.InvalidOperation.from_refusal(error) from error
     return {
         "supplier_commitment_id": supplier.id,
         "customer_commitment_id": customer.id if customer else None,
@@ -273,11 +273,9 @@ def assign_supply(
 ) -> SupplyAssignment:
     core._require_business_mutation(session, tenant_id, "assign_supply")
     if purpose not in {"customer_demand", "stock_replenishment"}:
-        raise core.InvalidOperation("Unsupported supply assignment purpose.")
+        raise core.InvalidOperation(code="supply_assignment_purpose_unsupported")
     if (purpose == "customer_demand") != bool(customer_commitment_id):
-        raise core.InvalidOperation(
-            "Customer demand requires one customer commitment; stock replenishment requires none."
-        )
+        raise core.InvalidOperation(code="supply_assignment_customer_commitment_count")
     qty = _decimal(quantity)
     with session.begin_nested():
         supplier = session.scalar(
@@ -289,9 +287,11 @@ def assign_supply(
             .with_for_update()
         )
         if supplier is None:
-            raise core.NotFound("Supplier commitment was not found.")
+            raise core.NotFound(code="supplier_commitment_not_found")
         if supplier.type != "supplier_delivery" or supplier.status != "open":
-            raise core.InvalidOperation("Select an open supplier commitment.")
+            raise core.InvalidOperation(
+                code="supply_assignment_supplier_commitment_not_open"
+            )
         customer = None
         if customer_commitment_id:
             customer = session.scalar(
@@ -303,17 +303,19 @@ def assign_supply(
                 .with_for_update()
             )
             if customer is None:
-                raise core.NotFound("Customer commitment was not found.")
+                raise core.NotFound(code="customer_commitment_not_found")
             if customer.type != "customer_delivery" or customer.status != "open":
-                raise core.InvalidOperation("Select an open customer commitment.")
+                raise core.InvalidOperation(
+                    code="supply_assignment_customer_commitment_not_open"
+                )
             if supplier.item_id != customer.item_id:
-                raise core.InvalidOperation("Supply and demand items must match.")
+                raise core.InvalidOperation(code="supply_assignment_items_mismatch")
             if (
                 supplier.location_id
                 and customer.location_id
                 and supplier.location_id != customer.location_id
             ):
-                raise core.InvalidOperation("Supply and demand locations must match.")
+                raise core.InvalidOperation(code="supply_assignment_locations_mismatch")
         existing_source = session.scalar(
             select(core.SourceRecord).where(
                 core.SourceRecord.tenant_id == tenant_id,
@@ -339,7 +341,7 @@ def assign_supply(
                 }
                 if json.loads(stated) != expected:
                     raise core.InvalidOperation(
-                        "Request identity already belongs to another supply assignment."
+                        code="supply_assignment_request_identity_conflict"
                     )
                 return existing
         preview_supply_assignment(

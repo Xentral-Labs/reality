@@ -416,9 +416,7 @@ def check_opening_coverage(
                 .limit(1)
             )
             if not detail or posted:
-                raise core.InvalidOperation(
-                    "Opening evidence must be created once by the confirmed opening import."
-                )
+                raise core.InvalidOperation(code="opening_evidence_import_only")
         return
     scopes = _scopes(session, tenant_id, document.party_id, document.currency, side)
     if not scopes:
@@ -440,9 +438,7 @@ def check_opening_coverage(
                 )
             )
         ):
-            raise core.InvalidOperation(
-                "Original source item is already represented by opening evidence; inspect it without posting again."
-            )
+            raise core.InvalidOperation(code="opening_source_item_already_represented")
     cash = document.type.endswith(("_payment", "_refund"))
     observed = (
         core.utc_datetime(effective_at).date() if effective_at is not None else None
@@ -450,10 +446,6 @@ def check_opening_coverage(
     if not cash:
         observed = document.document_date
     if observed is None:
-        raise core.InvalidOperation(
-            "Opening cutover coverage requires an explicit original date or actual cash timestamp."
-        )
+        raise core.InvalidOperation(code="opening_cutover_needs_date")
     if any(observed <= scope.cutover_date for scope in scopes):
-        raise core.InvalidOperation(
-            "Financial evidence is at or before the opening cutover; reconcile coverage before posting."
-        )
+        raise core.InvalidOperation(code="opening_evidence_before_cutover")

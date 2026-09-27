@@ -186,9 +186,11 @@ def fulfillment_readiness(
         )
     )
     if commitment is None:
-        raise InvalidOperation("Fulfillment commitment not found.")
+        raise InvalidOperation(code="fulfillment_commitment_not_found")
     if commitment.type != "customer_delivery":
-        raise InvalidOperation("Readiness requires a customer-delivery commitment.")
+        raise InvalidOperation(
+            code="fulfillment_readiness_customer_commitment_required"
+        )
     open_quantity = max(
         commitment_quantity(session, tenant_id, commitment.id)
         - movement_quantity(session, tenant_id, commitment.id, "shipment"),
@@ -198,7 +200,7 @@ def fulfillment_readiness(
     if proposed_quantity is not None and (
         checked_quantity <= ZERO or checked_quantity > open_quantity
     ):
-        raise InvalidOperation("Proposed shipment quantity must be positive and open.")
+        raise InvalidOperation(code="fulfillment_shipment_quantity_invalid")
     reserved_quantity = Decimal(
         session.scalar(
             select(func.coalesce(func.sum(Reservation.quantity), 0)).where(
@@ -267,7 +269,7 @@ def fulfillment_readiness(
         )
     )
     if order is None or order.type != "sales_order":
-        raise InvalidOperation("Customer-delivery order not found.")
+        raise InvalidOperation(code="customer_delivery_order_not_found")
     term = (
         session.scalar(
             select(PaymentTerm).where(

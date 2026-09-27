@@ -18,17 +18,11 @@ DISPOSITIONS = {"restock", "quarantine_repair", "scrap_loss", "return_to_supplie
 def _return_movement(session: Session, tenant_id: str, movement_id: str) -> Movement:
     movement = core._tenant_record(session, Movement, tenant_id, movement_id)
     if movement.type != "return":
-        raise core.InvalidOperation(
-            "Return disposition requires a customer-return Movement with type return."
-        )
+        raise core.InvalidOperation(code="return_disposition_movement_not_return")
     if not movement.commitment_id:
-        raise core.InvalidOperation(
-            "Return disposition requires the arrived return's customer-delivery commitment."
-        )
+        raise core.InvalidOperation(code="return_disposition_commitment_missing")
     if not movement.to_location_id:
-        raise core.InvalidOperation(
-            "Return disposition requires the arrived return's destination location."
-        )
+        raise core.InvalidOperation(code="return_disposition_location_missing")
     return movement
 
 
@@ -145,19 +139,15 @@ def preview_return_disposition(
     reason: str | None = None,
 ) -> dict[str, Any]:
     if disposition not in DISPOSITIONS:
-        raise core.InvalidOperation("Unsupported return disposition.")
+        raise core.InvalidOperation(code="return_disposition_unsupported")
     before = return_disposition_summary(session, tenant_id, return_movement_id)
     qty = core.positive(quantity)
     if qty > before["unresolved"]:
-        raise core.InvalidOperation(
-            "Return disposition exceeds unresolved arrived quantity."
-        )
+        raise core.InvalidOperation(code="return_disposition_exceeds_arrived")
     if disposition in {"restock", "quarantine_repair"} and not destination_location_id:
-        raise core.InvalidOperation(
-            "This return disposition requires a destination location."
-        )
+        raise core.InvalidOperation(code="return_disposition_destination_required")
     if disposition == "scrap_loss" and not (reason or "").strip():
-        raise core.InvalidOperation("Scrap or loss requires a reason.")
+        raise core.InvalidOperation(code="return_disposition_scrap_reason_required")
     movement_type = {
         "restock": "transfer",
         "quarantine_repair": "transfer",
@@ -220,7 +210,7 @@ def record_return_disposition(
             .with_for_update()
         )
         if arrived is None:
-            raise core.NotFound("Return movement was not found.")
+            raise core.NotFound(code="return_movement_not_found")
         reviewed = preview_return_disposition(
             session,
             tenant_id,

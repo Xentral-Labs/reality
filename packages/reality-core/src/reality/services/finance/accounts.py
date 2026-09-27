@@ -53,7 +53,7 @@ def _get(session: Session, tenant_id: str, account_id: str) -> SubledgerAccount:
         .execution_options(populate_existing=True)
     )
     if account is None:
-        raise NotFound("SubledgerAccount not found.")
+        raise NotFound(code="subledger_account_not_found")
     return account
 
 
@@ -290,12 +290,12 @@ def resolve_account(
         )
         if dest is None:
             raise InvalidOperation(
-                f"Missing account default for {role}. Configure finance accounts first."
+                code="finance_account_default_missing", values={"role": str(role)}
             )
         account_id = dest.account_id
     account = _get(session, tenant_id, account_id)
     if account.role != role or account.state != "active":
-        raise InvalidOperation("Account is blocked or has the wrong operational role.")
+        raise InvalidOperation(code="finance_account_blocked_or_wrong_role")
     return account
 
 

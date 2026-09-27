@@ -274,7 +274,7 @@ resolved in the artifacts:
 | A4 | LOW | `output.error.code` of failed proposal receipts changes from the class code to the refusal code. | No consumer in `src/` or `apps/web` (grep, 2026-09-27); recorded in the contract doc (T905). |
 | A5 | LOW | The strict render mode needs a test-environment switch. | `REALITY_STRICT_REFUSALS=1` is set in `core/tests/conftest.py` (T005). |
 | A6 | LOW | The static gate cannot see refusals reached only through `obj.method()` or `getattr`, so FR-006 holds for what the gate sees. | Only 2 refusal raises sit in methods; the ratchet's `scope` marks are reviewed in the PR, and the browser and live checks cover the main forms. |
-| A7 | LOW | Some cards already call `t(error.message)`; with the message localized in `request()` this translates twice. | Harmless (a translated sentence is not a dictionary key); T013 removes the redundant calls. |
+| A7 | LOW | Some cards already call `t(error.message)`; with the message localized in `request()` this translates twice. | Harmless: a translated sentence is not a dictionary key. The calls stay, because the same cards also translate their own client-side messages through them. |
 
 ## Review Risks
 

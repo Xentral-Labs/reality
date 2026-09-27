@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from reality.domain.refusals import DomainRefusal
+
 
 def available_assignment_quantity(
     stated_quantity: Decimal, effective_assignments: Decimal
@@ -28,8 +30,8 @@ def validate_assignment_quantity(
     quantity: Decimal, supplier_available: Decimal, customer_open: Decimal | None
 ) -> None:
     if quantity <= 0:
-        raise ValueError("Supply assignment quantity must be positive.")
+        raise DomainRefusal(code="supply_assignment_quantity_not_positive")
     if quantity > supplier_available:
-        raise ValueError("Supply assignment exceeds unassigned supplier quantity.")
+        raise DomainRefusal(code="supply_assignment_exceeds_supplier")
     if customer_open is not None and quantity > customer_open:
-        raise ValueError("Supply assignment exceeds open customer demand.")
+        raise DomainRefusal(code="supply_assignment_exceeds_demand")

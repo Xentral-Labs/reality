@@ -39,11 +39,11 @@ def _json(value: Any) -> str:
 
 def _parse(content: bytes) -> tuple[list[str], list[dict[str, str]]]:
     if not content or len(content) > MAX_BYTES:
-        raise InvalidOperation("CSV must contain data and be at most 2 MiB.")
+        raise InvalidOperation(code="item_import_csv_size_invalid")
     try:
         text = content.decode("utf-8-sig")
         if "\x00" in text:
-            raise InvalidOperation("CSV contains an invalid null character.")
+            raise InvalidOperation(code="item_import_csv_null_character")
         try:
             dialect = csv.Sniffer().sniff(text[:8192], delimiters=",;\t")
         except csv.Error:
@@ -55,23 +55,23 @@ def _parse(content: bytes) -> tuple[list[str], list[dict[str, str]]]:
             or any(not c.strip() for c in columns)
             or len({c.strip().lower() for c in columns}) != len(columns)
         ):
-            raise InvalidOperation("CSV requires 1–50 distinct, nonempty column names.")
+            raise InvalidOperation(code="item_import_csv_columns_invalid")
         if any(len(c) > 500 for c in columns):
-            raise InvalidOperation("CSV column names must be at most 500 characters.")
+            raise InvalidOperation(code="item_import_csv_column_name_too_long")
         rows = []
         for number, values in enumerate(reader, 2):
             if len(values) != len(columns):
                 raise InvalidOperation(
-                    f"Row {number}: the number of fields differs from the header."
+                    code="item_import_row_field_count_mismatch", values={"row": number}
                 )
             rows.append(dict(zip(columns, values, strict=True)))
             if len(rows) > MAX_ROWS:
-                raise InvalidOperation("CSV may contain at most 500 item rows.")
+                raise InvalidOperation(code="item_import_csv_too_many_rows")
         if not rows:
-            raise InvalidOperation("CSV has no item rows.")
+            raise InvalidOperation(code="item_import_csv_no_rows")
         return columns, rows
     except (UnicodeError, csv.Error, StopIteration) as error:
-        raise InvalidOperation("Upload a valid UTF-8 CSV file.") from error
+        raise InvalidOperation(code="item_import_csv_not_utf8") from error
 
 
 def stage_item_csv(
@@ -105,14 +105,14 @@ def stage_item_csv(
 def _read(session: Session, tenant_id: str, artifact_id: str):
     artifact = get_artifact(session, tenant_id, artifact_id)
     if artifact.byte_size > MAX_BYTES:
-        raise InvalidOperation("CSV must be at most 2 MiB.")
+        raise InvalidOperation(code="item_import_csv_too_large")
     with materialize_artifact(artifact) as path, path.open("rb") as stream:
         content = stream.read(MAX_BYTES + 1)
     if (
         len(content) != artifact.byte_size
         or hashlib.sha256(content).hexdigest() != artifact.sha256
     ):
-        raise InvalidOperation("The original file no longer matches its recorded hash.")
+        raise InvalidOperation(code="item_import_file_hash_mismatch")
     columns, rows = _parse(content)
     return artifact, columns, rows
 
@@ -136,15 +136,18 @@ def _validate_new_rows(
                 or len(row[field]) > 500
             ):
                 raise InvalidOperation(
-                    f"Row {number}: {field} is required and must be at most 500 characters."
+                    code="item_import_row_field_invalid",
+                    values={"row": number, "field": field},
                 )
         if row["sku"] in seen:
             raise InvalidOperation(
-                f"Row {number}: duplicate SKU {row['sku']} in this file."
+                code="item_import_row_duplicate_sku",
+                values={"row": number, "sku": row["sku"]},
             )
         if row["sku"] in existing:
             raise InvalidOperation(
-                f"Row {number}: SKU {row['sku']} already exists in this company."
+                code="item_import_row_sku_exists",
+                values={"row": number, "sku": row["sku"]},
             )
         seen.add(row["sku"])
 
@@ -154,20 +157,18 @@ def preview_item_import(
 ) -> dict[str, Any]:
     get_tenant(session, tenant_id)
     if set(config) - {"artifact_id", "source_system", "mapping", "default_unit"}:
-        raise InvalidOperation("Unsupported item import fields.")
+        raise InvalidOperation(code="item_import_fields_unsupported")
     source = config.get("source_system", "")
     unit = config.get("default_unit", "pcs")
     mapping = config.get("mapping", {})
     if not isinstance(source, str) or not re.fullmatch(
         r"[a-z0-9][a-z0-9_.-]{0,99}", source
     ):
-        raise InvalidOperation(
-            "Source code must use 1–100 lowercase letters, numbers, dots, dashes or underscores."
-        )
+        raise InvalidOperation(code="item_import_source_code_invalid")
     if not isinstance(unit, str) or not unit.strip() or len(unit) > 500:
-        raise InvalidOperation("A default unit of at most 500 characters is required.")
+        raise InvalidOperation(code="item_import_default_unit_invalid")
     if not isinstance(mapping, dict) or set(mapping) - {"sku", "name", "unit"}:
-        raise InvalidOperation("Map only SKU, name and unit.")
+        raise InvalidOperation(code="item_import_mapping_fields_invalid")
     artifact, columns, raw = _read(
         session, tenant_id, str(config.get("artifact_id", ""))
     )
@@ -179,11 +180,9 @@ def preview_item_import(
         or not mapping.get("sku")
         or not mapping.get("name")
     ):
-        raise InvalidOperation(
-            "Choose existing columns for SKU and name and optionally unit."
-        )
+        raise InvalidOperation(code="item_import_mapping_columns_invalid")
     if len(set(mapping.values())) != len(mapping):
-        raise InvalidOperation("Each mapped field must use a different column.")
+        raise InvalidOperation(code="item_import_mapping_columns_not_distinct")
     rows = [
         {
             "sku": row[mapping["sku"]].strip(),
@@ -214,7 +213,7 @@ def review_item_import(
     if set(arguments) != {"import_file"} or not isinstance(
         arguments.get("import_file"), dict
     ):
-        raise InvalidOperation("An exact file-import configuration is required.")
+        raise InvalidOperation(code="item_import_configuration_required")
     creation = preview_item_import(session, tenant_id, arguments["import_file"])
     intent = {"import_file": dict(arguments["import_file"])}
     state = {"creation": creation}
@@ -251,9 +250,7 @@ def assert_import_overlap(
             .get("rows", saved.get("records", []))
         )
         if any(row.get("sku") in skus for row in prior):
-            raise InvalidOperation(
-                "An overlapping item creation is unresolved. Check its outcome first."
-            )
+            raise InvalidOperation(code="item_import_overlap_unresolved")
 
 
 def record_item_import(
@@ -264,7 +261,7 @@ def record_item_import(
     creation = preview_item_import(session, tenant_id, arguments["import_file"])
     action_id = arguments.get("_action_id")
     if not action_id:
-        raise InvalidOperation("Item import requires a confirmed proposal.")
+        raise InvalidOperation(code="item_import_confirmation_required")
     artifact = get_artifact(session, tenant_id, creation["artifact"]["id"])
     try:
         source, created, _ = store_source_record(
@@ -277,9 +274,7 @@ def record_item_import(
             source_artifact_id=artifact.id,
         )
         if not created:
-            raise InvalidOperation(
-                "This file interpretation was already recorded. Inspect its original result."
-            )
+            raise InvalidOperation(code="item_import_already_recorded")
         emit_business_event(
             session,
             tenant_id,

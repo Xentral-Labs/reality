@@ -9,6 +9,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from reality.domain.refusals import payload as refusal_payload
 from reality.services.analytics.reports import caller
 from reality.services.core import InvalidOperation, NotFound
 
@@ -58,7 +59,14 @@ async def chat_events(
                 }
             emit(result)
         except (NotFound, InvalidOperation) as error:
-            emit({"type": "error", "message": str(error)})
+            # Spec 286: a coded refusal lets the panel show it in the user's language.
+            emit(
+                {
+                    "type": "error",
+                    "message": str(error),
+                    **(refusal_payload(error) or {}),
+                }
+            )
         except Exception:  # noqa: BLE001
             emit(
                 {

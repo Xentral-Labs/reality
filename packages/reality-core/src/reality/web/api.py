@@ -50,6 +50,7 @@ from reality.db.core import (
     uid,
 )
 from reality.domain.calendar import day_text
+from reality.domain.refusals import payload as refusal_payload
 from reality.mcp.auth import (
     active_mcp_access_tokens,
     create_mcp_access_token,
@@ -1184,8 +1185,8 @@ def post_delivery_prepare(
         return delivery_proposal_detail(session, tenant_id, proposal.id)
     except (NotFound, InvalidOperation, TypeError) as error:
         if isinstance(error, TypeError):
-            raise HTTPException(
-                status_code=422, detail="Check the action fields."
+            raise RefusalHTTPException(
+                422, InvalidOperation(code="action_fields_invalid")
             ) from error
         raise api_error(error) from error
 
@@ -2757,6 +2758,14 @@ class DeliveryHoldRead(ApiModel):
     released_at: datetime | None
 
 
+class RefusalHTTPException(HTTPException):
+    """An HTTP refusal that also carries the refusal's code, template and values."""
+
+    def __init__(self, status_code: int, error: BaseException) -> None:
+        super().__init__(status_code=status_code, detail=str(error))
+        self.refusal = refusal_payload(error)
+
+
 def api_error(error: NotFound | InvalidOperation) -> HTTPException:
     code = (
         status.HTTP_404_NOT_FOUND
@@ -2765,7 +2774,7 @@ def api_error(error: NotFound | InvalidOperation) -> HTTPException:
         if isinstance(error, Conflict)
         else status.HTTP_400_BAD_REQUEST
     )
-    return HTTPException(status_code=code, detail=str(error))
+    return RefusalHTTPException(code, error)
 
 
 def master_source(
@@ -6582,7 +6591,7 @@ def copilots_payload(
     )
     active = next((row for row in conversations if row.id == session_id), None)
     if session_id and active is None:
-        raise NotFound("ChatSession not found.")
+        raise NotFound(code="chat_session_not_found")
     active = active or (conversations[0] if conversations else None)
     messages = chat_messages(session, tenant_id, active.id) if active else []
     proposals = (

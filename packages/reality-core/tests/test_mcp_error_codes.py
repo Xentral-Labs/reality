@@ -45,7 +45,9 @@ async def test_service_errors_reach_the_client_as_code_and_message(session):
         with pytest.raises(ToolError) as refused:
             await server.call_tool("order_explain", {"order_reference": "SO-NOT-THERE"})
         payload = json.loads(str(refused.value))
-        assert payload["code"] == "not_found"
+        # Spec 286 FR-008: a coded refusal sends its refusal code (a "..._not_found" code
+        # here); an uncoded one keeps its class code, as the second call below shows.
+        assert payload["code"].endswith("not_found")
         assert payload["tool"] == "order_explain"
         assert payload["message"]
         assert "Error executing tool" not in payload["message"]

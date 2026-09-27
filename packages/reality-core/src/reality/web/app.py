@@ -9,6 +9,7 @@ import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import select, text
@@ -16,9 +17,11 @@ from starlette.concurrency import run_in_threadpool
 
 from reality.catalogs import runtime_application_catalog
 from reality.db.core import Session, TenantMembership
+from reality.domain.refusals import payload as refusal_payload
 from reality.services.bootstrap import bootstrap_empty_database
 from reality.services.platform import running_commit, running_version
 from reality.services.tenant_policy import PlaygroundOperationDenied
+from reality.web.api import RefusalHTTPException
 from reality.web.api import public_router as public_api_router
 from reality.web.api import router as api_router
 from reality.web.auth import admin_router as auth_admin_router
@@ -80,7 +83,22 @@ app = FastAPI(
 async def playground_operation_denied(
     _request: Request, error: PlaygroundOperationDenied
 ) -> JSONResponse:
-    return JSONResponse({"detail": str(error), "code": error.code}, status_code=403)
+    # Spec 286: a coded denial sends its refusal code; an uncoded one its class code.
+    refusal = refusal_payload(error) or {"code": error.code}
+    return JSONResponse({"detail": str(error), **refusal}, status_code=403)
+
+
+@app.exception_handler(RefusalHTTPException)
+async def refusal_http_exception(
+    request: Request, error: RefusalHTTPException
+) -> JSONResponse:
+    if error.refusal is None:
+        return await http_exception_handler(request, error)
+    return JSONResponse(
+        {"detail": error.detail, **error.refusal},
+        status_code=error.status_code,
+        headers=error.headers,
+    )
 
 
 allowed_origins = [APP_URL]

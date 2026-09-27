@@ -1,3 +1,5 @@
+import type { Refusal } from "./refusals";
+
 export type ChatReply = {
   user: { id: string; content: string };
   assistant: { id: string; content: string };
@@ -6,7 +8,7 @@ export type ChatStreamEvent =
   | { type: "start" | "reset" }
   | { type: "delta"; text: string }
   | ({ type: "done" } & ChatReply)
-  | { type: "error"; message: string };
+  | ({ type: "error"; message: string } & Omit<Refusal, "detail">);
 
 /** Decode response fragments without losing split UTF-8 characters or replaying sends. */
 export async function readChatStream(
@@ -27,7 +29,9 @@ export async function readChatStream(
         buffer = buffer.slice(newline + 1);
         if (!line) continue;
         const event = JSON.parse(line) as ChatStreamEvent;
-        if (event.type === "error") throw new Error(event.message);
+        // Spec 286: the refusal travels with the error; api.ts shows it localized.
+        if (event.type === "error")
+          throw Object.assign(new Error(event.message), { refusal: event });
         if (event.type === "done") {
           if (
             !event.user?.id ||

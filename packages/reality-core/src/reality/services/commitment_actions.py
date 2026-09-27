@@ -24,20 +24,20 @@ def review_commitment_action(
     session: Session, tenant_id: str, tool: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
     if tool not in COMMITMENT_ACTION_TOOLS:
-        raise core.InvalidOperation("Unsupported commitment action.")
+        raise core.InvalidOperation(code="commitment_action_unsupported")
     if tool == "commitment_revise":
         return _review_commitment_revision(session, tenant_id, arguments)
     allowed = {"commitment_id", "reason", "source_record_id"}
     if set(arguments) - allowed or not {"commitment_id", "reason"} <= set(arguments):
-        raise core.InvalidOperation("Commitment cancellation fields are incomplete or unsupported.")
+        raise core.InvalidOperation(code="commitment_cancellation_fields_invalid")
     reason = str(arguments["reason"]).strip()
     if not reason:
-        raise core.InvalidOperation("Commitment cancellation reason is required.")
+        raise core.InvalidOperation(code="commitment_cancellation_reason_required")
     commitment = core._tenant_record(
         session, core.Commitment, tenant_id, arguments["commitment_id"]
     )
     if commitment.status != "open":
-        raise core.InvalidOperation("Only an open commitment can be cancelled.")
+        raise core.InvalidOperation(code="commitment_cancel_not_open")
     if arguments.get("source_record_id"):
         core._tenant_record(
             session, core.SourceRecord, tenant_id, arguments["source_record_id"]
@@ -119,12 +119,12 @@ def _review_commitment_revision(
         "retained_allocations",
     }
     if set(arguments) - allowed or "commitment_id" not in arguments:
-        raise core.InvalidOperation("Commitment revision fields are incomplete or unsupported.")
+        raise core.InvalidOperation(code="commitment_revision_fields_invalid")
     commitment = core._tenant_record(
         session, core.Commitment, tenant_id, arguments["commitment_id"]
     )
     if commitment.status != "open":
-        raise core.InvalidOperation("Only an open commitment can be revised.")
+        raise core.InvalidOperation(code="commitment_revise_not_open")
     if arguments.get("source_record_id"):
         core._tenant_record(
             session, core.SourceRecord, tenant_id, arguments["source_record_id"]
@@ -135,14 +135,14 @@ def _review_commitment_revision(
         else None
     )
     if arguments.get("due_at") is not None and stated_due is None:
-        raise core.InvalidOperation("A revision must state a readable date.")
+        raise core.InvalidOperation(code="revision_date_unreadable")
     stated_quantity = (
         core.positive(arguments["quantity"], "revised quantity")
         if arguments.get("quantity") is not None
         else None
     )
     if stated_due is None and stated_quantity is None:
-        raise core.InvalidOperation("A revision must restate a date, a quantity, or both.")
+        raise core.InvalidOperation(code="revision_needs_date_or_quantity")
     terms = core.commitment_terms(session, tenant_id, {commitment.id})[commitment.id]
     reservations = list(
         session.scalars(
@@ -185,29 +185,21 @@ def _review_commitment_revision(
         selected_ids: set[str] = set()
         for value in selected:
             if set(value) != {"reservation_id", "quantity"}:
-                raise core.InvalidOperation(
-                    "Each retained allocation must name only reservation_id and quantity."
-                )
+                raise core.InvalidOperation(code="retained_allocation_fields_invalid")
             reservation_id = str(value["reservation_id"])
             if reservation_id in selected_ids or reservation_id not in by_id:
-                raise core.InvalidOperation(
-                    "Retained allocations must name distinct active reservations for this commitment."
-                )
+                raise core.InvalidOperation(code="retained_allocations_not_distinct")
             selected_ids.add(reservation_id)
             quantity = core.positive(value["quantity"], "retained allocation quantity")
             if quantity > core.decimal(by_id[reservation_id].quantity):
-                raise core.InvalidOperation(
-                    "A retained allocation cannot exceed its active reservation."
-                )
+                raise core.InvalidOperation(code="retained_allocation_exceeds_reservation")
             normalized_selected.append(
                 {"reservation_id": reservation_id, "quantity": str(quantity)}
             )
         if sum(
             (Decimal(value["quantity"]) for value in normalized_selected), Decimal(0)
         ) > revised_open:
-            raise core.InvalidOperation(
-                "Retained allocation total cannot exceed revised open quantity."
-            )
+            raise core.InvalidOperation(code="retained_allocation_exceeds_open_quantity")
     intent = {
         key: value
         for key, value in arguments.items()
@@ -275,9 +267,7 @@ def assert_no_unresolved_commitment_action(
         None,
     )
     if unresolved:
-        raise core.InvalidOperation(
-            "An earlier action for this commitment is unresolved. Check its outcome first."
-        )
+        raise core.InvalidOperation(code="commitment_action_unresolved")
 
 
 def commitment_action_detail(

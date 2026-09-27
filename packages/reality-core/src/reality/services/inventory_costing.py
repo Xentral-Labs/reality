@@ -99,13 +99,11 @@ def _check(
     movement_limit = MAX_MOVEMENTS if movement_limit is None else movement_limit
     receipt_limit = MAX_RECEIPTS if receipt_limit is None else receipt_limit
     if session.connection().get_isolation_level() != "READ COMMITTED":
-        raise core.InvalidOperation(
-            "Inventory admission requires READ COMMITTED input capture."
-        )
+        raise core.InvalidOperation(code="inventory_admission_isolation_required")
     item = _row(session, Item, tenant, request.item_id)
     _row(session, Party, tenant, request.owner_party_id)
     if request.base_unit != item.unit or request.effective_at > now():
-        raise core.InvalidOperation("Unsupported inventory base unit or future cutoff.")
+        raise core.InvalidOperation(code="inventory_base_unit_or_cutoff_unsupported")
     movements = list(
         session.scalars(
             select(Movement)
@@ -119,7 +117,7 @@ def _check(
         )
     )
     if len(movements) > movement_limit:
-        raise core.InvalidOperation("Inventory movement bound exceeded.")
+        raise core.InvalidOperation(code="inventory_movement_bound_exceeded")
     ids = [m.id for m in movements]
     corrections = list(
         session.scalars(
@@ -145,7 +143,7 @@ def _check(
         )
     )
     if corrected_subjects - {row.original_movement_id for row in corrections}:
-        raise core.InvalidOperation("Inventory correction chain is incomplete.")
+        raise core.InvalidOperation(code="inventory_correction_chain_incomplete")
     correction_events = {}
     correction_inputs = {}
     excluded = set()
@@ -170,7 +168,7 @@ def _check(
             or compensation.to_location_id != original.from_location_id
             or (replacement is not None and replacement.item_id != item.id)
         ):
-            raise core.InvalidOperation("Inventory correction chain is incomplete.")
+            raise core.InvalidOperation(code="inventory_correction_chain_incomplete")
         events = list(
             session.scalars(
                 select(BusinessEvent).where(
@@ -183,9 +181,7 @@ def _check(
             )
         )
         if len(events) != 1:
-            raise core.InvalidOperation(
-                "Inventory correction requires one exact event."
-            )
+            raise core.InvalidOperation(code="inventory_correction_event_ambiguous")
         excluded.update((original.id, compensation.id))
         if replacement is not None:
             correction_events[replacement.id] = events[0]
@@ -198,13 +194,9 @@ def _check(
             }
     movements = [movement for movement in movements if movement.id not in excluded]
     if not movements or any(m.occurred_at < request.history_start for m in movements):
-        raise core.InvalidOperation(
-            "Inventory history does not support the declared empty opening."
-        )
+        raise core.InvalidOperation(code="inventory_history_empty_opening_unsupported")
     if any(m.type not in KINDS or m.quantity <= 0 for m in movements):
-        raise core.InvalidOperation(
-            "Inventory history contains unsupported movement kinds."
-        )
+        raise core.InvalidOperation(code="inventory_history_movement_kinds_unsupported")
     ownership_parts: list[dict] = []
     owned_quantity = {movement.id: movement.quantity for movement in movements}
     if request.ownership_parts:
@@ -213,20 +205,18 @@ def _check(
         for part in request.ownership_parts:
             if part.movement_id not in movement_by_id:
                 raise core.InvalidOperation(
-                    "Inventory ownership references an unavailable movement."
+                    code="inventory_ownership_movement_unavailable"
                 )
             _row(session, Party, tenant, part.owner_party_id)
             _row(session, SourceRecord, tenant, part.evidence_source_record_id)
             grouped.setdefault(part.movement_id, []).append(part)
         if set(grouped) != set(movement_by_id):
-            raise core.InvalidOperation(
-                "Inventory ownership must partition every effective movement."
-            )
+            raise core.InvalidOperation(code="inventory_ownership_partition_incomplete")
         for movement in movements:
             parts = grouped[movement.id]
             if sum((part.quantity for part in parts), Decimal(0)) != movement.quantity:
                 raise core.InvalidOperation(
-                    "Inventory ownership portions must conserve movement quantity."
+                    code="inventory_ownership_portions_quantity_mismatch"
                 )
             owned_quantity[movement.id] = sum(
                 (
@@ -248,26 +238,22 @@ def _check(
     owned_movements = [m for m in movements if owned_quantity[m.id] > 0]
     receipt_ids = {m.id for m in owned_movements if m.type == "receipt"}
     if len(receipt_ids) > receipt_limit:
-        raise core.InvalidOperation("Inventory receipt bound exceeded.")
+        raise core.InvalidOperation(code="inventory_receipt_bound_exceeded")
     reviewed_receipt_ids = {row.movement_id for row in request.receipts}
     if receipt_ids != reviewed_receipt_ids:
         missing = sorted(receipt_ids - reviewed_receipt_ids)
         unexpected = sorted(reviewed_receipt_ids - receipt_ids)
         raise core.InvalidOperation(
-            "Every receipt requires exact cost and ownership evidence; "
-            f"missing movement IDs: {missing}; unexpected movement IDs: {unexpected}."
+            code="inventory_receipt_evidence_mismatch",
+            values={"missing": str(missing), "unexpected": str(unexpected)},
         )
     opening_ids = {m.id for m in owned_movements if m.type == "opening_stock"}
     if opening_ids != {row.movement_id for row in request.openings}:
-        raise core.InvalidOperation(
-            "Every opening stock requires exact cost and ownership evidence."
-        )
+        raise core.InvalidOperation(code="inventory_opening_evidence_incomplete")
     if {m.id for m in owned_movements if m.type == "shipment"} != set(
         request.economic_issue_ids
     ):
-        raise core.InvalidOperation(
-            "Explicit economic consumption must cover every shipment exactly."
-        )
+        raise core.InvalidOperation(code="inventory_economic_issue_shipments_mismatch")
     expected = {
         "return": set(request.customer_return_ids),
         "supplier_return": set(request.supplier_return_ids),
@@ -276,7 +262,8 @@ def _check(
     for movement_type, classified_ids in expected.items():
         if {m.id for m in owned_movements if m.type == movement_type} != classified_ids:
             raise core.InvalidOperation(
-                f"Inventory history contains unsupported movement classification: every {movement_type} must be explicit."
+                code="inventory_movement_classification_missing",
+                values={"movement_type": movement_type},
             )
     movement_by_id = {movement.id: movement for movement in movements}
     resolved_quantities: dict[str, Decimal] = {}
@@ -290,9 +277,7 @@ def _check(
             or arrived.type != "return"
             or arrived.id not in request.customer_return_ids
         ):
-            raise core.InvalidOperation(
-                "Inventory settlement must resolve one reviewed customer return."
-            )
+            raise core.InvalidOperation(code="inventory_settlement_return_unresolved")
         resolved_quantities[arrived.id] = (
             resolved_quantities.get(arrived.id, Decimal(0)) + movement.quantity
         )
@@ -300,9 +285,7 @@ def _check(
         quantity > movement_by_id[return_id].quantity
         for return_id, quantity in resolved_quantities.items()
     ):
-        raise core.InvalidOperation(
-            "Inventory settlement exceeds its reviewed customer return."
-        )
+        raise core.InvalidOperation(code="inventory_settlement_exceeds_return")
     received = {}
     for chosen in request.receipts:
         _row(session, SourceRecord, tenant, chosen.ownership_source_record_id)
@@ -318,14 +301,14 @@ def _check(
             != {p["attribution_revision_id"] for p in frozen["trace"]}
         ):
             raise core.InvalidOperation(
-                "A new complete receipt review is required before inventory confirmation."
+                code="inventory_receipt_review_renewal_required"
             )
         if (
             frozen["currency"] != request.currency
             or frozen["base_unit"] != request.base_unit
         ):
             raise core.InvalidOperation(
-                "Inventory receipt currency/base unit is incompatible."
+                code="inventory_receipt_currency_unit_incompatible"
             )
         received[chosen.movement_id] = {
             "receipt_basis_id": frozen["receipt_basis_id"],
@@ -381,9 +364,7 @@ def _check(
             )
         )
         if len(events) != 1:
-            raise core.InvalidOperation(
-                "Inventory movement requires one exact recorded event."
-            )
+            raise core.InvalidOperation(code="inventory_movement_event_ambiguous")
         previous = session.scalar(
             select(CostMovementBasis).where(
                 CostMovementBasis.tenant_id == tenant,
@@ -397,13 +378,11 @@ def _check(
             or previous.movement_type != movement.type
             or previous.movement_event_id != events[0].id
         ):
-            raise core.InvalidOperation("Admitted inventory movement input changed.")
+            raise core.InvalidOperation(code="inventory_movement_input_changed")
         receipt = received.get(movement.id)
         opening = openings.get(movement.id)
         if receipt and Decimal(receipt["quantity"]) != movement.quantity:
-            raise core.InvalidOperation(
-                "Receipt cost quantity differs from inventory input."
-            )
+            raise core.InvalidOperation(code="inventory_receipt_cost_quantity_mismatch")
         owner_quantity = owned_quantity[movement.id]
         full_cost = receipt["cost"] if receipt else opening["cost"] if opening else None
         inputs.append(
@@ -461,7 +440,7 @@ def _calculate(inputs: list[dict], method: str):
         )
     except (InventoryRefusal, ValueError) as error:
         raise core.InvalidOperation(
-            f"Unsupported inventory calculation: {error}"
+            code="inventory_calculation_unsupported", values={"reason": str(error)}
         ) from error
 
 
@@ -591,7 +570,7 @@ def _execute(
                 or opening_basis.acquisition_cost != Decimal(opening["cost"])
                 or opening_basis.currency != request.currency
             ):
-                raise core.InvalidOperation("Admitted opening stock input changed.")
+                raise core.InvalidOperation(code="inventory_opening_input_changed")
         if Decimal(movement["quantity"]) > 0:
             _new(
                 session,
@@ -649,11 +628,13 @@ def _retained_action_parts(
             (row for row in batch.scopes if row.item_id == policy.item_id), None
         )
         if scope is None:
-            raise core.InvalidOperation("Inventory action input integrity mismatch.")
+            raise core.InvalidOperation(
+                code="inventory_action_input_integrity_mismatch"
+            )
     else:
-        raise core.InvalidOperation("Inventory action input integrity mismatch.")
+        raise core.InvalidOperation(code="inventory_action_input_integrity_mismatch")
     if scope.method != policy.method or scope.owner_party_id != policy.owner_party_id:
-        raise core.InvalidOperation("Inventory action input integrity mismatch.")
+        raise core.InvalidOperation(code="inventory_action_input_integrity_mismatch")
     grouped: dict[str, list[dict]] = {}
     for selected in scope.specific_selections:
         grouped.setdefault(selected.movement_id, []).append(
@@ -695,7 +676,7 @@ def _inputs(
         review.algorithm_version != ALGORITHM_VERSION
         or review.input_schema_version != 1
     ):
-        raise core.InvalidOperation("Unsupported inventory review version.")
+        raise core.InvalidOperation(code="inventory_review_version_unsupported")
     members = list(
         session.scalars(
             select(CostInventoryMember)
@@ -708,7 +689,7 @@ def _inputs(
         )
     )
     if len(members) > MAX_MOVEMENTS:
-        raise core.InvalidOperation("Inventory movement bound exceeded.")
+        raise core.InvalidOperation(code="inventory_movement_bound_exceeded")
     selections, return_parts, requested_ownership_parts = _retained_action_parts(
         session, tenant, review, policy
     )
@@ -727,7 +708,7 @@ def _inputs(
         )
     )
     if len(ownership_parts) > 500:
-        raise core.InvalidOperation("Inventory ownership portion bound exceeded.")
+        raise core.InvalidOperation(code="inventory_ownership_portion_bound_exceeded")
     basis_by_id = {}
     grouped_parts: dict[str, list] = {}
     retained_ownership = []
@@ -736,7 +717,7 @@ def _inputs(
         _row(session, Party, tenant, part.owner_party_id)
         _row(session, SourceRecord, tenant, part.evidence_source_record_id)
         if part.input_schema_version != 1 or part.quantity <= 0:
-            raise core.InvalidOperation("Inventory ownership integrity mismatch.")
+            raise core.InvalidOperation(code="inventory_ownership_integrity_mismatch")
         basis_by_id[basis.id] = basis
         grouped_parts.setdefault(basis.id, []).append(part)
         retained_ownership.append({"part": _values(part), "movement": _values(basis)})
@@ -745,7 +726,7 @@ def _inputs(
             sum((part.quantity for part in parts), Decimal(0))
             != basis_by_id[basis_id].base_quantity
         ):
-            raise core.InvalidOperation("Inventory ownership integrity mismatch.")
+            raise core.InvalidOperation(code="inventory_ownership_integrity_mismatch")
     stored_requested = sorted(
         [
             {
@@ -759,7 +740,7 @@ def _inputs(
         key=lambda row: (row["movement_id"], row["owner_party_id"]),
     )
     if stored_requested != requested_ownership_parts:
-        raise core.InvalidOperation("Inventory action input integrity mismatch.")
+        raise core.InvalidOperation(code="inventory_action_input_integrity_mismatch")
     selected_quantity = {
         basis_id: sum(
             (
@@ -815,7 +796,7 @@ def _inputs(
             or not valid_source_event
             or source_event.sequence > review.target_event_sequence
         ):
-            raise core.InvalidOperation("Inventory input integrity mismatch.")
+            raise core.InvalidOperation(code="inventory_input_integrity_mismatch")
         retained = {
             "member": _values(member),
             "movement": _values(basis),
@@ -830,10 +811,10 @@ def _inputs(
             else basis.base_quantity
         )
         if quantity <= 0:
-            raise core.InvalidOperation("Inventory ownership integrity mismatch.")
+            raise core.InvalidOperation(code="inventory_ownership_integrity_mismatch")
         if member.kind == "receipt":
             if len(receipts) >= MAX_RECEIPTS:
-                raise core.InvalidOperation("Inventory receipt bound exceeded.")
+                raise core.InvalidOperation(code="inventory_receipt_bound_exceeded")
             ownership = _row(
                 session, CostOwnershipRevision, tenant, member.ownership_revision_id
             )
@@ -845,7 +826,9 @@ def _inputs(
                 or ownership.covered_quantity != quantity
                 or receipt_basis.movement_id != basis.movement_id
             ):
-                raise core.InvalidOperation("Inventory ownership integrity mismatch.")
+                raise core.InvalidOperation(
+                    code="inventory_ownership_integrity_mismatch"
+                )
             held = receipt_cost(
                 session,
                 tenant,
@@ -858,7 +841,7 @@ def _inputs(
                 or held["base_unit"] != policy.base_unit
             ):
                 raise core.InvalidOperation(
-                    "Inventory receipt review integrity mismatch."
+                    code="inventory_receipt_review_integrity_mismatch"
                 )
             cost = _money(Decimal(held["actual_cost"]) * quantity / basis.base_quantity)
             retained["ownership"] = _values(ownership)
@@ -886,7 +869,7 @@ def _inputs(
                 or opening.currency != policy.currency
                 or opening.input_schema_version != 1
             ):
-                raise core.InvalidOperation("Inventory opening integrity mismatch.")
+                raise core.InvalidOperation(code="inventory_opening_integrity_mismatch")
             _row(session, SourceRecord, tenant, opening.evidence_source_record_id)
             cost = _money(opening.acquisition_cost * quantity / basis.base_quantity)
             retained["opening"] = _values(opening)
@@ -916,7 +899,7 @@ def _inputs(
             basis_id for basis_id, quantity in selected_quantity.items() if quantity > 0
         }
         if member_basis_ids != expected_basis_ids:
-            raise core.InvalidOperation("Inventory ownership integrity mismatch.")
+            raise core.InvalidOperation(code="inventory_ownership_integrity_mismatch")
     return payload, inputs, receipts, openings
 
 
@@ -972,10 +955,10 @@ def _read(
             }
         policy = _row(session, CostPolicyRevision, tenant, review.policy_id)
         if policy.item_id != item_id:
-            raise core.NotFound("Costing scope not found.")
+            raise core.NotFound(code="costing_scope_not_found")
         payload, inputs, receipts, openings = _inputs(session, tenant, review, policy)
         if _hash(payload) != review.content_hash:
-            raise core.InvalidOperation("Inventory input integrity mismatch.")
+            raise core.InvalidOperation(code="inventory_input_integrity_mismatch")
         result = _calculate(inputs, policy.method)
         cursor = (
             review.target_event_sequence
@@ -1097,7 +1080,7 @@ def _check_batch(session: Session, tenant: str, request: InventoryBatchReview) -
         receipts += prepared["receipt_count"]
         rows.append({"item_id": member.item_id, "review": prepared})
     if _sequence(session, tenant) != request.expected_event_sequence:
-        raise core.Conflict("Costing preview is stale; reload the held evidence.")
+        raise core.Conflict(code="costing_preview_stale")
     return {
         "scopes": rows,
         "movement_count": movements,

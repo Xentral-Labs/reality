@@ -15,6 +15,8 @@ from pydantic import (
     model_validator,
 )
 
+from reality.domain.refusals import DomainRefusal
+
 CATEGORIES = (
     "goods",
     "inbound_freight",
@@ -35,7 +37,7 @@ Amount = Annotated[Decimal, Field(max_digits=18, decimal_places=4, allow_inf_nan
 ALLOCATION_INCREMENT = Decimal("0.0001")
 
 
-class CostingRefusal(ValueError):
+class CostingRefusal(DomainRefusal):
     """Refuse arithmetic that would invent or silently truncate costing inputs."""
 
 
@@ -58,7 +60,7 @@ def _decimal_places(value: Decimal) -> int:
 
 def _four_place(value: Decimal, label: str) -> None:
     if not value.is_finite() or _decimal_places(value) > 4:
-        raise CostingRefusal(f"{label} must fit the four decimal contract.")
+        raise CostingRefusal(code="costing_value_precision", values={"field": label})
 
 
 def allocate_weighted(
@@ -70,20 +72,20 @@ def allocate_weighted(
     _four_place(source_capacity, "Source capacity")
     _four_place(allocation_total, "Allocation total")
     if not targets:
-        raise CostingRefusal("At least one allocation target is required.")
+        raise CostingRefusal(code="allocation_target_required")
     identities = [target.target_id for target in targets]
     if any(not identity for identity in identities):
-        raise CostingRefusal("Every allocation target requires an opaque identity.")
+        raise CostingRefusal(code="allocation_target_identity_required")
     if len(set(identities)) != len(identities):
-        raise CostingRefusal("Duplicate allocation target.")
+        raise CostingRefusal(code="allocation_target_duplicate")
     if any(not target.weight.is_finite() or target.weight <= 0 for target in targets):
-        raise CostingRefusal("Allocation weights must be positive.")
+        raise CostingRefusal(code="allocation_weight_not_positive")
     if allocation_total == 0:
-        raise CostingRefusal("A zero allocation belongs in explicit scope review.")
+        raise CostingRefusal(code="allocation_zero_needs_scope_review")
     if source_capacity == 0 or (source_capacity > 0) != (allocation_total > 0):
-        raise CostingRefusal("Allocation total must preserve the source bucket sign.")
+        raise CostingRefusal(code="allocation_total_sign_mismatch")
     if abs(allocation_total) > abs(source_capacity):
-        raise CostingRefusal("Allocation total exceeds the received source capacity.")
+        raise CostingRefusal(code="allocation_total_exceeds_capacity")
 
     magnitude = abs(allocation_total)
     weight_total = sum((target.weight for target in targets), Decimal(0))
@@ -179,12 +181,12 @@ def validate_shares(parts: list[CostPart], basis: Decimal, tax: Decimal) -> None
         for part in selected:
             key = (part.movement_id, part.category, bucket)
             if key in seen:
-                raise ValueError("Duplicate target/category/bucket.")
+                raise CostingRefusal(code="cost_share_duplicate")
             seen.add(key)
             if capacity == 0 or (part.source_share > 0) != (capacity > 0):
-                raise ValueError("Shares must preserve their source bucket sign.")
+                raise CostingRefusal(code="cost_share_sign_mismatch")
         if sum((abs(p.source_share) for p in selected), Decimal(0)) > abs(capacity):
-            raise ValueError("Assigned shares exceed the received bucket.")
+            raise CostingRefusal(code="cost_share_exceeds_bucket")
 
     for part in parts:
         if part.amount_bucket != "nonrecoverable_tax":
@@ -195,9 +197,7 @@ def validate_shares(parts: list[CostPart], basis: Decimal, tax: Decimal) -> None
             if p.movement_id == part.movement_id and p.amount_bucket == "selected_basis"
         }
         if effects and effects != {part.cost_effect}:
-            raise ValueError(
-                "Tax cost direction must follow the selected amount for the same receipt."
-            )
+            raise CostingRefusal(code="cost_tax_direction_mismatch")
 
 
 class Change(Request):

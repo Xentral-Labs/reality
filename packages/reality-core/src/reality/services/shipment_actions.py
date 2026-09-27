@@ -82,7 +82,7 @@ def _owned(session: Session, model, tenant_id: str, record_id: str):
         select(model).where(model.tenant_id == tenant_id, model.id == record_id)
     )
     if record is None:
-        raise NotFound(f"{model.__name__} not found.")
+        raise NotFound(code="record_not_found", values={"record": model.__name__})
     return record
 
 
@@ -101,9 +101,9 @@ def review_shipment_action(
     session: Session, tenant_id: str, tool: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
     if tool not in SHIPMENT_TOOLS:
-        raise InvalidOperation("This is not a shipment action.")
+        raise InvalidOperation(code="shipment_action_not_shipment")
     if any(key.startswith("_") for key in arguments):
-        raise InvalidOperation("Internal review metadata cannot be supplied as intent.")
+        raise InvalidOperation(code="review_metadata_in_intent")
     intent = json.loads(_json(arguments))
     state: dict[str, Any] = {}
     source_id = intent.get("source_record_id")
@@ -120,14 +120,13 @@ def review_shipment_action(
         purpose = str(intent.get("purpose", ""))
         if purpose not in PURPOSES:
             raise InvalidOperation(
-                "Unsupported shipment purpose; permitted values: "
-                + ", ".join(sorted(PURPOSES))
-                + "."
+                code="shipment_purpose_unsupported",
+                values={"values": ", ".join(sorted(PURPOSES))},
             )
         try:
             validate_shipment_direction(purpose, str(direction))
         except ValueError as error:
-            raise InvalidOperation(str(error)) from error
+            raise InvalidOperation.from_refusal(error) from error
         party = _owned(
             session, Party, tenant_id, str(intent.get("counterparty_id", ""))
         )
@@ -140,37 +139,36 @@ def review_shipment_action(
             )
         )
         if role not in roles:
-            raise InvalidOperation("Counterparty role does not match shipment purpose.")
+            raise InvalidOperation(code="shipment_counterparty_role_mismatch")
         state["counterparty"] = {"id": party.id, "roles": roles}
         state["direction"] = direction
         if tool in {"shipment_dispatch", "shipment_receive"}:
             unknown = set(arguments) - SHIPMENT_EXECUTION_FIELDS
             if unknown:
                 raise InvalidOperation(
-                    "Unsupported shipment field(s): " + ", ".join(sorted(unknown))
+                    code="shipment_fields_unsupported",
+                    values={"fields": ", ".join(sorted(unknown))},
                 )
             movements = intent.get("movements")
             if not isinstance(movements, list) or not movements:
-                raise InvalidOperation(
-                    "Packaged execution requires at least one movement."
-                )
+                raise InvalidOperation(code="shipment_execution_movement_missing")
             expected = PURPOSES[purpose][1]
             previews = []
             for raw in movements:
                 if not isinstance(raw, dict):
-                    raise InvalidOperation("Each shipment movement must be an object.")
+                    raise InvalidOperation(code="shipment_movement_not_object")
                 unknown = set(raw) - SHIPMENT_MOVEMENT_FIELDS
                 if unknown:
                     raise InvalidOperation(
-                        "Unsupported shipment movement field(s): "
-                        + ", ".join(sorted(unknown))
+                        code="shipment_movement_fields_unsupported",
+                        values={"fields": ", ".join(sorted(unknown))},
                     )
                 movement = dict(raw)
                 movement_type = movement.pop("movement_type", expected)
                 if movement_type != expected:
                     raise InvalidOperation(
-                        "Movement type does not match the shipment purpose; "
-                        f"permitted value: {expected}."
+                        code="shipment_movement_type_mismatch_expected",
+                        values={"expected": expected},
                     )
                 movement.pop("shipment_package_id", None)
                 movement.pop("source_record_id", None)
@@ -192,11 +190,14 @@ def review_shipment_action(
                     )
                     if not readiness.ship_ready:
                         raise InvalidOperation(
-                            "Shipment blocked: "
-                            + ", ".join(readiness.blocker_codes)
-                            + f" (required {readiness.required_amount} "
-                            + f"{readiness.currency}, received "
-                            + f"{readiness.received_amount} {readiness.currency})."
+                            code="shipment_blocked_readiness",
+                            values={
+                                "blockers": ", ".join(readiness.blocker_codes),
+                                "required_amount": readiness.required_amount,
+                                "required_currency": readiness.currency,
+                                "received_amount": readiness.received_amount,
+                                "received_currency": readiness.currency,
+                            },
                         )
                 locations = {
                     value
@@ -267,12 +268,12 @@ def review_shipment_action(
             intent.get("event_type") not in EVENT_TYPES
             or intent.get("reporter_type") not in REPORTER_TYPES
         ):
-            raise InvalidOperation("Unsupported shipment event kind or reporter.")
+            raise InvalidOperation(code="shipment_event_kind_or_reporter_unsupported")
         package_id = intent.get("shipment_package_id")
         if package_id:
             package = _owned(session, ShipmentPackage, tenant_id, package_id)
             if package.shipment_id != shipment.id:
-                raise InvalidOperation("Package does not belong to the shipment.")
+                raise InvalidOperation(code="shipment_package_not_on_shipment")
         state["shipment"] = {
             "id": shipment.id,
             "direction": shipment.direction,
@@ -289,7 +290,7 @@ def review_shipment_action(
             )
         )
         if existing:
-            raise InvalidOperation("Shipment event is already superseded.")
+            raise InvalidOperation(code="shipment_event_already_superseded")
         replacement_id = intent.get("replacement_event_id")
         if replacement_id:
             replacement = _owned(session, ShipmentEvent, tenant_id, replacement_id)
@@ -297,11 +298,9 @@ def review_shipment_action(
                 replacement.shipment_id != event.shipment_id
                 or replacement.id == event.id
             ):
-                raise InvalidOperation(
-                    "Replacement must be another event on the shipment."
-                )
+                raise InvalidOperation(code="shipment_event_replacement_invalid")
         if not str(intent.get("reason", "")).strip():
-            raise InvalidOperation("Shipment event correction reason is required.")
+            raise InvalidOperation(code="shipment_event_correction_reason_required")
         state["event"] = {
             "id": event.id,
             "shipment_id": event.shipment_id,

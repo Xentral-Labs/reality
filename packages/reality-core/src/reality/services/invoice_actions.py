@@ -297,9 +297,7 @@ def _assert_no_unresolved_invoice(
         if proposal.id != exclude and selected_ids(
             json.loads(proposal.input)
         ) & selected_ids(arguments):
-            raise InvalidOperation(
-                "An invoice execution for this order line is unresolved. Check its outcome first."
-            )
+            raise InvalidOperation(code="invoice_execution_unresolved")
 
 
 def _invoice_evidence(

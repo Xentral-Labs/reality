@@ -44,9 +44,7 @@ def _amount(value: Any) -> Decimal:
             raise ValueError()
         return amount
     except (InvalidDecimal, ValueError, TypeError) as error:
-        raise core.InvalidOperation(
-            "Amount must be an exact finite decimal with at most four decimal places."
-        ) from error
+        raise core.InvalidOperation(code="finance_component_amount_invalid") from error
 
 
 def _money(value: Decimal | None) -> str | None:
@@ -73,15 +71,13 @@ def _received(
     payload = json.loads(line.payload if line else source.payload if source else "{}")
     detail = payload.get("reality_finance_v1", {}) if isinstance(payload, dict) else {}
     if not isinstance(detail, dict) or detail.get("version", 1) != 1:
-        raise core.InvalidOperation("Unsupported received finance detail contract.")
+        raise core.InvalidOperation(code="received_finance_detail_unsupported")
     gross = _amount(line.gross_amount if line else doc.gross_amount)
     if detail.get("gross") is not None and _amount(detail["gross"]) != gross:
-        raise core.InvalidOperation(
-            "Received gross contradicts the normalized evidence."
-        )
+        raise core.InvalidOperation(code="finance_received_gross_contradicts_evidence")
     if detail.get("currency", doc.currency) != doc.currency:
         raise core.InvalidOperation(
-            "Received component currency contradicts the document."
+            code="finance_component_currency_contradicts_document"
         )
     values = {
         key: _money(_amount(detail[key])) if detail.get(key) is not None else None

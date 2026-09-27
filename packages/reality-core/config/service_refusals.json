@@ -1,0 +1,1741 @@
+{
+  "version": 1,
+  "refusals": {
+    "account_change_owner_required": {
+      "message": "Account changes require a confirming company owner."
+    },
+    "account_not_found": {
+      "message": "Account not found."
+    },
+    "action_fields_invalid": {
+      "message": "Check the action fields."
+    },
+    "ai_api_key_detached": {
+      "message": "The configured AI API key is detached from its session."
+    },
+    "ai_api_key_undecryptable": {
+      "message": "The configured AI API key cannot be decrypted."
+    },
+    "allocation_exceeds_invoice_open": {
+      "message": "Allocation exceeds the invoice open amount."
+    },
+    "allocation_exceeds_unallocated_payment": {
+      "message": "Allocation exceeds the unallocated payment amount."
+    },
+    "allocation_target_duplicate": {
+      "message": "Duplicate allocation target."
+    },
+    "allocation_target_identity_required": {
+      "message": "Every allocation target requires an opaque identity."
+    },
+    "allocation_target_required": {
+      "message": "At least one allocation target is required."
+    },
+    "allocation_total_exceeds_capacity": {
+      "message": "Allocation total exceeds the received source capacity."
+    },
+    "allocation_total_sign_mismatch": {
+      "message": "Allocation total must preserve the source bucket sign."
+    },
+    "allocation_weight_not_positive": {
+      "message": "Allocation weights must be positive."
+    },
+    "allocation_zero_needs_scope_review": {
+      "message": "A zero allocation belongs in explicit scope review."
+    },
+    "artifact_s3_bucket_required": {
+      "message": "REALITY_S3_BUCKET is required for S3 artifact storage."
+    },
+    "artifact_s3_path_unsupported": {
+      "message": "S3 artifacts must be accessed through materialize_artifact()."
+    },
+    "artifact_storage_backend_invalid": {
+      "message": "REALITY_ARTIFACT_STORAGE must be 'file' or 's3'."
+    },
+    "artifact_storage_key_invalid": {
+      "message": "Artifact storage key is invalid."
+    },
+    "billed_reference_not_order_line": {
+      "message": "A billed reference must point at an order line."
+    },
+    "billed_reference_side_mismatch": {
+      "message": "A billed reference must stay on one side of the business."
+    },
+    "billing_availability_order_line_required": {
+      "message": "Billing availability requires an order line."
+    },
+    "chat_context_annotations_server_only": {
+      "message": "Context annotations are created by the server."
+    },
+    "chat_customer_delivery_context_required": {
+      "message": "Select a customer delivery for contextual assistance."
+    },
+    "chat_question_required": {
+      "message": "Enter a question."
+    },
+    "chat_session_not_found": {
+      "message": "ChatSession not found."
+    },
+    "commitment_action_unresolved": {
+      "message": "An earlier action for this commitment is unresolved. Check its outcome first."
+    },
+    "commitment_action_unsupported": {
+      "message": "Unsupported commitment action."
+    },
+    "commitment_cancel_not_open": {
+      "message": "Only an open commitment can be cancelled."
+    },
+    "commitment_cancel_reason_required": {
+      "message": "A cancellation requires a reason."
+    },
+    "commitment_cancellation_fields_invalid": {
+      "message": "Commitment cancellation fields are incomplete or unsupported."
+    },
+    "commitment_cancellation_reason_required": {
+      "message": "Commitment cancellation reason is required."
+    },
+    "commitment_document_line_mismatch": {
+      "message": "Document line does not belong to the document."
+    },
+    "commitment_hold_not_open": {
+      "message": "Only open commitments can be put on hold."
+    },
+    "commitment_not_found": {
+      "message": "Commitment was not found."
+    },
+    "commitment_on_hold": {
+      "message": "Commitment is on hold ({reason}); release it before execution.",
+      "values": {
+        "reason": "text"
+      }
+    },
+    "commitment_priority_invalid": {
+      "message": "Priority must be low, normal, high, or urgent."
+    },
+    "commitment_revise_not_open": {
+      "message": "Only an open commitment can be revised."
+    },
+    "commitment_revision_fields_invalid": {
+      "message": "Commitment revision fields are incomplete or unsupported."
+    },
+    "commitment_type_unsupported": {
+      "message": "Unsupported commitment type."
+    },
+    "company_not_found": {
+      "message": "Company not found."
+    },
+    "company_owner_access_required": {
+      "message": "Active company owner access required."
+    },
+    "contribution_inputs_changed": {
+      "message": "Contribution inputs changed during preview; retry the read."
+    },
+    "contribution_preview_requires_read_committed": {
+      "message": "Current contribution preview requires READ COMMITTED."
+    },
+    "cost_admit_receipt_costs_first": {
+      "message": "Admit evidenced receipt costs before reviewing scope."
+    },
+    "cost_assign_to_replacement_receipt": {
+      "message": "Assign to the replacement receipt, not a corrected original."
+    },
+    "cost_attribution_mixed_target_currencies": {
+      "message": "One attribution cannot mix target currencies."
+    },
+    "cost_category_with_costs_not_zero": {
+      "message": "A category with attributed costs cannot be declared zero/not applicable."
+    },
+    "cost_conversion_currency_mismatch_received": {
+      "message": "Conversion source currency does not match received evidence."
+    },
+    "cost_conversion_currency_mismatch_retained": {
+      "message": "Conversion source currency does not match retained evidence."
+    },
+    "cost_conversion_kind_mismatch": {
+      "message": "Conversion kind does not match the requested use."
+    },
+    "cost_decision_confirmation_required": {
+      "message": "Explicit confirmation is required for cost decisions."
+    },
+    "cost_decision_not_bound_to_proposal": {
+      "message": "Cost decision is not bound to this proposal."
+    },
+    "cost_evidence_already_replaced": {
+      "message": "Evidence was already replaced."
+    },
+    "cost_evidenced_base_unit_required": {
+      "message": "An evidenced base unit is required."
+    },
+    "cost_mixed_tax_needs_partial_share": {
+      "message": "Mixed tax requires an explicit partial received tax share."
+    },
+    "cost_no_attribution_to_withdraw": {
+      "message": "No attribution to withdraw."
+    },
+    "cost_nonrecoverable_share_contradicts_tax": {
+      "message": "Nonrecoverable share exceeds or contradicts received tax."
+    },
+    "cost_nonrecoverable_tax_needs_full_share": {
+      "message": "Nonrecoverable tax requires the complete stated tax share."
+    },
+    "cost_proposal_not_executable": {
+      "message": "Cost proposal is not available for execution."
+    },
+    "cost_received_amount_missing": {
+      "message": "The selected received amount is missing; it cannot be recomputed."
+    },
+    "cost_received_gross_excludes_tax": {
+      "message": "Received gross cannot exclude its stated tax."
+    },
+    "cost_received_net_includes_input_tax": {
+      "message": "Received net cannot include input tax."
+    },
+    "cost_replaced_evidence_reassign": {
+      "message": "Replaced evidence cannot be reassigned."
+    },
+    "cost_replacement_changes_currency": {
+      "message": "Replacement cannot silently change currency."
+    },
+    "cost_replacement_needs_distinct_evidence": {
+      "message": "Replacement requires fresh distinct evidence."
+    },
+    "cost_review_draft_kind_unsupported": {
+      "message": "Unsupported cost review draft kind."
+    },
+    "cost_review_item_ambiguous_use_sku": {
+      "message": "More than one item matches; name the item by its SKU."
+    },
+    "cost_review_items_several_match": {
+      "message": "Several items match: {names}. Ask which one.",
+      "values": {
+        "names": "text"
+      }
+    },
+    "cost_selling_evidence_not_acquisition": {
+      "message": "Selling evidence cannot be assigned or replaced as acquisition cost."
+    },
+    "cost_share_duplicate": {
+      "message": "Duplicate target/category/bucket."
+    },
+    "cost_share_exceeds_bucket": {
+      "message": "Assigned shares exceed the received bucket."
+    },
+    "cost_share_sign_mismatch": {
+      "message": "Shares must preserve their source bucket sign."
+    },
+    "cost_stated_tax_not_applicable": {
+      "message": "Stated nonzero tax cannot be declared not applicable."
+    },
+    "cost_tax_direction_mismatch": {
+      "message": "Tax cost direction must follow the selected amount for the same receipt."
+    },
+    "cost_tax_double_or_recoverable": {
+      "message": "Tax cannot be counted twice or assigned as recoverable."
+    },
+    "costing_active_owner_required": {
+      "message": "An active company owner is required."
+    },
+    "costing_authenticated_owner_required": {
+      "message": "An authenticated active company owner is required."
+    },
+    "costing_evidence_preview_stale": {
+      "message": "Costing evidence preview is stale."
+    },
+    "costing_preview_stale": {
+      "message": "Costing preview is stale; reload the held evidence."
+    },
+    "costing_scope_not_found": {
+      "message": "Costing scope not found."
+    },
+    "costing_value_precision": {
+      "message": "{field} must fit the four decimal contract.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "credit_allocation_exceeds_open": {
+      "message": "Allocation exceeds the credit or open invoice amount."
+    },
+    "credit_amount_exceeds_invoice": {
+      "message": "Credit amount exceeds the remaining invoice amount."
+    },
+    "credit_execution_unresolved": {
+      "message": "An invoice credit execution is unresolved. Check its outcome first."
+    },
+    "credit_fields_invalid": {
+      "message": "Credit fields are incomplete or unsupported."
+    },
+    "credit_invoice_not_posted": {
+      "message": "Credit requires a posted invoice without reversed posting groups."
+    },
+    "credit_invoice_required": {
+      "message": "Select a customer invoice."
+    },
+    "credit_note_already_posted": {
+      "message": "Credit note is already posted."
+    },
+    "credit_note_document_type_invalid": {
+      "message": "Document is not a credit note."
+    },
+    "credit_note_posting_reversed": {
+      "message": "Credit note posting is reversed."
+    },
+    "credit_note_stated_amounts_unsupported": {
+      "message": "A credit note carries no stated net and tax here."
+    },
+    "credit_position_fields_invalid": {
+      "message": "Credit position fields are incomplete or unsupported."
+    },
+    "credit_positions_not_distinct": {
+      "message": "Credit positions must be distinct."
+    },
+    "credit_positions_required": {
+      "message": "Select at least one credit position."
+    },
+    "credit_quantity_exceeds_invoice": {
+      "message": "Credit quantity exceeds the remaining invoice quantity."
+    },
+    "credit_quantity_exceeds_returned": {
+      "message": "Credit quantity exceeds returned, not yet credited goods."
+    },
+    "credit_reason_required": {
+      "message": "A credit reason is required."
+    },
+    "credit_spans_other_evidence": {
+      "message": "An existing credit spans other evidence. Inspect its attribution first."
+    },
+    "credit_unattributed_order_credit_invoice": {
+      "message": "An older order-linked credit has no invoice attribution. Inspect it before crediting this invoice."
+    },
+    "credit_unattributed_order_credit_position": {
+      "message": "An older order-linked credit has no invoice attribution. Inspect it before crediting this position."
+    },
+    "credit_value_not_decimal": {
+      "message": "{label} must be a decimal value.",
+      "values": {
+        "label": "term"
+      }
+    },
+    "credit_value_not_exact": {
+      "message": "{label} must be positive and fit four decimal places without rounding.",
+      "values": {
+        "label": "term"
+      }
+    },
+    "customer_commitment_not_found": {
+      "message": "Customer commitment was not found."
+    },
+    "customer_delivery_order_not_found": {
+      "message": "Customer-delivery order not found."
+    },
+    "customer_dispatch_commitment_missing": {
+      "message": "Customer dispatch requires a delivery commitment."
+    },
+    "customer_dispatch_quantity_invalid": {
+      "message": "Customer dispatch requires a valid movement quantity."
+    },
+    "customer_hold_action_unresolved": {
+      "message": "An action affecting this customer’s shipment hold is unresolved. Check its outcome first."
+    },
+    "customer_hold_already_active": {
+      "message": "This customer already has a delivery hold."
+    },
+    "customer_hold_customer_required": {
+      "message": "Choose a customer."
+    },
+    "customer_hold_fields_invalid": {
+      "message": "Check the customer hold fields."
+    },
+    "customer_hold_not_active": {
+      "message": "This customer has no active delivery hold."
+    },
+    "datetime_not_iso8601": {
+      "message": "Date/time must be a valid ISO 8601 value."
+    },
+    "delivery_action_fields_unsupported": {
+      "message": "The action contains unsupported fields."
+    },
+    "delivery_execution_unresolved": {
+      "message": "An earlier delivery execution is unresolved. Check its outcome first."
+    },
+    "delivery_hold_already_active": {
+      "message": "This delivery is already on hold. Prepare a fresh review."
+    },
+    "delivery_hold_not_active": {
+      "message": "This delivery has no active own hold. Prepare a fresh review."
+    },
+    "delivery_not_found": {
+      "message": "Delivery not found."
+    },
+    "delivery_practice_policy_required": {
+      "message": "Use the existing practice action policy."
+    },
+    "delivery_review_action_unsupported": {
+      "message": "This action is not supported by the delivery review."
+    },
+    "delivery_review_required": {
+      "message": "Obtain a delivery review before confirming this proposal."
+    },
+    "demand_coverage_customer_commitment_required": {
+      "message": "Demand coverage requires a customer commitment."
+    },
+    "document_date_format_invalid": {
+      "message": "Document date must use YYYY-MM-DD."
+    },
+    "finance_account_blocked_or_wrong_role": {
+      "message": "Account is blocked or has the wrong operational role."
+    },
+    "finance_account_default_missing": {
+      "message": "Missing account default for {role}. Configure finance accounts first.",
+      "values": {
+        "role": "text"
+      }
+    },
+    "finance_change_confirmation_required": {
+      "message": "Finance changes require a confirmed proposal."
+    },
+    "finance_component_amount_invalid": {
+      "message": "Amount must be an exact finite decimal with at most four decimal places."
+    },
+    "finance_component_currency_contradicts_document": {
+      "message": "Received component currency contradicts the document."
+    },
+    "finance_received_gross_contradicts_evidence": {
+      "message": "Received gross contradicts the normalized evidence."
+    },
+    "financial_action_unresolved": {
+      "message": "An overlapping financial action is unresolved. Check its outcome first."
+    },
+    "fulfillment_commitment_not_found": {
+      "message": "Fulfillment commitment not found."
+    },
+    "fulfillment_readiness_customer_commitment_required": {
+      "message": "Readiness requires a customer-delivery commitment."
+    },
+    "fulfillment_shipment_quantity_invalid": {
+      "message": "Proposed shipment quantity must be positive and open."
+    },
+    "hold_note_not_text": {
+      "message": "A hold note must be text."
+    },
+    "hold_reason_unsupported": {
+      "message": "Unsupported hold reason."
+    },
+    "inventory_action_input_integrity_mismatch": {
+      "message": "Inventory action input integrity mismatch."
+    },
+    "inventory_admission_isolation_required": {
+      "message": "Inventory admission requires READ COMMITTED input capture."
+    },
+    "inventory_base_unit_or_cutoff_unsupported": {
+      "message": "Unsupported inventory base unit or future cutoff."
+    },
+    "inventory_calculation_unsupported": {
+      "message": "Unsupported inventory calculation: {reason}",
+      "values": {
+        "reason": "text"
+      }
+    },
+    "inventory_correction_chain_incomplete": {
+      "message": "Inventory correction chain is incomplete."
+    },
+    "inventory_correction_event_ambiguous": {
+      "message": "Inventory correction requires one exact event."
+    },
+    "inventory_economic_issue_shipments_mismatch": {
+      "message": "Explicit economic consumption must cover every shipment exactly."
+    },
+    "inventory_history_empty_opening_unsupported": {
+      "message": "Inventory history does not support the declared empty opening."
+    },
+    "inventory_history_movement_kinds_unsupported": {
+      "message": "Inventory history contains unsupported movement kinds."
+    },
+    "inventory_input_integrity_mismatch": {
+      "message": "Inventory input integrity mismatch."
+    },
+    "inventory_lot_item_mismatch": {
+      "message": "Lot does not belong to the movement item."
+    },
+    "inventory_lot_required": {
+      "message": "Lot-tracked items require a lot."
+    },
+    "inventory_lot_tracked_serial_given": {
+      "message": "Lot-tracked items cannot use serial identity."
+    },
+    "inventory_movement_bound_exceeded": {
+      "message": "Inventory movement bound exceeded."
+    },
+    "inventory_movement_classification_missing": {
+      "message": "Inventory history contains unsupported movement classification: every {movement_type} must be explicit.",
+      "values": {
+        "movement_type": "text"
+      }
+    },
+    "inventory_movement_event_ambiguous": {
+      "message": "Inventory movement requires one exact recorded event."
+    },
+    "inventory_movement_input_changed": {
+      "message": "Admitted inventory movement input changed."
+    },
+    "inventory_opening_evidence_incomplete": {
+      "message": "Every opening stock requires exact cost and ownership evidence."
+    },
+    "inventory_opening_input_changed": {
+      "message": "Admitted opening stock input changed."
+    },
+    "inventory_opening_integrity_mismatch": {
+      "message": "Inventory opening integrity mismatch."
+    },
+    "inventory_ownership_integrity_mismatch": {
+      "message": "Inventory ownership integrity mismatch."
+    },
+    "inventory_ownership_movement_unavailable": {
+      "message": "Inventory ownership references an unavailable movement."
+    },
+    "inventory_ownership_partition_incomplete": {
+      "message": "Inventory ownership must partition every effective movement."
+    },
+    "inventory_ownership_portion_bound_exceeded": {
+      "message": "Inventory ownership portion bound exceeded."
+    },
+    "inventory_ownership_portions_quantity_mismatch": {
+      "message": "Inventory ownership portions must conserve movement quantity."
+    },
+    "inventory_receipt_bound_exceeded": {
+      "message": "Inventory receipt bound exceeded."
+    },
+    "inventory_receipt_cost_quantity_mismatch": {
+      "message": "Receipt cost quantity differs from inventory input."
+    },
+    "inventory_receipt_currency_unit_incompatible": {
+      "message": "Inventory receipt currency/base unit is incompatible."
+    },
+    "inventory_receipt_evidence_mismatch": {
+      "message": "Every receipt requires exact cost and ownership evidence; missing movement IDs: {missing}; unexpected movement IDs: {unexpected}.",
+      "values": {
+        "missing": "text",
+        "unexpected": "text"
+      }
+    },
+    "inventory_receipt_review_integrity_mismatch": {
+      "message": "Inventory receipt review integrity mismatch."
+    },
+    "inventory_receipt_review_renewal_required": {
+      "message": "A new complete receipt review is required before inventory confirmation."
+    },
+    "inventory_review_version_unsupported": {
+      "message": "Unsupported inventory review version."
+    },
+    "inventory_serial_item_mismatch": {
+      "message": "Serial unit does not belong to the movement item."
+    },
+    "inventory_serial_lot_mismatch": {
+      "message": "Serial unit does not belong to the selected lot."
+    },
+    "inventory_serial_required": {
+      "message": "Serial-tracked items require a serial unit."
+    },
+    "inventory_settlement_exceeds_return": {
+      "message": "Inventory settlement exceeds its reviewed customer return."
+    },
+    "inventory_settlement_return_unresolved": {
+      "message": "Inventory settlement must resolve one reviewed customer return."
+    },
+    "inventory_untracked_identity_given": {
+      "message": "Untracked items cannot use lot or serial identity."
+    },
+    "invoice_control_entry_missing": {
+      "message": "Invoice has no posted control-account entry."
+    },
+    "invoice_delivery_changed": {
+      "message": "The delivery changed. Prepare a fresh invoice review."
+    },
+    "invoice_delivery_evidence_ambiguous": {
+      "message": "The invoice delivery evidence is missing or ambiguous."
+    },
+    "invoice_delivery_guard_invalid": {
+      "message": "The invoice delivery guard is invalid."
+    },
+    "invoice_delivery_guard_sales_only": {
+      "message": "A delivery guard requires a sales invoice."
+    },
+    "invoice_delivery_guard_single_order_line": {
+      "message": "A delivery guard requires a single sales order line."
+    },
+    "invoice_delivery_unit_unverifiable": {
+      "message": "The invoice delivery unit cannot be verified."
+    },
+    "invoice_execution_unresolved": {
+      "message": "An invoice execution for this order line is unresolved. Check its outcome first."
+    },
+    "invoice_fields_invalid": {
+      "message": "Invoice fields are incomplete or unsupported."
+    },
+    "invoice_lines_or_order_line_exclusive": {
+      "message": "Use either invoice lines or a single order line."
+    },
+    "invoice_position_fields_invalid": {
+      "message": "Invoice position fields are incomplete or unsupported."
+    },
+    "invoice_position_net_tax_required": {
+      "message": "State net and tax on each invoice position."
+    },
+    "invoice_position_not_found": {
+      "message": "Invoice position not found."
+    },
+    "invoice_positions_currency_mixed": {
+      "message": "Invoice positions must share one currency."
+    },
+    "invoice_positions_limit_exceeded": {
+      "message": "An invoice carries at most {limit} positions.",
+      "values": {
+        "limit": "number"
+      }
+    },
+    "invoice_positions_not_distinct": {
+      "message": "Invoice positions must be distinct."
+    },
+    "invoice_positions_party_mixed": {
+      "message": "Invoice positions must belong to one party."
+    },
+    "invoice_positions_required": {
+      "message": "Select at least one invoice position."
+    },
+    "invoice_posting_reversed": {
+      "message": "Invoice posting is reversed."
+    },
+    "invoice_quantity_exceeds_billable": {
+      "message": "Invoice quantity exceeds the remaining billable quantity."
+    },
+    "invoice_quantity_exceeds_order_line": {
+      "message": "Invoice quantity exceeds the order line."
+    },
+    "invoice_requires_purchase_order_line": {
+      "message": "Invoice requires a purchase order line."
+    },
+    "invoice_requires_sales_order_line": {
+      "message": "Invoice requires a sales order line."
+    },
+    "invoice_values_precision_exceeded": {
+      "message": "Invoice values must fit four decimal places without rounding."
+    },
+    "item_batch_empty": {
+      "message": "At least one Item is required."
+    },
+    "item_default_location_removal": {
+      "message": "A default location cannot be removed; choose another location."
+    },
+    "item_import_already_recorded": {
+      "message": "This file interpretation was already recorded. Inspect its original result."
+    },
+    "item_import_configuration_required": {
+      "message": "An exact file-import configuration is required."
+    },
+    "item_import_confirmation_required": {
+      "message": "Item import requires a confirmed proposal."
+    },
+    "item_import_csv_column_name_too_long": {
+      "message": "CSV column names must be at most 500 characters."
+    },
+    "item_import_csv_columns_invalid": {
+      "message": "CSV requires 1–50 distinct, nonempty column names."
+    },
+    "item_import_csv_no_rows": {
+      "message": "CSV has no item rows."
+    },
+    "item_import_csv_not_utf8": {
+      "message": "Upload a valid UTF-8 CSV file."
+    },
+    "item_import_csv_null_character": {
+      "message": "CSV contains an invalid null character."
+    },
+    "item_import_csv_size_invalid": {
+      "message": "CSV must contain data and be at most 2 MiB."
+    },
+    "item_import_csv_too_large": {
+      "message": "CSV must be at most 2 MiB."
+    },
+    "item_import_csv_too_many_rows": {
+      "message": "CSV may contain at most 500 item rows."
+    },
+    "item_import_default_unit_invalid": {
+      "message": "A default unit of at most 500 characters is required."
+    },
+    "item_import_fields_unsupported": {
+      "message": "Unsupported item import fields."
+    },
+    "item_import_file_hash_mismatch": {
+      "message": "The original file no longer matches its recorded hash."
+    },
+    "item_import_mapping_columns_invalid": {
+      "message": "Choose existing columns for SKU and name and optionally unit."
+    },
+    "item_import_mapping_columns_not_distinct": {
+      "message": "Each mapped field must use a different column."
+    },
+    "item_import_mapping_fields_invalid": {
+      "message": "Map only SKU, name and unit."
+    },
+    "item_import_overlap_unresolved": {
+      "message": "An overlapping item creation is unresolved. Check its outcome first."
+    },
+    "item_import_row_duplicate_sku": {
+      "message": "Row {row}: duplicate SKU {sku} in this file.",
+      "values": {
+        "row": "number",
+        "sku": "text"
+      }
+    },
+    "item_import_row_field_count_mismatch": {
+      "message": "Row {row}: the number of fields differs from the header.",
+      "values": {
+        "row": "number"
+      }
+    },
+    "item_import_row_field_invalid": {
+      "message": "Row {row}: {field} is required and must be at most 500 characters.",
+      "values": {
+        "row": "number",
+        "field": "text"
+      }
+    },
+    "item_import_row_sku_exists": {
+      "message": "Row {row}: SKU {sku} already exists in this company.",
+      "values": {
+        "row": "number",
+        "sku": "text"
+      }
+    },
+    "item_import_source_code_invalid": {
+      "message": "Source code must use 1–100 lowercase letters, numbers, dots, dashes or underscores."
+    },
+    "item_lead_time_negative": {
+      "message": "Lead time days cannot be negative."
+    },
+    "item_not_found": {
+      "message": "Item not found."
+    },
+    "item_sku_name_unit_required": {
+      "message": "Item SKU, name, and unit are required."
+    },
+    "item_tracking_type_invalid": {
+      "message": "Tracking type must be none, lot, or serial."
+    },
+    "item_type_invalid": {
+      "message": "Item type must be stocked, service, or charge."
+    },
+    "ledger_posting_group_already_reversed": {
+      "message": "Ledger posting group was already reversed; reload its chain."
+    },
+    "ledger_posting_group_currency_mixed": {
+      "message": "Ledger posting group must use one currency."
+    },
+    "ledger_posting_group_empty": {
+      "message": "Ledger posting group cannot be empty."
+    },
+    "ledger_posting_group_must_balance": {
+      "message": "Ledger posting group must balance debits and credits."
+    },
+    "ledger_posting_group_not_balanced": {
+      "message": "Ledger posting group is not balanced."
+    },
+    "ledger_posting_group_not_found": {
+      "message": "Ledger posting group not found."
+    },
+    "ledger_posting_group_party_mixed": {
+      "message": "Ledger posting group must use one party."
+    },
+    "ledger_reversal_preview_mismatch": {
+      "message": "Ledger reversal preview no longer matches the request."
+    },
+    "ledger_reversal_preview_stale": {
+      "message": "Ledger reversal preview is stale; reload and preview again."
+    },
+    "ledger_reversal_reason_required": {
+      "message": "Ledger reversal reason is required."
+    },
+    "ledger_reversing_group_not_reversible": {
+      "message": "A reversing posting group cannot be reversed."
+    },
+    "location_batch_empty": {
+      "message": "At least one Location is required."
+    },
+    "location_batch_reference_duplicate": {
+      "message": "Duplicate Location batch reference: {reference}",
+      "values": {
+        "reference": "text"
+      }
+    },
+    "location_hierarchy_cycle": {
+      "message": "Location hierarchy cannot contain a cycle."
+    },
+    "location_name_type_required": {
+      "message": "Location name and type are required."
+    },
+    "location_own_parent": {
+      "message": "A location cannot be its own parent."
+    },
+    "location_parent_ref_and_id_conflict": {
+      "message": "Use either parent_ref for this batch or parent_location_id for an existing Location."
+    },
+    "location_parent_ref_not_earlier": {
+      "message": "Location parent_ref must reference an earlier record in the same batch: {reference}",
+      "values": {
+        "reference": "text"
+      }
+    },
+    "manual_document_header_required": {
+      "message": "Type, number, party, and currency are required."
+    },
+    "manual_document_lines_required": {
+      "message": "A manual document requires at least one line."
+    },
+    "manual_document_total_required": {
+      "message": "A manual document requires a stated total; it is never calculated."
+    },
+    "manual_line_amount_required": {
+      "message": "Line {index} requires a stated amount; it is never calculated.",
+      "values": {
+        "index": "number"
+      }
+    },
+    "manual_line_unit_type_required": {
+      "message": "Line unit and type are required."
+    },
+    "manual_order_already_recorded": {
+      "message": "This exact order is already recorded. Open the existing order instead."
+    },
+    "manual_order_direction_invalid": {
+      "message": "Order direction must be sales or purchase."
+    },
+    "manual_order_fields_invalid": {
+      "message": "The order has missing or unsupported fields."
+    },
+    "manual_order_lines_required": {
+      "message": "An order requires at least one item line."
+    },
+    "manual_order_source_not_recorded": {
+      "message": "Manual order source could not be recorded."
+    },
+    "manual_order_value_invalid": {
+      "message": "The order contains an invalid value."
+    },
+    "master_data_changed_since_review": {
+      "message": "{family} changed since proposal review; create a new proposal.",
+      "values": {
+        "family": "term"
+      }
+    },
+    "master_data_family_unsupported": {
+      "message": "Unsupported master data family."
+    },
+    "master_data_field_choice_invalid": {
+      "message": "{field} must be one of: {options}.",
+      "values": {
+        "field": "term",
+        "options": "text"
+      }
+    },
+    "master_data_field_negative": {
+      "message": "{field} cannot be negative.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "master_data_field_not_boolean": {
+      "message": "{field} must be true or false.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "master_data_field_not_number": {
+      "message": "{field} must be a number.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "master_data_field_not_positive": {
+      "message": "{field} must be greater than zero.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "master_data_field_not_text": {
+      "message": "{field} must be text.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "master_data_field_not_whole_number": {
+      "message": "{field} must be a whole number.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "master_data_field_required": {
+      "message": "A {field} of at most 500 characters is required.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "master_data_fields_unsupported": {
+      "message": "Unsupported master data fields: {fields}.",
+      "values": {
+        "fields": "text"
+      }
+    },
+    "master_data_operation_unsupported": {
+      "message": "Unsupported master data operation."
+    },
+    "master_data_proposal_not_found": {
+      "message": "Master data proposal not found."
+    },
+    "master_data_record_not_found": {
+      "message": "Master data record not found."
+    },
+    "master_data_record_revision_required": {
+      "message": "An exact record and review revision are required."
+    },
+    "master_data_request_identity_reused": {
+      "message": "Request identity was already used for a different change."
+    },
+    "master_data_revision_stale": {
+      "message": "Master data changed since review; reload the record."
+    },
+    "master_data_update_batch_empty": {
+      "message": "At least one update record is required."
+    },
+    "master_data_update_id_required": {
+      "message": "Update records require an opaque ID."
+    },
+    "master_data_update_target_duplicate": {
+      "message": "Duplicate update target: {record_id}",
+      "values": {
+        "record_id": "text"
+      }
+    },
+    "master_source_system_external_id_pair": {
+      "message": "Source system and external ID must be provided together."
+    },
+    "membership_change_owner_required": {
+      "message": "Membership changes require a confirming human owner."
+    },
+    "movement_adjustment_direction_invalid": {
+      "message": "Adjustment requires exactly one location direction."
+    },
+    "movement_adjustment_reason_required": {
+      "message": "Adjustment reason is required."
+    },
+    "movement_already_corrected": {
+      "message": "Movement was already corrected; reload its correction chain."
+    },
+    "movement_announcement_needs_return": {
+      "message": "Only returning goods fulfil an announced customer return."
+    },
+    "movement_announcement_not_open": {
+      "message": "Only an open announcement can be fulfilled."
+    },
+    "movement_announcement_other_delivery": {
+      "message": "A movement fulfils an announcement of its own delivery only."
+    },
+    "movement_commitment_mismatch": {
+      "message": "Movement does not match the commitment."
+    },
+    "movement_compensation_not_correctable": {
+      "message": "Compensating Movements cannot be corrected."
+    },
+    "movement_correction_chain_exists": {
+      "message": "This Movement already has a correction chain."
+    },
+    "movement_correction_compensating": {
+      "message": "A compensating Movement cannot be corrected."
+    },
+    "movement_correction_execution_unresolved": {
+      "message": "An earlier overlapping execution is unresolved. Check its outcome first."
+    },
+    "movement_correction_fields_check": {
+      "message": "Check the supported replacement fields."
+    },
+    "movement_correction_fields_unsupported": {
+      "message": "The correction contains unsupported fields."
+    },
+    "movement_correction_later_dependents": {
+      "message": "Later Movements depend on this stock; correct dependent Movements first."
+    },
+    "movement_correction_later_identity_dependents": {
+      "message": "Later tracked-identity Movements depend on this stock; correct them first."
+    },
+    "movement_correction_preview_mismatch": {
+      "message": "Movement correction preview no longer matches the request."
+    },
+    "movement_correction_preview_stale": {
+      "message": "Movement correction preview is stale; reload and preview again."
+    },
+    "movement_correction_reason_required": {
+      "message": "Movement correction reason is required."
+    },
+    "movement_cost_requires_opening_stock": {
+      "message": "Only a confirmed opening stock carries a cost."
+    },
+    "movement_customer_delivery_hold": {
+      "message": "Customer has an active delivery hold; release it before shipment."
+    },
+    "movement_exceeds_commitment_open_quantity": {
+      "message": "Movement exceeds the commitment's open quantity."
+    },
+    "movement_exceeds_identity_stock": {
+      "message": "Movement exceeds stock for the selected identity."
+    },
+    "movement_exceeds_physical_stock": {
+      "message": "Movement exceeds physical stock."
+    },
+    "movement_item_not_stocked": {
+      "message": "Only stocked items can have physical movements."
+    },
+    "movement_location_not_physical": {
+      "message": "Location does not allow physical stock."
+    },
+    "movement_locations_incomplete": {
+      "message": "Locations are incomplete for {movement_type}.",
+      "values": {
+        "movement_type": "text"
+      }
+    },
+    "movement_not_found": {
+      "message": "Movement not found."
+    },
+    "movement_projected_state_not_preview": {
+      "message": "Projected state is only valid for a read-only preview."
+    },
+    "movement_replacement_fields_unsupported": {
+      "message": "Unsupported replacement fields."
+    },
+    "movement_resolution_item_mismatch": {
+      "message": "A resolution must concern the same item as the return."
+    },
+    "movement_resolution_location_mismatch": {
+      "message": "A resolution must take the goods out of the location they came back to."
+    },
+    "movement_resolution_return_required": {
+      "message": "A resolution must name a return."
+    },
+    "movement_resolutions_exceed_return": {
+      "message": "Resolutions exceed what came back."
+    },
+    "movement_return_exceeds_shipped": {
+      "message": "Return exceeds what was shipped against the commitment."
+    },
+    "movement_serial_already_in_stock": {
+      "message": "Serial unit is already in physical stock."
+    },
+    "movement_serial_quantity_not_one": {
+      "message": "A serial movement must have quantity 1."
+    },
+    "movement_supplier_return_exceeds_received": {
+      "message": "Supplier return exceeds what was received against the commitment."
+    },
+    "movement_type_unknown": {
+      "message": "Unsupported movement type."
+    },
+    "movement_type_unsupported": {
+      "message": "Unsupported movement type. Expected one of: {types}.",
+      "values": {
+        "types": "text"
+      }
+    },
+    "opening_cost_currency_invalid": {
+      "message": "Enter a three-letter currency code."
+    },
+    "opening_cost_evidence_missing": {
+      "message": "Name the evidence the acquisition value comes from."
+    },
+    "opening_cost_fields_required": {
+      "message": "Opening cost needs the stated amount, currency and evidence reference."
+    },
+    "opening_cost_value_negative": {
+      "message": "Enter a non-negative acquisition value."
+    },
+    "opening_cost_value_not_number": {
+      "message": "Enter the acquisition value as a number."
+    },
+    "opening_cost_value_scale_exceeded": {
+      "message": "The acquisition value supports at most 4 decimal places."
+    },
+    "opening_cutover_needs_date": {
+      "message": "Opening cutover coverage requires an explicit original date or actual cash timestamp."
+    },
+    "opening_evidence_before_cutover": {
+      "message": "Financial evidence is at or before the opening cutover; reconcile coverage before posting."
+    },
+    "opening_evidence_import_only": {
+      "message": "Opening evidence must be created once by the confirmed opening import."
+    },
+    "opening_source_item_already_represented": {
+      "message": "Original source item is already represented by opening evidence; inspect it without posting again."
+    },
+    "opening_stock_fields_unsupported": {
+      "message": "Opening stock accepts only item, destination, quantity, optional time and optional acquisition cost."
+    },
+    "opening_stock_item_location_required": {
+      "message": "Choose an item and a destination location."
+    },
+    "opening_stock_occurred_at_invalid": {
+      "message": "Enter a valid occurrence time."
+    },
+    "opening_stock_overlap_unresolved": {
+      "message": "An overlapping stock action is unresolved. Check its outcome first."
+    },
+    "opening_stock_quantity_invalid": {
+      "message": "Enter a valid positive quantity."
+    },
+    "opening_stock_quantity_scale_exceeded": {
+      "message": "Opening quantity supports at most 14 integer and 4 decimal places."
+    },
+    "opening_stock_tracked_item_unsupported": {
+      "message": "This opening stock form supports items without lot or serial tracking."
+    },
+    "operational_document_type_unsupported": {
+      "message": "Unsupported operational document type. Expected one of: {types}.",
+      "values": {
+        "types": "text"
+      }
+    },
+    "order_execution_unresolved": {
+      "message": "An identical order execution is unresolved. Check its outcome first."
+    },
+    "order_line_not_found": {
+      "message": "Order line not found."
+    },
+    "party_batch_empty": {
+      "message": "At least one Party is required."
+    },
+    "party_credit_limit_negative": {
+      "message": "Credit limit cannot be negative."
+    },
+    "party_customer_role_required": {
+      "message": "The customer role must remain on a customer record."
+    },
+    "party_default_currency_invalid": {
+      "message": "Default currency must be a three-letter code."
+    },
+    "party_email_domain_not_ascii": {
+      "message": "Email addresses must use an ASCII domain."
+    },
+    "party_email_duplicate": {
+      "message": "A Party cannot contain duplicate email addresses."
+    },
+    "party_email_invalid": {
+      "message": "Enter a valid email address."
+    },
+    "party_email_label_too_long": {
+      "message": "Party email labels can contain at most 80 characters."
+    },
+    "party_email_too_many": {
+      "message": "A Party can have at most 20 email addresses."
+    },
+    "party_name_required": {
+      "message": "Party name is required."
+    },
+    "party_roles_invalid": {
+      "message": "Party roles must be company, customer, or supplier."
+    },
+    "party_supplier_role_required": {
+      "message": "The supplier role must remain on a supplier record."
+    },
+    "payment_amount_precision_exceeded": {
+      "message": "Payment amount supports at most four decimal places without rounding."
+    },
+    "payment_document_type_mismatch": {
+      "message": "Payment requires a {document_type}.",
+      "values": {
+        "document_type": "text"
+      }
+    },
+    "payment_exceeds_open_invoice": {
+      "message": "Payment exceeds the open invoice amount."
+    },
+    "payment_exceeds_open_payable": {
+      "message": "Payment exceeds the open supplier payable."
+    },
+    "payment_exceeds_open_receivable": {
+      "message": "Payment exceeds the open customer receivable."
+    },
+    "payment_execution_unresolved": {
+      "message": "A financial execution for this record is unresolved. Check its outcome first."
+    },
+    "payment_fields_invalid": {
+      "message": "Payment fields are incomplete or unsupported."
+    },
+    "payment_reference_not_text": {
+      "message": "Payment reference must be text."
+    },
+    "payment_term_active_not_found": {
+      "message": "Active payment term '{code}' not found.",
+      "values": {
+        "code": "text"
+      }
+    },
+    "playground_account_not_eligible": {
+      "message": "A verified, enabled account is required for Playground."
+    },
+    "playground_action_identity_mismatch": {
+      "message": "Playground action identity does not match the confirmed proposal."
+    },
+    "playground_costing_authority_unavailable": {
+      "message": "Profile costing authority is unavailable."
+    },
+    "playground_decision_context_invalid": {
+      "message": "Playground decision context is no longer valid."
+    },
+    "playground_finance_action_mismatch": {
+      "message": "Finance action does not match the confirmed Playground review."
+    },
+    "playground_internal_scope_denied": {
+      "message": "Playground internal scopes cannot access business operations."
+    },
+    "playground_master_event_mismatch": {
+      "message": "Master-data event must match its reviewed action."
+    },
+    "playground_master_service_mismatch": {
+      "message": "Master-data service differs from the reviewed action."
+    },
+    "playground_movement_mismatch": {
+      "message": "Movement does not match the single confirmed Playground action."
+    },
+    "playground_operation_unsupported": {
+      "message": "Playground does not support this operation."
+    },
+    "playground_profile_operation_denied": {
+      "message": "Profile authority does not permit this operation."
+    },
+    "playground_question_limit_reached": {
+      "message": "Your {count} available AI questions are used. Resets at {resets_at}. You can keep exploring your company.",
+      "values": {
+        "count": "number",
+        "resets_at": "text"
+      }
+    },
+    "playground_release_event_type_invalid": {
+      "message": "Reservation release cannot emit another event type."
+    },
+    "playground_reservation_mismatch": {
+      "message": "Reservation does not match the confirmed Playground review."
+    },
+    "playground_review_in_run": {
+      "message": "Review this action in its Playground run."
+    },
+    "playground_run_not_found": {
+      "message": "Playground run not found."
+    },
+    "playground_run_not_writable": {
+      "message": "This Playground run is read-only or not ready."
+    },
+    "posting_group_already_reversed": {
+      "message": "This posting group has already been reversed."
+    },
+    "posting_group_reversing_not_reversible": {
+      "message": "Reversing posting groups cannot be reversed."
+    },
+    "practice_company_requires_reviewed_actions": {
+      "message": "Use the reviewed practice actions for this company."
+    },
+    "proposal_active_not_found": {
+      "message": "Active tool proposal not found."
+    },
+    "proposal_confirm_status_invalid": {
+      "message": "Proposal cannot be confirmed from status {status}.",
+      "values": {
+        "status": "text"
+      }
+    },
+    "proposal_execution_in_progress": {
+      "message": "Proposal execution is in progress or its outcome is unknown; reconcile by proposal ID before taking further action."
+    },
+    "proposal_mutation_tool_invalid": {
+      "message": "Proposal references an invalid mutation tool."
+    },
+    "proposal_no_longer_available": {
+      "message": "Proposal is no longer available for confirmation."
+    },
+    "proposal_not_found": {
+      "message": "Proposal not found."
+    },
+    "proposal_read_tool_not_needed": {
+      "message": "Read tools do not need a proposal."
+    },
+    "proposal_reject_status_invalid": {
+      "message": "Proposal cannot be rejected from status {status}.",
+      "values": {
+        "status": "text"
+      }
+    },
+    "proposal_tool_not_found": {
+      "message": "Tool not found."
+    },
+    "proposal_uses_existing_workspace": {
+      "message": "This proposal uses its existing review workspace."
+    },
+    "quantity_amount_not_finite": {
+      "message": "Quantity and amount values must be finite."
+    },
+    "receipt_cost_component_bound_exceeded": {
+      "message": "Receipt cost component bound would be exceeded."
+    },
+    "receipt_cost_conversion_unsupported": {
+      "message": "Receipt currency conversion is not supported by this slice."
+    },
+    "receipt_cost_currencies_need_conversion": {
+      "message": "Receipt costs with different currencies require reviewed conversion."
+    },
+    "receipt_cost_evidence_changed": {
+      "message": "Received evidence changed; record replacement evidence instead."
+    },
+    "receipt_cost_manifest_corrupt": {
+      "message": "Retained receipt cost manifest is incomplete or corrupt."
+    },
+    "receipt_cost_manifest_scope_exceeded": {
+      "message": "Receipt cost manifest exceeds the supported scope."
+    },
+    "receipt_cost_manifest_unsupported": {
+      "message": "Unsupported receipt cost manifest."
+    },
+    "receipt_cost_positive_receipts_only": {
+      "message": "This slice supports positive goods receipts, not returns or inventory valuation."
+    },
+    "receipt_cost_scope_component_bound": {
+      "message": "Receipt cost scope exceeds the supported 100 component bound."
+    },
+    "receipt_cost_supplier_evidence_required": {
+      "message": "Receipt costs require supplier invoice or credit evidence."
+    },
+    "receipt_cost_use_line_not_total": {
+      "message": "Use a received line, not its duplicate document total."
+    },
+    "received_finance_detail_unsupported": {
+      "message": "Unsupported received finance detail contract."
+    },
+    "received_finance_line_detail_not_object": {
+      "message": "Received finance line detail must be an object."
+    },
+    "record_not_found": {
+      "message": "{record} not found.",
+      "values": {
+        "record": "term"
+      }
+    },
+    "refund_exceeds_credit_note_owed": {
+      "message": "Refund exceeds what the credit note still owes."
+    },
+    "refund_exceeds_open_credit": {
+      "message": "Refund exceeds the open credit amount."
+    },
+    "refund_fields_invalid": {
+      "message": "Refund fields are incomplete or unsupported."
+    },
+    "refund_reference_not_text": {
+      "message": "Refund reference must be text."
+    },
+    "request_identity_invalid": {
+      "message": "A bounded request identity is required."
+    },
+    "request_identity_other_intent": {
+      "message": "Request identity already belongs to another intent."
+    },
+    "reservation_commitment_not_reservable": {
+      "message": "Only open customer delivery commitments can be reserved."
+    },
+    "reservation_not_found": {
+      "message": "Reservation not found."
+    },
+    "reservation_release_not_active": {
+      "message": "Only active reservations can be released. Prepare a fresh review."
+    },
+    "reservation_serial_quantity_not_one": {
+      "message": "A serial reservation must have quantity 1."
+    },
+    "retained_allocation_exceeds_open_quantity": {
+      "message": "Retained allocation total cannot exceed revised open quantity."
+    },
+    "retained_allocation_exceeds_reservation": {
+      "message": "A retained allocation cannot exceed its active reservation."
+    },
+    "retained_allocation_fields_invalid": {
+      "message": "Each retained allocation must name only reservation_id and quantity."
+    },
+    "retained_allocations_not_distinct": {
+      "message": "Retained allocations must name distinct active reservations for this commitment."
+    },
+    "retained_allocations_not_needed": {
+      "message": "Explicit retained allocations are only accepted when active reservation identities require a choice."
+    },
+    "retained_reservations_choice_required": {
+      "message": "Choose the exact retained reservation IDs and quantities, then prepare a fresh review."
+    },
+    "return_disposition_commitment_missing": {
+      "message": "Return disposition requires the arrived return's customer-delivery commitment."
+    },
+    "return_disposition_destination_required": {
+      "message": "This return disposition requires a destination location."
+    },
+    "return_disposition_exceeds_arrived": {
+      "message": "Return disposition exceeds unresolved arrived quantity."
+    },
+    "return_disposition_fields_invalid": {
+      "message": "Return disposition fields are incomplete or unsupported."
+    },
+    "return_disposition_location_missing": {
+      "message": "Return disposition requires the arrived return's destination location."
+    },
+    "return_disposition_movement_not_return": {
+      "message": "Return disposition requires a customer-return Movement with type return."
+    },
+    "return_disposition_scrap_reason_required": {
+      "message": "Scrap or loss requires a reason."
+    },
+    "return_disposition_unresolved": {
+      "message": "An earlier return disposition is unresolved. Check its outcome first."
+    },
+    "return_disposition_unsupported": {
+      "message": "Unsupported return disposition."
+    },
+    "return_movement_not_found": {
+      "message": "Return movement was not found."
+    },
+    "reversal_fields_invalid": {
+      "message": "Reversal fields are incomplete or unsupported."
+    },
+    "reversal_preview_reason_mismatch": {
+      "message": "Reversal preview does not match this reason."
+    },
+    "review_confirmation_required": {
+      "message": "A current review and explicit confirmation are required."
+    },
+    "review_customer_hold_changed": {
+      "message": "The customer hold changed. Prepare a fresh review."
+    },
+    "review_delivery_changed": {
+      "message": "The delivery changed. Prepare a fresh review."
+    },
+    "review_financial_context_changed": {
+      "message": "The financial context changed. Prepare a fresh review."
+    },
+    "review_item_import_changed": {
+      "message": "The item import changed. Prepare a fresh review."
+    },
+    "review_metadata_in_intent": {
+      "message": "Internal review metadata cannot be supplied as intent."
+    },
+    "review_payment_context_changed": {
+      "message": "The payment context changed. Prepare a fresh review."
+    },
+    "review_stock_context_changed": {
+      "message": "The stock context changed. Prepare a fresh review."
+    },
+    "revision_date_unreadable": {
+      "message": "A revision must state a readable date."
+    },
+    "revision_needs_date_or_quantity": {
+      "message": "A revision must restate a date, a quantity, or both."
+    },
+    "revision_retained_reservation_choice_required": {
+      "message": "The revised quantity requires an explicit retained reservation choice because active allocations use different locations or tracking identities."
+    },
+    "sales_credit_invoice_fields_incomplete": {
+      "message": "Invoice credit fields require an invoice and positions."
+    },
+    "sales_credit_positions_or_legacy_exclusive": {
+      "message": "Use either invoice positions or legacy return-credit fields."
+    },
+    "sales_invoice_already_posted": {
+      "message": "Sales invoice is already posted."
+    },
+    "sales_invoice_document_type_invalid": {
+      "message": "Document is not a sales invoice."
+    },
+    "sandbox_companion_read_only": {
+      "message": "The sandbox companion is read-only."
+    },
+    "secret_not_found": {
+      "message": "Secret not found."
+    },
+    "secret_undecryptable": {
+      "message": "The configured secret cannot be decrypted."
+    },
+    "selected_price_entry_context_mismatch": {
+      "message": "Selected price entry does not reproduce the agreed line context."
+    },
+    "selected_price_entry_context_unsupported": {
+      "message": "A selected price entry requires a supported commercial document and item."
+    },
+    "settlement_control_accounts_required": {
+      "message": "Settlement requires control accounts."
+    },
+    "settlement_entries_currency_mixed": {
+      "message": "Settlement entries must use the same currency."
+    },
+    "settlement_entries_inactive_groups": {
+      "message": "Settlement entries must belong to active posting groups."
+    },
+    "settlement_entries_not_opposite": {
+      "message": "Settlement entries must be opposite sides of one control account."
+    },
+    "settlement_entries_party_mixed": {
+      "message": "Settlement entries must belong to the same party."
+    },
+    "settlement_target_not_settleable": {
+      "message": "Settlement target is not a settleable document."
+    },
+    "shipment_action_not_shipment": {
+      "message": "This is not a shipment action."
+    },
+    "shipment_blocked_readiness": {
+      "message": "Shipment blocked: {blockers} (required {required_amount} {required_currency}, received {received_amount} {received_currency}).",
+      "values": {
+        "blockers": "text",
+        "required_amount": "amount",
+        "required_currency": "text",
+        "received_amount": "amount",
+        "received_currency": "text"
+      }
+    },
+    "shipment_counterparty_role_mismatch": {
+      "message": "Counterparty role does not match shipment purpose."
+    },
+    "shipment_direction_mismatch": {
+      "message": "Shipment direction does not match its purpose."
+    },
+    "shipment_event_already_superseded": {
+      "message": "Shipment event is already superseded."
+    },
+    "shipment_event_correction_reason_required": {
+      "message": "Shipment event correction reason is required."
+    },
+    "shipment_event_kind_or_reporter_unsupported": {
+      "message": "Unsupported shipment event kind or reporter."
+    },
+    "shipment_event_replacement_invalid": {
+      "message": "Replacement must be another event on the shipment."
+    },
+    "shipment_event_reporter_unsupported": {
+      "message": "Unsupported shipment event reporter."
+    },
+    "shipment_execution_movement_missing": {
+      "message": "Packaged execution requires at least one movement."
+    },
+    "shipment_fields_unsupported": {
+      "message": "Unsupported shipment field(s): {fields}",
+      "values": {
+        "fields": "text"
+      }
+    },
+    "shipment_movement_fields_unsupported": {
+      "message": "Unsupported shipment movement field(s): {fields}",
+      "values": {
+        "fields": "text"
+      }
+    },
+    "shipment_movement_not_object": {
+      "message": "Each shipment movement must be an object."
+    },
+    "shipment_movement_type_mismatch": {
+      "message": "Movement type does not match the shipment purpose."
+    },
+    "shipment_movement_type_mismatch_expected": {
+      "message": "Movement type does not match the shipment purpose; permitted value: {expected}.",
+      "values": {
+        "expected": "text"
+      }
+    },
+    "shipment_package_not_on_shipment": {
+      "message": "Package does not belong to the shipment."
+    },
+    "shipment_purpose_unknown": {
+      "message": "Unsupported shipment purpose."
+    },
+    "shipment_purpose_unsupported": {
+      "message": "Unsupported shipment purpose; permitted values: {values}.",
+      "values": {
+        "values": "text"
+      }
+    },
+    "source_artifact_not_found": {
+      "message": "Source artifact not found."
+    },
+    "stated_invoice_amount_fields_invalid": {
+      "message": "Stated invoice amounts accept net, tax, base, gross and currency only."
+    },
+    "stated_invoice_amount_negative": {
+      "message": "The stated {field} must be a non-negative amount.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "stated_invoice_amount_not_number": {
+      "message": "The stated {field} must be a number.",
+      "values": {
+        "field": "term"
+      }
+    },
+    "stated_invoice_currency_mismatch": {
+      "message": "The stated currency differs from the invoice."
+    },
+    "stated_invoice_gross_mismatch": {
+      "message": "The stated gross differs from the position's gross."
+    },
+    "stated_invoice_net_tax_gross_mismatch": {
+      "message": "Net plus tax differs from the invoice gross."
+    },
+    "subledger_account_not_found": {
+      "message": "SubledgerAccount not found."
+    },
+    "supplier_commitment_not_found": {
+      "message": "Supplier commitment was not found."
+    },
+    "supplier_invoice_already_posted": {
+      "message": "Supplier invoice is already posted."
+    },
+    "supplier_invoice_document_type_invalid": {
+      "message": "Document is not a supplier invoice."
+    },
+    "supply_assignment_customer_commitment_count": {
+      "message": "Customer demand requires one customer commitment; stock replenishment requires none."
+    },
+    "supply_assignment_customer_commitment_not_open": {
+      "message": "Select an open customer commitment."
+    },
+    "supply_assignment_exceeds_demand": {
+      "message": "Supply assignment exceeds open customer demand."
+    },
+    "supply_assignment_exceeds_supplier": {
+      "message": "Supply assignment exceeds unassigned supplier quantity."
+    },
+    "supply_assignment_fields_invalid": {
+      "message": "Supply assignment fields are incomplete or unsupported."
+    },
+    "supply_assignment_items_mismatch": {
+      "message": "Supply and demand items must match."
+    },
+    "supply_assignment_locations_mismatch": {
+      "message": "Supply and demand locations must match."
+    },
+    "supply_assignment_purpose_unsupported": {
+      "message": "Unsupported supply assignment purpose."
+    },
+    "supply_assignment_quantity_not_decimal": {
+      "message": "Supply assignment quantity must be a decimal."
+    },
+    "supply_assignment_quantity_not_positive": {
+      "message": "Supply assignment quantity must be positive."
+    },
+    "supply_assignment_quantity_precision": {
+      "message": "Supply assignment quantity must fit four decimal places without rounding."
+    },
+    "supply_assignment_request_identity_conflict": {
+      "message": "Request identity already belongs to another supply assignment."
+    },
+    "supply_assignment_supplier_commitment_not_open": {
+      "message": "Select an open supplier commitment."
+    },
+    "supply_assignment_unresolved": {
+      "message": "An earlier supply assignment is unresolved. Check its outcome first."
+    },
+    "supply_coverage_supplier_commitment_required": {
+      "message": "Supply coverage requires a supplier commitment."
+    },
+    "tenant_not_found": {
+      "message": "Tenant not found."
+    },
+    "valuation_assessment_currency_mismatch": {
+      "message": "Assessment currency differs from inventory currency."
+    },
+    "valuation_assessment_integrity_mismatch": {
+      "message": "Valuation assessment integrity mismatch."
+    },
+    "valuation_assessment_member_not_remaining": {
+      "message": "Assessment member is not exact remaining inventory."
+    },
+    "valuation_assessment_quantity_exceeds_remaining": {
+      "message": "Assessment quantity exceeds remaining inventory."
+    }
+  },
+  "terms": [
+    "Accounting code",
+    "Allocation total",
+    "Allows stock",
+    "Amount",
+    "Announced quantity",
+    "BusinessEvent",
+    "ChangeProposal",
+    "ChatSession",
+    "Commitment",
+    "Conversion factor",
+    "Credit limit",
+    "Credit note total",
+    "Default currency",
+    "Default location id",
+    "Delivery quantity",
+    "Document",
+    "DocumentLine",
+    "DunningNotice",
+    "External id",
+    "FinancialComponent",
+    "Gross_amount",
+    "HandlingUnit",
+    "ImportJob",
+    "Item",
+    "Item type",
+    "Lead time days",
+    "LedgerEntry",
+    "Location",
+    "Lot",
+    "Mapping",
+    "Minimum quantity",
+    "Movement",
+    "Name",
+    "OpeningScope",
+    "Parent location id",
+    "Party",
+    "PartyGroup",
+    "Payment term code",
+    "PaymentTerm",
+    "PriceList",
+    "PriceListEntry",
+    "Purchase unit",
+    "Quantity",
+    "Reservation",
+    "Retained allocation quantity",
+    "ReturnAnnouncement",
+    "Revised quantity",
+    "Roles",
+    "SerialUnit",
+    "Shipment",
+    "ShipmentEvent",
+    "ShipmentPackage",
+    "Sku",
+    "Source capacity",
+    "Source system",
+    "SourceArtifact",
+    "SourceCapability",
+    "SourceRecord",
+    "SourceSystem",
+    "Supplier credit note total",
+    "Tax identifier",
+    "Tenant",
+    "Tracking type",
+    "Type",
+    "Unit",
+    "allocation amount",
+    "base",
+    "credit amount",
+    "gross",
+    "line amount",
+    "name",
+    "net",
+    "quantity",
+    "sku",
+    "tax",
+    "type",
+    "unit"
+  ]
+}

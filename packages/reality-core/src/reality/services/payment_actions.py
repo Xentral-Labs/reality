@@ -126,9 +126,7 @@ def _assert_no_unresolved_payment(
         if candidate.id != exclude and json.loads(candidate.input).get(
             target_key
         ) == arguments.get(target_key):
-            raise InvalidOperation(
-                "A financial execution for this record is unresolved. Check its outcome first."
-            )
+            raise InvalidOperation(code="payment_execution_unresolved")
 
 
 def _payment_evidence(

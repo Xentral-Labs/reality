@@ -287,7 +287,11 @@ try {
   await dialog.getByRole("heading", { name: "Record opening stock", exact: true }).waitFor();
   proposal.review = null;
   await page.goto(`${base}/app/copilot?tenant=company`);
-  await page.getByRole("button", { name: "Review and decide", exact: true }).click();
+  await page
+    .locator("[data-chat-decision]")
+    .getByRole("button", { name: "Review", exact: true })
+    .first()
+    .click();
   await dialog.getByRole("heading", { name: "Record opening stock", exact: true }).waitFor();
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
   await dialog.getByRole("button", { name: "Confirm opening stock", exact: true }).waitFor();

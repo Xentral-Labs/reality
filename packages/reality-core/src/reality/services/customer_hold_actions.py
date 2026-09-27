@@ -62,24 +62,24 @@ def review_customer_hold(
     placing = tool == "party_delivery_hold"
     allowed = {"party_id", "reason_code", "note"} if placing else {"party_id"}
     if tool not in CUSTOMER_HOLD_TOOLS or set(arguments) - allowed:
-        raise InvalidOperation("Check the customer hold fields.")
+        raise InvalidOperation(code="customer_hold_fields_invalid")
     if not isinstance(arguments.get("party_id"), str) or not arguments["party_id"]:
-        raise InvalidOperation("Choose a customer.")
+        raise InvalidOperation(code="customer_hold_customer_required")
     intent = {"party_id": arguments["party_id"]}
     if placing:
         reason = arguments.get("reason_code")
         if not isinstance(reason, str) or reason not in HOLD_REASONS:
-            raise InvalidOperation("Unsupported hold reason.")
+            raise InvalidOperation(code="hold_reason_unsupported")
         note = arguments.get("note", "")
         if not isinstance(note, str):
-            raise InvalidOperation("A hold note must be text.")
+            raise InvalidOperation(code="hold_note_not_text")
         intent.update(reason_code=reason, note=note.strip())
     context = customer_hold_context(session, tenant_id, intent["party_id"])
     state = {"party": context["party"], "holds": context["holds"]}
     if placing and state["holds"]:
-        raise InvalidOperation("This customer already has a delivery hold.")
+        raise InvalidOperation(code="customer_hold_already_active")
     if not placing and not state["holds"]:
-        raise InvalidOperation("This customer has no active delivery hold.")
+        raise InvalidOperation(code="customer_hold_not_active")
     return {
         "version": 1,
         "tool": tool,
@@ -153,9 +153,7 @@ def assert_customer_hold_overlap(
             proposal.type.removeprefix("tool:"),
             json.loads(proposal.input),
         ):
-            raise InvalidOperation(
-                "An action affecting this customer’s shipment hold is unresolved. Check its outcome first."
-            )
+            raise InvalidOperation(code="customer_hold_action_unresolved")
 
 
 def customer_hold_detail(

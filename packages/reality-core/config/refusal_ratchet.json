@@ -1,0 +1,1640 @@
+{
+  "version": 1,
+  "modules": [
+    "reality/agent/settings.py",
+    "reality/security/secrets.py",
+    "reality/services/artifacts.py",
+    "reality/services/business_locks.py",
+    "reality/services/carrying_value.py",
+    "reality/services/commitment_actions.py",
+    "reality/services/contribution.py",
+    "reality/services/core.py",
+    "reality/services/cost_conversions.py",
+    "reality/services/cost_review_draft.py",
+    "reality/services/costing.py",
+    "reality/services/credit_actions.py",
+    "reality/services/customer_hold_actions.py",
+    "reality/services/delivery_actions.py",
+    "reality/services/delivery_reads.py",
+    "reality/services/exceptions.py",
+    "reality/services/finance/accounts.py",
+    "reality/services/finance/components.py",
+    "reality/services/finance/opening.py",
+    "reality/services/finance/target_mappings.py",
+    "reality/services/financial_reversal_actions.py",
+    "reality/services/free_playground.py",
+    "reality/services/fulfillment_readiness.py",
+    "reality/services/hold_actions.py",
+    "reality/services/inventory_costing.py",
+    "reality/services/invoice_actions.py",
+    "reality/services/item_imports.py",
+    "reality/services/memberships.py",
+    "reality/services/movement_correction_actions.py",
+    "reality/services/opening_cost.py",
+    "reality/services/opening_stock_actions.py",
+    "reality/services/order_actions.py",
+    "reality/services/payment_actions.py",
+    "reality/services/reference_workspace.py",
+    "reality/services/return_disposition_actions.py",
+    "reality/services/return_dispositions.py",
+    "reality/services/shipment_actions.py",
+    "reality/services/shipments.py",
+    "reality/services/supply_assignment_actions.py",
+    "reality/services/supply_assignments.py",
+    "reality/services/tenant_policy.py",
+    "reality/tools/application.py",
+    "reality/tools/finance.py"
+  ],
+  "indirect_codes": [],
+  "entries": [
+    {
+      "path": "reality/security/secrets.py",
+      "function": "revoke_secret",
+      "message": "Secret not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/security/secrets.py",
+      "function": "replace_secret",
+      "message": "Secret not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/artifacts.py",
+      "function": "stage_artifact",
+      "message": "Tenant not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/artifacts.py",
+      "function": "stage_artifact",
+      "message": "f\"Upload exceeds the configured limit of {maximum} bytes.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/artifacts.py",
+      "function": "stage_artifact",
+      "message": "The uploaded file is empty.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/carrying_value.py",
+      "function": "_previous_parts",
+      "message": "Costing scope not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/carrying_value.py",
+      "function": "_previous_parts",
+      "message": "Assessment predecessor is stale.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/carrying_value.py",
+      "function": "_check",
+      "message": "Assessment cutoff differs from inventory review.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/carrying_value.py",
+      "function": "_check",
+      "message": "Inventory review already has an assessment history.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/carrying_value.py",
+      "function": "_check",
+      "message": "str(error)",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "business_discovery_statement",
+      "message": "Unsupported discovery family.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "discover_business_records",
+      "message": "Discovery limit must be between 1 and 100.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "discover_business_records",
+      "message": "Business record not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_canonical_fact_value",
+      "message": "f\"Fact value does not satisfy {contract['predicate']} ({value_type}).\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_fact_contract",
+      "message": "Fact predicate is not supported.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "observe_fact",
+      "message": "Fact source record is required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "observe_fact",
+      "message": "Fact subject, subject ID and predicate are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "observe_fact",
+      "message": "Fact idempotency key is required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "observe_fact",
+      "message": "Fact predicate does not support this subject type.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "observe_fact",
+      "message": "Fact subject type is not supported.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "observe_fact",
+      "message": "Fact observation time is required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_persist_fact_observation",
+      "message": "Idempotency key was already used for another Fact.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "find_tenant",
+      "message": "Tenant not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "find_tenant",
+      "message": "Tenant name is ambiguous; use its opaque ID.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_tenant",
+      "message": "Tenant name is required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "archive_tenant",
+      "message": "Tenant is already archived.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "archive_tenant",
+      "message": "Create or restore another tenant before archiving this one.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "restore_tenant",
+      "message": "Tenant is not archived.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "permanently_delete_tenant",
+      "message": "Archive the tenant before permanently deleting it.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "permanently_delete_tenant",
+      "message": "Tenant name and DELETE confirmation must match exactly.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_early_payment_discount",
+      "message": "A payment term discount needs both a rate and a number of days.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_early_payment_discount",
+      "message": "Payment term discount percent must be above zero and below 100.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_early_payment_discount",
+      "message": "Payment term discount days cannot be negative.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_payment_term",
+      "message": "Payment term code and name are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_payment_term",
+      "message": "Payment term due days cannot be negative.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_payment_term",
+      "message": "f\"Payment term code '{code}' already exists.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "update_payment_term",
+      "message": "Payment term code and name are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "update_payment_term",
+      "message": "Payment term due days cannot be negative.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "update_payment_term",
+      "message": "f\"Payment term code '{code}' already exists.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_price_list",
+      "message": "Price-list code and name are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_price_list",
+      "message": "Price-list direction must be sales or purchase.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_price_list",
+      "message": "Price-list currency must be a three-letter ISO code.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_price_list",
+      "message": "Price-list valid-until must be after valid-from.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_price_list",
+      "message": "f\"Price-list code '{code}' already exists.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_price_list",
+      "message": "f\"An active default {direction} price list for {currency} already exists.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "update_price_list",
+      "message": "Price-list code and name are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "update_price_list",
+      "message": "Price-list direction must be sales or purchase.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "update_price_list",
+      "message": "Price-list currency must be a three-letter ISO code.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "update_price_list",
+      "message": "f\"Price-list code '{code}' already exists.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "update_price_list",
+      "message": "f\"An active default {direction} price list for {currency} already exists.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_price_list_entry",
+      "message": "Unit price cannot be negative.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_price_list_entry",
+      "message": "Price unit is required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_price_list_entry",
+      "message": "Entry valid-until must be after valid-from.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_price_list_entry",
+      "message": "This price tier already exists.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_party_group",
+      "message": "Party-group code and name are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_party_group",
+      "message": "f\"Party-group code '{code}' already exists.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "update_party_group",
+      "message": "Party-group code and name are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "update_party_group",
+      "message": "f\"Party-group code '{code}' already exists.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "add_party_group_member",
+      "message": "Cannot add members to an inactive party group.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "set_master_data_active",
+      "message": "Unsupported master data type.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_handling_unit",
+      "message": "NVE already exists for this tenant.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_stated_date",
+      "message": "A stated date must be a readable calendar day.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_lot",
+      "message": "Lots require an item with lot or serial tracking.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_lot",
+      "message": "Lot number is required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_lot",
+      "message": "Lot number already exists for this item.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "state_lot_expiry",
+      "message": "\"A lot's best-before date is already stated as \" f\"{lot.expires_at.isoformat()}; it is a received value and is not adjusted. \" \"Correct it instead, saying what is stated now and why it was wrong.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_lot_expiry",
+      "message": "A best-before correction requires a reason.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_lot_expiry",
+      "message": "\"The best-before correction no longer matches what is stated: \" f\"{lot.expires_at.isoformat() if lot.expires_at else 'none'} is stored, \" f\"{confirmed.isoformat() if confirmed else 'none'} was confirmed.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_lot_expiry",
+      "message": "A correction must change the best-before date; this one changes nothing.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_serial_unit",
+      "message": "Serial units require an item with serial tracking.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_serial_unit",
+      "message": "Serial number is required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_serial_unit",
+      "message": "Lot does not belong to the serial item.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_serial_unit",
+      "message": "Serial number already exists for this item.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "announce_customer_return",
+      "message": "A customer return is announced against a customer delivery.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "announce_customer_return",
+      "message": "A cancelled promise cannot have a return announced against it.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "announce_customer_return",
+      "message": "An announcement must state a readable expected day.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "announce_customer_return",
+      "message": "More is announced than can still come back against the delivery.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "withdraw_return_announcement",
+      "message": "Only an open announcement can be withdrawn.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_stale_promises",
+      "message": "Direction must be sales or purchase.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_stale_promises",
+      "message": "A closure needs a date to be due before.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "close_stale_promises",
+      "message": "A closure requires a reason.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "close_stale_promises",
+      "message": "\"The closure no longer matches the confirmed count: \" f\"{len(matches)} match, {expected_count} were confirmed.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "hold_document_commitments",
+      "message": "Document has no open commitments to hold.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document_lines",
+      "message": "Document was not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document_lines",
+      "message": "External evidence cannot be overwritten. Record a new source version instead.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document_lines",
+      "message": "A manual document requires at least one line.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document_lines",
+      "message": "A document line ID may appear only once.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document_lines",
+      "message": "A document line does not belong to this document.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document_lines",
+      "message": "Source line references must be unique per document.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document_lines",
+      "message": "The document lines are stale. Reload before saving.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document_lines",
+      "message": "Retained census evidence cannot be removed. Correct the existing line or add replacement evidence.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document_lines",
+      "message": "Economic line evidence cannot change after Reality was derived. Use the owning Reality correction workflow.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document",
+      "message": "External evidence cannot be overwritten. Record a new source version instead.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document",
+      "message": "Type, number, party, and currency are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "correct_manual_document",
+      "message": "Cannot change type, party, currency, or gross amount after Reality records were derived from this document.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "record_corrected_document_source",
+      "message": "Manual evidence has no source stream. Use document correction instead.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "allocate_credit_note",
+      "message": "Document is not a credit note.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "allocate_credit_note",
+      "message": "A credit note settles only its own customer.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "post_supplier_credit_note",
+      "message": "Document is not a supplier credit note.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "post_supplier_credit_note",
+      "message": "Supplier credit note is already posted.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "post_supplier_refund",
+      "message": "Document is not a supplier credit note.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "post_supplier_refund",
+      "message": "Refund exceeds what the credit note still claims.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "allocate_supplier_credit_note",
+      "message": "Document is not a supplier credit note.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "allocate_supplier_credit_note",
+      "message": "A supplier credit settles only a supplier invoice.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "allocate_supplier_credit_note",
+      "message": "A supplier credit settles only its own supplier.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "account_statement",
+      "message": "Account and currency are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_append_interpretation_outcome",
+      "message": "Unknown interpretation classification.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_append_interpretation_outcome",
+      "message": "Only interpreted outcomes may reference produced records.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_append_interpretation_outcome",
+      "message": "Unknown interpretation record type.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "enqueue_source",
+      "message": "Source system, source type, and external ID are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "enqueue_source",
+      "message": "Source payload must be a JSON object.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_source_system",
+      "message": "Source system code and name are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_source_system",
+      "message": "f\"Source system code already exists: {code}\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "install_connector_shell",
+      "message": "Use the confirmed Demo Data connection preview in a compatible Sandbox.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "install_connector_shell",
+      "message": "Connector shell not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "install_connector_shell",
+      "message": "f\"Select valid source types{detail}.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "install_connector_shell",
+      "message": "Source system code and name are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "install_connector_shell",
+      "message": "f\"Source system already exists: {instance_code}\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "set_source_system_base_url",
+      "message": "str(error)",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_source_capability",
+      "message": "Source type and target type are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "create_source_capability",
+      "message": "f\"Source capability already exists: {system.code}/{source_type}\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "_shopify_interpretation",
+      "message": "f\"Unknown SKU: {sku}\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "process_import_job_bound",
+      "message": "ImportJob not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "process_import_job_bound",
+      "message": "Bound interpretation requires the registered Demo Data source.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "process_import_job",
+      "message": "ImportJob not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "process_import_job",
+      "message": "Demo order could not be interpreted.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "process_import_job",
+      "message": "job.error",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "process_shopify_import_job",
+      "message": "Import job is not a Shopify order.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "ingest_shopify_order",
+      "message": "review.summary",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "ingest_shopify_order",
+      "message": "Stale source version was stored without interpretation.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "preview_payment_run",
+      "message": "A payment run preview needs a day to pay by.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "execute_payment_run",
+      "message": "A payment run requires a reason.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "execute_payment_run",
+      "message": "A payment run needs at least one payment.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "execute_payment_run",
+      "message": "A payment run needs the currency it is paid in.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "execute_payment_run",
+      "message": "A payment run names each invoice once.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "execute_payment_run",
+      "message": "\"The payment run no longer matches the confirmed total: \" f\"{total} stated, {confirmed_total} confirmed.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "execute_payment_run",
+      "message": "PAYMENT_RUN_WITHHELD_REASONS[withheld_because] if withheld_because else \"A payment run pays open supplier invoices of this tenant only.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "execute_payment_run",
+      "message": "\"A payment run pays in one currency: \" f\"{row['document'].currency} does not match {run_currency}.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "execute_payment_run",
+      "message": "Payment exceeds the open supplier payable.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/core.py",
+      "function": "timeline_activity",
+      "message": "Use either before_sequence or after_sequence.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/cost_conversions.py",
+      "function": "_check",
+      "message": "First conversion revision cannot supersede history.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/cost_conversions.py",
+      "function": "_check",
+      "message": "Conversion revision must supersede the exact latest basis.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/costing.py",
+      "function": "_request",
+      "message": "str(error)",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/costing.py",
+      "function": "_protect_document",
+      "message": "Admitted contribution evidence is immutable; replacement and rematching require a supported review workflow.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/costing.py",
+      "function": "_protect_document",
+      "message": "Admitted cost evidence is immutable; create replacement evidence and confirm cost.change replace.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/delivery_reads.py",
+      "function": "delivery_work",
+      "message": "Delivery status must be open or all.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/delivery_reads.py",
+      "function": "delivery_work",
+      "message": "Delivery type must be customer_delivery or supplier_delivery.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/delivery_reads.py",
+      "function": "delivery_references",
+      "message": "Delivery not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/delivery_reads.py",
+      "function": "delivery_references",
+      "message": "Unsupported delivery reference family.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/delivery_reads.py",
+      "function": "delivery_evidence",
+      "message": "Inspector record type not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/delivery_reads.py",
+      "function": "delivery_evidence",
+      "message": "Record not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/exceptions.py",
+      "function": "explain_operational_exception",
+      "message": "Current operational exception not found.",
+      "scope": "later",
+      "count": 3
+    },
+    {
+      "path": "reality/services/finance/accounts.py",
+      "function": "_mutation",
+      "message": "Finance preview is stale; reload and confirm again.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/accounts.py",
+      "function": "create_account",
+      "message": "Account code, name and supported role are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/accounts.py",
+      "function": "create_account",
+      "message": "Account code already exists.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/accounts.py",
+      "function": "update_account",
+      "message": "Account state must be active or blocked.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/accounts.py",
+      "function": "update_account",
+      "message": "Account code and name cannot be empty.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/accounts.py",
+      "function": "update_account",
+      "message": "Account code already exists.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/accounts.py",
+      "function": "set_default_account",
+      "message": "Default requires an active account with the matching role.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/components.py",
+      "function": "_document",
+      "message": "Select a customer or supplier invoice or credit note for attribution.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/components.py",
+      "function": "_page",
+      "message": "Use limit 1–200 and a nonnegative offset.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/components.py",
+      "function": "preview_assignment",
+      "message": "Component line not found on this document.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/components.py",
+      "function": "preview_assignment",
+      "message": "This document has lines; assign individual lines instead of its summary.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/components.py",
+      "function": "preview_assignment",
+      "message": "Assignment preview is stale; reload evidence and references.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/components.py",
+      "function": "preview_assignment",
+      "message": "Supported basis and a nonempty assignment reason are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/components.py",
+      "function": "preview_assignment",
+      "message": "Normalized component evidence has changed; reconcile the source instead of rewriting history.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/components.py",
+      "function": "preview_assignment",
+      "message": "Use at most 100 cost-center shares.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/components.py",
+      "function": "preview_assignment",
+      "message": "Use distinct cost centers and strictly positive shares.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/components.py",
+      "function": "preview_assignment",
+      "message": "Cost-center shares exceed or lack a nonnegative received basis.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "_day",
+      "message": "f\"Enter a valid {name} date.\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "Opening cutover must be a stated date no later than today.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "Unsupported opening direction.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "Select an active party with the matching customer or supplier role.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "Original document date cannot be after the opening cutover.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "Duplicate opening item identity within this batch.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "A summary has one item per party, direction and currency.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "Existing opening coverage has another source, snapshot or cutover; reconcile it first.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "Opening summary/detail coverage overlaps; reconcile it first.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "This opening item identity has already been imported.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "Existing historical or undated financial evidence overlaps this opening; reconcile it first.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/opening.py",
+      "function": "preview_opening",
+      "message": "Finance preview is stale; reload and confirm again.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "_get_row",
+      "message": "Finance target record not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "list_target_references",
+      "message": "Invalid external reference kind.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "validate",
+      "message": "str(error)",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "_active",
+      "message": "Selected target or reference is blocked.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "preview_change",
+      "message": "Finance preview is stale; reload and review again.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "preview_change",
+      "message": "External reference has the wrong target or kind.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "preview_change",
+      "message": "Internal reference has the wrong kind.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "preview_change",
+      "message": "Target mapping modes overlap; block the existing mode first.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "preview_change",
+      "message": "Only an existing mapping can be blocked without changing destinations.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "preview_change",
+      "message": "Mapping change has no effect.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "preview_change",
+      "message": "Configuration change has no effect.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/finance/target_mappings.py",
+      "function": "preview_change",
+      "message": "Target namespace or reference code already exists.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/free_playground.py",
+      "function": "entry_status",
+      "message": "Account not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/free_playground.py",
+      "function": "enter",
+      "message": "Confirm creation of your demo company first.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/free_playground.py",
+      "function": "enter",
+      "message": "Choose a demo company or an empty company.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/free_playground.py",
+      "function": "enter",
+      "message": "A verified, active account is required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/free_playground.py",
+      "function": "enter",
+      "message": "This demo company is archived.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/invoice_actions.py",
+      "function": "preview_free_supplier_invoice",
+      "message": "Free supplier invoice fields are incomplete or unsupported.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/invoice_actions.py",
+      "function": "preview_free_supplier_invoice",
+      "message": "Free supplier invoice requires a supplier Party.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "normalize_email",
+      "message": "Enter a valid email address.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "create_invitation",
+      "message": "Archived companies cannot change membership.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "create_invitation",
+      "message": "Invitation creation rate limit reached.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "validate_invitation_recipient",
+      "message": "Invitation not found.",
+      "scope": "later",
+      "count": 2
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "accept_invitation",
+      "message": "Invitation not found.",
+      "scope": "later",
+      "count": 3
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "accept_invitation",
+      "message": "Invitation is no longer available.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "accept_invitation",
+      "message": "Invitation requires the matching verified email.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "accept_invitation",
+      "message": "This account cannot accept invitations.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "revoke_invitation",
+      "message": "Archived companies cannot change membership.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "revoke_invitation",
+      "message": "Invitation not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "revoke_invitation",
+      "message": "Invitation is no longer pending.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "resend_invitation",
+      "message": "Archived companies cannot change membership.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "resend_invitation",
+      "message": "Invitation not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "resend_invitation",
+      "message": "Invitation cannot be resent.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "resend_invitation",
+      "message": "Invitation resend rate limit reached.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "resend_invitation",
+      "message": "Please wait before resending this invitation.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "remove_member",
+      "message": "Archived companies cannot change membership.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "remove_member",
+      "message": "Membership not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "remove_member",
+      "message": "Owners cannot be removed by this operation.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/memberships.py",
+      "function": "remove_member",
+      "message": "Membership is not active.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/payment_actions.py",
+      "function": "_customer_credit_items",
+      "message": "Unsupported credit sort.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/shipments.py",
+      "function": "shipment_explain",
+      "message": "Shipment not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/shipments.py",
+      "function": "shipments_list",
+      "message": "Unsupported shipment direction.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/shipments.py",
+      "function": "shipments_list",
+      "message": "str(error)",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/shipments.py",
+      "function": "shipments_list",
+      "message": "Unsupported shipment observation.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/supply_assignments.py",
+      "function": "reverse_supply_assignment",
+      "message": "A positive reversal and reason are required.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/supply_assignments.py",
+      "function": "reverse_supply_assignment",
+      "message": "Effective supply assignment was not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/supply_assignments.py",
+      "function": "reverse_supply_assignment",
+      "message": "Supply assignment reversal exceeds its effective quantity.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "playground_chat_scope",
+      "message": "Sandbox is not ready for questions.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "_decision_scope",
+      "message": "Unsupported Playground decision scope.",
+      "scope": "later",
+      "count": 2
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "_proposal_creation_scope",
+      "message": "This Playground proposal is not supported yet.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "_proposal_creation_scope.deny_partial_commit",
+      "message": "Playground proposal and step must commit together.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "_seed_scope",
+      "message": "Playground setup is not available.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "_seed_scope",
+      "message": "Playground setup requires a transaction.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "_seed_scope.deny_partial_commit",
+      "message": "Playground setup must commit atomically.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "master_tool_execution",
+      "message": "Master-data call differs from the reviewed action.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "require_playground_account",
+      "message": "Account not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "require_playground_account",
+      "message": "A verified, enabled account is required for Playground.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "profile_cost_action_scope",
+      "message": "Profile costing authority is unavailable.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "profile_finance_action_scope",
+      "message": "Profile finance authority is unavailable.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "_profile_scope",
+      "message": "Profile initialization is unavailable.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "storyline_seed_scope",
+      "message": "Storyline initialization is unavailable.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "storyline_seed_scope",
+      "message": "Storyline seed requires a transaction.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "_bound_profile_scope",
+      "message": "Profile operation requires a transaction.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "_bound_profile_scope.deny_commit",
+      "message": "Profile operation must commit atomically.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/services/tenant_policy.py",
+      "function": "require_demo_intake",
+      "message": "Demo intake requires its current connection authority.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_human_principal",
+      "message": "Membership changes require a confirming human owner.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_read_format",
+      "message": "Response format must be page or legacy.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_read_format",
+      "message": "A cursor requires page response format.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_projection_read",
+      "message": "Inventory filters require page response format.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_lifecycle",
+      "message": "Unsupported master data type.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_capability_describe",
+      "message": "\"Capability identity is ambiguous; use one canonical public name: \" + \", \".join(sorted(candidates))",
+      "scope": "later",
+      "count": 2
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_capability_describe",
+      "message": "Capability not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_proposal_execution_receipt",
+      "message": "Proposal not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "run_read_tool",
+      "message": "Tool not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "run_read_tool",
+      "message": "Mutating tools require a confirmed proposal.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_payments_read",
+      "message": "\"Unsupported payment filter: \" + \", \".join(unsupported_arguments) + \".\"",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_payments_read",
+      "message": "Payment direction must be incoming or outgoing.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_matrix_read",
+      "message": "Transaction matrix takes no business arguments.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_proposal",
+      "message": "Active tool proposal not found.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_private_report_confirmation_only",
+      "message": "Private report changes require an authenticated proposal confirmation.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/application.py",
+      "function": "_requested_analysis_confirmation_only",
+      "message": "Requesting an analysis requires an authenticated proposal confirmation.",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/finance.py",
+      "function": "validate_request",
+      "message": "str(error)",
+      "scope": "later"
+    },
+    {
+      "path": "reality/tools/finance.py",
+      "function": "validate_finance_request",
+      "message": "str(error)",
+      "scope": "later"
+    }
+  ]
+}
