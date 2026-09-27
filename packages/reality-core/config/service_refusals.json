@@ -4,6 +4,9 @@
     "account_change_owner_required": {
       "message": "Account changes require a confirming company owner."
     },
+    "account_confirmation_required": {
+      "message": "Account confirmation is required."
+    },
     "account_not_found": {
       "message": "Account not found."
     },

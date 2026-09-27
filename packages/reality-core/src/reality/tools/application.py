@@ -3354,7 +3354,7 @@ def approve_and_execute_proposal(
     if tool_name in MEMBERSHIP_MUTATION_TOOLS and confirming_principal is None:
         raise InvalidOperation(code="membership_change_owner_required")
     if tool_name in ACCOUNT_MUTATION_TOOLS and confirming_principal is None:
-        raise InvalidOperation(code="account_change_owner_required")
+        raise InvalidOperation(code="account_confirmation_required")
 
     from reality.db.core import Tenant
     from reality.services.delivery_actions import REVIEW_KEY, eligible, validate_review
