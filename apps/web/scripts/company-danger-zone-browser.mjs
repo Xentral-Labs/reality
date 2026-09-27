@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { isShellBackgroundRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -112,7 +113,7 @@ await page.route("**/api/**", async (route) => {
     return reply(run);
   }
   if (path.endsWith("/application-reference")) return reply({ workspaces: [] });
-  unmatched.push(path);
+  if (!isShellBackgroundRead(req.method(), path)) unmatched.push(path);
   return reply({ detail: `unmatched ${path}` }, 404);
 });
 

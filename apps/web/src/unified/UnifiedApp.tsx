@@ -71,8 +71,13 @@ export default function UnifiedApp({
   }, [createdCompany]);
   const route = selection.route;
   const routeSeen = useRef(route);
+  // Opening the company moves to its destination; arriving there is not moving on.
+  const announcedAt = useRef<string | null>(null);
   useEffect(() => {
-    if (routeSeen.current !== route) setCreatedCompany(null);
+    if (routeSeen.current !== route) {
+      if (announcedAt.current === route) announcedAt.current = null;
+      else setCreatedCompany(null);
+    }
     routeSeen.current = route;
   }, [route]);
   // A company someone set up is announced; a practice company a storyline opened is not,
@@ -85,6 +90,7 @@ export default function UnifiedApp({
     setAction(null);
     setActionTarget({});
     context.openCompany(data, id, options?.home ?? false);
+    announcedAt.current = options?.home && options.announce !== false ? "home" : null;
     setCreatedCompany(options?.announce === false ? null : id);
   };
   if (!bootstrap)
