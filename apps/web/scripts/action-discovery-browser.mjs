@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { reference } from "./tool-catalog-fixture.mjs";
+import { openPageActions } from "./page-actions.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -85,20 +86,11 @@ if (process.env.DIRECTORY_ONLY === "1") {
   process.exit(0);
 }
 if (process.env.LAUNCHER_ONLY !== "1") {
-  // The header bar: the first action is the primary button, one more stands beside it, two or
-  // more sit behind More actions. Read them back in catalog order.
+  // Page actions sit behind "More actions" in catalog order (menus are the default
+  // presentation); read them back from the menu.
   const pageActions = async () => {
-    await page.locator('[data-page-action="primary"]').waitFor();
-    if (await page.locator(".register-actions:not([open]) > summary").count())
-      await page.locator(".register-actions > summary").click();
-    return page.evaluate(() => {
-      const slot = document.querySelector(".page-introduction-actions");
-      const primary = slot.querySelector('[data-page-action="primary"]').textContent;
-      const rest = [...slot.querySelectorAll('[data-page-action="secondary"]')].map(
-        (node) => node.textContent,
-      );
-      return { primary, rest, menu: !!slot.querySelector(".register-actions") };
-    });
+    await openPageActions(page);
+    return page.locator(".register-action-menu button").allTextContents();
   };
   for (const view of ["stock", "reservations", "movements"]) {
     await go("warehouse?warehouse_view=" + view);
@@ -109,6 +101,7 @@ if (process.env.LAUNCHER_ONLY !== "1") {
         "Record opening stock",
         "Receive goods",
         "Record shipment",
+        "Decide returned goods",
         "Dispatch package",
         "Receive package",
         "Correct movement",
@@ -125,8 +118,7 @@ if (process.env.LAUNCHER_ONLY !== "1") {
   for (const flow of ["receivable", "payable", "customer-credit", "supplier-balance"]) {
     for (const view of ["open-items", "payments", "journal"]) {
       await go(`finance?finance_view=${view}&flow=${flow}`);
-      const actions = await pageActions();
-      const buttons = [actions.primary, ...actions.rest];
+      const buttons = await pageActions();
       if (flow === "payable" || flow === "supplier-balance")
         assert.ok(!buttons.some((s) => /credit note|refund|customer/i.test(s)), buttons.join(","));
       if (view === "journal")
@@ -134,25 +126,28 @@ if (process.env.LAUNCHER_ONLY !== "1") {
     }
   }
   await go("finance?finance_view=payments&flow=receivable&direction=outgoing");
-  assert.deepEqual(await pageActions(), {
-    primary: "Record supplier payment",
-    rest: ["Import opening positions"],
-    menu: false,
-  });
+  assert.deepEqual(await pageActions(), ["Record supplier payment", "Import opening positions"]);
 }
+// The global launcher is the command palette inside the [data-action-menu] popover: typed
+// queries list actions as options.
+const launcher = page.locator("[data-action-menu]");
+const search = (query) =>
+  launcher
+    .getByRole("combobox", { name: "Search or start an action" })
+    .or(launcher.getByRole("textbox", { name: "Search or start an action" }))
+    .first()
+    .fill(query);
 await go("warehouse?warehouse_view=movements");
 await page.locator("[data-action-launcher] > button").click();
-assert.equal(
-  await page
-    .locator("[data-action-menu]")
-    .getByRole("button", { name: "New supplier invoice", exact: true })
-    .count(),
-  1,
-);
-await page.locator("[data-action-menu]").getByRole("searchbox").fill("Record shipment");
-await page
-  .locator("[data-action-menu]")
-  .getByRole("button", { name: "Record shipment", exact: true })
+await search("New supplier invoice");
+await launcher
+  .getByRole("option", { name: /^New supplier invoice/ })
+  .first()
+  .waitFor();
+await search("Record shipment");
+await launcher
+  .getByRole("option", { name: /^Record shipment/ })
+  .first()
   .click();
 await page.locator("dialog").waitFor();
 await page.keyboard.press("Control+k");
@@ -162,18 +157,18 @@ assert.equal(writes.length, 0, JSON.stringify(writes));
 failCatalog = true;
 await go("warehouse?warehouse_view=stock");
 await page.locator("[data-action-launcher] > button").click();
-await page
-  .locator("[data-action-menu]")
-  .getByRole("button", { name: "Retry", exact: true })
-  .waitFor();
+// The catalog's own failure, not the separately unavailable report templates.
+const catalogRetry = launcher
+  .locator("div", { has: page.getByText("Could not load this view", { exact: true }) })
+  .last()
+  .getByRole("button", { name: "Retry", exact: true });
+await catalogRetry.waitFor();
 failCatalog = false;
-await page
-  .locator("[data-action-menu]")
-  .getByRole("button", { name: "Retry", exact: true })
-  .click();
-await page
-  .locator("[data-action-menu]")
-  .getByRole("button", { name: "Reserve stock", exact: true })
+await catalogRetry.click();
+await search("Reserve stock");
+await launcher
+  .getByRole("option", { name: /^Reserve stock/ })
+  .first()
   .waitFor();
 language = "de";
 await page.setViewportSize({ width: 390, height: 844 });

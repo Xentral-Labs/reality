@@ -2,6 +2,9 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { openPageActions } from "./page-actions.mjs";
+import { deliveryReview, isDecisionReview } from "./decision-review-fixture.mjs";
+import { reference as discoveryReference } from "./action-discovery-fixture.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -30,11 +33,7 @@ await page.route("**/api/**", async (route) => {
     });
   if (p === "/api/v1/bootstrap")
     return reply({ tenants: [{ id: "company", name: "Northstar" }], default_tenant_id: "company" });
-  if (p.endsWith("/application-reference"))
-    return reply({
-      commands: [{ service: "reverse_ledger_posting_group", mode: "mutation", adapters: ["Web"] }],
-      workspaces: [],
-    });
+  if (p.endsWith("/application-reference")) return reply(discoveryReference);
   if (p.endsWith("/finance/reversal-choices"))
     return reply({
       items: [{ id: "group", number: "PAY-123", party: "Müller", currency: "EUR", amount: "125" }],
@@ -115,6 +114,7 @@ await page.route("**/api/**", async (route) => {
     proposal.status = "rejected";
     return reply(proposal);
   }
+  if (isDecisionReview(p) && proposal) return reply(deliveryReview(proposal));
   if (p.includes("/delivery-actions/")) return reply(proposal);
   if (p.endsWith("/copilot"))
     return reply({
@@ -139,15 +139,16 @@ await page.route("**/api/**", async (route) => {
         : [],
       page: pager,
     });
+  if (
+    ["/dashboard", "/activity-volume", "/readiness", "/analytics"].some((path) => p.endsWith(path))
+  )
+    return reply({ detail: "Home reads are outside this reversal fixture" }, 503);
   return reply({ items: [], totals: [], page: pager });
 });
 try {
-  await page.goto("http://localhost:5177/app/finance?tenant=company");
-  if (
-    !(await page.getByRole("dialog").count()) &&
-    (await page.locator(".register-actions:not([open]) > summary").count())
-  )
-    await page.locator(".register-actions > summary").click();
+  // Reversal is a Journal action (placement finance.journal).
+  await page.goto("http://localhost:5177/app/finance?tenant=company&finance_view=journal");
+  await openPageActions(page);
   await page.getByRole("button", { name: "Reverse posting", exact: true }).click();
   await page.getByLabel("Posting", { exact: true }).selectOption("group");
   await page.getByLabel("Reversal reason", { exact: true }).fill("Incorrect payment amount");
@@ -174,7 +175,7 @@ try {
       }
   language = "en";
   await page.goto("http://localhost:5177/app/finance?tenant=company&proposal=reversal");
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByRole("button", { name: "Request changes", exact: true }).click();
   await page.getByLabel("Reversal reason", { exact: true }).waitFor();
   assert.equal(
     await page.getByLabel("Reversal reason", { exact: true }).inputValue(),
@@ -182,28 +183,38 @@ try {
   );
   await page.getByRole("button", { name: "Review change", exact: true }).click();
   await page.getByRole("button", { name: "Confirm reversal", exact: true }).click();
-  await page.getByRole("link", { name: "Open reversal", exact: true }).waitFor();
+  // A decision opened from its review closes once decided (spec 276); the recorded
+  // proposal, opened again, shows its receipt.
+  await page.locator("#financial-reversal-title").waitFor({ state: "detached" });
   assert.equal(confirmations, 1);
+  await page.goto("http://localhost:5177/app/finance?tenant=company&proposal=reversal");
+  await page.getByRole("link", { name: "Open reversal", exact: true }).waitFor();
   await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.getByText("Actions", { exact: true }).click();
-  if (
-    !(await page.getByRole("dialog").count()) &&
-    (await page.locator(".register-actions:not([open]) > summary").count())
-  )
-    await page.locator(".register-actions > summary").click();
-  await page.getByRole("button", { name: "Reverse posting", exact: true }).first().click();
+  // The global launcher is the command palette: search for the action and start it.
+  await page.locator("[data-action-launcher] > button").click();
+  await page
+    .getByRole("combobox", { name: "Search or start an action" })
+    .or(page.getByRole("textbox", { name: "Search or start an action" }))
+    .first()
+    .fill("Reverse posting");
+  await page
+    .getByRole("option", { name: /^Reverse posting/ })
+    .first()
+    .click();
   await page.getByLabel("Posting", { exact: true }).selectOption("group");
   await page.getByLabel("Reversal reason", { exact: true }).fill("Another review");
   await page.getByRole("button", { name: "Review change", exact: true }).click();
   await page.getByRole("button", { name: "Confirm reversal", exact: true }).waitFor();
   await page.goto("http://localhost:5177/app/decisions?tenant=company");
+  await page.locator("[data-work-list=decisions] [data-work-row]").first().click();
   await page.getByRole("button", { name: "Review proposed changes", exact: true }).click();
   await page.locator("#financial-reversal-title").waitFor();
   await page.goto("http://localhost:5177/app/copilot?tenant=company");
-  await page.getByRole("button", { name: /Review proposed changes/ }).click();
+  await page.getByRole("button", { name: "Review and decide", exact: true }).click();
   await page.locator("#financial-reversal-title").waitFor();
-  await page.getByRole("button", { name: "Reject", exact: true }).click();
-  await page.getByRole("dialog").getByText("Rejected", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Do not approve", exact: true }).click();
+  await page.locator("#financial-reversal-title").waitFor({ state: "detached" });
+  assert.equal(proposal.status, "rejected");
   proposal.status = "proposed";
   proposal.verification = "pending";
   proposal.review.state.documents = [{ id: "invoice", number: "INV-123", type: "sales_invoice" }];

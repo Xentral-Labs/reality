@@ -210,9 +210,14 @@ try {
       }
   language = "en";
   await page.reload();
+  const reviewed = page.url();
   await dialog.getByRole("button", { name: "Confirm customer order", exact: true }).click();
-  await dialog.getByText("Recorded", { exact: true }).waitFor();
+  // A decision opened from its review closes once decided (spec 276); the recorded
+  // proposal, opened again, shows its result.
+  await dialog.waitFor({ state: "detached" });
   assert.equal(confirmations, 1);
+  await page.goto(reviewed);
+  await dialog.getByText("Recorded", { exact: true }).waitFor();
   await dialog.getByRole("link", { name: "Open order", exact: true }).waitFor();
   assert.match(
     await dialog
@@ -229,10 +234,16 @@ try {
   await dialog.getByRole("button", { name: "Check outcome", exact: true }).click();
   assert.equal(confirmations, 1);
   await page.goto(`${base}/app/orders-deliveries?tenant=company`);
+  // The global launcher is the command palette: search for the action and start it.
   await page.locator("[data-action-launcher] > button").click();
   await page
-    .locator("details[open]")
-    .getByRole("button", { name: "New order", exact: true })
+    .getByRole("combobox", { name: "Search or start an action" })
+    .or(page.getByRole("textbox", { name: "Search or start an action" }))
+    .first()
+    .fill("New order");
+  await page
+    .getByRole("option", { name: /^New order/ })
+    .first()
     .click();
   await dialog.getByLabel("Order direction", { exact: true }).selectOption("purchase");
   await dialog.getByLabel("Company party", { exact: true }).selectOption("our-company");
@@ -262,7 +273,8 @@ try {
   await page.getByRole("button", { name: "Review and decide", exact: true }).click();
   await dialog.getByRole("heading", { name: "Confirm supplier order", exact: true }).waitFor();
   await dialog.getByRole("button", { name: "Do not approve", exact: true }).click();
-  await dialog.getByText("Rejected", { exact: true }).waitFor();
+  await dialog.waitFor({ state: "detached" });
+  assert.equal(proposal.status, "rejected");
   assert.deepEqual(errors, []);
   console.log(
     "PASS: order entry, multi-line editor, exact stated totals, preserved richer intent, four entry points, reload/edit/reject/response-loss recovery, 16 localized responsive reviews.",

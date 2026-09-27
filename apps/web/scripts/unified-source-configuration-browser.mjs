@@ -118,7 +118,10 @@ try {
   await page.getByRole("columnheader", { name: /^Source code/ }).waitFor();
   const surfaceBox = await page.locator(".register-surface").boundingBox();
   const tableBox = await page.locator("[data-source-table-inset] .erp-register").boundingBox();
-  assert.ok(tableBox.x - surfaceBox.x >= 16);
+  // Continuous register surfaces (WEB_SPEC, spec 225) superseded the framed inset: the
+  // table spans the surface edge to edge.
+  assert.ok(Math.abs(tableBox.x - surfaceBox.x) <= 1);
+  assert.ok(Math.abs(tableBox.width - surfaceBox.width) <= 1);
   await page.screenshot({ path: out + "/systems-register.png", fullPage: true });
   await page
     .locator(".register-tabs")

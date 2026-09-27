@@ -412,6 +412,7 @@ export default function UnifiedApp({
                 tenant={company.id}
                 proposalId={selection.proposal}
                 close={() => navigate({ proposal: "" })}
+                prepared={(id) => navigate({ proposal: id })}
               />
             )}
           </Shell>
