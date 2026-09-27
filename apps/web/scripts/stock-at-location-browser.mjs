@@ -2,14 +2,13 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-if (!process.env.PLAYWRIGHT_MODULE || !process.env.PLAYWRIGHT_EXECUTABLE)
-  throw new Error("Set PLAYWRIGHT_MODULE and PLAYWRIGHT_EXECUTABLE.");
+if (!process.env.PLAYWRIGHT_MODULE) throw new Error("Set PLAYWRIGHT_MODULE.");
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const visible = process.env.PLAYWRIGHT_VISIBLE === "1";
 const browser = await chromium.launch({
   headless: !visible,
   slowMo: visible ? 500 : 0,
-  executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
+  executablePath: process.env.PLAYWRIGHT_EXECUTABLE || undefined,
 });
 const base = process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177";
 const out = "/private/tmp/reality-262-browser";
@@ -159,6 +158,20 @@ try {
           freshness: { state: "uninitialized", processed_event_sequence: null },
           result: null,
           basis_result: null,
+          // Spec 279: every cost answer carries its resolution guidance.
+          guidance: {
+            stage: "uninitialized",
+            scope: { kind: "inventory", id: item },
+            review_state: "uninitialized",
+            missing_basis: [],
+            reason: "No retained owner-reviewed cost basis exists for this scope.",
+            next_action: null,
+            explanation_links: [],
+            reason_code: "cost_uninitialized",
+            steps: [],
+            writable: false,
+            value_reasons: {},
+          },
           persistence: { business_writes: false, projection_writes: false },
         });
       if (path.includes(`/inspector/stock/`))
@@ -292,7 +305,11 @@ try {
 
     // The item preview carries the quantity per location, and it opens the pair.
     await page.getByText("Rotterdam Warehouse", { exact: true }).first().waitFor();
-    await page.getByRole("button", { name: "2 pcs", exact: true }).first().click();
+    // Each location is one button: its name, what the number means, and the quantity.
+    await page
+      .getByRole("button", { name: /^Rotterdam Warehouse.*2 pcs$/ })
+      .first()
+      .click();
 
     // The pair shows this item in this place, and nothing of the rest of the warehouse.
     const dialog = page.locator("dialog[open]");

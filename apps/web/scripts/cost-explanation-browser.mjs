@@ -2,14 +2,13 @@ import assert from "node:assert/strict";
 import { mkdir, readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-if (!process.env.PLAYWRIGHT_MODULE || !process.env.PLAYWRIGHT_EXECUTABLE)
-  throw new Error("Set PLAYWRIGHT_MODULE and PLAYWRIGHT_EXECUTABLE.");
+if (!process.env.PLAYWRIGHT_MODULE) throw new Error("Set PLAYWRIGHT_MODULE.");
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const visible = process.env.PLAYWRIGHT_VISIBLE === "1";
 const browser = await chromium.launch({
   headless: !visible,
   slowMo: visible ? 650 : 0,
-  executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
+  executablePath: process.env.PLAYWRIGHT_EXECUTABLE || undefined,
 });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 page.setDefaultTimeout(12000);

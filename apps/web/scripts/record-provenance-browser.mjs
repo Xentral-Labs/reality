@@ -313,7 +313,8 @@ try {
 
   assert.deepEqual(errors, []);
   assert.equal(
-    requests.filter((r) => r.method !== "GET").length,
+    // Search resolution is a POST read (the server admits it as one), not a write.
+    requests.filter((r) => r.method !== "GET" && !r.path.endsWith("/search/resolve")).length,
     0,
     "reading origin writes nothing",
   );

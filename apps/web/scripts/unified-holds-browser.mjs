@@ -3,6 +3,7 @@ import { reference as discoveryReference } from "./action-discovery-fixture.mjs"
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { deliveryReview, isDecisionReview } from "./decision-review-fixture.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -162,6 +163,7 @@ await page.route("**/api/**", async (route) => {
       suggestions: [],
       has_archived: false,
     });
+  if (isDecisionReview(p) && proposal) return reply(deliveryReview(proposal));
   if (p.includes("/change-proposals"))
     return reply({
       items: proposal
@@ -192,14 +194,15 @@ try {
   await page.waitForURL(/proposal=/);
   await page.reload();
   await dialog.getByText("Check <address> & contact", { exact: true }).waitFor();
-  await dialog.getByRole("button", { name: "Edit", exact: true }).click();
+  await dialog.getByRole("button", { name: "Request changes", exact: true }).click();
   assert.equal(
     await dialog.getByLabel("Hold note (optional)", { exact: true }).inputValue(),
     "Check <address> & contact",
   );
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
   await dialog.getByRole("button", { name: "Confirm change", exact: true }).click();
-  await dialog.getByText("Recorded", { exact: true }).waitFor();
+  // A decision opened from its review closes once it is recorded (spec 276).
+  await dialog.waitFor({ state: "detached" });
   assert.equal(confirmations, 1);
   row.blockers.push({
     id: "party",
@@ -215,7 +218,7 @@ try {
   assert.deepEqual(prepared.arguments, { commitment_id: "outgoing" });
   await dialog.getByText("Check <address> & contact", { exact: true }).waitFor();
   await dialog.getByRole("button", { name: "Confirm change", exact: true }).click();
-  await dialog.getByText("Recorded", { exact: true }).waitFor();
+  await dialog.waitFor({ state: "detached" });
   assert.equal(row.blockers.length, 1);
   await page.goto(`${base}/app/work?tenant=ops&commitment=outgoing`);
   await page.getByText("Customer-wide credit review", { exact: true }).waitFor();
@@ -258,14 +261,21 @@ try {
       }
   language = "en";
   await page.goto(`${base}/app/work?tenant=ops`);
+  // The global launcher is the command palette: typed queries list actions as options.
   await page.locator("[data-action-launcher] > button").click();
-  await page
-    .locator("details[open]")
-    .getByRole("button", { name: "Release delivery hold", exact: true })
+  const palette = page.locator("[data-action-menu]");
+  await palette
+    .getByRole("combobox", { name: "Search or start an action" })
+    .or(palette.getByRole("textbox", { name: "Search or start an action" }))
+    .first()
+    .fill("delivery hold");
+  await palette
+    .getByRole("option", { name: /^Release delivery hold/ })
+    .first()
     .waitFor();
-  await page
-    .locator("details[open]")
-    .getByRole("button", { name: "Place delivery hold", exact: true })
+  await palette
+    .getByRole("option", { name: /^Place delivery hold/ })
+    .first()
     .click();
   await dialog.getByLabel("Delivery", { exact: true }).selectOption("outgoing");
   await dialog.getByLabel("Hold reason", { exact: true }).selectOption("other");
@@ -277,7 +287,11 @@ try {
   await page.getByRole("button", { name: "Review proposed changes", exact: true }).click();
   await dialog.getByRole("heading", { name: "Place delivery hold", exact: true }).waitFor();
   await page.goto(`${base}/app/copilot?tenant=ops`);
-  await page.getByRole("button", { name: /Review proposed changes/ }).click();
+  await page
+    .locator("[data-chat-decision-list]")
+    .getByRole("button", { name: "Review", exact: true })
+    .first()
+    .click();
   await dialog.getByRole("heading", { name: "Place delivery hold", exact: true }).waitFor();
   assert.equal(confirmations, 2);
   assert.deepEqual(errors, []);
