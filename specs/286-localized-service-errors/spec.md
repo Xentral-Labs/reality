@@ -113,9 +113,10 @@ the unchanged English sentence.
 
 ### User Story 2 - Values stay in their place (Priority: P1)
 
-An item import refuses row 12 because SKU "LAMP-B-282" appears twice. The Dutch clerk reads
-"Rij 12: dubbele SKU LAMP-B-282 in dit bestand." The row number and the SKU are the ones the
-service named.
+A Dutch clerk enters an order whose third line has no amount and reads "Regel 3 heeft een
+opgegeven bedrag nodig; het wordt nooit berekend." In master data, a payment term code that
+already exists is refused with "Betalingstermijncode 'NET30' bestaat al." The line number and
+the code are the ones the service named.
 
 **Why this priority**: Refusals with values are the most actionable ones; a translation that
 drops or garbles the value is worse than English.
@@ -129,7 +130,10 @@ contains every value the service sent, and numbers use the language's number for
    value appears exactly once in its placeholder's position.
 2. **Given** a value the catalog declares as a number or amount, **When** it is shown in German,
    **Then** it uses the German decimal format (59,50), without rounding.
-3. **Given** a translation that lacks one of the entry's placeholders, **When** the contract
+3. **Given** a value that is an English field name (for example "{label} must be a decimal
+   value." with "Credit amount"), **When** it is shown in Spanish, **Then** the field name is
+   translated too.
+4. **Given** a translation that lacks one of the entry's placeholders, **When** the contract
    test runs, **Then** it fails.
 
 ---
@@ -201,8 +205,9 @@ a Dutch translation; the respective test fails and names the file and line or th
   addition to its English sentence, for `InvalidOperation`, `NotFound`, `Conflict` and their
   subclasses.
 - **FR-002**: The English wording of every coded refusal MUST come from one catalog, whose
-  entry holds the English template with named placeholders and the kind of each value (text,
-  number, amount, quantity, date). The English sentence sent to clients MUST equal the
+  entry holds the English template with named placeholders and the kind of each value: text
+  (shown as given, such as a code or reference), term (an English product word that is itself
+  translated, such as a field name), number, amount, quantity or date. The English sentence sent to clients MUST equal the
   template filled with the values.
 - **FR-003**: The web API MUST send the code and values next to the unchanged English sentence
   for every coded refusal, for every refusal status it returns today (400, 404, 409, 422), and
@@ -210,8 +215,8 @@ a Dutch translation; the respective test fails and names the file and line or th
 - **FR-004**: The chat stream error event and the failed proposal receipt MUST carry the code
   and values next to the English sentence.
 - **FR-005**: The web MUST show a coded refusal in the account language, with each value in its
-  placeholder and numbers, amounts, quantities and dates formatted for that language without
-  rounding, and MUST fall back to the English sentence when the code is unknown.
+  placeholder, terms translated, and numbers, amounts, quantities and dates formatted for that
+  language without rounding, and MUST fall back to the English sentence when the code is unknown.
 - **FR-006**: Every refusal raised by the services behind the in-scope forms MUST be coded, and
   every catalog entry MUST have German, Dutch and Spanish translations that contain all its
   placeholders.
@@ -277,7 +282,7 @@ None. Decided by the owner on 2026-09-27:
 | FR-002 | US2 1 | catalog test: English sentence equals the filled template |
 | FR-003 | US1 1–4 | API test per status: code and values present; uncoded shape unchanged |
 | FR-004 | US3 1 | chat stream and proposal receipt tests |
-| FR-005 | US1 1–3, US2 1–2 | web contract and browser test in de/nl/es |
+| FR-005 | US1 1–3, US2 1–3 | web contract and browser test in de/nl/es |
 | FR-006 | US1 1 | gate over the in-scope services; localization contract |
 | FR-007 | US4 1–3 | gate negative tests paired with a positive control |
 | FR-008 | US3 2–3 | chat tool result and MCP error payload tests |
