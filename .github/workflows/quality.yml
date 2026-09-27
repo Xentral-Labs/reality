@@ -161,6 +161,57 @@ jobs:
       - name: Audit translations
         run: cd apps/web && npm run i18n:audit
 
+  browser-scripts:
+    # Fixture-based Playwright scripts listed in apps/web/scripts/browser-suite.json. Runs in
+    # parallel with the other jobs; skipped for pull requests that touch neither the web app
+    # nor the catalogs the fixtures are derived from.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect web changes
+        id: diff
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ] ||
+            git diff --name-only "$BASE_SHA" "$HEAD_SHA" |
+              grep -qE '^(apps/web/|packages/reality-core/config/|\.github/workflows/quality\.yml$)'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.diff.outputs.changed == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install web app
+        if: steps.diff.outputs.changed == 'true'
+        run: cd apps/web && npm ci
+      - name: Install Playwright
+        if: steps.diff.outputs.changed == 'true'
+        # Playwright is not an app dependency; the scripts import it from PLAYWRIGHT_MODULE.
+        run: |
+          mkdir -p "$RUNNER_TEMP/playwright"
+          cd "$RUNNER_TEMP/playwright"
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund playwright@1.62.1
+          npx playwright install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
+      - name: Provide the macOS screenshot directory
+        if: steps.diff.outputs.changed == 'true'
+        # Scripts write screenshots below /private/tmp, which exists only on macOS.
+        run: sudo mkdir -p /private && sudo ln -sfn /tmp /private/tmp
+      - name: Run browser scripts
+        if: steps.diff.outputs.changed == 'true'
+        run: cd apps/web && node scripts/run-browser-suite.mjs
+
   docs-quality:
     runs-on: ubuntu-latest
     steps:
