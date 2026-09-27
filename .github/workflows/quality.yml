@@ -62,7 +62,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1]
+        # Temporary CI timing experiment: preserve two workers per runner while
+        # distributing the same test files across four isolated PostgreSQL jobs.
+        shard: [0, 1, 2, 3]
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -99,7 +101,7 @@ jobs:
         run: |
           mapfile -t test_files < <(
             python3 scripts/ci_backend_test_shard.py packages/reality-core/tests \
-              --shard "$SHARD" --total 2 --relative-to packages/reality-core
+              --shard "$SHARD" --total 4 --relative-to packages/reality-core
           )
           test "${#test_files[@]}" -gt 0
           cd packages/reality-core
