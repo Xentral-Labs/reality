@@ -231,7 +231,11 @@ try {
   await page.locator("#payment-title").waitFor();
   // Copilot is the shared dock; the financial fixture intentionally owns no Home reads.
   await page.goto("http://localhost:5177/app/finance?tenant=company");
-  await page.getByRole("button", { name: "Review and decide", exact: true }).click();
+  await page
+    .locator("[data-chat-decision]")
+    .getByRole("button", { name: "Review", exact: true })
+    .first()
+    .click();
   await page.locator("#payment-title").waitFor();
   await page.getByRole("button", { name: "Do not approve", exact: true }).click();
   await page.locator("#payment-title").waitFor({ state: "detached" });
