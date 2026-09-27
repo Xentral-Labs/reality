@@ -12,6 +12,8 @@ from reality.db.core import (
     CompanyInvitation,
     Document,
     InvitationDelivery,
+    JourneyProposal,
+    JourneyProposalVote,
     Movement,
     Reservation,
     TenantMembership,
@@ -34,6 +36,7 @@ from reality.services.core import (
 )
 from reality.services.memberships import Principal
 from reality.tools.application import (
+    TOOLS,
     confirm_tool,
     propose_tool,
     reject_tool,
@@ -73,6 +76,69 @@ def test_read_tool_executes_without_proposal(session, business):
 
     assert result[0]["physical"] == "5.0000"
     assert result[0]["item_id"] == business.item.id
+
+
+def test_business_journey_suggestion_and_vote_use_shared_confirmation_boundary(
+    session, business, scheduled_owner
+) -> None:
+    suggestion = propose_tool(
+        session,
+        business.tenant.id,
+        "business_journey_proposal_create",
+        {
+            "title": "Supplier delivery tolerance",
+            "business_question": "Can a supplier deliver within an agreed tolerance?",
+            "expected_outcome": "Show the stated receipt and whether it is within tolerance.",
+            "process_area": "receiving",
+        },
+    )
+
+    assert session.query(JourneyProposal).count() == 0
+    assert json.loads(suggestion.output)["requires_confirmation"] is True
+    with pytest.raises(InvalidOperation, match="Account confirmation is required"):
+        confirm_tool(session, business.tenant.id, suggestion.id)
+
+    confirmed = confirm_tool(
+        session,
+        business.tenant.id,
+        suggestion.id,
+        confirming_principal=Principal(scheduled_owner.id),
+    )
+    created = session.query(JourneyProposal).one()
+    assert confirmed.status == "executed"
+    assert json.loads(confirmed.output)["id"] == created.id
+
+    vote = propose_tool(
+        session,
+        business.tenant.id,
+        "business_journey_vote_set",
+        {"proposal_id": created.id, "active": True},
+    )
+    assert session.query(JourneyProposalVote).count() == 0
+    confirm_tool(
+        session,
+        business.tenant.id,
+        vote.id,
+        confirming_principal=Principal(scheduled_owner.id),
+    )
+    assert session.query(JourneyProposalVote).one().active is True
+
+
+def test_business_journey_mutations_are_public_prepare_tools() -> None:
+    suggestion = MCP_TOOL_REGISTRY["business_journey_suggest_propose"]
+    vote = MCP_TOOL_REGISTRY["business_journey_vote_propose"]
+
+    assert suggestion.access == "propose"
+    assert TOOLS["business_journey_proposal_create"].mutating is True
+    assert suggestion.input_schema["required"] == [
+        "title",
+        "business_question",
+        "expected_outcome",
+        "process_area",
+    ]
+    assert vote.access == "propose"
+    assert TOOLS["business_journey_vote_set"].mutating is True
+    assert vote.input_schema["properties"]["active"]["default"] is True
 
 
 def test_capability_discovery_accepts_public_or_unique_application_name(

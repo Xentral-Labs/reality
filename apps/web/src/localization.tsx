@@ -13,6 +13,30 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Business Journey suggestions": "Vorschläge für Business Journeys",
+    "Describe a missing business situation without customer names, contact details or secrets. Suggestions are reviewed and are not a roadmap promise.":
+      "Beschreibe eine fehlende Geschäftssituation ohne Kundennamen, Kontaktdaten oder Geheimnisse. Vorschläge werden geprüft und sind keine Roadmap-Zusage.",
+    "Short title": "Kurzer Titel",
+    "What should Reality handle?": "Was soll Reality abbilden?",
+    "What outcome do you expect?": "Welches Ergebnis erwartest du?",
+    "Optional business context (visible only to reviewers)":
+      "Optionaler Geschäftskontext (nur für Prüfer sichtbar)",
+    "Review suggestion": "Vorschlag prüfen",
+    "Confirm submission": "Einreichung bestätigen",
+    "Review the proposal, then confirm submission.":
+      "Prüfe den Vorschlag und bestätige anschließend die Einreichung.",
+    "Possible existing matches": "Mögliche vorhandene Treffer",
+    "Review these matches before creating another suggestion.":
+      "Prüfe diese Treffer, bevor du einen weiteren Vorschlag erstellst.",
+    similar: "ähnlich",
+    "Suggestion submitted for review.": "Vorschlag zur Prüfung eingereicht.",
+    "Suggestions could not be loaded.": "Vorschläge konnten nicht geladen werden.",
+    "Suggestion could not be submitted.": "Vorschlag konnte nicht eingereicht werden.",
+    "Confirm your vote?": "Stimme bestätigen?",
+    "Withdraw your vote?": "Stimme zurückziehen?",
+    "Vote could not be changed.": "Stimme konnte nicht geändert werden.",
+    "Withdraw vote": "Stimme zurückziehen",
+    Vote: "Abstimmen",
     "Actions are unavailable until the readiness projection is current.":
       "Aktionen sind erst verfügbar, wenn die Versandbereitschaft aktuell berechnet ist.",
     of: "von",
@@ -2095,6 +2119,30 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Business Journey suggestions": "Voorstellen voor Business Journeys",
+    "Describe a missing business situation without customer names, contact details or secrets. Suggestions are reviewed and are not a roadmap promise.":
+      "Beschrijf een ontbrekende bedrijfssituatie zonder klantnamen, contactgegevens of geheimen. Voorstellen worden beoordeeld en zijn geen belofte voor de roadmap.",
+    "Short title": "Korte titel",
+    "What should Reality handle?": "Wat moet Reality afhandelen?",
+    "What outcome do you expect?": "Welke uitkomst verwacht je?",
+    "Optional business context (visible only to reviewers)":
+      "Optionele bedrijfscontext (alleen zichtbaar voor beoordelaars)",
+    "Review suggestion": "Voorstel controleren",
+    "Confirm submission": "Indiening bevestigen",
+    "Review the proposal, then confirm submission.":
+      "Controleer het voorstel en bevestig daarna de indiening.",
+    "Possible existing matches": "Mogelijke bestaande overeenkomsten",
+    "Review these matches before creating another suggestion.":
+      "Bekijk deze overeenkomsten voordat je een nieuw voorstel maakt.",
+    similar: "vergelijkbaar",
+    "Suggestion submitted for review.": "Voorstel ter beoordeling ingediend.",
+    "Suggestions could not be loaded.": "Voorstellen konden niet worden geladen.",
+    "Suggestion could not be submitted.": "Voorstel kon niet worden ingediend.",
+    "Confirm your vote?": "Stem bevestigen?",
+    "Withdraw your vote?": "Stem intrekken?",
+    "Vote could not be changed.": "Stem kon niet worden gewijzigd.",
+    "Withdraw vote": "Stem intrekken",
+    Vote: "Stemmen",
     "Actions are unavailable until the readiness projection is current.":
       "Acties zijn pas beschikbaar wanneer de projectie voor verzendgereedheid actueel is.",
     of: "van",
@@ -3871,6 +3919,30 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Business Journey suggestions": "Sugerencias de Business Journeys",
+    "Describe a missing business situation without customer names, contact details or secrets. Suggestions are reviewed and are not a roadmap promise.":
+      "Describe una situación empresarial que falte sin nombres de clientes, datos de contacto ni secretos. Las sugerencias se revisan y no son una promesa de la hoja de ruta.",
+    "Short title": "Título breve",
+    "What should Reality handle?": "¿Qué debería gestionar Reality?",
+    "What outcome do you expect?": "¿Qué resultado esperas?",
+    "Optional business context (visible only to reviewers)":
+      "Contexto empresarial opcional (visible solo para revisores)",
+    "Review suggestion": "Revisar sugerencia",
+    "Confirm submission": "Confirmar envío",
+    "Review the proposal, then confirm submission.":
+      "Revisa la propuesta y después confirma el envío.",
+    "Possible existing matches": "Posibles coincidencias existentes",
+    "Review these matches before creating another suggestion.":
+      "Revisa estas coincidencias antes de crear otra sugerencia.",
+    similar: "similar",
+    "Suggestion submitted for review.": "Sugerencia enviada para revisión.",
+    "Suggestions could not be loaded.": "No se pudieron cargar las sugerencias.",
+    "Suggestion could not be submitted.": "No se pudo enviar la sugerencia.",
+    "Confirm your vote?": "¿Confirmar tu voto?",
+    "Withdraw your vote?": "¿Retirar tu voto?",
+    "Vote could not be changed.": "No se pudo cambiar el voto.",
+    "Withdraw vote": "Retirar voto",
+    Vote: "Votar",
     "Actions are unavailable until the readiness projection is current.":
       "Las acciones estarán disponibles cuando la proyección de preparación esté actualizada.",
     of: "de",
@@ -21485,6 +21557,7 @@ Object.assign(dictionaries.de, {
     "{field} ist erforderlich (höchstens 500 Zeichen).",
   "Account changes require a confirming company owner.":
     "Kontoänderungen erfordern eine bestätigende Firmeneigentümerin oder einen Firmeneigentümer.",
+  "Account confirmation is required.": "Eine Kontobestätigung ist erforderlich.",
   "Account is blocked or has the wrong operational role.":
     "Das Konto ist gesperrt oder hat die falsche operative Rolle.",
   "Account not found.": "Konto nicht gefunden.",
@@ -22354,6 +22427,7 @@ Object.assign(dictionaries.nl, {
   "A {field} of at most 500 characters is required.": "{field} is verplicht (maximaal 500 tekens).",
   "Account changes require a confirming company owner.":
     "Accountwijzigingen vereisen een bevestigende bedrijfseigenaar.",
+  "Account confirmation is required.": "Accountbevestiging is vereist.",
   "Account is blocked or has the wrong operational role.":
     "De rekening is geblokkeerd of heeft de verkeerde operationele rol.",
   "Account not found.": "Account niet gevonden.",
@@ -23210,6 +23284,7 @@ Object.assign(dictionaries.es, {
     "{field} es obligatorio (máximo 500 caracteres).",
   "Account changes require a confirming company owner.":
     "Los cambios de cuenta requieren que un propietario de la empresa los confirme.",
+  "Account confirmation is required.": "Se requiere la confirmación de la cuenta.",
   "Account is blocked or has the wrong operational role.":
     "La cuenta está bloqueada o tiene un rol operativo incorrecto.",
   "Account not found.": "Cuenta no encontrada.",

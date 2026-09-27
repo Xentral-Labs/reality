@@ -1529,12 +1529,6 @@
     },
     {
       "path": "reality/tools/application.py",
-      "function": "_human_principal",
-      "message": "Membership changes require a confirming human owner.",
-      "scope": "later"
-    },
-    {
-      "path": "reality/tools/application.py",
       "function": "_read_format",
       "message": "Response format must be page or legacy.",
       "scope": "later"

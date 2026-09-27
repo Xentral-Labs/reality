@@ -123,6 +123,9 @@
     }
   ],
   "command_groups": {
+    "business_journey_guide": "documents",
+    "business_journey_proposal_create": "documents",
+    "business_journey_vote_set": "documents",
     "expired_lots": "tracking",
     "return_announcements": "returns",
     "preview_payment_run": "payments",

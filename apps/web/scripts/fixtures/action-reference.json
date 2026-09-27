@@ -1,6 +1,27 @@
 {
   "commands": [
     {
+      "name": "Ask the Business Journey Guide",
+      "service": "business_journey_guide",
+      "mode": "read",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Match one bounded capability question against the release-reviewed static journey catalog and return cited status and limitations without reading company data."
+    },
+    {
+      "name": "Suggest a Business Journey",
+      "service": "business_journey_proposal_create",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Creates one account-authored product suggestion after showing matching published journeys and open suggestions."
+    },
+    {
+      "name": "Set a Business Journey suggestion vote",
+      "service": "business_journey_vote_set",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Sets or withdraws the confirming account's single reversible vote and derives the public count from active votes."
+    },
+    {
       "name": "Read reviewed partial commercial match",
       "service": "commercial_match",
       "mode": "read",

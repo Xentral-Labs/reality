@@ -1420,6 +1420,7 @@ def load_application_catalog() -> dict[str, Any]:
         | projection_names
         | materialized_names
         | {
+            "business_journey_catalog",
             "change_proposal",
             "interpretation_outcome",
             "operational_exception",

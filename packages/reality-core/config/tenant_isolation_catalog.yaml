@@ -523,6 +523,22 @@ families:
       - id: tests/tenant_isolation/test_families.py::test_registered_boundaries_are_tenant_scoped
         assertion: boundary
         operations: *boundary_operations
+  - key: account_feedback_boundaries
+    description: Public capability guidance and product feedback use release-reviewed catalog data or verified account identity, never tenant business records.
+    classification: boundary
+    authority: 290/FR-006, 290/FR-013, 290/FR-015, 290/FR-017, 290/DR-002
+    reason: The guide deliberately ignores tenant context; suggestion and vote mutations are account-scoped, confirmed, and constrained by account foreign keys and one-vote-per-account uniqueness.
+    operations: &account_feedback_operations
+      - reality.services.core:business_journey_guide
+      - reality.services.core:business_journey_proposal_create
+      - reality.services.core:business_journey_vote_set
+      - tool:business_journey_guide
+      - tool:business_journey_proposal_create
+      - tool:business_journey_vote_set
+    evidence:
+      - id: tests/test_business_journey_proposals.py::test_one_reversible_vote_per_account
+        assertion: boundary
+        operations: *account_feedback_operations
   - key: tenant_administration
     description: Explicit platform tenant lifecycle operations are governed administration.
     classification: global_admin

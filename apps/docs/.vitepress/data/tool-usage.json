@@ -1052,8 +1052,8 @@
       ],
       "tables": [],
       "lists": ["view:activity", "projection:exceptions", "projection:timeline"],
-      "actions": [],
-      "reads": [],
+      "actions": ["command:business_journey_proposal_create", "command:business_journey_vote_set"],
+      "reads": ["command:business_journey_guide"],
       "exceptions": [],
       "tools": [
         "tool:capability_catalog",
@@ -1540,6 +1540,61 @@
     }
   ],
   "entries": [
+    {
+      "id": "tool:business_journey_guide",
+      "kind": "tool",
+      "key": "business_journey_guide",
+      "label": "Ask about Reality capabilities",
+      "area": "cross_functional",
+      "summary": "Answer whether Reality supports a business situation using cited, release-reviewed Business Journey Guide entries.",
+      "access": "read",
+      "group": "Discovery",
+      "synopsis": "business_journey_guide question [locale]",
+      "parameters": [
+        {
+          "name": "question",
+          "type": "string",
+          "required": true,
+          "description": "Business situation to check against the published Business Journey Guide.",
+          "depth": 0
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "Language for the deterministic capability conclusion.",
+          "depth": 0,
+          "default": "en",
+          "enum": ["en", "de"]
+        }
+      ],
+      "guidance": {
+        "purpose": "Answer whether Reality supports a business situation using release-reviewed journey evidence and explicit limitations.",
+        "use_when": [
+          "A person asks whether Reality can handle a business situation or what happens in a named scenario."
+        ],
+        "do_not_use_when": [
+          "The question asks for current company records or requests an operational change."
+        ],
+        "limitations": [
+          "The guide describes product capability and never proves that a specific company has matching records."
+        ],
+        "empty_result": "A not-established result means the published catalog does not prove the requested capability.",
+        "freshness": "Reads the immutable journey catalog shipped with the running release and writes no business or question data."
+      },
+      "read_modes": [
+        {
+          "query": "MCP business_journey_guide",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "business_journey_guide",
+      "projections": [],
+      "links": ["command:business_journey_guide"],
+      "label_de": "Ask about Reality capabilities",
+      "resources": ["governance"]
+    },
     {
       "id": "tool:capability_catalog",
       "kind": "tool",
@@ -9008,6 +9063,117 @@
       "resources": ["source"]
     },
     {
+      "id": "tool:business_journey_suggest_propose",
+      "kind": "tool",
+      "key": "business_journey_suggest_propose",
+      "label": "Suggest a Business Journey",
+      "area": "cross_functional",
+      "summary": "Prepare this business mutation without changing state. Suggest a Business Journey. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "business_journey_suggest_propose title business_question expected_outcome process_area [business_context]",
+      "parameters": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "business_question",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "expected_outcome",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "process_area",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0,
+          "enum": [
+            "availability",
+            "b2b",
+            "combined",
+            "commerce",
+            "finance",
+            "invoicing",
+            "master_data",
+            "orders",
+            "payables",
+            "payments",
+            "products",
+            "purchasing",
+            "receiving",
+            "returns",
+            "shipping",
+            "sources",
+            "time",
+            "warehouse"
+          ]
+        },
+        {
+          "name": "business_context",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": ""
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "business_journey_proposal_create",
+      "projections": [],
+      "links": ["command:business_journey_proposal_create"],
+      "label_de": "Suggest a Business Journey",
+      "resources": ["governance"]
+    },
+    {
+      "id": "tool:business_journey_vote_propose",
+      "kind": "tool",
+      "key": "business_journey_vote_propose",
+      "label": "Vote for a Business Journey suggestion",
+      "area": "cross_functional",
+      "summary": "Prepare this business mutation without changing state. Vote for a Business Journey suggestion. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "business_journey_vote_propose proposal_id active",
+      "parameters": [
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": true,
+          "description": "True votes; false withdraws the account's vote.",
+          "depth": 0,
+          "default": true
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "business_journey_vote_set",
+      "projections": [],
+      "links": ["command:business_journey_vote_set"],
+      "label_de": "Vote for a Business Journey suggestion",
+      "resources": ["governance"]
+    },
+    {
       "id": "tool:supply_coverage",
       "kind": "tool",
       "key": "supply_coverage",
@@ -16396,6 +16562,87 @@
       "links": ["command:execute_cost_change"],
       "label_de": "Review cost and contribution decision",
       "resources": ["accounting", "contribution"]
+    },
+    {
+      "id": "command:business_journey_guide",
+      "kind": "command",
+      "key": "business_journey_guide",
+      "label": "Ask the Business Journey Guide",
+      "area": "cross_functional",
+      "summary": "Match one bounded capability question against the release-reviewed static journey catalog and return cited status and limitations without reading company data.",
+      "mode": "read",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "reads": [],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["business_journey_guide"],
+      "synopses": ["business_journey_guide question [locale]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Answer whether Reality supports a business situation using release-reviewed journey evidence and explicit limitations.",
+        "use_when": [
+          "A person asks whether Reality can handle a business situation or what happens in a named scenario."
+        ],
+        "do_not_use_when": [
+          "The question asks for current company records or requests an operational change."
+        ],
+        "limitations": [
+          "The guide describes product capability and never proves that a specific company has matching records."
+        ],
+        "empty_result": "A not-established result means the published catalog does not prove the requested capability.",
+        "freshness": "Reads the immutable journey catalog shipped with the running release and writes no business or question data."
+      },
+      "links": ["tool:business_journey_guide"],
+      "label_de": "Reality-Fähigkeit im Business Journey Guide prüfen",
+      "resources": ["governance"]
+    },
+    {
+      "id": "command:business_journey_proposal_create",
+      "kind": "command",
+      "key": "business_journey_proposal_create",
+      "label": "Suggest a Business Journey",
+      "area": "agent_governance",
+      "summary": "Creates one account-authored product suggestion after showing matching published journeys and open suggestions.",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "reads": ["journey_proposal"],
+      "writes": ["journey_proposal"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["business_journey_suggest_propose"],
+      "synopses": [
+        "business_journey_suggest_propose title business_question expected_outcome process_area [business_context]"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:business_journey_suggest_propose"],
+      "label_de": "Business Journey vorschlagen",
+      "resources": ["governance"]
+    },
+    {
+      "id": "command:business_journey_vote_set",
+      "kind": "command",
+      "key": "business_journey_vote_set",
+      "label": "Set a Business Journey suggestion vote",
+      "area": "cross_functional",
+      "summary": "Sets or withdraws the confirming account's single reversible vote and derives the public count from active votes.",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "reads": ["journey_proposal", "journey_proposal_vote"],
+      "writes": ["journey_proposal_vote"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["business_journey_vote_propose"],
+      "synopses": ["business_journey_vote_propose proposal_id active"],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:business_journey_vote_propose"],
+      "label_de": "Stimme für Business-Journey-Vorschlag setzen",
+      "resources": ["governance"]
     },
     {
       "id": "command:commercial_match",
