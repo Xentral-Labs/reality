@@ -112,7 +112,12 @@ export function CostExplanationResult({
           className="rounded-xl border border-border-default bg-surface p-3"
           aria-label={t("Cost readiness")}
         >
-          <ResolutionGuidance guidance={guidance} scopeLabel={scopeLabel} refresh={refresh} />
+          <ResolutionGuidance
+            guidance={guidance}
+            scopeLabel={scopeLabel}
+            scope={{ kind: envelope.requested.kind, id: envelope.requested.scope_id }}
+            refresh={refresh}
+          />
         </section>
       )}
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

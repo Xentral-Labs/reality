@@ -278,7 +278,7 @@ resources:
     synonyms: [contribution margin, gross margin, DB1, DB2, Deckungsbeitrag, Rohertrag, Marge]
     tables:
       [cost_commercial_match_revision, cost_commercial_inventory_part, cost_commercial_direct_part, cost_revenue_match_basis, cost_contribution_review, cost_selling_attribution_part, cost_selling_review_category, cost_selling_review_member]
-    match: "^(cost_evidence|inventory_cost|contribution_preview|commercial_match|cost_query|cost_record|reviewed_contribution|receipt_cost|execute_cost_change|graph_contribution_reviews_list)$"
+    match: "^(cost_evidence|inventory_cost|contribution_preview|commercial_match|cost_query|cost_review_draft|propose_cost_review|cost_record|reviewed_contribution|receipt_cost|execute_cost_change|graph_contribution_reviews_list)$"
     views: []
     projections: []
     exceptions: [missing_acquisition_cost, unassigned_cost_component, stale_cost_review, negative_actual_db1]
@@ -578,6 +578,8 @@ labels:
       contribution_preview: Deckungsbeitragsvorschau prüfen
       commercial_match: Geprüfte Teilzuordnung anzeigen
       cost_query: Kosten mit Bewertungsbasis abfragen
+      cost_review_draft: Kostenprüfung entwerfen
+      propose_cost_review: Entworfene Kostenprüfung vorschlagen
       cost_record: Kostennachweis prüfen
       reviewed_contribution: Geprüfte Deckungsbeiträge anzeigen
       receipt_cost: Anschaffungskosten des Wareneingangs anzeigen

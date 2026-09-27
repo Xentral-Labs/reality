@@ -150,6 +150,10 @@ function OpenExceptions({
                           <ResolutionGuidance
                             guidance={selected.resolution}
                             scopeLabel={selected.context || selected.resolution.scope_id}
+                            scope={{
+                              kind: selected.resolution.kind,
+                              id: selected.resolution.scope_id,
+                            }}
                             refresh={detail.refresh}
                           />
                         </div>

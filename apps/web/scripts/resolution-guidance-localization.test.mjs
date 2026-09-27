@@ -17,7 +17,9 @@ const texts = [
   ...new Set([
     ...Object.values(guidance.reasons).flatMap((reason) => [reason.label, reason.explanation]),
     ...Object.values(guidance.steps).flatMap((step) =>
-      [step.label, step.chat_prompt, step.alternative?.label].filter(Boolean),
+      [step.label, step.chat_prompt, step.alternative?.label, step.alternative?.chat_prompt].filter(
+        Boolean,
+      ),
     ),
   ]),
 ];
@@ -34,6 +36,8 @@ for (const language of ["de", "nl", "es"])
   });
 test("translated chat prompts keep their scope placeholder", () => {
   for (const language of ["de", "nl", "es"])
-    for (const step of Object.values(guidance.steps).filter((entry) => entry.chat_prompt))
-      assert.match(catalogs[language].get(step.chat_prompt) || "{scope}", /\{scope\}/u);
+    for (const prompt of Object.values(guidance.steps).flatMap((entry) =>
+      [entry.chat_prompt, entry.alternative?.chat_prompt].filter(Boolean),
+    ))
+      assert.match(catalogs[language].get(prompt) || "{scope}", /\{scope\}/u);
 });

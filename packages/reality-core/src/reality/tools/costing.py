@@ -98,6 +98,24 @@ def record(session, tenant_id, arguments):
     return costing.cost_record(session, tenant_id, **request.model_dump())
 
 
+def review_draft(session, tenant_id, arguments):
+    from reality.domain.cost_review_draft import CostReviewDraftRequest
+
+    try:
+        request = CostReviewDraftRequest.model_validate(arguments)
+    except ValidationError as error:
+        raise InvalidOperation(str(error)) from error
+    return costing.cost_review_draft(
+        session,
+        tenant_id,
+        kind=request.kind,
+        scope_id=request.scope_id,
+        answers=request.answers.model_dump(exclude_none=True)
+        if request.answers
+        else None,
+    )
+
+
 def query(session, tenant_id, arguments):
     from reality.domain.cost_query import CostQueryRequest
 

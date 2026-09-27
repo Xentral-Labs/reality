@@ -73,6 +73,8 @@
     "commercial_match": "contribution",
     "contribution_preview": "contribution",
     "cost_query": "contribution",
+    "cost_review_draft": "contribution",
+    "propose_cost_review": "contribution",
     "cost_record": "contribution",
     "reviewed_contribution": "contribution",
     "execute_cost_change": "contribution",

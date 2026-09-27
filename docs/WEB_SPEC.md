@@ -178,6 +178,21 @@ cost findings and all exception titles and resolution texts, stored-calculation 
 delivery blockers, the company valuation selector, Storyline step checks and Price
 determination, which asks for a business partner and an item.
 
+### Drafted cost reviews — Spec 282
+
+The guidance steps "Prepare the item's cost review" and "Prepare the contribution review"
+open a review dialog instead of chat; chat remains the alternative.
+
+- **What the dialog shows:** the draft the shared service built from held records (item,
+  owner, currency, unit, movements covered, stated opening values; or revenue, goods cost and
+  the resulting DB1).
+- **What it asks:** only the open inputs, with the valuation method preselected as FIFO.
+- **Identifiers:** they stay inside a collapsed System details section.
+- **Submitting:** it proposes through the server endpoint, which re-drafts; a changed draft
+  is re-drafted and explained, never proposed.
+- **Opening stock form:** it takes an optional total value as the evidence states it, plus
+  the evidence reference.
+
 Sales and Purchasing distinguish Delivery Commitments from physical Shipments. Commitments are
 promises; Shipments are real consignments with Package tracking observations and linked Movement
 contents. Sales defaults to outbound customer shipments and Purchasing to inbound supplier ones.
