@@ -7,30 +7,7 @@ import { WorkFooter, WorkHeader, WorkRow, WorkSearch, useWorkList } from "./Work
 import { WorkPreview } from "./InlinePreview";
 import { DecisionLine } from "./DecisionLine";
 import { RegisterHeader } from "./RegisterWorkbench";
-const actionLabels: Record<string, string> = {
-  reserve: "Reserve stock",
-  reservation_release: "Release reservation",
-  commitment_hold: "Hold commitment",
-  commitment_hold_release: "Release commitment hold",
-  party_delivery_hold: "Place customer delivery hold",
-  party_delivery_hold_release: "Release customer delivery hold",
-  movement_create: "Record movement",
-  movement_correct: "Correct movement",
-  ledger_reverse: "Reverse posting",
-  order_create: "Create order",
-  sales_invoice_record: "Record sales invoice",
-  supplier_invoice_record: "Record supplier invoice",
-  sales_credit_record: "Record sales credit",
-  customer_refund_post: "Record refund",
-  customer_payment_post: "Record customer payment",
-  supplier_payment_post: "Record supplier payment",
-  party_create: "Create party",
-  party_update: "Update party",
-  item_create: "Create item",
-  item_update: "Update item",
-  location_create: "Create location",
-  location_update: "Update location",
-};
+import { proposalBusinessLabel, proposalBusinessLabelEntries } from "./proposalPresentation";
 const proposalFields: Record<string, string> = {
   name: "Name",
   sku: "SKU",
@@ -174,7 +151,7 @@ export function DecisionsPage({
   const title = (proposal: CopilotProposal) =>
     proposal.input.import_file
       ? t("Import items")
-      : t(actionLabels[proposal.tool] || proposal.review_label);
+      : t(proposalBusinessLabel(proposal.tool, proposal.review_label));
   const origin = (proposal: CopilotProposal) =>
     t(
       proposal.actor_type === "agent"
@@ -238,7 +215,7 @@ export function DecisionsPage({
             }}
           >
             <option value="">{t("All actions")}</option>
-            {Object.entries(actionLabels).map(([key, label]) => (
+            {proposalBusinessLabelEntries.map(([key, label]) => (
               <option key={key} value={key}>
                 {t(label)}
               </option>
