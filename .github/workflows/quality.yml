@@ -185,6 +185,18 @@ jobs:
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
+      - uses: actions/setup-python@v5
+        if: steps.diff.outputs.changed == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: packages/reality-core/pyproject.toml
+      - name: Install catalog fixture dependencies
+        if: steps.diff.outputs.changed == 'true'
+        # Several scripts derive their fixtures from the runtime catalogs through .venv.
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install ./packages/reality-core
       - uses: actions/setup-node@v4
         if: steps.diff.outputs.changed == 'true'
         with:
