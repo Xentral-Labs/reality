@@ -62,8 +62,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Temporary CI timing experiment: preserve two workers per runner while
-        # distributing the same test files across four isolated PostgreSQL jobs.
+        # Keep two workers per runner while distributing the suite across
+        # isolated PostgreSQL jobs to reduce the backend gate's critical path.
         shard: [0, 1, 2, 3]
     runs-on: ubuntu-latest
     services:
