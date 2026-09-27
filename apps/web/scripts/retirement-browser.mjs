@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
+import { openPageActions } from "./page-actions.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -104,26 +105,37 @@ await page.route("**/api/**", (route) => {
     path.endsWith("/change-proposals")
   )
     return json({ items: [], page: pager, scope: { view: "movements" } });
+  // Spec 198: the app asks on entry whether a first company is still to be prepared.
+  if (path === "/api/company-setup/playground")
+    return json({
+      requested: false,
+      enabled: true,
+      eligible: true,
+      archived: false,
+      receipt: null,
+    });
   return json({ detail: `Unhandled fixture ${path}` }, 404);
 });
 const base = process.env.UNIFIED_APP_URL || "http://127.0.0.1:5188";
 try {
   await page.goto(`${base}/app`);
-  await page.getByRole("link", { name: "Orders & deliveries", exact: true }).waitFor();
+  await page.getByRole("link", { name: "Sales", exact: true }).waitFor();
   assert.equal(await page.locator('a[href^="/playground"]').count(), 0);
   assert.equal(await page.getByRole("link", { name: "Your work", exact: true }).count(), 0);
-  await page.getByRole("button", { name: "Review commitments", exact: true }).click();
+  // The Welcome tile opens the Commitments queue, without focusing one commitment.
+  await page.locator("main button").filter({ hasText: "Commitments" }).first().click();
   await page.waitForURL("**/app/orders-deliveries?**");
-  assert.equal(new URL(page.url()).searchParams.get("orders_view"), "deliveries");
+  assert.equal(new URL(page.url()).searchParams.get("orders_view"), "commitments");
   assert.equal(new URL(page.url()).searchParams.has("commitment"), false);
-  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page.getByRole("link", { name: "Inbox", exact: true }).click();
   await page.getByRole("button", { name: "My account", exact: true }).click();
   const profile = page.getByRole("dialog", { name: "My account", exact: true });
   await profile.getByText(user.email, { exact: true }).waitFor();
   for (const name of ["Documentation", "Reality website"]) {
     const link = profile.getByRole("link", { name, exact: true });
     assert.equal(await link.getAttribute("target"), "_blank");
-    assert.match(await link.getAttribute("href"), /^http:\/\/localhost:808[23]\/$/);
+    // The external links carry the account language.
+    assert.match(await link.getAttribute("href"), /^http:\/\/localhost:808[23]\/(\?lang=en)?$/);
   }
   await page.screenshot({ path: "/private/tmp/profile-menu-desktop.png" });
   await page.keyboard.press("Escape");
@@ -205,10 +217,14 @@ try {
     false,
   );
   await agentsDialog.getByRole("button", { name: "Close", exact: true }).click();
-  const newCompany = companies.getByRole("button", { name: "New company", exact: true });
+  // "New company" is a page action behind More actions.
+  await openPageActions(page);
+  const newCompany = page
+    .locator(".register-actions")
+    .getByRole("button", { name: "New company", exact: true });
   await newCompany.click();
-  const creation = page.getByRole("dialog", { name: "New company", exact: true });
-  await creation.getByRole("textbox", { name: "Company name", exact: true }).waitFor();
+  const creation = page.getByRole("dialog", { name: "Create company", exact: true });
+  await creation.getByText("Choose how this company should start.", { exact: true }).waitFor();
   await page.screenshot({ path: "/private/tmp/company-create-dialog.png" });
   await page.keyboard.press("Escape");
   await creation.waitFor({ state: "hidden" });
@@ -252,7 +268,11 @@ try {
   assert.equal(new URL(page.url()).searchParams.get("warehouse_view"), "movements");
   await page.goto(`${base}/app/inspector?tenant=t1&inspector_view=exceptions`);
   await page.getByText("Late delivery", { exact: true }).click();
-  await page.getByText("A promised delivery is overdue.").waitFor();
+  // The row already shows the description; the opened preview repeats it in full.
+  await page
+    .locator("#exception-preview-late")
+    .getByText("A promised delivery is overdue.")
+    .waitFor();
   for (const path of ["/playground", "/playground/runs/pgr_saved"]) {
     await page.goto(base + path);
     await page.getByRole("heading", { name: "Playground has been retired" }).waitFor();
