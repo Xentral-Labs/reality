@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { isSearchRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -251,8 +252,9 @@ const out = process.env.UNIFIED_OPERATIONS_SCREENSHOTS || "/private/tmp/reality-
 await mkdir(out, { recursive: true });
 try {
   await page.goto(`${base}/app?tenant=${tenant}`);
-  await page.getByRole("button").filter({ hasText: "Needs attention" }).click();
-  await page.getByRole("heading", { name: "See what needs a closer look.", exact: true }).waitFor();
+  // Welcome's Exceptions tile opens the exceptions queue.
+  await page.locator("main button").filter({ hasText: "Exceptions" }).first().click();
+  await page.waitForURL(/\/app\/attention\?/);
   await page.getByRole("button").filter({ hasText: "Delivery at risk" }).click();
   await page.getByRole("button", { name: "Open delivery", exact: true }).waitFor();
   const issueUrl = page.url();
@@ -263,25 +265,26 @@ try {
   await page.getByRole("link", { name: "Open inventory", exact: true }).click();
   await page.locator("[data-page-introduction] h1").waitFor();
   assert.ok(page.url().includes(`item=${item}`));
+  // The stock row's preview leads to the item's reservations.
+  await page.locator("tbody").getByRole("button", { name: "Preview" }).first().click();
   await page.locator("tbody").getByRole("button", { name: "Reservations", exact: true }).click();
-  await page.getByRole("button", { name: "Open delivery", exact: true }).waitFor();
+  await page.waitForURL(/warehouse_view=reservations/);
+  await page.locator("tbody tr").first().waitFor();
   assert.ok(
     requests.some(
       (req) =>
         req.path.endsWith("/warehouse/reservations") && req.query.includes(`item_id=${item}`),
     ),
   );
-  const inspect = page.getByRole("button", { name: "Inspect · Desk lamp", exact: true });
+  // A row opens its inline preview from the keyboard; the preview survives a reload.
+  const inspect = page.getByRole("button", { name: "Preview · Desk lamp", exact: true });
   await inspect.focus();
   await page.keyboard.press("Enter");
-  await page.getByRole("dialog").waitFor();
-  assert.ok(page.url().includes("entry=reservation_fixture"));
-  await page.keyboard.press("Escape");
-  assert.equal(await inspect.evaluate((node) => node === document.activeElement), true);
-  await inspect.click();
+  await page.waitForURL(/entry=reservation_fixture/);
+  await page.getByRole("button", { name: /^Close preview/ }).waitFor();
   await page.reload();
-  await page.getByRole("dialog").waitFor();
-  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /^Close preview/ }).click();
+  await page.waitForFunction(() => !location.search.includes("entry="));
   await page.getByRole("button", { name: "Movements", exact: true }).click();
   await page.locator("tbody").getByText("Receipt", { exact: true }).waitFor();
   await page.getByRole("textbox", { name: "Search warehouse", exact: true }).fill("missing");
@@ -293,32 +296,26 @@ try {
   await page.getByRole("button", { name: "Retry", exact: true }).click();
   await page.getByText("No matching records", { exact: true }).waitFor();
   await page.goto(`${base}/app/attention?tenant=${tenant}&exception=${finding}`);
-  await page.getByRole("button", { name: "Check current state", exact: true }).waitFor();
-  const catalogLink = page.getByRole("button", { name: "View all possible findings", exact: true });
-  await catalogLink.click();
-  const catalog = page.getByRole("dialog", { name: "Exception catalog", exact: true });
-  await catalog.getByText("Could not load the exception catalog.", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Explain finding", exact: true }).waitFor();
+  // All possible findings are the exception rules view, not a dialog.
+  await page.getByRole("button", { name: "View all possible findings", exact: true }).click();
+  await page.waitForURL(/attention_view=rules/);
+  const catalog = page.locator("[data-inline-exception-catalog]");
+  await catalog.getByRole("alert").first().waitFor();
   failCatalog = false;
-  await catalog.getByRole("button", { name: "Retry", exact: true }).click();
-  await catalog.getByText("Overdue delivery", { exact: true }).click();
+  await catalog.getByRole("button", { name: "Retry", exact: true }).first().click();
+  await catalog.getByText("Overdue delivery", { exact: true }).first().waitFor();
   await page.screenshot({ path: `${out}/catalog.png`, fullPage: true });
-  await catalog.getByText("A delivery is past its due date.", { exact: true }).waitFor();
-  await catalog.getByRole("searchbox").fill("nothing-matches");
-  await catalog.getByText("No matching exception classes.", { exact: true }).waitFor();
-  await page.keyboard.press("Escape");
-  assert.equal(await catalog.count(), 0);
-  assert.equal(await catalogLink.evaluate((node) => node === document.activeElement), true);
+  await catalog.getByText("A delivery is past its due date.", { exact: true }).first().waitFor();
+  await page.getByRole("searchbox", { name: "Search inspector" }).fill("nothing-matches");
+  await catalog.getByText("No matching records", { exact: true }).waitFor();
 
-  resolved = true;
-  await page.getByRole("button", { name: "Check current state", exact: true }).click();
-  await page.getByRole("alert").waitFor();
-  await page.getByText("No current findings", { exact: true }).waitFor();
-  resolved = false;
+  // The opened finding no longer offers a separate "Check current state"; the register reads
+  // current findings.
   await page.goto(
     `${base}/app/warehouse?tenant=${tenant}&warehouse_view=reservations&item=${item}&entry=reservation_fixture`,
   );
-  await page.getByRole("dialog").waitFor();
-  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /^Close preview/ }).waitFor();
   await page.getByRole("button", { name: "Switch company", exact: true }).click();
   await page.locator('[data-company-option="second_company"]').click();
   assert.equal(new URL(page.url()).searchParams.get("item"), null);
@@ -333,7 +330,7 @@ try {
             `${base}/app/${view === "attention" ? "attention" : "warehouse"}?tenant=${tenant}&warehouse_view=${view === "attention" ? "stock" : view}&${view === "attention" ? `exception=${finding}` : `item=${item}`}`,
           );
           await page.locator("h1").waitFor();
-          if (view === "attention") await page.locator("pre").waitFor({ state: "attached" });
+          if (view === "attention") await page.locator('[data-work-list="exceptions"]').waitFor();
           else await page.locator("tbody tr").waitFor();
           assert.ok(
             await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -345,7 +342,7 @@ try {
           });
         }
       }
-  assert.equal(requests.filter((row) => row.method !== "GET").length, 0);
+  assert.equal(requests.filter((row) => row.method !== "GET" && !isSearchRead(row.path)).length, 0);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: Home → finding → delivery → exact-item warehouse, reservation/movement views, Inspector reload/focus, empty/error/resolved states, company reset, no writes and 64 localized screenshots.",

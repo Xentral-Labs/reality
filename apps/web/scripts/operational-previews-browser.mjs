@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { isSearchRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -355,7 +356,11 @@ try {
       assert.equal(await preview.getByText("Correction", { exact: true }).count(), 0);
       assert.equal(await preview.locator("section").count(), 4);
       assert.ok(
-        requests.some((r) => r.path.includes("/inspector/") && r.query === "?preview=true"),
+        requests.some(
+          (r) =>
+            r.path.includes("/inspector/") &&
+            new URLSearchParams(r.query).get("preview") === "true",
+        ),
       );
       const box = await preview.boundingBox();
       assert.ok(box.width <= width, `preview overflow at ${width}`);
@@ -363,12 +368,20 @@ try {
         box.x >= 0 && box.x + box.width <= width,
         `preview outside viewport: ${JSON.stringify(box)}`,
       );
-      const overflow = await preview.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+      // Linked rows let their hover background bleed into the card's padding; nothing may
+      // leave the card itself.
+      const overflow = await preview.evaluate(
+        (el) => el.parentElement.scrollWidth > el.parentElement.clientWidth + 1,
+      );
       assert.equal(overflow, false);
       await page.screenshot({ path: `${out}/preview-${width}-${lang}.png`, fullPage: true });
       await preview.locator("div.mt-5 > button").first().click();
       await page.getByRole("dialog").waitFor();
-      assert.ok(requests.some((r) => r.path.includes("/inspector/") && r.query === ""));
+      assert.ok(
+        requests.some(
+          (r) => r.path.includes("/inspector/") && !new URLSearchParams(r.query).has("preview"),
+        ),
+      );
       await page.keyboard.press("Escape");
       await trigger.click();
       assert.equal(await preview.count(), 0);
@@ -397,7 +410,11 @@ try {
     assert.ok(
       requests
         .slice(start)
-        .some((r) => r.path.includes(`/inspector/${kind}/`) && r.query === "?preview=true"),
+        .some(
+          (r) =>
+            r.path.includes(`/inspector/${kind}/`) &&
+            new URLSearchParams(r.query).get("preview") === "true",
+        ),
       route,
     );
   }
@@ -440,7 +457,7 @@ try {
     await page.screenshot({ path: `${out}/master-${family}.png`, fullPage: true });
   }
   assert.deepEqual(errors, []);
-  assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
+  assert.equal(requests.filter((r) => r.method !== "GET" && !isSearchRead(r.path)).length, 0);
   console.log(
     "Operational previews: four languages, desktop/mobile, keyboard, full explanation and read-only checks passed.",
   );

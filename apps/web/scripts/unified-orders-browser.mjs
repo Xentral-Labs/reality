@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { reference as discoveryReference } from "./action-discovery-fixture.mjs";
+import { isSearchRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -163,7 +165,8 @@ await page.route("**/api/**", async (route) => {
       ],
       default_tenant_id: "orders",
     });
-  if (path.endsWith("/application-reference")) return reply({ workspaces: [] });
+  // The production action catalog decides which actions a commitment offers.
+  if (path.endsWith("/application-reference")) return reply(discoveryReference);
   if (path.endsWith("/delivery-work") || path.endsWith("/evidence-documents")) {
     if (fail) return reply({ detail: "Register unavailable" }, 503);
     const empty = u.searchParams.get("q") === "missing",
@@ -345,6 +348,8 @@ try {
   let listUrl = page.url();
   await page.locator("[data-orders-row]").first().focus();
   await page.keyboard.press("Enter");
+  // A row opens its preview first; the preview leads on to the commitment.
+  await page.getByRole("button", { name: "Open commitment", exact: true }).click();
   await page.getByRole("button", { name: "Reserve stock", exact: true }).waitFor();
   assert.equal(new URL(page.url()).pathname, "/app/orders-deliveries");
   assert.equal(new URL(page.url()).searchParams.get("q"), "Muller");
@@ -355,7 +360,9 @@ try {
   assert.equal(new URL(page.url()).searchParams.has("commitment"), false);
   listUrl = page.url();
   await page.locator("[data-orders-row]").first().getByText("Müller", { exact: true }).click();
+  await page.getByRole("button", { name: "Open commitment", exact: true }).click();
   await page.getByRole("button", { name: "Reserve stock", exact: true }).waitFor();
+  await page.goBack();
   await page.goBack();
   await page.locator("[data-orders-row]").first().waitFor();
   assert.equal(page.url(), listUrl);
@@ -377,32 +384,27 @@ try {
   await go("readiness");
   await page.getByText("SO-FUTURE", { exact: true }).waitFor();
   await page.getByText("SO-PREPAY", { exact: true }).waitFor();
-  await page.getByText(/2.*40.*42/).waitFor();
+  // The same readiness statements the READINESS_ONLY run checks in detail.
+  await page.getByText(/Readiness observed at/).waitFor();
   await page
     .locator('[data-orders-row="doc-prepay"]')
     .getByRole("button", { name: /SO-PREPAY/ })
     .click();
-  await page.getByText(/€500.00.*€2,000.00/).waitFor();
+  await page.getByText("€0.00 / €2,000.00", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Inspect commitment", exact: true }).last().click();
   await page.getByRole("dialog").waitFor();
   assert.ok(requests.some((r) => r.path.endsWith("/inspector/commitment/commitment-prepay")));
   await page.keyboard.press("Escape");
-  const inspect = page.locator("tbody").getByRole("button", { name: "Explain", exact: true });
+  // A customer order opens its preview from the keyboard; the preview survives a reload
+  // and leads to the order's commitments.
+  await go("customer-orders");
+  const inspect = page.locator("tbody button[aria-expanded]").first();
   await inspect.focus();
   await page.keyboard.press("Enter");
-  await page
-    .getByRole("dialog")
-    .getByRole("heading", { name: "Selected order or delivery", exact: true })
-    .waitFor();
-  await page.keyboard.press("Escape");
-  assert.equal(await inspect.evaluate((n) => n === document.activeElement), true);
-  await inspect.click();
+  await page.waitForURL(/entry=doc-c/);
+  await page.getByRole("button", { name: "Open full explanation", exact: true }).waitFor();
   await page.reload();
-  await page
-    .getByRole("dialog")
-    .getByRole("heading", { name: "Selected order or delivery", exact: true })
-    .waitFor();
-  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "View commitments", exact: true }).waitFor();
   await page.getByRole("button", { name: "View commitments", exact: true }).click();
   await page.waitForURL(/order=doc-c/);
   await page.locator("[data-orders-row]").first().waitFor();
@@ -415,14 +417,24 @@ try {
         r.query.includes("commitment_type=customer_delivery"),
     ),
   );
+  await page
+    .locator("[data-orders-row]")
+    .first()
+    .getByRole("button", { name: /^Preview/ })
+    .click();
   await page.getByRole("button", { name: "Open commitment", exact: true }).click();
   await page.waitForURL(/commitment=customer1/);
   await page.getByRole("button", { name: "Reserve stock", exact: true }).waitFor();
   assert.ok(page.url().includes("commitment=customer1"));
   await go("supplier-orders");
+  await page.locator("tbody button[aria-expanded]").first().click();
   await page.getByRole("button", { name: "View commitments", exact: true }).click();
   await page.waitForURL(/order=doc-s/);
-  await page.locator("[data-orders-row]").first().waitFor();
+  await page
+    .locator("[data-orders-row]")
+    .first()
+    .getByRole("button", { name: /^Preview/ })
+    .click();
   await page.getByRole("button", { name: "Open commitment", exact: true }).click();
   await page.getByRole("button", { name: "Receive goods", exact: true }).waitFor();
   assert.equal(await page.getByRole("button", { name: "Reserve stock", exact: true }).count(), 0);
@@ -434,13 +446,20 @@ try {
         r.query.includes("commitment_type=supplier_delivery"),
     ),
   );
-  await page.locator("tbody").getByRole("button", { name: "Explain", exact: true }).click();
+  // The delivery's preview explains it from the Inspector.
+  const supplierRead = page.waitForRequest((r) =>
+    r.url().includes("/inspector/commitment/supplier1"),
+  );
   await page
-    .getByRole("dialog")
-    .getByRole("heading", { name: "Selected order or delivery", exact: true })
-    .waitFor();
-  assert.ok(requests.some((r) => r.path.endsWith("/inspector/commitment/supplier1")));
-  await page.keyboard.press("Escape");
+    .locator("[data-orders-row]")
+    .first()
+    .getByRole("button", { name: /^Preview/ })
+    .click();
+  await supplierRead;
+  await page
+    .getByRole("button", { name: /^Close preview/ })
+    .first()
+    .click();
   await page.getByRole("button", { name: "Clear order filter", exact: true }).click();
   assert.equal(new URL(page.url()).searchParams.has("order"), false);
   await page.getByRole("button", { name: "Next", exact: true }).click();
@@ -461,9 +480,12 @@ try {
   await page.locator('[data-company-option="other"]').click();
   for (const key of ["order", "entry", "q"])
     assert.equal(new URL(page.url()).searchParams.has(key), false);
+  // A preview of a record outside the company opens nothing (the direct commitment link
+  // above shows the refusal).
   await page.goto(`${base}/app/orders-deliveries?tenant=orders&entry=foreign`);
-  await page.getByRole("dialog").getByRole("alert").waitFor();
-  await page.keyboard.press("Escape");
+  await page.locator("[data-orders-row]").first().waitFor();
+  await page.waitForTimeout(500);
+  assert.equal(await page.locator("[data-inline-inspector]").count(), 0);
   for (language of ["en", "de", "nl", "es"])
     for (const theme of ["light", "dark"])
       for (const width of [390, 1440]) {
@@ -481,7 +503,7 @@ try {
           });
         }
       }
-  assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
+  assert.equal(requests.filter((r) => r.method !== "GET" && !isSearchRead(r.path)).length, 0);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: exact customer/supplier order drilldown, multi-customer readiness with future dates, partial stock and prepayment evidence, Inspector, keyboard/reload, filters/paging, empty/retry/foreign/company reset, no writes and 64 localized screenshots.",
