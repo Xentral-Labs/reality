@@ -92,10 +92,13 @@ try {
   for (const proposal of proposals.values()) {
     await page.goto(`${base}/app/decisions?tenant=company&proposal=${proposal.id}`);
     const dialog = page.getByRole("dialog");
-    await dialog.getByRole("heading", { name: proposal.label, exact: false }).waitFor();
+    // A tool with a business name in the catalog is titled by it, others by their label.
+    const heading =
+      proposal.tool === "payment_term_create" ? "Create payment term" : proposal.label;
+    await dialog.getByRole("heading", { name: heading, exact: false }).waitFor();
     await dialog.getByText("Stated input", { exact: true }).waitFor();
     await dialog.getByText("Prepared preview", { exact: true }).waitFor();
-    await dialog.getByRole("button", { name: "Confirm", exact: true }).click();
+    await dialog.getByRole("button", { name: "Confirm change", exact: true }).click();
     await dialog.getByText("Stored receipt", { exact: true }).waitFor();
     await page.reload();
     await page.getByRole("dialog").getByText("Stored receipt", { exact: true }).waitFor();

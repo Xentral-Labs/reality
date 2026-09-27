@@ -3,6 +3,9 @@ import { reference as discoveryReference } from "./action-discovery-fixture.mjs"
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { startAction } from "./command-palette.mjs";
+import { inspectorRecord, isInspectorRead } from "./inspector-fixture.mjs";
+import { deliveryReview, isDecisionReview } from "./decision-review-fixture.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -76,6 +79,7 @@ await page.route("**/api/**", async (route) => {
   if (p === "/api/v1/bootstrap")
     return reply({ tenants: [{ id: "ops", name: "Northstar" }], default_tenant_id: "ops" });
   if (p.endsWith("/application-reference")) return reply(discoveryReference);
+  if (isInspectorRead(p)) return reply(inspectorRecord(p, "Incoming delivery"));
   if (p.endsWith("/delivery-work"))
     return reply({ items: u.searchParams.get("q") === "missing" ? [] : [row], page: pager });
   if (p.includes("/delivery-work/"))
@@ -135,6 +139,7 @@ await page.route("**/api/**", async (route) => {
     return reply({ id: proposal.id, status: "executed", output: proposal.receipt });
   }
   if (p.includes("/delivery-actions/")) return reply(proposal);
+  if (isDecisionReview(p) && proposal) return reply(deliveryReview(proposal));
   if (p.includes("/change-proposals")) return reply({ items: [], page: pager });
   return reply({ detail: "Fixture unavailable" }, 404);
 });
@@ -144,11 +149,7 @@ try {
   for (const multiple of [false, true]) {
     multiplePages = multiple;
     await page.goto(`${base}/app/warehouse?tenant=ops&warehouse_view=reservations`);
-    await page.locator("[data-action-launcher] > button").click();
-    await page
-      .locator("details[open]")
-      .getByRole("button", { name: "Release reservation", exact: true })
-      .click();
+    await startAction(page, "Release reservation");
     const dialog = page.getByRole("dialog");
     await dialog.locator("select option").nth(1).waitFor({ state: "attached" });
     assert.equal(
@@ -197,6 +198,8 @@ try {
     process.exit(0);
   }
   await page.goto(`${base}/app/orders-deliveries?tenant=ops&delivery_type=supplier_delivery`);
+  // An open supplier delivery offers "Receive goods" in its row preview.
+  await page.locator("[data-orders-row]").first().getByRole("button", { name: "Preview" }).click();
   await page.getByRole("button", { name: "Receive goods", exact: true }).click();
   await page.getByRole("textbox", { name: "Quantity", exact: true }).fill("3");
   await page.getByRole("button", { name: "Review change", exact: true }).click();
@@ -210,7 +213,7 @@ try {
   assert.equal(confirmations, 0);
   await page.waitForURL(/proposal=receipt-proposal/);
   await page.reload();
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByRole("button", { name: "Request changes", exact: true }).click();
   await page.getByRole("textbox", { name: "Quantity", exact: true }).fill("2");
   await page.getByRole("button", { name: "Review change", exact: true }).click();
   await page.waitForURL(/proposal=receipt-proposal-2/);
@@ -223,9 +226,11 @@ try {
     fullPage: true,
   });
   await page.getByRole("button", { name: "Confirm change", exact: true }).click();
-  await page.getByRole("button", { name: "Close", exact: true }).click();
+  // A decision opened from its review closes once it is recorded (spec 276).
+  await page.getByRole("dialog").waitFor({ state: "detached" });
   await page.goto(`${base}/app/warehouse?tenant=ops&warehouse_view=reservations`);
-  // The header bar offers the same action; this step starts it from the register row.
+  // The header bar offers the same action; this step starts it from the row preview.
+  await page.locator("tbody").getByRole("button", { name: "Preview" }).first().click();
   await page.getByRole("button", { name: "Release reservation", exact: true }).last().click();
   assert.equal(await page.getByRole("textbox", { name: "Quantity", exact: true }).count(), 0);
   await page.getByRole("button", { name: "Review change", exact: true }).click();
@@ -253,10 +258,11 @@ try {
   await page.reload();
   await page.getByRole("button", { name: "Confirm change", exact: true }).click();
   assert.equal(confirmations, 2);
-  await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.locator("[data-action-launcher] > button").click();
-  await page.getByRole("button", { name: "Release reservation", exact: true }).last().waitFor();
-  await page.getByRole("button", { name: "Receive goods", exact: true }).click();
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  // The palette lists both delivery actions; Receive goods starts its guided form.
+  await startAction(page, "Release reservation", "reservation");
+  await page.keyboard.press("Escape");
+  await startAction(page, "Receive goods");
   await page.getByRole("textbox", { name: "Search deliveries", exact: true }).fill("missing");
   await page.getByText("No matching records", { exact: true }).waitFor();
   await mkdir("/private/tmp/reality-116-browser", { recursive: true });

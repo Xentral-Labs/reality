@@ -3,6 +3,9 @@ import { reference as discoveryReference } from "./action-discovery-fixture.mjs"
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { deliveryReview, isDecisionReview } from "./decision-review-fixture.mjs";
+import { inspectorRecord, isInspectorRead } from "./inspector-fixture.mjs";
+import { startAction } from "./command-palette.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -158,6 +161,8 @@ await page.route("**/api/**", async (route) => {
     return reply(proposal);
   }
   if (p.includes("/delivery-actions/")) return reply(proposal);
+  if (isDecisionReview(p) && proposal) return reply(deliveryReview(proposal));
+  if (isInspectorRead(p)) return reply(inspectorRecord(p, "Movement"));
   if (p.endsWith("/change-proposals"))
     return reply({
       items: proposal
@@ -179,6 +184,8 @@ await page.route("**/api/**", async (route) => {
 try {
   await mkdir("/private/tmp/reality-118-browser", { recursive: true });
   await page.goto(`${base}/app/warehouse?tenant=company&warehouse_view=movements`);
+  // A correctable movement offers its correction in the row preview.
+  await page.locator("tbody").getByRole("button", { name: "Preview" }).first().click();
   await page.getByRole("button", { name: "Correct movement", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Correction type", { exact: true }).selectOption("replace");
@@ -193,7 +200,7 @@ try {
   await page.waitForURL(/proposal=correction/);
   await page.reload();
   await dialog.getByText("Count <checked> & verified", { exact: true }).waitFor();
-  await dialog.getByRole("button", { name: "Edit", exact: true }).click();
+  await dialog.getByRole("button", { name: "Request changes", exact: true }).click();
   await dialog.getByLabel("Correct quantity", { exact: true }).fill("6");
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
   assert.equal(prepared.arguments.replacement.source_record_id, "source");
@@ -218,17 +225,17 @@ try {
   language = "en";
   await page.reload();
   await dialog.getByRole("button", { name: "Confirm change", exact: true }).click();
-  await dialog.getByText("Recorded", { exact: true }).waitFor();
+  // A decision opened from its review closes once it is recorded (spec 276); opening the
+  // executed proposal again shows its recorded result.
+  await dialog.waitFor({ state: "detached" });
   assert.equal(confirmations, 1);
+  await page.goto(`${base}/app/decisions?tenant=company&proposal=${proposal.id}`);
+  await dialog.getByText("Recorded", { exact: true }).waitFor();
   await dialog.getByText(/Recorded result is separate/).waitFor();
   await dialog.getByRole("button", { name: "Check outcome", exact: true }).click();
   assert.equal(confirmations, 1);
   await page.goto(`${base}/app/warehouse?tenant=company&warehouse_view=movements`);
-  await page.locator("[data-action-launcher] > button").click();
-  await page
-    .locator("details[open]")
-    .getByRole("button", { name: "Correct movement", exact: true })
-    .click();
+  await startAction(page, "Correct movement");
   await dialog.getByLabel("Movement", { exact: true }).selectOption("movement");
   await dialog.getByLabel("Correction reason", { exact: true }).fill("Duplicate");
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
@@ -238,9 +245,13 @@ try {
   await page.getByRole("button", { name: "Review proposed changes", exact: true }).click();
   await dialog.getByRole("heading", { name: "Correct movement", exact: true }).waitFor();
   await page.goto(`${base}/app/copilot?tenant=company`);
-  await page.getByRole("button", { name: /Review proposed changes/ }).click();
+  await page
+    .locator("[data-chat-decision-list]")
+    .getByRole("button", { name: "Review", exact: true })
+    .first()
+    .click();
   await dialog.getByRole("heading", { name: "Correct movement", exact: true }).waitFor();
-  await dialog.getByRole("button", { name: "Reject", exact: true }).click();
+  await dialog.getByRole("button", { name: "Do not approve", exact: true }).click();
   await dialog.getByText("Rejected", { exact: true }).waitFor();
   assert.equal(confirmations, 1);
   assert.deepEqual(errors, []);

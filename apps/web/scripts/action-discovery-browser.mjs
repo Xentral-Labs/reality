@@ -19,7 +19,9 @@ const pager = { number: 1, size: 50, total: 0, pages: 1, has_next: false, has_pr
 await page.route("**/api/**", (route) => {
   const req = route.request(),
     path = new URL(req.url()).pathname;
-  if (!["GET", "HEAD"].includes(req.method())) writes.push(path);
+  // Company search (query and resolve) is a POST read the server admits as one, not a write.
+  const searchRead = /\/search\/(query|resolve)$/.test(path);
+  if (!["GET", "HEAD"].includes(req.method()) && !searchRead) writes.push(path);
   let body = {},
     status = 200;
   if (path === "/api/auth/me")
