@@ -168,6 +168,8 @@ export function CompanySetup({
     if (!result?.destination || !options) return;
     setBusy(true);
     setError("");
+    const key = storageKey(options.actor_id);
+    const saved = sessionStorage.getItem(key);
     try {
       if (apiKey.trim()) {
         await api.saveAISettings(result.tenant_id, {
@@ -178,10 +180,13 @@ export function CompanySetup({
       }
       // Readiness is authoritative at this point. Clear the recovery marker before
       // yielding to a caller that may navigate immediately (for example OAuth consent).
-      sessionStorage.removeItem(storageKey(options.actor_id));
+      sessionStorage.removeItem(key);
       if (created) await created(result);
       else window.location.assign(result.destination);
     } catch {
+      // Opening failed: keep the ready receipt so a reload retries opening, never creation
+      // (spec 146 FR-025).
+      if (saved) sessionStorage.setItem(key, saved);
       setError(t("Company setup could not be loaded. Reload to retry."));
     } finally {
       setBusy(false);

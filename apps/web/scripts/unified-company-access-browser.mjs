@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { homeRead } from "./home-fixture.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -54,6 +55,8 @@ await page.route("**/api/**", async (route) => {
       ? reply({ detail: "Unavailable" }, 503)
       : reply({ tenants: companies, default_tenant_id: companies[0]?.id || null });
   if (path.endsWith("/application-reference")) return reply({ workspaces: [] });
+  const home = homeRead(path);
+  if (home) return reply(home);
   if (path.endsWith("/dashboard"))
     return reply({ totals: { open_deliveries: 0, exceptions: 0, pending_decisions: 0 } });
   if (path.endsWith("/analytics"))
@@ -68,6 +71,21 @@ await page.route("**/api/**", async (route) => {
       },
       series: [],
     });
+  // The company settings list every company with its lifecycle facts (spec 186).
+  if (path === "/api/v1/companies" && req.method() === "GET")
+    return reply(
+      companies.map((company) => ({
+        ...company,
+        created_at: "2026-09-01T00:00:00Z",
+        archived_at: null,
+        state: "in_use",
+        source_count: 0,
+        evidence_count: 0,
+        reality_count: 0,
+        configured_count: 0,
+        last_activity_at: null,
+      })),
+    );
   if (path === "/api/v1/companies" && req.method() === "POST") {
     if (mode === "reject") return reply({ detail: "Rejected name" }, 422);
     const company = {
@@ -114,29 +132,18 @@ const go = (view = "access", tenant = companies[0]?.id || "") =>
 const writes = () => requests.filter((r) => r.method === "POST").length;
 const confirm = () => page.getByRole("button", { name: "Confirm", exact: true }).click();
 try {
-  await go("company");
-  await page.getByLabel("Company name", { exact: true }).fill("Northstar Commerce");
-  await page.getByRole("button", { name: "Review company", exact: true }).click();
-  assert.equal(writes(), 0);
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  assert.equal(writes(), 0);
-  await page.getByRole("button", { name: "Review company", exact: true }).click();
-  await page.getByRole("button", { name: "Confirm", exact: true }).evaluate((button) => {
-    button.click();
-    button.click();
-  });
-  await page.waitForURL(/tenant=c1/);
-  assert.equal(writes(), 1);
-  assert.equal(requests.find((r) => r.path === "/api/v1/companies").body.guided_demo, false);
+  // Company creation runs through company setup requests now (company-setup-* scripts);
+  // this script starts in an existing company and covers access management.
+  companies.push({ id: "c1", name: "Northstar Commerce", role: "owner" });
   await go();
   await page.getByLabel("Work email", { exact: true }).fill("invite@example.test");
   await page.getByRole("button", { name: "Review invitation", exact: true }).click();
-  assert.equal(writes(), 1);
+  assert.equal(writes(), 0);
   await page.screenshot({ path: `${out}/invitation-review.png`, fullPage: true });
   await confirm();
   await page.getByText(/Sending invitation/).waitFor();
   assert.equal(await page.getByText("Invitation delivered", { exact: true }).count(), 0);
-  assert.equal(writes(), 2);
+  assert.equal(writes(), 1);
   mode = "reject";
   await page.getByRole("button", { name: "Resend", exact: true }).click();
   await confirm();
@@ -186,50 +193,16 @@ try {
   await page.getByLabel("Work email", { exact: true }).fill("discard@example.test");
   await page.getByRole("button", { name: "Review invitation", exact: true }).click();
   assert.match(await page.locator('[data-company-option="other"]').innerText(), /other/);
+  // Access management is a task modal (spec 143 FR-011): close it, switch company, and the
+  // unconfirmed invitation is gone; the member company's access stays owner-only.
+  await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
   await page.getByRole("button", { name: "Switch company", exact: true }).click();
   await page.locator('[data-company-option="other"]').click();
+  await page.waitForURL(/tenant=other/);
+  await go("access", "other");
   await page.getByText("Only company owners can view these settings.", { exact: true }).waitFor();
   assert.equal(await page.getByRole("button", { name: "Confirm", exact: true }).count(), 0);
   assert.equal(requests.filter((r) => r.path.includes("/other/settings/")).length, 0);
-  await go("company");
-  await page.getByRole("button", { name: "New company", exact: true }).click();
-  await page.getByLabel("Company name", { exact: true }).fill("Northstar Commerce");
-  await page.getByRole("button", { name: "Review company", exact: true }).click();
-  mode = "lost";
-  await confirm();
-  await page.getByRole("button", { name: "Check companies", exact: true }).waitFor();
-  const createdWrites = writes();
-  failRead = true;
-  await page.getByRole("button", { name: "Check companies", exact: true }).click();
-  await page.getByText("Could not check companies. Try checking again.", { exact: true }).waitFor();
-  failRead = false;
-  mode = "ok";
-  await page.getByRole("button", { name: "Check companies", exact: true }).click();
-  await page
-    .getByText("Choose the company to open. Names may be identical.", { exact: true })
-    .waitFor();
-  assert.equal(writes(), createdWrites);
-  await page.getByRole("button", { name: /c3/ }).click();
-  await page.waitForURL(/tenant=c3/);
-  await page.getByRole("button", { name: "New company", exact: true }).click();
-  await page.getByLabel("Company name", { exact: true }).fill("Rejected company");
-  await page.getByRole("button", { name: "Review company", exact: true }).click();
-  mode = "reject";
-  await confirm();
-  await page.getByRole("alert").waitFor();
-  assert.equal(companies.length, 3);
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await page.getByLabel("Company name", { exact: true }).fill("Known company");
-  await page.getByRole("button", { name: "Review company", exact: true }).click();
-  mode = "refresh-lost";
-  await confirm();
-  await page.getByRole("button", { name: "Check companies", exact: true }).waitFor();
-  const knownWrites = writes();
-  failRead = false;
-  mode = "ok";
-  await page.getByRole("button", { name: "Check companies", exact: true }).click();
-  await page.waitForURL(/tenant=c4/);
-  assert.equal(writes(), knownWrites);
   for (const lang of ["en", "de", "nl", "es"]) {
     language = lang;
     for (const width of [390, 1440]) {
@@ -261,7 +234,6 @@ try {
   await page.getByRole("button", { name: "Accept invitation", exact: true }).click();
   await page.waitForURL(/\/app\?tenant=other/);
   await page.locator("[data-home-pulse]").waitFor();
-  await page.getByRole("button", { name: "Open analytics", exact: true }).waitFor();
   assert.equal(
     await page
       .getByRole("button", { name: "Switch company", exact: true })

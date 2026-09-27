@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { isShellBackgroundRead } from "./shell-background-reads.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -57,6 +58,27 @@ await page.route("**/api/**", async (route) => {
     if (mode.startsWith("lost")) return route.abort("failed");
     return reply(user);
   }
+  // Sandboxes shown beside the companies; none in this fixture.
+  if (path === "/api/playground" && req.method() === "GET")
+    return reply({ runs: [], total: 0, limit: 100, offset: 0 });
+  // The company settings list every company with its lifecycle facts (spec 186).
+  if (path === "/api/v1/companies" && req.method() === "GET")
+    return reply(
+      [
+        { id: "owner", name: "Northstar Commerce", role: "owner" },
+        { id: "member", name: "Other company", role: "member" },
+      ].map((company) => ({
+        ...company,
+        created_at: "2026-09-01T00:00:00Z",
+        archived_at: null,
+        state: "in_use",
+        source_count: 0,
+        evidence_count: 0,
+        reality_count: 0,
+        configured_count: 0,
+        last_activity_at: null,
+      })),
+    );
   if (path === "/api/v1/bootstrap")
     return reply({
       tenants: [
@@ -123,12 +145,36 @@ await page.route("**/api/**", async (route) => {
         },
       ],
     });
+  // Personal AI usage: deployment-managed questions without an allowance in this fixture.
+  if (path === "/api/company-setup/ai-usage" && req.method() === "GET")
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        allowance: null,
+        recipient: { id: "operator", email: "operator@example.test", name: "Operator" },
+        can_admin_grant: false,
+        self_extensions_remaining: 0,
+        self_extension_questions: 0,
+        history: [],
+      }),
+    });
+  if (path === "/api/auth/mcp-grants" || path.endsWith("/settings/mcp/grants"))
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ grants: [] }),
+    });
+  // Shell-wide background reads the settings do not depend on; anything else is unexpected.
+  if (isShellBackgroundRead(req.method(), path))
+    return route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
   throw new Error(`Unexpected request ${req.method()} ${path}`);
 });
 const go = async (view = "personal", tenant = "owner") => {
   await page.goto(`${base}/app/settings?tenant=${tenant}&settings_view=${view}`);
   await page.locator("[data-settings-view]").waitFor();
-  assert.equal(await page.locator("[data-shell-header] .register-heading:visible").count(), 1);
+  // The shell header carries exactly one page title.
+  assert.equal(await page.locator("[data-shell-header] .shell-page-title:visible").count(), 1);
 };
 const puts = () => requests.filter((r) => r.method === "PUT").length;
 try {
@@ -219,8 +265,17 @@ try {
   } else {
     await go("access");
     await page.getByText("owner@example.test", { exact: true }).waitFor();
+    // Access management is a task modal (spec 143 FR-011); only Switch company changes the
+    // working company, and the member company's access stays owner-only.
+    await page
+      .locator("dialog[open]")
+      .getByRole("button", { name: "Close", exact: true })
+      .first()
+      .click();
     await page.getByRole("button", { name: "Switch company", exact: true }).click();
     await page.locator('[data-company-option="member"]').click();
+    await page.waitForURL(/tenant=member/);
+    await go("access", "member");
     await page.getByText("Only company owners can view these settings.", { exact: true }).waitFor();
     assert.equal(await page.getByText("owner@example.test", { exact: true }).count(), 0);
     await go("ai", "member");

@@ -100,6 +100,9 @@ await page.route("**/api/**", async (route) => {
   if (p.endsWith("/application-reference")) return reply({ workspaces: [] });
   if (p === "/api/v1/companies") return reply([]);
   if (p.endsWith("/analytics/graph/templates")) return reply({ templates: [] });
+  // Connected MCP clients (personal and company-wide); none in this fixture.
+  if (p === "/api/auth/mcp-grants" || p.endsWith("/settings/mcp/grants"))
+    return reply({ grants: [] });
   if (p.endsWith("/copilot"))
     return reply({
       sessions: [],
@@ -289,7 +292,11 @@ try {
   failRead = true;
   await button("Check saved AI settings").click();
   await page.getByRole("alert").first().waitFor();
-  assert.equal(await button("Change AI setup").isDisabled(), true);
+  // While the saved settings are unknown the change action is unavailable (absent or disabled).
+  assert.ok(
+    (await button("Change AI setup").count()) === 0 ||
+      (await button("Change AI setup").isDisabled()),
+  );
   failRead = false;
   mode = "ok";
   await button("Check saved AI settings").click();
@@ -368,7 +375,8 @@ try {
   await button("Change AI setup").click();
   await page.getByLabel("AI credential source", { exact: true }).selectOption("anthropic");
   assert.equal(await button("Review AI setup").isDisabled(), true);
-  await button("Close").click();
+  // The dialog's own Close, not the one that dismisses the open edit form.
+  await button("Close").first().click();
   await goAgents();
   await button("New MCP token").click();
   await page.getByLabel("Token name", { exact: true }).fill("Delayed token");
@@ -383,11 +391,25 @@ try {
   for (let i = 0; !releaseWrite && i < 100; i++) await page.waitForTimeout(20);
   assert.ok(releaseWrite);
   assert.equal(writes.length, beforeHeld + 1);
-  await page.getByRole("button", { name: "Switch company", exact: true }).click();
-  await page.locator('[data-company-option="other"]').click();
+  // A busy mutation keeps its task modal open (spec 143 FR-011): Escape does not dismiss it.
+  // Once the dialog shows it is busy (its own Close is disabled), Escape does not dismiss it.
+  await page.waitForFunction(
+    () => document.querySelector("dialog[open] > header button")?.disabled === true,
+  );
+  await page.keyboard.press("Escape");
+  assert.equal(await page.locator("dialog[open]").count(), 1);
   releaseWrite();
   mode = "ok";
-  await page.getByText("Other company", { exact: true }).last().waitFor();
+  await page.getByLabel("New MCP token secret", { exact: true }).waitFor();
+  // Once closed, switching company leaves the one-time secret behind.
+  await page
+    .locator("dialog[open]")
+    .getByRole("button", { name: "Close", exact: true })
+    .first()
+    .click();
+  await page.getByRole("button", { name: "Switch company", exact: true }).click();
+  await page.locator('[data-company-option="other"]').click();
+  await page.waitForURL(/tenant=other/);
   await page.waitForTimeout(100);
   assert.equal(await page.getByLabel("New MCP token secret", { exact: true }).count(), 0);
   assert.equal(new URL(page.url()).searchParams.get("tenant"), "other");
@@ -436,6 +458,7 @@ try {
     })),
   );
   await goAgents();
+  await page.locator("[data-token-id]").first().waitFor();
   assert.equal(await page.locator("[data-token-id]").count(), 25);
   await button("Next").click();
   assert.equal(await page.locator("[data-token-id]").count(), 5);

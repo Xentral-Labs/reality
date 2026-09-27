@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { openPageActions } from "./page-actions.mjs";
+import { homeRead } from "./home-fixture.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -90,6 +92,8 @@ await page.route("**/api/**", async (route) => {
       ? reply({ detail: "Unavailable" }, 503)
       : reply({ tenants: companies, default_tenant_id: companies[0]?.id || null });
   if (path.endsWith("/application-reference")) return reply({ workspaces: [] });
+  const home = homeRead(path);
+  if (home) return reply(home);
   if (path.endsWith("/dashboard"))
     return reply({ totals: { open_deliveries: 0, exceptions: 0, pending_decisions: 0 } });
   if (path.endsWith("/analytics"))
@@ -214,16 +218,17 @@ try {
           await page
             .locator('[data-company-card="empty"] [data-company-actions="empty"] button')
             .count(),
-          3,
+          // Manage users, Agents & API tokens, AI configuration and, for a Sandbox, Live simulation.
+          4,
           "Actions are inside their company card",
         );
         await page.screenshot({
           path: `${out}/company-cards-${lang}-${theme}-${mobile}.png`,
           fullPage: true,
         });
-        if ((await page.locator("main .register-actions").getAttribute("open")) === null)
-          await page.locator("main .register-actions summary").click();
-        await page.locator('main [data-page-action="menu"]').first().click();
+        // New company is a page action behind More actions in the page header.
+        await openPageActions(page);
+        await page.locator('.register-actions [data-page-action="menu"]').first().click();
         await page.locator("dialog #setup-company-name").waitFor();
         assert.equal(await page.locator("dialog #setup-company-name").inputValue(), "");
 
@@ -273,10 +278,8 @@ try {
           // A ready receipt survives opening failure and reload without recreation.
           await page.locator('dialog [role="alert"]').waitFor();
           companies.push(newCompany);
+          // The creation dialog is part of the URL (settings_view=new), so it reopens itself.
           await page.reload();
-          if ((await page.locator("main .register-actions").getAttribute("open")) === null)
-            await page.locator("main .register-actions summary").click();
-          await page.locator('main [data-page-action="menu"]').first().click();
         }
         await page.waitForURL(/tenant=live-company/);
         assert.equal(setupCount, before + 1);

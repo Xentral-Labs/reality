@@ -55,15 +55,15 @@ try {
             practice_enabled: true,
             suggested_name: "Bene",
           });
+        // Retrying resumes the saved request; this one is slow and then fails.
+        if (path.startsWith("/api/company-setup/requests/") && path.endsWith("/retry")) {
+          writes++;
+          await new Promise((r) => setTimeout(r, 1500));
+          return reply({ detail: "fixture failure" }, 503);
+        }
         if (path.startsWith("/api/company-setup/requests/")) {
           await new Promise((r) => setTimeout(r, 1200));
           return reply({ status: "initialization_failed" });
-        }
-        if (path === "/api/company-setup") {
-          writes++;
-          assert.deepEqual(route.request().postDataJSON(), saved);
-          await new Promise((r) => setTimeout(r, 1500));
-          return reply({ detail: "fixture failure" }, 503);
         }
         return reply({});
       });
@@ -77,7 +77,8 @@ try {
       await card.locator("button").click();
       await card.locator("[role=status]").waitFor();
       assert.equal(await card.locator("button").count(), 0);
-      assert.equal(await card.locator("svg.animate-spin").count(), 1);
+      // Progress is announced as a polite live status; a spinner marks only a running step.
+      assert.equal(await card.locator('[role=status][aria-live="polite"]').count(), 1);
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
         false,
