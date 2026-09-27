@@ -1756,3 +1756,13 @@ A permission list is bounded by the catalog it draws from, and both grant paths 
 
 - `packages/reality-core/tests/test_invoice_stated_amounts.py`: spec 284 FR-002–FR-004, FR-006, FR-007, DR-001, DR-003, DR-004 and US3; per-position net and tax recorded exactly as stated through the single- and multi-position paths and MCP, a net-plus-tax contradiction or malformed statement refused before anything is recorded, gross-only invoices and their review tokens unchanged, identical ledger postings, the received net reaching contribution and receipt cost evidence.
 - `apps/web/scripts/invoice-net-tax-contract.test.mjs` and `apps/web/scripts/invoice-net-tax-browser.mjs`: spec 284 FR-001, FR-005 and FR-006; the form sends only the typed net and tax, never fills gross, restores them on edit, and the review shows them beside gross in four languages at 390 and 1440 px.
+
+## Service refusals speak the user's language — Spec 286
+
+- `packages/reality-core/tests/test_service_refusals.py`: spec 286 FR-001–FR-005, FR-008, DR-004. Coded refusals render their English sentence from the catalog with exact values. Uncoded refusals are unchanged. Domain refusals pass their code through. The web API (400/404/409/422 and the 403 handler), the chat stream, the chat tool result, MCP and failed proposal receipts carry code, template and values.
+- `packages/reality-core/tests/test_refusal_gate.py`: spec 286 FR-006, FR-007, DR-001. A static gate with a shrinking ratchet over the in-scope modules: uncoded or unknown codes, stale ratchet entries and orphan catalog entries fail, with positive and negative controls. No spec 286 refusal remains uncoded.
+- `apps/web/scripts/service-refusals-contract.test.mjs`, `service-refusals-localization.test.mjs` and `service-refusals-browser.mjs`: spec 286 FR-005, FR-006 and FR-009, covering:
+  - interpolation by kind and the English fallback;
+  - one translation point, and no comparison with refusal text;
+  - de/nl/es for every template and term;
+  - the invoice form and the chat panel showing coded refusals in de/nl/es at 390 and 1440 px.
