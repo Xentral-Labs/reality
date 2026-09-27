@@ -84,8 +84,10 @@ Home sidebar entry.
 Welcome now leads with what needs a person: the three queue tiles (Decisions,
 Exceptions, Commitments) come first, the activity graph follows. The graph owns its
 header: title with a quiet "Live" indicator (its title attribute states the last
-update) and the minutes-per-bar resolution on the left, the 24 hours / 7 days /
-30 days control on the right. Readiness is quiet while everything is ready (a visually
+update), followed by the owner's quiet "Watch live" action, and the minutes-per-bar
+resolution on the left; the 24 hours / 7 days / 30 days control remains independently
+on the right. The action opens the existing live monitor and is not presented as part
+of the time-range selector. Readiness is quiet while everything is ready (a visually
 hidden status states it) and becomes a caution notice above the tiles, naming each
 component, as soon as a check completes without the combined ready result. The
 "Your company, in motion" heading and the "View all activity" button are removed;
