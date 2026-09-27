@@ -3,6 +3,8 @@ import { reference as discoveryReference } from "./action-discovery-fixture.mjs"
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { openPageActions } from "./page-actions.mjs";
+import { deliveryReview, isDecisionReview } from "./decision-review-fixture.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -132,6 +134,7 @@ await page.route("**/api/**", async (route) => {
     proposal.status = "rejected";
     return reply(proposal);
   }
+  if (isDecisionReview(p) && proposal) return reply(deliveryReview(proposal));
   if (p.endsWith("/review") && !proposal.review) {
     proposal.review = {
       token: "exact",
@@ -174,9 +177,8 @@ await page.route("**/api/**", async (route) => {
 });
 const dialog = page.getByRole("dialog");
 const openWarehouse = async () => {
-  await page.goto(`${base}/app/warehouse?tenant=company`);
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await page.goto(`${base}/app/warehouse?tenant=company&warehouse_view=movements`);
+  await openPageActions(page);
   await page.getByRole("button", { name: "Record opening stock", exact: true }).click();
 };
 const fill = async () => {
@@ -211,8 +213,7 @@ try {
   await dialog.getByRole("button", { name: "Recover review", exact: true }).waitFor();
   assert.equal(confirmations, 0);
   await page.reload();
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions(page);
   await page.getByRole("button", { name: "Record opening stock", exact: true }).click();
   await dialog.getByRole("button", { name: "Recover review", exact: true }).click();
   await dialog.getByText("Reviewed stock effect", { exact: true }).waitFor();
@@ -249,23 +250,33 @@ try {
   assert.equal(confirmations, 1);
   await page.reload();
   await dialog.getByRole("button", { name: "Recover recorded result", exact: true }).click();
+  // A decision opened from its review closes once its result is recovered (spec 276) ...
+  await dialog.waitFor({ state: "detached" });
+  assert.equal(reconciles, 1);
+  assert.equal(confirmations, 1);
+  // ... and opening the recorded proposal again shows its result.
+  await page.goto(
+    `${base}/app/warehouse?tenant=company&warehouse_view=movements&proposal=${proposal.id}`,
+  );
   await dialog.getByText("Opening stock recorded", { exact: true }).waitFor();
   await page.screenshot({
     path: "/private/tmp/reality-132-browser/result-en-1440.png",
     fullPage: true,
     animations: "disabled",
   });
-  assert.equal(reconciles, 1);
-  assert.equal(confirmations, 1);
-  await page.reload();
-  await dialog.getByText("Opening stock recorded", { exact: true }).waitFor();
   await dialog.getByRole("button", { name: "Inspect movement", exact: true }).click();
   await page.getByRole("heading", { name: "Opening movement" }).waitFor();
-  await page.goto(`${base}/app/warehouse?tenant=company`);
+  await page.goto(`${base}/app/warehouse?tenant=company&warehouse_view=movements`);
+  // The global launcher is the command palette: search for the action and start it.
   await page.locator("[data-action-launcher] > button").click();
   await page
-    .locator("details[open]")
-    .getByRole("button", { name: "Record opening stock", exact: true })
+    .getByRole("combobox", { name: "Search or start an action" })
+    .or(page.getByRole("textbox", { name: "Search or start an action" }))
+    .first()
+    .fill("Record opening stock");
+  await page
+    .getByRole("option", { name: /^Record opening stock/ })
+    .first()
     .click();
   await fill();
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
@@ -276,17 +287,16 @@ try {
   await dialog.getByRole("heading", { name: "Record opening stock", exact: true }).waitFor();
   proposal.review = null;
   await page.goto(`${base}/app/copilot?tenant=company`);
-  await page.getByRole("button", { name: /Review proposed changes/ }).click();
+  await page.getByRole("button", { name: "Review and decide", exact: true }).click();
   await dialog.getByRole("heading", { name: "Record opening stock", exact: true }).waitFor();
   await dialog.getByRole("button", { name: "Review change", exact: true }).click();
   await dialog.getByRole("button", { name: "Confirm opening stock", exact: true }).waitFor();
   await dialog.getByRole("button", { name: "Discard proposal", exact: true }).click();
   await dialog.getByText("Proposal discarded. No stock was recorded.", { exact: true }).waitFor();
   assert.equal(confirmations, 1);
-  await page.goto(`${base}/app/warehouse?tenant=other`);
+  await page.goto(`${base}/app/warehouse?tenant=other&warehouse_view=movements`);
   assert.equal(await dialog.count(), 0);
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions(page);
   await page.getByRole("button", { name: "Record opening stock", exact: true }).click();
   await dialog.getByLabel("Quantity to add", { exact: true }).waitFor();
   assert.equal(await dialog.getByLabel("Quantity to add", { exact: true }).inputValue(), "");

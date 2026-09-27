@@ -309,6 +309,34 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
                     VITE_API_PROXY_TARGET=f"http://127.0.0.1:{api_port}",
                 ),
             ),
+            # Registers and choices read background projections (spec 179); run the
+            # deployment's worker and scheduler so they are calculated as in production.
+            (
+                "worker",
+                [
+                    sys.executable,
+                    "-m",
+                    "reality.worker.cli",
+                    "work",
+                    "--poll-seconds",
+                    "1",
+                ],
+                ROOT / "packages/reality-core",
+                env,
+            ),
+            (
+                "scheduler",
+                [
+                    sys.executable,
+                    "-m",
+                    "reality.scheduler.cli",
+                    "work",
+                    "--poll-seconds",
+                    "1",
+                ],
+                ROOT / "packages/reality-core",
+                env,
+            ),
         ]:
             output = (artifacts / f"{name}.log").open("w")
             logs.append(output)

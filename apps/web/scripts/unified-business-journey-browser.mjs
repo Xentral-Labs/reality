@@ -48,6 +48,16 @@ const choose = async (name, value) => {
   await field(name).locator(`option[value="${value}"]`).waitFor({ state: "attached" });
   await field(name).selectOption(value);
 };
+// Open items are a background projection (spec 179): poll until the worker has caught up.
+const openItem = async (query, match, ready = () => true) => {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const rows = await get(`/finance/open-items?${query}`);
+    const row = rows.items?.find(match);
+    if (row && ready(row)) return row;
+    await page.waitForTimeout(500);
+  }
+  assert.fail(`open item (${query}) did not reach the expected state within 30 s`);
+};
 const record = (proposal, family) =>
   proposal.receipt.records.find((row) => row.family === family).id;
 const counts = async () => {
@@ -67,8 +77,9 @@ const settle = async (label) => {
   const response = await prepared;
   assert.equal(response.status(), 200, await response.text());
   const proposal = await response.json();
-  const confirmLabel = label === "08-refund-reversal" ? "Confirm reversal" : "Confirm change";
-  await button(confirmLabel).waitFor();
+  // Each card names its confirmation ("Confirm customer order", "Confirm reversal", ...).
+  const confirmButton = page.getByRole("dialog").getByRole("button", { name: /^Confirm / });
+  await confirmButton.waitFor();
   if (label === "08-refund-reversal")
     assert.equal(
       await page.getByRole("dialog").getByText("Open amount", { exact: true }).count(),
@@ -82,7 +93,7 @@ const settle = async (label) => {
       response.url().endsWith(`/change-proposals/${proposal.id}/approve`) &&
       response.request().method() === "POST",
   );
-  await button(confirmLabel).click();
+  await confirmButton.click();
   const execution = await confirmed;
   assert.equal(execution.status(), 200, await execution.text());
   const result = await get(`/delivery-actions/${proposal.id}`);
@@ -96,9 +107,19 @@ const settle = async (label) => {
   console.log(`PASS ${label}: reviewed, confirmed and reloaded real evidence`);
   return result;
 };
+// The global launcher is the command palette: search for the action and start it.
 const openAction = async (name) => {
-  await page.getByRole("banner").getByText("Actions", { exact: true }).click();
-  await button(name).first().click();
+  await page.locator("[data-action-launcher] > button").click();
+  const launcher = page.locator("[data-action-menu]");
+  await launcher
+    .getByRole("combobox", { name: "Search or start an action" })
+    .or(launcher.getByRole("textbox", { name: "Search or start an action" }))
+    .first()
+    .fill(name);
+  await launcher
+    .getByRole("option", { name: new RegExp(`^${name}`) })
+    .first()
+    .click();
 };
 try {
   await mkdir(out, { recursive: true });
@@ -147,13 +168,19 @@ try {
   const invoiceResult = await settle("04-invoice");
   const invoice = record(invoiceResult, "document"),
     invoiceLine = record(invoiceResult, "document_line");
+  // Invoice choices read the background open-items projection (spec 179): wait until the
+  // worker has calculated it before starting the payment.
+  await openItem("flow=receivable", (row) => row.document_id === invoice);
   await openAction("Record customer payment");
   await choose("Invoice", invoice);
   await field("Payment amount").fill("400");
   await field("Payment reference").fill("PAY-127");
   await settle("05-payment");
-  const invoiceRows = await get("/finance/open-items?flow=receivable");
-  assert.equal(Number(invoiceRows.items.find((row) => row.document_id === invoice).open), 0);
+  await openItem(
+    "flow=receivable",
+    (row) => row.document_id === invoice,
+    (row) => Number(row.open) === 0,
+  );
   await goto("finance", "finance_status=");
   await rowAction(page.locator("tr").filter({ hasText: "INV-127" }), "New credit note");
   assert.equal(await field("Invoice").inputValue(), invoice);
@@ -180,8 +207,11 @@ try {
   await choose("Posting", choices.items[0].id);
   await field("Reversal reason").fill("Refund recorded incorrectly");
   await settle("08-refund-reversal");
-  const finalCredit = await get("/finance/open-items?flow=customer-credit");
-  assert.equal(Number(finalCredit.items.find((row) => row.document_id === credit).open), 200);
+  await openItem(
+    "flow=customer-credit",
+    (row) => row.document_id === credit,
+    (row) => Number(row.open) === 200,
+  );
   const historical = await get(`/delivery-actions/${refund.id}`);
   assert.equal(historical.verification, "verified");
   assert.equal(historical.observation.allocation_active, false);
@@ -212,8 +242,11 @@ try {
     const row = page.locator("tr").filter({ hasText: reference });
     await row.waitFor();
     await page.getByRole("columnheader", { name: /^Available credit/ }).waitFor();
-    const credits = await get(`/finance/open-items?flow=${side}-balance&item_status=outstanding`);
-    assert.equal(Number(credits.items.find((item) => item.number === reference).open), amount);
+    await openItem(
+      `flow=${side}-balance&item_status=outstanding`,
+      (item) => item.number === reference,
+      (item) => Number(item.open) === amount,
+    );
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 1050 });
       await page.screenshot({ path: `${out}/${side}-credit-${width}.png` });
@@ -274,12 +307,10 @@ try {
     const approval = await confirmed;
     assert.equal(approval.status(), 200, await approval.text());
     reductions.push((await approval.json()).output);
-    const openItems = await get(
-      `/finance/open-items?flow=${side === "customer" ? "receivable" : "payable"}`,
-    );
-    assert.equal(
-      Number(openItems.items.find((row) => row.number === `${side.toUpperCase()}-REDUCTION`).open),
-      0,
+    await openItem(
+      `flow=${side === "customer" ? "receivable" : "payable"}`,
+      (row) => row.number === `${side.toUpperCase()}-REDUCTION`,
+      (row) => Number(row.open) === 0,
     );
   }
   await writeFile(`${out}/reductions.json`, JSON.stringify(reductions, null, 2));
@@ -441,6 +472,7 @@ try {
   await page.getByRole("status").filter({ hasText: "Opening positions recorded" }).waitFor();
   await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
   await writeFile(`${out}/opening.json`, JSON.stringify(openingReceipt, null, 2));
+  await openItem("flow=receivable", (row) => row.number === "OPENING-customer_debt");
   await goto("finance", "flow=receivable");
   await rowAction(
     page.locator("tr").filter({ hasText: "OPENING-customer_debt" }),
@@ -459,8 +491,14 @@ try {
   assert.equal(await page.getByText("Operational accounts", { exact: true }).count(), 0);
   assert.equal(await page.getByText("Finance references", { exact: true }).count(), 0);
   const settingsRegisterReads = [];
+  // The Open items tab states its work count with a size=1 read (spec 254); that is not a
+  // register load, so it does not count here.
   const captureSettingsRead = (request) => {
-    if (/\/finance\/(open-items|payments|journal)(\?|$)/.test(request.url()))
+    const url = new URL(request.url());
+    if (
+      /\/finance\/(open-items|payments|journal)$/.test(url.pathname) &&
+      url.searchParams.get("size") !== "1"
+    )
       settingsRegisterReads.push(request.url());
   };
   page.on("request", captureSettingsRead);
@@ -497,10 +535,11 @@ try {
   });
   await openUsage();
   await matrix.getByRole("article", { name: "Sales invoice", exact: true }).waitFor();
-  assert.equal(await matrix.getByRole("article").count(), 14);
-  assert.equal(await matrix.getByRole("alert").count(), 0);
+  // One card per business transaction the API reports, however many the catalog has.
   const matrixBefore = await get("/finance/matrix");
-  assert.equal(matrixBefore.operations.length, 14);
+  assert.ok(matrixBefore.operations.length >= 14);
+  assert.equal(await matrix.getByRole("article").count(), matrixBefore.operations.length);
+  assert.equal(await matrix.getByRole("alert").count(), 0);
   const matrixCounts = await counts();
   await matrix.getByRole("button", { name: "Back to accounts", exact: true }).click();
   const cashRow = accountSettings
@@ -875,8 +914,10 @@ try {
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await goto("finance", "flow=customer-credit&finance_status=");
-  const canonicalCredits = await get("/finance/open-items?flow=customer-credit&item_status=");
-  const actualCredit = canonicalCredits.items.find((row) => row.document_type === "credit_note");
+  const actualCredit = await openItem(
+    "flow=customer-credit&item_status=",
+    (row) => row.document_type === "credit_note",
+  );
   assert.ok(actualCredit, "Actual canonical customer credit must exist");
   await rowAction(page.locator("tr").filter({ hasText: actualCredit.number }), "Financial detail");
   const creditDetails = page.getByRole("dialog", { name: "Financial detail", exact: true });
@@ -938,7 +979,8 @@ try {
     .getByRole("button", { name: "Close", exact: true })
     .first()
     .click();
-  const hideChat = page.getByRole("button", { name: "Hide chat", exact: true });
+  // The shell header and the chat dock both offer "Hide chat"; either closes the dock.
+  const hideChat = page.getByRole("button", { name: "Hide chat", exact: true }).first();
   if (await hideChat.isVisible()) await hideChat.click();
   for (const width of [390, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
