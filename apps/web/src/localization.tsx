@@ -21061,3 +21061,25 @@ Object.assign(dictionaries.es, {
   "The item's cost review does not provide a cost for the shipped quantity.":
     "La revisión de costes del artículo no aporta un coste para la cantidad enviada.",
 });
+
+// Spec 284: invoices state net and tax per position.
+Object.assign(dictionaries.de, {
+  "Net (as stated on the invoice)": "Netto (laut Rechnung)",
+  "Tax (as stated on the invoice)": "Steuer (laut Rechnung)",
+  Net: "Netto",
+  Tax: "Steuer",
+});
+
+Object.assign(dictionaries.nl, {
+  "Net (as stated on the invoice)": "Netto (volgens factuur)",
+  "Tax (as stated on the invoice)": "Btw (volgens factuur)",
+  Net: "Netto",
+  Tax: "Btw",
+});
+
+Object.assign(dictionaries.es, {
+  "Net (as stated on the invoice)": "Neto (según la factura)",
+  "Tax (as stated on the invoice)": "Impuesto (según la factura)",
+  Net: "Neto",
+  Tax: "Impuesto",
+});

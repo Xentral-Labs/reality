@@ -2984,11 +2984,19 @@ export const orderActions = {
     deliveryActions.reconcile(tenant, id) as unknown as Promise<OrderProposal>,
 };
 
+/** Net and tax exactly as an invoice position states them (spec 284). */
+export type StatedInvoiceAmounts = { net?: string; tax?: string };
 export type InvoiceInput = {
   order_line_id?: string;
-  lines?: { order_line_id: string; quantity: string; gross_amount: string }[];
+  lines?: {
+    order_line_id: string;
+    quantity: string;
+    gross_amount: string;
+    reality_finance_v1?: StatedInvoiceAmounts;
+  }[];
   quantity?: string;
   gross_amount: string;
+  reality_finance_v1?: StatedInvoiceAmounts;
   number: string;
   effective_at?: string;
   [key: string]: unknown;
@@ -3007,12 +3015,14 @@ export type InvoiceProposal = Omit<DeliveryProposal, "review" | "observation"> &
         currency: string;
         unit: string;
         effective_at?: string;
+        reality_finance_v1?: StatedInvoiceAmounts;
       };
       billing?: (BillingAvailability & { requested: string; remaining_after: string })[];
       positions?: {
         order_line_id: string;
         quantity: string;
         gross_amount: string;
+        reality_finance_v1?: StatedInvoiceAmounts;
         item: { name: string };
         line: { unit: string };
       }[];

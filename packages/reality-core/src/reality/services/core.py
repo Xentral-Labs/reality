@@ -8931,6 +8931,7 @@ def record_sales_invoice(
     effective_at: datetime | None = None,
     action_id: str | None = None,
     delivery_guard: dict[str, Any] | None = None,
+    reality_finance_v1: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Record stated invoice evidence and its receivable, never generate a total."""
     _require_business_mutation(session, tenant_id, "record_sales_invoice")
@@ -8945,6 +8946,8 @@ def record_sales_invoice(
         }
         if order_line_id is not None or quantity is not None:
             raise InvalidOperation("Use either invoice lines or a single order line.")
+        if reality_finance_v1 is not None:
+            raise InvalidOperation("State net and tax on each invoice position.")
         return _record_multi_order_invoice(
             session, tenant_id, "sales", arguments, action_id
         )
@@ -8957,6 +8960,7 @@ def record_sales_invoice(
         number,
         direction="sales",
         delivery_guard=delivery_guard,
+        finance_detail=reality_finance_v1,
         effective_at=effective_at,
         action_id=action_id,
     )
@@ -8973,6 +8977,7 @@ def record_supplier_invoice(
     lines: list[dict[str, Any]] | None = None,
     effective_at: datetime | None = None,
     action_id: str | None = None,
+    reality_finance_v1: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Record received supplier invoice evidence and its payable atomically."""
     _require_business_mutation(session, tenant_id, "record_supplier_invoice")
@@ -8985,6 +8990,8 @@ def record_supplier_invoice(
         }
         if order_line_id is not None or quantity is not None:
             raise InvalidOperation("Use either invoice lines or a single order line.")
+        if reality_finance_v1 is not None:
+            raise InvalidOperation("State net and tax on each invoice position.")
         return _record_multi_order_invoice(
             session, tenant_id, "purchase", arguments, action_id
         )
@@ -8996,6 +9003,7 @@ def record_supplier_invoice(
         gross_amount,
         number,
         direction="purchase",
+        finance_detail=reality_finance_v1,
         effective_at=effective_at,
         action_id=action_id,
     )
@@ -9181,6 +9189,50 @@ def _validate_invoice_delivery_guard(
 MAX_INVOICE_POSITIONS = 200
 
 
+_STATED_AMOUNT_KEYS = {"version", "net", "tax", "base", "gross", "currency", "codes"}
+
+
+def _stated_invoice_amounts(
+    detail: Any, gross: Decimal, currency: str
+) -> dict[str, Any] | None:
+    """Check the amounts a position states and return them exactly as stated.
+
+    Spec 284: the values are received evidence. They are compared, never derived: a
+    missing net or tax stays missing, and net plus tax that differs from the stated
+    gross is refused rather than adjusted (Constitution VIII).
+    """
+    if detail is None:
+        return None
+    if not isinstance(detail, dict) or set(detail) - _STATED_AMOUNT_KEYS:
+        raise InvalidOperation(
+            "Stated invoice amounts accept net, tax, base, gross and currency only."
+        )
+    if detail.get("version", 1) != 1:
+        raise InvalidOperation("Unsupported received finance detail contract.")
+    values = {}
+    for key in ("net", "tax", "base", "gross"):
+        if detail.get(key) is None:
+            continue
+        try:
+            value = Decimal(str(detail[key]))
+        except (ArithmeticError, TypeError, ValueError) as error:
+            raise InvalidOperation(f"The stated {key} must be a number.") from error
+        if not value.is_finite() or value < 0 or value >= Decimal(100000000000000):
+            raise InvalidOperation(f"The stated {key} must be a non-negative amount.")
+        if value != value.quantize(Decimal("0.0001")):
+            raise InvalidOperation(
+                "Invoice values must fit four decimal places without rounding."
+            )
+        values[key] = value
+    if "gross" in values and values["gross"] != gross:
+        raise InvalidOperation("The stated gross differs from the position's gross.")
+    if detail.get("currency", currency) != currency:
+        raise InvalidOperation("The stated currency differs from the invoice.")
+    if "net" in values and "tax" in values and values["net"] + values["tax"] != gross:
+        raise InvalidOperation("Net plus tax differs from the invoice gross.")
+    return detail
+
+
 def _preview_order_invoice(
     session: OrmSession, tenant_id: str, direction: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
@@ -9281,7 +9333,18 @@ def _preview_order_invoice(
             "document": document,
             "lines": lines,
             "selections": [
-                {k: row[k] for k in ("order_line_id", "quantity", "gross_amount")}
+                {
+                    **{
+                        k: row[k] for k in ("order_line_id", "quantity", "gross_amount")
+                    },
+                    # Spec 284: a stated net and tax is part of the position; positions
+                    # without one keep their former shape, and so their review token.
+                    **(
+                        {"reality_finance_v1": row["reality_finance_v1"]}
+                        if "reality_finance_v1" in row
+                        else {}
+                    ),
+                }
                 for row in previews
             ],
         }
@@ -9309,6 +9372,9 @@ def _preview_order_invoice(
         raise InvalidOperation(
             "Invoice quantity exceeds the remaining billable quantity."
         )
+    stated = _stated_invoice_amounts(
+        arguments.get("reality_finance_v1"), amount, order.currency
+    )
     guard = arguments.get("delivery_guard")
     if "delivery_guard" in arguments:
         if direction != "sales":
@@ -9329,7 +9395,7 @@ def _preview_order_invoice(
                 "unit_price": line.unit_price,
                 "gross_amount": amount,
                 "billed_document_line_id": line.id,
-                "reality_finance_v1": arguments.get("reality_finance_v1"),
+                "reality_finance_v1": stated,
             }
         ],
         amount,
@@ -9339,6 +9405,7 @@ def _preview_order_invoice(
     return {
         "direction": direction,
         **({"delivery_guard": guard} if guard is not None else {}),
+        **({"reality_finance_v1": stated} if stated is not None else {}),
         "order_line_id": line.id,
         "quantity": quantity,
         "gross_amount": amount,
@@ -9477,8 +9544,15 @@ def _record_order_invoice(
     action_id: str | None,
     credit: bool = False,
     delivery_guard: dict[str, Any] | None = None,
+    finance_detail: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     from reality.services.tenant_policy import require_decision_finance
+
+    if credit and finance_detail is not None:
+        raise InvalidOperation("A credit note carries no stated net and tax here.")
+    stated = (
+        {"reality_finance_v1": finance_detail} if finance_detail is not None else {}
+    )
 
     invoice_type = (
         "credit_note"
@@ -9500,6 +9574,7 @@ def _record_order_invoice(
             "gross_amount": gross_amount,
             "number": number,
             "effective_at": effective_at,
+            **stated,
         },
         action_id,
     )
@@ -9531,6 +9606,7 @@ def _record_order_invoice(
                     "gross_amount": gross_amount,
                     "number": number,
                     "effective_at": effective_at,
+                    **stated,
                 },
             )
         order = _tenant_record(session, Document, tenant_id, line.document_id)
@@ -9559,6 +9635,7 @@ def _record_order_invoice(
             "number": number,
             "currency": order.currency,
             "effective_at": effective_at.isoformat(),
+            **stated,
         }
         source = create_master_source_record(
             session,
@@ -9584,6 +9661,7 @@ def _record_order_invoice(
                     "unit_price": str(line.unit_price),
                     "gross_amount": str(gross_amount),
                     "billed_document_line_id": line.id,
+                    **stated,
                 }
             ],
             gross_amount,

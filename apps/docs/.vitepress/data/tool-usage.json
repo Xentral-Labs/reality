@@ -7409,7 +7409,7 @@
       "summary": "Prepare this business mutation without changing state. Record sales invoice. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at] [delivery_guard]",
+      "synopsis": "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [delivery_guard]",
       "parameters": [
         {
           "name": "order_line_id",
@@ -7457,7 +7457,7 @@
           "name": "lines[].reality_finance_v1",
           "type": "object",
           "required": false,
-          "description": "",
+          "description": "Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.",
           "depth": 1
         },
         {
@@ -7516,6 +7516,63 @@
           "required": true,
           "description": "Total the source states for the document; recorded as received and never calculated.",
           "depth": 0
+        },
+        {
+          "name": "reality_finance_v1",
+          "type": "object",
+          "required": false,
+          "description": "Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.",
+          "depth": 0
+        },
+        {
+          "name": "reality_finance_v1.version",
+          "type": "integer",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "enum": [1]
+        },
+        {
+          "name": "reality_finance_v1.net",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reality_finance_v1.tax",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reality_finance_v1.base",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reality_finance_v1.gross",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reality_finance_v1.currency",
+          "type": "string",
+          "required": false,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 1
+        },
+        {
+          "name": "reality_finance_v1.codes",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 1
         },
         {
           "name": "number",
@@ -7570,7 +7627,7 @@
       "summary": "Prepare this business mutation without changing state. Record supplier invoice. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at]",
+      "synopsis": "supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at]",
       "parameters": [
         {
           "name": "order_line_id",
@@ -7618,7 +7675,7 @@
           "name": "lines[].reality_finance_v1",
           "type": "object",
           "required": false,
-          "description": "",
+          "description": "Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.",
           "depth": 1
         },
         {
@@ -7677,6 +7734,63 @@
           "required": true,
           "description": "Total the source states for the document; recorded as received and never calculated.",
           "depth": 0
+        },
+        {
+          "name": "reality_finance_v1",
+          "type": "object",
+          "required": false,
+          "description": "Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.",
+          "depth": 0
+        },
+        {
+          "name": "reality_finance_v1.version",
+          "type": "integer",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "enum": [1]
+        },
+        {
+          "name": "reality_finance_v1.net",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reality_finance_v1.tax",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reality_finance_v1.base",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reality_finance_v1.gross",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reality_finance_v1.currency",
+          "type": "string",
+          "required": false,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 1
+        },
+        {
+          "name": "reality_finance_v1.codes",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 1
         },
         {
           "name": "number",
@@ -19180,7 +19294,7 @@
       "related_services": [],
       "tools": ["supplier_invoice_record_propose"],
       "synopses": [
-        "supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at]"
+        "supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at]"
       ],
       "events": [],
       "actions": [],
@@ -19533,7 +19647,7 @@
       "related_services": [],
       "tools": ["sales_invoice_record_propose"],
       "synopses": [
-        "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at] [delivery_guard]"
+        "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [delivery_guard]"
       ],
       "events": ["invoice.recorded"],
       "actions": [],

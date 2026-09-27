@@ -79,6 +79,37 @@ def test_confirmed_db1_replay_and_tool_parity(session, business, cost_owner):
     assert session.scalar(select(func.count()).select_from(CostContributionReview)) == 1
 
 
+def test_invoice_with_a_document_date_can_be_confirmed(session, business, cost_owner):
+    """Spec 242 FR-007 regression: the confirmed trace must stay JSON (found in spec 284).
+
+    Invoices recorded through the web carry a document date. The confirmation stored the
+    review result as proposal output and failed on the raw date, so no web invoice could
+    ever reach a confirmed DB1.
+    """
+    from datetime import date
+
+    data = fixtures.prepared(session, business, cost_owner)
+    data[2].document_date = date(2026, 9, 26)
+    session.flush()
+    preview = contribution_preview(session, business.tenant.id, data[0].id)
+    assert preview["trace"]["invoice_date"] == "2026-09-26"
+    args = {
+        "operation": "contribution_review",
+        "document_line_id": data[0].id,
+        "expected_event_sequence": preview["event_sequence"],
+        "expected_candidate_hash": preview["candidate_hash"],
+        "profile": "commercial_v1",
+        "profile_confirmed": True,
+        "revenue_complete": True,
+        "economic_at": preview["trace"]["proposed_economic_at"],
+        "reason": "Invoice with a document date",
+    }
+    action, result = stock.commit_review(session, business, cost_owner, args)
+    assert action.status == "executed"
+    assert result["trace"]["invoice_date"] == "2026-09-26"
+    assert result["db1"] == "570.0000"
+
+
 def test_later_events_preserve_frozen_db1(session, business, cost_owner):
     args, data = prepared(session, business, cost_owner)
     _, result = stock.commit_review(session, business, cost_owner, args)

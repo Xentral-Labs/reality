@@ -445,7 +445,9 @@ def _read(
                 "order_line_id": basis.order_line_id,
                 "received_net": _money(basis.stated_net),
                 "quantity": _money(basis.quantity),
-                "invoice_date": basis.invoice_date,
+                "invoice_date": basis.invoice_date.isoformat()
+                if basis.invoice_date
+                else None,
                 "sales_channel": basis.sales_channel,
                 "customer_id": basis.customer_id,
                 "item_id": basis.item_id,
