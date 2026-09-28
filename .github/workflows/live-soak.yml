@@ -1,0 +1,82 @@
+name: live-soak
+
+# Long real-backend browser proofs that follow a simulation's own pace (tens of minutes to
+# hours), so they do not run on every pull request. Start one from the Actions tab.
+
+on:
+  workflow_dispatch:
+    inputs:
+      first_settlement_minutes:
+        description: Minutes to wait for the first settled invoice
+        default: "25"
+      differences_minutes:
+        description: Minutes to wait for a residual and an unmatched payment
+        default: "150"
+
+permissions:
+  contents: read
+
+jobs:
+  demo-data-payments:
+    # tests/browser/unified_demo_data_payments.py: a Sandbox with Demo Data, the order-to-cash
+    # stream and a hand-confirmed settlement (feature 168).
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: reality
+          POSTGRES_USER: reality
+          POSTGRES_PASSWORD: local-only
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd "pg_isready -U reality -d reality"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: packages/reality-core/pyproject.toml
+      - name: Install shared core
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -e './packages/reality-core[dev]'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install web app
+        run: cd apps/web && npm ci
+      - name: Install Playwright
+        run: |
+          mkdir -p "$RUNNER_TEMP/playwright"
+          cd "$RUNNER_TEMP/playwright"
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund playwright@1.62.1
+          npx playwright install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/playwright/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
+      - name: Provide the macOS screenshot directory
+        run: sudo mkdir -p /private && sudo ln -sfn /tmp /private/tmp
+      - name: Run the demo order-to-cash proof
+        env:
+          TEST_POSTGRES_ADMIN_URL: postgresql+psycopg://reality:local-only@localhost:54329/postgres
+          JOURNEY_ARTIFACTS: ${{ runner.temp }}/live-soak
+          DEMO_O2C_WAIT_MINUTES: ${{ inputs.first_settlement_minutes }}
+          DEMO_O2C_DIFFERENCE_WAIT_MINUTES: ${{ inputs.differences_minutes }}
+        run: |
+          cd packages/reality-core
+          ../../.venv/bin/pytest -s -p no:randomly tests/browser/unified_demo_data_payments.py
+      - name: Upload proof artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-soak-demo-data-payments
+          path: ${{ runner.temp }}/live-soak
+          if-no-files-found: ignore
