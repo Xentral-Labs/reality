@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:ce85f4ac2891433eb0bb4e4a128d51eacb0443766df4c10568dcc740d7fa0d9f",
+  "knowledge_version": "advisor-v1:sha256:f3b020a6c52611cc81affd3e0e10b8e3bcb3fcf1e7822b1fff157eb1aca3c58c",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -36,7 +36,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A04",
-      "fingerprint": "af7c228a10e44181cb9f787d12e052631ca1dc22970061e4da0f26efb63ee83e"
+      "fingerprint": "d164486476d9ed17f164b3846063a0bc98948a3898d3132df8b8319a16ecda3c"
     },
     {
       "id": "source_journey_a05",
@@ -54,7 +54,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A06",
-      "fingerprint": "b25ca4661fb0a810dcfc8285b5d4a7715f769a62d065b20c4a5c36d44464735d"
+      "fingerprint": "55f64a018d767240abab078adb5790de55e79dc492b44972c9db3f5153a33455"
     },
     {
       "id": "source_journey_a07",
@@ -63,7 +63,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A07",
-      "fingerprint": "56693e6d0a5671ddeec3f4e611434027d7c846cedd88857da62d7328e2e020ec"
+      "fingerprint": "7a01f55b971eb53dc4b5d5b172793620eebc8aecc6c66f775c4bd52700a16b66"
     },
     {
       "id": "source_journey_a08",
@@ -171,7 +171,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A19",
-      "fingerprint": "232caac152fddfceba9d01650b94b5e4bf5d14229bbb889417c7aef7ede729ae"
+      "fingerprint": "96d90ec947e8537c94e093d0f357bb11257dfaa9e043551cfd7fd330c0f88393"
     },
     {
       "id": "source_journey_a20",
@@ -414,7 +414,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C04",
-      "fingerprint": "f0b475d09b8524d46b6133c908d4a6bcc08d97b8e3abec8f272b11c5fa8e9977"
+      "fingerprint": "9c4c042080fcef5e9a09fbdea98d0b41aa3c68729518d57526799d4d53794c09"
     },
     {
       "id": "source_journey_c05",
@@ -828,7 +828,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#F01",
-      "fingerprint": "4043e2fda99e85b2c69621ae5902f2d78b3949a85ca5edc685b7687f87ed3d26"
+      "fingerprint": "3e1a4a3256254ad8d4fa27709c5a1dd389049b393d10f52f7f6a984b4124561a"
     },
     {
       "id": "source_journey_f02",
@@ -864,7 +864,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#F05",
-      "fingerprint": "3c42ccfc2e0d6866955ce258ad9944bfe77070904e2368b3c405ad3da9bd3ce6"
+      "fingerprint": "8fe56021a1d4c45393540ea51c68f170a3ffcf345905ff8aa98908c77b9d8fcd"
     },
     {
       "id": "source_journey_f06",
@@ -882,7 +882,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#F07",
-      "fingerprint": "01a4c9122aabc1692e865d0d35e7110a040128ea5861f9fd1a997c8487d26117"
+      "fingerprint": "a04718de299e5a6aaf0081fd12c29f140f902997a42a8f929ba8287eea713784"
     },
     {
       "id": "source_journey_f08",
@@ -1701,7 +1701,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#M08",
-      "fingerprint": "ecf861739cf24e63aa65510004c6a9aa341a14395f96e70d337a212c646aa12e"
+      "fingerprint": "8e5e3c1443bd9939d9f5e122dba654147bde2ecd7165fd3cd15b386a8c755734"
     },
     {
       "id": "source_journey_m09",
@@ -1746,7 +1746,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#N01",
-      "fingerprint": "703da3d1fd673ec325880279a348c6de1dbcf98fb1b7c29e1b3d798bd601aea4"
+      "fingerprint": "48537bd166d33e14eb5cebc7347607b58d3c953fef9bc0915c35667e71cf02f2"
     },
     {
       "id": "source_journey_n02",
@@ -1755,7 +1755,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#N02",
-      "fingerprint": "12f1d1c6f4d247d352977ea6607fbcb5a726fa7b3acc45371ed7fd204bc165cf"
+      "fingerprint": "cb0d7879df03eaeca0a647ae5b920108344cf04487dd10f10c5c20cd284eb2aa"
     },
     {
       "id": "source_journey_n03",
@@ -1791,7 +1791,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#N06",
-      "fingerprint": "48886f13fb655bb44f044d0309b063c1fec48eae5b43622f4e8b14292ff3787b"
+      "fingerprint": "e7dee9a256d6953e4e8d48d67084a9a0ed2ac9d4d0eae45bf9168a9ea09dd578"
     },
     {
       "id": "source_journey_n07",
@@ -2156,16 +2156,13 @@
       "title": "Customer raises the quantity after a partial delivery",
       "search_text": "A04 Order intake and order changes Customer raises the quantity after a partial delivery What is still open after the revision? Customer raises the quantity after a partial delivery What is still open after the revision?",
       "claim_text": "Reality evaluates: What is still open after the revision?",
-      "support": "limited",
-      "limitations": [
-        "Raising an ordered quantity works when nothing has been delivered yet.",
-        "Raising it after a partial delivery is not yet proven."
-      ],
+      "support": "proven",
+      "limitations": [],
       "references": [
         "A04"
       ],
       "language": "en",
-      "fingerprint": "8037590dca4890ca77170dc1ede394e98680081425d17a7dab9766b870532547"
+      "fingerprint": "b945dccc2af50cae06148429e238b04aed35632f47f1d0e17a93169103a78faf"
     },
     {
       "id": "evidence_journey_a05",
@@ -2192,16 +2189,13 @@
       "title": "One line cancelled, the rest stays",
       "search_text": "A06 Order intake and order changes One line cancelled, the rest stays Is only that commitment closed and its reservation released? One line cancelled, the rest stays Is only that commitment closed and its reservation released?",
       "claim_text": "Reality evaluates: Is only that commitment closed and its reservation released?",
-      "support": "limited",
-      "limitations": [
-        "Cancelling one order line releases its reservation and hold.",
-        "That the other lines of the same order stay open and reserved is not yet proven."
-      ],
+      "support": "proven",
+      "limitations": [],
       "references": [
         "A06"
       ],
       "language": "en",
-      "fingerprint": "22aa060df13fa99ec30a60bc8c586087622e528f1cba153d67e8bbc6db0005e5"
+      "fingerprint": "fd57d8419cb0caca66fb9897b20af706518d9abf32dbbd7c1a01f490c033d58a"
     },
     {
       "id": "evidence_journey_a07",
@@ -2210,16 +2204,15 @@
       "title": "Whole order cancelled after reservation",
       "search_text": "A07 Order intake and order changes Whole order cancelled after reservation Are all reservations released? Whole order cancelled after reservation Are all reservations released?",
       "claim_text": "Reality evaluates: Are all reservations released?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "Lines are cancelled one by one; there is no cancellation for a whole order.",
-        "Cancelling every line of a reserved order is not yet proven."
+        "Lines are cancelled one by one; there is no cancellation for a whole order."
       ],
       "references": [
         "A07"
       ],
       "language": "en",
-      "fingerprint": "10e6304e6374ee90ce737fe86e4d695241679a77207c39e71e6609ff639e4eb4"
+      "fingerprint": "715235caa43fa157e0d158934c2d5478bf9163cf3a2a45c9c39110e192ef3ee1"
     },
     {
       "id": "evidence_journey_a08",
@@ -2416,16 +2409,15 @@
       "title": "Zero-price line (sample, gift, replacement)",
       "search_text": "A19 Order intake and order changes Zero-price line (sample, gift, replacement) Committed and shipped without revenue? Zero-price line (sample, gift, replacement) Committed and shipped without revenue?",
       "claim_text": "Reality evaluates: Committed and shipped without revenue?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "A zero-revenue invoice line works.",
-        "A zero-price order line that is committed and shipped is not yet proven."
+        "The free line is invoiced next to a priced line; an invoice without any priced line lies outside this proof."
       ],
       "references": [
         "A19"
       ],
       "language": "en",
-      "fingerprint": "d12b9e225fb76dca570411bac447500233ff64e893f3974189bc0bf7ebeb4da6"
+      "fingerprint": "7075c638a91db765ae62feb6c3c44f9acef0fd00800d5f3ffcd1bf6e358097e5"
     },
     {
       "id": "evidence_journey_a20",
@@ -2866,16 +2858,13 @@
       "title": "One payment for two prepaid orders",
       "search_text": "C04 Payment and release One payment for two prepaid orders Is the payment allocated to both? One payment for two prepaid orders Is the payment allocated to both?",
       "claim_text": "Reality evaluates: Is the payment allocated to both?",
-      "support": "limited",
-      "limitations": [
-        "One payment can settle several invoices.",
-        "That it releases two prepaid orders at once is not yet proven."
-      ],
+      "support": "proven",
+      "limitations": [],
       "references": [
         "C04"
       ],
       "language": "en",
-      "fingerprint": "2acbe8228c20916b4956b105271245f6c24f1b67d942b861e569204872300dd8"
+      "fingerprint": "a483271e3e114509f737080ade71f2b871b07c544544c88715c2d542b1b16f51"
     },
     {
       "id": "evidence_journey_c05",
@@ -3634,16 +3623,13 @@
       "title": "B2C withdrawal within 14 days, full refund",
       "search_text": "F01 Returns and complaints B2C withdrawal within 14 days, full refund Stock back, refund owed and paid? B2C withdrawal within 14 days, full refund Stock back, refund owed and paid?",
       "claim_text": "Reality evaluates: Stock back, refund owed and paid?",
-      "support": "limited",
-      "limitations": [
-        "Return, credit note and refund each work.",
-        "One story running all three on the same order is not yet proven."
-      ],
+      "support": "proven",
+      "limitations": [],
       "references": [
         "F01"
       ],
       "language": "en",
-      "fingerprint": "8760afec6e56c7546f7e73294ffce46f1d68e4739e4ca6573442f4c6f1b4128a"
+      "fingerprint": "5d7ffb5b9111dc046ad74b72ff0803f77febdd01d015a1d043e2fffb09f1d910"
     },
     {
       "id": "evidence_journey_f02",
@@ -3700,16 +3686,15 @@
       "title": "Damaged return, partial refund",
       "search_text": "F05 Returns and complaints Damaged return, partial refund Disposition and refund independent? Damaged return, partial refund Disposition and refund independent?",
       "claim_text": "Reality evaluates: Disposition and refund independent?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "A reduced credit and the disposition of returned goods each work.",
-        "A damaged return combining both is not yet proven."
+        "The damage deduction is a charge on the credit note; crediting fewer units than came back is reported as not credited."
       ],
       "references": [
         "F05"
       ],
       "language": "en",
-      "fingerprint": "5674d12b6fe0eebcb23ffc8b5036eda43592f16f6ed605d48247eb725025d734"
+      "fingerprint": "a1a380844ec55b0723eaa40cab9a767fef26414c44f879c5bfa6b5d3c41136b6"
     },
     {
       "id": "evidence_journey_f06",
@@ -3735,14 +3720,14 @@
       "claim_text": "Reality evaluates: Two commitments, no refund?",
       "support": "limited",
       "limitations": [
-        "The return and the replacement delivery are recorded in order.",
-        "That no money moves is not yet proven."
+        "The return and the replacement delivery are recorded, and no money moves.",
+        "Reality has no exchange, so the return reads as not yet credited and the free replacement as not yet invoiced."
       ],
       "references": [
         "F07"
       ],
       "language": "en",
-      "fingerprint": "8ecba31a291f291a696e97d44d040a6ea88e5731794d394400c8d4c43c667f02"
+      "fingerprint": "dae665ef1bd5317aeba2513708a3882b83cc6f0a63f863d6996c8bd956824f69"
     },
     {
       "id": "evidence_journey_f08",
@@ -5256,16 +5241,13 @@
       "title": "Customer deducts penalty or marketing contribution",
       "search_text": "M08 B2B specifics Customer deducts penalty or marketing contribution Short payment with reason? Customer deducts penalty or marketing contribution Short payment with reason?",
       "claim_text": "Reality evaluates: Short payment with reason?",
-      "support": "limited",
-      "limitations": [
-        "An agreed deduction can be recorded as the reason for a short payment; this is proven for suppliers.",
-        "Customer penalties and marketing contributions are not yet proven."
-      ],
+      "support": "proven",
+      "limitations": [],
       "references": [
         "M08"
       ],
       "language": "en",
-      "fingerprint": "aa1d8612dff74b6e58e4ba22c5bb2206e383bfca02082fbd12696194a2854541"
+      "fingerprint": "7f9e72ff962e3626afd2a3245f3baf5e9656e6a6d901503e679525e0aaa19225"
     },
     {
       "id": "evidence_journey_m09",
@@ -5344,16 +5326,15 @@
       "title": "Intra-community supply (VAT-exempt, VAT ID)",
       "search_text": "N01 Finance, tax and currency Intra-community supply (VAT-exempt, VAT ID) Stated tax recorded? Intra-community supply (VAT-exempt, VAT ID) Stated tax recorded?",
       "claim_text": "Reality evaluates: Stated tax recorded?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "Net, tax and tax case codes are kept as the source states them.",
-        "An intra-community supply with zero tax and the customer's VAT ID is not yet proven."
+        "The customer's VAT ID is kept on the business partner, not on the invoice."
       ],
       "references": [
         "N01"
       ],
       "language": "en",
-      "fingerprint": "7624257b4043c108c0f2f30d48ab766db556f3f150c39a65a5afaa5d0a971fbd"
+      "fingerprint": "14afbeabd64bd19ba20d6bc27059473fe22b359a4d1d0ac607b96feab5d23dd3"
     },
     {
       "id": "evidence_journey_n02",
@@ -5362,16 +5343,15 @@
       "title": "Reverse charge on purchase",
       "search_text": "N02 Finance, tax and currency Reverse charge on purchase Stated tax recorded? Reverse charge on purchase Stated tax recorded?",
       "claim_text": "Reality evaluates: Stated tax recorded?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "Tax components on supplier invoices are kept as stated.",
-        "Reverse charge is not yet proven."
+        "Only net and zero tax can be stated; the self-assessed reverse-charge tax cannot be recorded."
       ],
       "references": [
         "N02"
       ],
       "language": "en",
-      "fingerprint": "7759b9718fbdfcb8187a2e1c50e6efc99580eccd28da11f69d04bd01167d692e"
+      "fingerprint": "ff979fe89e5e89e56f18f50801e9899cbaa4d8fcb925ef9d22ada0b8e48b6c0a"
     },
     {
       "id": "evidence_journey_n03",
@@ -5431,16 +5411,13 @@
       "title": "Open items per party incl. credits and prepayments",
       "search_text": "N06 Finance, tax and currency Open items per party incl. credits and prepayments Party balance correct? Open items per party incl. credits and prepayments Party balance correct?",
       "claim_text": "Reality evaluates: Party balance correct?",
-      "support": "limited",
-      "limitations": [
-        "Open items, overpayments and credit notes per business partner and currency are correct.",
-        "Deposits and prepayments in the balance are not yet proven."
-      ],
+      "support": "proven",
+      "limitations": [],
       "references": [
         "N06"
       ],
       "language": "en",
-      "fingerprint": "e73668f4f5c7ed5f868c5a03ad9d85333942eaa5edf09f30fa127e627f8e80bb"
+      "fingerprint": "43abc08558e35cae5526463413b86acb047b5090b8cc475c397d39aa9c0de841"
     },
     {
       "id": "evidence_journey_n07",
