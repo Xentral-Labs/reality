@@ -1076,7 +1076,6 @@ checked before it becomes a query, and the two surfaces that author one.
 
 - `packages/reality-core/tests/test_free_playground.py`: consent, read-only entry, canonical retry/pause/archive, explicit disable, cross-company allowance including subsequent ordinary companies, UTC reset, concurrent final slot, own-provider/companion boundary and provider refusal (FR-002–004, FR-007–008).
 - `packages/reality-core/tests/test_company_setup_api.py`: authenticated account entry and read-only consent status (FR-002–004).
-- `apps/web/scripts/free-playground.test.mjs`: task destinations, cleared filters, current-company successful results and browser preference identity (FR-005–006).
 - `provider-site/scripts/site-contract.test.mjs`: free-trial positioning without permanent-free or automatic-subscription promise (FR-001, FR-009).
 
 - `apps/web/scripts/free-playground-browser.mjs`: recoverable confirmed entry, actual rendered result/error/uninitialized gates, persistent dismissal, delivery detail, exhaustion draft and four mobile locales (Spec 190 FR-001–009).

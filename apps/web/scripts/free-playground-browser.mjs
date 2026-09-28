@@ -400,7 +400,7 @@ try {
   assert.equal(posts, beforeArchive, "An archived receipt must not trigger another creation");
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: two offered starts before any creation, a followed setup receipt, recoverable trial entry, truthful result prompt, dismissal, starters, exhausted draft and four mobile locales",
+    "PASS: two offered starts before any creation, a followed setup receipt, recoverable trial entry, usage and an exhausted draft, and four mobile locales",
   );
 } catch (error) {
   console.error(await page.locator("body").innerText());

@@ -1,4 +1,3 @@
-import { useTrialResult } from "./FreePlayground";
 import { ExceptionRulesRegister } from "./ExceptionRulesRegister";
 import { RegisterHeader } from "./RegisterWorkbench";
 import { useState } from "react";
@@ -30,11 +29,6 @@ function OpenExceptions({
   const { tenant, q, severity, exception } = selection;
   const read = useWorkList<AttentionRow>(JSON.stringify([tenant, q, severity]), (page) =>
     operationsApi.attention(tenant, q, severity, page),
-  );
-  useTrialResult(
-    "attention",
-    tenant,
-    !!read.page && !read.loading && !read.error && read.metadata?.state !== "uninitialized",
   );
   const detail = useRead(
     () => (exception ? operationsApi.finding(tenant, exception) : Promise.resolve(null)),

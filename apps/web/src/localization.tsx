@@ -251,17 +251,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Your empty company is being created for you.": "Deine leere Firma wird angelegt.",
     "Orders, deliveries and invoices are being prepared for you to explore.":
       "Aufträge, Lieferungen und Rechnungen werden zum Erkunden vorbereitet.",
-    "Try these three questions": "Starte mit diesen drei Fragen",
-    "Explore the records directly. These tasks use no AI questions.":
-      "Erkunde die Datensätze direkt. Diese Aufgaben verbrauchen keine KI-Fragen.",
-    "Which orders need attention?": "Welche Aufträge brauchen Aufmerksamkeit?",
-    "Why is this order not fully delivered?":
-      "Warum ist dieser Auftrag nicht vollständig geliefert?",
-    "Which invoices remain open?": "Welche Rechnungen sind noch offen?",
-    "Was that useful? Support Reality with a star on GitHub.":
-      "War das hilfreich? Unterstütze Reality mit einem Stern auf GitHub.",
-    "Star on GitHub": "Stern auf GitHub geben",
-    "Keep exploring": "Weiter erkunden",
     "Free AI questions remaining": "Verbleibende kostenlose KI-Fragen",
     "Daily limit reached": "Tageslimit erreicht",
     "Reset usage": "Nutzung zurücksetzen",
@@ -2362,16 +2351,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Your empty company is being created for you.": "Je lege bedrijf wordt aangemaakt.",
     "Orders, deliveries and invoices are being prepared for you to explore.":
       "Orders, leveringen en facturen worden klaargezet om te verkennen.",
-    "Try these three questions": "Begin met deze drie vragen",
-    "Explore the records directly. These tasks use no AI questions.":
-      "Verken de gegevens direct. Deze taken gebruiken geen AI-vragen.",
-    "Which orders need attention?": "Welke orders vragen aandacht?",
-    "Why is this order not fully delivered?": "Waarom is deze order niet volledig geleverd?",
-    "Which invoices remain open?": "Welke facturen staan nog open?",
-    "Was that useful? Support Reality with a star on GitHub.":
-      "Was dit nuttig? Steun Reality met een ster op GitHub.",
-    "Star on GitHub": "Ster geven op GitHub",
-    "Keep exploring": "Verder verkennen",
     "Free AI questions remaining": "Resterende gratis AI-vragen",
     "Daily limit reached": "Daglimiet bereikt",
     "Reset usage": "Gebruik resetten",
@@ -4162,17 +4141,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Your empty company is being created for you.": "Tu empresa vacía se está creando.",
     "Orders, deliveries and invoices are being prepared for you to explore.":
       "Se están preparando pedidos, entregas y facturas para que los explores.",
-    "Try these three questions": "Empieza con estas tres preguntas",
-    "Explore the records directly. These tasks use no AI questions.":
-      "Explora los registros directamente. Estas tareas no consumen preguntas de IA.",
-    "Which orders need attention?": "¿Qué pedidos necesitan atención?",
-    "Why is this order not fully delivered?":
-      "¿Por qué este pedido no se ha entregado por completo?",
-    "Which invoices remain open?": "¿Qué facturas siguen pendientes?",
-    "Was that useful? Support Reality with a star on GitHub.":
-      "¿Te resultó útil? Apoya a Reality con una estrella en GitHub.",
-    "Star on GitHub": "Dar una estrella en GitHub",
-    "Keep exploring": "Seguir explorando",
     "Free AI questions remaining": "Preguntas de IA gratuitas restantes",
     "Daily limit reached": "Límite diario alcanzado",
     "Reset usage": "Restablecer uso",

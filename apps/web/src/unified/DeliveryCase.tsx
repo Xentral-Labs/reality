@@ -1,4 +1,3 @@
-import { useTrialResult } from "./FreePlayground";
 import { ContextActions } from "./ActionLauncher";
 import { holdReason } from "./holdLabels";
 import { ActionCard } from "./ActionCard";
@@ -26,11 +25,6 @@ export function DeliveryCase({
   const { data, loading, error, refresh } = useRead(
     () => deliveryApi.detail(tenant, id),
     [tenant, id],
-  );
-  useTrialResult(
-    "delivery",
-    tenant,
-    !!data && data.case.id === id && !loading && !error && data.case.type === "customer_delivery",
   );
   const [action, setAction] = useState<DeliveryAction | null>(null);
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
