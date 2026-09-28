@@ -132,6 +132,7 @@ As a maintainer, I can add or change a journey once and have the public guide, q
 - The answer provider is unavailable, times out or returns uncited content.
 - The public marketing site cannot reach the question API or cannot load the embedded chatbot asset.
 - A public visitor opens, closes and reopens the chatbot on narrow/mobile and keyboard-only layouts.
+- A long structured answer must remain comfortably readable while showing materially more content above the fixed composer.
 - A Docs reader moves between English and German routes or into a page with the full embedded Journey Guide question experience.
 - A catalog entry has no demo case because support is proven elsewhere.
 - A demo reference exists in an older profile version but not the current one.
@@ -160,7 +161,7 @@ As a maintainer, I can add or change a journey once and have the public guide, q
 - **FR-010b**: The public Website chatbot, Docs question surface and authenticated Reality Chat MUST call the same guide query service and return the same status/citation basis for equivalent public capability questions.
 - **FR-010c**: Normal authenticated Reality Chat MUST recognize capability questions and use the guide service within the existing conversation rather than requiring a separate mode, session type or page.
 - **FR-010d**: Public chatbot failure MUST leave the marketing page fully usable, preserve no durable conversation history in the first release and offer direct links to matching Guide entries when deterministic matches are available.
-- **FR-010e**: On desktop the chatbot MUST use a readable non-modal side panel with a fixed header, independently scrollable conversation and fixed composer; on narrow screens it MUST become a bottom sheet. Guide citations MUST open in a new browser tab so the host page and ephemeral conversation remain intact.
+- **FR-010e**: On desktop the chatbot MUST use a readable non-modal side panel with a fixed header, independently scrollable conversation and fixed composer; on narrow screens it MUST become a bottom sheet. Guide citations MUST open in a new browser tab so the host page and ephemeral conversation remain intact. Conversation typography and answer spacing MUST use a compact reading density that keeps body text legible while prioritizing visible answer content; user messages MUST remain visually distinct without using a larger body size than assistant answers.
 - **FR-010f**: The widget MUST render model text as safe readable paragraphs, never execute returned markup, keep prior turns only in page memory, and keep user and assistant messages visually distinct.
 - **FR-010g**: The public capability assistant MUST understand bounded in-memory follow-up context and broad product-overview questions. A follow-up such as “and receiving in several steps?” MUST be interpreted against the preceding partial-delivery answer, while an overview question MUST summarize representative proven areas and material limitations rather than return `not_established` merely because it spans multiple journeys.
 - **FR-010h**: Capability descriptions MUST distinguish the business action from its actor. For confirmed mutations available through Chat or MCP, public answers MUST explain that an agent may prepare the action and a person confirms it instead of describing the capability as person-only.
