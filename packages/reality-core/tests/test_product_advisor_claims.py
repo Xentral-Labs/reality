@@ -1,5 +1,6 @@
 import pytest
 from pydantic import ValidationError
+
 from reality.domain.product_advisor import (
     AdvisoryClaim,
     EvidenceSource,
