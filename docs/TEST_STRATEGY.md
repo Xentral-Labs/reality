@@ -22,12 +22,15 @@ PostgreSQL databases and fixed timestamps where business dates affect behavior.
    server with every `/api/**` call answered by fixtures, so they prove that pages render
    and flows work without a database. The scripts listed in
    `apps/web/scripts/browser-suite.json` run in CI (`browser-scripts` job, split across
-   three runners with `BROWSER_SUITE_SHARD`; locally `npm run test:browser`) whenever the
-   web app or the catalogs change; add a script to the
-   list once it passes, and fix a listed script in the pull request that breaks it.
+   seven duration-balanced runners with `BROWSER_SUITE_SHARD`; locally
+   `npm run test:browser`) whenever the web app or the catalogs change. CI uploads the
+   measured per-script durations; keep the estimates in the suite catalog current when
+   timings materially change. Add a script to the list once it passes, and fix a listed
+   script in the pull request that breaks it.
    `packages/reality-core/tests/browser/*.py` run the same kind of script against a real
    API, database, worker and scheduler, each in its own database; CI runs them in the
-   `live-browser` job whenever the web app or the core changes. The remaining real-API
+   `live-browser` matrix, one journey per runner, whenever the web app or the core changes.
+   The remaining real-API
    scripts in `apps/web/scripts` (for example `history-table-browser.mjs`) still expect an
    already running, seeded stack and stay manual until they get a harness of their own;
    `command-palette-performance.mjs` is a measurement, not a pass/fail check.

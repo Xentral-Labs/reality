@@ -3,13 +3,13 @@
 //
 //   PLAYWRIGHT_MODULE=/path/to/node_modules/playwright/index.mjs node scripts/run-browser-suite.mjs
 //
-// Optional: BROWSER_SUITE_SHARD=1/2 runs every second script starting with the first, so a
-// CI job can be split across runners without editing the list. BROWSER_SUITE_PORT (5177 by
-// default; several scripts still navigate to 5177 literally) and BROWSER_SUITE_TIMEOUT
-// (seconds per script, 300) can be overridden.
+// Optional: BROWSER_SUITE_SHARD=1/7 selects one duration-balanced shard. BROWSER_SUITE_PORT
+// (5177 by default; several scripts still navigate to 5177 literally) and
+// BROWSER_SUITE_TIMEOUT (seconds per script, 300) can be overridden.
 import { spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { distributeByDuration, parseShard } from "./browser-suite-sharding.mjs";
 
 const scripts = fileURLToPath(new URL(".", import.meta.url));
 const web = fileURLToPath(new URL("..", import.meta.url));
@@ -18,11 +18,14 @@ const timeout = Number(process.env.BROWSER_SUITE_TIMEOUT || 300) * 1000;
 const base = `http://127.0.0.1:${port}`;
 if (!process.env.PLAYWRIGHT_MODULE) throw new Error("Set PLAYWRIGHT_MODULE.");
 
-const all = JSON.parse(
-  readFileSync(new URL("./browser-suite.json", import.meta.url), "utf8"),
-).scripts;
-const [index, count] = (process.env.BROWSER_SUITE_SHARD || "1/1").split("/").map(Number);
-const selected = all.filter((_, position) => position % count === index - 1);
+const suite = JSON.parse(readFileSync(new URL("./browser-suite.json", import.meta.url), "utf8"));
+const { index, count } = parseShard(process.env.BROWSER_SUITE_SHARD);
+const shards = distributeByDuration(suite.scripts, suite.estimated_seconds, count);
+const selected = shards[index - 1].scripts;
+console.log(
+  `Selected ${selected.length} scripts for shard ${index}/${count} ` +
+    `(${shards[index - 1].seconds}s estimated)`,
+);
 
 const vite = spawn("npx", ["vite", "--port", String(port), "--strictPort", "--host", "127.0.0.1"], {
   cwd: web,
@@ -93,6 +96,16 @@ try {
 }
 const failed = results.filter((result) => result.code !== 0);
 const total = results.reduce((sum, result) => sum + result.seconds, 0);
+if (process.env.BROWSER_SUITE_RESULTS) {
+  writeFileSync(
+    process.env.BROWSER_SUITE_RESULTS,
+    `${JSON.stringify(
+      Object.fromEntries(results.map(({ script, seconds }) => [script, seconds])),
+      null,
+      2,
+    )}\n`,
+  );
+}
 console.log(
   `\n${results.length - failed.length}/${results.length} browser scripts passed in ${total}s` +
     (count > 1 ? ` (shard ${index}/${count})` : ""),
