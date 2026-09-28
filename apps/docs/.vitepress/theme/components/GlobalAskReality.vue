@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, watch } from "vue";
 import { useRoute } from "vitepress";
 
-declare const __API_URL__: string;
+declare const __APP_URL__: string;
 
 const route = useRoute();
 const dedicatedQuestionRoutes = new Set([
@@ -32,7 +32,7 @@ onMounted(() => {
     const script = document.createElement("script");
     script.src = "/journey-guide-widget/widget.js";
     script.async = true;
-    script.dataset.apiUrl = __API_URL__;
+    script.dataset.apiUrl = __APP_URL__;
     script.dataset.locale = route.path.startsWith("/de/") ? "de" : "en";
     script.dataset.guideUrl = route.path.startsWith("/de/")
       ? "/de/getting-started/business-journeys"
