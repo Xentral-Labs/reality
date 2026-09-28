@@ -15,6 +15,10 @@
 
 ## Live browser check
 
+`packages/reality-core/tests/browser/unified_engine_room.py` seeds a disposable database and
+starts the stack, including the MCP runtime, and runs this check in CI (`live-browser` job);
+`pytest -s tests/browser/unified_engine_room.py` with `PLAYWRIGHT_MODULE` runs it locally.
+
 `apps/web/scripts/engine-room-live-browser.mjs` runs against a real API (not fixtures). Seed a database with an owner `owner@example.test`, a member `member@example.test` (password `a-long-account-password`), one company and one MCP token. Run the API with `REALITY_AUTH_MODE=enabled`, Vite on `127.0.0.1:5266` proxying to it, then:
 
 ```bash

@@ -255,6 +255,10 @@ jobs:
             test: tests/browser/unified_business_journey.py
           - journey: item-csv-import
             test: tests/browser/unified_item_csv_import.py
+          - journey: history-table
+            test: tests/browser/unified_history_table.py
+          - journey: engine-room
+            test: tests/browser/unified_engine_room.py
     services:
       postgres:
         image: postgres:17-alpine
