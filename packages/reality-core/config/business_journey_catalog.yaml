@@ -65,7 +65,7 @@ entries:
   question: What is still open after the revision?
   status: supported
   evidence_level: executable
-  summary: 'Reality evaluates: What is still open after the revision?'
+  summary: 'After 4 of 10 units have shipped and the reviewed order quantity rises to 12, Reality derives 8 units still open. The 4 shipped units remain fulfilled, and the newly open remainder can be reserved and shipped.'
   limitations: []
   keywords: []
   question_examples:
@@ -2465,7 +2465,7 @@ entries:
   question: Open remainder?
   status: supported
   evidence_level: executable
-  summary: 'Reality evaluates: Open remainder?'
+  summary: 'When a supplier delivers 3 of 8 ordered units, Reality records the receipt for 3 and derives an open remainder of 5. A later receipt can fulfill that remainder without overwriting the first movement.'
   limitations: *id001
   keywords: []
   question_examples:

@@ -37,6 +37,8 @@ Each generated source and evidence unit has a content fingerprint, stable ID and
 
 The public Advisor may explain native behavior, a manual step, a confirmation-bound agent proposal, a workaround or a genuine gap. It may never promote limited evidence to proven support, present executable vocabulary as proof that an end-to-end process exists, or omit a material limitation. Provider failure falls back to the same bounded evidence and never expands the conclusion.
 
+When the latest question can refer to materially different ERP flows, the Advisor asks one focused clarification before research instead of letting conversation history silently choose a flow. In particular, an unqualified “partial delivery” question distinguishes a customer shipment from a partial supplier goods receipt. Once the trading side is explicit, retrieval uses side-specific vocabulary. Public Journey summaries used as deterministic fallback state a concrete business outcome and must not merely repeat their title or question.
+
 Authorized internal calls receive the same public conclusion and may additionally receive allowlisted internal evidence for cited Journey IDs. This diagnostic material is returned separately, remains tenant-independent and is never serialized by the public API or widget. Remediation starts by fixing the canonical source or allowlist, regenerating the artifact and rerunning the claim and buyer-case evaluations; generated JSON is not edited by hand.
 
 The [Demo Data Catalog](demo-data-catalog.md) remains the smaller inventory of concrete cases seeded in the current demo profile. A cataloged journey without a demo reference is not presented as immediately explorable.

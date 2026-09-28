@@ -125,3 +125,10 @@ All artifacts MUST be written in English. Tests precede the behavior they prove.
 | DR-001–DR-002 | T006, T035 | T008, T025 |
 | DR-003–DR-004 | T028, T034–T035 | T031, T038–T039 |
 | DR-005–DR-007 | T006, T028, T035 | T008–T010, T031, T039 |
+
+## Phase 9: Convergence
+
+- [x] T056 [US1] [FR-010] [FR-012] Add a regression test proving the provider prompt communicates every accepted workflow role and prevents valid researched answers from falling back because of an invented role
+- [ ] T057 [US1] [FR-010] [FR-012] Align the provider output contract with the validated advisory claim schema and verify representative English and German ERP-buyer answers through the live local endpoint and widget (partial)
+- [x] T058 [US2] [FR-013] Add regressions proving an unqualified partial-delivery question asks one customer-versus-supplier clarification and bounded B2B history does not silently resolve it
+- [x] T059 [US1] [FR-012] Separate customer and supplier partial-delivery retrieval vocabulary, replace tautological A04/H02 public evidence with concrete quantity outcomes, regenerate advisory knowledge, and verify focused service/evaluation/security tests

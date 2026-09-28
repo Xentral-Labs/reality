@@ -30,8 +30,8 @@ _SUPPORT_CEILING: dict[EvidenceSupport, int] = {
     "proven": 3,
     "limited": 2,
     "unavailable": 1,
-    "explanatory": 0,
-    "vocabulary_only": 0,
+    "explanatory": 3,
+    "vocabulary_only": 3,
 }
 _CLAIM_LEVEL: dict[ClaimSupport, int] = {
     "proven": 3,
@@ -54,6 +54,15 @@ _HIGH_RISK_TERMS = (
 
 def _normalized(value: str) -> str:
     return value.casefold().replace("ä", "a").replace("ö", "o").replace("ü", "u")
+
+
+def _is_negated(statement: str, term: str) -> bool:
+    return bool(
+        re.search(
+            rf"\b(?:no|not|without|kein\w*|nicht)\b[^.!?]{{0,50}}\b{re.escape(term)}\b",
+            statement,
+        )
+    )
 
 
 class EvidenceSource(BaseModel):
@@ -183,12 +192,16 @@ def validate_claim(
         )
     statement = _normalized(claim.statement)
     evidence_text = " ".join(
-        _normalized(f"{item.claim_text} {item.search_text}") for item in selected
+        _normalized(
+            " ".join((item.claim_text, item.search_text, *item.limitations))
+        )
+        for item in selected
     )
     unsupported_risk = tuple(
         term
         for term in _HIGH_RISK_TERMS
         if term in statement
+        and not _is_negated(statement, term)
         and (
             term not in evidence_text
             or not any(item.support in {"proven", "limited"} for item in selected)
@@ -214,11 +227,19 @@ def validate_claim(
     required_limits = tuple(
         dict.fromkeys(limit for item in selected for limit in item.limitations)
     )
-    if required_limits and not set(required_limits).issubset(claim.limitations):
+    present_limits = {
+        _normalized(limit).rstrip(". ;:") for limit in claim.limitations
+    }
+    missing_limits = tuple(
+        limit
+        for limit in required_limits
+        if _normalized(limit).rstrip(". ;:") not in present_limits
+    )
+    if missing_limits:
         return claim.model_copy(
             update={
                 "validation": "weakened",
-                "limitations": tuple(dict.fromkeys((*claim.limitations, *required_limits))),
+                "limitations": (*claim.limitations, *missing_limits),
                 "reason_codes": ("limitations_restored",),
             }
         )
