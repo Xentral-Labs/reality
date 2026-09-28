@@ -67,6 +67,17 @@ test("widget uses a readable desktop panel and mobile bottom sheet", () => {
   assert.match(widget, /border-radius:24px 24px 0 0/u);
 });
 
+test("widget uses compact readable conversation typography", () => {
+  assert.match(widget, /\.message\{[^}]*font-size:15px;line-height:1\.55/u);
+  assert.match(widget, /\.message\.user\{[^}]*line-height:1\.45/u);
+  assert.match(widget, /\.answer\{padding:16px 18px/u);
+  assert.match(widget, /\.answer p\{margin:0 0 10px/u);
+  assert.match(
+    widget,
+    /@media\(max-width:700px\)[^{]*\{[\s\S]*?\.message\{[^}]*font-size:14px;line-height:1\.5/u,
+  );
+});
+
 test("widget keeps ephemeral turns and renders provider text without HTML injection", () => {
   assert.match(widget, /appendUserMessage/u);
   assert.match(widget, /appendFormattedText/u);
