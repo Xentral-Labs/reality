@@ -144,6 +144,7 @@ As a maintainer, I can add or change a journey once and have the public guide, q
 
 - **FR-001**: The Business Journey Guide MUST publish every canonical business scenario exactly once with its stable ID, process area, title, business question and current status.
 - **FR-002**: The supported status vocabulary MUST distinguish `supported`, `partial`, `recognition_only`, `missing` and `out_of_scope`, with a public explanation for every non-supported state.
+- **FR-002a**: Every non-supported journey (`partial`, `recognition_only`, `missing`, `out_of_scope`) MUST state its own public limitation in business language: what is absent or not yet proven and, where it exists, what already works, which workaround applies or why the journey is deliberately excluded. The status definition alone is not a limitation, and a limitation MUST NOT name repository paths, specifications, tests or internal field names.
 - **FR-003**: Every support claim MUST carry an evidence level that distinguishes executable proof, reviewed documentation and bounded inference; `supported` MUST require executable proof.
 - **FR-004**: A journey MAY link public tool descriptions, demo references, product paths, limitations and related journeys, but public output MUST exclude internal-only evidence and repository details.
 - **FR-005**: Readers MUST be able to search and filter the guide by ordinary terms, stable ID, process area and support status without signing in.
