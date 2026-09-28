@@ -70,3 +70,9 @@ Expected: structured claims and sources render safely, old responses remain usab
 | Authenticated Chat | Product-intent routing, canonical read-tool parity, additive platform-admin evidence and unchanged proposal confirmation tests | Passed |
 
 The matrix uses automated surface contracts rather than a deployed production smoke. A deployed Website/Docs/API origin smoke remains a release-environment responsibility.
+
+## General semantic clarification verification — 2026-09-28
+
+- Spec Kit consistency analysis found no new critical, high or medium issue for the FR-013 extension; T060–T062 cover its provider contract, implementation and verification.
+- Focused Ruff checks passed.
+- Product Advisor service, security, evaluation and Business Journey regression suites passed: 49 tests.

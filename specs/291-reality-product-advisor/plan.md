@@ -79,7 +79,7 @@ Tests, code and private specs are not copied into the public artifact. They can 
 
 ### Question and claim pipeline
 
-1. **Classify**: deterministic signals plus an optional provider plan identify intent, detected language, subject and no more than six subquestions. A short ambiguous follow-up inherits language from bounded history, then the surface hint. Tenant-specific requests use normal Chat tools.
+1. **Classify**: deterministic signals plus the provider identify intent, detected language, subject, ambiguity and no more than six subquestions. The provider applies the same semantic ambiguity rule to all business terms. If materially different interpretations would change the workflow or conclusion, it returns one focused clarification with no claims; otherwise it continues to an evidence-backed answer. A short ambiguous follow-up inherits language from bounded history, then the surface hint. Tenant-specific requests use normal Chat tools.
 2. **Retrieve**: lexical aliases, source class, subject and catalog relationships return a bounded evidence set per subquestion. Broad questions receive representative evidence for each requested concern.
 3. **Draft claims**: the provider returns structured claim candidates with exact evidence IDs, requested capability, support level, workflow role, limitation and optional exact tool name.
 4. **Validate**: server rules verify source visibility, citation existence, status ceiling, exact tool vocabulary, limitation preservation and prohibited confidence transitions. High-risk wording requires exact qualifying evidence. An optional second provider check may test semantic entailment but cannot raise support or authorize a source.
@@ -140,6 +140,7 @@ Rollback disables the advisor pipeline and returns the endpoint/tool to the spec
 - Public content may still be unsuitable as a product commitment; allowlist additions require product review.
 - Lexical retrieval may miss synonyms; prove the gap with evaluations before adding search infrastructure.
 - An LLM verifier may agree with an incorrect writer; deterministic source/status/tool ceilings remain authoritative.
+- Provider ambiguity judgment may over-question; acceptance cases require direct answers when omitted detail does not materially change the conclusion and clarification only for materially different flows.
 - Broad answers may become catalog dumps; subquestion and 180-word defaults constrain them.
 - Chat may misclassify a tenant operation as general advice; explicit company context and normal tool routing take precedence.
 - Automatic language detection can be uncertain for short inputs; bounded history and surface language provide deterministic fallback.
