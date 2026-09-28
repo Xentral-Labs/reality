@@ -531,3 +531,66 @@ def _later_unclaimed_returns(
         )
         unclaimed += max(Decimal(movement.quantity) - claimed, ZERO)
     return unclaimed
+
+
+def exchange_links(
+    session: Session,
+    tenant_id: str,
+    *,
+    movement: Movement | None = None,
+    commitment_id: str | None = None,
+) -> list[dict[str, str]]:
+    """The records an exchange connects, seen from a return or from a replacement.
+
+    From returned goods: the exchange and the replacement it sent. From a
+    replacement: the exchange, the delivery it replaces and the goods that came
+    back. Read only for explanations; nothing about settlement is decided here.
+    """
+    links: list[dict[str, str]] = []
+    if movement is not None and movement.type == "return":
+        answering = _exchanges(session, tenant_id, return_movement_id=movement.id)
+        if movement.return_announcement_id:
+            answering += _exchanges(
+                session,
+                tenant_id,
+                return_announcement_id=movement.return_announcement_id,
+            )
+        for exchange in answering:
+            links += [
+                {"kind": "customer_exchange", "id": exchange.id, "label": "Exchange"},
+                {
+                    "kind": "commitment",
+                    "id": exchange.replacement_commitment_id,
+                    "label": "Replacement delivery",
+                },
+            ]
+        return links
+    replacement_id = commitment_id or (movement.commitment_id if movement else None)
+    if replacement_id is None:
+        return links
+    exchange = session.scalar(
+        select(CustomerExchange).where(
+            CustomerExchange.tenant_id == tenant_id,
+            CustomerExchange.replacement_commitment_id == replacement_id,
+        )
+    )
+    if exchange is None:
+        return links
+    delivery, returned, announcement = _returned_delivery_of(
+        session, tenant_id, exchange
+    )
+    links += [
+        {"kind": "customer_exchange", "id": exchange.id, "label": "Exchange"},
+        {"kind": "commitment", "id": delivery.id, "label": "Replaced delivery"},
+    ]
+    if returned is not None:
+        links.append({"kind": "movement", "id": returned.id, "label": "Returned goods"})
+    else:
+        links.append(
+            {
+                "kind": "return_announcement",
+                "id": announcement.id,
+                "label": "Return announcement",
+            }
+        )
+    return links

@@ -46,8 +46,8 @@
 
 **Independent Test**: `pytest core/tests/test_customer_exchanges.py -k explain`
 
-- [ ] T017 [P] [US3] [FR-012] Failing tests: return movement explanation names exchange and replacement; replacement shipment and delivery case name exchange and returned delivery; decision history shows actor, time and reason, in `core/tests/test_customer_exchanges.py`
-- [ ] T018 [US3] [FR-012] Implement links in `core/src/reality/services/movement_explanations.py` and `core/src/reality/services/delivery_reads.py`; emit `exchange.recorded` with the proposal as action
+- [x] T017 [P] [US3] [FR-012] Failing tests: return movement explanation names exchange and replacement; replacement shipment and delivery case name exchange and returned delivery; decision history shows actor, time and reason, in `core/tests/test_customer_exchanges.py`
+- [x] T018 [US3] [FR-012] Implement links in `core/src/reality/services/movement_explanations.py` and `core/src/reality/services/delivery_reads.py`; emit `exchange.recorded` with the proposal as action
 
 ## Phase 6: Adapters — Web, MCP/Chat, CLI (US1, US2)
 

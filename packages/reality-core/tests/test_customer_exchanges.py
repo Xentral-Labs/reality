@@ -17,10 +17,13 @@ from reality.db.core import (
     SourceRecord,
 )
 from reality.services import core, customer_exchanges
+from reality.services.decision_attribution import record_decisions
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
     prepare_delivery_action,
 )
+from reality.services.delivery_reads import delivery_case
+from reality.services.movement_explanations import movement_explanation
 from reality.tools.application import approve_and_execute_proposal
 
 AS_OF = datetime(2026, 9, 30, 12, tzinfo=UTC)
@@ -585,3 +588,113 @@ def test_a_partly_shipped_then_cancelled_replacement_settles_what_left(
     assert customer_exchanges.settled_by_delivery(session, tenant) == {
         commitment.id: Decimal(1)
     }
+
+
+# --- T017: both sides and the decision explain each other -----------------------
+
+
+def _links(explanation):
+    return {(link["kind"], link["id"]) for link in explanation["links"]}
+
+
+def test_the_returned_goods_name_their_exchange_and_replacement(session, business):
+    """US3.1: the return's explanation says what answered it."""
+    commitment = _delivered(session, business)
+    goods_back = _returned(session, business, commitment)
+    before = movement_explanation(session, business.tenant.id, goods_back.id)
+    assert ("customer_exchange", None) not in _links(before)
+    assert not any(link["kind"] == "customer_exchange" for link in before["links"])
+
+    exchange = _exchange(session, business, return_movement_id=goods_back.id)
+
+    explained = movement_explanation(session, business.tenant.id, goods_back.id)
+    # What the movement is stays what it was: goods back on their delivery.
+    assert explained["kind"] == before["kind"] == "commitment"
+    assert {
+        ("customer_exchange", exchange.id),
+        ("commitment", exchange.replacement_commitment_id),
+    } <= _links(explained)
+
+
+def test_announced_goods_that_arrive_name_the_advance_exchange(session, business):
+    tenant = business.tenant.id
+    commitment = _delivered(session, business)
+    announcement = core.announce_customer_return(
+        session, tenant, commitment.id, 1, reference="RMA-EXPLAIN"
+    )
+    exchange = _exchange(session, business, return_announcement_id=announcement.id)
+
+    arrived = core.record_movement(
+        session,
+        tenant,
+        "return",
+        business.item.id,
+        "1",
+        to_location_id=business.location.id,
+        commitment_id=commitment.id,
+        return_announcement_id=announcement.id,
+    )
+
+    explained = movement_explanation(session, tenant, arrived.id)
+    assert explained["kind"] == "return_announcement"
+    assert ("customer_exchange", exchange.id) in _links(explained)
+
+
+def test_the_replacement_names_its_exchange_and_the_delivery_it_replaces(
+    session, business
+):
+    """US3.2: from the replacement side, the free delivery is explained."""
+    tenant = business.tenant.id
+    commitment = _delivered(session, business)
+    goods_back = _returned(session, business, commitment)
+    exchange = _exchange(session, business, return_movement_id=goods_back.id)
+    core.reserve(session, tenant, exchange.replacement_commitment_id)
+    sent = core.record_movement(
+        session,
+        tenant,
+        "shipment",
+        business.item.id,
+        "1",
+        from_location_id=business.location.id,
+        commitment_id=exchange.replacement_commitment_id,
+    )
+
+    explained = movement_explanation(session, tenant, sent.id)
+    assert explained["kind"] == "commitment"
+    assert {
+        ("commitment", exchange.replacement_commitment_id),
+        ("customer_exchange", exchange.id),
+        ("commitment", commitment.id),
+    } <= _links(explained)
+
+    case = delivery_case(session, tenant, exchange.replacement_commitment_id)
+    assert {
+        ("customer_exchange", exchange.id),
+        ("commitment", commitment.id),
+        ("movement", goods_back.id),
+    } <= {(link["kind"], link["id"]) for link in case["links"]}
+    # Positive control: an ordinary delivery names no exchange.
+    ordinary = delivery_case(session, tenant, commitment.id)
+    assert not any(link["kind"] == "customer_exchange" for link in ordinary["links"])
+
+
+def test_the_exchange_names_who_confirmed_it_when_and_why(session, business):
+    """US3.3: the decision behind the exchange, from its own detail view."""
+    commitment = _delivered(session, business)
+    goods_back = _returned(session, business, commitment)
+    proposal = _prepare(
+        session, business, "exchange-decision", return_movement_id=goods_back.id
+    )
+    receipt = json.loads(_confirm(session, business, proposal).output)
+
+    decisions = record_decisions(
+        session, business.tenant.id, "customer_exchange", receipt["exchange_id"]
+    )
+    assert [(row["role"], row["id"], row["tool"]) for row in decisions] == [
+        ("created", proposal.id, "customer_exchange_record")
+    ]
+    assert decisions[0]["decided_at"] and decisions[0]["decider"]
+    detail = customer_exchanges.customer_exchange_detail(
+        session, business.tenant.id, exchange_id=receipt["exchange_id"]
+    )
+    assert (detail["reason"], detail["action_id"]) == ("Wrong size", proposal.id)
