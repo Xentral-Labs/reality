@@ -63,12 +63,10 @@ entries:
   section: Order intake and order changes
   title: Customer raises the quantity after a partial delivery
   question: What is still open after the revision?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: What is still open after the revision?'
-  limitations:
-  - Raising an ordered quantity works when nothing has been delivered yet.
-  - Raising it after a partial delivery is not yet proven.
+  limitations: []
   keywords: []
   question_examples:
   - Customer raises the quantity after a partial delivery
@@ -78,6 +76,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_raising_the_quantity_after_a_partial_delivery_opens_only_the_rest
+    note: '10 ordered, 4 shipped, raised to 12 through the reviewed revision: 8 open, 4 delivered; the rest is reserved again and ships in full.'
   - reference: packages/reality-core/tests/finance/test_commercial_edges.py::test_higher_revision_allows_only_the_new_quantity; tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated
     note: An upward revision is tested only with no delivery before it. No test raises the quantity after a partial shipment and asserts what is still open.
 - id: A05
@@ -105,12 +105,10 @@ entries:
   section: Order intake and order changes
   title: One line cancelled, the rest stays
   question: Is only that commitment closed and its reservation released?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Is only that commitment closed and its reservation released?'
-  limitations:
-  - Cancelling one order line releases its reservation and hold.
-  - That the other lines of the same order stay open and reserved is not yet proven.
+  limitations: []
   keywords: []
   question_examples:
   - One line cancelled, the rest stays
@@ -120,18 +118,19 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_cancelling_one_line_leaves_the_other_lines_open_and_reserved
+    note: 'Reviewed cancellation of one of three reserved lines: only that line is cancelled and unreserved; the other two stay open with their reservations.'
   - reference: packages/reality-core/tests/test_commitment_actions.py::test_reviewed_cancellation_closes_open_remainder_and_releases_controls
     note: Cancelling one commitment releases its reservation and hold. No multi-line order test asserts that the other lines stay open and reserved.
 - id: A07
   section: Order intake and order changes
   title: Whole order cancelled after reservation
   question: Are all reservations released?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Are all reservations released?'
   limitations:
   - Lines are cancelled one by one; there is no cancellation for a whole order.
-  - Cancelling every line of a reserved order is not yet proven.
   keywords: []
   question_examples:
   - Whole order cancelled after reservation
@@ -141,6 +140,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_cancelling_every_line_of_a_reserved_order_releases_all_its_stock
+    note: 'Every line of a reserved two-item order cancelled through the reviewed action: no active reservation remains and stock is unchanged.'
   - reference: packages/reality-core/tests/test_inventory_and_fulfillment.py::test_cancel_preserves_commitment_and_releases_allocation
     note: There is no order-level cancel, only `cancel_commitment` per commitment. No test cancels every line of a reserved order.
 - id: A08
@@ -371,12 +372,11 @@ entries:
   section: Order intake and order changes
   title: Zero-price line (sample, gift, replacement)
   question: Committed and shipped without revenue?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Committed and shipped without revenue?'
   limitations:
-  - A zero-revenue invoice line works.
-  - A zero-price order line that is committed and shipped is not yet proven.
+  - The free line is invoiced next to a priced line; an invoice without any priced line lies outside this proof.
   keywords: []
   question_examples:
   - Zero-price line (sample, gift, replacement)
@@ -386,6 +386,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_zero_price_line_ships_and_is_invoiced_without_revenue
+    note: A zero-price line beside a priced one is reserved, shipped and invoiced at zero through document_create and sales_invoice_post; revenue is the priced line only and shipped_not_billed clears (positive control first).
   - reference: packages/reality-core/tests/test_commercial_matching_services.py::test_free_goods_keep_inventory_cost_and_zero_revenue
     note: Only the zero-revenue invoice side is tested. No zero-price order line is shown committed and shipped.
 - id: A20
@@ -912,12 +914,10 @@ entries:
   section: Payment and release
   title: One payment for two prepaid orders
   question: Is the payment allocated to both?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Is the payment allocated to both?'
-  limitations:
-  - One payment can settle several invoices.
-  - That it releases two prepaid orders at once is not yet proven.
+  limitations: []
   keywords: []
   question_examples:
   - One payment for two prepaid orders
@@ -927,6 +927,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_one_payment_releases_two_prepaid_orders
+    note: One confirmed settlement payment of 200 is booked on the first prepayment invoice and allocated to the second; both invoices close and both orders become ship-ready.
   - reference: tests/test_ledger.py::test_one_payment_can_settle_multiple_invoices_tenant_safely
     note: One payment settling several invoices is proven, but no test checks fulfillment_readiness of two prepaid orders fed by one payment.
 - id: C05
@@ -1835,12 +1837,10 @@ entries:
   section: Returns and complaints
   title: B2C withdrawal within 14 days, full refund
   question: Stock back, refund owed and paid?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Stock back, refund owed and paid?'
-  limitations:
-  - Return, credit note and refund each work.
-  - One story running all three on the same order is not yet proven.
+  limitations: []
   keywords: []
   question_examples:
   - B2C withdrawal within 14 days, full refund
@@ -1850,6 +1850,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_b2c_withdrawal_brings_the_goods_back_and_refunds_in_full
+    note: 'Paid delivery, full return, reviewed credit citing the invoice line, reviewed refund: stock back, invoice, credit, receivable and cash at 0, no return or billing signal (positive control first).'
   - reference: tests/test_credit_notes.py::test_a_paid_invoice_can_still_be_credited, ::test_a_credit_may_be_refunded; tests/test_returns.py::test_a_return_may_name_the_delivery_it_reverses
     note: Each piece is tested alone; no one story runs return, credit and paid refund on one order.
 - id: F02
@@ -1915,12 +1917,11 @@ entries:
   section: Returns and complaints
   title: Damaged return, partial refund
   question: Disposition and refund independent?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Disposition and refund independent?'
   limitations:
-  - A reduced credit and the disposition of returned goods each work.
-  - A damaged return combining both is not yet proven.
+  - The damage deduction is a charge on the credit note; crediting fewer units than came back is reported as not credited.
   keywords: []
   question_examples:
   - Damaged return, partial refund
@@ -1930,6 +1931,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_damaged_return_is_disposed_and_credited_independently
+    note: Two back, one restocked and one scrapped through reviewed dispositions; full-quantity credit with a damage charge line, refunded; dispositions and credit each reconcile with no signal (positive control first).
   - reference: tests/operational_exceptions/test_derivation.py::test_a_restocking_fee_is_a_charge_not_a_smaller_credit; tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes
     note: A reduced credit and the disposition are tested separately; no damaged-return story combines them.
 - id: F06
@@ -1959,8 +1962,8 @@ entries:
   evidence_level: reviewed
   summary: 'Reality evaluates: Two commitments, no refund?'
   limitations:
-  - The return and the replacement delivery are recorded in order.
-  - That no money moves is not yet proven.
+  - The return and the replacement delivery are recorded, and no money moves.
+  - Reality has no exchange, so the return reads as not yet credited and the free replacement as not yet invoiced.
   keywords: []
   question_examples:
   - 'Exchange: return plus new delivery, no money'
@@ -1970,6 +1973,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_exchange_moves_no_money_but_reads_as_uncredited_and_unbilled
+    note: Goods and money are right, but the return raises returned_not_credited and the zero-price replacement shipped_not_billed; spec 246 US7 requires only that neither movement overwrites the other.
   - reference: tests/scenarios/test_international_demo.py::test_supported_edge_cases_are_source_backed_and_traceable (exchange_replacement)
     note: Only the order of the return and replacement movements is asserted; "no refund / no money moved" is not.
 - id: F08
@@ -3781,12 +3786,10 @@ entries:
   section: B2B specifics
   title: Customer deducts penalty or marketing contribution
   question: Short payment with reason?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Short payment with reason?'
-  limitations:
-  - An agreed deduction can be recorded as the reason for a short payment; this is proven for suppliers.
-  - Customer penalties and marketing contributions are not yet proven.
+  limitations: []
   keywords: []
   question_examples:
   - Customer deducts penalty or marketing contribution
@@ -3796,6 +3799,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_customer_deduction_with_an_agreed_reason_leaves_nothing_open
+    note: 'Customer short payment with an agreed_deduction reduction through finance.settlement.apply: invoice open 0, reason on the review and the adjustment source record.'
   - reference: tests/finance/test_settlement_flows.py::test_underpayment_optional_reduction_and_independent_inverse, ::test_supplier_reduction_requires_agreement_and_combined_limit; services/finance/settlement.py REASONS
     note: The `agreed_deduction` reason exists and is tested on the supplier side only; no customer penalty or marketing-contribution short payment is tested.
 - id: M09
@@ -3884,12 +3889,11 @@ entries:
   section: Finance, tax and currency
   title: Intra-community supply (VAT-exempt, VAT ID)
   question: Stated tax recorded?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Stated tax recorded?'
   limitations:
-  - Net, tax and tax case codes are kept as the source states them.
-  - An intra-community supply with zero tax and the customer's VAT ID is not yet proven.
+  - The customer's VAT ID is kept on the business partner, not on the invoice.
   keywords: []
   question_examples:
   - Intra-community supply (VAT-exempt, VAT ID)
@@ -3899,18 +3903,19 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_intra_community_supply_keeps_its_stated_zero_tax_and_case
+    note: Customer with VAT ID; reviewed sales invoice with stated net 250 and tax 0; EU case as an internal case_code reference; nothing computed.
   - reference: tests/finance/test_components.py::test_zero_unknown_and_gross_basis_are_distinct; tests/finance/test_source_mappings.py::test_source_mapping_preview_confirmation_and_no_financial_effect ("EU" case)
     note: Stated net/tax and explicit case codes are kept; no intra-community sale story (zero tax plus Party.tax_identifier).
 - id: N02
   section: Finance, tax and currency
   title: Reverse charge on purchase
   question: Stated tax recorded?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Stated tax recorded?'
   limitations:
-  - Tax components on supplier invoices are kept as stated.
-  - Reverse charge is not yet proven.
+  - Only net and zero tax can be stated; the self-assessed reverse-charge tax cannot be recorded.
   keywords: []
   question_examples:
   - Reverse charge on purchase
@@ -3920,6 +3925,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_reverse_charge_supplier_invoice_keeps_its_stated_amounts
+    note: Reviewed supplier invoice with stated net 400 and tax 0 kept as stated; stating the self-assessed tax is refused with stated_invoice_net_tax_gross_mismatch.
   - reference: tests/finance/test_components.py::test_received_net_split_and_partial_revision_preserve_gross (supplier kind)
     note: Stated components on supplier invoices are kept; no reverse-charge case is tested.
 - id: N03
@@ -3987,12 +3994,10 @@ entries:
   section: Finance, tax and currency
   title: Open items per party incl. credits and prepayments
   question: Party balance correct?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Party balance correct?'
-  limitations:
-  - Open items, overpayments and credit notes per business partner and currency are correct.
-  - Deposits and prepayments in the balance are not yet proven.
+  limitations: []
   keywords: []
   question_examples:
   - Open items per party incl. credits and prepayments
@@ -4002,6 +4007,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_party_balance_counts_credits_deposits_and_prepayments_once
+    note: Open 700 (ordinary and unpaid prepayment invoice), credit 430 (credit note, deposit, unallocated prepayment), balance 270.
   - reference: tests/finance/test_party_balances.py::test_party_rows_sum_open_items_and_credits
     note: Open items, overpayments and credit notes per party and currency are correct; deposits and prepayments are not part of any balance test.
 - id: N07

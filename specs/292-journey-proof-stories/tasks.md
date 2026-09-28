@@ -9,7 +9,7 @@
 - [x] T001 Record the approved twelve-journey scope in `specs/292-journey-proof-stories/spec.md`
 - [x] T002 Record per-journey services and expected outcomes in `specs/292-journey-proof-stories/research.md`
 - [x] T003 Complete the Constitution Check and outcome rule in `specs/292-journey-proof-stories/plan.md`
-- [ ] T004 Rebase onto `origin/main` after PR #243 merges and confirm the catalog carries FR-002a limitations
+- [x] T004 Rebase onto `origin/main` after PR #243 merges and confirm the catalog carries FR-002a limitations
 
 ## Phase 2: User Story 1 — Order changes (P1)
 
@@ -57,17 +57,17 @@
 
 **Independent Test**: `pytest tests/test_business_journey_catalog.py tests/test_business_journey_questions.py`
 
-- [ ] T017 [US5] [FR-005] For each failed story, decide defect (fix with a regression test naming the requirement) or missing capability (rename the story to pin today's behavior as a limitation); record the decision in `specs/292-journey-proof-stories/research.md`
-- [ ] T018 [US5] [FR-003] [FR-004] Promote passing journeys and update limitations and `internal_evidence` in `packages/reality-core/config/business_journey_catalog.yaml`
-- [ ] T019 [US5] [FR-003] Add the pinned scope test (supported cites a catalog story; partial carries a finding) in `packages/reality-core/tests/test_business_journey_catalog.py`
-- [ ] T020 [US5] [FR-006] Record statuses and findings in `docs/scenarios/coverage.md` and `docs/scenarios/catalog.md`
-- [ ] T021 [US5] [FR-007] Regenerate `apps/docs/.vitepress/data/business-journeys.json` and `apps/docs/public/generated/business-journeys.json` with `make docs-generate`
-- [ ] T022 [US5] [SC-004] Ask the Guide about each promoted journey and confirm `supported` with the journey cited, per `specs/292-journey-proof-stories/quickstart.md`
+- [x] T017 [US5] [FR-005] For each failed story, decide defect (fix with a regression test naming the requirement) or missing capability (rename the story to pin today's behavior as a limitation); record the decision in `specs/292-journey-proof-stories/research.md`
+- [x] T018 [US5] [FR-003] [FR-004] Promote passing journeys and update limitations and `internal_evidence` in `packages/reality-core/config/business_journey_catalog.yaml`
+- [x] T019 [US5] [FR-003] Add the pinned scope test (supported cites a catalog story; partial carries a finding) in `packages/reality-core/tests/test_business_journey_catalog.py`
+- [x] T020 [US5] [FR-006] Record statuses and findings in `docs/scenarios/coverage.md` (`docs/scenarios/catalog.md` carries no status column and needs no change)
+- [x] T021 [US5] [FR-007] Regenerate `apps/docs/.vitepress/data/business-journeys.json` and `apps/docs/public/generated/business-journeys.json` with `make docs-generate`
+- [x] T022 [US5] [SC-004] Ask the Guide about each promoted journey and confirm `supported` with the journey cited, per `specs/292-journey-proof-stories/quickstart.md`
 
 ## Final Phase: Verification and Review
 
-- [ ] T023 Update the three catalog module rows in `docs/SPEC_COVERAGE_MATRIX.md` with the new IDs and spec 292
-- [ ] T024 Run Ruff on the changed test modules from `packages/reality-core` with `--no-cache`, `make spec-check` and `make docs-catalog-check`
+- [x] T023 Update the three catalog module rows in `docs/SPEC_COVERAGE_MATRIX.md` with the new IDs and spec 292
+- [x] T024 Run Ruff on the changed test modules from `packages/reality-core` with `--no-cache`, `make spec-check` and `make docs-catalog-check`
 - [ ] T025 Run the complete required PostgreSQL backend suite with `make test`
 - [ ] T026 Review the diff against FR-001–FR-008, DR-001–DR-003 and the Constitution; confirm no schema, tool, service or UI change unless T017 recorded a defect fix
 
@@ -81,15 +81,15 @@
 
 | Requirement | Test task(s) | Implementation task(s) | Status |
 |---|---|---|---|
-| FR-001, FR-002 | T005–T016 | — | Pending |
-| FR-003, FR-004 | T019 | T018 | Pending |
-| FR-005 | T017 | T017 | Pending |
-| FR-006 | — | T020 | Pending |
-| FR-007 | T022 | T021 | Pending |
+| FR-001, FR-002 | T005–T016 | — | Done |
+| FR-003, FR-004 | T019 | T018 | Done |
+| FR-005 | T017 | T017 | Done |
+| FR-006 | — | T020 | Done |
+| FR-007 | T022 | T021 | Done |
 | FR-008 | T026 | — | Pending |
-| DR-001 | T008–T011 | — | Pending |
-| DR-002 | T015–T016 | — | Pending |
-| DR-003 | T005–T016 | — | Pending |
+| DR-001 | T008–T011 | — | Done |
+| DR-002 | T015–T016 | — | Done |
+| DR-003 | T005–T016 | — | Done |
 
 ## MVP
 

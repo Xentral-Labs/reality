@@ -2,30 +2,30 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06 and pinned F07. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 70 covered, 81 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 81 covered, 70 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
-| A Order intake and changes | 7 | 9 |  | 8 |  |
+| A Order intake and changes | 11 | 5 |  | 8 |  |
 | B Availability and reservation | 5 | 7 |  | 6 |  |
-| C Payment and release | 9 | 5 |  | 4 |  |
+| C Payment and release | 10 | 4 |  | 4 |  |
 | D Shipment, split and merge | 3 | 4 |  | 12 |  |
 | E Customer invoice and credit | 8 | 4 |  |  |  |
-| F Returns and complaints | 6 | 6 |  | 1 |  |
+| F Returns and complaints | 8 | 4 |  | 1 |  |
 | G Purchase demand and order | 5 | 7 |  | 5 |  |
 | H Receipt and supplier deviations | 9 | 3 |  | 7 |  |
 | I Supplier invoice and payment | 8 | 3 |  | 1 |  |
 | J Warehouse and stock | 3 | 3 |  | 5 |  |
 | K Kits and variants |  | 1 |  | 5 |  |
 | L E-commerce and marketplaces | 2 | 5 |  | 5 |  |
-| M B2B specifics |  | 4 |  | 8 |  |
-| N Finance, tax, currency | 1 | 4 |  | 1 | 2 |
+| M B2B specifics | 1 | 3 |  | 8 |  |
+| N Finance, tax, currency | 4 | 1 |  | 1 | 2 |
 | O Master data and identity | 1 | 2 |  | 2 | 1 |
 | P Sources and integration | 2 | 6 |  |  |  |
 | Q Time and period | 1 | 2 |  | 2 |  |
@@ -111,10 +111,10 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | A01 | covered | packages/reality-core/tests/scenarios/test_order_to_cash.py::test_order_to_cash_business_story | Shopify order is reserved with no shortage and shipped in two parts, then invoiced, partly paid and credited; open quantity and open amount are asserted, and the trace reaches the raw payload. |
 | A02 | partial | packages/reality-core/tests/test_unified_order_entry.py::test_multiline_review_trace_and_replay | Only 2 lines are tested. `order_create` takes one `location_id` per order (services/order_actions.py), so no test shows open quantity per line and per location across warehouses. |
 | A03 | covered | packages/reality-core/tests/test_unified_order_entry.py::test_multiline_review_trace_and_replay | The same `item_id` on two lines gives two commitments with their own amounts. The discounted-versus-free case itself is not tested. |
-| A04 | partial | packages/reality-core/tests/finance/test_commercial_edges.py::test_higher_revision_allows_only_the_new_quantity; tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated | An upward revision is tested only with no delivery before it. No test raises the quantity after a partial shipment and asserts what is still open. |
+| A04 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_raising_the_quantity_after_a_partial_delivery_opens_only_the_rest | 10 ordered, 4 shipped, raised to 12 through the reviewed revision: 8 open, 4 delivered; the rest is reserved again and ships in full. |
 | A05 | partial | packages/reality-core/tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived | The revision is accepted and marks the commitment fulfilled, neither refused nor turned into a return demand. Only the supplier side is tested, and no exception class reports the excess delivery. |
-| A06 | partial | packages/reality-core/tests/test_commitment_actions.py::test_reviewed_cancellation_closes_open_remainder_and_releases_controls | Cancelling one commitment releases its reservation and hold. No multi-line order test asserts that the other lines stay open and reserved. |
-| A07 | partial | packages/reality-core/tests/test_inventory_and_fulfillment.py::test_cancel_preserves_commitment_and_releases_allocation | There is no order-level cancel, only `cancel_commitment` per commitment. No test cancels every line of a reserved order. |
+| A06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_cancelling_one_line_leaves_the_other_lines_open_and_reserved | Reviewed cancellation of one of three reserved lines: only that line is cancelled and unreserved; the other two stay open with their reservations. |
+| A07 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_cancelling_every_line_of_a_reserved_order_releases_all_its_stock | Every line of a reserved two-item order cancelled through the reviewed action: no active reservation remains and stock is unchanged. |
 | A08 | gap | packages/reality-core/src/reality/services/core.py (no picking concept) | There is no picking or staging record, so "picked but not shipped" and the stock going back cannot be represented. |
 | A09 | partial | packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record[cancelled_at-10]; services/core.py::cancel_commitment | A `cancelled_at` sent after full shipment is held for review with no effect, and a direct cancel of a fulfilled commitment is refused. Neither is a test that classifies it as a return or a refusal. |
 | A10 | gap | packages/reality-core/tests/test_document_corrections.py::test_manual_line_economic_changes_lock_after_reality_but_description_remains_correctable | Adding a line is blocked once Reality exists, and Shopify changes are held for review, so no path swaps a variant on the same order while keeping its history. |
@@ -126,7 +126,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | A16 | partial | packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record; tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation | A new version with a supersedes link is stored without overwriting, but the commitment is never revised: the change is held as `needs_review` (spec 081). |
 | A17 | partial | packages/reality-core/tests/test_shopify_and_explain.py::test_source_survives_interpretation_failure; tests/operational_exceptions/test_derivation.py::test_source_interpretation_failure | The source is kept and the failure is visible, but the whole order is not interpreted. The line is not kept as a DocumentLine alongside the gap. |
 | A18 | covered | packages/reality-core/tests/test_pricing.py::test_document_line_retains_agreed_entry_when_current_price_changes, ::test_manual_agreement_remains_valid_without_pricing_entry | The stated price is kept against the list price. Order entry also keeps a stated gross of 24.91 against 2 x 12.50. |
-| A19 | partial | packages/reality-core/tests/test_commercial_matching_services.py::test_free_goods_keep_inventory_cost_and_zero_revenue | Only the zero-revenue invoice side is tested. No zero-price order line is shown committed and shipped. |
+| A19 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_zero_price_line_ships_and_is_invoiced_without_revenue | A zero-price line beside a priced one is reserved, shipped and invoiced at zero through document_create and sales_invoice_post; revenue is the priced line only and shipped_not_billed clears (positive control first). |
 | A20 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_one_shipment_fulfils_two_orders_of_the_same_customer | One shipment and one package fulfil two orders (3 and 5); 8 promised, 8 dispatched. |
 | A21 | gap | packages/reality-core/src/reality/db/core.py (Commitment.to_party_id, Shipment.counterparty_id) | A commitment has no per-line recipient or address, so lines cannot be split across two delivery addresses. |
 | A22 | covered | packages/reality-core/tests/test_commitment_holds.py::test_hold_blocks_reservation_and_movement_until_released, ::test_the_release_is_recorded_by_the_release_operation; tests/operational_exceptions/test_derivation.py (`commitment_hold_unreleased`) | The hold's reason code blocks execution, the release is recorded, and an unreleased hold is surfaced. |
@@ -163,7 +163,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | C01 | covered | packages/reality-core/tests/test_fulfillment_readiness.py::test_prepayment_readiness_uses_stated_order_and_active_allocation; tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside | Blockers `prepayment_invoice_missing`/`prepayment_required` block dispatch and clear once the payment is allocated; order_explain reports the reason. |
 | C02 | covered | tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside (pays 40 of 100, stays blocked); tests/finance/test_settlement_flows.py::test_underpayment_optional_reduction_and_independent_inverse | Tolerance is zero on purpose (docs/features/payment_matching.md); a residual closes only through a confirmed `accepted_small_remainder` adjustment. |
 | C03 | covered | tests/test_payment_intake.py::test_over_payment_settles_the_invoice_and_keeps_the_excess_as_credit; tests/finance/test_settlement_flows.py::test_excess_credit_reuse_refund_and_refund_inverse | The excess shows as available customer credit; it is tested on a plain invoice, not on a prepayment order. |
-| C04 | partial | tests/test_ledger.py::test_one_payment_can_settle_multiple_invoices_tenant_safely | One payment settling several invoices is proven, but no test checks fulfillment_readiness of two prepaid orders fed by one payment. |
+| C04 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_one_payment_releases_two_prepaid_orders | One confirmed settlement payment of 200 is booked on the first prepayment invoice and allocated to the second; both invoices close and both orders become ship-ready. |
 | C05 | covered | tests/test_payment_intake.py::test_candidates_have_reasons_and_write_nothing; ::test_ambiguous_reference_produces_candidates_and_allocation_ends_them | Money is recorded unallocated, tier-3 candidates carry reasons and write nothing, and an explicit allocate_settlement ends them. |
 | C06 | covered | tests/scenarios/test_catalog_finance.py::test_payment_after_a_cancelled_prepayment_order_stays_credit_and_is_refunded | Payment after cancellation stays unallocated as customer credit (119) and is refunded through the confirmed settlement proposal. |
 | C07 | partial | tests/operational_exceptions/test_derivation.py::test_credit_limit_exceeded; tests/test_unified_customer_holds.py::test_review_place_release_history_and_replay | The exception and a reviewed hold/release (with actor) are each tested; nothing links the exception to a hold, and there is no automatic credit hold. |
@@ -224,13 +224,13 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 
 | ID | Status | Evidence | Note |
 |---|---|---|---|
-| F01 | partial | tests/test_credit_notes.py::test_a_paid_invoice_can_still_be_credited, ::test_a_credit_may_be_refunded; tests/test_returns.py::test_a_return_may_name_the_delivery_it_reverses | Each piece is tested alone; no one story runs return, credit and paid refund on one order. |
+| F01 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_b2c_withdrawal_brings_the_goods_back_and_refunds_in_full | Paid delivery, full return, reviewed credit citing the invoice line, reviewed refund: stock back, invoice, credit, receivable and cash at 0, no return or billing signal (positive control first). |
 | F02 | covered | tests/operational_exceptions/test_derivation.py::test_returned_goods_are_not_reported_as_unbilled, ::test_returned_not_credited | Returned 4 or 6 against kept quantity is asserted through shipped_not_billed and returned_not_credited. |
 | F03 | covered | tests/scenarios/test_catalog_stock_and_returns.py::test_a_different_item_returned_does_not_fulfil_the_announcement | A foreign item cannot fulfil the announcement; it stands unexplained, and the announcement stays outstanding until the announced item arrives. |
 | F04 | partial | tests/test_return_announcements.py::test_the_parcel_names_its_announcement; tests/scenarios/test_normal_month.py::test_the_month_ends_with_exactly_these_exceptions | Accepting an unannounced return is tested. Linking an orphan return later (e.g. via correct_movement) is not. |
-| F05 | partial | tests/operational_exceptions/test_derivation.py::test_a_restocking_fee_is_a_charge_not_a_smaller_credit; tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes | A reduced credit and the disposition are tested separately; no damaged-return story combines them. |
+| F05 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_damaged_return_is_disposed_and_credited_independently | Two back, one restocked and one scrapped through reviewed dispositions; full-quantity credit with a damage charge line, refunded; dispositions and credit each reconcile with no signal (positive control first). |
 | F06 | covered | tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes; tests/scenarios/test_b2b_operational_chain.py::test_supply_and_return_reconciliations_are_exact | Arrived 5 = restock 2 + quarantine 1 + scrap 1 + back to supplier 1; over-disposition is refused. |
-| F07 | partial | tests/scenarios/test_international_demo.py::test_supported_edge_cases_are_source_backed_and_traceable (exchange_replacement) | Only the order of the return and replacement movements is asserted; "no refund / no money moved" is not. |
+| F07 | partial | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_exchange_moves_no_money_but_reads_as_uncredited_and_unbilled | Goods and money are right, but the return raises returned_not_credited and the zero-price replacement shipped_not_billed; spec 246 US7 requires only that neither movement overwrites the other. No exchange concept exists. |
 | F08 | partial | tests/operational_exceptions/test_derivation.py::test_credited_not_returned | A credit before the goods arrive is covered. The refund payment and a "return still expected" signal are not asserted. |
 | F09 | covered | tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived, ::test_an_announcement_with_no_stated_day_is_judged_by_the_learned_rhythm | A stale announcement is reported by the stated date or the learned rhythm, and clears on arrival. |
 | F10 | gap | packages/reality-core/src/reality/services/return_dispositions.py (return_to_supplier is terminal) | Goods cannot go out for repair and come back while staying owned. |
@@ -356,7 +356,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | M05 | gap | db/core.py Document.ship_to_party_id | Only one ship-to per document header, so several recipients per order can't be stated. |
 | M06 | gap | tests/test_commitment_revisions.py::test_shrinking_to_what_arrived_finishes_the_promise; specs/085-close-stale-promises/spec.md | There is no party-level "no backorders" rule; the remainder can only be closed by hand (revise or cancel with a reason). |
 | M07 | gap | docs/ideas/attachments.md (HandlingUnit label idea only) | No label or delivery-note output exists, and no doc states it is out of core scope, so "out" can't be cited. |
-| M08 | partial | tests/finance/test_settlement_flows.py::test_underpayment_optional_reduction_and_independent_inverse, ::test_supplier_reduction_requires_agreement_and_combined_limit; services/finance/settlement.py REASONS | The `agreed_deduction` reason exists and is tested on the supplier side only; no customer penalty or marketing-contribution short payment is tested. |
+| M08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_customer_deduction_with_an_agreed_reason_leaves_nothing_open | Customer short payment with an agreed_deduction reduction through finance.settlement.apply: invoice open 0, reason on the review and the adjustment source record. |
 | M09 | partial | tests/test_unified_invoice_credit.py::test_financial_credit_does_not_require_return_exception; specs/004-master-data/spec.md Non-Goals ("rebates") | A credit without goods can carry a rebate; rebate agreements and year-end accrual are an explicit non-goal. |
 | M10 | gap | db/core.py Document (party_id, ship_to_party_id); tests/test_operational_fields.py::test_document_and_commitment_operational_fields | Only orderer and ship-to are typed; there is no bill-to or payer role on documents or settlement. |
 | M11 | gap | services/core.py allocate_settlement ("must be opposite sides of one control account"); specs/170-party-balances/spec.md Non-Goals | One party can hold both roles, but a receivable can't be offset against a payable. |
@@ -366,12 +366,12 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 
 | ID | Status | Evidence | Note |
 |---|---|---|---|
-| N01 | partial | tests/finance/test_components.py::test_zero_unknown_and_gross_basis_are_distinct; tests/finance/test_source_mappings.py::test_source_mapping_preview_confirmation_and_no_financial_effect ("EU" case) | Stated net/tax and explicit case codes are kept; no intra-community sale story (zero tax plus Party.tax_identifier). |
-| N02 | partial | tests/finance/test_components.py::test_received_net_split_and_partial_revision_preserve_gross (supplier kind) | Stated components on supplier invoices are kept; no reverse-charge case is tested. |
+| N01 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_intra_community_supply_keeps_its_stated_zero_tax_and_case | Customer with VAT ID; reviewed sales invoice with stated net 250 and tax 0; EU case as an internal case_code reference; nothing computed. |
+| N02 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_reverse_charge_supplier_invoice_keeps_its_stated_amounts | Reviewed supplier invoice with stated net 400 and tax 0 kept as stated; stating the self-assessed tax is refused with stated_invoice_net_tax_gross_mismatch. |
 | N03 | out | docs/features/ledger.md Non-goals (FX revaluation); specs/148-accounting-journal-cost-centers/spec.md (no accounting-currency conversion) | Foreign-currency invoices are supported, but cross-currency allocation is refused, so a EUR payment on a CHF invoice stays unallocated and no FX difference exists. |
 | N04 | partial | tests/finance/test_commercial_edges.py::test_dunning_notice_keeps_invoice_and_posts_optional_fee; ::test_mcp_dunning_context_record_detail_list_and_reverse | Manual notices at levels 1–3 with a fee exist (only levels 1 and 2 are tested); no escalation sequence, no collection handover, and runs from open items are a non-goal (spec 247). |
 | N05 | covered | tests/finance/test_commercial_edges.py::test_bad_debt_uses_dedicated_expense_and_never_creates_credit | A partial `bad_debt` adjustment with a reason posts to bad-debt expense and creates no credit. |
-| N06 | partial | tests/finance/test_party_balances.py::test_party_rows_sum_open_items_and_credits | Open items, overpayments and credit notes per party and currency are correct; deposits and prepayments are not part of any balance test. |
+| N06 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_party_balance_counts_credits_deposits_and_prepayments_once | Open 700 (ordinary and unpaid prepayment invoice), credit 430 (credit note, deposit, unallocated prepayment), balance 270. |
 | N07 | gap | specs/148-accounting-journal-cost-centers/spec.md FR-012 (export package specified, not implemented) | No handoff or export package exists, so "reversal after export" cannot be represented; the reversal itself exists. |
 | N08 | out | specs/148-accounting-journal-cost-centers/spec.md Non-goals (no tax engine or tax calculation) | Reality stores stated tax and never determines a rate, so rate by invoice date is the source's job. |
 

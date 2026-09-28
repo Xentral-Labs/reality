@@ -99,8 +99,42 @@ def test_non_supported_journeys_state_their_own_limitation() -> None:
 
 def test_public_limitations_carry_no_repository_details() -> None:
     catalog = load_journey_catalog(_payload())
-    leaks = re.compile(r"`|\.py\b|::|\bspecs?\s+\d|#\d|\b[a-z]+_[a-z_]+\b", re.IGNORECASE)
+    leaks = re.compile(
+        r"`|\.py\b|::|\bspecs?\s+\d|#\d|\b[a-z]+_[a-z_]+\b", re.IGNORECASE
+    )
 
     for entry in catalog.entries:
         for limitation in entry.limitations:
             assert not leaks.search(limitation), f"{entry.id}: {limitation}"
+
+
+PROVEN_BY_STORY = {
+    "A04",
+    "A06",
+    "A07",
+    "A19",
+    "C04",
+    "F01",
+    "F05",
+    "M08",
+    "N01",
+    "N02",
+    "N06",
+}
+
+
+def test_story_proven_journeys_cite_their_catalog_story() -> None:
+    """Spec 292: a promotion stands on a named story, and a failed one says why."""
+    entries = {entry.id: entry for entry in load_journey_catalog(_payload()).entries}
+    story = "packages/reality-core/tests/scenarios/test_catalog_"
+
+    for journey in PROVEN_BY_STORY:
+        entry = entries[journey]
+        assert (entry.status, entry.evidence_level) == ("supported", "executable")
+        assert entry.internal_evidence[0].reference.startswith(story), journey
+        assert not any("not yet proven" in text for text in entry.limitations)
+
+    exchange = entries["F07"]
+    assert exchange.status == "partial"
+    assert exchange.internal_evidence[0].reference.startswith(story)
+    assert not any("not yet proven" in text for text in exchange.limitations)
