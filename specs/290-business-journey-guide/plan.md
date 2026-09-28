@@ -89,7 +89,7 @@ Proposal text is length-bounded, rejects secrets/contact-patterns and enters `pr
 | Requirement | Test level | Planned test | Expected initial failure |
 |---|---|---|---|
 | FR-001–FR-005, FR-019–FR-023 | unit/generator/browser | catalog parity/validation, generated Docs freshness and guide filter journey | no canonical structured catalog or page exists |
-| FR-006–FR-010, DR-001, DR-004–DR-005 | unit/service/API/browser | grounded matching, status ceiling, adversarial content, provider failure and bilingual question stories | no shared query/answer service exists |
+| FR-006–FR-010p, DR-001, DR-004–DR-005 | unit/service/API/browser | grounded matching, status ceiling, adversarial content, provider failure, bilingual question stories and full-height desktop widget | no shared query/answer service or full-height desktop panel exists |
 | FR-011–FR-012, DR-003 | service/API/artifact | internal authorization and public non-disclosure scan | no scoped evidence serializer exists |
 | FR-013–FR-018, FR-024, DR-002–DR-003, DR-006 | domain/PostgreSQL/service/API/Web | prepare/confirm, duplicate suggestions, moderation, lifecycle and concurrent reversible vote stories | proposal/vote model and services do not exist |
 | SC-001–SC-010 | acceptance/full gates | 228-ID reconciliation, curated QA matrix, generated/check/build/a11y/localization/full tests | guide artifacts and acceptance matrix do not exist |
