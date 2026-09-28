@@ -244,7 +244,8 @@ def test_normal_chat_uses_the_same_capability_basis(
         language="en",
     )
 
-    assert "Open remainder" in reply.content
+    assert "3 of 8 ordered units" in reply.content
+    assert "open remainder of 5" in reply.content
     assert "H02" in reply.content
 
 
@@ -281,6 +282,7 @@ def test_platform_admin_chat_receives_additive_internal_evidence(
         language="en",
     )
 
-    assert "Open remainder" in reply.content
+    assert "3 of 8 ordered units" in reply.content
+    assert "open remainder of 5" in reply.content
     assert "Internal evidence:" in reply.content
     assert "tests/scenarios" in reply.content
