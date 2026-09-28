@@ -897,7 +897,7 @@ entries:
   question: Does a customer credit balance appear?
   status: supported
   evidence_level: executable
-  summary: 'Reality evaluates: Does a customer credit balance appear?'
+  summary: The invoice is settled and the excess remains available as customer credit for reuse or refund.
   limitations: *id001
   keywords: []
   question_examples:
