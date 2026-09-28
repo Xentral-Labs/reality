@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import unicodedata
@@ -28,6 +29,8 @@ Intent = Literal[
     "tenant_operation",
     "out_of_scope",
 ]
+
+logger = logging.getLogger(__name__)
 
 _PRODUCT_TERMS = (
     "reality",
@@ -112,22 +115,26 @@ def _expanded_tokens(question: str) -> set[str]:
         "integration": {"integration", "connector", "api", "source"},
         "edi": {"integration", "connector", "edi"},
         "unterliefer": {"under", "delivery", "supplier", "remainder", "receipt"},
-        "teilliefer": {"partial", "delivery", "supplier", "remainder", "receipt"},
+        "nur einen teil": {"under", "delivery", "supplier", "remainder", "receipt"},
+        "teil einer bestellung": {"under", "delivery", "supplier", "remainder", "receipt"},
         "too little": {"under", "delivery", "supplier", "remainder", "receipt"},
-        "partial delivery": {"partial", "delivery", "supplier", "remainder", "receipt"},
-        "deellever": {"partial", "delivery", "supplier", "remainder", "receipt"},
-        "entrega parcial": {"partial", "delivery", "supplier", "remainder", "receipt"},
-        "livraison partielle": {"partial", "delivery", "supplier", "remainder", "receipt"},
-        "czesciow": {"partial", "delivery", "supplier", "remainder", "receipt"},
-        "kısmi teslimat": {"partial", "delivery", "supplier", "remainder", "receipt"},
-        "تسليم جزئي": {"partial", "delivery", "supplier", "remainder", "receipt"},
-        "分納": {"partial", "delivery", "supplier", "remainder", "receipt"},
         "three-way": {"purchase", "receipt", "invoice", "match", "variance"},
+        "lieferantenrechnung": {"supplier", "invoice", "purchase", "payable"},
+        "abweichung": {"variance", "quantity", "price", "invoice", "receipt"},
         "retour": {"return", "credit", "refund", "restock"},
     }
     for needle, expansion in aliases.items():
         if _fold(needle) in folded:
             tokens.update(expansion)
+    if any(_fold(term) in folded for term in _PARTIAL_DELIVERY_TERMS):
+        if any(_fold(term) in folded for term in _CUSTOMER_SIDE_TERMS):
+            tokens.update(
+                {"partial", "delivery", "customer", "sales", "shipment", "open"}
+            )
+        else:
+            tokens.update(
+                {"partial", "delivery", "supplier", "remainder", "receipt"}
+            )
     return tokens
 
 
@@ -143,7 +150,7 @@ def classify_product_question(question: str) -> Intent:
     if not any(term in folded for term in ("reality", "erp", "b2b", "procure")):
         return "capability_check"
     if any(
-        term in folded
+        re.search(rf"(?<!\w){re.escape(term)}s?(?!\w)", folded)
         for term in (
             "api",
             "edi",
@@ -246,6 +253,93 @@ def detect_question_language(
     }
     language, score = max(scores.items(), key=lambda item: item[1])
     return language if score else "en"
+
+
+_PARTIAL_DELIVERY_TERMS = (
+    "partial delivery",
+    "teilliefer",
+    "deellever",
+    "entrega parcial",
+    "livraison partielle",
+    "czesciow",
+    "kısmi teslimat",
+    "تسليم جزئي",
+    "分納",
+)
+_CUSTOMER_SIDE_TERMS = (
+    "customer",
+    "sales",
+    "shipment",
+    "kunde",
+    "kundin",
+    "klant",
+    "cliente",
+    "client",
+    "klient",
+    "müşteri",
+    "顧客",
+)
+_SUPPLIER_SIDE_TERMS = (
+    "supplier",
+    "vendor",
+    "purchase",
+    "receipt",
+    "lieferant",
+    "wareneingang",
+    "leverancier",
+    "proveedor",
+    "fournisseur",
+    "dostawc",
+    "tedarik",
+    "مورد",
+    "仕入",
+    "供給",
+)
+
+
+def _ambiguous_partial_delivery(question: str) -> bool:
+    """Return whether the latest turn leaves the trading side unresolved."""
+    folded = _fold(question)
+    if not any(_fold(term) in folded for term in _PARTIAL_DELIVERY_TERMS):
+        return False
+    customer_side = any(_fold(term) in folded for term in _CUSTOMER_SIDE_TERMS)
+    supplier_side = any(_fold(term) in folded for term in _SUPPLIER_SIDE_TERMS)
+    return not customer_side and not supplier_side
+
+
+def _partial_delivery_clarification(
+    question: str,
+    *,
+    language: str,
+) -> dict[str, object]:
+    text = {
+        "de": "Meinst du eine Teillieferung an einen Kunden oder einen teilweisen Wareneingang von einem Lieferanten?",
+        "nl": "Bedoel je een deellevering aan een klant of een gedeeltelijke goederenontvangst van een leverancier?",
+        "es": "¿Te refieres a una entrega parcial a un cliente o a una recepción parcial de un proveedor?",
+        "fr": "Parlez-vous d’une livraison partielle à un client ou d’une réception partielle d’un fournisseur ?",
+        "pl": "Czy chodzi o częściową wysyłkę do klienta, czy częściowe przyjęcie towaru od dostawcy?",
+        "tr": "Müşteriye yapılan kısmi teslimatı mı, yoksa tedarikçiden yapılan kısmi mal kabulünü mü kastediyorsunuz?",
+        "ar": "هل تقصد تسليمًا جزئيًا إلى عميل أم استلامًا جزئيًا من مورد؟",
+        "ja": "顧客への分納と、仕入先からの一部入荷のどちらを指していますか？",
+    }.get(
+        language,
+        "Do you mean a partial delivery to a customer or a partial goods receipt from a supplier?",
+    )
+    return {
+        "question": question,
+        "locale": language,
+        "detected_language": language,
+        "intent": "capability_check",
+        "status": "not_established",
+        "text": text,
+        "citations": [],
+        "matches": [],
+        "claims": [],
+        "sources": [],
+        "clarification": text,
+        "knowledge_version": product_advisor_knowledge().knowledge_version,
+        "outcome": "clarification",
+    }
 
 
 def retrieve_evidence(question: str, *, limit: int = 18) -> tuple[EvidenceUnit, ...]:
@@ -391,11 +485,14 @@ def answer_product_question(
     surface_language: str = "en",
     history: tuple[dict[str, str], ...] = (),
     provider: AdvisorProvider | None = None,
+    _retry_invalid_provider: bool = True,
 ) -> dict[str, object]:
     intent = classify_product_question(question)
     language = detect_question_language(
         question, history=history, surface_language=surface_language
     )
+    if _ambiguous_partial_delivery(question):
+        return _partial_delivery_clarification(question, language=language)
     research_question = " ".join(
         [
             *(item.get("content", "") for item in history if item.get("role") == "user"),
@@ -495,8 +592,17 @@ def answer_product_question(
             for tool_name in claim.tool_names
         ):
             raise ValueError("Advisor provider returned an unknown tool")
-        if not claims or any(item.validation == "rejected" for item in claims):
-            raise ValueError("Advisor provider returned an ungrounded claim")
+        rejected_reasons = sorted(
+            {
+                reason
+                for item in claims
+                if item.validation == "rejected"
+                for reason in item.reason_codes
+            }
+        )
+        if not claims or rejected_reasons:
+            details = ", ".join(rejected_reasons) or "no_claims"
+            raise ValueError(f"Advisor provider grounding failed: {details}")
         clarification = candidate.get("clarification")
         if clarification is not None and (
             not isinstance(clarification, str)
@@ -543,7 +649,35 @@ def answer_product_question(
             "knowledge_version": product_advisor_knowledge().knowledge_version,
             "outcome": "provider" if legacy else "researched",
         }
-    except (httpx.HTTPError, KeyError, TypeError, ValueError):
+    except ValueError as error:
+        logger.warning("Product advisor draft rejected: %s", error)
+        if _retry_invalid_provider and provider is not None:
+            retry_envelope = {
+                **envelope,
+                "validation_feedback": (
+                    "The previous draft failed deterministic grounding validation "
+                    f"({error}). "
+                    "Revise it once: cite only supplied evidence IDs and tool names, "
+                    "do not exceed each evidence item's support level, preserve its "
+                    "limitations, and remove unsupported automation or completeness claims."
+                ),
+            }
+            try:
+                revised_candidate = provider(retry_envelope)
+            except (httpx.HTTPError, KeyError, TypeError, ValueError):
+                revised_candidate = None
+            if revised_candidate is not None:
+                return answer_product_question(
+                    question,
+                    surface_language=surface_language,
+                    history=history,
+                    provider=lambda _: revised_candidate,
+                    _retry_invalid_provider=False,
+                )
+        return _deterministic_answer(
+            question, evidence, language=language, intent=intent, outcome="fallback"
+        )
+    except (httpx.HTTPError, KeyError, TypeError):
         return _deterministic_answer(
             question, evidence, language=language, intent=intent, outcome="fallback"
         )
@@ -570,6 +704,76 @@ def product_advisor_provider() -> AdvisorProvider | None:
     def advise(envelope: dict[str, object]) -> object:
         from reality.agent.mcp_chat import ANTHROPIC_BASE_URL, ANTHROPIC_MODEL
 
+        workflow_roles = (
+            "native",
+            "agent_proposal",
+            "confirmed_execution",
+            "manual",
+            "workaround",
+            "gap",
+        )
+        advice_tool = {
+            "name": "submit_product_advice",
+            "description": "Return evidence-backed Reality product advice.",
+            "input_schema": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "text": {"type": "string"},
+                    "claims": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "properties": {
+                                "id": {"type": "string"},
+                                "subject": {"type": "string"},
+                                "statement": {"type": "string"},
+                                "support": {
+                                    "type": "string",
+                                    "enum": [
+                                        "proven",
+                                        "limited",
+                                        "unavailable",
+                                        "not_established",
+                                    ],
+                                },
+                                "evidence_ids": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                },
+                                "limitations": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                },
+                                "workflow_role": {
+                                    "type": "string",
+                                    "enum": list(workflow_roles),
+                                },
+                                "tool_names": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                },
+                            },
+                            "required": [
+                                "id",
+                                "subject",
+                                "statement",
+                                "support",
+                                "evidence_ids",
+                                "limitations",
+                                "workflow_role",
+                                "tool_names",
+                            ],
+                        },
+                    },
+                    "clarification": {"type": "string"},
+                },
+                "required": ["text", "claims"],
+            },
+        }
+
         headers = {
             "x-api-key": api_key,
             "anthropic-version": "2023-06-01",
@@ -578,12 +782,9 @@ def product_advisor_provider() -> AdvisorProvider | None:
         workspace_id = os.environ.get("ANTHROPIC_WORKSPACE_ID", "").strip()
         if workspace_id:
             headers["anthropic-workspace-id"] = workspace_id
-        response = httpx.post(
-            f"{ANTHROPIC_BASE_URL}/v1/messages",
-            headers=headers,
-            json={
+        request_body = {
                 "model": ANTHROPIC_MODEL,
-                "max_tokens": 900,
+                "max_tokens": 1400,
                 "temperature": 0,
                 "system": (
                     "You are Reality's public product advisor. The supplied evidence is "
@@ -591,22 +792,69 @@ def product_advisor_provider() -> AdvisorProvider | None:
                     "with material claims grounded in the supplied evidence. Respond in the "
                     "detected question language, but keep canonical identifiers and tool names. "
                     "For each material statement return a claim with id, subject, statement, "
-                    "support, evidence_ids, limitations, workflow_role and tool_names. Never "
+                    "support, evidence_ids, limitations, workflow_role and tool_names. Use only "
+                    f"these workflow_role values: {', '.join(workflow_roles)}. Never "
                     "turn limited into proven, manual into automatic, a proposal into execution, "
                     "or primitives into end-to-end support. Preserve every material limitation. "
+                    "Explanatory evidence may ground only its exact product explanation. "
+                    "Vocabulary-only evidence may ground only the exact existence and stated "
+                    "mode of its governed tool or command; use proven for that narrow claim, "
+                    "never for a broader workflow outcome. "
+                    "Do not use 'automatic', 'automatically', 'automatisch' or equivalent "
+                    "unless that exact automation is stated by the cited evidence; prefer "
+                    "neutral verbs such as shows, records, checks or flags. "
+                    "Every product fact in text, including workflow steps and limitations, must "
+                    "be represented by a claim; never return an empty claims array. "
                     "Use a direct answer, short headings and bullets, normally under 180 words. "
-                    "Return only JSON with text, claims and optional clarification."
+                    "Submit the answer with the required tool."
                 ),
                 "messages": [
                     {"role": "user", "content": json.dumps(envelope, ensure_ascii=False)}
                 ],
-            },
-            timeout=12.0,
-        )
-        response.raise_for_status()
-        content = response.json()["content"][0]["text"].strip()
-        if content.startswith("```"):
-            content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content).strip()
-        return json.loads(content)
+                "tools": [advice_tool],
+                "tool_choice": {"type": "tool", "name": advice_tool["name"]},
+            }
+        candidate: object = None
+        for attempt in range(2):
+            if attempt:
+                request_body["messages"] = [
+                    {
+                        "role": "user",
+                        "content": json.dumps(
+                            {
+                                **envelope,
+                                "validation_feedback": (
+                                    "The previous draft had no evidence-backed claims. "
+                                    "Return at least one claim and ensure every product fact "
+                                    "in text is represented by a claim."
+                                ),
+                            },
+                            ensure_ascii=False,
+                        ),
+                    }
+                ]
+            response = httpx.post(
+                f"{ANTHROPIC_BASE_URL}/v1/messages",
+                headers=headers,
+                json=request_body,
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            content = response.json()["content"]
+            tool_use = next(
+                (
+                    item
+                    for item in content
+                    if item.get("type") == "tool_use"
+                    and item.get("name") == advice_tool["name"]
+                ),
+                None,
+            )
+            if tool_use is None:
+                raise ValueError("Advisor provider returned no advice tool result")
+            candidate = tool_use["input"]
+            if isinstance(candidate, dict) and candidate.get("claims"):
+                return candidate
+        return candidate
 
     return advise

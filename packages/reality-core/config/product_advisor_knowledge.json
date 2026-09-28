@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:f3b020a6c52611cc81affd3e0e10b8e3bcb3fcf1e7822b1fff157eb1aca3c58c",
+  "knowledge_version": "advisor-v1:sha256:a743c32f2066d0a0834075f8347a02f1ed63f020c0cbaf4e50c6231e9ca1747c",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -36,7 +36,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A04",
-      "fingerprint": "d164486476d9ed17f164b3846063a0bc98948a3898d3132df8b8319a16ecda3c"
+      "fingerprint": "054bfb49de8af3f2de21a9cc8d29d73d0ad4f0de5085251aeff3a00591710b25"
     },
     {
       "id": "source_journey_a05",
@@ -1107,7 +1107,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H02",
-      "fingerprint": "772ae7320b8b17ddd0f45ca28176bb141a94e974277121559f659e78935a5f87"
+      "fingerprint": "1a5d764bfe3679cb101e5709ad39837faaa419c0494dc9363173ccab54691ef7"
     },
     {
       "id": "source_journey_h03",
@@ -2155,14 +2155,14 @@
       "subject": "Order intake and order changes",
       "title": "Customer raises the quantity after a partial delivery",
       "search_text": "A04 Order intake and order changes Customer raises the quantity after a partial delivery What is still open after the revision? Customer raises the quantity after a partial delivery What is still open after the revision?",
-      "claim_text": "Reality evaluates: What is still open after the revision?",
+      "claim_text": "After 4 of 10 units have shipped and the reviewed order quantity rises to 12, Reality derives 8 units still open. The 4 shipped units remain fulfilled, and the newly open remainder can be reserved and shipped.",
       "support": "proven",
       "limitations": [],
       "references": [
         "A04"
       ],
       "language": "en",
-      "fingerprint": "b945dccc2af50cae06148429e238b04aed35632f47f1d0e17a93169103a78faf"
+      "fingerprint": "0e37ffb2ea691aa3a7f98821ba137bbedb60caafb3bf2fe15494799a9ea667e9"
     },
     {
       "id": "evidence_journey_a05",
@@ -4136,14 +4136,14 @@
       "subject": "Goods receipt and supplier deviations",
       "title": "Under-delivery, rest later",
       "search_text": "H02 Goods receipt and supplier deviations Under-delivery, rest later Open remainder? Under-delivery, rest later Open remainder?",
-      "claim_text": "Reality evaluates: Open remainder?",
+      "claim_text": "When a supplier delivers 3 of 8 ordered units, Reality records the receipt for 3 and derives an open remainder of 5. A later receipt can fulfill that remainder without overwriting the first movement.",
       "support": "proven",
       "limitations": [],
       "references": [
         "H02"
       ],
       "language": "en",
-      "fingerprint": "cabc7843e074a9c1d090e2981ca2d6d42c8f574b4e1da352cc8a9a76d420239d"
+      "fingerprint": "61782c18acecd9bbf9db63b2e3b6e62c05f859b9a19e90d6fa7bf05b014b42b6"
     },
     {
       "id": "evidence_journey_h03",

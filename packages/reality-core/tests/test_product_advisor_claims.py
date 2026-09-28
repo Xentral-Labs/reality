@@ -1,6 +1,5 @@
 import pytest
 from pydantic import ValidationError
-
 from reality.domain.product_advisor import (
     AdvisoryClaim,
     EvidenceSource,
@@ -99,6 +98,112 @@ def test_high_risk_end_to_end_wording_needs_exact_capability_evidence() -> None:
 
     assert result.validation == "rejected"
     assert any(code.startswith("unqualified_") for code in result.reason_codes)
+
+
+def test_high_risk_gap_wording_may_be_grounded_by_an_evidence_limitation() -> None:
+    evidence = EvidenceUnit(
+        id="evidence_partial_delivery_rule",
+        source_id="source_partial_delivery_rule",
+        subject="partial delivery",
+        title="Partial delivery rule",
+        search_text="partial delivery hold",
+        claim_text="A hold can explain why reserved goods are not shipped.",
+        support="limited",
+        limitations=("There is no ship-complete rule.",),
+        fingerprint="f" * 64,
+    )
+    claim = AdvisoryClaim(
+        id="claim_ship_complete_gap",
+        subject="partial delivery",
+        statement="Reality has no ship-complete rule.",
+        support="limited",
+        evidence_ids=(evidence.id,),
+        limitations=evidence.limitations,
+        workflow_role="gap",
+    )
+
+    result = validate_claim(claim, {evidence.id: evidence})
+
+    assert result.validation == "accepted"
+
+
+def test_negative_high_risk_wording_does_not_require_positive_capability_evidence() -> None:
+    evidence = EvidenceUnit(
+        id="evidence_no_automatic_rule",
+        source_id="source_no_automatic_rule",
+        subject="partial delivery",
+        title="No automatic rule",
+        search_text="partial delivery hold",
+        claim_text="A hold can explain why reserved goods are not shipped.",
+        support="limited",
+        limitations=("There is no ship-complete rule.",),
+        fingerprint="1" * 64,
+    )
+    claim = AdvisoryClaim(
+        id="claim_no_automatic_rule",
+        subject="partial delivery",
+        statement="There is no automatic ship-complete rule.",
+        support="limited",
+        evidence_ids=(evidence.id,),
+        limitations=evidence.limitations,
+        workflow_role="gap",
+    )
+
+    result = validate_claim(claim, {evidence.id: evidence})
+
+    assert result.validation == "accepted"
+
+
+def test_public_explanatory_contract_can_ground_a_product_explanation() -> None:
+    evidence = EvidenceUnit(
+        id="evidence_connector_contract",
+        source_id="source_connector_contract",
+        subject="connector contract",
+        title="Connector contract",
+        search_text="connector stores source payload losslessly",
+        claim_text="A connector stores the source payload losslessly.",
+        support="explanatory",
+        fingerprint="2" * 64,
+    )
+    claim = AdvisoryClaim(
+        id="claim_connector_contract",
+        subject="connector contract",
+        statement="A connector stores the source payload losslessly.",
+        support="proven",
+        evidence_ids=(evidence.id,),
+        workflow_role="native",
+    )
+
+    result = validate_claim(claim, {evidence.id: evidence})
+
+    assert result.validation == "accepted"
+
+
+def test_vocabulary_evidence_can_ground_exact_tool_existence() -> None:
+    evidence = EvidenceUnit(
+        id="evidence_supplier_invoice_tool",
+        source_id="source_supplier_invoice_tool",
+        subject="supplier invoice tool",
+        title="Supplier invoice tool",
+        search_text="record_supplier_invoice command",
+        claim_text="record_supplier_invoice records a supplier invoice.",
+        support="vocabulary_only",
+        references=("record_supplier_invoice",),
+        fingerprint="3" * 64,
+    )
+    claim = AdvisoryClaim(
+        id="claim_supplier_invoice_tool",
+        subject="supplier invoice tool",
+        statement="record_supplier_invoice records a supplier invoice.",
+        support="proven",
+        evidence_ids=(evidence.id,),
+        workflow_role="confirmed_execution",
+        tool_names=("record_supplier_invoice",),
+    )
+
+    result = validate_claim(claim, {evidence.id: evidence})
+
+    assert result.validation == "accepted"
 
 
 def test_agent_proposal_cannot_be_presented_as_confirmed_execution() -> None:
