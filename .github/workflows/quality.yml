@@ -279,7 +279,11 @@ jobs:
           cache-dependency-path: packages/reality-core/pyproject.toml
       - name: Install shared core
         if: steps.diff.outputs.changed == 'true'
-        run: python -m pip install -e './packages/reality-core[dev]'
+        # Into .venv: the page chrome scripts derive their fixtures from the runtime catalogs
+        # through .venv/bin/python, as in the browser-scripts job.
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -e './packages/reality-core[dev]'
       - uses: actions/setup-node@v4
         if: steps.diff.outputs.changed == 'true'
         with:
@@ -310,7 +314,7 @@ jobs:
           JOURNEY_VERIFY_PAGE_CHROME: "1"
         run: |
           cd packages/reality-core
-          pytest -s -p no:randomly tests/browser/unified_business_journey.py \
+          ../../.venv/bin/pytest -s -p no:randomly tests/browser/unified_business_journey.py \
             tests/browser/unified_item_csv_import.py
       - name: Upload journey logs
         if: failure() && steps.diff.outputs.changed == 'true'
