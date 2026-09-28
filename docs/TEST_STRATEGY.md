@@ -30,8 +30,10 @@ PostgreSQL databases and fixed timestamps where business dates affect behavior.
    `packages/reality-core/tests/browser/*.py` run the same kind of script against a real
    API, database, worker and scheduler, each in its own database; CI runs them in the
    `live-browser` matrix, one journey per runner, whenever the web app or the core changes.
-   The remaining real-API
-   scripts in `apps/web/scripts` (for example `history-table-browser.mjs`) still expect an
+   `tests/browser/live_stack.py` is the shared harness (database, migrations, API, Vite,
+   worker, scheduler and, when asked, the MCP runtime); `history-table-browser.mjs` and
+   `engine-room-live-browser.mjs` run through it. The remaining real-API scripts in
+   `apps/web/scripts` still expect an
    already running, seeded stack and stay manual until they get a harness of their own;
    `command-palette-performance.mjs` is a measurement, not a pass/fail check.
 

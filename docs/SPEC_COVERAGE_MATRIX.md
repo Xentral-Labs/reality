@@ -1718,6 +1718,13 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | Cursor with late commits, every filter, truncation, retention, windows, stages from events and catalog, who-changed-this, linked events, owner-only access | 266 FR-005–FR-008/FR-013/FR-015/DR-003 | `packages/reality-core/tests/test_engine_room_reads.py` |
 | Only the engine-room modules import the telemetry table or its reader; business code only annotates through the recorder | 266 DR-001 | `packages/reality-core/tests/test_engine_room_architecture.py` |
 | Server processes queue rows to one writer and batch them; a full queue drops a row instead of waiting; the call's own duration is kept | 266 FR-012/SC-003 | `packages/reality-core/tests/test_engine_room_recording.py` |
+| Against a live stack (API, Vite, worker, scheduler and the MCP runtime): a member's web writes appear live and name the member, route template and written stage; an MCP read through the real runtime names its token and issuer; links to changes and events, trend curves, channel filter across reload, owner-only access and the token entry point | 266 FR-001/FR-002/FR-005–FR-009/FR-013/FR-014/FR-016/FR-017 | `packages/reality-core/tests/browser/unified_engine_room.py` with `apps/web/scripts/engine-room-live-browser.mjs` (`tests/browser/live_stack.py`, `tests/browser/mcp_call.py`) |
+
+### Spec 269 history table
+
+| Behaviour | Requirement | Evidence |
+| --- | --- | --- |
+| Against a live stack: rows name records by business name and SKU, never raw ids; event type as tooltip, area chip, no badge on completed rows, no decision line; no filler column beside the dock and spare width to the grow columns; preview with ids and actions; no overflow at 390 px | 269 FR-001–FR-003/DR-001 | `packages/reality-core/tests/browser/unified_history_table.py` with `apps/web/scripts/history-table-browser.mjs` |
 
 ### Spec 270 capability discovery
 

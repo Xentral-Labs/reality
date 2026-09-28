@@ -368,7 +368,8 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
                 start_new_session=True,
             )
             processes.append(browser_process)
-            browser_process.wait(timeout=240)
+            # The journey walks every form; on CI runners it takes close to four minutes.
+            browser_process.wait(timeout=480)
         assert browser_process.returncode == 0, (artifacts / "browser.log").read_text()
         if os.environ.get("JOURNEY_VERIFY_PAGE_CHROME") == "1":
             for script in (
