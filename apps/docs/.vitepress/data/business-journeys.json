@@ -73,13 +73,10 @@
       "section": "Order intake and order changes",
       "title": "Customer raises the quantity after a partial delivery",
       "question": "What is still open after the revision?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: What is still open after the revision?",
-      "limitations": [
-        "Raising an ordered quantity works when nothing has been delivered yet.",
-        "Raising it after a partial delivery is not yet proven."
-      ],
+      "limitations": [],
       "keywords": [],
       "question_examples": [
         "Customer raises the quantity after a partial delivery",
@@ -117,13 +114,10 @@
       "section": "Order intake and order changes",
       "title": "One line cancelled, the rest stays",
       "question": "Is only that commitment closed and its reservation released?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Is only that commitment closed and its reservation released?",
-      "limitations": [
-        "Cancelling one order line releases its reservation and hold.",
-        "That the other lines of the same order stay open and reserved is not yet proven."
-      ],
+      "limitations": [],
       "keywords": [],
       "question_examples": [
         "One line cancelled, the rest stays",
@@ -139,12 +133,11 @@
       "section": "Order intake and order changes",
       "title": "Whole order cancelled after reservation",
       "question": "Are all reservations released?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Are all reservations released?",
       "limitations": [
-        "Lines are cancelled one by one; there is no cancellation for a whole order.",
-        "Cancelling every line of a reserved order is not yet proven."
+        "Lines are cancelled one by one; there is no cancellation for a whole order."
       ],
       "keywords": [],
       "question_examples": [
@@ -393,12 +386,11 @@
       "section": "Order intake and order changes",
       "title": "Zero-price line (sample, gift, replacement)",
       "question": "Committed and shipped without revenue?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Committed and shipped without revenue?",
       "limitations": [
-        "A zero-revenue invoice line works.",
-        "A zero-price order line that is committed and shipped is not yet proven."
+        "The free line is invoiced next to a priced line; an invoice without any priced line lies outside this proof."
       ],
       "keywords": [],
       "question_examples": [
@@ -951,13 +943,10 @@
       "section": "Payment and release",
       "title": "One payment for two prepaid orders",
       "question": "Is the payment allocated to both?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Is the payment allocated to both?",
-      "limitations": [
-        "One payment can settle several invoices.",
-        "That it releases two prepaid orders at once is not yet proven."
-      ],
+      "limitations": [],
       "keywords": [],
       "question_examples": [
         "One payment for two prepaid orders",
@@ -1903,13 +1892,10 @@
       "section": "Returns and complaints",
       "title": "B2C withdrawal within 14 days, full refund",
       "question": "Stock back, refund owed and paid?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Stock back, refund owed and paid?",
-      "limitations": [
-        "Return, credit note and refund each work.",
-        "One story running all three on the same order is not yet proven."
-      ],
+      "limitations": [],
       "keywords": [],
       "question_examples": [
         "B2C withdrawal within 14 days, full refund",
@@ -1985,12 +1971,11 @@
       "section": "Returns and complaints",
       "title": "Damaged return, partial refund",
       "question": "Disposition and refund independent?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Disposition and refund independent?",
       "limitations": [
-        "A reduced credit and the disposition of returned goods each work.",
-        "A damaged return combining both is not yet proven."
+        "The damage deduction is a charge on the credit note; crediting fewer units than came back is reported as not credited."
       ],
       "keywords": [],
       "question_examples": [
@@ -2030,8 +2015,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Two commitments, no refund?",
       "limitations": [
-        "The return and the replacement delivery are recorded in order.",
-        "That no money moves is not yet proven."
+        "The return and the replacement delivery are recorded, and no money moves.",
+        "Reality has no exchange, so the return reads as not yet credited and the free replacement as not yet invoiced."
       ],
       "keywords": [],
       "question_examples": [
@@ -3913,13 +3898,10 @@
       "section": "B2B specifics",
       "title": "Customer deducts penalty or marketing contribution",
       "question": "Short payment with reason?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Short payment with reason?",
-      "limitations": [
-        "An agreed deduction can be recorded as the reason for a short payment; this is proven for suppliers.",
-        "Customer penalties and marketing contributions are not yet proven."
-      ],
+      "limitations": [],
       "keywords": [],
       "question_examples": [
         "Customer deducts penalty or marketing contribution",
@@ -4021,12 +4003,11 @@
       "section": "Finance, tax and currency",
       "title": "Intra-community supply (VAT-exempt, VAT ID)",
       "question": "Stated tax recorded?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Stated tax recorded?",
       "limitations": [
-        "Net, tax and tax case codes are kept as the source states them.",
-        "An intra-community supply with zero tax and the customer's VAT ID is not yet proven."
+        "The customer's VAT ID is kept on the business partner, not on the invoice."
       ],
       "keywords": [],
       "question_examples": [
@@ -4043,12 +4024,11 @@
       "section": "Finance, tax and currency",
       "title": "Reverse charge on purchase",
       "question": "Stated tax recorded?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Stated tax recorded?",
       "limitations": [
-        "Tax components on supplier invoices are kept as stated.",
-        "Reverse charge is not yet proven."
+        "Only net and zero tax can be stated; the self-assessed reverse-charge tax cannot be recorded."
       ],
       "keywords": [],
       "question_examples": [
@@ -4128,13 +4108,10 @@
       "section": "Finance, tax and currency",
       "title": "Open items per party incl. credits and prepayments",
       "question": "Party balance correct?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Party balance correct?",
-      "limitations": [
-        "Open items, overpayments and credit notes per business partner and currency are correct.",
-        "Deposits and prepayments in the balance are not yet proven."
-      ],
+      "limitations": [],
       "keywords": [],
       "question_examples": [
         "Open items per party incl. credits and prepayments",

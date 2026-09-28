@@ -1,4 +1,4 @@
-"""Catalog scenarios for order lines, combined shipments and split dispatch."""
+"""Catalog scenarios for order lines, order changes, combined shipments and split dispatch."""
 
 import json
 from datetime import UTC, datetime
@@ -16,6 +16,9 @@ from reality.db.core import (
     Shipment,
 )
 from reality.services.core import (
+    account_balance,
+    active_reserved,
+    commitment_quantity,
     create_commitment,
     create_item,
     fulfilled_quantity,
@@ -27,10 +30,13 @@ from reality.services.core import (
     stock_at,
 )
 from reality.services.delivery_actions import prepare_delivery_action
+from reality.services.exceptions import operational_exceptions
 from reality.services.shipments import shipment_explain
 from reality.tools.application import (
     approve_and_execute_proposal,
+    confirm_tool,
     create_change_proposal,
+    propose_tool,
 )
 
 
@@ -389,3 +395,250 @@ def test_delisted_item_still_serves_its_open_commitment(session, business):
     ) == Decimal(6)
     reservation = record_by_id(session, Reservation, reserved.reservation.id)
     assert reservation.status == "consumed"
+
+
+# --- Order changes: A04, A06, A07, A19 (spec 292) ------------------------------
+
+AS_OF = datetime(2026, 12, 31, 12, tzinfo=UTC)
+
+
+def _act(session, business, tool, arguments, request_id):
+    proposal = prepare_delivery_action(
+        session, business.tenant.id, tool, arguments, request_id=request_id
+    )
+    executed = _confirm(session, business.tenant.id, proposal)
+    assert executed.status == "executed"
+    return executed
+
+
+def _ship(session, business, tracking_number, commitment_id, quantity, item_id=None):
+    return _dispatch(
+        session,
+        business,
+        tracking_number,
+        [
+            {
+                "commitment_id": commitment_id,
+                "item_id": item_id or business.item.id,
+                "from_location_id": business.location.id,
+                "quantity": quantity,
+            }
+        ],
+    )
+
+
+def _active_reservations(session, business, commitment_id):
+    return sum(
+        (
+            reservation.quantity
+            for reservation in session.scalars(
+                select(Reservation).where(
+                    Reservation.tenant_id == business.tenant.id,
+                    Reservation.commitment_id == commitment_id,
+                    Reservation.status == "active",
+                )
+            )
+        ),
+        Decimal(0),
+    )
+
+
+def _unbilled_lines(session, tenant_id):
+    return {
+        row.record_id
+        for row in operational_exceptions(session, tenant_id, as_of=AS_OF)
+        if row.class_id == "shipped_not_billed"
+    }
+
+
+def test_raising_the_quantity_after_a_partial_delivery_opens_only_the_rest(
+    session, business
+):
+    """A04: after 4 of 10 went out and the customer raises to 12, 8 are open."""
+    tenant_id = business.tenant.id
+    _receive(session, business, business.item.id, "20", business.location.id)
+    receipt = _order(session, business, "SO-A04", [_line(business.item.id, "10")])
+    commitment_id = receipt["commitment_ids"][0]
+    reserve(session, tenant_id, commitment_id)
+    _ship(session, business, "OUT-A04-1", commitment_id, "4")
+
+    _act(
+        session,
+        business,
+        "commitment_revise",
+        {"commitment_id": commitment_id, "quantity": "12", "note": "Customer adds 2"},
+        "revise-a04",
+    )
+
+    assert commitment_quantity(session, tenant_id, commitment_id) == Decimal(12)
+    assert fulfilled_quantity(session, tenant_id, commitment_id) == Decimal(4)
+    assert open_quantity(session, tenant_id, commitment_id) == Decimal(8)
+    # The order line keeps what the customer first stated; the revision is Reality.
+    assert record_by_id(session, Commitment, commitment_id).quantity == Decimal(10)
+
+    # The rest can be reserved and go out in full, and nothing more.
+    reserve(session, tenant_id, commitment_id)
+    assert _active_reservations(session, business, commitment_id) == Decimal(8)
+    _ship(session, business, "OUT-A04-2", commitment_id, "8")
+    assert open_quantity(session, tenant_id, commitment_id) == Decimal(0)
+    assert record_by_id(session, Commitment, commitment_id).status == "fulfilled"
+    assert stock_at(
+        session, tenant_id, business.item.id, business.location.id
+    ) == Decimal(8)
+
+
+def test_cancelling_one_line_leaves_the_other_lines_open_and_reserved(
+    session, business
+):
+    """A06: only the cancelled line closes and gives its reservation back."""
+    tenant_id = business.tenant.id
+    _receive(session, business, business.item.id, "20", business.location.id)
+    receipt = _order(
+        session,
+        business,
+        "SO-A06",
+        [
+            _line(business.item.id, "2"),
+            _line(business.item.id, "3"),
+            _line(business.item.id, "4"),
+        ],
+    )
+    first, cancelled, third = receipt["commitment_ids"]
+    for commitment_id in receipt["commitment_ids"]:
+        reserve(session, tenant_id, commitment_id)
+
+    _act(
+        session,
+        business,
+        "commitment_cancel",
+        {"commitment_id": cancelled, "reason": "Customer no longer needs it"},
+        "cancel-a06",
+    )
+
+    statuses = {
+        commitment_id: record_by_id(session, Commitment, commitment_id).status
+        for commitment_id in receipt["commitment_ids"]
+    }
+    assert statuses == {first: "open", cancelled: "cancelled", third: "open"}
+    assert _active_reservations(session, business, cancelled) == Decimal(0)
+    assert _active_reservations(session, business, first) == Decimal(2)
+    assert _active_reservations(session, business, third) == Decimal(4)
+    assert open_quantity(session, tenant_id, first) == Decimal(2)
+    assert open_quantity(session, tenant_id, third) == Decimal(4)
+    assert active_reserved(session, tenant_id, business.item.id) == Decimal(6)
+    assert stock_at(
+        session, tenant_id, business.item.id, business.location.id
+    ) == Decimal(20)
+
+
+def test_cancelling_every_line_of_a_reserved_order_releases_all_its_stock(
+    session, business
+):
+    """A07: a whole order cancelled line by line leaves no reservation behind."""
+    tenant_id = business.tenant.id
+    pump = create_item(session, tenant_id, "PUMP-A07", "Mini Pump")
+    _receive(session, business, business.item.id, "10", business.location.id)
+    _receive(session, business, pump.id, "10", business.location.id)
+    receipt = _order(
+        session,
+        business,
+        "SO-A07",
+        [_line(business.item.id, "3"), _line(pump.id, "5")],
+    )
+    for commitment_id in receipt["commitment_ids"]:
+        reserve(session, tenant_id, commitment_id)
+    assert active_reserved(session, tenant_id, business.item.id) == Decimal(3)
+    assert active_reserved(session, tenant_id, pump.id) == Decimal(5)
+
+    # There is no order-level cancellation: the whole order is every line.
+    for index, commitment_id in enumerate(receipt["commitment_ids"]):
+        _act(
+            session,
+            business,
+            "commitment_cancel",
+            {"commitment_id": commitment_id, "reason": "Customer cancelled order"},
+            f"cancel-a07-{index}",
+        )
+
+    assert {
+        record_by_id(session, Commitment, commitment_id).status
+        for commitment_id in receipt["commitment_ids"]
+    } == {"cancelled"}
+    assert active_reserved(session, tenant_id, business.item.id) == Decimal(0)
+    assert active_reserved(session, tenant_id, pump.id) == Decimal(0)
+    # Cancelling moves no goods: the stock was never gone, now it is free again.
+    assert stock_at(
+        session, tenant_id, business.item.id, business.location.id
+    ) == Decimal(10)
+    assert stock_at(session, tenant_id, pump.id, business.location.id) == Decimal(10)
+
+
+def test_a_zero_price_line_ships_and_is_invoiced_without_revenue(session, business):
+    """A19: a free line is committed, shipped and invoiced at zero next to a priced one."""
+    tenant_id = business.tenant.id
+    gift = create_item(session, tenant_id, "GIFT-A19", "Gift Bell")
+    _receive(session, business, business.item.id, "10", business.location.id)
+    _receive(session, business, gift.id, "10", business.location.id)
+    free = {
+        "item_id": gift.id,
+        "quantity": "1",
+        "unit_price": "0.00",
+        "gross_amount": "0.00",
+    }
+    receipt = _order(session, business, "SO-A19", [_line(business.item.id, "2"), free])
+    priced_id, free_id = receipt["commitment_ids"]
+    priced_line_id, free_line_id = receipt["document_line_ids"]
+    for commitment_id in receipt["commitment_ids"]:
+        reserve(session, tenant_id, commitment_id)
+    _ship(session, business, "OUT-A19-1", priced_id, "2")
+    _ship(session, business, "OUT-A19-2", free_id, "1", item_id=gift.id)
+    assert record_by_id(session, Commitment, free_id).status == "fulfilled"
+    # Positive control: shipped and not yet invoiced, both lines are reported.
+    assert {priced_line_id, free_line_id} <= _unbilled_lines(session, tenant_id)
+
+    # Recorded and booked through the same tools the agent and the web use.
+    recording = propose_tool(
+        session,
+        tenant_id,
+        "document_create",
+        {
+            "document_type": "sales_invoice",
+            "number": "RE-A19",
+            "party_id": business.customer.id,
+            "gross_amount": "20.00",
+            "document_date": "2026-12-01",
+            "lines": [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "2",
+                    "unit": "pcs",
+                    "unit_price": "10.00",
+                    "gross_amount": "20.00",
+                    "billed_document_line_id": priced_line_id,
+                },
+                {
+                    "item_id": gift.id,
+                    "quantity": "1",
+                    "unit": "pcs",
+                    "unit_price": "0.00",
+                    "gross_amount": "0.00",
+                    "billed_document_line_id": free_line_id,
+                },
+            ],
+        },
+    )
+    invoice_id = json.loads(confirm_tool(session, tenant_id, recording.id).output)[
+        "document_id"
+    ]
+    booking = propose_tool(
+        session, tenant_id, "sales_invoice_post", {"document_id": invoice_id}
+    )
+    confirm_tool(session, tenant_id, booking.id)
+
+    assert account_balance(session, tenant_id, "sales_revenue") == Decimal("-20.00")
+    assert account_balance(session, tenant_id, "accounts_receivable") == Decimal(
+        "20.00"
+    )
+    unbilled = _unbilled_lines(session, tenant_id)
+    assert free_line_id not in unbilled
+    assert priced_line_id not in unbilled
