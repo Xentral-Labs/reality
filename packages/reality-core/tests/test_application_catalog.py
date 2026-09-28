@@ -59,6 +59,7 @@ def test_split_catalog_is_complete_and_composed():
         "unassigned_cost_component",
         "stale_cost_review",
         "negative_actual_db1",
+        "exchange_without_return",
     ]
     assert {entry["materialized_as"] for entry in catalog["projections"]} == set(
         OPERATIONAL_PROJECTIONS

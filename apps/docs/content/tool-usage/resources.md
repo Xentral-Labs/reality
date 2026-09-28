@@ -20,7 +20,7 @@ the technical key stands beside each one.
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 2                   |
 | [Ledger and accounts](#resource-accounting)                      | 2     | 14      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
-| [Return](#resource-return)                                       | 0     | 3       | 6                   |
+| [Return](#resource-return)                                       | 0     | 3       | 7                   |
 | [Document and source system](#resource-source)                   | 3     | 11      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
@@ -706,6 +706,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 - [Return not dealt with](./exceptions#exception-return_unresolved) (`return_unresolved`)
 - [Announced return has not arrived](./exceptions#exception-announced_return_not_arrived)
   (`announced_return_not_arrived`)
+- [Exchange without return](./exceptions#exception-exchange_without_return)
+  (`exchange_without_return`)
 
 **Appears in processes:** [Procure to pay](./processes#process-procure_to_pay),
 [Customer returns](./processes#process-returns)

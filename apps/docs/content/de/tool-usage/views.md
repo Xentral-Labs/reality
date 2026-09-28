@@ -676,7 +676,8 @@ Ausnahme [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), Ausn
 [`missing_acquisition_cost`](./exceptions#exception-missing_acquisition_cost), Ausnahme
 [`unassigned_cost_component`](./exceptions#exception-unassigned_cost_component), Ausnahme
 [`stale_cost_review`](./exceptions#exception-stale_cost_review), Ausnahme
-[`negative_actual_db1`](./exceptions#exception-negative_actual_db1)
+[`negative_actual_db1`](./exceptions#exception-negative_actual_db1), Ausnahme
+[`exchange_without_return`](./exceptions#exception-exchange_without_return)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

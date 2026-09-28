@@ -668,7 +668,8 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`missing_acquisition_cost`](./exceptions#exception-missing_acquisition_cost), exception
 [`unassigned_cost_component`](./exceptions#exception-unassigned_cost_component), exception
 [`stale_cost_review`](./exceptions#exception-stale_cost_review), exception
-[`negative_actual_db1`](./exceptions#exception-negative_actual_db1)
+[`negative_actual_db1`](./exceptions#exception-negative_actual_db1), exception
+[`exchange_without_return`](./exceptions#exception-exchange_without_return)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

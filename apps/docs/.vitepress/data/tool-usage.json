@@ -913,7 +913,8 @@
         "exception:supplier_return_not_credited",
         "exception:supplier_credit_not_returned",
         "exception:return_unresolved",
-        "exception:announced_return_not_arrived"
+        "exception:announced_return_not_arrived",
+        "exception:exchange_without_return"
       ],
       "tools": ["tool:return_disposition_summary"],
       "events": ["event:return.announced", "event:return.announcement_withdrawn"],
@@ -1331,7 +1332,10 @@
           ],
           "tools": [],
           "lists": [],
-          "exceptions": ["exception:announced_return_not_arrived"]
+          "exceptions": [
+            "exception:announced_return_not_arrived",
+            "exception:exchange_without_return"
+          ]
         },
         {
           "title": {
@@ -22345,7 +22349,8 @@
         "exception:missing_acquisition_cost",
         "exception:unassigned_cost_component",
         "exception:stale_cost_review",
-        "exception:negative_actual_db1"
+        "exception:negative_actual_db1",
+        "exception:exchange_without_return"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -23458,7 +23463,8 @@
       "record_type": "return_announcement",
       "authority": "099/FR-011",
       "evidence": [
-        "tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived"
+        "tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived",
+        "tests/operational_exceptions/test_derivation.py::test_an_overdue_advance_exchange_names_the_replacement_already_sent"
       ],
       "causes": [],
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
@@ -23645,6 +23651,28 @@
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Tatsächlicher DB1 negativ",
       "resources": ["contribution", "order"]
+    },
+    {
+      "id": "exception:exchange_without_return",
+      "kind": "exception",
+      "key": "exchange_without_return",
+      "label": "Exchange without return",
+      "area": "orders",
+      "summary": "A replacement went out in advance for goods a customer announced, and the customer then withdrew the announcement. An advance exchange is ordinary service: the faulty unit is expected to follow the replacement. Withdrawing the announcement says it will not, and the replacement cannot be taken back by saying so, so the goods it answered are still owed. Without this entry the withdrawal would silently turn the replacement into a free delivery. Goods that arrived against the announcement before it was withdrawn count as returned, and so does a later ordinary return on the same delivery that no other exchange has claimed. A replacement that has not left yet is not reported: cancelling it is still an ordinary step.",
+      "owner": "Customer service",
+      "clears_through": "The goods arriving after all as a return on the original delivery, or cancelling what of the replacement has not shipped.",
+      "severity": "normal",
+      "record_type": "customer_exchange",
+      "authority": "293/FR-007",
+      "evidence": [
+        "tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_leaves_a_sent_replacement_without_a_return",
+        "tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_with_an_unsent_replacement_is_not_reported",
+        "tests/operational_exceptions/test_derivation.py::test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return"
+      ],
+      "causes": [],
+      "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
+      "label_de": "Umtausch ohne Rücksendung",
+      "resources": ["return"]
     },
     {
       "id": "event:cost.attributed",

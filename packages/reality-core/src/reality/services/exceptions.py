@@ -113,6 +113,7 @@ CLASS_ORDER = {
     "unassigned_cost_component": 36,
     "stale_cost_review": 37,
     "negative_actual_db1": 38,
+    "exchange_without_return": 39,
 }
 
 
@@ -1388,8 +1389,12 @@ def _announced_return_not_arrived_exceptions(
         ReturnAnnouncement,
         announcement_outstanding,
     )
+    from reality.services.customer_exchanges import exchanges_by_announcement
 
     threshold = _announcement_arrival_threshold(session, tenant_id)
+    # An advance exchange already sent the replacement (spec 293 FR-007): the goods
+    # are owed all the same, and the entry says what already left.
+    advance = exchanges_by_announcement(session, tenant_id)
     result: list[OperationalException] = []
     for announcement in session.scalars(
         select(ReturnAnnouncement)
@@ -1447,13 +1452,67 @@ def _announced_return_not_arrived_exceptions(
                         if threshold is not None and announcement.expected_by is None
                         else None
                     ),
+                    "exchange_ids": [
+                        row.id for row in advance.get(announcement.id, [])
+                    ],
+                    "replacement_commitment_ids": [
+                        row.replacement_commitment_id
+                        for row in advance.get(announcement.id, [])
+                    ],
                 },
                 {
                     "return_announcement_id": announcement.id,
                     "commitment_id": announcement.commitment_id,
                     "source_record_id": announcement.source_record_id,
+                    "customer_exchange_ids": [
+                        row.id for row in advance.get(announcement.id, [])
+                    ],
                 },
                 announcement.expected_by or announcement.announced_at,
+            )
+        )
+    return result
+
+
+def _exchange_without_return_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """A replacement went out for goods the customer then said would not come back.
+
+    The exchange stays what it was: a promise answered in advance. Withdrawing the
+    announcement does not undo the replacement, so what it answered is still owed,
+    and without this entry it would be a free delivery nobody sees (spec 293 US2.4).
+    """
+    from reality.services.customer_exchanges import exchanges_without_return
+
+    result: list[OperationalException] = []
+    for row in exchanges_without_return(session, tenant_id):
+        exchange, announcement = row["exchange"], row["announcement"]
+        result.append(
+            OperationalException(
+                _identity("exchange_without_return", exchange.id),
+                "exchange_without_return",
+                (),
+                "normal",
+                "Exchange without return",
+                f"{row['unreturned_quantity']:g} replaced in advance and not coming back",
+                "customer_exchange",
+                exchange.id,
+                {
+                    "exchanged_quantity": row["exchanged_quantity"],
+                    "arrived_quantity": row["arrived_quantity"],
+                    "unreturned_quantity": row["unreturned_quantity"],
+                    "replacement_shipped_quantity": row["replacement_shipped_quantity"],
+                    "reference": announcement.reference,
+                },
+                {
+                    "customer_exchange_id": exchange.id,
+                    "return_announcement_id": announcement.id,
+                    "commitment_id": announcement.commitment_id,
+                    "replacement_commitment_id": exchange.replacement_commitment_id,
+                    "source_record_id": exchange.source_record_id,
+                },
+                announcement.closed_at or announcement.announced_at,
             )
         )
     return result
@@ -3499,6 +3558,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "duplicate_supplier_invoice": _duplicate_supplier_invoice_exceptions,
     "unmatched_financial_event": _financial_derivator,
     "announced_return_not_arrived": _announced_return_not_arrived_exceptions,
+    "exchange_without_return": _exchange_without_return_exceptions,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,

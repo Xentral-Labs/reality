@@ -20772,6 +20772,9 @@ Object.assign(dictionaries.de, {
   "Unmatched financial event": "Nicht zugeordneter Finanzvorgang",
   "Allocating the remainder to the invoices it pays.":
     "Den Rest den Rechnungen zuordnen, die er bezahlt.",
+  "Exchange without return": "Umtausch ohne Rücksendung",
+  "The goods arriving after all as a return on the original delivery, or cancelling what of the replacement has not shipped.":
+    "Die Ware kommt doch noch als Retoure auf die ursprüngliche Lieferung zurück, oder du stornierst den noch nicht versendeten Teil des Ersatzes.",
   "Announced return has not arrived": "Angekündigte Retoure nicht eingetroffen",
   "The goods arriving against the announcement, or the customer withdrawing it.":
     "Die Ware trifft zur Ankündigung ein, oder der Kunde zieht sie zurück.",
@@ -20888,6 +20891,9 @@ Object.assign(dictionaries.nl, {
   "Unmatched financial event": "Niet gekoppelde financiële gebeurtenis",
   "Allocating the remainder to the invoices it pays.":
     "Het restant toewijzen aan de facturen die het betaalt.",
+  "Exchange without return": "Omruiling zonder retour",
+  "The goods arriving after all as a return on the original delivery, or cancelling what of the replacement has not shipped.":
+    "De goederen komen alsnog terug als retour op de oorspronkelijke levering, of je annuleert wat van de vervanging nog niet is verzonden.",
   "Announced return has not arrived": "Aangekondigde retour niet ontvangen",
   "The goods arriving against the announcement, or the customer withdrawing it.":
     "De goederen komen binnen op de aankondiging, of de klant trekt die in.",
@@ -21003,6 +21009,9 @@ Object.assign(dictionaries.es, {
     "Anular el asiento hecho por error o confirmar que los números son distintos.",
   "Unmatched financial event": "Movimiento financiero sin asignar",
   "Allocating the remainder to the invoices it pays.": "Asignar el resto a las facturas que paga.",
+  "Exchange without return": "Cambio sin devolución",
+  "The goods arriving after all as a return on the original delivery, or cancelling what of the replacement has not shipped.":
+    "La mercancía llega finalmente como devolución de la entrega original, o cancelas la parte de la reposición que aún no se ha enviado.",
   "Announced return has not arrived": "La devolución anunciada no ha llegado",
   "The goods arriving against the announcement, or the customer withdrawing it.":
     "Que llegue la mercancía anunciada o que el cliente retire el aviso.",

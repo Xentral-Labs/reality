@@ -447,3 +447,87 @@ def _returned_delivery_of(
         None,
         announcement,
     )
+
+
+def exchanges_by_announcement(
+    session: Session, tenant_id: str
+) -> dict[str, list[CustomerExchange]]:
+    """Every advance exchange, grouped by the announcement it answers."""
+    grouped: dict[str, list[CustomerExchange]] = defaultdict(list)
+    for exchange in session.scalars(
+        select(CustomerExchange)
+        .where(
+            CustomerExchange.tenant_id == tenant_id,
+            CustomerExchange.return_announcement_id.is_not(None),
+        )
+        .order_by(CustomerExchange.created_at, CustomerExchange.id)
+    ):
+        grouped[exchange.return_announcement_id].append(exchange)
+    return dict(grouped)
+
+
+def exchanges_without_return(session: Session, tenant_id: str) -> list[dict[str, Any]]:
+    """Advance exchanges whose announcement was withdrawn after the replacement left.
+
+    The customer said the goods would come back, received a replacement, and then
+    said they would not. What the replacement answered is still owed. Goods count as
+    returned when they arrived against the announcement before it was withdrawn, or
+    later as an ordinary return on the same delivery that nothing else has claimed,
+    in the order the exchanges were recorded.
+    """
+    result: list[dict[str, Any]] = []
+    for announcement_id, exchanges in exchanges_by_announcement(
+        session, tenant_id
+    ).items():
+        announcement = core._tenant_record(
+            session, ReturnAnnouncement, tenant_id, announcement_id
+        )
+        if announcement.status != "withdrawn":
+            continue
+        arrived = core.arrived_against_announcement(
+            session, tenant_id, announcement_id
+        ) + _later_unclaimed_returns(session, tenant_id, announcement)
+        for exchange in exchanges:
+            in_force = _in_force(session, tenant_id, exchange)
+            answered = min(in_force, arrived)
+            arrived -= answered
+            shipped = core.fulfilled_quantity(
+                session, tenant_id, exchange.replacement_commitment_id
+            )
+            if shipped <= ZERO or in_force - answered <= ZERO:
+                continue
+            result.append(
+                {
+                    "exchange": exchange,
+                    "announcement": announcement,
+                    "exchanged_quantity": in_force,
+                    "arrived_quantity": answered,
+                    "unreturned_quantity": in_force - answered,
+                    "replacement_shipped_quantity": shipped,
+                }
+            )
+    return result
+
+
+def _later_unclaimed_returns(
+    session: Session, tenant_id: str, announcement: ReturnAnnouncement
+) -> Decimal:
+    """Ordinary returns on the delivery after the withdrawal, not exchanged themselves."""
+    later = session.scalars(
+        select(Movement).where(
+            Movement.tenant_id == tenant_id,
+            Movement.type == "return",
+            Movement.commitment_id == announcement.commitment_id,
+            Movement.return_announcement_id.is_(None),
+            Movement.occurred_at >= announcement.closed_at,
+        )
+    )
+    unclaimed = ZERO
+    for movement in later:
+        claimed = _in_force_total(
+            session,
+            tenant_id,
+            _exchanges(session, tenant_id, return_movement_id=movement.id),
+        )
+        unclaimed += max(Decimal(movement.quantity) - claimed, ZERO)
+    return unclaimed

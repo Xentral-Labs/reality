@@ -116,6 +116,7 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "unassigned_cost_component",
     "stale_cost_review",
     "negative_actual_db1",
+    "exchange_without_return",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays

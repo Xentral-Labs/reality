@@ -303,7 +303,7 @@ resources:
     match: "return"
     views: []
     projections: []
-    exceptions: [return_unresolved, announced_return_not_arrived, returned_not_credited, credited_not_returned, supplier_return_not_credited, supplier_credit_not_returned]
+    exceptions: [return_unresolved, announced_return_not_arrived, exchange_without_return, returned_not_credited, credited_not_returned, supplier_return_not_credited, supplier_credit_not_returned]
 
   - key: source
     label:
@@ -484,7 +484,7 @@ processes:
         resource: return
         actions: [announce_customer_return, withdraw_return_announcement, return_announcements]
         lists: []
-        exceptions: [announced_return_not_arrived]
+        exceptions: [announced_return_not_arrived, exchange_without_return]
       - title: { en: The goods arrive, de: Die Ware kommt an }
         resource: delivery
         actions: [record_packaged_execution, record_movement]
@@ -758,6 +758,7 @@ labels:
       duplicate_supplier_invoice: Doppelte Eingangsrechnung
       unmatched_financial_event: Nicht zugeordneter Finanzvorgang
       announced_return_not_arrived: Angekündigte Retoure nicht eingetroffen
+      exchange_without_return: Umtausch ohne Rücksendung
       commitment_hold_unreleased: Sperre der Verpflichtung nicht aufgehoben
       party_hold_unreleased: Liefersperre nicht aufgehoben
       stock_expired: Abgelaufener Bestand

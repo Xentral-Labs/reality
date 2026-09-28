@@ -46,6 +46,7 @@ it, and which agent tools list and explain it.
 | [`unassigned_cost_component`](#exception-unassigned_cost_component)                       | Unassigned cost component                | Finance                    | `high`   | Purchasing or finance operations                                                            |
 | [`stale_cost_review`](#exception-stale_cost_review)                                       | Stale cost review                        | Orders & fulfilment        | `normal` | Finance operations                                                                          |
 | [`negative_actual_db1`](#exception-negative_actual_db1)                                   | Negative actual DB1                      | Cross-functional           | `normal` | Sales management                                                                            |
+| [`exchange_without_return`](#exception-exchange_without_return)                           | Exchange without return                  | Orders & fulfilment        | `normal` | Customer service                                                                            |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -952,7 +953,9 @@ The goods half after is Return not dealt with, and the money half is Returned an
 - **Severity:** `normal`
 - **Record type:** `return_announcement`
 - **Authority:** `099/FR-011`
-- **Evidence:** `tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived`
+- **Evidence:**
+  `tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived`,
+  `tests/operational_exceptions/test_derivation.py::test_an_overdue_advance_exchange_names_the_replacement_already_sent`
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
@@ -1158,6 +1161,32 @@ Complete supported actual goods cost exceeds the received net revenue of the rev
 | ID                              | Label                         | Authority    |
 | ------------------------------- | ----------------------------- | ------------ |
 | `supported_actual_db1_negative` | Supported actual DB1 negative | `234/FR-011` |
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain)
+
+## `exchange_without_return` — Exchange without return {#exception-exchange_without_return}
+
+A replacement went out in advance for goods a customer announced, and the customer then withdrew the
+announcement. An advance exchange is ordinary service: the faulty unit is expected to follow the
+replacement. Withdrawing the announcement says it will not, and the replacement cannot be taken back
+by saying so, so the goods it answered are still owed. Without this entry the withdrawal would
+silently turn the replacement into a free delivery. Goods that arrived against the announcement
+before it was withdrawn count as returned, and so does a later ordinary return on the same delivery
+that no other exchange has claimed. A replacement that has not left yet is not reported: cancelling
+it is still an ordinary step.
+
+- **Owner:** Customer service
+- **Clears through:** The goods arriving after all as a return on the original delivery, or
+  cancelling what of the replacement has not shipped.
+- **Severity:** `normal`
+- **Record type:** `customer_exchange`
+- **Authority:** `293/FR-007`
+- **Evidence:**
+  `tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_leaves_a_sent_replacement_without_a_return`,
+  `tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_with_an_unsent_replacement_is_not_reported`,
+  `tests/operational_exceptions/test_derivation.py::test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return`
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool

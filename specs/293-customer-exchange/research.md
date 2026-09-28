@@ -114,3 +114,18 @@ Precedent wiring for `return_disposition` and the gates a new tool, table and ev
   `review_delivery_changed`; one that became invalid is refused with the exchange's own code.
 - The two tools and their tenant-isolation entries (and the pinned discovered-operation count,
   587 → 589) moved into T012 so no commit leaves the catalog gates red.
+
+## Implementation notes (T014–T016, 2026-09-28)
+
+- Spec 099 refuses goods recorded against a withdrawn announcement, so an `exchange_without_return`
+  entry could never clear through the announcement. The class therefore also counts a later ordinary
+  return on the same delivery (after the withdrawal, not claimed by another exchange). A replacement
+  that has not shipped is not reported; cancelling it is the ordinary step.
+- `announced_return_not_arrived` carries `exchange_ids` and `replacement_commitment_ids` in its values
+  and `customer_exchange_ids` in its trace; its judgement is unchanged.
+- The new class sits last in `CLASS_ORDER` and the catalog (number 39) so no existing class moves;
+  the pinned class lists in `test_application_catalog.py`, `test_coverage.py` and
+  `test_class_clock.py` (`WITHOUT_A_SCENARIO`), `catalogs.OPERATIONAL_EXCEPTION_CLASS_ORDER`, the
+  `return` resource and returns process step in `resource_catalog.yaml` (German label), de/nl/es
+  label and resolution in `apps/web/src/localization.tsx`, `docs/features/operational_exceptions.md`
+  and the generated Tool Usage pages follow it.

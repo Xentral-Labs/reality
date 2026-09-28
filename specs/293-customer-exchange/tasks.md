@@ -36,9 +36,9 @@
 
 **Independent Test**: `pytest core/tests/test_customer_exchanges.py core/tests/operational_exceptions/test_derivation.py -k announcement`
 
-- [ ] T014 [P] [US2] [FR-007] Failing derivation tests: advance exchange before arrival (announcement outstanding and naming the replacement, no credit finding), after arrival (nothing open), overdue (announced return not arrived names the exchange), in `core/tests/operational_exceptions/test_derivation.py`
-- [ ] T015 [P] [US2] [FR-007] Failing test: withdrawn announcement after a shipped advance replacement reports `exchange_without_return`, with a positive control, in `core/tests/operational_exceptions/test_derivation.py`
-- [ ] T016 [US2] [FR-007] Name exchanges in `_announced_return_not_arrived_exceptions` and add `exchange_without_return` (derivation, `CLASS_ORDER`, `DERIVATION_REGISTRY`) in `core/src/reality/services/exceptions.py` and `core/config/operational_exception_catalog.yaml`
+- [x] T014 [P] [US2] [FR-007] Failing derivation tests: advance exchange before arrival (announcement outstanding and naming the replacement, no credit finding), after arrival (nothing open), overdue (announced return not arrived names the exchange), in `core/tests/operational_exceptions/test_derivation.py`
+- [x] T015 [P] [US2] [FR-007] Failing test: withdrawn announcement after a shipped advance replacement reports `exchange_without_return`, with a positive control, in `core/tests/operational_exceptions/test_derivation.py`
+- [x] T016 [US2] [FR-007] Name exchanges in `_announced_return_not_arrived_exceptions` and add `exchange_without_return` (derivation, `CLASS_ORDER`, `DERIVATION_REGISTRY`) in `core/src/reality/services/exceptions.py` and `core/config/operational_exception_catalog.yaml`
 
 ## Phase 5: User Story 3 — Explain an exchange (P2)
 

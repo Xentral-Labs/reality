@@ -6362,3 +6362,164 @@ def test_a_shipped_replacement_is_not_owed_an_invoice(session, business):
     assert by_class(session, business.tenant.id)["shipped_not_billed"].record_id == (
         other_line.id
     )
+
+
+# --- Spec 293 US2: exchanging in advance of the goods ---------------------------
+
+
+def advance_exchange(session, business, announcement, quantity):
+    from reality.services.customer_exchanges import record_customer_exchange
+
+    return record_customer_exchange(
+        session,
+        business.tenant.id,
+        return_announcement_id=announcement.id,
+        quantity=quantity,
+        replacement_item_id=business.item.id,
+        replacement_quantity=quantity,
+        reason="Faulty unit replaced ahead of the return",
+    )
+
+
+def replacement_of(session, business, exchanged):
+    from reality.db.core import Commitment
+
+    return session.get(
+        Commitment, (business.tenant.id, exchanged.replacement_commitment_id)
+    )
+
+
+def sold_and_announced(session, business, number, *, expected_by):
+    stock(session, business)
+    _, line, commitment = order(session, business, number=number)
+    ship(session, business, commitment, 5)
+    bill(session, business, line, number=f"RE-{number}", quantity="5")
+    announced = announce(
+        session, business, commitment, 1, expected_by=expected_by, reference=number
+    )
+    return line, commitment, announced
+
+
+def test_an_advance_exchange_waits_for_the_goods_without_a_credit_finding(
+    session, business
+):
+    """US2.1 and US2.3: the replacement leaves first, the faulty unit follows."""
+    _, commitment, announced = sold_and_announced(
+        session, business, "SO-293-A1", expected_by=AS_OF + timedelta(days=3)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+    ship(session, business, replacement_of(session, business, exchanged), 1)
+
+    classes = by_class(session, business.tenant.id)
+    for class_id in (
+        "shipped_not_billed",
+        "returned_not_credited",
+        "credited_not_returned",
+        "announced_return_not_arrived",
+        "exchange_without_return",
+    ):
+        assert class_id not in classes, class_id
+
+    arrive(session, business, commitment, announced, 1)
+
+    classes = by_class(session, business.tenant.id)
+    assert "returned_not_credited" not in classes
+    assert "announced_return_not_arrived" not in classes
+    # Positive control: the same arrival without the exchange is owed a credit.
+    _, other_line, other = order(session, business, number="SO-293-A1B")
+    ship(session, business, other, 5)
+    bill(session, business, other_line, number="RE-293-A1B", quantity="5")
+    plain = announce(session, business, other, 1, reference="SO-293-A1B")
+    arrive(session, business, other, plain, 1)
+    assert by_class(session, business.tenant.id)["returned_not_credited"].record_id == (
+        other_line.id
+    )
+
+
+def test_an_overdue_advance_exchange_names_the_replacement_already_sent(
+    session, business
+):
+    """US2.2: the customer still owes the goods, and the entry says what already left."""
+    _, _, announced = sold_and_announced(
+        session, business, "SO-293-A2", expected_by=AS_OF - timedelta(days=4)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+    ship(session, business, replacement_of(session, business, exchanged), 1)
+
+    row = by_class(session, business.tenant.id)["announced_return_not_arrived"]
+
+    assert row.record_id == announced.id
+    assert row.causal_values["outstanding_quantity"] == Decimal(1)
+    assert row.causal_values["exchange_ids"] == [exchanged.id]
+    assert row.causal_values["replacement_commitment_ids"] == [
+        exchanged.replacement_commitment_id
+    ]
+    assert row.trace["customer_exchange_ids"] == [exchanged.id]
+
+
+def test_a_withdrawn_announcement_leaves_a_sent_replacement_without_a_return(
+    session, business
+):
+    """US2.4: the replacement went out and the goods it answered are not coming."""
+    _, _, announced = sold_and_announced(
+        session, business, "SO-293-A3", expected_by=AS_OF + timedelta(days=3)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+    replacement = replacement_of(session, business, exchanged)
+    ship(session, business, replacement, 1)
+    # Positive control: while the announcement is open, nothing is missing yet.
+    assert "exchange_without_return" not in by_class(session, business.tenant.id)
+
+    core.withdraw_return_announcement(
+        session, business.tenant.id, announced.id, note="Customer keeps it"
+    )
+
+    row = by_class(session, business.tenant.id)["exchange_without_return"]
+    assert (row.record_type, row.record_id) == ("customer_exchange", exchanged.id)
+    assert row.causal_values["exchanged_quantity"] == Decimal(1)
+    assert row.causal_values["arrived_quantity"] == Decimal(0)
+    assert row.causal_values["replacement_shipped_quantity"] == Decimal(1)
+    assert row.trace["replacement_commitment_id"] == replacement.id
+    assert row.trace["return_announcement_id"] == announced.id
+
+
+def test_a_withdrawn_announcement_with_an_unsent_replacement_is_not_reported(
+    session, business
+):
+    """Nothing has left yet: cancelling the replacement is still an ordinary step."""
+    _, _, announced = sold_and_announced(
+        session, business, "SO-293-A4", expected_by=AS_OF + timedelta(days=3)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+
+    core.withdraw_return_announcement(session, business.tenant.id, announced.id)
+
+    assert "exchange_without_return" not in by_class(session, business.tenant.id)
+    # Positive control: once the replacement leaves, it is reported.
+    ship(session, business, replacement_of(session, business, exchanged), 1)
+    assert by_class(session, business.tenant.id)[
+        "exchange_without_return"
+    ].record_id == (exchanged.id)
+
+
+def test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return(
+    session, business
+):
+    """The goods came after all, as an ordinary return on the same delivery."""
+    _, commitment, announced = sold_and_announced(
+        session, business, "SO-293-A5", expected_by=AS_OF + timedelta(days=3)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+    ship(session, business, replacement_of(session, business, exchanged), 1)
+    core.withdraw_return_announcement(session, business.tenant.id, announced.id)
+    assert "exchange_without_return" in by_class(session, business.tenant.id)
+
+    withdrawn = core.return_announcements(
+        session, business.tenant.id, commitment_id=commitment.id
+    )[0]
+    # Dated after the withdrawal, which carries the real clock's time.
+    send_back(
+        session, business, commitment, 1, at=withdrawn.closed_at + timedelta(minutes=5)
+    )
+
+    assert "exchange_without_return" not in by_class(session, business.tenant.id)

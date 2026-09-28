@@ -290,7 +290,9 @@ Erstattung.
 
 **Kann hinterlassen:**
 [Angekündigte Retoure nicht eingetroffen](./exceptions#exception-announced_return_not_arrived)
-(`announced_return_not_arrived`)
+(`announced_return_not_arrived`),
+[Umtausch ohne Rücksendung](./exceptions#exception-exchange_without_return)
+(`exchange_without_return`)
 
 ### 2. Die Ware kommt an
 

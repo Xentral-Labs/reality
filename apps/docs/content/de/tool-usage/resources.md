@@ -20,7 +20,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 14       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
-| [Retoure](#resource-return)                                    | 0      | 3        | 6         |
+| [Retoure](#resource-return)                                    | 0      | 3        | 7         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 11       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
@@ -717,6 +717,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 - [Retoure nicht bearbeitet](./exceptions#exception-return_unresolved) (`return_unresolved`)
 - [Angekündigte Retoure nicht eingetroffen](./exceptions#exception-announced_return_not_arrived)
   (`announced_return_not_arrived`)
+- [Umtausch ohne Rücksendung](./exceptions#exception-exchange_without_return)
+  (`exchange_without_return`)
 
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Kundenretouren](./processes#process-returns)

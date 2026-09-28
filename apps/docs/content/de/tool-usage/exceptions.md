@@ -47,6 +47,7 @@ was sie auflöst und welche Agenten-Tools sie auflisten und erklären.
 | [`unassigned_cost_component`](#exception-unassigned_cost_component)                       | Unassigned cost component                | Finanzen                | `high`   | Purchasing or finance operations                                                            |
 | [`stale_cost_review`](#exception-stale_cost_review)                                       | Stale cost review                        | Aufträge & Erfüllung    | `normal` | Finance operations                                                                          |
 | [`negative_actual_db1`](#exception-negative_actual_db1)                                   | Negative actual DB1                      | Bereichsübergreifend    | `normal` | Sales management                                                                            |
+| [`exchange_without_return`](#exception-exchange_without_return)                           | Exchange without return                  | Aufträge & Erfüllung    | `normal` | Customer service                                                                            |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -967,7 +968,9 @@ The goods half after is Return not dealt with, and the money half is Returned an
 - **Schwere:** `normal`
 - **Datensatztyp:** `return_announcement`
 - **Spezifikation:** `099/FR-011`
-- **Nachweis:** `tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived`
+- **Nachweis:**
+  `tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived`,
+  `tests/operational_exceptions/test_derivation.py::test_an_overdue_advance_exchange_names_the_replacement_already_sent`
 
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
@@ -1173,6 +1176,32 @@ Complete supported actual goods cost exceeds the received net revenue of the rev
 | ID                              | Bezeichnung                   | Spezifikation |
 | ------------------------------- | ----------------------------- | ------------- |
 | `supported_actual_db1_negative` | Supported actual DB1 negative | `234/FR-011`  |
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain)
+
+## `exchange_without_return` — Exchange without return {#exception-exchange_without_return}
+
+A replacement went out in advance for goods a customer announced, and the customer then withdrew the
+announcement. An advance exchange is ordinary service: the faulty unit is expected to follow the
+replacement. Withdrawing the announcement says it will not, and the replacement cannot be taken back
+by saying so, so the goods it answered are still owed. Without this entry the withdrawal would
+silently turn the replacement into a free delivery. Goods that arrived against the announcement
+before it was withdrawn count as returned, and so does a later ordinary return on the same delivery
+that no other exchange has claimed. A replacement that has not left yet is not reported: cancelling
+it is still an ordinary step.
+
+- **Verantwortlich:** Customer service
+- **Aufgelöst durch:** The goods arriving after all as a return on the original delivery, or
+  cancelling what of the replacement has not shipped.
+- **Schwere:** `normal`
+- **Datensatztyp:** `customer_exchange`
+- **Spezifikation:** `293/FR-007`
+- **Nachweis:**
+  `tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_leaves_a_sent_replacement_without_a_return`,
+  `tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_with_an_unsent_replacement_is_not_reported`,
+  `tests/operational_exceptions/test_derivation.py::test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return`
 
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
