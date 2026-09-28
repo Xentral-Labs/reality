@@ -1794,3 +1794,16 @@ Feature contract: `docs/features/business-journey-guide.md`.
 - `packages/reality-core/tests/test_business_journey_proposals.py`: confirmed proposal creation, privacy validation and one reversible vote per account.
 - `packages/reality-core/tests/test_business_journey_migration.py`: additive upgrade/downgrade parity and a real concurrent PostgreSQL vote race retaining one active account/proposal relationship.
 - `apps/docs/scripts/business-journey-guide.test.mjs` and `business-journey-widget.test.mjs`: generated public guide completeness plus the accessible public chatbot embed contract.
+
+## Reality Product Advisor — Spec 291
+
+Feature contract: `docs/features/business-journey-guide.md`.
+
+- `packages/reality-core/tests/test_product_advisor_knowledge.py` and `apps/docs/scripts/test_product_advisor_reference.py`: approved source identity, visibility, deterministic generation, freshness, reference integrity and public leakage boundaries.
+- `packages/reality-core/tests/test_product_advisor_claims.py`: immutable evidence, support ceilings, limitation restoration and rejection of unqualified high-risk product claims.
+- `packages/reality-core/tests/test_product_advisor_service.py`: question classification, bounded retrieval, structured claims and sources, governed tool names and safe provider fallback.
+- `packages/reality-core/tests/test_product_advisor_languages.py`: question-language detection plus history and surface-language fallback.
+- `packages/reality-core/tests/test_product_advisor_security.py`: provider-envelope disclosure, prompt-injection and public diagnostic boundaries.
+- `packages/reality-core/tests/test_product_advisor_evaluation.py` and `packages/reality-core/tests/fixtures/product_advisor_buyer_cases.yaml`: at least 75 buyer questions with required/forbidden evidence and the nine-language release matrix.
+- `packages/reality-core/tests/test_business_journey_tools.py`, `packages/reality-core/tests/test_business_journey_api.py`, `packages/reality-core/tests/test_business_journey_questions.py` and `packages/reality-core/tests/test_chat_tools.py`: shared Advisor conclusions across HTTP, canonical read tool and authenticated Chat with additive internal evidence only, plus product-intent and confirmation routing.
+- `apps/docs/scripts/business-journey-guide.test.mjs` and `business-journey-widget.test.mjs`: safe additive rendering of structured Advisor sources without client-side capability inference.

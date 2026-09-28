@@ -12,13 +12,13 @@ from sqlalchemy.orm import Session
 from reality.db.core import AppUser
 from reality.mcp.principal import current_mcp_principal
 from reality.services.business_journeys import (
-    answer_internal_question,
-    answer_payload,
-    answer_public_question,
     create_proposal,
-    journey_catalog,
-    journey_rewrite_provider,
     set_vote,
+)
+from reality.services.product_advisor import (
+    add_internal_journey_evidence,
+    answer_product_question,
+    product_advisor_provider,
 )
 
 _CURRENT_GUIDE_ACTOR: ContextVar[str | None] = ContextVar(
@@ -45,20 +45,14 @@ def business_journey_guide(
     account = session.get(AppUser, account_id) if account_id else None
     question = str(arguments.get("question", ""))
     locale = str(arguments.get("locale", "en"))
-    if account and account.is_platform_admin:
-        return answer_internal_question(
-            journey_catalog(),
-            question,
-            locale=locale,
-            provider=journey_rewrite_provider(),
-        )
-    answer = answer_public_question(
-        journey_catalog(),
+    answer = answer_product_question(
         question,
-        locale=locale,
-        provider=journey_rewrite_provider(),
+        surface_language=locale,
+        provider=product_advisor_provider(),
     )
-    return answer_payload(answer)
+    if account and account.is_platform_admin:
+        return add_internal_journey_evidence(answer)
+    return answer
 
 
 def business_journey_proposal_create(

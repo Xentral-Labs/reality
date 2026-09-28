@@ -129,3 +129,11 @@ test("citations use a compact accessible table instead of large badges", () => {
   assert.match(widget, /table-layout:fixed/u);
   assert.doesNotMatch(widget, /citations a::after/u);
 });
+
+test("advisor sources are rendered as safe additive public links", () => {
+  assert.match(widget, /answer\.sources/u);
+  assert.match(widget, /source\.url/u);
+  assert.match(widget, /link\.textContent = source\.title/u);
+  assert.match(widget, /references-label/u);
+  assert.doesNotMatch(widget, /innerHTML\s*=\s*source/u);
+});

@@ -1,13 +1,13 @@
 # Business Journey Guide
 
-The Business Journey Guide is Reality's public, evidence-bounded answer to “Can Reality handle this business situation?”. Its canonical deployment catalog lives in `packages/reality-core/config/business_journey_catalog.yaml`; the public Docs payload is generated and must never carry `internal_evidence`.
+The Business Journey Guide is Reality's public, evidence-bounded answer to “Can Reality handle this business situation?”. The Reality Product Advisor researches this catalog together with reviewed public product contracts and the executable tool vocabulary. Its canonical deployment catalog lives in `packages/reality-core/config/business_journey_catalog.yaml`; public payloads are generated and must never carry `internal_evidence`.
 
 ## Product contract
 
 - Every canonical scenario ID appears exactly once and keeps its business question.
 - `supported` requires executable evidence. `partial`, `recognition_only`, `missing` and `out_of_scope` state their limitation rather than implying complete support.
 - Explanations preserve Source → Evidence → Reality. A scenario status describes product coverage, never a stored document or fulfilment status.
-- Website, Docs and ordinary authenticated Reality Chat use `services/business_journeys.py` for matching and status/citation conclusions.
+- Website, Docs, the canonical read tool and ordinary authenticated Reality Chat use `services/product_advisor.py` for the same researched claims, support ceilings and citations.
 - Public questions are read-only, ephemeral, rate-bounded and cannot contain tenant or company selectors. They never call mutating tools.
 - Normal Reality Chat recognizes capability questions inside an ordinary conversation. Tenant-specific questions and actions retain the existing tenant-scoped tools and confirmation boundary.
 
@@ -29,6 +29,14 @@ The launcher is closed by default and opens an accessible, keyboard-dismissible 
 
 ## Generation and maintenance
 
-`make docs-generate` validates the catalog and writes the same public payload to the Docs component data and downloadable static JSON. Additions and status changes therefore reach browsing and question matching together. CI rejects duplicate IDs, invalid support/evidence combinations, broken related journeys and public leakage of internal evidence.
+`make docs-generate` validates the Journey catalog, regenerates its browsing payload and builds `product_advisor_knowledge.json`. Additions and status changes therefore reach browsing and advisor research together. `make docs-catalog-check` fails when either generated artifact is stale.
+
+`product_advisor_sources.yaml` is the reviewed allowlist for durable public documents. A source is eligible only when it is public-safe, has a stable public URL and is assigned an explicit authority: capability evidence, executable vocabulary, technical contract or explanation. Specifications, plans, tasks, tests, private paths and tenant data are not Advisor sources. The product/domain owner reviews capability sources; the owning engineering reviewer approves technical contracts and executable vocabulary.
+
+Each generated source and evidence unit has a content fingerprint, stable ID and one immutable knowledge version. Generation rejects missing documents, duplicate IDs, broken source references and unsafe public locations. The release check regenerates the artifact and compares it with the checked-in output, so changing an allowlisted source without committing the new artifact is a build failure.
+
+The public Advisor may explain native behavior, a manual step, a confirmation-bound agent proposal, a workaround or a genuine gap. It may never promote limited evidence to proven support, present executable vocabulary as proof that an end-to-end process exists, or omit a material limitation. Provider failure falls back to the same bounded evidence and never expands the conclusion.
+
+Authorized internal calls receive the same public conclusion and may additionally receive allowlisted internal evidence for cited Journey IDs. This diagnostic material is returned separately, remains tenant-independent and is never serialized by the public API or widget. Remediation starts by fixing the canonical source or allowlist, regenerating the artifact and rerunning the claim and buyer-case evaluations; generated JSON is not edited by hand.
 
 The [Demo Data Catalog](demo-data-catalog.md) remains the smaller inventory of concrete cases seeded in the current demo profile. A cataloged journey without a demo reference is not presented as immediately explorable.

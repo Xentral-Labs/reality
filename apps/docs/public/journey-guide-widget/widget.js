@@ -26,6 +26,7 @@
           openJourney: "Journey {id} in neuem Tab öffnen",
           examplesTitle: "Zum Beispiel",
           sources: "Quellen im Business Journey Guide",
+          references: "Weitere Produktquellen",
           examples: [
             "Wie bilde ich einen B2B-Auftrag ab?",
             "Was passiert bei einer Teillieferung?",
@@ -47,6 +48,7 @@
             openJourney: "Journey {id} openen in een nieuw tabblad",
             examplesTitle: "Bijvoorbeeld",
             sources: "Bronnen in de Business Journey Guide",
+            references: "Andere productbronnen",
             examples: [
               "Hoe verwerk ik een B2B-order?",
               "Wat gebeurt er bij een deellevering?",
@@ -68,6 +70,7 @@
               openJourney: "Abrir journey {id} en una pestaña nueva",
               examplesTitle: "Por ejemplo",
               sources: "Fuentes en la Business Journey Guide",
+              references: "Otras fuentes del producto",
               examples: [
                 "¿Cómo gestiono un pedido B2B?",
                 "¿Qué ocurre con una entrega parcial?",
@@ -87,6 +90,7 @@
               openJourney: "Open journey {id} in a new tab",
               examplesTitle: "For example",
               sources: "Sources in the Business Journey Guide",
+              references: "Additional product sources",
               examples: [
                 "How do I run a B2B order?",
                 "What happens with a partial delivery?",
@@ -105,6 +109,7 @@
           .panel{display:none;position:fixed;right:24px;bottom:24px;width:min(640px,calc(100vw - 48px));height:calc(100vh - 48px);height:calc(100dvh - 48px);grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;border:1px solid #d9ddea;border-radius:24px;background:#fff;box-shadow:0 28px 90px #11182740}
           .panel[data-open=true]{display:grid}.head{display:flex;align-items:start;justify-content:space-between;gap:24px;padding:24px 26px 20px;border-bottom:1px solid #e8eaf2;background:#fff}.head h2{margin:0;font-size:23px;line-height:1.2;letter-spacing:-.02em}.head p{max-width:48ch;margin:8px 0 0;color:#626a7f;font-size:14px}.close{display:grid;place-items:center;flex:0 0 auto;width:38px;height:38px;border:0;border-radius:12px;background:#f3f4f8;font-size:25px;line-height:1;cursor:pointer;color:#626a7f}
           .conversation{display:flex;flex-direction:column;gap:16px;min-height:0;padding:24px 26px;overflow-y:auto;overscroll-behavior:contain;background:#fbfbfd;scrollbar-gutter:stable}.message{max-width:88%;font-size:16px;line-height:1.65}.message.user{align-self:flex-end;padding:12px 16px;border-radius:18px 18px 5px 18px;background:#6755f5;color:#fff}.message.assistant{align-self:flex-start;width:100%}.answer{padding:18px 20px;border:1px solid #e7e4fa;border-radius:18px 18px 18px 5px;background:#f5f3ff}.answer p{margin:0 0 14px}.answer p:last-child{margin-bottom:0}.answer .section-title{margin:18px 0 7px;color:#3f348f;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}.answer .section-title:first-child{margin-top:0}.answer ul{margin:0 0 14px;padding-left:22px}.answer li{margin:5px 0;padding-left:3px}.answer a{color:#5745df;font-weight:700}.pending{display:flex;align-items:center;width:auto!important;padding:14px 16px;border:1px solid #e7e4fa;border-radius:18px 18px 18px 5px;background:#f5f3ff}.typing-dots{display:inline-flex;gap:5px}.typing-dots i{width:6px;height:6px;border-radius:50%;background:#6755f5;animation:rjc-pulse 1.2s infinite ease-in-out}.typing-dots i:nth-child(2){animation-delay:.15s}.typing-dots i:nth-child(3){animation-delay:.3s}@keyframes rjc-pulse{0%,70%,100%{opacity:.25;transform:translateY(0)}35%{opacity:1;transform:translateY(-3px)}}.examples{margin:auto 0;color:#626a7f}.examples p{margin:0 0 12px;font-size:14px;font-weight:700}.example-list{display:flex;flex-wrap:wrap;gap:9px}.example-list button{border:1px solid #ded9fb;border-radius:999px;padding:9px 13px;background:#fff;color:#4f43c8;cursor:pointer;text-align:left;transition:background .15s,border-color .15s,transform .15s}.example-list button:hover{border-color:#a99cff;background:#f5f3ff;transform:translateY(-1px)}.example-list button:active{transform:translateY(0)}.citations{width:100%;margin-top:16px;padding-top:10px;border-top:1px solid #ded9fb;border-collapse:collapse;table-layout:fixed}.citations tr+tr{border-top:1px solid #e8e4fb}.citations td{padding:5px 4px;font-size:12px;line-height:1.35}.citation-id{width:45px;color:#5144d9;font-weight:800}.citation-title{overflow:hidden;color:#625a8f;font-weight:600;text-overflow:ellipsis;white-space:nowrap}.citation-open{width:27px;text-align:right}.citation-open a{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;text-decoration:none}.citation-open a:hover{background:#e7e2ff}
+          .references{margin:14px 0 0!important;padding-top:10px!important;border-top:1px solid #ded9fb;font-size:12px}.references-label{display:block;margin-bottom:5px;color:#625a8f}.references li{margin:2px 0!important}
           form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px;padding:16px 18px 18px;border-top:1px solid #e8eaf2;background:#fff}textarea{min-width:0;max-height:140px;resize:none;padding:13px 15px;border:1px solid #cdd2df;border-radius:14px;background:#fff;color:inherit;line-height:1.45}form button{min-height:48px;border:0;border-radius:14px;padding:11px 18px;background:#6755f5;color:#fff;font-weight:750;cursor:pointer}form button:disabled{opacity:.55;cursor:wait}
           button:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #a99cff;outline-offset:2px}
           @media(max-width:700px){:host{right:14px;bottom:14px}.panel{right:0;bottom:0;width:100%;height:min(82dvh,760px);border-width:1px 0 0;border-radius:24px 24px 0 0}.head{padding:20px}.conversation{padding:18px 16px}.message{max-width:94%;font-size:15px}.answer{padding:16px}form{padding:12px}.launcher{padding:12px 16px}}
@@ -315,6 +320,26 @@
       }
       citations.append(citationBody);
       box.append(citations);
+      const publicSources = (answer.sources || []).filter((source) => source.url);
+      if (publicSources.length) {
+        const references = document.createElement("ul");
+        references.className = "references";
+        const label = document.createElement("strong");
+        label.className = "references-label";
+        label.textContent = copy.references;
+        references.append(label);
+        for (const source of publicSources) {
+          const item = document.createElement("li");
+          const link = document.createElement("a");
+          link.href = source.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = source.title;
+          item.append(link);
+          references.append(item);
+        }
+        box.append(references);
+      }
       this.conversation.append(box);
       this.scrollAnswerToStart(box);
     }

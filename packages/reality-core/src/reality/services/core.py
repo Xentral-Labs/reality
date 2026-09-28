@@ -7031,21 +7031,9 @@ def send_chat_message(
     )
     managed_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     managed_workspace_id = os.environ.get("ANTHROPIC_WORKSPACE_ID", "").strip()
-    normalized_capability_question = original_message.casefold()
-    capability_question = any(
-        phrase in normalized_capability_question
-        for phrase in (
-            "can reality",
-            "does reality",
-            "what happens if",
-            "what if",
-            "kann reality",
-            "kann man mit reality",
-            "unterstützt reality",
-            "was passiert, wenn",
-            "was passiert wenn",
-        )
-    )
+    from reality.services.product_advisor import is_product_advisor_question
+
+    capability_question = is_product_advisor_question(original_message)
     if capability_question:
         from reality.tools.application import run_read_tool
         from reality.tools.business_journeys import guide_actor_context

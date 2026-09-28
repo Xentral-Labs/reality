@@ -1,0 +1,392 @@
+cases:
+  - id: journey-a01
+    language: en
+    question: 'Is it committed, reserved, shipped, invoiced, paid?'
+    required_citations: [A01]
+    forbidden_citations: []
+  - id: journey-a02
+    language: en
+    question: 'What is open per line and per location?'
+    required_citations: [A02]
+    forbidden_citations: []
+  - id: journey-a03
+    language: en
+    question: 'Are the two lines kept as separate commitments?'
+    required_citations: [A03]
+    forbidden_citations: []
+  - id: journey-a04
+    language: en
+    question: 'What is still open after the revision?'
+    required_citations: [A04]
+    forbidden_citations: []
+  - id: journey-a05
+    language: en
+    question: 'Is the revision refused or does it demand a return?'
+    required_citations: [A05]
+    forbidden_citations: []
+  - id: journey-a06
+    language: en
+    question: 'Is only that commitment closed and its reservation released?'
+    required_citations: [A06]
+    forbidden_citations: []
+  - id: journey-a07
+    language: en
+    question: 'Are all reservations released?'
+    required_citations: [A07]
+    forbidden_citations: []
+  - id: journey-a08
+    language: en
+    question: 'Does the stock go back, and is that visible?'
+    required_citations: [A08]
+    forbidden_citations: []
+  - id: journey-a09
+    language: en
+    question: 'Is it treated as a return or refusal, not a cancellation?'
+    required_citations: [A09]
+    forbidden_citations: []
+  - id: journey-a10
+    language: en
+    question: 'Old commitment closed, new one opened, history kept?'
+    required_citations: [A10]
+    forbidden_citations: []
+  - id: journey-a11
+    language: en
+    question: 'Which address does the shipment use, and is the change traceable?'
+    required_citations: [A11]
+    forbidden_citations: []
+  - id: journey-a12
+    language: en
+    question: 'When should stock be reserved?'
+    required_citations: [A12]
+    forbidden_citations: []
+  - id: journey-a13
+    language: en
+    question: 'Is each line''s promise dated separately?'
+    required_citations: [A13]
+    forbidden_citations: []
+  - id: journey-a14
+    language: en
+    question: 'Are quote and order separate evidence with a link?'
+    required_citations: [A14]
+    forbidden_citations: []
+  - id: journey-a15
+    language: en
+    question: 'Exactly one commitment?'
+    required_citations: [A15]
+    forbidden_citations: []
+  - id: journey-a16
+    language: en
+    question: 'New source version, revised commitment, no overwrite?'
+    required_citations: [A16]
+    forbidden_citations: []
+  - id: journey-a17
+    language: en
+    question: 'Is the line kept and the gap visible?'
+    required_citations: [A17]
+    forbidden_citations: []
+  - id: journey-a18
+    language: en
+    question: 'Is the stated price recorded, not recomputed?'
+    required_citations: [A18]
+    forbidden_citations: []
+  - id: journey-a19
+    language: en
+    question: 'Committed and shipped without revenue?'
+    required_citations: [A19]
+    forbidden_citations: []
+  - id: journey-a20
+    language: en
+    question: 'Can one shipment fulfil both?'
+    required_citations: [A20]
+    forbidden_citations: []
+  - id: journey-a21
+    language: en
+    question: 'Can lines/quantities go to different recipients?'
+    required_citations: [A21]
+    forbidden_citations: []
+  - id: journey-a22
+    language: en
+    question: 'Why is it not moving, and who lifts it?'
+    required_citations: [A22]
+    forbidden_citations: []
+  - id: journey-a23
+    language: en
+    question: 'See M01.'
+    required_citations: [A23]
+    forbidden_citations: []
+  - id: journey-a24
+    language: en
+    question: 'Does the added commitment join the pending delivery?'
+    required_citations: [A24]
+    forbidden_citations: []
+  - id: journey-b01
+    language: en
+    question: 'Reserved vs uncovered quantity per line?'
+    required_citations: [B01]
+    forbidden_citations: []
+  - id: journey-b02
+    language: en
+    question: 'Is the whole commitment uncovered and flagged?'
+    required_citations: [B02]
+    forbidden_citations: []
+  - id: journey-b03
+    language: en
+    question: 'Who gets them, by which rule?'
+    required_citations: [B03]
+    forbidden_citations: []
+  - id: journey-b04
+    language: en
+    question: 'Is the move from one commitment to another traceable?'
+    required_citations: [B04]
+    forbidden_citations: []
+  - id: journey-b05
+    language: en
+    question: 'Is blocked stock excluded from availability?'
+    required_citations: [B05]
+    forbidden_citations: []
+  - id: journey-b06
+    language: en
+    question: 'Is a transfer needed, and is availability per location?'
+    required_citations: [B06]
+    forbidden_citations: []
+  - id: journey-b07
+    language: en
+    question: 'Can it be promised (available to promise)?'
+    required_citations: [B07]
+    forbidden_citations: []
+  - id: journey-b08
+    language: en
+    question: 'Which commitment is served first?'
+    required_citations: [B08]
+    forbidden_citations: []
+  - id: journey-b09
+    language: en
+    question: 'Which remain uncovered?'
+    required_citations: [B09]
+    forbidden_citations: []
+  - id: journey-b10
+    language: en
+    question: 'Reserved but deliberately not shipped — why?'
+    required_citations: [B10]
+    forbidden_citations: []
+  - id: journey-b11
+    language: en
+    question: 'Is the limit enforceable or at least visible?'
+    required_citations: [B11]
+    forbidden_citations: []
+  - id: journey-b12
+    language: en
+    question: 'Is the reservation released after the deadline?'
+    required_citations: [B12]
+    forbidden_citations: []
+  - id: journey-b13
+    language: en
+    question: 'Is the reservation flagged as no longer backed by stock?'
+    required_citations: [B13]
+    forbidden_citations: []
+  - id: journey-b14
+    language: en
+    question: 'Is the overcommitment visible?'
+    required_citations: [B14]
+    forbidden_citations: []
+  - id: journey-b15
+    language: en
+    question: 'Can availability differ per channel/party?'
+    required_citations: [B15]
+    forbidden_citations: []
+  - id: journey-b16
+    language: en
+    question: 'Can stock be earmarked per channel?'
+    required_citations: [B16]
+    forbidden_citations: []
+  - id: journey-b17
+    language: en
+    question: 'Is only eligible stock reserved?'
+    required_citations: [B17]
+    forbidden_citations: []
+  - id: journey-b18
+    language: en
+    question: 'Does the reservation name the unit?'
+    required_citations: [B18]
+    forbidden_citations: []
+  - id: journey-c01
+    language: en
+    question: 'Why is it held, and when is it released?'
+    required_citations: [C01]
+    forbidden_citations: []
+  - id: journey-c02
+    language: en
+    question: 'Release or not, within which tolerance?'
+    required_citations: [C02]
+    forbidden_citations: []
+  - id: journey-c03
+    language: en
+    question: 'Does a customer credit balance appear?'
+    required_citations: [C03]
+    forbidden_citations: []
+  - id: journey-c04
+    language: en
+    question: 'Is the payment allocated to both?'
+    required_citations: [C04]
+    forbidden_citations: []
+  - id: journey-c05
+    language: en
+    question: 'Unallocated, later allocated by a person?'
+    required_citations: [C05]
+    forbidden_citations: []
+  - id: journey-c06
+    language: en
+    question: 'Is a refund owed?'
+    required_citations: [C06]
+    forbidden_citations: []
+  - id: journey-c07
+    language: en
+    question: 'Who released it, and why?'
+    required_citations: [C07]
+    forbidden_citations: []
+  - id: journey-c08
+    language: en
+    question: 'Does the hold name the overdue items?'
+    required_citations: [C08]
+    forbidden_citations: []
+  - id: journey-c09
+    language: en
+    question: 'Are authorization and capture separate facts?'
+    required_citations: [C09]
+    forbidden_citations: []
+  - id: journey-c10
+    language: en
+    question: 'Is the uncovered remainder visible?'
+    required_citations: [C10]
+    forbidden_citations: []
+  - id: journey-c11
+    language: en
+    question: 'Due dates and discount window correct?'
+    required_citations: [C11]
+    forbidden_citations: []
+  - id: journey-c12
+    language: en
+    question: 'Is the short payment flagged?'
+    required_citations: [C12]
+    forbidden_citations: []
+  - id: journey-c13
+    language: en
+    question: 'Payment tied to the shipment?'
+    required_citations: [C13]
+    forbidden_citations: []
+  - id: journey-c14
+    language: en
+    question: 'Is the hold released only after the remainder?'
+    required_citations: [C14]
+    forbidden_citations: []
+  - id: journey-c15
+    language: en
+    question: 'Does the receivable reopen?'
+    required_citations: [C15]
+    forbidden_citations: []
+  - id: journey-c16
+    language: en
+    question: 'Why does nothing ship to this party?'
+    required_citations: [C16]
+    forbidden_citations: []
+  - id: journey-c17
+    language: en
+    question: 'Hold and release both recorded?'
+    required_citations: [C17]
+    forbidden_citations: []
+  - id: journey-c18
+    language: en
+    question: 'Is the voucher a settlement of the receivable?'
+    required_citations: [C18]
+    forbidden_citations: []
+  - id: journey-d01
+    language: en
+    question: 'Open 2, shipped 3?'
+    required_citations: [D01]
+    forbidden_citations: []
+  - id: journey-d02
+    language: en
+    question: 'Movements per location, one commitment?'
+    required_citations: [D02]
+    forbidden_citations: []
+  - id: journey-d03
+    language: en
+    question: 'One shipment fulfils several commitments?'
+    required_citations: [D03]
+    forbidden_citations: []
+  - id: journey-d04
+    language: en
+    question: 'Corrected without a false movement?'
+    required_citations: [D04]
+    forbidden_citations: []
+  - id: journey-d05
+    language: en
+    question: 'Wrong item shipped, right item still open?'
+    required_citations: [D05]
+    forbidden_citations: []
+  - id: journey-d06
+    language: en
+    question: 'Count correction plus uncovered reservation?'
+    required_citations: [D06]
+    forbidden_citations: []
+  - id: partial-delivery-en
+    language: en
+    question: 'What happens with a partial delivery?'
+    required_citations: [H02]
+    forbidden_citations: []
+  - id: partial-delivery-de
+    language: de
+    question: 'Was passiert bei einer Teillieferung?'
+    required_citations: [H02]
+    forbidden_citations: []
+  - id: partial-delivery-nl
+    language: nl
+    question: 'Wat gebeurt er bij een deellevering?'
+    required_citations: [H02]
+    forbidden_citations: []
+  - id: partial-delivery-es
+    language: es
+    question: '¿Qué ocurre con una entrega parcial?'
+    required_citations: [H02]
+    forbidden_citations: []
+  - id: partial-delivery-fr
+    language: fr
+    question: 'Comment gérer une livraison partielle ?'
+    required_citations: [H02]
+    forbidden_citations: []
+  - id: partial-delivery-pl
+    language: pl
+    question: 'Jak obsłużyć częściową dostawę?'
+    required_citations: [H02]
+    forbidden_citations: []
+  - id: partial-delivery-tr
+    language: tr
+    question: 'Kısmi teslimat nasıl yönetilir?'
+    required_citations: [H02]
+    forbidden_citations: []
+  - id: partial-delivery-ar
+    language: ar
+    question: 'كيف يتعامل Reality مع تسليم جزئي؟'
+    required_citations: [H02]
+    forbidden_citations: []
+  - id: partial-delivery-ja
+    language: ja
+    question: 'Reality は分納をどのように処理しますか？'
+    required_citations: [H02]
+    forbidden_citations: []
+  - id: broad-b2b-operating-model
+    language: en
+    question: 'How would we run B2B with Reality?'
+    required_citations: []
+    forbidden_citations: []
+    required_concerns: [orders, availability, delivery, invoicing]
+    forbidden_claims: [fully automated B2B, complete EDI, blanket orders supported]
+    max_default_words: 180
+  - id: broad-procure-to-pay
+    language: en
+    question: 'How would procure to pay work in Reality?'
+    required_citations: []
+    forbidden_citations: []
+    required_concerns: [purchase order, goods receipt, supplier invoice, payment]
+    forbidden_claims: [automatic three-way match, complete migration]
+    max_default_words: 180

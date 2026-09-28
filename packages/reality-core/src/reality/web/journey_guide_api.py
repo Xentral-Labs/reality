@@ -12,15 +12,18 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
 from reality.services.business_journeys import (
     JourneyProposalError,
-    answer_internal_question,
-    answer_payload,
-    answer_public_question,
     create_proposal,
     journey_catalog,
-    journey_rewrite_provider,
     list_proposals,
     moderate_proposal,
     set_vote,
+)
+from reality.services.product_advisor import (
+    add_internal_journey_evidence,
+    answer_product_question,
+)
+from reality.services.product_advisor import (
+    product_advisor_provider as journey_rewrite_provider,
 )
 from reality.web.api import DatabaseSession
 from reality.web.auth import CurrentUser, PlatformAdmin
@@ -54,7 +57,9 @@ class PublicQuestion(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     question: str = Field(min_length=2, max_length=1000)
-    locale: str = Field(default="en", pattern=r"^(en|de|nl|es)$")
+    locale: str = Field(
+        default="en", max_length=35, pattern=r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$"
+    )
     history: list[PublicTurn] = Field(default_factory=list, max_length=6)
 
 
@@ -117,25 +122,23 @@ def public_catalog() -> dict[str, object]:
 @router.post("/questions")
 def public_question(payload: PublicQuestion, request: Request) -> dict[str, object]:
     _admit(request)
-    answer = answer_public_question(
-        journey_catalog(),
+    return answer_product_question(
         payload.question,
-        locale=payload.locale,
+        surface_language=payload.locale,
         history=tuple(turn.model_dump() for turn in payload.history),
         provider=journey_rewrite_provider(),
     )
-    return answer_payload(answer)
 
 
 @internal_router.post("/questions")
 def internal_question(payload: InternalQuestion, _: PlatformAdmin) -> dict[str, object]:
-    return answer_internal_question(
-        journey_catalog(),
+    answer = answer_product_question(
         payload.question,
-        locale=payload.locale,
+        surface_language=payload.locale,
         history=tuple(turn.model_dump() for turn in payload.history),
         provider=journey_rewrite_provider(),
     )
+    return add_internal_journey_evidence(answer)
 
 
 @proposal_router.get("")
