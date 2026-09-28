@@ -11,6 +11,7 @@ page.setDefaultTimeout(10000);
 const errors = [],
   writes = [],
   reads = [];
+let failSetupOptions = false;
 let status = "active";
 let failLogout = true;
 page.on("pageerror", (error) => errors.push(error.message));
@@ -106,6 +107,8 @@ await page.route("**/api/**", (route) => {
   )
     return json({ items: [], page: pager, scope: { view: "movements" } });
   // Spec 198: the app asks on entry whether a first company is still to be prepared.
+  if (path === "/api/company-setup/options" && failSetupOptions)
+    return json({ detail: "Unavailable" }, 503);
   if (path === "/api/company-setup/options")
     return json({
       actor_id: "owner",
@@ -243,6 +246,16 @@ try {
   await creation.getByRole("button", { name: "Cancel", exact: true }).click();
   await creation.waitFor({ state: "hidden" });
   assert.equal(await newCompany.evaluate((el) => el === document.activeElement), true);
+  // Without setup options the dialog still offers Cancel, not only Escape.
+  failSetupOptions = true;
+  await newCompany.click();
+  await creation
+    .getByText("Company setup could not be loaded. Reload to retry.", { exact: true })
+    .waitFor();
+  await creation.getByRole("button", { name: "Cancel", exact: true }).click();
+  await creation.waitFor({ state: "hidden" });
+  assert.equal(await newCompany.evaluate((el) => el === document.activeElement), true);
+  failSetupOptions = false;
   await page.screenshot({ path: "/private/tmp/company-settings.png" });
   assert.equal(writes.length, 0);
   await page.getByRole("button", { name: "My account", exact: true }).click();
