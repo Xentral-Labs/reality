@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-28
 
-**Status**: Draft
+**Status**: Approved
 
 **Language**: English
 
@@ -27,11 +27,11 @@ Write one executable business story per journey below, using only the shared app
 | A04 | Customer raises the quantity after a partial delivery | the open quantity after the upward revision equals the revised quantity minus what was delivered |
 | A06 | One line cancelled, the rest stays | the cancelled line is closed and unreserved while the other lines of the same order stay open and reserved |
 | A07 | Whole order cancelled after reservation | cancelling every line of a reserved multi-line order releases every reservation |
-| A19 | Zero-price line (sample, gift, replacement) | a zero-price order line is committed, reserved and shipped, and invoicing it yields no revenue |
+| A19 | Zero-price line (sample, gift, replacement) | a zero-price order line is committed, reserved and shipped, invoicing it yields no revenue, and no open-work signal reports it as unbilled |
 | C04 | One payment for two prepaid orders | one payment settles both prepayment invoices and both orders become ready to ship |
 | F01 | B2C withdrawal within 14 days, full refund | on one order: delivery, return with stock back, full credit note and the refund paid, with nothing left open |
 | F05 | Damaged return, partial refund | a damaged return's disposition and a reduced credit on the same order, independent of each other |
-| F07 | Exchange: return plus new delivery, no money | a return and a replacement delivery on the same customer, with no credit, refund or payment |
+| F07 | Exchange: return plus new delivery, no money | a return and a replacement delivery on the same customer, with no credit, refund or payment and no open-work signal for the exchange |
 | M08 | Customer deducts a penalty or marketing contribution | a customer short payment with an agreed-deduction reason leaves nothing open and names the reason |
 | N01 | Intra-community supply (VAT-exempt, VAT ID) | a sales invoice with zero stated tax, its tax case and the customer's VAT ID are recorded as stated |
 | N02 | Reverse charge on purchase | a supplier invoice under reverse charge keeps its stated net and tax components |
@@ -59,7 +59,7 @@ As a prospective customer asking about order changes, I see A04, A06, A07 and A1
 1. **Given** an order line of 10 with 4 delivered, **When** the customer raises the quantity to 12, **Then** 8 are open and the delivered 4 stay delivered.
 2. **Given** a reserved three-line order, **When** one line is cancelled, **Then** only that line is closed and unreserved, and the other two stay open and reserved.
 3. **Given** a reserved multi-line order, **When** every line is cancelled, **Then** no reservation of that order remains and the stock is available again.
-4. **Given** a zero-price line next to a priced line, **When** both are shipped and invoiced, **Then** the zero-price line is fulfilled and contributes no revenue.
+4. **Given** a zero-price line next to a priced line, **When** both are shipped and invoiced, **Then** the zero-price line is fulfilled, contributes no revenue and is not reported as shipped but not billed.
 
 ---
 
@@ -75,7 +75,7 @@ As a prospective e-commerce customer, I see F01, F05 and F07 as supported becaus
 
 1. **Given** a paid, delivered B2C order, **When** the customer withdraws and returns everything, **Then** stock is back, the credit note equals the invoice, the refund is paid and neither the receivable nor the credit stays open.
 2. **Given** a delivered order returned partly damaged, **When** the damaged part is written off and a reduced credit is granted, **Then** the disposition and the credit amount are each correct and neither depends on the other.
-3. **Given** a delivered item exchanged for another, **When** the return and the replacement delivery are recorded, **Then** both are traceable to the customer and no credit note, refund or payment exists for the exchange.
+3. **Given** a delivered item exchanged for another, **When** the return and the replacement delivery are recorded, **Then** both are traceable to the customer, no credit note, refund or payment exists for the exchange and no open-work signal reports it.
 
 ---
 
@@ -168,7 +168,7 @@ As a Guide reader, I see a journey as supported only when its story passes, and 
 
 ## Open Questions
 
-None.
+None. The owner accepted the twelve-journey scope on 2026-09-28.
 
 ## Requirement Traceability
 

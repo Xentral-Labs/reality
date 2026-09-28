@@ -28,5 +28,4 @@
 
 ## Notes
 
-The owner selected the twelve sales-relevant journeys on 2026-09-28. Product scope
-acceptance is still required before planning.
+The owner selected and accepted the twelve sales-relevant journeys on 2026-09-28.
