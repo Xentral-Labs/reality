@@ -11,12 +11,14 @@ const globalHost = fs.readFileSync(
   "utf8",
 );
 const theme = fs.readFileSync(new URL("../.vitepress/theme/index.ts", import.meta.url), "utf8");
+const config = fs.readFileSync(new URL("../.vitepress/config.mts", import.meta.url), "utf8");
 
 test("Docs mounts one localized public Ask Reality launcher outside dedicated guide routes", () => {
   assert.match(theme, /GlobalAskReality/u);
   assert.match(theme, /layout-bottom/u);
   assert.match(globalHost, /journey-guide-widget\/widget\.js/u);
-  assert.match(globalHost, /script\.dataset\.apiUrl = __API_URL__/u);
+  assert.match(config, /__APP_URL__: JSON\.stringify\(appUrl\)/u);
+  assert.match(globalHost, /script\.dataset\.apiUrl = __APP_URL__/u);
   assert.match(globalHost, /route\.path\.startsWith\("\/de\/"\)/u);
   assert.match(globalHost, /\/de\/getting-started\/business-journeys/u);
   assert.match(globalHost, /getting-started\/business-journey-chat/u);

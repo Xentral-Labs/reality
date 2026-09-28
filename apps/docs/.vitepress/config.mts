@@ -505,7 +505,10 @@ export default defineConfig({
   description: "Understand, integrate, deploy, and operate the Reality commerce core.",
   cleanUrls: true,
   vite: {
-    define: { __API_URL__: JSON.stringify(apiUrl) },
+    define: {
+      __API_URL__: JSON.stringify(apiUrl),
+      __APP_URL__: JSON.stringify(appUrl),
+    },
   },
   head: [
     ["meta", { name: "theme-color", content: "#6755f5" }],
