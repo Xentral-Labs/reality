@@ -29,5 +29,5 @@
 ## Notes
 
 The owner answered both scope questions on 2026-09-28 (another item at the same price;
-both orders, including advance exchange). Product scope acceptance is still required
-before planning. The plan must justify the new exchange record against Constitution III.
+both orders, including advance exchange). The owner accepted the scope
+the same day. The plan justifies the new exchange record against Constitution III (research R1).

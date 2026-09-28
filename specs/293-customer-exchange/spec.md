@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-28
 
-**Status**: Draft
+**Status**: Approved
 
 **Language**: English
 
@@ -118,7 +118,7 @@ As a prospective customer asking "Can Reality handle an exchange?", I see F07 as
 - A later credit note for an exchanged quantity: the unit is then settled twice, so the credited quantity beyond what came back and was not exchanged is reported as credited and not returned.
 - The replacement is cancelled before it ships: the exchange no longer settles the return, and the returned unit is again owed a credit or another exchange.
 - The replacement ships only partly: only the shipped quantity counts as delivered; the rest stays open like any promise.
-- A replacement for a different customer: refused; an exchange belongs to the customer of the returned delivery.
+- A replacement for a different customer: not expressible; the replacement always goes to the customer of the returned delivery.
 - The returned item and the replacement item differ: allowed; the replacement item is stated, not derived.
 - A return that was recorded without naming its delivery: it must first be linked to its delivery before it can be exchanged.
 - Tenant isolation: an exchange cannot name a return, announcement or item of another tenant.
@@ -167,7 +167,7 @@ As a prospective customer asking "Can Reality handle an exchange?", I see F07 as
 
 ## Open Questions
 
-None. The owner answered both scope questions on 2026-09-28.
+None. The owner answered both scope questions and accepted the scope on 2026-09-28.
 
 ## Requirement Traceability
 
