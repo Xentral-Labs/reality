@@ -193,8 +193,20 @@ try {
     `${base}/app/warehouse?tenant=${tenant}&warehouse_view=stock&item=${item}&entry=${item}`,
   );
   const panel = page.locator("[data-resolution-guidance]").first();
-  await panel.getByRole("button", { name: "Prüfung vorbereiten" }).click();
+  const prepare = panel.getByRole("button", { name: "Prüfung vorbereiten" });
   const dialog = page.locator("dialog[data-cost-review-draft=inventory]");
+  const focused = () => prepare.evaluate((node) => node === document.activeElement);
+  // Escape and the dialog's own Close both give focus back to the action that opened it.
+  await prepare.click();
+  await dialog.waitFor();
+  await page.keyboard.press("Escape");
+  await dialog.waitFor({ state: "detached" });
+  assert.equal(await focused(), true, "Escape returns focus to Prepare review");
+  await prepare.click();
+  await dialog.getByRole("button", { name: "Schließen", exact: true }).click();
+  await dialog.waitFor({ state: "detached" });
+  assert.equal(await focused(), true, "Close returns focus to Prepare review");
+  await prepare.click();
   await dialog
     .getByText("Reality hat diese Prüfung aus deinen Daten entworfen.", { exact: false })
     .waitFor();

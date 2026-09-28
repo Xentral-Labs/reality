@@ -106,6 +106,14 @@ await page.route("**/api/**", (route) => {
   )
     return json({ items: [], page: pager, scope: { view: "movements" } });
   // Spec 198: the app asks on entry whether a first company is still to be prepared.
+  if (path === "/api/company-setup/options")
+    return json({
+      actor_id: "owner",
+      suggested_name: "Northstar",
+      environments: ["business", "sandbox"],
+      practice_enabled: true,
+      pending: false,
+    });
   if (path === "/api/company-setup/playground")
     return json({
       requested: false,
@@ -227,6 +235,12 @@ try {
   await creation.getByText("Choose how this company should start.", { exact: true }).waitFor();
   await page.screenshot({ path: "/private/tmp/company-create-dialog.png" });
   await page.keyboard.press("Escape");
+  await creation.waitFor({ state: "hidden" });
+  assert.equal(await newCompany.evaluate((el) => el === document.activeElement), true);
+  // The dialog's Cancel gives focus back the same way.
+  await newCompany.click();
+  await creation.getByText("Choose how this company should start.", { exact: true }).waitFor();
+  await creation.getByRole("button", { name: "Cancel", exact: true }).click();
   await creation.waitFor({ state: "hidden" });
   assert.equal(await newCompany.evaluate((el) => el === document.activeElement), true);
   await page.screenshot({ path: "/private/tmp/company-settings.png" });

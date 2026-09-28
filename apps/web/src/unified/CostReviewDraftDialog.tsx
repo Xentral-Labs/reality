@@ -52,8 +52,13 @@ export function CostReviewDraftDialog({
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     const element = dialog.current!;
+    // The action that opened the draft gets focus back however the dialog closes.
+    const trigger = document.activeElement as HTMLElement | null;
     element.showModal();
-    return () => element.close();
+    return () => {
+      element.close();
+      trigger?.focus();
+    };
   }, []);
   useEffect(() => {
     let current = true;
@@ -123,8 +128,8 @@ export function CostReviewDraftDialog({
       data-cost-review-draft={kind}
       aria-labelledby="cost-review-draft-title"
       onCancel={(event) => {
-        if (busy) event.preventDefault();
-        else close();
+        event.preventDefault();
+        if (!busy) close();
       }}
       className="m-auto max-h-[90vh] w-[min(680px,94vw)] overflow-auto rounded-xl border border-border-default bg-surface p-6 text-fg-default backdrop:bg-black/30"
     >

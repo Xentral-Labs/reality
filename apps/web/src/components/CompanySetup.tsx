@@ -29,8 +29,15 @@ export function CompanySetup({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    if (!first) dialog.current?.showModal();
-    return () => dialog.current?.close();
+    if (first) return;
+    // Whatever opened the dialog gets focus back however it closes (spec 143 FR-009).
+    const node = dialog.current;
+    const trigger = document.activeElement as HTMLElement | null;
+    node?.showModal();
+    return () => {
+      node?.close();
+      trigger?.focus();
+    };
   }, [first]);
   const [options, setOptions] = useState<CompanySetupOptions>();
   const [pending, setPending] = useState<CompanySetupRequest>();
@@ -304,12 +311,8 @@ export function CompanySetup({
       className="company-setup-dialog"
       aria-labelledby="company-setup-title"
       onCancel={(event) => {
-        // Close natively before unmounting: React removes the dialog within this event,
-        // before the browser's own close step would return focus to the opener.
         event.preventDefault();
-        if (busy || pending) return;
-        dialog.current?.close();
-        close?.();
+        if (!busy && !pending) close?.();
       }}
     >
       {body}
