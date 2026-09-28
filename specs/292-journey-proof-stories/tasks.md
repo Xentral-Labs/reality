@@ -38,9 +38,9 @@
 
 **Independent Test**: `pytest tests/scenarios/test_catalog_finance.py -k "C04 or M08 or N06"`
 
-- [ ] T012 [P] [US3] [FR-001] [FR-002] C04 story: two prepayment orders, one payment allocated to both invoices, both `fulfillment_readiness` ship-ready, in `packages/reality-core/tests/scenarios/test_catalog_finance.py`
-- [ ] T013 [P] [US3] [FR-001] [FR-002] M08 story: customer short payment through `finance.settlement.apply` with an `agreed_deduction` reduction, invoice open 0, reason on the review and the adjustment source record, in `packages/reality-core/tests/scenarios/test_catalog_finance.py`
-- [ ] T014 [P] [US3] [FR-001] [FR-002] N06 story: open invoice, credit note, deposit, unpaid prepayment invoice and unallocated prepayment, party balance row equals their signed sum, in `packages/reality-core/tests/scenarios/test_catalog_finance.py`
+- [x] T012 [P] [US3] [FR-001] [FR-002] C04 story: two prepayment orders, one payment allocated to both invoices, both `fulfillment_readiness` ship-ready, in `packages/reality-core/tests/scenarios/test_catalog_finance.py`
+- [x] T013 [P] [US3] [FR-001] [FR-002] M08 story: customer short payment through `finance.settlement.apply` with an `agreed_deduction` reduction, invoice open 0, reason on the review and the adjustment source record, in `packages/reality-core/tests/scenarios/test_catalog_finance.py`
+- [x] T014 [P] [US3] [FR-001] [FR-002] N06 story: open invoice, credit note, deposit, unpaid prepayment invoice and unallocated prepayment, party balance row equals their signed sum, in `packages/reality-core/tests/scenarios/test_catalog_finance.py`
 
 ## Phase 5: User Story 4 — Stated tax cases (P2)
 
@@ -48,8 +48,8 @@
 
 **Independent Test**: `pytest tests/scenarios/test_catalog_finance.py -k "N01 or N02"`
 
-- [ ] T015 [P] [US4] [FR-001] [DR-002] N01 story: customer with VAT ID, sales invoice with stated net, tax 0, gross and an internal EU case reference, all read back as stated, in `packages/reality-core/tests/scenarios/test_catalog_finance.py`
-- [ ] T016 [P] [US4] [FR-001] [DR-002] N02 story: supplier invoice under reverse charge with stated net, tax 0 and gross read back as stated, in `packages/reality-core/tests/scenarios/test_catalog_finance.py`
+- [x] T015 [P] [US4] [FR-001] [DR-002] N01 story: customer with VAT ID, sales invoice with stated net, tax 0, gross and an internal EU case reference, all read back as stated, in `packages/reality-core/tests/scenarios/test_catalog_finance.py`
+- [x] T016 [P] [US4] [FR-001] [DR-002] N02 story: supplier invoice under reverse charge with stated net, tax 0 and gross read back as stated, in `packages/reality-core/tests/scenarios/test_catalog_finance.py`
 
 ## Phase 6: User Story 5 — The Guide follows the evidence (P1)
 

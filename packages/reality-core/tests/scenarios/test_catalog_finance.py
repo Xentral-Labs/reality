@@ -1,6 +1,6 @@
 """Scenario catalog: finance cases that were supported but never proven.
 
-Each test names its catalog ID (C06, E09, E10, F13) and drives the business
+Each test names its catalog ID (C04, C06, E09, E10, F13, M08, N01, N02, N06) and drives the business
 through the same application services the web, CLI and agent use.
 """
 
@@ -10,6 +10,7 @@ import json
 from datetime import UTC, datetime
 from decimal import Decimal
 
+import pytest
 from conftest import record_by_id
 from sqlalchemy import func, select
 
@@ -17,15 +18,20 @@ from reality.db.core import (
     Document,
     DocumentLine,
     LedgerEntry,
+    Party,
     SourceArtifact,
     SourceRecord,
 )
 from reality.services import core, payment_intake
 from reality.services.artifacts import materialize_artifact, stage_artifact
-from reality.services.finance.accounts import list_accounts
+from reality.services.delivery_actions import prepare_delivery_action
+from reality.services.finance import components
+from reality.services.finance import references as finance_references
+from reality.services.finance.accounts import initialize_accounts, list_accounts
 from reality.services.finance.balances import party_balance_rows
 from reality.services.finance.credits import available_credit_items
 from reality.services.finance.settlement_flows import settlement_context
+from reality.services.fulfillment_readiness import fulfillment_readiness
 from reality.services.payment_intake import NormalisedPayment, Reference
 from reality.tools.application import (
     approve_and_execute_proposal,
@@ -595,3 +601,387 @@ def test_one_monthly_invoice_bills_the_deliveries_of_three_orders(session, busin
         currency="EUR",
     )
     assert (after["total"], after["orders"]) == (0, [])
+
+
+# --- Payments, balances and stated tax: C04, M08, N06, N01, N02 (spec 292) -----
+
+
+def _reviewed(session, business, tool, arguments, request_id):
+    proposal = prepare_delivery_action(
+        session, business.tenant.id, tool, arguments, request_id=request_id
+    )
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    executed = approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, review_token=token, confirmed=True
+    )
+    assert executed.status == "executed"
+    return json.loads(executed.output)
+
+
+def _finance(session, business, command, arguments):
+    proposal = create_change_proposal(
+        session, business.tenant.id, command, arguments, actor_type="human"
+    )
+    # What the person reviewed, read before the execution receipt replaces it.
+    review = json.loads(proposal.output)
+    receipt = json.loads(
+        approve_and_execute_proposal(session, business.tenant.id, proposal.id).output
+    )
+    return review, receipt
+
+
+def _revision(session, business):
+    return list_accounts(session, business.tenant.id)["revision"]
+
+
+def _document_id(receipt):
+    return next(row["id"] for row in receipt["records"] if row["family"] == "document")
+
+
+def _invoice_line(session, business, order_line_id, quantity, gross, number, **extra):
+    receipt = _reviewed(
+        session,
+        business,
+        "sales_invoice_record",
+        {
+            "order_line_id": order_line_id,
+            "quantity": quantity,
+            "gross_amount": gross,
+            "number": number,
+            "effective_at": "2026-09-01T10:00:00Z",
+            **extra,
+        },
+        number,
+    )
+    return _document_id(receipt), receipt
+
+
+# --- C04 ---------------------------------------------------------------------
+
+
+def test_one_payment_releases_two_prepaid_orders(session, business):
+    """C04: one transfer pays both prepayment invoices and both orders may ship."""
+    tenant = business.tenant.id
+    core.create_payment_term(
+        session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
+    )
+    core.record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "20",
+        to_location_id=business.location.id,
+    )
+    orders = []
+    for number in ("SO-C04-1", "SO-C04-2"):
+        _, _, lines, commitments = _sales_order(
+            session,
+            business,
+            number,
+            [_order_line(business, "5", "20.00", "100.00")],
+            "100.00",
+            payment_term_code="PREPAY",
+        )
+        core.reserve(session, tenant, commitments[0].id)
+        orders.append((lines[0], commitments[0]))
+    invoices = [
+        _invoice_line(session, business, line.id, "5", "100.00", f"RE-C04-{n}")[0]
+        for n, (line, _) in enumerate(orders, start=1)
+    ]
+    blocked = [
+        fulfillment_readiness(session, tenant, commitment.id)
+        for _, commitment in orders
+    ]
+    assert [r.blocker_codes for r in blocked] == [("prepayment_required",)] * 2
+
+    # One bank line of 200: booked on the first invoice, the rest on the second.
+    _, paid = _finance(
+        session,
+        business,
+        "finance.settlement.apply",
+        {
+            "document_id": invoices[0],
+            "mode": "payment",
+            "amount": "200.00",
+            "allocation_amount": "100.00",
+            "expected_revision": _revision(session, business),
+            "reference": "Bank line 2026-09-02 SO-C04-1 SO-C04-2",
+            "effective_at": "2026-09-02T09:00:00Z",
+        },
+    )
+    payment_id = paid["payment"]["document_id"]
+    _finance(
+        session,
+        business,
+        "finance.settlement.apply",
+        {
+            "document_id": payment_id,
+            "mode": "allocate_credit",
+            "invoice_id": invoices[1],
+            "amount": "100.00",
+            "expected_revision": _revision(session, business),
+        },
+    )
+
+    assert [core.open_invoice_amount(session, tenant, i) for i in invoices] == [0, 0]
+    assert Decimal(settlement_context(session, tenant, payment_id)["available"]) == 0
+    released = [
+        fulfillment_readiness(session, tenant, commitment.id)
+        for _, commitment in orders
+    ]
+    assert [(r.ship_ready, r.blocker_codes) for r in released] == [(True, ())] * 2
+    assert [r.remaining_amount for r in released] == [0, 0]
+    assert core.account_balance(session, tenant, "cash") == Decimal("200.00")
+
+
+# --- M08 ---------------------------------------------------------------------
+
+
+def test_a_customer_deduction_with_an_agreed_reason_leaves_nothing_open(
+    session, business
+):
+    """M08: the customer keeps a marketing contribution; the invoice closes with why."""
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    invoice = core.create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        "RE-M08",
+        business.customer.id,
+        "1000.00",
+        document_date="2026-09-01",
+    )
+    core.post_sales_invoice(session, tenant, invoice.id)
+
+    reviewed, receipt = _finance(
+        session,
+        business,
+        "finance.settlement.apply",
+        {
+            "document_id": invoice.id,
+            "mode": "payment",
+            "amount": "970.00",
+            "allocation_amount": "970.00",
+            "expected_revision": _revision(session, business),
+            "reference": "Bank line RE-M08 less WKZ",
+            "effective_at": "2026-09-20T09:00:00Z",
+            "reduction": {
+                "amount": "30.00",
+                "reason_category": "agreed_deduction",
+                "reason": "Marketing contribution per annual agreement",
+            },
+        },
+    )
+
+    review = reviewed["settlement"]
+    assert review["reduction"]["reason_category"] == "agreed_deduction"
+    assert Decimal(review["remaining_claim"]) == 0
+    assert core.open_invoice_amount(session, tenant, invoice.id) == 0
+    assert Decimal(receipt["cash_amount"]) == Decimal("970.00")
+    adjustment = session.scalars(
+        select(SourceRecord).where(
+            SourceRecord.tenant_id == tenant,
+            SourceRecord.source_system == "internal_settlement_adjustment",
+        )
+    ).one()
+    stated = json.loads(adjustment.payload)
+    assert stated["reason_category"] == "agreed_deduction"
+    assert stated["reason"] == "Marketing contribution per annual agreement"
+    assert _customer_balance(session, business, None) == set()
+
+
+# --- N06 ---------------------------------------------------------------------
+
+
+def test_the_party_balance_counts_credits_deposits_and_prepayments_once(
+    session, business
+):
+    """N06: open invoices, a credit note, a deposit and prepayments in one balance."""
+    tenant = business.tenant.id
+    core.create_payment_term(
+        session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
+    )
+
+    def invoice(number, amount, term=""):
+        document = core.create_document(
+            session,
+            tenant,
+            "sales_invoice",
+            number,
+            business.customer.id,
+            amount,
+            document_date="2026-09-01",
+            payment_term_code=term,
+        )
+        core.post_sales_invoice(session, tenant, document.id)
+        return document
+
+    invoice("RE-N06-OPEN", "500.00")
+    unpaid_prepayment = invoice("RE-N06-PRE", "200.00", term="PREPAY")
+    note = core.create_document(
+        session, tenant, "credit_note", "GS-N06", business.customer.id, "50.00"
+    )
+    core.post_sales_credit_note(session, tenant, note.id)
+    _finance(
+        session,
+        business,
+        "finance.deposit.record",
+        {
+            "expected_revision": _revision(session, business),
+            "side": "customer",
+            "party_id": business.customer.id,
+            "amount": "300.00",
+            "currency": "EUR",
+            "reference": "DEP-N06",
+            "effective_at": "2026-09-02T10:00:00+00:00",
+        },
+    )
+    # A prepayment that arrived before its invoice is unallocated money.
+    core.record_customer_payment(
+        session, tenant, business.customer.id, "80.00", payment_number="PAY-N06"
+    )
+
+    credits = {
+        row["origin"]: Decimal(row["open"])
+        for row in available_credit_items(session, tenant, side="customer")["items"]
+    }
+    assert credits == {
+        "credit_note": Decimal("50.00"),
+        "deposit": Decimal("300.00"),
+        "payment": Decimal("80.00"),
+    }
+    assert core.open_invoice_amount(session, tenant, unpaid_prepayment.id) == (
+        Decimal("200.00")
+    )
+    # Open 500 + 200; credit 50 + 300 + 80; each item counted once.
+    assert _customer_balance(session, business, None) == {
+        (Decimal("700.0000"), Decimal("430.0000"), Decimal("270.0000"))
+    }
+
+
+# --- N01 / N02 ---------------------------------------------------------------
+
+
+def test_an_intra_community_supply_keeps_its_stated_zero_tax_and_case(
+    session, business
+):
+    """N01: zero tax, the EU case and the customer's VAT ID are kept as stated."""
+    tenant = business.tenant.id
+    customer = core.create_party(
+        session, tenant, "Lyon Cycles SARL", "customer", tax_identifier="FR12345678901"
+    )
+    _, _, lines, _ = core.create_manual_order(
+        session,
+        tenant,
+        "sales",
+        "SO-N01",
+        business.company.id,
+        customer.id,
+        business.location.id,
+        [_order_line(business, "10", "25.00", "250.00")],
+        "250.00",
+    )
+    stated = {"net": "250.00", "tax": "0.00"}
+    invoice_id, _ = _invoice_line(
+        session,
+        business,
+        lines[0].id,
+        "10",
+        "250.00",
+        "RE-N01",
+        reality_finance_v1=stated,
+    )
+    _, case = _finance(
+        session,
+        business,
+        "finance.reference.create",
+        {
+            "expected_revision": finance_references.list_references(session, tenant)[
+                "revision"
+            ],
+            "kind": "case_code",
+            "code": "EU_B2B_SUPPLY",
+            "name": "Intra-community supply",
+            "reason": "Tax case of the invoice",
+        },
+    )
+    context = components.component_context(session, tenant, invoice_id)
+    item = context["items"][0]
+    _, assigned = _finance(
+        session,
+        business,
+        "finance.component.assign",
+        {
+            "document_id": invoice_id,
+            "document_line_id": item["document_line_id"],
+            "basis": "net",
+            "expected_evidence_hash": item["evidence_hash"],
+            "expected_revision": context["revision"],
+            "parts": [],
+            "case_reference_id": case["id"],
+            "reason": "Stated intra-community supply",
+        },
+    )
+
+    amounts = components.component_context(session, tenant, invoice_id)["items"][0][
+        "amounts"
+    ]
+    assert (amounts["net"], amounts["tax"], amounts["gross"]) == ("250", "0", "250")
+    history = components.component_history(session, tenant, assigned["component_id"])
+    assert history["items"][0]["references"]["case"]["code"] == "EU_B2B_SUPPLY"
+    assert record_by_id(session, Party, customer.id).tax_identifier == "FR12345678901"
+    # Nothing was computed: the receivable is the stated gross.
+    assert core.open_invoice_amount(session, tenant, invoice_id) == Decimal("250.00")
+
+
+def test_a_reverse_charge_supplier_invoice_keeps_its_stated_amounts(session, business):
+    """N02: net and zero tax are kept as stated; self-assessed tax is not a field."""
+    tenant = business.tenant.id
+    _, _, lines, _ = core.create_manual_order(
+        session,
+        tenant,
+        "purchase",
+        "PO-N02",
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        # Twenty ordered, so a second invoice can only fail on its tax.
+        [_order_line(business, "20", "40.00", "800.00")],
+        "800.00",
+    )
+    arguments = {
+        "order_line_id": lines[0].id,
+        "quantity": "10",
+        "gross_amount": "400.00",
+        "number": "ER-N02",
+        "effective_at": "2026-09-01T10:00:00Z",
+    }
+    receipt = _reviewed(
+        session,
+        business,
+        "supplier_invoice_record",
+        {**arguments, "reality_finance_v1": {"net": "400.00", "tax": "0.00"}},
+        "ER-N02",
+    )
+    invoice_id = _document_id(receipt)
+
+    amounts = components.component_context(session, tenant, invoice_id)["items"][0][
+        "amounts"
+    ]
+    assert (amounts["net"], amounts["tax"], amounts["gross"]) == ("400", "0", "400")
+    # The self-assessed 19 % cannot be stated as tax on a gross that excludes it.
+    with pytest.raises(core.InvalidOperation) as refused:
+        prepare_delivery_action(
+            session,
+            tenant,
+            "supplier_invoice_record",
+            {
+                **arguments,
+                "number": "ER-N02-RC",
+                "reality_finance_v1": {"net": "400.00", "tax": "76.00"},
+            },
+            request_id="ER-N02-RC",
+        )
+    assert refused.value.code == "stated_invoice_net_tax_gross_mismatch"

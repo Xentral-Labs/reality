@@ -63,5 +63,12 @@ finding states the expected outcome and the condition it depends on. Paths are r
 | F01 | `test_a_b2c_withdrawal_brings_the_goods_back_and_refunds_in_full` | pass through the reviewed `sales_credit_record`, `customer_payment_post` and `customer_refund_post`. |
 | F05 | `test_a_damaged_return_is_disposed_and_credited_independently` | pass. `sales_credit_record` carries no charge line, so the reduced credit goes through `document_create` and `credit_note_post`. |
 | F07 | `test_an_exchange_moves_no_money_but_reads_as_uncredited_and_unbilled` | fail on a missing capability (rule 3). Goods and money are right, but the return raises `returned_not_credited` and the zero-price replacement `shipped_not_billed`. Spec 246 US7 requires only that neither movement overwrites the other, so this is not a defect. |
+| C04 | `test_one_payment_releases_two_prepaid_orders` | pass. One `finance.settlement.apply` payment of 200 books 100 on the first invoice; `allocate_credit` puts the rest on the second; both orders become ship-ready. |
+| M08 | `test_a_customer_deduction_with_an_agreed_reason_leaves_nothing_open` | pass. The reason is on the reviewed settlement and the stored adjustment source record. |
+| N06 | `test_the_party_balance_counts_credits_deposits_and_prepayments_once` | pass. Open 700 (an ordinary and an unpaid prepayment invoice), credit 430 (credit note, deposit, unallocated prepayment), balance 270. |
+| N01 | `test_an_intra_community_supply_keeps_its_stated_zero_tax_and_case` | pass. Stated net 250, tax 0, gross 250; the EU case is an internal `case_code` reference; the VAT ID stays on the party. |
+| N02 | `test_a_reverse_charge_supplier_invoice_keeps_its_stated_amounts` | pass for stated net and zero tax. Stating the self-assessed tax is refused with `stated_invoice_net_tax_gross_mismatch`; this stays the public limitation. |
 
-Every "no signal" assertion has a positive control that sees the signal first.
+Every "no signal" assertion has a positive control that sees the signal first, and every
+refusal asserts its code: the first N02 refusal came from `invoice_quantity_exceeds_billable`
+and would have passed for the wrong reason.
