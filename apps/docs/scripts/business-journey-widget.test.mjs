@@ -43,6 +43,8 @@ test("widget uses a readable desktop panel and mobile bottom sheet", () => {
   assert.match(widget, /grid-template-rows:auto minmax\(0,1fr\) auto/u);
   assert.match(widget, /\.conversation\{[^}]*overflow-y:auto/u);
   assert.match(widget, /width:min\(640px,calc\(100vw - 48px\)\)/u);
+  assert.match(widget, /bottom:24px;[^}]*height:calc\(100dvh - 48px\)/u);
+  assert.doesNotMatch(widget, /height:min\(720px,calc\(100vh - 120px\)\)/u);
   assert.match(widget, /@media\(max-width:700px\)/u);
   assert.match(widget, /border-radius:24px 24px 0 0/u);
 });

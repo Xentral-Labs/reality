@@ -96,6 +96,8 @@ description: "Requirement-traceable Business Journey Guide implementation tasks"
 - [x] T074 [US2] [FR-010l] Bind example controls through the connected shadow root and add a regression check
 - [x] T075 [US2] [FR-010n] Reduce the visible loading state to an accessible animated three-dot indicator
 - [x] T076 [US2] [FR-010o] Position each new answer at its beginning while keeping the composer fixed
+- [x] T077 [US2] [FR-010p] Add a failing contract for a full-height desktop panel with preserved viewport offsets
+- [x] T078 [US2] [FR-010p] Make the desktop panel consume the available browser height and verify widget contracts
 
 - [x] T052 Run `make spec-check` and requirement/task traceability audit for `specs/290-business-journey-guide/`
 - [ ] T053 Run catalog generation/freshness and public leakage gates with `make docs-generate docs-catalog-check`
