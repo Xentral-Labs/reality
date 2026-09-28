@@ -6,6 +6,22 @@ const widget = fs.readFileSync(
   new URL("../public/journey-guide-widget/widget.js", import.meta.url),
   "utf8",
 );
+const globalHost = fs.readFileSync(
+  new URL("../.vitepress/theme/components/GlobalAskReality.vue", import.meta.url),
+  "utf8",
+);
+const theme = fs.readFileSync(new URL("../.vitepress/theme/index.ts", import.meta.url), "utf8");
+
+test("Docs mounts one localized public Ask Reality launcher outside dedicated guide routes", () => {
+  assert.match(theme, /GlobalAskReality/u);
+  assert.match(theme, /layout-bottom/u);
+  assert.match(globalHost, /journey-guide-widget\/widget\.js/u);
+  assert.match(globalHost, /script\.dataset\.apiUrl = __API_URL__/u);
+  assert.match(globalHost, /route\.path\.startsWith\("\/de\/"\)/u);
+  assert.match(globalHost, /\/de\/getting-started\/business-journeys/u);
+  assert.match(globalHost, /getting-started\/business-journey-chat/u);
+  assert.match(globalHost, /widget\.hidden = isDedicatedQuestionRoute/u);
+});
 
 test("public widget is closed by default and exposes an accessible dialog", () => {
   assert.match(widget, /aria-haspopup="dialog"/u);

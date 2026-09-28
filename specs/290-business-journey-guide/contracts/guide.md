@@ -27,6 +27,8 @@ Chat calls matching prepare/confirm application tools; it never writes through a
 
 Routes are `/getting-started/business-journeys` and `/de/getting-started/business-journeys`. They provide filters, search, expandable evidence/limitations and Ask Reality. API failure falls back to local catalog matching. Proposal CTAs point to Product Web and preserve locale/context. “Atlas” never appears in product copy.
 
+All other public Docs routes expose the shared public capability widget as a closed launcher. The Docs theme configures the public API URL, chooses the locale-specific Guide route, and does not render a second launcher on either Business Journey Guide or standalone Journey Chat route. Widget or API failure does not block Docs navigation or content.
+
 ## Public marketing-site chatbot
 
 The repository publishes a versioned, framework-neutral chatbot asset with configured public API and Docs origins. A marketing page embeds it as a closed-by-default launcher that opens an accessible panel, accepts anonymous capability questions, shows cited Guide links and stores no durable conversation history. Load/API failure cannot block or obscure the host page. The private operations repository owns the `runreality.ai` embed and must record a production smoke check against this contract.
