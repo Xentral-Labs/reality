@@ -98,6 +98,11 @@ description: "Requirement-traceable Business Journey Guide implementation tasks"
 - [x] T076 [US2] [FR-010o] Position each new answer at its beginning while keeping the composer fixed
 - [x] T077 [US2] [FR-010p] Add a failing contract for a full-height desktop panel with preserved viewport offsets
 - [x] T078 [US2] [FR-010p] Make the desktop panel consume the available browser height and verify widget contracts
+- [x] T079 [US2] [FR-010q] Add failing global Docs launcher, localization and duplicate-route suppression contracts in `apps/docs/scripts/business-journey-widget.test.mjs`
+- [x] T080 [US2] [FR-010q] Add the client-only global widget host in `apps/docs/.vitepress/theme/components/GlobalAskReality.vue`
+- [x] T081 [US2] [FR-010q] Mount the global widget host through the VitePress layout in `apps/docs/.vitepress/theme/index.ts`
+- [x] T082 [US2] [FR-010q] Verify focused Docs contracts and the production Docs build, then record evidence in `specs/290-business-journey-guide/quickstart.md`
+- [x] T083 Review the global Docs launcher diff against FR-010q, the Constitution and existing uncommitted advisor work before marking this increment complete
 
 - [x] T052 Run `make spec-check` and requirement/task traceability audit for `specs/290-business-journey-guide/`
 - [ ] T053 Run catalog generation/freshness and public leakage gates with `make docs-generate docs-catalog-check`

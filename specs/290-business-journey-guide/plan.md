@@ -6,7 +6,7 @@
 
 ## Summary
 
-Replace the two hand-maintained scenario Markdown tables with one validated YAML journey catalog that preserves all 228 IDs and current coverage assessments. Generate a public, localized Docs guide, static search payload and embeddable public chatbot from it. Add a pure query service that ranks catalog entries and constructs cited deterministic answers; an optional provider may semantically select published journey IDs and formulate the response within a server-validated citation and status envelope. Expose the same service through an anonymous, rate-limited read endpoint, normal authenticated Reality Chat and an authorized internal-evidence endpoint. Add account-scoped proposal/vote services and thin Product Web adapters. The private operations repository embeds the published chatbot artifact on the public marketing site under an explicit cross-repository contract. Generate Docs alongside the existing tool catalog so drift fails CI.
+Replace the two hand-maintained scenario Markdown tables with one validated YAML journey catalog that preserves all 228 IDs and current coverage assessments. Generate a public, localized Docs guide, static search payload and embeddable public chatbot from it, and mount that shared widget across ordinary Docs pages without duplicating the full Guide question experience. Add a pure query service that ranks catalog entries and constructs cited deterministic answers; an optional provider may semantically select published journey IDs and formulate the response within a server-validated citation and status envelope. Expose the same service through an anonymous, rate-limited read endpoint, normal authenticated Reality Chat and an authorized internal-evidence endpoint. Add account-scoped proposal/vote services and thin Product Web adapters. The private operations repository embeds the published chatbot artifact on the public marketing site under an explicit cross-repository contract. Generate Docs alongside the existing tool catalog so drift fails CI.
 
 ## Technical Context
 
@@ -45,6 +45,8 @@ packages/reality-core/alembic/versions/
 packages/reality-core/tests/
 apps/docs/scripts/generate-journey-guide.py
 apps/docs/.vitepress/theme/components/BusinessJourneyGuide.vue
+apps/docs/.vitepress/theme/components/GlobalAskReality.vue
+apps/docs/.vitepress/theme/index.ts
 apps/docs/content/{,de/}getting-started/business-journeys.md
 apps/docs/public/generated/business-journeys.json
 apps/docs/public/journey-guide-widget/                       # deployable public chatbot asset
@@ -68,7 +70,7 @@ The guide does not create Reality records. Each entry explains how a business so
 
 `business_journeys` loads one immutable validated snapshot. `search` ranks stable IDs, localized question terms, title and keywords deterministically. `answer` returns a structured conclusion, matched entries and citations. The configured provider receives only a bounded public catalog projection and the question, may select published IDs and formulate copy in English, German, Dutch or Spanish, and has no tools. The server resolves every selected ID back to the catalog, derives the status, and accepts prose only when status and citations match that authority; otherwise deterministic prose wins. The anonymous endpoint exposes public fields only with bounded query length/results and existing request throttling. Docs and the public-site widget call that endpoint and share deterministic local fallback. Normal Reality Chat detects capability intent and calls the same service through its registered read tool while retaining the ordinary conversation. The internal endpoint authorizes an account role and adds allowlisted internal evidence.
 
-The public chatbot is a small, framework-neutral artifact hosted with Docs: a closed-by-default launcher opens an accessible dialog/panel, keeps questions ephemeral and links citations into the Guide. The private operations-owned marketing site supplies only public API/Docs origins and embeds the versioned artifact. If the asset or API fails, the host page remains unaffected. The operations-repository embed and production smoke evidence are external release dependencies, not silently claimed complete by this repository.
+The public chatbot is a small, framework-neutral artifact hosted with Docs: a closed-by-default launcher opens an accessible dialog/panel, keeps questions ephemeral and links citations into the Guide. A thin client-only Docs theme component loads that same artifact, supplies the configured public API and locale-specific Guide route, and suppresses it on routes that already render the full Guide question experience. The private operations-owned marketing site supplies only public API/Docs origins and embeds the versioned artifact. If the asset or API fails, the host page remains unaffected. The operations-repository embed and production smoke evidence are external release dependencies, not silently claimed complete by this repository.
 
 Proposal preparation normalizes the business question, searches journeys and open proposals, and returns a confirmation fingerprint. Confirmed creation, vote and withdrawal call one account-scoped service, are retry-safe and never flow through Docs-owned persistence. Chat may invoke the same prepare/confirm tools; direct Web actions use the same application service.
 
@@ -89,10 +91,10 @@ Proposal text is length-bounded, rejects secrets/contact-patterns and enters `pr
 | Requirement | Test level | Planned test | Expected initial failure |
 |---|---|---|---|
 | FR-001–FR-005, FR-019–FR-023 | unit/generator/browser | catalog parity/validation, generated Docs freshness and guide filter journey | no canonical structured catalog or page exists |
-| FR-006–FR-010p, DR-001, DR-004–DR-005 | unit/service/API/browser | grounded matching, status ceiling, adversarial content, provider failure, bilingual question stories and full-height desktop widget | no shared query/answer service or full-height desktop panel exists |
+| FR-006–FR-010q, DR-001, DR-004–DR-005 | unit/service/API/browser | grounded matching, status ceiling, adversarial content, provider failure, bilingual question stories, full-height desktop widget and global Docs launcher route contracts | no shared query/answer service, full-height desktop panel or Docs-wide launcher exists |
 | FR-011–FR-012, DR-003 | service/API/artifact | internal authorization and public non-disclosure scan | no scoped evidence serializer exists |
 | FR-013–FR-018, FR-024, DR-002–DR-003, DR-006 | domain/PostgreSQL/service/API/Web | prepare/confirm, duplicate suggestions, moderation, lifecycle and concurrent reversible vote stories | proposal/vote model and services do not exist |
-| SC-001–SC-010 | acceptance/full gates | 228-ID reconciliation, curated QA matrix, generated/check/build/a11y/localization/full tests | guide artifacts and acceptance matrix do not exist |
+| SC-001–SC-011 | acceptance/full gates | 228-ID reconciliation, curated QA matrix, generated/check/build/a11y/localization/full tests and global Docs launcher route contracts | guide artifacts, acceptance matrix and Docs-wide launcher do not exist |
 
 Tests are added before each implementation slice. Catalog parity and deterministic answering land before provider rewriting; proposal domain/service tests precede schema/API/UI.
 

@@ -71,6 +71,7 @@ As a public website visitor, Docs reader or authenticated Reality user, I can as
 6. **Given** an authenticated user in normal Reality Chat, **When** they ask “Can Reality …?” or an equivalent capability question, **Then** the existing Chat routes the question through the shared guide query service and may continue with ordinary company questions without entering a separate chat product.
 7. **Given** the same capability question on Website, Docs and authenticated Chat, **When** no private context is required, **Then** all three surfaces return the same support status and canonical journey citations even when presentation wording differs.
 8. **Given** a reader asks from the Docs Guide, **When** the answer arrives, **Then** Docs presents the same API answer, status and citations as the public widget rather than replacing the question with local catalog search results; catalog browsing remains a clearly separate task below it.
+9. **Given** a reader visits an ordinary Docs page, **When** the page loads, **Then** a closed Ask Reality launcher is available without sign-in and opens the same public, read-only capability assistant; pages that already present the full Journey Guide question experience do not show a duplicate launcher.
 
 ---
 
@@ -131,6 +132,7 @@ As a maintainer, I can add or change a journey once and have the public guide, q
 - The answer provider is unavailable, times out or returns uncited content.
 - The public marketing site cannot reach the question API or cannot load the embedded chatbot asset.
 - A public visitor opens, closes and reopens the chatbot on narrow/mobile and keyboard-only layouts.
+- A Docs reader moves between English and German routes or into a page with the full embedded Journey Guide question experience.
 - A catalog entry has no demo case because support is proven elsewhere.
 - A demo reference exists in an older profile version but not the current one.
 - A renamed or merged journey has existing proposal links and votes.
@@ -168,6 +170,7 @@ As a maintainer, I can add or change a journey once and have the public guide, q
 - **FR-010n**: The public widget loading state MUST use only a compact three-dot visual indicator. Its accessible status text MUST remain available to assistive technology without adding visible icon or explanatory copy.
 - **FR-010o**: When a public widget answer arrives, the conversation MUST position the beginning of the new answer in the readable viewport instead of forcing the reader to the answer's end. The composer MUST remain fixed and available below the conversation.
 - **FR-010p**: On desktop the open public widget MUST use the full available browser height, preserving the established outer offsets so the panel never extends beyond the viewport. The header and composer MUST remain visible while only the conversation scrolls.
+- **FR-010q**: Ordinary public Docs pages MUST expose the shared public capability widget as a closed-by-default launcher, configured for the active Docs language and Guide route. Docs pages that already contain the full Journey Guide question experience MUST suppress the launcher so only one Ask Reality surface is presented.
 - **FR-010m**: Answer citations MUST use a compact tabular source list with journey ID, truncated human-readable title and an accessible new-tab control instead of space-heavy badge controls.
 - **FR-011**: Authorized internal readers MUST be able to view approved specification, test and coverage references while the public capability assessment remains derived from the same journey entry.
 - **FR-012**: Internal evidence MUST be access-controlled and MUST never enter public generated assets, public search indexes or anonymous answers.
@@ -215,6 +218,7 @@ As a maintainer, I can add or change a journey once and have the public guide, q
 - **SC-008**: English and German acceptance questions return the same canonical journey references and equivalent support conclusions.
 - **SC-009**: Provider failure and ungrounded-output tests return cited deterministic matches or an explicit unavailable response, with zero unsupported capability claims.
 - **SC-010**: Documentation freshness, specification, localization, accessibility and applicable full regression gates pass before completion.
+- **SC-011**: A production Docs build exposes exactly one localized Ask Reality entry on ordinary English and German pages, exposes no duplicate launcher on either Journey Guide question route, and keeps the content usable when the widget asset or question service is unavailable.
 
 ## Assumptions and Dependencies
 
@@ -222,6 +226,7 @@ As a maintainer, I can add or change a journey once and have the public guide, q
 - Existing public tool-catalog generation, documentation navigation/localization and authenticated account/session facilities are reused.
 - Public Website and Docs questions may use a configured language-model provider, but deterministic retrieval and citation validation remain authoritative and provide the fallback.
 - Public questions are ephemeral in the first release; durable public conversation history and personal profiling are not required.
+- The existing framework-neutral public widget remains the single Docs launcher implementation; Docs supplies only its public API URL, localized Guide URL and route visibility.
 - The `runreality.ai` marketing site is maintained in the private operations repository. This repository owns the shared API, embeddable chatbot artifact and integration contract; final public rollout additionally requires the corresponding operations-repository embed and deployment evidence.
 - Proposal submission and voting require an authenticated account. Browsing proposals and aggregate counts may be public after moderation.
 - Moderation and lifecycle changes are performed by an existing authorized internal role; they do not create a public self-service roadmap commitment.
@@ -232,7 +237,7 @@ As a maintainer, I can add or change a journey once and have the public guide, q
 | Requirement | Scenario(s) | Planned evidence |
 |---|---|---|
 | FR-001–FR-005, FR-019–FR-023, DR-001, DR-004 | US1, US5 | Catalog schema/generator tests, complete-ID reconciliation, public guide browser coverage |
-| FR-006–FR-010d, DR-005 | US2 | Grounded-answer service stories, adversarial/uncited/provider-failure tests, Website/Docs/normal-Chat parity and English/German browser journeys |
+| FR-006–FR-010q, DR-005 | US2 | Grounded-answer service stories, adversarial/uncited/provider-failure tests, Website/Docs/normal-Chat parity, global Docs launcher contracts and English/German browser journeys |
 | FR-011–FR-012, DR-003, DR-005 | US3 | Authorization and public-artifact non-disclosure tests |
 | FR-013–FR-018, FR-024, DR-002–DR-003, DR-006 | US4 | Proposal/vote service stories, concurrency/idempotency tests, API/Chat confirmation and moderation tests |
 | FR-019–FR-021 | US5 | Generation freshness gate and injected stale-reference failures |
