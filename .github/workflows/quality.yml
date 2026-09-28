@@ -166,14 +166,14 @@ jobs:
   browser-scripts:
     # Fixture-based Playwright scripts listed in apps/web/scripts/browser-suite.json. Runs in
     # parallel with the other jobs; skipped for pull requests that touch neither the web app
-    # nor the catalogs the fixtures are derived from. The list is split across three runners
-    # (every third script each), which keeps each well inside the time limit.
+    # nor the catalogs the fixtures are derived from. Measured script durations distribute
+    # the list across seven runners so the slowest shard stays below eight minutes.
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4, 5, 6, 7]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -230,8 +230,16 @@ jobs:
       - name: Run browser scripts
         if: steps.diff.outputs.changed == 'true'
         env:
-          BROWSER_SUITE_SHARD: ${{ matrix.shard }}/3
+          BROWSER_SUITE_SHARD: ${{ matrix.shard }}/7
+          BROWSER_SUITE_RESULTS: ${{ runner.temp }}/browser-durations-${{ matrix.shard }}.json
         run: cd apps/web && node scripts/run-browser-suite.mjs
+      - name: Upload browser script durations
+        if: always() && steps.diff.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-durations-${{ matrix.shard }}
+          path: ${{ runner.temp }}/browser-durations-${{ matrix.shard }}.json
+          if-no-files-found: warn
 
   live-browser:
     # Real-backend browser journeys (packages/reality-core/tests/browser): each harness creates
@@ -239,6 +247,14 @@ jobs:
     # Runs in parallel with the other jobs when the web app or the core changes.
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - journey: business-journey
+            test: tests/browser/unified_business_journey.py
+          - journey: item-csv-import
+            test: tests/browser/unified_item_csv_import.py
     services:
       postgres:
         image: postgres:17-alpine
@@ -314,13 +330,12 @@ jobs:
           JOURNEY_VERIFY_PAGE_CHROME: "1"
         run: |
           cd packages/reality-core
-          ../../.venv/bin/pytest -s -p no:randomly tests/browser/unified_business_journey.py \
-            tests/browser/unified_item_csv_import.py
+          ../../.venv/bin/pytest -s -p no:randomly "${{ matrix.test }}"
       - name: Upload journey logs
         if: failure() && steps.diff.outputs.changed == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: live-browser-logs
+          name: live-browser-logs-${{ matrix.journey }}
           path: ${{ runner.temp }}/live-browser
           if-no-files-found: ignore
 
