@@ -51,7 +51,9 @@ def test_provider_prompt_constrains_workflow_roles(monkeypatch) -> None:
     role_enum = schema["properties"]["claims"]["items"]["properties"][
         "workflow_role"
     ]["enum"]
-    assert schema["properties"]["claims"]["minItems"] == 1
+    assert schema["properties"]["claims"]["minItems"] == 0
+    assert "materially different" in system
+    assert "one focused clarification" in system
     assert "Do not use 'automatic'" in system
     for role in (
         "native",
@@ -92,7 +94,11 @@ def test_ambiguous_partial_delivery_asks_which_trading_side_is_meant() -> None:
 
     def provider(envelope):
         provider_calls.append(envelope)
-        raise AssertionError("Ambiguity must be resolved before provider research.")
+        clarification = (
+            "Do you mean a partial shipment to a customer or a partial goods receipt "
+            "from a supplier?"
+        )
+        return {"text": clarification, "clarification": clarification, "claims": []}
 
     answer = answer_product_question(
         "What happens with a partial delivery?", provider=provider
@@ -105,16 +111,59 @@ def test_ambiguous_partial_delivery_asks_which_trading_side_is_meant() -> None:
     assert "customer" in answer["clarification"].casefold()
     assert "supplier" in answer["clarification"].casefold()
     assert answer["text"] == answer["clarification"]
-    assert provider_calls == []
+    assert len(provider_calls) == 1
+
+
+def test_provider_can_clarify_any_materially_ambiguous_business_term() -> None:
+    def provider(_envelope):
+        clarification = (
+            "Do you mean reserving stock for a sales order or ordering missing stock "
+            "from a supplier?"
+        )
+        return {"text": clarification, "clarification": clarification, "claims": []}
+
+    answer = answer_product_question(
+        "How does Reality handle allocation?", provider=provider
+    )
+
+    assert answer["outcome"] == "clarification"
+    assert answer["text"] == answer["clarification"]
+    assert answer["claims"] == []
+    assert answer["citations"] == []
+
+
+def test_provider_clarification_must_be_exactly_one_question() -> None:
+    def provider(_envelope):
+        return {
+            "text": "Which allocation? Sales or purchasing?",
+            "clarification": "Which allocation? Sales or purchasing?",
+            "claims": [],
+        }
+
+    answer = answer_product_question(
+        "How does Reality handle allocation?", provider=provider
+    )
+
+    assert answer["outcome"] == "fallback"
+    assert answer["clarification"] is None
 
 
 def test_b2b_history_does_not_silently_resolve_partial_delivery_ambiguity() -> None:
+    def provider(envelope):
+        assert envelope["history"][0]["content"] == "How do I run a B2B order?"
+        clarification = (
+            "Do you mean a partial shipment to a customer or a partial goods receipt "
+            "from a supplier?"
+        )
+        return {"text": clarification, "clarification": clarification, "claims": []}
+
     answer = answer_product_question(
         "What happens with a partial delivery?",
         history=(
             {"role": "user", "content": "How do I run a B2B order?"},
             {"role": "assistant", "content": "A B2B order follows order to cash."},
         ),
+        provider=provider,
     )
 
     assert answer["outcome"] == "clarification"
@@ -331,27 +380,16 @@ def test_provider_cannot_invent_a_tool_name() -> None:
     assert "invent_everything" not in answer["text"]
 
 
-def test_broad_provider_receives_interpretation_and_at_most_one_clarification() -> None:
+def test_broad_provider_receives_interpretation_and_returns_only_one_clarification() -> None:
     captured = {}
 
     def provider(envelope):
         captured.update(envelope)
-        first = next(item for item in envelope["evidence"] if item["support"] == "proven")
+        clarification = "Do you sell from stock or make to order?"
         return {
-            "text": "I am using the standard B2B operating flow.",
-            "clarification": "Do you sell from stock or make to order?",
-            "claims": [
-                {
-                    "id": "claim_b2b_interpretation",
-                    "subject": first["subject"],
-                    "statement": first["claim_text"],
-                    "support": "proven",
-                    "evidence_ids": [first["id"]],
-                    "limitations": list(first["limitations"]),
-                    "workflow_role": "native",
-                    "tool_names": [],
-                }
-            ],
+            "text": clarification,
+            "clarification": clarification,
+            "claims": [],
         }
 
     answer = answer_product_question("How do I run B2B with Reality?", provider=provider)
@@ -359,3 +397,4 @@ def test_broad_provider_receives_interpretation_and_at_most_one_clarification() 
     assert captured["interpretation"] == "standard operating flow"
     assert len(captured["concerns"]) == 4
     assert answer["clarification"].count("?") == 1
+    assert answer["claims"] == []

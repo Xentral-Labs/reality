@@ -132,3 +132,6 @@ All artifacts MUST be written in English. Tests precede the behavior they prove.
 - [ ] T057 [US1] [FR-010] [FR-012] Align the provider output contract with the validated advisory claim schema and verify representative English and German ERP-buyer answers through the live local endpoint and widget (partial)
 - [x] T058 [US2] [FR-013] Add regressions proving an unqualified partial-delivery question asks one customer-versus-supplier clarification and bounded B2B history does not silently resolve it
 - [x] T059 [US1] [FR-012] Separate customer and supplier partial-delivery retrieval vocabulary, replace tautological A04/H02 public evidence with concrete quantity outcomes, regenerate advisory knowledge, and verify focused service/evaluation/security tests
+- [x] T060 [US2] [FR-013] Add provider-contract regressions for clarification-only responses, general business-term ambiguity, direct answers for immaterial missing detail, and bounded-history handling
+- [x] T061 [US2] [FR-013] Replace the partial-delivery phrase exception with the provider's general semantic ambiguity decision while retaining deterministic validation of one focused question and zero unsupported claims
+- [x] T062 [US2] [FR-013] Run focused advisor tests, static checks, Spec Kit analysis and the required repository quality gates
