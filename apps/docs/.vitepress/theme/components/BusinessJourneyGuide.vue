@@ -10,6 +10,8 @@ type GuideAnswer = {
   citations: string[];
   matches: Journey[];
   outcome: string;
+  claims?: Array<{ id: string; statement: string; support: string }>;
+  sources?: Array<{ id: string; title: string; url: string | null }>;
 };
 
 const props = withDefaults(defineProps<{ locale?: "en" | "de" }>(), { locale: "en" });
@@ -40,6 +42,7 @@ const labels = computed(() =>
         unavailable:
           "Die KI-Antwort ist gerade nicht verfügbar. Diese lokalen Treffer können helfen:",
         sources: "Verwendete Szenarien",
+        references: "Weitere Produktquellen",
         browse: "Alle Szenarien durchsuchen",
         browseIntro: "Filtere den vollständigen Katalog unabhängig von deiner Frage oben.",
         suggest: "Fehlendes Szenario vorschlagen",
@@ -67,6 +70,7 @@ const labels = computed(() =>
         noAnswer: "This capability is not established by the published guide.",
         unavailable: "The AI answer is unavailable right now. These local matches may help:",
         sources: "Journeys used",
+        references: "Additional product sources",
         browse: "Browse all journeys",
         browseIntro: "Filter the complete catalog independently of the question above.",
         suggest: "Suggest a missing journey",
@@ -285,6 +289,16 @@ async function ask() {
               </tr>
             </tbody>
           </table>
+        </div>
+        <div v-if="answer.sources?.some((source) => source.url)" class="journey-answer-sources">
+          <strong>{{ labels.references }}</strong>
+          <ul class="journey-answer-references">
+            <li v-for="source in answer.sources.filter((item) => item.url)" :key="source.id">
+              <a :href="source.url || undefined" target="_blank" rel="noopener noreferrer">{{
+                source.title
+              }}</a>
+            </li>
+          </ul>
         </div>
         <a
           v-if="answer.status === 'not_established'"

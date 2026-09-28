@@ -9,6 +9,7 @@ from reality.catalogs import config_text
 from reality.domain.business_journeys import load_journey_catalog
 from reality.services.business_journeys import answer_public_question
 from reality.services.core import create_chat_session, send_chat_message
+from reality.services.product_advisor import answer_product_question
 from reality.tools.application import run_read_tool
 
 QUESTION_FIXTURES = yaml.safe_load(
@@ -243,13 +244,13 @@ def test_normal_chat_uses_the_same_capability_basis(
         language="en",
     )
 
-    assert "Status: supported" in reply.content
+    assert "Open remainder" in reply.content
     assert "H02" in reply.content
 
 
 def test_registered_read_tool_matches_public_service(session, business) -> None:
     question = "What if a supplier delivers too little?"
-    expected = answer_public_question(_catalog(), question)
+    expected = answer_product_question(question)
 
     actual = run_read_tool(
         session,
@@ -258,8 +259,8 @@ def test_registered_read_tool_matches_public_service(session, business) -> None:
         {"question": question, "locale": "en"},
     )
 
-    assert actual["status"] == expected.status
-    assert actual["citations"] == list(expected.citations)
+    assert actual["status"] == expected["status"]
+    assert actual["citations"] == expected["citations"]
     assert "internal_evidence" not in str(actual)
 
 
@@ -280,6 +281,6 @@ def test_platform_admin_chat_receives_additive_internal_evidence(
         language="en",
     )
 
-    assert "Status: supported" in reply.content
+    assert "Open remainder" in reply.content
     assert "Internal evidence:" in reply.content
     assert "tests/scenarios" in reply.content

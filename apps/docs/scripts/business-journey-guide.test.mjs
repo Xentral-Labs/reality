@@ -65,6 +65,13 @@ test("Docs Ask Reality shows cited journey IDs and titles in a compact table", (
   assert.match(component, /<table/u);
 });
 
+test("Docs renders additive advisor sources as safe links", () => {
+  assert.match(component, /answer\.sources/u);
+  assert.match(component, /source\.url/u);
+  assert.match(component, /noopener noreferrer/u);
+  assert.match(component, /Additional product sources/u);
+});
+
 test("question answering and catalog browsing are presented as separate tasks", () => {
   assert.match(component, /class="journey-ask-intro"/u);
   assert.match(component, /class="journey-examples"/u);
