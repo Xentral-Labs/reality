@@ -29,15 +29,18 @@ async function accounts() {
 try {
   const before = await accounts();
   await page.goto(`${base}/app/finance?tenant=${access.tenant_id}&finance_view=settings`);
-  const panel = page.locator("details").filter({
-    has: page.locator("summary").filter({ hasText: /Operational accounts|Operative Konten/ }),
+  // Accounts are the first finance settings area; a new account opens from its toolbar.
+  const panel = page.getByRole("region", {
+    name: /^(Accounts & account mapping|Konten & Kontenzuordnung)$/,
   });
-  await panel.locator("summary").click();
-  await panel.locator('input[name="code"]').fill("BANK-LOCAL");
-  await panel.locator('input[name="name"]').fill("Local test bank");
-  await panel.locator('select[name="role"]').selectOption("cash");
-  await panel.getByRole("button", { name: /^(Create account|Konto anlegen)$/ }).click();
-  await panel
+  await panel.getByRole("button", { name: /^(Add account|Konto hinzufügen)$/ }).click();
+  await page.locator('input[name="code"]').fill("BANK-LOCAL");
+  await page.locator('input[name="name"]').fill("Local test bank");
+  await page.locator('select[name="role"]').selectOption("cash");
+  await page
+    .getByRole("button", { name: /^(Review account change|Kontenänderung prüfen)$/ })
+    .click();
+  await page
     .getByRole("heading", { name: /Confirm account change|Kontenänderung bestätigen/ })
     .waitFor();
   assert.equal(
@@ -45,7 +48,7 @@ try {
     before.accounts.length,
     "Proposal must not mutate account configuration",
   );
-  await panel.getByRole("button", { name: /^(Confirm|Bestätigen)$/ }).click();
+  await page.getByRole("button", { name: /^(Confirm|Bestätigen)$/ }).click();
   await panel.getByRole("cell", { name: "BANK-LOCAL", exact: true }).waitFor();
   assert.equal((await accounts()).accounts.length, before.accounts.length + 1);
   await page.screenshot({ path: `${output}/accounts-desktop.png`, fullPage: true });

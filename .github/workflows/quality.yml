@@ -259,6 +259,10 @@ jobs:
             test: tests/browser/unified_history_table.py
           - journey: engine-room
             test: tests/browser/unified_engine_room.py
+          - journey: company-setup-live
+            test: tests/browser/unified_company_setup_live.py
+          - journey: finance-rollout
+            test: tests/browser/unified_finance_rollout.py
     services:
       postgres:
         image: postgres:17-alpine

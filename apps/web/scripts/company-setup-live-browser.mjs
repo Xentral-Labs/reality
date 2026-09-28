@@ -7,8 +7,10 @@ const modulePath =
   "/private/tmp/reality-playwright/node_modules/playwright-core/index.js";
 const playwright = await import(pathToFileURL(modulePath));
 const { chromium } = playwright.default;
+// A local checkout may keep the admin credentials in the repository's .env; a harness
+// passes them in the environment instead.
 const localEnv = Object.fromEntries(
-  (await readFile(new URL("../../../.env", import.meta.url), "utf8"))
+  (await readFile(new URL("../../../.env", import.meta.url), "utf8").catch(() => ""))
     .split(/\r?\n/)
     .filter((line) => line && !line.startsWith("#") && line.includes("="))
     .map((line) => {
@@ -18,12 +20,10 @@ const localEnv = Object.fromEntries(
 );
 const browser = await chromium.launch({
   headless: process.env.HEADLESS !== "false",
-  executablePath:
-    process.env.PLAYWRIGHT_EXECUTABLE ||
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  executablePath: process.env.PLAYWRIGHT_EXECUTABLE || undefined,
   slowMo: process.env.HEADLESS === "false" ? 250 : 0,
 });
-const output = "/private/tmp/reality-251-browser";
+const output = process.env.SHOTS || "/private/tmp/reality-251-browser";
 await mkdir(output, { recursive: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 page.setDefaultTimeout(20_000);

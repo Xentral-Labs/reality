@@ -31,10 +31,10 @@ PostgreSQL databases and fixed timestamps where business dates affect behavior.
    API, database, worker and scheduler, each in its own database; CI runs them in the
    `live-browser` matrix, one journey per runner, whenever the web app or the core changes.
    `tests/browser/live_stack.py` is the shared harness (database, migrations, API, Vite,
-   worker, scheduler and, when asked, the MCP runtime); `history-table-browser.mjs` and
-   `engine-room-live-browser.mjs` run through it. The remaining real-API scripts in
-   `apps/web/scripts` still expect an
-   already running, seeded stack and stay manual until they get a harness of their own;
+   worker, scheduler and, when asked, the MCP runtime); history-table, engine-room-live,
+   company-setup-live and finance-local-rollout run through it. The demo order-to-cash
+   proof (`unified_demo_data_payments.py`) follows the simulation's own pace for up to
+   hours, so it runs only from the manual `live-soak` workflow.
    `command-palette-performance.mjs` is a measurement, not a pass/fail check.
 
 ## Required assertions
