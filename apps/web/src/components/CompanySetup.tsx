@@ -288,17 +288,24 @@ export function CompanySetup({
             {t("Retry company setup")}
           </button>
         </div>
+      ) : options ? (
+        <CompanySetupForm
+          options={options}
+          initialName={first ? options.suggested_name : ""}
+          busy={busy}
+          apiKey={apiKey}
+          setApiKey={setApiKey}
+          submit={submit}
+          cancel={close}
+        />
       ) : (
-        options && (
-          <CompanySetupForm
-            options={options}
-            initialName={first ? options.suggested_name : ""}
-            busy={busy}
-            apiKey={apiKey}
-            setApiKey={setApiKey}
-            submit={submit}
-            cancel={close}
-          />
+        // Setup options did not load: the dialog still offers a way out besides Escape.
+        close && (
+          <div className="onboarding-actions">
+            <button type="button" className="secondary-button" onClick={close}>
+              {t("Cancel")}
+            </button>
+          </div>
         )
       )}
     </section>
