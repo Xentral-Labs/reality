@@ -428,6 +428,8 @@ families:
       - tool:return_announcements
       - tool:return_disposition
       - tool:return_disposition_summary
+      - tool:customer_exchange_record
+      - tool:customer_exchange
       - tool:movement_explanation
       - tool:exceptions
       - tool:finance_balances

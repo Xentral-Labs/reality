@@ -13,9 +13,9 @@
 
 ## Phase 2: Foundational — Schema and Record
 
-- [ ] T005 [FR-001] [DR-002] Add a failing migration and model parity test for `customer_exchange` (checks, uniques, FK indexes) in `core/tests/test_customer_exchanges.py`
-- [ ] T006 [DR-002] Add the `CustomerExchange` model in `core/src/reality/db/core.py` and migration `core/migrations/versions/0101_customer_exchanges.py`
-- [ ] T007 [DR-004] Register the table in `core/config/data_model.yaml`, `core/config/reporting_graph.yaml` (node and FK edges), `core/tests/test_schema_indexes.py` `later_tables` and the stage pattern in `core/src/reality/services/interactions.py`
+- [x] T005 [FR-001] [DR-002] Add a failing migration and model parity test for `customer_exchange` (checks, uniques, FK indexes) in `core/tests/test_customer_exchanges.py`
+- [x] T006 [DR-002] Add the `CustomerExchange` model in `core/src/reality/db/core.py` and migration `core/migrations/versions/0101_customer_exchanges.py`
+- [x] T007 [DR-004] Register the table in `core/config/data_model.yaml`, the `operational_edge_workflows` deferral in `core/tests/test_reporting_graph_coverage.py` (as `supply_assignment`; analytics grain needs its own design), `core/tests/test_schema_indexes.py` `later_tables` and the stage pattern in `core/src/reality/services/interactions.py`
 
 ## Phase 3: User Story 1 — Exchange a returned unit (P1)
 
@@ -23,12 +23,12 @@
 
 **Independent Test**: `pytest core/tests/test_customer_exchanges.py core/tests/operational_exceptions/test_derivation.py -k "exchange and not announcement"`
 
-- [ ] T008 [P] [US1] [FR-001–FR-004] [FR-009] Failing service tests: exchange recorded after a return, other-variant replacement, replacement promise to the same customer at amount 0 without a document, no ledger entry, and each coded refusal from the contract, in `core/tests/test_customer_exchanges.py`
-- [ ] T009 [P] [US1] [FR-005] [FR-006] Failing derivation tests: return owed a credit before the exchange (positive control), not after; shipped replacement not unbilled; partial exchange plus partial credit; later credit reported as credited and not returned, in `core/tests/operational_exceptions/test_derivation.py`
-- [ ] T010 [US1] [FR-001–FR-004] [FR-009] Implement `preview_customer_exchange`, `record_customer_exchange` and `customer_exchange_detail` in `core/src/reality/services/customer_exchanges.py`
-- [ ] T011 [US1] [FR-005] Add the exchanges input to `core/src/reality/services/exception_inputs.py` and subtract exchanged-and-arrived quantities on the customer side of `_return_exceptions` in `core/src/reality/services/exceptions.py`
-- [ ] T012 [US1] [FR-010] Failing review tests (effect states delivery, quantities, replacement and `money_moves: false`; stale review refused; replay idempotent), then implement `core/src/reality/services/customer_exchange_actions.py` and wire it into `core/src/reality/services/delivery_actions.py`
-- [ ] T013 [US1] [FR-008] Failing test and implementation: a replacement cancelled before shipping ends the settlement; a partly shipped then cancelled replacement settles its shipped share, in `core/tests/test_customer_exchanges.py` and `core/src/reality/services/customer_exchanges.py`
+- [x] T008 [P] [US1] [FR-001–FR-004] [FR-009] Failing service tests: exchange recorded after a return, other-variant replacement, replacement promise to the same customer at amount 0 without a document, no ledger entry, and each coded refusal from the contract, in `core/tests/test_customer_exchanges.py`
+- [x] T009 [P] [US1] [FR-005] [FR-006] Failing derivation tests: return owed a credit before the exchange (positive control), not after; shipped replacement not unbilled; partial exchange plus partial credit; later credit reported as credited and not returned, in `core/tests/operational_exceptions/test_derivation.py`
+- [x] T010 [US1] [FR-001–FR-004] [FR-009] Implement `preview_customer_exchange`, `record_customer_exchange` and `customer_exchange_detail` in `core/src/reality/services/customer_exchanges.py`
+- [x] T011 [US1] [FR-005] Read exchanges once per evaluation through the shared `_cached` evaluation cache (no change to `core/src/reality/services/exception_inputs.py` needed) and subtract exchanged-and-arrived quantities on the customer side of `_return_exceptions` in `core/src/reality/services/exceptions.py`
+- [x] T012 [US1] [FR-010] Failing review tests (effect states delivery, quantities, replacement and `money_moves: false`; stale review refused; replay idempotent), then implement `core/src/reality/services/customer_exchange_actions.py` and wire it into `core/src/reality/services/delivery_actions.py`
+- [x] T013 [US1] [FR-008] Failing test and implementation: a replacement cancelled before shipping ends the settlement; a partly shipped then cancelled replacement settles its shipped share, in `core/tests/test_customer_exchanges.py` and `core/src/reality/services/customer_exchanges.py`
 
 ## Phase 4: User Story 2 — Advance exchange (P1)
 

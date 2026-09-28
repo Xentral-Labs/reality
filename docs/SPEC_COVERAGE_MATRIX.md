@@ -1817,3 +1817,10 @@ Feature contract: `docs/features/business-journey-guide.md`.
 - `packages/reality-core/tests/test_product_advisor_evaluation.py` and `packages/reality-core/tests/fixtures/product_advisor_buyer_cases.yaml`: at least 75 buyer questions with required/forbidden evidence and the nine-language release matrix.
 - `packages/reality-core/tests/test_business_journey_tools.py`, `packages/reality-core/tests/test_business_journey_api.py`, `packages/reality-core/tests/test_business_journey_questions.py` and `packages/reality-core/tests/test_chat_tools.py`: shared Advisor conclusions across HTTP, canonical read tool and authenticated Chat with additive internal evidence only, plus product-intent and confirmation routing.
 - `apps/docs/scripts/business-journey-guide.test.mjs` and `business-journey-widget.test.mjs`: safe additive rendering of structured Advisor sources without client-side capability inference.
+
+## Customer exchange — Spec 293
+
+Table `customer_exchange`: a confirmed replacement that settles part of a customer return instead of a credit.
+
+- `packages/reality-core/tests/test_customer_exchanges.py`: the record's one-return-side, positive-quantity and one-exchange-per-replacement constraints; recording after a return (free, document-less replacement to the same customer, no ledger entry), partial credit, refusals with their codes, tenant isolation; the reviewed route (effect, stale and changed reviews, replay); a cancelled or partly shipped replacement.
+- `packages/reality-core/tests/operational_exceptions/test_derivation.py`: an exchanged return is not owed a credit, a partial exchange plus a partial credit, a credit after an exchange as credited and not returned, a shipped replacement not owed an invoice, each with a positive control.

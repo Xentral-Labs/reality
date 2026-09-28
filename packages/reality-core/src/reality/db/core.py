@@ -1929,6 +1929,61 @@ class ReturnAnnouncement(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class CustomerExchange(Base):
+    """A replacement that settles part of a customer return instead of a credit.
+
+    Reality, append-only: a confirmed statement that this promise answers that
+    return. It links the shortest true pair, the return (goods back, or goods
+    announced) and the replacement promise; party, item and order line follow
+    from them. Nothing here says whether the exchange is settled: that is read
+    from the movements and from whether the replacement was cancelled.
+    """
+
+    __tablename__ = "customer_exchange"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "return_movement_id"],
+            ["movement.tenant_id", "movement.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "return_announcement_id"],
+            ["return_announcement.tenant_id", "return_announcement.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "replacement_commitment_id"],
+            ["commitment.tenant_id", "commitment.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        CheckConstraint(
+            "(return_movement_id IS NULL) <> (return_announcement_id IS NULL)",
+            name="ck_customer_exchange_one_return",
+        ),
+        CheckConstraint("quantity > 0", name="ck_customer_exchange_quantity_positive"),
+        UniqueConstraint(
+            "tenant_id",
+            "replacement_commitment_id",
+            name="uq_customer_exchange_replacement",
+        ),
+        UniqueConstraint(
+            "tenant_id", "source_record_id", name="uq_customer_exchange_source"
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    return_movement_id: Mapped[str | None] = mapped_column(String, default=None)
+    return_announcement_id: Mapped[str | None] = mapped_column(String, default=None)
+    replacement_commitment_id: Mapped[str] = mapped_column(String)
+    # The exchanged quantity of the returned item; the replacement states its own.
+    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    reason: Mapped[str] = mapped_column(Text)
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class MovementCorrection(Base):
     __tablename__ = "movement_correction"
     __table_args__ = (

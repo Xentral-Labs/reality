@@ -119,6 +119,18 @@ tables:
       note: {}
       source_record_id: {}
       created_at: {}
+  customer_exchange:
+    description: A confirmed replacement that settles part of a customer return instead of a credit.
+    columns:
+      id: {}
+      tenant_id: {}
+      return_movement_id: {}
+      return_announcement_id: {}
+      replacement_commitment_id: {}
+      quantity: {}
+      reason: {}
+      source_record_id: {}
+      created_at: {}
   accounting_target:
     description: Finance-only external configuration; no financial amount authority.
     columns:

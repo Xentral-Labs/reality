@@ -6262,3 +6262,103 @@ def test_the_queue_follows_a_corrected_best_before(session, business):
     assert row.record_id == wrong_late.id
     assert row.causal_values["expires_at"] == date(2026, 8, 1)
     assert row.causal_values["expired_days"] == 30
+
+
+# --- Spec 293: a customer exchange settles a return instead of a credit ---------
+
+
+def exchange(session, business, goods_back, quantity, *, item=None):
+    from reality.services.customer_exchanges import record_customer_exchange
+
+    return record_customer_exchange(
+        session,
+        business.tenant.id,
+        return_movement_id=goods_back.id,
+        quantity=quantity,
+        replacement_item_id=(item or business.item).id,
+        replacement_quantity=quantity,
+        reason="Exchanged for another size",
+    )
+
+
+def test_an_exchanged_return_is_not_owed_a_credit(session, business):
+    stock(session, business)
+    _, line, commitment = order(session, business, number="SO-293-1")
+    ship(session, business, commitment, 10)
+    bill(session, business, line, number="RE-293-1", quantity="10")
+    goods_back = send_back(session, business, commitment, 2)
+    # Positive control: back and not credited is reported.
+    assert by_class(session, business.tenant.id)["returned_not_credited"].record_id == (
+        line.id
+    )
+
+    exchange(session, business, goods_back, "2")
+
+    classes = by_class(session, business.tenant.id)
+    assert "returned_not_credited" not in classes
+    assert "credited_not_returned" not in classes
+
+
+def test_a_partial_exchange_and_a_partial_credit_settle_a_return_together(
+    session, business
+):
+    stock(session, business)
+    _, line, commitment = order(session, business, number="SO-293-2")
+    ship(session, business, commitment, 10)
+    bill(session, business, line, number="RE-293-2", quantity="10")
+    goods_back = send_back(session, business, commitment, 3)
+
+    exchange(session, business, goods_back, "1")
+    row = by_class(session, business.tenant.id)["returned_not_credited"]
+    assert row.causal_values["exchanged_quantity"] == Decimal("1.0000")
+    assert row.causal_values["uncredited_quantity"] == Decimal("2.0000")
+
+    credit(session, business, line, number="GS-293-2", quantity="2")
+    assert "returned_not_credited" not in by_class(session, business.tenant.id)
+
+
+def test_a_credit_after_an_exchange_settles_the_unit_twice(session, business):
+    """Spec 293 edge case: the double settlement surfaces as credited and not returned."""
+    stock(session, business)
+    _, line, commitment = order(session, business, number="SO-293-3")
+    ship(session, business, commitment, 10)
+    bill(session, business, line, number="RE-293-3", quantity="10")
+    goods_back = send_back(session, business, commitment, 2)
+    exchange(session, business, goods_back, "2")
+    assert "credited_not_returned" not in by_class(session, business.tenant.id)
+
+    credit(session, business, line, number="GS-293-3", quantity="1")
+
+    row = by_class(session, business.tenant.id)["credited_not_returned"]
+    assert row.record_id == line.id
+    assert row.causal_values["exchanged_quantity"] == Decimal("2.0000")
+
+
+def test_a_shipped_replacement_is_not_owed_an_invoice(session, business):
+    from reality.db.core import Commitment
+
+    stock(session, business)
+    _, line, commitment = order(session, business, number="SO-293-4")
+    ship(session, business, commitment, 10)
+    bill(session, business, line, number="RE-293-4", quantity="10")
+    goods_back = send_back(session, business, commitment, 1)
+    swapped = exchange(session, business, goods_back, "1")
+    replacement = session.get(
+        Commitment, (business.tenant.id, swapped.replacement_commitment_id)
+    )
+
+    ship(session, business, replacement, 1)
+
+    assert replacement.status == "fulfilled"
+    unbilled = [
+        row
+        for row in operational_exceptions(session, business.tenant.id, as_of=AS_OF)
+        if row.class_id == "shipped_not_billed"
+    ]
+    assert unbilled == []
+    # Positive control: an ordinary delivery shipped and not billed is reported.
+    _, other_line, other = order(session, business, number="SO-293-4B")
+    ship(session, business, other, 2)
+    assert by_class(session, business.tenant.id)["shipped_not_billed"].record_id == (
+        other_line.id
+    )

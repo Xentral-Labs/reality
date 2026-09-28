@@ -46,7 +46,10 @@ Coded refusals:
 | `customer_exchange_exceeds_exchangeable` | quantity above what may still be exchanged |
 | `customer_exchange_already_credited` | the returned quantity is fully credited |
 | `customer_exchange_quantity_not_positive` | a quantity is zero or negative |
-| `review_customer_exchange_changed` | the reviewed state changed before confirmation |
+| `customer_exchange_reason_required` | the reason is empty |
+| `customer_exchange_unresolved` | another exchange of the same return is executing |
+| `customer_exchange_not_found` | the read names no exchange |
+| `review_delivery_changed` | the reviewed state changed but the exchange is still valid (shared delivery-review code) |
 
 Event: `exchange.recorded`, subject `customer_exchange`, with the proposal as `action_id`.
 

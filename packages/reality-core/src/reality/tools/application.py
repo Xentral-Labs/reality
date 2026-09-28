@@ -104,6 +104,7 @@ from reality.services.core import (
     utc_datetime,
     withdraw_return_announcement,
 )
+from reality.services.customer_exchanges import record_customer_exchange
 from reality.services.exceptions import (
     explain_operational_exception,
     operational_exception_rows,
@@ -1186,6 +1187,26 @@ def _return_disposition(
     return {"movement_id": row.id, "source_record_id": row.source_record_id}
 
 
+def _customer_exchange_record(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    exchange = record_customer_exchange(session, tenant_id, **arguments)
+    return {
+        "exchange_id": exchange.id,
+        "replacement_commitment_id": exchange.replacement_commitment_id,
+        "source_record_id": exchange.source_record_id,
+    }
+
+
+def _customer_exchange(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.customer_exchanges import customer_exchange_detail
+
+    return customer_exchange_detail(session, tenant_id, **arguments)
+
+
 def _return_disposition_summary(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2206,6 +2227,18 @@ TOOLS = {
         "Resolve arrived customer-return quantity through one explicit physical outcome.",
         True,
         _return_disposition,
+    ),
+    "customer_exchange_record": Tool(
+        "customer_exchange_record",
+        "Settle part of a customer return with a free replacement instead of a credit.",
+        True,
+        _customer_exchange_record,
+    ),
+    "customer_exchange": Tool(
+        "customer_exchange",
+        "Read what a customer exchange replaced, what it sent and what it still settles.",
+        False,
+        _customer_exchange,
     ),
     "return_disposition_summary": Tool(
         "return_disposition_summary",
@@ -3542,6 +3575,7 @@ def approve_and_execute_proposal(
         "supplier_invoice_free_record",
         "supply_assign",
         "return_disposition",
+        "customer_exchange_record",
         "commitment_revise",
         "commitment_cancel",
         "sales_credit_record",

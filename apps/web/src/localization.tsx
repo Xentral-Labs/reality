@@ -22054,6 +22054,24 @@ Object.assign(dictionaries.de, {
     "Das gespeicherte Manifest der Wareneingangskosten ist unvollständig oder beschädigt.",
   "Return disposition exceeds unresolved arrived quantity.":
     "Die Retourenentscheidung übersteigt die noch offene eingegangene Menge.",
+  "An exchange names exactly one customer return: goods back or an open announcement.":
+    "Ein Umtausch nennt genau eine Kundenretoure: zurückgekommene Ware oder eine offene Ankündigung.",
+  "Only goods a customer sent back can be exchanged.":
+    "Nur Ware, die ein Kunde zurückgeschickt hat, kann umgetauscht werden.",
+  "Link the return to the delivery it reverses before exchanging it.":
+    "Ordne die Retoure zuerst der Lieferung zu, die sie rückgängig macht, bevor du sie umtauschst.",
+  "Only an open return announcement can be exchanged in advance.":
+    "Nur eine offene Retourenankündigung kann vorab umgetauscht werden.",
+  "The exchange exceeds what can still be exchanged on this return.":
+    "Der Umtausch übersteigt, was bei dieser Retoure noch umgetauscht werden kann.",
+  "These returned goods are already credited, so they cannot also be exchanged.":
+    "Diese zurückgekommene Ware ist bereits gutgeschrieben und kann deshalb nicht auch umgetauscht werden.",
+  "Exchanged and replacement quantities must be positive.":
+    "Umgetauschte Menge und Ersatzmenge müssen positiv sein.",
+  "An exchange requires a reason.": "Ein Umtausch braucht einen Grund.",
+  "Customer exchange not found.": "Umtausch nicht gefunden.",
+  "Another exchange of this return is still being recorded.":
+    "Ein anderer Umtausch dieser Retoure wird gerade noch erfasst.",
   "Return disposition fields are incomplete or unsupported.":
     "Die Felder der Retourenentscheidung sind unvollständig oder nicht unterstützt.",
   "Return disposition requires a customer-return Movement with type return.":
@@ -22916,6 +22934,24 @@ Object.assign(dictionaries.nl, {
     "Het bewaarde manifest van de ontvangstkosten is onvolledig of beschadigd.",
   "Return disposition exceeds unresolved arrived quantity.":
     "De retourbestemming overschrijdt de nog open ontvangen hoeveelheid.",
+  "An exchange names exactly one customer return: goods back or an open announcement.":
+    "Een omruiling noemt precies één klantretour: teruggekomen goederen of een open aankondiging.",
+  "Only goods a customer sent back can be exchanged.":
+    "Alleen goederen die een klant heeft teruggestuurd, kunnen worden omgeruild.",
+  "Link the return to the delivery it reverses before exchanging it.":
+    "Koppel de retour eerst aan de levering die hij terugdraait voordat je hem omruilt.",
+  "Only an open return announcement can be exchanged in advance.":
+    "Alleen een open retouraankondiging kan vooraf worden omgeruild.",
+  "The exchange exceeds what can still be exchanged on this return.":
+    "De omruiling overschrijdt wat bij deze retour nog kan worden omgeruild.",
+  "These returned goods are already credited, so they cannot also be exchanged.":
+    "Deze teruggekomen goederen zijn al gecrediteerd en kunnen dus niet ook worden omgeruild.",
+  "Exchanged and replacement quantities must be positive.":
+    "De omgeruilde hoeveelheid en de vervangende hoeveelheid moeten positief zijn.",
+  "An exchange requires a reason.": "Een omruiling vereist een reden.",
+  "Customer exchange not found.": "Omruiling niet gevonden.",
+  "Another exchange of this return is still being recorded.":
+    "Een andere omruiling van deze retour wordt nog vastgelegd.",
   "Return disposition fields are incomplete or unsupported.":
     "De velden van de retourbestemming zijn onvolledig of niet ondersteund.",
   "Return disposition requires a customer-return Movement with type return.":
@@ -23779,6 +23815,24 @@ Object.assign(dictionaries.es, {
     "El manifiesto de costes de recepción conservado está incompleto o dañado.",
   "Return disposition exceeds unresolved arrived quantity.":
     "La disposición de devolución supera la cantidad recibida pendiente.",
+  "An exchange names exactly one customer return: goods back or an open announcement.":
+    "Un cambio indica exactamente una devolución del cliente: mercancía recibida o un aviso abierto.",
+  "Only goods a customer sent back can be exchanged.":
+    "Solo se puede cambiar la mercancía que un cliente ha devuelto.",
+  "Link the return to the delivery it reverses before exchanging it.":
+    "Vincula primero la devolución a la entrega que revierte antes de cambiarla.",
+  "Only an open return announcement can be exchanged in advance.":
+    "Solo un aviso de devolución abierto se puede cambiar por adelantado.",
+  "The exchange exceeds what can still be exchanged on this return.":
+    "El cambio supera lo que aún se puede cambiar en esta devolución.",
+  "These returned goods are already credited, so they cannot also be exchanged.":
+    "Esta mercancía devuelta ya está abonada, así que no se puede cambiar también.",
+  "Exchanged and replacement quantities must be positive.":
+    "La cantidad cambiada y la de reposición deben ser positivas.",
+  "An exchange requires a reason.": "Un cambio requiere un motivo.",
+  "Customer exchange not found.": "No se encontró el cambio.",
+  "Another exchange of this return is still being recorded.":
+    "Otro cambio de esta devolución todavía se está registrando.",
   "Return disposition fields are incomplete or unsupported.":
     "Los campos de la disposición de devolución están incompletos o no se admiten.",
   "Return disposition requires a customer-return Movement with type return.":

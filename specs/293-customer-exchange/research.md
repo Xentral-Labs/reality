@@ -103,3 +103,14 @@ Precedent wiring for `return_disposition` and the gates a new tool, table and ev
 - The demo exchange (`services/demo_profile.py`, SO-033/SO-034) records an unlinked return
   and a zero-price order. It stays unchanged in this feature: changing seeded demo data needs
   a profile version (company setup contract). A follow-up may move it to a recorded exchange.
+
+## Implementation notes (T005–T013, 2026-09-28)
+
+- The exchanges input uses the evaluation cache `_cached` in `services/exceptions.py`
+  rather than a new `_ExceptionInputs` property; one read per evaluation either way.
+- `customer_exchange` joins `supply_assignment` in the `operational_edge_workflows`
+  reporting-graph deferral instead of becoming a graph node.
+- A review whose state changed while the exchange stays valid is refused with the shared
+  `review_delivery_changed`; one that became invalid is refused with the exchange's own code.
+- The two tools and their tenant-isolation entries (and the pinned discovered-operation count,
+  587 → 589) moved into T012 so no commit leaves the catalog gates red.

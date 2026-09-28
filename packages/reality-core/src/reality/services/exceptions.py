@@ -2024,6 +2024,13 @@ CUSTOMER_RETURN = ("customer_delivery", "return", "credit_note")
 SUPPLIER_RETURN = ("supplier_delivery", "supplier_return", "supplier_credit_note")
 
 
+def _customer_exchanges_settled(session: Session, tenant_id: str) -> dict:
+    # Imported here: the exchange service reads core, which reads this module.
+    from reality.services.customer_exchanges import settled_by_delivery
+
+    return settled_by_delivery(session, tenant_id)
+
+
 def _return_exceptions(
     session: Session,
     tenant_id: str,
@@ -2043,11 +2050,24 @@ def _return_exceptions(
     """
     commitment_type, movement_type, credit_type = side
     uncredited = class_id in {"returned_not_credited", "supplier_return_not_credited"}
+    # A customer exchange settles returned goods the way a credit does (spec 293);
+    # a supplier return has no exchange, so its classes read nothing here.
+    exchanged_by_delivery = (
+        _cached(
+            session,
+            tenant_id,
+            ("customer_exchanges_settled",),
+            lambda: _customer_exchanges_settled(session, tenant_id),
+        )
+        if side == CUSTOMER_RETURN
+        else {}
+    )
     result: list[OperationalException] = []
     for commitment, line, document in _order_line_promises(
         session, tenant_id, commitment_type
     ):
         returned = _fulfilled_quantity(session, tenant_id, commitment.id, movement_type)
+        exchanged = exchanged_by_delivery.get(commitment.id, ZERO)
         referencing = _billing_lines(session, tenant_id, line.id)
         crediting = [
             row
@@ -2069,7 +2089,7 @@ def _return_exceptions(
             # Only goods somebody was charged for can need crediting. A return of
             # something never invoiced leaves nothing owing back, whichever way
             # the goods travelled.
-            owed = min(returned, billed) - credited
+            owed = min(returned, billed) - credited - exchanged
             if returned <= ZERO or owed <= ZERO:
                 continue
             title = uncredited_title
@@ -2081,12 +2101,15 @@ def _return_exceptions(
                 "uncredited_quantity": owed,
                 "unit": line.unit,
             }
+            if side == CUSTOMER_RETURN:
+                values["exchanged_quantity"] = exchanged
         else:
             # A credit with nothing coming back is a decision — "keep it" is
             # ordinary in consumer trade, and a rebate, an allowance or a price
             # correction is ordinary from a supplier — so the class waits for a
             # return before it says anything at all.
-            excess = credited - returned
+            # Goods an exchange answered are not there to be credited as well.
+            excess = credited - (returned - exchanged)
             if returned <= ZERO or excess <= ZERO:
                 continue
             title = overcredited_title
@@ -2097,6 +2120,8 @@ def _return_exceptions(
                 "unreturned_quantity": excess,
                 "unit": line.unit,
             }
+            if side == CUSTOMER_RETURN:
+                values["exchanged_quantity"] = exchanged
         result.append(
             OperationalException(
                 _identity(class_id, line.id),
