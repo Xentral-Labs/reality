@@ -51,3 +51,17 @@ finding states the expected outcome and the condition it depends on. Paths are r
   for example `test_a_return_leaves_the_promise_kept`); the repository uses no `xfail`.
 - **Promotion evidence**: each promoted journey's `internal_evidence` names the new story;
   earlier references stay.
+
+## Story outcomes (2026-09-28)
+
+| ID | Story | Result |
+|---|---|---|
+| A04 | `test_raising_the_quantity_after_a_partial_delivery_opens_only_the_rest` | pass. The rest needs a fresh reservation before dispatch; fulfilment readiness blocks an unreserved shipment. |
+| A06 | `test_cancelling_one_line_leaves_the_other_lines_open_and_reserved` | pass |
+| A07 | `test_cancelling_every_line_of_a_reserved_order_releases_all_its_stock` | pass. No order-level cancellation; the limitation stays. |
+| A19 | `test_a_zero_price_line_ships_and_is_invoiced_without_revenue` | pass, contrary to the code reading. `record_sales_invoice` refuses a zero position, but the `document_create` and `sales_invoice_post` tools accept an invoice with a zero line next to a priced one, and that line then clears `shipped_not_billed`. An invoice made only of free lines is not proven. |
+| F01 | `test_a_b2c_withdrawal_brings_the_goods_back_and_refunds_in_full` | pass through the reviewed `sales_credit_record`, `customer_payment_post` and `customer_refund_post`. |
+| F05 | `test_a_damaged_return_is_disposed_and_credited_independently` | pass. `sales_credit_record` carries no charge line, so the reduced credit goes through `document_create` and `credit_note_post`. |
+| F07 | `test_an_exchange_moves_no_money_but_reads_as_uncredited_and_unbilled` | fail on a missing capability (rule 3). Goods and money are right, but the return raises `returned_not_credited` and the zero-price replacement `shipped_not_billed`. Spec 246 US7 requires only that neither movement overwrites the other, so this is not a defect. |
+
+Every "no signal" assertion has a positive control that sees the signal first.

@@ -1,4 +1,5 @@
-"""Catalog scenarios B04, F03, J08 and L01: stock that moves between promises and places.
+"""Catalog scenarios B04, F01, F03, F05, F07, J08 and L01: stock that moves between
+promises and places, and goods that come back.
 
 Each test drives the same services the CLI and tools call and answers one
 catalog question with exact quantities.
@@ -9,9 +10,12 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 
+from reality.db.core import Commitment
 from reality.services.core import (
     InvalidOperation,
+    account_balance,
     active_reserved,
     announce_customer_return,
     announcement_outstanding,
@@ -23,6 +27,7 @@ from reality.services.core import (
     create_party,
     fulfilled_quantity,
     location_detail,
+    open_invoice_amount,
     open_quantity,
     record_movement,
     release_reservation,
@@ -31,9 +36,16 @@ from reality.services.core import (
     return_announcements,
     stock_at,
 )
+from reality.services.delivery_actions import prepare_delivery_action
 from reality.services.exceptions import operational_exceptions
 from reality.services.movement_explanations import movement_explanation
 from reality.services.read_contracts import location_inventory_rows
+from reality.tools.application import (
+    approve_and_execute_proposal,
+    confirm_tool,
+    propose_tool,
+    run_read_tool,
+)
 
 AS_OF = datetime(2026, 8, 31, 12, tzinfo=UTC)
 
@@ -356,3 +368,379 @@ def test_stock_at_an_external_fulfilment_location_is_sold_from_there(session, bu
     assert stock_at(session, tenant, business.item.id, business.location.id) == (
         Decimal("18.0000")
     )
+
+
+# --- Returns and refunds: F01, F05, F07 (spec 292) -----------------------------
+
+WATCHED = {
+    "returned_not_credited",
+    "credited_not_returned",
+    "shipped_not_billed",
+    "unexplained_movement",
+}
+
+
+def _tool(session, business, tool, arguments):
+    proposal = propose_tool(session, business.tenant.id, tool, arguments)
+    return json.loads(confirm_tool(session, business.tenant.id, proposal.id).output)
+
+
+def _reviewed(session, business, tool, arguments, request_id):
+    proposal = prepare_delivery_action(
+        session, business.tenant.id, tool, arguments, request_id=request_id
+    )
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    executed = approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, review_token=token, confirmed=True
+    )
+    assert executed.status == "executed"
+    return json.loads(executed.output)
+
+
+def _sales_order(session, business, number, quantity, unit_price):
+    gross = str(Decimal(quantity) * Decimal(unit_price))
+    receipt = _reviewed(
+        session,
+        business,
+        "order_create",
+        {
+            "direction": "sales",
+            "number": number,
+            "company_party_id": business.company.id,
+            "counterparty_id": business.customer.id,
+            "location_id": business.location.id,
+            "currency": "EUR",
+            "gross_amount": gross,
+            "lines": [
+                {
+                    "item_id": business.item.id,
+                    "quantity": quantity,
+                    "unit_price": unit_price,
+                    "gross_amount": gross,
+                }
+            ],
+        },
+        number,
+    )
+    commitment = record_by_id(session, Commitment, receipt["commitment_ids"][0])
+    return commitment, receipt["document_line_ids"][0]
+
+
+def _deliver(session, business, commitment, quantity, days_ago):
+    reserve(session, business.tenant.id, commitment.id)
+    return record_movement(
+        session,
+        business.tenant.id,
+        "shipment",
+        business.item.id,
+        quantity,
+        from_location_id=business.location.id,
+        commitment_id=commitment.id,
+        occurred_at=AS_OF - timedelta(days=days_ago),
+    )
+
+
+def _invoice(session, business, number, order_line_id, quantity, unit_price):
+    gross = str(Decimal(quantity) * Decimal(unit_price))
+    recorded = _tool(
+        session,
+        business,
+        "document_create",
+        {
+            "document_type": "sales_invoice",
+            "number": number,
+            "party_id": business.customer.id,
+            "gross_amount": gross,
+            "document_date": "2026-08-05",
+            "lines": [
+                {
+                    "item_id": business.item.id,
+                    "quantity": quantity,
+                    "unit": "pcs",
+                    "unit_price": unit_price,
+                    "gross_amount": gross,
+                    "billed_document_line_id": order_line_id,
+                }
+            ],
+        },
+    )
+    _tool(
+        session,
+        business,
+        "sales_invoice_post",
+        {"document_id": recorded["document_id"]},
+    )
+    return recorded["document_id"], recorded["document_line_ids"][0]
+
+
+def _signals(session, business, record_ids):
+    return {
+        (row.class_id, row.record_id)
+        for row in operational_exceptions(session, business.tenant.id, as_of=AS_OF)
+        if row.class_id in WATCHED and row.record_id in record_ids
+    }
+
+
+def test_a_b2c_withdrawal_brings_the_goods_back_and_refunds_in_full(session, business):
+    """F01: stock back, full credit and the refund paid, with nothing left open."""
+    tenant = business.tenant.id
+    opening_stock(session, business, 10)
+    commitment, order_line_id = _sales_order(session, business, "SO-F01", "2", "49.95")
+    shipment = _deliver(session, business, commitment, 2, days_ago=20)
+    invoice_id, invoice_line_id = _invoice(
+        session, business, "RE-F01", order_line_id, "2", "49.95"
+    )
+    _reviewed(
+        session,
+        business,
+        "customer_payment_post",
+        {"invoice_id": invoice_id, "amount": "99.90"},
+        "pay-f01",
+    )
+    assert open_invoice_amount(session, tenant, invoice_id) == Decimal(0)
+
+    # Within 14 days the customer withdraws and sends both units back.
+    goods_back = record_movement(
+        session,
+        tenant,
+        "return",
+        business.item.id,
+        2,
+        to_location_id=business.location.id,
+        commitment_id=commitment.id,
+        occurred_at=AS_OF - timedelta(days=10),
+    )
+    # Positive control: back but not yet credited is reported.
+    assert ("returned_not_credited", order_line_id) in _signals(
+        session, business, {order_line_id}
+    )
+
+    credited = _reviewed(
+        session,
+        business,
+        "sales_credit_record",
+        {
+            "invoice_id": invoice_id,
+            "lines": [
+                {
+                    "invoice_line_id": invoice_line_id,
+                    "quantity": "2",
+                    "gross_amount": "99.90",
+                }
+            ],
+            "gross_amount": "99.90",
+            "number": "GS-F01",
+            "reason": "Withdrawal within 14 days",
+            # The invoice is already paid, so the credit settles nothing yet.
+            "allocation_amount": "0",
+        },
+        "credit-f01",
+    )
+    credit_note_id = next(
+        row["id"] for row in credited["records"] if row["family"] == "document"
+    )
+    assert open_invoice_amount(session, tenant, credit_note_id) == Decimal("99.90")
+    _reviewed(
+        session,
+        business,
+        "customer_refund_post",
+        {"credit_note_id": credit_note_id, "amount": "99.90"},
+        "refund-f01",
+    )
+
+    assert stock_at(session, tenant, business.item.id, business.location.id) == (
+        Decimal(10)
+    )
+    assert open_invoice_amount(session, tenant, invoice_id) == Decimal(0)
+    assert open_invoice_amount(session, tenant, credit_note_id) == Decimal(0)
+    assert account_balance(session, tenant, "accounts_receivable") == Decimal(0)
+    assert account_balance(session, tenant, "cash") == Decimal(0)
+    # The promise was kept when the goods went out; the return does not undo it.
+    assert fulfilled_quantity(session, tenant, commitment.id) == Decimal(2)
+    assert (
+        _signals(session, business, {order_line_id, shipment.id, goods_back.id})
+        == set()
+    )
+
+
+def test_a_damaged_return_is_disposed_and_credited_independently(session, business):
+    """F05: what happens to the goods and what the customer gets back are separate."""
+    tenant = business.tenant.id
+    opening_stock(session, business, 10)
+    returns_area = create_location(session, tenant, "Returns Area")
+    commitment, order_line_id = _sales_order(session, business, "SO-F05", "5", "20.00")
+    _deliver(session, business, commitment, 5, days_ago=20)
+    invoice_id, invoice_line_id = _invoice(
+        session, business, "RE-F05", order_line_id, "5", "20.00"
+    )
+    _reviewed(
+        session,
+        business,
+        "customer_payment_post",
+        {"invoice_id": invoice_id, "amount": "100.00"},
+        "pay-f05",
+    )
+
+    # Two come back; one of them is damaged beyond repair.
+    goods_back = record_movement(
+        session,
+        tenant,
+        "return",
+        business.item.id,
+        2,
+        to_location_id=returns_area.id,
+        commitment_id=commitment.id,
+        occurred_at=AS_OF - timedelta(days=10),
+    )
+    _reviewed(
+        session,
+        business,
+        "return_disposition",
+        {
+            "return_movement_id": goods_back.id,
+            "disposition": "restock",
+            "quantity": "1",
+            "destination_location_id": business.location.id,
+        },
+        "dispose-f05-restock",
+    )
+    _reviewed(
+        session,
+        business,
+        "return_disposition",
+        {
+            "return_movement_id": goods_back.id,
+            "disposition": "scrap_loss",
+            "quantity": "1",
+            "reason": "Housing cracked",
+        },
+        "dispose-f05-scrap",
+    )
+
+    # Positive control: the goods' fate does not settle what the customer is owed.
+    assert ("returned_not_credited", order_line_id) in _signals(
+        session, business, {order_line_id}
+    )
+
+    # The customer is credited for both units and charged for the damage.
+    recorded = _tool(
+        session,
+        business,
+        "document_create",
+        {
+            "document_type": "credit_note",
+            "number": "GS-F05",
+            "party_id": business.customer.id,
+            "gross_amount": "25.00",
+            "document_date": "2026-08-25",
+            "lines": [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "2",
+                    "unit": "pcs",
+                    "unit_price": "20.00",
+                    "gross_amount": "40.00",
+                    "billed_document_line_id": invoice_line_id,
+                },
+                {
+                    "description": "Damage deduction",
+                    "quantity": "1",
+                    "unit": "pcs",
+                    "unit_price": "-15.00",
+                    "gross_amount": "-15.00",
+                    "line_type": "charge",
+                },
+            ],
+        },
+    )
+    credit_note_id = recorded["document_id"]
+    _tool(session, business, "credit_note_post", {"credit_note_id": credit_note_id})
+    _reviewed(
+        session,
+        business,
+        "customer_refund_post",
+        {"credit_note_id": credit_note_id, "amount": "25.00"},
+        "refund-f05",
+    )
+
+    summary = run_read_tool(
+        session,
+        tenant,
+        "return_disposition_summary",
+        {"return_movement_id": goods_back.id},
+    )
+    assert Decimal(summary["arrived"]) == Decimal(2)
+    assert Decimal(summary["unresolved"]) == Decimal(0)
+    assert {key: Decimal(value) for key, value in summary["totals"].items()} == {
+        "restock": Decimal(1),
+        "scrap_loss": Decimal(1),
+        "quarantine_repair": Decimal(0),
+        "return_to_supplier": Decimal(0),
+    }
+    # 10 - 5 shipped + 1 restocked; the scrapped unit left the returns area.
+    assert stock_at(session, tenant, business.item.id, business.location.id) == (
+        Decimal(6)
+    )
+    assert stock_at(session, tenant, business.item.id, returns_area.id) == Decimal(0)
+    assert open_invoice_amount(session, tenant, invoice_id) == Decimal(0)
+    assert open_invoice_amount(session, tenant, credit_note_id) == Decimal(0)
+    assert account_balance(session, tenant, "cash") == Decimal("75.00")
+    assert _signals(session, business, {order_line_id, goods_back.id}) == set()
+
+
+def test_an_exchange_moves_no_money_but_reads_as_uncredited_and_unbilled(
+    session, business
+):
+    """F07 stays partial: Reality has no exchange, so the swap leaves two findings.
+
+    The goods and the money are right: one unit back, one out, nothing paid or
+    refunded. But the return still waits for a credit and the zero-price
+    replacement for an invoice, because nothing says the one replaces the other.
+    Spec 246 US7 asks only that neither movement overwrites the other. The day an
+    exchange exists, this test turns red and F07 can be promoted.
+    """
+    tenant = business.tenant.id
+    opening_stock(session, business, 10)
+    commitment, order_line_id = _sales_order(session, business, "SO-F07", "1", "20.00")
+    _deliver(session, business, commitment, 1, days_ago=20)
+    invoice_id, _ = _invoice(session, business, "RE-F07", order_line_id, "1", "20.00")
+    _reviewed(
+        session,
+        business,
+        "customer_payment_post",
+        {"invoice_id": invoice_id, "amount": "20.00"},
+        "pay-f07",
+    )
+    cash_before = account_balance(session, tenant, "cash")
+
+    goods_back = record_movement(
+        session,
+        tenant,
+        "return",
+        business.item.id,
+        1,
+        to_location_id=business.location.id,
+        commitment_id=commitment.id,
+        occurred_at=AS_OF - timedelta(days=10),
+    )
+    replacement, replacement_line_id = _sales_order(
+        session, business, "SO-F07-R", "1", "0.00"
+    )
+    sent = _deliver(session, business, replacement, 1, days_ago=9)
+
+    assert stock_at(session, tenant, business.item.id, business.location.id) == (
+        Decimal(9)
+    )
+    assert open_invoice_amount(session, tenant, invoice_id) == Decimal(0)
+    assert account_balance(session, tenant, "cash") == cash_before
+    assert _signals(
+        session,
+        business,
+        {order_line_id, replacement_line_id, goods_back.id, sent.id},
+    ) == {
+        ("returned_not_credited", order_line_id),
+        ("shipped_not_billed", replacement_line_id),
+    }
+    # Neither movement overwrote the other (spec 246 US7).
+    assert fulfilled_quantity(session, tenant, commitment.id) == Decimal(1)
+    assert fulfilled_quantity(session, tenant, replacement.id) == Decimal(1)
