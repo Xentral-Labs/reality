@@ -26,7 +26,11 @@ PostgreSQL databases and fixed timestamps where business dates affect behavior.
    web app or the catalogs change; add a script to the
    list once it passes, and fix a listed script in the pull request that breaks it.
    `packages/reality-core/tests/browser/*.py` run the same kind of script against a real
-   API, database, worker and scheduler; they are explicit and not part of CI yet.
+   API, database, worker and scheduler, each in its own database; CI runs them in the
+   `live-browser` job whenever the web app or the core changes. The remaining real-API
+   scripts in `apps/web/scripts` (for example `history-table-browser.mjs`) still expect an
+   already running, seeded stack and stay manual until they get a harness of their own;
+   `command-palette-performance.mjs` is a measurement, not a pass/fail check.
 
 ## Required assertions
 
