@@ -21,7 +21,7 @@ Ordinary web signup explicitly requests a private demo company with live sample 
 
 `GET /api/company-setup/playground` is read-only. The matching confirmed POST reuses the owner request key `free-playground:v1` for either start, so the receipt records which one was taken, a retry replays the same company and the other start is refused by the existing choice fingerprint. The demo start uses the canonical international profile with live simulation and the existing live setup completion marker; the empty start creates an empty Sandbox in which Demo Data can be connected later. Initialization failure retries the same receipt. Archive is not undone; replay never restarts a paused/stopped completed connection. Practice creation and Storylines are regular product capabilities without a deployment switch (spec 193). Existing account, ownership, confirmation and capacity rules remain authoritative. Legacy enablement settings are ignored.
 
-The three Home starter questions open existing attention, open customer commitments and receivables readers. A voluntary GitHub invitation follows an actually rendered result (delivery detail for the delivery question), never a click, failed read or uninitialized projection. Dismissal is an optional browser preference scoped to the account. No GitHub action or new tracking provider is automatic.
+The former Home starter questions and the GitHub invitation that followed them were removed with the Inbox Welcome (spec 225 FR-018); Welcome leads with the company's activity and its three queues instead. No GitHub action or new tracking provider is automatic.
 
 ## Implementation entrypoints
 
