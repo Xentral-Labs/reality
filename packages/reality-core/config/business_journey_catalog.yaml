@@ -26,8 +26,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: What is open per line and per location?'
-  limitations: &id002
-  - Only part of this journey is currently proven.
+  limitations:
+  - An order is entered for one warehouse, so open quantities per line across several warehouses are not proven.
+  - Multi-line orders are proven with a few lines, not with thirty.
   keywords: []
   question_examples:
   - Order with 30 lines from several warehouses
@@ -65,7 +66,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: What is still open after the revision?'
-  limitations: *id002
+  limitations:
+  - Raising an ordered quantity works when nothing has been delivered yet.
+  - Raising it after a partial delivery is not yet proven.
   keywords: []
   question_examples:
   - Customer raises the quantity after a partial delivery
@@ -84,7 +87,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is the revision refused or does it demand a return?'
-  limitations: *id002
+  limitations:
+  - Lowering the quantity below what was delivered is accepted and closes the line; it is neither refused nor turned into a return request.
+  - The excess delivery is not reported.
   keywords: []
   question_examples:
   - Customer lowers the quantity below the delivered quantity
@@ -103,7 +108,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is only that commitment closed and its reservation released?'
-  limitations: *id002
+  limitations:
+  - Cancelling one order line releases its reservation and hold.
+  - That the other lines of the same order stay open and reserved is not yet proven.
   keywords: []
   question_examples:
   - One line cancelled, the rest stays
@@ -122,7 +129,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Are all reservations released?'
-  limitations: *id002
+  limitations:
+  - Lines are cancelled one by one; there is no cancellation for a whole order.
+  - Cancelling every line of a reserved order is not yet proven.
   keywords: []
   question_examples:
   - Whole order cancelled after reservation
@@ -141,8 +150,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Does the stock go back, and is that visible?'
-  limitations: &id003
-  - The current model or services do not support this complete journey.
+  limitations:
+  - Reality has no picking or staging step, so an order cannot be picked but not yet shipped.
+  - A cancellation in that state, and stock going back to its bin, therefore cannot be shown.
   keywords: []
   question_examples:
   - Cancelled after picking, before shipment
@@ -161,7 +171,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is it treated as a return or refusal, not a cancellation?'
-  limitations: *id002
+  limitations:
+  - A cancellation that arrives after full shipment is held for review without effect, and a delivered line cannot be cancelled.
+  - It is not yet classified as a return or a refusal.
   keywords: []
   question_examples:
   - '"Cancelled" after shipment'
@@ -180,7 +192,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Old commitment closed, new one opened, history kept?'
-  limitations: *id003
+  limitations:
+  - Lines cannot be added to an order once it is in operation, and changed shop orders are held for review.
+  - Swapping a variant on the same order while keeping its history is therefore not possible.
   keywords: []
   question_examples:
   - Customer swaps a variant/size in an open order
@@ -199,7 +213,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Which address does the shipment use, and is the change traceable?'
-  limitations: *id003
+  limitations:
+  - The delivery address is kept on the order only; a shipment does not record the address it used.
+  - Which address a shipment went to, and when it changed, cannot be answered.
   keywords: []
   question_examples:
   - Delivery address changes after release, before shipment
@@ -218,7 +234,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: When should stock be reserved?'
-  limitations: *id003
+  limitations:
+  - Stock is reserved when someone reserves it; no rule uses the requested delivery date to decide when.
   keywords: []
   question_examples:
   - Requested delivery date in the future
@@ -256,7 +273,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Are quote and order separate evidence with a link?'
-  limitations: *id003
+  limitations:
+  - There is no quote document and no link from a quote to the order it became.
+  - A price preview exists, but it is not a quote.
   keywords: []
   question_examples:
   - Quote converted to an order with changed quantities/prices
@@ -294,7 +313,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: New source version, revised commitment, no overwrite?'
-  limitations: *id002
+  limitations:
+  - A new version of a shop order is stored next to the old one without overwriting it.
+  - The order line is not revised automatically; the change is held for review.
   keywords: []
   question_examples:
   - Shop sends a new version of the same order
@@ -313,7 +334,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is the line kept and the gap visible?'
-  limitations: *id002
+  limitations:
+  - The shop order is kept and the failure is visible.
+  - The order is not interpreted until the item is known, so its known lines are not kept alongside the gap.
   keywords: []
   question_examples:
   - Shop order contains an unknown item
@@ -351,7 +374,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Committed and shipped without revenue?'
-  limitations: *id002
+  limitations:
+  - A zero-revenue invoice line works.
+  - A zero-price order line that is committed and shipped is not yet proven.
   keywords: []
   question_examples:
   - Zero-price line (sample, gift, replacement)
@@ -389,7 +414,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Can lines/quantities go to different recipients?'
-  limitations: *id003
+  limitations:
+  - An order line has no recipient or address of its own, so lines cannot go to two delivery addresses.
   keywords: []
   question_examples:
   - One order split across two delivery addresses
@@ -427,7 +453,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: See M01.'
-  limitations: *id003
+  limitations:
+  - There is no blanket order and no call-off; see M01.
   keywords: []
   question_examples:
   - Blanket order with call-offs
@@ -446,7 +473,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Does the added commitment join the pending delivery?'
-  limitations: *id003
+  limitations:
+  - An outbound shipment exists only once it is dispatched, so there is no pending delivery a new line could join.
+  - Lines cannot be added to an order once it is in operation.
   keywords: []
   question_examples:
   - Line added later that should ride with the open shipment
@@ -503,7 +532,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Who gets them, by which rule?'
-  limitations: *id003
+  limitations:
+  - 'There is no allocation or priority rule: whoever reserves first gets the units.'
+  - Reality does show how many orders compete for the same stock.
   keywords: []
   question_examples:
   - Two orders compete for the last units
@@ -541,7 +572,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is blocked stock excluded from availability?'
-  limitations: *id002
+  limitations:
+  - There is no blocked-stock state; stock is excluded from availability only by moving it to another location, such as a quarantine location.
+  - Expired stock deliberately stays available.
   keywords: []
   question_examples:
   - Stock exists but is blocked (quality, quarantine, expiry)
@@ -560,7 +593,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is a transfer needed, and is availability per location?'
-  limitations: *id002
+  limitations:
+  - Availability is judged per location.
+  - Reality does not propose a transfer, and reserving against stock held elsewhere is not yet proven.
   keywords: []
   question_examples:
   - Stock exists in the wrong warehouse
@@ -579,7 +614,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Can it be promised (available to promise)?'
-  limitations: *id002
+  limitations:
+  - An open purchase can be assigned to protect a customer promise.
+  - There is no dated available-to-promise calculation.
   keywords: []
   question_examples:
   - Stock only on order (open purchase)
@@ -598,7 +635,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Which commitment is served first?'
-  limitations: *id002
+  limitations:
+  - A receipt reserves nothing automatically.
+  - A supply assignment names the intended customer, but there is no rule for which backorder is served first.
   keywords: []
   question_examples:
   - Receipt resolves backorders
@@ -617,7 +656,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Which remain uncovered?'
-  limitations: *id002
+  limitations:
+  - A partial receipt is reconciled against the purchase.
+  - Which customer promises stay uncovered afterwards is not yet proven.
   keywords: []
   question_examples:
   - Receipt covers only part of the backorders
@@ -636,7 +677,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Reserved but deliberately not shipped — why?'
-  limitations: *id002
+  limitations:
+  - A hold with a reason can explain why reserved goods are not shipped.
+  - There is no ship-complete or no-partial-delivery rule.
   keywords: []
   question_examples:
   - Customer refuses partial delivery
@@ -655,7 +698,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Is the limit enforceable or at least visible?'
-  limitations: *id003
+  limitations:
+  - No limit on the number of partial deliveries or parcels can be set per order or per customer.
   keywords: []
   question_examples:
   - Partial delivery allowed up to two parcels
@@ -674,7 +718,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Is the reservation released after the deadline?'
-  limitations: *id003
+  limitations:
+  - Missing prepayment blocks the shipment, but a reservation has no expiry date and is never released automatically.
   keywords: []
   question_examples:
   - Reservation lapses because prepayment did not arrive
@@ -712,7 +757,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is the overcommitment visible?'
-  limitations: *id002
+  limitations:
+  - Every promise without a reservation is flagged.
+  - There is no channel dimension and no overall view of demand exceeding stock.
   keywords: []
   question_examples:
   - Oversold across channels (shop and marketplace)
@@ -731,7 +778,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Can availability differ per channel/party?'
-  limitations: *id003
+  limitations:
+  - Availability is one number per item and location.
+  - There is no safety stock and no availability per channel or per customer.
   keywords: []
   question_examples:
   - Safety stock withheld from B2C, given to key accounts
@@ -750,7 +799,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Can stock be earmarked per channel?'
-  limitations: *id003
+  limitations:
+  - Stock cannot be earmarked for a channel, and there are no channel quotas.
   keywords: []
   question_examples:
   - Channel quotas (e.g. 20 % for Amazon)
@@ -769,7 +819,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Is only eligible stock reserved?'
-  limitations: *id003
+  limitations:
+  - A specific lot can be reserved by hand, but Reality does not check a minimum remaining shelf life.
   keywords: []
   question_examples:
   - 'Batch/expiry: customer demands minimum remaining shelf life'
@@ -864,7 +915,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is the payment allocated to both?'
-  limitations: *id002
+  limitations:
+  - One payment can settle several invoices.
+  - That it releases two prepaid orders at once is not yet proven.
   keywords: []
   question_examples:
   - One payment for two prepaid orders
@@ -921,7 +974,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Who released it, and why?'
-  limitations: *id002
+  limitations:
+  - The credit-limit exception and a hold released by a named person both work.
+  - They are not linked to each other, and there is no automatic credit hold.
   keywords: []
   question_examples:
   - 'Credit limit exceeded: order held, released by a person'
@@ -940,7 +995,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Does the hold name the overdue items?'
-  limitations: *id002
+  limitations:
+  - Credit exposure counts open invoices only; the order value never counts.
+  - The exception lists all open invoices, not specifically the overdue ones.
   keywords: []
   question_examples:
   - Limit exceeded by overdue items, not by order value
@@ -959,7 +1016,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Are authorization and capture separate facts?'
-  limitations: *id003
+  limitations:
+  - Payment authorization and capture are not recorded as separate steps; only received payments are.
   keywords: []
   question_examples:
   - 'Card/PayPal/Klarna: authorization ≠ capture'
@@ -978,7 +1036,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Is the uncovered remainder visible?'
-  limitations: *id003
+  limitations:
+  - Authorizations are not recorded, so an expired authorization and the uncovered remainder cannot be shown.
   keywords: []
   question_examples:
   - Authorization expires before a late partial shipment
@@ -1035,7 +1094,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Payment tied to the shipment?'
-  limitations: *id003
+  limitations:
+  - There is no cash-on-delivery path, and a payment cannot be tied to a shipment.
   keywords: []
   question_examples:
   - Cash on delivery
@@ -1054,7 +1114,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is the hold released only after the remainder?'
-  limitations: *id002
+  limitations:
+  - Shipment is released only after the remainder is paid.
+  - A down payment made before any invoice is not tied to the order, so readiness reports a missing prepayment invoice.
   keywords: []
   question_examples:
   - 30 % down payment, rest before shipment
@@ -1073,7 +1135,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Does the receivable reopen?'
-  limitations: *id002
+  limitations:
+  - Reversing a payment reopens the receivable.
+  - Chargebacks, returned direct debits, their fees and provider disputes are not recorded.
   keywords: []
   question_examples:
   - Chargeback / returned direct debit after shipment
@@ -1130,7 +1194,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Is the voucher a settlement of the receivable?'
-  limitations: *id003
+  limitations:
+  - Vouchers and gift cards cannot settle a receivable.
+  - Settlement is possible by payment, credit note, deposit and the recorded adjustment reasons.
   keywords: []
   question_examples:
   - Voucher or gift card as (part) payment
@@ -1168,7 +1234,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Movements per location, one commitment?'
-  limitations: *id003
+  limitations:
+  - A reservation and the readiness to ship are bound to the order's own warehouse.
+  - Stock in a second warehouse therefore cannot serve the same order line.
   keywords: []
   question_examples:
   - Two warehouses, two parcels, one order
@@ -1206,7 +1274,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Corrected without a false movement?'
-  limitations: *id003
+  limitations:
+  - Picking is not recorded, so a picking error caught before shipment has nothing to correct.
   keywords: []
   question_examples:
   - Picking error caught before shipment
@@ -1225,7 +1294,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Wrong item shipped, right item still open?'
-  limitations: *id003
+  limitations:
+  - A shipment of the wrong item cannot name the order line it was meant for.
+  - It can only be recorded without that link and then appears as an unexplained stock movement.
   keywords: []
   question_examples:
   - Picking error found by the customer
@@ -1263,7 +1334,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Goods gone, claim receivable, customer still served?'
-  limitations: *id003
+  limitations:
+  - There is no claim against the carrier or its insurer.
+  - A lost parcel still counts as delivered until it is corrected.
   keywords: []
   question_examples:
   - Parcel lost, carrier insurance pays
@@ -1282,7 +1355,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Stock back, commitment reopened?'
-  limitations: *id003
+  limitations:
+  - Returned stock is booked back, but a return never reopens the delivery promise.
+  - An undeliverable parcel cannot be told apart from a customer return.
   keywords: []
   question_examples:
   - Parcel undeliverable, returns
@@ -1301,7 +1376,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Same as D08 with a reason?'
-  limitations: *id003
+  limitations:
+  - As in D08, returned stock is booked back but the delivery promise does not reopen.
+  - A refusal reason can be recorded on a return announcement, not on the received return itself.
   keywords: []
   question_examples:
   - Delivery refused
@@ -1320,7 +1397,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Customer served without own stock movement?'
-  limitations: *id003
+  limitations:
+  - 'There is no drop-shipping path: an order line is fulfilled only by a movement out of own stock.'
   keywords: []
   question_examples:
   - 'Drop shipping: supplier ships directly'
@@ -1339,7 +1417,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Both paths fulfil one commitment?'
-  limitations: *id003
+  limitations:
+  - There is no drop-shipping path to combine with delivery from own stock; see D10.
   keywords: []
   question_examples:
   - 'Partial drop shipping: part own stock, part supplier'
@@ -1358,7 +1437,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is the lag visible and later closed?'
-  limitations: *id002
+  limitations:
+  - A late confirmation shows as a stalled order and clears when the shipment is recorded.
+  - When the goods left and when the 3PL confirmed it are not told apart.
   keywords: []
   question_examples:
   - 3PL confirms shipments late
@@ -1377,7 +1458,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Shipment dated to the slot?'
-  limitations: *id003
+  limitations:
+  - A booked delivery slot is not recorded; only the time of the movement and carrier events are.
   keywords: []
   question_examples:
   - Pallet freight with booked delivery slot
@@ -1396,7 +1478,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Is the export evidence linked?'
-  limitations: *id003
+  limitations:
+  - Customs and proof-of-export data can be kept in the original source record, but nothing links it to the shipment.
   keywords: []
   question_examples:
   - Export to a third country (customs, proof of export)
@@ -1415,7 +1498,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Fulfilled without a carrier?'
-  limitations: *id002
+  limitations:
+  - Delivery without a carrier or parcel works.
+  - Pickup is not recorded as a delivery mode of its own.
   keywords: []
   question_examples:
   - Customer pickup
@@ -1434,7 +1519,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Why did stock leave, and for which commitment?'
-  limitations: *id002
+  limitations:
+  - A replacement is shipped against a new zero-price order.
+  - A replacement without any order is possible but not yet proven.
   keywords: []
   question_examples:
   - Free replacement shipment without a new order
@@ -1453,7 +1540,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Is it held until the order arrives, then linked?'
-  limitations: *id003
+  limitations:
+  - Shipment confirmations from external systems are not interpreted yet.
+  - An early confirmation therefore cannot be held and linked once the order arrives.
   keywords: []
   question_examples:
   - Shipment confirmation arrives before the order
@@ -1472,7 +1561,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Exactly one movement?'
-  limitations: *id002
+  limitations:
+  - Replaying the same recorded shipment creates only one movement.
+  - Duplicate shipment reports from an external system are not yet received, so that case is not proven.
   keywords: []
   question_examples:
   - Shipment reported twice
@@ -1491,7 +1582,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Is the deposit owed and tracked?'
-  limitations: *id003
+  limitations:
+  - Returnable packaging and the deposit owed for it are not tracked.
   keywords: []
   question_examples:
   - Returnable packaging or deposit (pallets, crates)
@@ -1548,7 +1640,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Invoiced but not shipped visible?'
-  limitations: *id002
+  limitations:
+  - Invoicing before shipment works.
+  - There is no sales-side 'invoiced but not shipped' signal and no pro-forma document.
   keywords: []
   question_examples:
   - Invoice before delivery (prepayment, pro forma)
@@ -1624,7 +1718,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is the difference visible?'
-  limitations: *id002
+  limitations:
+  - Price differences and under-billing are visible.
+  - Invoicing a customer for more than was shipped is not reported.
   keywords: []
   question_examples:
   - Invoice differs from the order (quantity/price)
@@ -1643,7 +1739,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Charges separate from goods?'
-  limitations: *id002
+  limitations:
+  - Fees can be separate charges, and freight lines work on purchases.
+  - Freight and surcharges on sales invoices are not yet proven, and payment provider fees are not recorded.
   keywords: []
   question_examples:
   - Shipping cost, small-quantity surcharge, payment fees
@@ -1700,7 +1798,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Down payment offset in the final invoice?'
-  limitations: *id002
+  limitations:
+  - A deposit can be cleared against the final invoice.
+  - There is no down-payment invoice document, and the final invoice does not state the offset.
   keywords: []
   question_examples:
   - Down-payment invoice and final invoice
@@ -1738,7 +1838,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Stock back, refund owed and paid?'
-  limitations: *id002
+  limitations:
+  - Return, credit note and refund each work.
+  - One story running all three on the same order is not yet proven.
   keywords: []
   question_examples:
   - B2C withdrawal within 14 days, full refund
@@ -1795,7 +1897,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Accepted and linked later?'
-  limitations: *id002
+  limitations:
+  - An unannounced return can be accepted.
+  - Linking it to its order later is not yet proven.
   keywords: []
   question_examples:
   - Unannounced return
@@ -1814,7 +1918,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Disposition and refund independent?'
-  limitations: *id002
+  limitations:
+  - A reduced credit and the disposition of returned goods each work.
+  - A damaged return combining both is not yet proven.
   keywords: []
   question_examples:
   - Damaged return, partial refund
@@ -1852,7 +1958,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Two commitments, no refund?'
-  limitations: *id002
+  limitations:
+  - The return and the replacement delivery are recorded in order.
+  - That no money moves is not yet proven.
   keywords: []
   question_examples:
   - 'Exchange: return plus new delivery, no money'
@@ -1871,7 +1979,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Refund paid, return still expected?'
-  limitations: *id002
+  limitations:
+  - A credit note before the goods arrive works.
+  - The refund payment and a 'return still expected' signal are not yet proven.
   keywords: []
   question_examples:
   - Refund before the return arrives (goodwill)
@@ -1909,7 +2019,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Goods out and back, ownership clear?'
-  limitations: *id003
+  limitations:
+  - Goods cannot be sent out for repair and come back while remaining the company's property.
   keywords: []
   question_examples:
   - Warranty repair via the manufacturer
@@ -1947,7 +2058,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Refund and return independent?'
-  limitations: *id002
+  limitations:
+  - Credit and return are independent of each other.
+  - Marketplace refunds are not yet read from the marketplace.
   keywords: []
   question_examples:
   - Marketplace refunds first, goods later or never
@@ -2004,7 +2117,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Is the demand explained?'
-  limitations: *id002
+  limitations:
+  - The purpose of a stock purchase can be stated.
+  - There is no reorder point and nothing triggers a reorder.
   keywords: []
   question_examples:
   - Reorder for stock at reorder point
@@ -2042,7 +2157,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Is each schedule line a separate promise?'
-  limitations: *id003
+  limitations:
+  - Each purchase order line carries one delivery promise, so several delivery dates per line cannot be stated.
   keywords: []
   question_examples:
   - One purchase order with several delivery dates per line
@@ -2061,7 +2177,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Call-offs against a contract?'
-  limitations: *id003
+  limitations:
+  - There are no supplier framework agreements and no call-offs against them.
   keywords: []
   question_examples:
   - Purchase against a supplier framework agreement
@@ -2080,7 +2197,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Surplus visible as stock-bound?'
-  limitations: *id002
+  limitations:
+  - Surplus from a larger purchase shows up as stock or unassigned supply.
+  - Minimum order quantities and pack sizes are not recorded.
   keywords: []
   question_examples:
   - Minimum order quantity / pack size forces more
@@ -2099,7 +2218,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Stated price recorded?'
-  limitations: *id002
+  limitations:
+  - The unit price stated on the purchase is kept and compared.
+  - Supplier tiered prices are not yet proven.
   keywords: []
   question_examples:
   - Tiered purchase prices
@@ -2118,7 +2239,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Currency kept, conversion at posting?'
-  limitations: *id002
+  limitations:
+  - The purchase keeps its currency, and settling across currencies is refused.
+  - Nothing is converted at posting.
   keywords: []
   question_examples:
   - Purchase order in foreign currency (USD, CNY)
@@ -2137,7 +2260,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Confirmed vs ordered visible?'
-  limitations: *id002
+  limitations:
+  - A confirmed quantity or date is recorded as a revision against the original.
+  - A confirmed price cannot be stated.
   keywords: []
   question_examples:
   - Supplier confirms different quantity/price/date
@@ -2156,7 +2281,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Unconfirmed purchase flagged?'
-  limitations: *id003
+  limitations:
+  - Reality does not expect a supplier confirmation, so an unconfirmed purchase order is not flagged.
+  - It is flagged only as overdue once its delivery date has passed.
   keywords: []
   question_examples:
   - Supplier never confirms
@@ -2194,7 +2321,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Cancellation cost or refusal recorded?'
-  limitations: *id002
+  limitations:
+  - A purchase can be cancelled before receipt.
+  - Cancellation costs or a supplier's refusal to cancel cannot be recorded.
   keywords: []
   question_examples:
   - Purchase cancelled after supplier produced
@@ -2213,7 +2342,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Demand chain updated?'
-  limitations: *id002
+  limitations:
+  - The purchase assignment can be reversed by hand with a reason.
+  - Nothing ties the customer cancellation to the purchase reduction.
   keywords: []
   question_examples:
   - Purchase reduced after the customer order was cancelled
@@ -2251,7 +2382,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Linked to the sales commitment?'
-  limitations: *id003
+  limitations:
+  - There is no drop-ship purchase order and no link from a supplier delivery to the customer order it serves.
   keywords: []
   question_examples:
   - Drop-ship purchase order for a customer order
@@ -2270,7 +2402,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: In-transit per purchase?'
-  limitations: *id003
+  limitations:
+  - Inbound advices and in-transit events do not say which purchases they contain.
+  - Goods in transit per purchase order therefore cannot be shown.
   keywords: []
   question_examples:
   - Import by sea (8 weeks), one container, many purchases
@@ -2346,7 +2480,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Remainder closed through a confirmed revision with a reason? An agent can prepare the revision; a person confirms the mutation.'
-  limitations: *id002
+  limitations:
+  - A downward revision closes the remainder.
+  - That the revision keeps its reason and who made it is not yet proven.
   keywords: []
   question_examples:
   - Under-delivery, rest never
@@ -2365,7 +2501,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Surplus visible?'
-  limitations: *id003
+  limitations:
+  - A receipt above the ordered quantity is refused, and there is no surplus signal.
+  - The only workaround is to raise the ordered quantity first.
   keywords: []
   question_examples:
   - Over-delivery accepted
@@ -2384,7 +2522,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Supplier return linked?'
-  limitations: *id003
+  limitations:
+  - The surplus cannot be received against the purchase order, and a supplier return must refer to a received delivery.
+  - Returning an over-delivery is therefore not possible.
   keywords: []
   question_examples:
   - Over-delivery rejected or returned
@@ -2403,7 +2543,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Received item ≠ ordered item visible?'
-  limitations: *id003
+  limitations:
+  - A wrong item cannot be tied to the purchase order; it appears only as an unexplained receipt.
   keywords: []
   question_examples:
   - Wrong item delivered
@@ -2422,7 +2563,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Accepted against the purchase with a link?'
-  limitations: *id003
+  limitations:
+  - A receipt cannot record that a substitute or successor item stands in for the ordered one.
   keywords: []
   question_examples:
   - Substitute/successor item delivered
@@ -2441,7 +2583,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Quarantine not available?'
-  limitations: *id003
+  limitations:
+  - Warehouse locations have no availability status, so incoming goods cannot be put into quarantine.
+  - Moving them to a separate location is the only way to keep them apart.
   keywords: []
   question_examples:
   - Damaged goods, part to quarantine
@@ -2460,7 +2604,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Why did stock arrive?'
-  limitations: *id002
+  limitations:
+  - A receipt without a purchase order is flagged.
+  - A stated reason such as 'sample' or 'free of charge' is not yet proven.
   keywords: []
   question_examples:
   - Receipt without purchase order (free, sample, misdelivery)
@@ -2574,7 +2720,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Received but not released?'
-  limitations: *id003
+  limitations:
+  - 'There is no inspection hold: goods are either received and available or not received.'
   keywords: []
   question_examples:
   - Quality inspection releases days later
@@ -2593,7 +2740,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Goes straight to the waiting commitment?'
-  limitations: *id002
+  limitations:
+  - A purchase can be assigned to the waiting customer order.
+  - The receipt does not reserve for that order automatically.
   keywords: []
   question_examples:
   - Receipt for a customer-specific purchase (cross-docking)
@@ -2612,7 +2761,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Advised vs received visible?'
-  limitations: *id003
+  limitations:
+  - Advised quantities are not recorded, so advised and received quantities cannot be compared.
   keywords: []
   question_examples:
   - Advice says 100, 96 arrive
@@ -2669,7 +2819,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Match confirmed?'
-  limitations: *id002
+  limitations:
+  - A match shows only as the absence of findings; there is no positive 'matched' answer.
+  - A clean three-way match is not yet proven.
   keywords: []
   question_examples:
   - 'Three-way match: purchase = receipt = invoice'
@@ -2764,7 +2916,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Sum vs purchase?'
-  limitations: *id002
+  limitations:
+  - Several partial invoices are summed against the order on the sales side.
+  - The same for purchases is not yet proven.
   keywords: []
   question_examples:
   - Several partial invoices for one purchase
@@ -2783,7 +2937,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Linked to the receipt cost?'
-  limitations: *id002
+  limitations:
+  - Freight can be attributed to a receipt's cost.
+  - A freight invoice from a third-party carrier is not yet proven.
   keywords: []
   question_examples:
   - Freight invoice from a third party for a purchase
@@ -2859,7 +3015,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: FX difference posted?'
-  limitations: *id003
+  limitations:
+  - A realized exchange difference between a foreign-currency invoice and its payment is not recorded.
+  - Settling an invoice with a payment in another currency is refused.
   keywords: []
   question_examples:
   - Exchange difference between USD invoice and payment
@@ -2897,7 +3055,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Stock in transit?'
-  limitations: *id003
+  limitations:
+  - A warehouse transfer is one instant movement; there is no stock-in-transit state.
   keywords: []
   question_examples:
   - Transfer between warehouses with transit time
@@ -2916,7 +3075,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Count movements with reason?'
-  limitations: *id002
+  limitations:
+  - Gains and losses are recorded as stock adjustments with a reason.
+  - There is no count record comparing counted and book quantity, and a count gain is not yet proven.
   keywords: []
   question_examples:
   - Stock count with gains and losses
@@ -2935,7 +3096,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Correct during open picks?'
-  limitations: *id003
+  limitations:
+  - There are no count sessions and no picking state, so a count during open picks cannot be shown.
   keywords: []
   question_examples:
   - Cycle count of single bins during operation
@@ -2973,7 +3135,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Excluded from availability, then scrapped?'
-  limitations: *id002
+  limitations:
+  - Expired lots are reported but deliberately stay available.
+  - Scrapping is an ordinary stock adjustment.
   keywords: []
   question_examples:
   - Expired stock blocked and scrapped
@@ -2992,7 +3156,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Negative visible and explained?'
-  limitations: *id003
+  limitations:
+  - Shipping more than the physical stock is refused, so negative stock cannot occur.
+  - This is a deliberate rule, not an oversight.
   keywords: []
   question_examples:
   - Negative stock because shipment was booked before receipt
@@ -3011,7 +3177,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Reconciliation difference visible?'
-  limitations: *id003
+  limitations:
+  - Stock reported by a 3PL is not recorded, so it cannot be compared with Reality's own stock.
   keywords: []
   question_examples:
   - 3PL stock differs from own records
@@ -3049,7 +3216,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Held but not owned?'
-  limitations: *id002
+  limitations:
+  - Valuation leaves out the supplier-owned part of a receipt.
+  - Physical stock and availability do not tell owners apart.
   keywords: []
   question_examples:
   - Consignment from the supplier (here, not ours)
@@ -3087,7 +3256,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Paired movements?'
-  limitations: *id003
+  limitations:
+  - Re-labelling can only be recorded as two unrelated stock adjustments; nothing pairs the item going out with the item coming in.
   keywords: []
   question_examples:
   - Re-labelling item A into item B
@@ -3106,7 +3276,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Availability = minimum of components?'
-  limitations: *id003
+  limitations:
+  - There are no kits or bills of material, so kit availability cannot be derived from its components.
   keywords: []
   question_examples:
   - Kit sold, shipped from components
@@ -3125,7 +3296,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Whole kit held?'
-  limitations: *id003
+  limitations:
+  - There are no kits, so a whole kit cannot be held back when one component is missing.
   keywords: []
   question_examples:
   - One component missing, no partial kit allowed
@@ -3144,7 +3316,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Component back, kit credit partial?'
-  limitations: *id003
+  limitations:
+  - A component can be returned as an item of its own, but without a kit link no partial kit credit follows.
   keywords: []
   question_examples:
   - Return of a single component from a kit
@@ -3163,7 +3336,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Paired movements?'
-  limitations: *id003
+  limitations:
+  - There is no assembly step that consumes components and produces the finished item.
   keywords: []
   question_examples:
   - 'Light assembly: components consumed, finished item produced'
@@ -3182,7 +3356,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Per-variant stock?'
-  limitations: *id002
+  limitations:
+  - Each variant is its own item with its own stock.
+  - There is no grouping of variants under a parent item.
   keywords: []
   question_examples:
   - Variant item (size/colour) purchased together
@@ -3201,7 +3377,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Split stated or derived?'
-  limitations: *id003
+  limitations:
+  - A bundle price is not split into component revenue or tax; lines carry only the amounts the source states.
   keywords: []
   question_examples:
   - Bundle price split across components (revenue, tax)
@@ -3239,7 +3416,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Deadline at risk visible?'
-  limitations: *id002
+  limitations:
+  - Deadlines are watched with the general overdue signals.
+  - A fully reserved order close to its deadline is not flagged before it is overdue, and marketplace orders are not yet read.
   keywords: []
   question_examples:
   - Marketplace order shipped by us with a deadline
@@ -3258,7 +3437,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Each order settled, fees as charges?'
-  limitations: *id003
+  limitations:
+  - Marketplace and payment provider payouts are not matched to orders yet.
+  - Fees, refunds and chargebacks within a payout are not allocated.
   keywords: []
   question_examples:
   - 'Marketplace payout: one payment for hundreds of orders minus fees and refunds'
@@ -3277,7 +3458,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Refund recorded from the source?'
-  limitations: *id002
+  limitations:
+  - A refund can refer to its source record.
+  - Refunds in Shopify orders are not interpreted yet; a refunded order is held for review.
   keywords: []
   question_examples:
   - Shopify order partially refunded in the shop
@@ -3296,7 +3479,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: New version, revised commitment?'
-  limitations: *id002
+  limitations:
+  - The edited order is stored as a new version.
+  - The order line is deliberately not revised automatically; the change is held for review.
   keywords: []
   question_examples:
   - Shopify order edited after import
@@ -3315,7 +3500,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Commitment without stock, dated?'
-  limitations: *id002
+  limitations:
+  - A dated order line without stock shows as a shortage or at risk.
+  - A pre-order backed by expected supply is not yet proven.
   keywords: []
   question_examples:
   - Pre-order of an item not yet available
@@ -3334,7 +3521,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Throughput and correct reservations?'
-  limitations: *id002
+  limitations:
+  - Safe concurrent reservations and reading 10,000 orders are proven.
+  - Intake throughput at that volume is not.
   keywords: []
   question_examples:
   - 'Black Friday: 10,000 orders in two hours'
@@ -3353,7 +3542,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Recurring commitment held?'
-  limitations: *id003
+  limitations:
+  - There are no subscriptions or recurring orders; a hold applies only to a single order line.
   keywords: []
   question_examples:
   - Subscription order, payment fails
@@ -3391,7 +3581,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Parties merged, history kept?'
-  limitations: *id003
+  limitations:
+  - Duplicate business partners cannot be merged while keeping both histories.
   keywords: []
   question_examples:
   - Guest order, later with an account (duplicate party)
@@ -3410,7 +3601,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Tax rate as stated by the source?'
-  limitations: *id003
+  limitations:
+  - The tax rate stated by the shop stays in the original source record; Reality does not record it on the order.
   keywords: []
   question_examples:
   - 'OSS: EU consumer, destination-country VAT'
@@ -3429,7 +3621,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Duties and incoterm recorded?'
-  limitations: *id003
+  limitations:
+  - Duties and incoterms are kept only in the original source record and are not recorded as such.
   keywords: []
   question_examples:
   - Shipment to Switzerland/UK (customs, DDP/DAP)
@@ -3448,7 +3641,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Called off vs remaining?'
-  limitations: *id003
+  limitations:
+  - There is no blanket order and no call-off link, so called-off and remaining quantities across orders cannot be shown.
   keywords: []
   question_examples:
   - Blanket order for 10,000 units with monthly call-offs
@@ -3467,7 +3661,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Customer item number maps to our item?'
-  limitations: *id002
+  limitations:
+  - Customer-specific prices work.
+  - Customer item numbers and names are not recorded.
   keywords: []
   question_examples:
   - Customer-specific prices, item numbers and names
@@ -3486,7 +3682,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Each message a source, linked?'
-  limitations: *id003
+  limitations:
+  - EDI messages can be stored as sources, but they are not interpreted and not linked to each other.
   keywords: []
   question_examples:
   - EDI chain ORDERS → ORDRSP → DESADV → INVOIC → REMADV
@@ -3505,7 +3702,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Revised commitment?'
-  limitations: *id002
+  limitations:
+  - An order line can be revised by hand.
+  - An EDI order change does not create a revision yet.
   keywords: []
   question_examples:
   - ORDCHG after confirmation
@@ -3524,7 +3723,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Several recipients per order?'
-  limitations: *id003
+  limitations:
+  - An order has one delivery address, so several recipients per order cannot be stated.
   keywords: []
   question_examples:
   - 'Retail chain: central warehouse plus store delivery'
@@ -3543,7 +3743,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Remainder closed by rule with reason?'
-  limitations: *id003
+  limitations:
+  - There is no customer rule that cancels backorders automatically.
+  - The remainder can be closed by hand with a reason.
   keywords: []
   question_examples:
   - 'Customer rule: cancel backorders instead of delivering later'
@@ -3562,7 +3764,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Out of core scope?'
-  limitations: *id003
+  limitations:
+  - Reality produces no delivery notes or pallet labels, and this is not yet declared out of scope.
   keywords: []
   question_examples:
   - Customer-prescribed delivery note or pallet label
@@ -3581,7 +3784,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Short payment with reason?'
-  limitations: *id002
+  limitations:
+  - An agreed deduction can be recorded as the reason for a short payment; this is proven for suppliers.
+  - Customer penalties and marketing contributions are not yet proven.
   keywords: []
   question_examples:
   - Customer deducts penalty or marketing contribution
@@ -3600,7 +3805,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Rebate credit?'
-  limitations: *id002
+  limitations:
+  - A credit note without goods can carry a rebate.
+  - Rebate agreements and year-end accruals are deliberately not part of Reality.
   keywords: []
   question_examples:
   - Annual rebate at year end
@@ -3619,7 +3826,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Roles kept separate?'
-  limitations: *id003
+  limitations:
+  - Only the orderer and the delivery recipient are recorded; there is no separate bill-to party or payer.
   keywords: []
   question_examples:
   - Orderer, recipient, bill-to and payer are four parties
@@ -3638,7 +3846,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Receivable and payable offset?'
-  limitations: *id003
+  limitations:
+  - One business partner can be both customer and supplier, but a receivable cannot be offset against a payable.
   keywords: []
   question_examples:
   - Customer is also a supplier (netting)
@@ -3657,7 +3866,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Goods out, return expected?'
-  limitations: *id003
+  limitations:
+  - There are no loans or samples with a return obligation; such a shipment counts as a sale.
+  - A return announcement is the closest available record.
   keywords: []
   question_examples:
   - Sample or loan with return obligation
@@ -3676,7 +3887,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Stated tax recorded?'
-  limitations: *id002
+  limitations:
+  - Net, tax and tax case codes are kept as the source states them.
+  - An intra-community supply with zero tax and the customer's VAT ID is not yet proven.
   keywords: []
   question_examples:
   - Intra-community supply (VAT-exempt, VAT ID)
@@ -3695,7 +3908,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Stated tax recorded?'
-  limitations: *id002
+  limitations:
+  - Tax components on supplier invoices are kept as stated.
+  - Reverse charge is not yet proven.
   keywords: []
   question_examples:
   - Reverse charge on purchase
@@ -3714,8 +3929,9 @@ entries:
   status: out_of_scope
   evidence_level: reviewed
   summary: 'Reality evaluates: Currency and FX difference?'
-  limitations: &id004
-  - This journey is deliberately outside the current product scope.
+  limitations:
+  - Foreign-currency invoices work, but settling them with a payment in another currency is refused.
+  - A EUR payment on a CHF invoice stays unallocated, and Reality does not revalue exchange rates.
   keywords: []
   question_examples:
   - Sale in CHF or USD, payment in EUR
@@ -3734,7 +3950,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Dunning notices from open items?'
-  limitations: *id002
+  limitations:
+  - Dunning notices at levels 1 to 3 with a fee can be created by hand.
+  - There is no escalation sequence, no dunning run from open items and no handover to collection.
   keywords: []
   question_examples:
   - Dunning in three levels, then collection
@@ -3772,7 +3990,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Party balance correct?'
-  limitations: *id002
+  limitations:
+  - Open items, overpayments and credit notes per business partner and currency are correct.
+  - Deposits and prepayments in the balance are not yet proven.
   keywords: []
   question_examples:
   - Open items per party incl. credits and prepayments
@@ -3791,7 +4011,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Reversal after export?'
-  limitations: *id003
+  limitations:
+  - There is no handover or export package for external accounting such as DATEV.
+  - A reversal can be recorded, but not as a correction after an export.
   keywords: []
   question_examples:
   - Handover to DATEV/external accounting, later correction
@@ -3810,7 +4032,9 @@ entries:
   status: out_of_scope
   evidence_level: reviewed
   summary: 'Reality evaluates: Rate per invoice date?'
-  limitations: *id004
+  limitations:
+  - Reality records the tax the source states and never determines a rate.
+  - Choosing the rate by invoice date is the job of the issuing system.
   keywords: []
   question_examples:
   - VAT rate change at a cut-off date
@@ -3829,7 +4053,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: History intact (numbers are not identity)?'
-  limitations: *id002
+  limitations:
+  - An item number can be changed, and document lines keep the number they stated.
+  - That movements, stock and old documents stay intact after the change is not yet proven.
   keywords: []
   question_examples:
   - Item number renamed
@@ -3848,7 +4074,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: History of both kept?'
-  limitations: *id003
+  limitations:
+  - Business partners cannot be merged as duplicates.
   keywords: []
   question_examples:
   - Two parties merged as duplicates
@@ -3867,7 +4094,9 @@ entries:
   status: out_of_scope
   evidence_level: reviewed
   summary: 'Reality evaluates: Address as stated per document?'
-  limitations: *id004
+  limitations:
+  - Postal addresses are kept only in the original business partner or source records.
+  - Reality does not manage address history as master data.
   keywords: []
   question_examples:
   - Customer moves; old orders keep the old address
@@ -3905,7 +4134,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Quantities comparable?'
-  limitations: *id002
+  limitations:
+  - Purchase units and conversion factors are compared in exception checks.
+  - Receipts and stock are not converted between units.
   keywords: []
   question_examples:
   - 'Unit conversion: buy in cartons of 12, sell in pieces'
@@ -3924,7 +4155,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Supplier item mapping?'
-  limitations: *id003
+  limitations:
+  - Supplier item numbers and a mapping per supplier are not recorded.
   keywords: []
   question_examples:
   - Supplier item number ≠ own number, several suppliers
@@ -3962,7 +4194,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Linked correctly once complete?'
-  limitations: *id002
+  limitations:
+  - An outdated update is stored but ignored, and an order is linked once its item exists.
+  - A payment or invoice that arrives before its order and is linked later is not yet proven.
   keywords: []
   question_examples:
   - Events out of order
@@ -4000,7 +4234,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Commitment closed with source reason?'
-  limitations: *id002
+  limitations:
+  - A cancellation from the source is stored and held for review; the order line stays open.
+  - Closing a line with the source as its reason is not yet proven.
   keywords: []
   question_examples:
   - Source deletes an order afterwards
@@ -4019,7 +4255,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Gap visible?'
-  limitations: *id002
+  limitations:
+  - Unsupported and failed source records are visible.
+  - Accepting a partly complete record and flagging the missing field is not yet proven.
   keywords: []
   question_examples:
   - Incomplete payload accepted
@@ -4038,7 +4276,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Contradiction visible?'
-  limitations: *id002
+  limitations:
+  - Only a contradiction between carrier and warehouse is shown.
+  - There is no general check when two systems state different values.
   keywords: []
   question_examples:
   - Two systems contradict each other
@@ -4057,7 +4297,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: No duplicates, silent source detected?'
-  limitations: *id002
+  limitations:
+  - A silent source is detected, and the signal clears when deliveries resume.
+  - Catching up a day's backlog without duplicates is not yet proven in the same story.
   keywords: []
   question_examples:
   - Integration down for a day, then catches up
@@ -4076,7 +4318,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Opening balances traceable?'
-  limitations: *id002
+  limitations:
+  - Opening stock and opening open items are traceable.
+  - Open orders that were already partly delivered at go-live are not yet proven.
   keywords: []
   question_examples:
   - Legacy import at go-live (opening stock, open items, open orders)
@@ -4095,7 +4339,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Both lists correct?'
-  limitations: *id002
+  limitations:
+  - The 'shipped but not invoiced' list is proven.
+  - Sales have no 'invoiced but not shipped' list.
   keywords: []
   question_examples:
   - 'Month-end: shipped not invoiced, invoiced not shipped'
@@ -4114,7 +4360,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Refused or flagged?'
-  limitations: *id003
+  limitations:
+  - There are no accounting periods or period closes, so a backdated posting is neither refused nor flagged.
   keywords: []
   question_examples:
   - Backdated posting into a closed period
@@ -4152,7 +4399,9 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Carried over correctly?'
-  limitations: *id003
+  limitations:
+  - There are no periods and therefore no carry-over; open orders and purchases simply stay open.
+  - A year-end crossing is not yet proven.
   keywords: []
   question_examples:
   - Year end with open backorders and purchases
@@ -4171,7 +4420,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Stored in UTC, dated correctly?'
-  limitations: *id002
+  limitations:
+  - Timestamps with an offset are stored in UTC.
+  - There is no company time zone, and the day a late-evening local order falls on is not yet proven.
   keywords: []
   question_examples:
   - 'Time zones: order at 23:30 in New York'
@@ -4190,7 +4441,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Every quantity and every euro reconciles at the end.'
-  limitations: *id002
+  limitations:
+  - Prepayment release, revision, cancellation, partial receipt and damaged returns each work.
+  - One story reconciling every quantity and euro across all of them is not yet proven.
   keywords: []
   question_examples:
   - Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged
@@ -4209,7 +4462,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Cancelled demand leaves the purchase assignment.'
-  limitations: *id002
+  limitations:
+  - A cancelled customer order keeps its purchase assignment until someone reverses it by hand.
+  - The combined story is not yet proven.
   keywords: []
   question_examples:
   - Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels
@@ -4228,7 +4483,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Ownership and credits on both sides.'
-  limitations: *id003
+  limitations:
+  - There is no drop-shipping model, so ownership and credits on both sides cannot be shown.
   keywords: []
   question_examples:
   - Drop shipment with wrong item; customer returns it to us instead of the supplier
@@ -4247,7 +4503,8 @@ entries:
   status: missing
   evidence_level: none
   summary: 'Reality evaluates: Every position allocated.'
-  limitations: *id003
+  limitations:
+  - Payouts, fees and chargebacks are not allocated across orders; see L03.
   keywords: []
   question_examples:
   - Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees
@@ -4266,7 +4523,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Revision respects what already shipped.'
-  limitations: *id002
+  limitations:
+  - Revising a line after a partial delivery works.
+  - EDI order changes and shipping advices are not yet read.
   keywords: []
   question_examples:
   - EDI customer sends ORDCHG after a partial delivery was advised
@@ -4285,7 +4544,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Landed cost and customer allocation.'
-  limitations: *id002
+  limitations:
+  - Freight and duty in landed cost and assigning supply to customers both work.
+  - Converting the USD rate is not part of costing, and a combined container story is not yet proven.
   keywords: []
   question_examples:
   - 'Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting'
@@ -4304,7 +4565,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Who is postponed, and how is it explained?'
-  limitations: *id002
+  limitations:
+  - A count loss shows which reservations now compete for the stock.
+  - By design no promise is named as the one to postpone.
   keywords: []
   question_examples:
   - Month-end count difference uncovers three reservations
@@ -4323,7 +4586,9 @@ entries:
   status: partial
   evidence_level: reviewed
   summary: 'Reality evaluates: Hold reason names all facts.'
-  limitations: *id002
+  limitations:
+  - The credit-limit check counts open invoices only.
+  - It ignores the new order, open credits and payables, and no hold reason combines these facts.
   keywords: []
   question_examples:
   - Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit

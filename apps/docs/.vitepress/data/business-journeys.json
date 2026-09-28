@@ -36,7 +36,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: What is open per line and per location?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "An order is entered for one warehouse, so open quantities per line across several warehouses are not proven.",
+        "Multi-line orders are proven with a few lines, not with thirty."
       ],
       "keywords": [],
       "question_examples": [
@@ -76,7 +77,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: What is still open after the revision?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Raising an ordered quantity works when nothing has been delivered yet.",
+        "Raising it after a partial delivery is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -97,7 +99,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is the revision refused or does it demand a return?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Lowering the quantity below what was delivered is accepted and closes the line; it is neither refused nor turned into a return request.",
+        "The excess delivery is not reported."
       ],
       "keywords": [],
       "question_examples": [
@@ -118,7 +121,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is only that commitment closed and its reservation released?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Cancelling one order line releases its reservation and hold.",
+        "That the other lines of the same order stay open and reserved is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -139,7 +143,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Are all reservations released?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Lines are cancelled one by one; there is no cancellation for a whole order.",
+        "Cancelling every line of a reserved order is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -160,7 +165,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Does the stock go back, and is that visible?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Reality has no picking or staging step, so an order cannot be picked but not yet shipped.",
+        "A cancellation in that state, and stock going back to its bin, therefore cannot be shown."
       ],
       "keywords": [],
       "question_examples": [
@@ -181,7 +187,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is it treated as a return or refusal, not a cancellation?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A cancellation that arrives after full shipment is held for review without effect, and a delivered line cannot be cancelled.",
+        "It is not yet classified as a return or a refusal."
       ],
       "keywords": [],
       "question_examples": [
@@ -202,7 +209,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Old commitment closed, new one opened, history kept?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Lines cannot be added to an order once it is in operation, and changed shop orders are held for review.",
+        "Swapping a variant on the same order while keeping its history is therefore not possible."
       ],
       "keywords": [],
       "question_examples": [
@@ -223,7 +231,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Which address does the shipment use, and is the change traceable?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "The delivery address is kept on the order only; a shipment does not record the address it used.",
+        "Which address a shipment went to, and when it changed, cannot be answered."
       ],
       "keywords": [],
       "question_examples": [
@@ -244,7 +253,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: When should stock be reserved?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Stock is reserved when someone reserves it; no rule uses the requested delivery date to decide when."
       ],
       "keywords": [],
       "question_examples": [
@@ -284,7 +293,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Are quote and order separate evidence with a link?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no quote document and no link from a quote to the order it became.",
+        "A price preview exists, but it is not a quote."
       ],
       "keywords": [],
       "question_examples": [
@@ -324,7 +334,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: New source version, revised commitment, no overwrite?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A new version of a shop order is stored next to the old one without overwriting it.",
+        "The order line is not revised automatically; the change is held for review."
       ],
       "keywords": [],
       "question_examples": [
@@ -345,7 +356,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is the line kept and the gap visible?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "The shop order is kept and the failure is visible.",
+        "The order is not interpreted until the item is known, so its known lines are not kept alongside the gap."
       ],
       "keywords": [],
       "question_examples": [
@@ -385,7 +397,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Committed and shipped without revenue?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A zero-revenue invoice line works.",
+        "A zero-price order line that is committed and shipped is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -425,7 +438,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Can lines/quantities go to different recipients?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "An order line has no recipient or address of its own, so lines cannot go to two delivery addresses."
       ],
       "keywords": [],
       "question_examples": [
@@ -465,7 +478,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: See M01.",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no blanket order and no call-off; see M01."
       ],
       "keywords": [],
       "question_examples": [
@@ -486,7 +499,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Does the added commitment join the pending delivery?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "An outbound shipment exists only once it is dispatched, so there is no pending delivery a new line could join.",
+        "Lines cannot be added to an order once it is in operation."
       ],
       "keywords": [],
       "question_examples": [
@@ -545,7 +559,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Who gets them, by which rule?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no allocation or priority rule: whoever reserves first gets the units.",
+        "Reality does show how many orders compete for the same stock."
       ],
       "keywords": [],
       "question_examples": [
@@ -585,7 +600,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is blocked stock excluded from availability?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "There is no blocked-stock state; stock is excluded from availability only by moving it to another location, such as a quarantine location.",
+        "Expired stock deliberately stays available."
       ],
       "keywords": [],
       "question_examples": [
@@ -606,7 +622,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is a transfer needed, and is availability per location?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Availability is judged per location.",
+        "Reality does not propose a transfer, and reserving against stock held elsewhere is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -627,7 +644,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Can it be promised (available to promise)?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "An open purchase can be assigned to protect a customer promise.",
+        "There is no dated available-to-promise calculation."
       ],
       "keywords": [],
       "question_examples": [
@@ -648,7 +666,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Which commitment is served first?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A receipt reserves nothing automatically.",
+        "A supply assignment names the intended customer, but there is no rule for which backorder is served first."
       ],
       "keywords": [],
       "question_examples": [
@@ -669,7 +688,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Which remain uncovered?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A partial receipt is reconciled against the purchase.",
+        "Which customer promises stay uncovered afterwards is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -690,7 +710,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Reserved but deliberately not shipped — why?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A hold with a reason can explain why reserved goods are not shipped.",
+        "There is no ship-complete or no-partial-delivery rule."
       ],
       "keywords": [],
       "question_examples": [
@@ -711,7 +732,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Is the limit enforceable or at least visible?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "No limit on the number of partial deliveries or parcels can be set per order or per customer."
       ],
       "keywords": [],
       "question_examples": [
@@ -732,7 +753,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Is the reservation released after the deadline?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Missing prepayment blocks the shipment, but a reservation has no expiry date and is never released automatically."
       ],
       "keywords": [],
       "question_examples": [
@@ -772,7 +793,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is the overcommitment visible?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Every promise without a reservation is flagged.",
+        "There is no channel dimension and no overall view of demand exceeding stock."
       ],
       "keywords": [],
       "question_examples": [
@@ -793,7 +815,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Can availability differ per channel/party?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Availability is one number per item and location.",
+        "There is no safety stock and no availability per channel or per customer."
       ],
       "keywords": [],
       "question_examples": [
@@ -814,7 +837,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Can stock be earmarked per channel?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Stock cannot be earmarked for a channel, and there are no channel quotas."
       ],
       "keywords": [],
       "question_examples": [
@@ -835,7 +858,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Is only eligible stock reserved?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A specific lot can be reserved by hand, but Reality does not check a minimum remaining shelf life."
       ],
       "keywords": [],
       "question_examples": [
@@ -932,7 +955,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is the payment allocated to both?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "One payment can settle several invoices.",
+        "That it releases two prepaid orders at once is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -991,7 +1015,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Who released it, and why?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "The credit-limit exception and a hold released by a named person both work.",
+        "They are not linked to each other, and there is no automatic credit hold."
       ],
       "keywords": [],
       "question_examples": [
@@ -1012,7 +1037,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Does the hold name the overdue items?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Credit exposure counts open invoices only; the order value never counts.",
+        "The exception lists all open invoices, not specifically the overdue ones."
       ],
       "keywords": [],
       "question_examples": [
@@ -1033,7 +1059,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Are authorization and capture separate facts?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Payment authorization and capture are not recorded as separate steps; only received payments are."
       ],
       "keywords": [],
       "question_examples": [
@@ -1054,7 +1080,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Is the uncovered remainder visible?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Authorizations are not recorded, so an expired authorization and the uncovered remainder cannot be shown."
       ],
       "keywords": [],
       "question_examples": [
@@ -1113,7 +1139,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Payment tied to the shipment?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no cash-on-delivery path, and a payment cannot be tied to a shipment."
       ],
       "keywords": [],
       "question_examples": [
@@ -1134,7 +1160,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is the hold released only after the remainder?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Shipment is released only after the remainder is paid.",
+        "A down payment made before any invoice is not tied to the order, so readiness reports a missing prepayment invoice."
       ],
       "keywords": [],
       "question_examples": [
@@ -1155,7 +1182,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Does the receivable reopen?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Reversing a payment reopens the receivable.",
+        "Chargebacks, returned direct debits, their fees and provider disputes are not recorded."
       ],
       "keywords": [],
       "question_examples": [
@@ -1214,7 +1242,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Is the voucher a settlement of the receivable?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Vouchers and gift cards cannot settle a receivable.",
+        "Settlement is possible by payment, credit note, deposit and the recorded adjustment reasons."
       ],
       "keywords": [],
       "question_examples": [
@@ -1254,7 +1283,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Movements per location, one commitment?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A reservation and the readiness to ship are bound to the order's own warehouse.",
+        "Stock in a second warehouse therefore cannot serve the same order line."
       ],
       "keywords": [],
       "question_examples": [
@@ -1294,7 +1324,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Corrected without a false movement?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Picking is not recorded, so a picking error caught before shipment has nothing to correct."
       ],
       "keywords": [],
       "question_examples": [
@@ -1315,7 +1345,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Wrong item shipped, right item still open?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A shipment of the wrong item cannot name the order line it was meant for.",
+        "It can only be recorded without that link and then appears as an unexplained stock movement."
       ],
       "keywords": [],
       "question_examples": [
@@ -1355,7 +1386,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Goods gone, claim receivable, customer still served?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no claim against the carrier or its insurer.",
+        "A lost parcel still counts as delivered until it is corrected."
       ],
       "keywords": [],
       "question_examples": [
@@ -1376,7 +1408,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Stock back, commitment reopened?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Returned stock is booked back, but a return never reopens the delivery promise.",
+        "An undeliverable parcel cannot be told apart from a customer return."
       ],
       "keywords": [],
       "question_examples": [
@@ -1397,7 +1430,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Same as D08 with a reason?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "As in D08, returned stock is booked back but the delivery promise does not reopen.",
+        "A refusal reason can be recorded on a return announcement, not on the received return itself."
       ],
       "keywords": [],
       "question_examples": [
@@ -1418,7 +1452,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Customer served without own stock movement?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no drop-shipping path: an order line is fulfilled only by a movement out of own stock."
       ],
       "keywords": [],
       "question_examples": [
@@ -1439,7 +1473,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Both paths fulfil one commitment?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no drop-shipping path to combine with delivery from own stock; see D10."
       ],
       "keywords": [],
       "question_examples": [
@@ -1460,7 +1494,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is the lag visible and later closed?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A late confirmation shows as a stalled order and clears when the shipment is recorded.",
+        "When the goods left and when the 3PL confirmed it are not told apart."
       ],
       "keywords": [],
       "question_examples": [
@@ -1481,7 +1516,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Shipment dated to the slot?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A booked delivery slot is not recorded; only the time of the movement and carrier events are."
       ],
       "keywords": [],
       "question_examples": [
@@ -1502,7 +1537,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Is the export evidence linked?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Customs and proof-of-export data can be kept in the original source record, but nothing links it to the shipment."
       ],
       "keywords": [],
       "question_examples": [
@@ -1523,7 +1558,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Fulfilled without a carrier?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Delivery without a carrier or parcel works.",
+        "Pickup is not recorded as a delivery mode of its own."
       ],
       "keywords": [],
       "question_examples": [
@@ -1544,7 +1580,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Why did stock leave, and for which commitment?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A replacement is shipped against a new zero-price order.",
+        "A replacement without any order is possible but not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -1565,7 +1602,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Is it held until the order arrives, then linked?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Shipment confirmations from external systems are not interpreted yet.",
+        "An early confirmation therefore cannot be held and linked once the order arrives."
       ],
       "keywords": [],
       "question_examples": [
@@ -1586,7 +1624,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Exactly one movement?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Replaying the same recorded shipment creates only one movement.",
+        "Duplicate shipment reports from an external system are not yet received, so that case is not proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -1607,7 +1646,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Is the deposit owed and tracked?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Returnable packaging and the deposit owed for it are not tracked."
       ],
       "keywords": [],
       "question_examples": [
@@ -1666,7 +1705,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Invoiced but not shipped visible?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Invoicing before shipment works.",
+        "There is no sales-side 'invoiced but not shipped' signal and no pro-forma document."
       ],
       "keywords": [],
       "question_examples": [
@@ -1744,7 +1784,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is the difference visible?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Price differences and under-billing are visible.",
+        "Invoicing a customer for more than was shipped is not reported."
       ],
       "keywords": [],
       "question_examples": [
@@ -1765,7 +1806,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Charges separate from goods?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Fees can be separate charges, and freight lines work on purchases.",
+        "Freight and surcharges on sales invoices are not yet proven, and payment provider fees are not recorded."
       ],
       "keywords": [],
       "question_examples": [
@@ -1824,7 +1866,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Down payment offset in the final invoice?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A deposit can be cleared against the final invoice.",
+        "There is no down-payment invoice document, and the final invoice does not state the offset."
       ],
       "keywords": [],
       "question_examples": [
@@ -1864,7 +1907,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Stock back, refund owed and paid?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Return, credit note and refund each work.",
+        "One story running all three on the same order is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -1923,7 +1967,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Accepted and linked later?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "An unannounced return can be accepted.",
+        "Linking it to its order later is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -1944,7 +1989,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Disposition and refund independent?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A reduced credit and the disposition of returned goods each work.",
+        "A damaged return combining both is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -1984,7 +2030,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Two commitments, no refund?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "The return and the replacement delivery are recorded in order.",
+        "That no money moves is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -2005,7 +2052,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Refund paid, return still expected?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A credit note before the goods arrive works.",
+        "The refund payment and a 'return still expected' signal are not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -2045,7 +2093,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Goods out and back, ownership clear?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Goods cannot be sent out for repair and come back while remaining the company's property."
       ],
       "keywords": [],
       "question_examples": [
@@ -2085,7 +2133,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Refund and return independent?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Credit and return are independent of each other.",
+        "Marketplace refunds are not yet read from the marketplace."
       ],
       "keywords": [],
       "question_examples": [
@@ -2144,7 +2193,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Is the demand explained?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "The purpose of a stock purchase can be stated.",
+        "There is no reorder point and nothing triggers a reorder."
       ],
       "keywords": [],
       "question_examples": [
@@ -2184,7 +2234,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Is each schedule line a separate promise?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Each purchase order line carries one delivery promise, so several delivery dates per line cannot be stated."
       ],
       "keywords": [],
       "question_examples": [
@@ -2205,7 +2255,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Call-offs against a contract?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There are no supplier framework agreements and no call-offs against them."
       ],
       "keywords": [],
       "question_examples": [
@@ -2226,7 +2276,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Surplus visible as stock-bound?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Surplus from a larger purchase shows up as stock or unassigned supply.",
+        "Minimum order quantities and pack sizes are not recorded."
       ],
       "keywords": [],
       "question_examples": [
@@ -2247,7 +2298,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Stated price recorded?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "The unit price stated on the purchase is kept and compared.",
+        "Supplier tiered prices are not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -2268,7 +2320,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Currency kept, conversion at posting?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "The purchase keeps its currency, and settling across currencies is refused.",
+        "Nothing is converted at posting."
       ],
       "keywords": [],
       "question_examples": [
@@ -2289,7 +2342,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Confirmed vs ordered visible?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A confirmed quantity or date is recorded as a revision against the original.",
+        "A confirmed price cannot be stated."
       ],
       "keywords": [],
       "question_examples": [
@@ -2310,7 +2364,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Unconfirmed purchase flagged?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Reality does not expect a supplier confirmation, so an unconfirmed purchase order is not flagged.",
+        "It is flagged only as overdue once its delivery date has passed."
       ],
       "keywords": [],
       "question_examples": [
@@ -2350,7 +2405,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Cancellation cost or refusal recorded?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A purchase can be cancelled before receipt.",
+        "Cancellation costs or a supplier's refusal to cancel cannot be recorded."
       ],
       "keywords": [],
       "question_examples": [
@@ -2371,7 +2427,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Demand chain updated?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "The purchase assignment can be reversed by hand with a reason.",
+        "Nothing ties the customer cancellation to the purchase reduction."
       ],
       "keywords": [],
       "question_examples": [
@@ -2411,7 +2468,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Linked to the sales commitment?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no drop-ship purchase order and no link from a supplier delivery to the customer order it serves."
       ],
       "keywords": [],
       "question_examples": [
@@ -2432,7 +2489,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: In-transit per purchase?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Inbound advices and in-transit events do not say which purchases they contain.",
+        "Goods in transit per purchase order therefore cannot be shown."
       ],
       "keywords": [],
       "question_examples": [
@@ -2510,7 +2568,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Remainder closed through a confirmed revision with a reason? An agent can prepare the revision; a person confirms the mutation.",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A downward revision closes the remainder.",
+        "That the revision keeps its reason and who made it is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -2531,7 +2590,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Surplus visible?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A receipt above the ordered quantity is refused, and there is no surplus signal.",
+        "The only workaround is to raise the ordered quantity first."
       ],
       "keywords": [],
       "question_examples": [
@@ -2552,7 +2612,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Supplier return linked?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "The surplus cannot be received against the purchase order, and a supplier return must refer to a received delivery.",
+        "Returning an over-delivery is therefore not possible."
       ],
       "keywords": [],
       "question_examples": [
@@ -2573,7 +2634,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Received item ≠ ordered item visible?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A wrong item cannot be tied to the purchase order; it appears only as an unexplained receipt."
       ],
       "keywords": [],
       "question_examples": [
@@ -2594,7 +2655,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Accepted against the purchase with a link?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A receipt cannot record that a substitute or successor item stands in for the ordered one."
       ],
       "keywords": [],
       "question_examples": [
@@ -2615,7 +2676,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Quarantine not available?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Warehouse locations have no availability status, so incoming goods cannot be put into quarantine.",
+        "Moving them to a separate location is the only way to keep them apart."
       ],
       "keywords": [],
       "question_examples": [
@@ -2636,7 +2698,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Why did stock arrive?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A receipt without a purchase order is flagged.",
+        "A stated reason such as 'sample' or 'free of charge' is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -2752,7 +2815,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Received but not released?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no inspection hold: goods are either received and available or not received."
       ],
       "keywords": [],
       "question_examples": [
@@ -2773,7 +2836,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Goes straight to the waiting commitment?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A purchase can be assigned to the waiting customer order.",
+        "The receipt does not reserve for that order automatically."
       ],
       "keywords": [],
       "question_examples": [
@@ -2794,7 +2858,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Advised vs received visible?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Advised quantities are not recorded, so advised and received quantities cannot be compared."
       ],
       "keywords": [],
       "question_examples": [
@@ -2853,7 +2917,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Match confirmed?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A match shows only as the absence of findings; there is no positive 'matched' answer.",
+        "A clean three-way match is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -2950,7 +3015,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Sum vs purchase?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Several partial invoices are summed against the order on the sales side.",
+        "The same for purchases is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -2971,7 +3037,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Linked to the receipt cost?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Freight can be attributed to a receipt's cost.",
+        "A freight invoice from a third-party carrier is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -3049,7 +3116,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: FX difference posted?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A realized exchange difference between a foreign-currency invoice and its payment is not recorded.",
+        "Settling an invoice with a payment in another currency is refused."
       ],
       "keywords": [],
       "question_examples": [
@@ -3089,7 +3157,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Stock in transit?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A warehouse transfer is one instant movement; there is no stock-in-transit state."
       ],
       "keywords": [],
       "question_examples": [
@@ -3110,7 +3178,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Count movements with reason?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Gains and losses are recorded as stock adjustments with a reason.",
+        "There is no count record comparing counted and book quantity, and a count gain is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -3131,7 +3200,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Correct during open picks?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There are no count sessions and no picking state, so a count during open picks cannot be shown."
       ],
       "keywords": [],
       "question_examples": [
@@ -3171,7 +3240,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Excluded from availability, then scrapped?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Expired lots are reported but deliberately stay available.",
+        "Scrapping is an ordinary stock adjustment."
       ],
       "keywords": [],
       "question_examples": [
@@ -3192,7 +3262,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Negative visible and explained?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Shipping more than the physical stock is refused, so negative stock cannot occur.",
+        "This is a deliberate rule, not an oversight."
       ],
       "keywords": [],
       "question_examples": [
@@ -3213,7 +3284,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Reconciliation difference visible?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Stock reported by a 3PL is not recorded, so it cannot be compared with Reality's own stock."
       ],
       "keywords": [],
       "question_examples": [
@@ -3253,7 +3324,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Held but not owned?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Valuation leaves out the supplier-owned part of a receipt.",
+        "Physical stock and availability do not tell owners apart."
       ],
       "keywords": [],
       "question_examples": [
@@ -3293,7 +3365,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Paired movements?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Re-labelling can only be recorded as two unrelated stock adjustments; nothing pairs the item going out with the item coming in."
       ],
       "keywords": [],
       "question_examples": [
@@ -3314,7 +3386,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Availability = minimum of components?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There are no kits or bills of material, so kit availability cannot be derived from its components."
       ],
       "keywords": [],
       "question_examples": [
@@ -3335,7 +3407,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Whole kit held?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There are no kits, so a whole kit cannot be held back when one component is missing."
       ],
       "keywords": [],
       "question_examples": [
@@ -3356,7 +3428,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Component back, kit credit partial?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A component can be returned as an item of its own, but without a kit link no partial kit credit follows."
       ],
       "keywords": [],
       "question_examples": [
@@ -3377,7 +3449,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Paired movements?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no assembly step that consumes components and produces the finished item."
       ],
       "keywords": [],
       "question_examples": [
@@ -3398,7 +3470,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Per-variant stock?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Each variant is its own item with its own stock.",
+        "There is no grouping of variants under a parent item."
       ],
       "keywords": [],
       "question_examples": [
@@ -3419,7 +3492,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Split stated or derived?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "A bundle price is not split into component revenue or tax; lines carry only the amounts the source states."
       ],
       "keywords": [],
       "question_examples": [
@@ -3459,7 +3532,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Deadline at risk visible?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Deadlines are watched with the general overdue signals.",
+        "A fully reserved order close to its deadline is not flagged before it is overdue, and marketplace orders are not yet read."
       ],
       "keywords": [],
       "question_examples": [
@@ -3480,7 +3554,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Each order settled, fees as charges?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Marketplace and payment provider payouts are not matched to orders yet.",
+        "Fees, refunds and chargebacks within a payout are not allocated."
       ],
       "keywords": [],
       "question_examples": [
@@ -3501,7 +3576,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Refund recorded from the source?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A refund can refer to its source record.",
+        "Refunds in Shopify orders are not interpreted yet; a refunded order is held for review."
       ],
       "keywords": [],
       "question_examples": [
@@ -3522,7 +3598,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: New version, revised commitment?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "The edited order is stored as a new version.",
+        "The order line is deliberately not revised automatically; the change is held for review."
       ],
       "keywords": [],
       "question_examples": [
@@ -3543,7 +3620,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Commitment without stock, dated?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A dated order line without stock shows as a shortage or at risk.",
+        "A pre-order backed by expected supply is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -3564,7 +3642,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Throughput and correct reservations?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Safe concurrent reservations and reading 10,000 orders are proven.",
+        "Intake throughput at that volume is not."
       ],
       "keywords": [],
       "question_examples": [
@@ -3585,7 +3664,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Recurring commitment held?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There are no subscriptions or recurring orders; a hold applies only to a single order line."
       ],
       "keywords": [],
       "question_examples": [
@@ -3625,7 +3704,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Parties merged, history kept?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Duplicate business partners cannot be merged while keeping both histories."
       ],
       "keywords": [],
       "question_examples": [
@@ -3646,7 +3725,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Tax rate as stated by the source?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "The tax rate stated by the shop stays in the original source record; Reality does not record it on the order."
       ],
       "keywords": [],
       "question_examples": [
@@ -3667,7 +3746,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Duties and incoterm recorded?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Duties and incoterms are kept only in the original source record and are not recorded as such."
       ],
       "keywords": [],
       "question_examples": [
@@ -3688,7 +3767,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Called off vs remaining?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no blanket order and no call-off link, so called-off and remaining quantities across orders cannot be shown."
       ],
       "keywords": [],
       "question_examples": [
@@ -3709,7 +3788,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Customer item number maps to our item?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Customer-specific prices work.",
+        "Customer item numbers and names are not recorded."
       ],
       "keywords": [],
       "question_examples": [
@@ -3730,7 +3810,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Each message a source, linked?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "EDI messages can be stored as sources, but they are not interpreted and not linked to each other."
       ],
       "keywords": [],
       "question_examples": [
@@ -3751,7 +3831,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Revised commitment?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "An order line can be revised by hand.",
+        "An EDI order change does not create a revision yet."
       ],
       "keywords": [],
       "question_examples": [
@@ -3772,7 +3853,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Several recipients per order?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "An order has one delivery address, so several recipients per order cannot be stated."
       ],
       "keywords": [],
       "question_examples": [
@@ -3793,7 +3874,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Remainder closed by rule with reason?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no customer rule that cancels backorders automatically.",
+        "The remainder can be closed by hand with a reason."
       ],
       "keywords": [],
       "question_examples": [
@@ -3814,7 +3896,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Out of core scope?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Reality produces no delivery notes or pallet labels, and this is not yet declared out of scope."
       ],
       "keywords": [],
       "question_examples": [
@@ -3835,7 +3917,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Short payment with reason?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "An agreed deduction can be recorded as the reason for a short payment; this is proven for suppliers.",
+        "Customer penalties and marketing contributions are not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -3856,7 +3939,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Rebate credit?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A credit note without goods can carry a rebate.",
+        "Rebate agreements and year-end accruals are deliberately not part of Reality."
       ],
       "keywords": [],
       "question_examples": [
@@ -3877,7 +3961,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Roles kept separate?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Only the orderer and the delivery recipient are recorded; there is no separate bill-to party or payer."
       ],
       "keywords": [],
       "question_examples": [
@@ -3898,7 +3982,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Receivable and payable offset?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "One business partner can be both customer and supplier, but a receivable cannot be offset against a payable."
       ],
       "keywords": [],
       "question_examples": [
@@ -3919,7 +4003,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Goods out, return expected?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There are no loans or samples with a return obligation; such a shipment counts as a sale.",
+        "A return announcement is the closest available record."
       ],
       "keywords": [],
       "question_examples": [
@@ -3940,7 +4025,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Stated tax recorded?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Net, tax and tax case codes are kept as the source states them.",
+        "An intra-community supply with zero tax and the customer's VAT ID is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -3961,7 +4047,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Stated tax recorded?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Tax components on supplier invoices are kept as stated.",
+        "Reverse charge is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -3982,7 +4069,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Currency and FX difference?",
       "limitations": [
-        "This journey is deliberately outside the current product scope."
+        "Foreign-currency invoices work, but settling them with a payment in another currency is refused.",
+        "A EUR payment on a CHF invoice stays unallocated, and Reality does not revalue exchange rates."
       ],
       "keywords": [],
       "question_examples": [
@@ -4003,7 +4091,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Dunning notices from open items?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Dunning notices at levels 1 to 3 with a fee can be created by hand.",
+        "There is no escalation sequence, no dunning run from open items and no handover to collection."
       ],
       "keywords": [],
       "question_examples": [
@@ -4043,7 +4132,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Party balance correct?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Open items, overpayments and credit notes per business partner and currency are correct.",
+        "Deposits and prepayments in the balance are not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4064,7 +4154,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Reversal after export?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no handover or export package for external accounting such as DATEV.",
+        "A reversal can be recorded, but not as a correction after an export."
       ],
       "keywords": [],
       "question_examples": [
@@ -4085,7 +4176,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Rate per invoice date?",
       "limitations": [
-        "This journey is deliberately outside the current product scope."
+        "Reality records the tax the source states and never determines a rate.",
+        "Choosing the rate by invoice date is the job of the issuing system."
       ],
       "keywords": [],
       "question_examples": [
@@ -4106,7 +4198,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: History intact (numbers are not identity)?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "An item number can be changed, and document lines keep the number they stated.",
+        "That movements, stock and old documents stay intact after the change is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4127,7 +4220,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: History of both kept?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Business partners cannot be merged as duplicates."
       ],
       "keywords": [],
       "question_examples": [
@@ -4148,7 +4241,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Address as stated per document?",
       "limitations": [
-        "This journey is deliberately outside the current product scope."
+        "Postal addresses are kept only in the original business partner or source records.",
+        "Reality does not manage address history as master data."
       ],
       "keywords": [],
       "question_examples": [
@@ -4188,7 +4282,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Quantities comparable?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Purchase units and conversion factors are compared in exception checks.",
+        "Receipts and stock are not converted between units."
       ],
       "keywords": [],
       "question_examples": [
@@ -4209,7 +4304,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Supplier item mapping?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Supplier item numbers and a mapping per supplier are not recorded."
       ],
       "keywords": [],
       "question_examples": [
@@ -4249,7 +4344,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Linked correctly once complete?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "An outdated update is stored but ignored, and an order is linked once its item exists.",
+        "A payment or invoice that arrives before its order and is linked later is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4289,7 +4385,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Commitment closed with source reason?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A cancellation from the source is stored and held for review; the order line stays open.",
+        "Closing a line with the source as its reason is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4310,7 +4407,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Gap visible?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Unsupported and failed source records are visible.",
+        "Accepting a partly complete record and flagging the missing field is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4331,7 +4429,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Contradiction visible?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Only a contradiction between carrier and warehouse is shown.",
+        "There is no general check when two systems state different values."
       ],
       "keywords": [],
       "question_examples": [
@@ -4352,7 +4451,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: No duplicates, silent source detected?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A silent source is detected, and the signal clears when deliveries resume.",
+        "Catching up a day's backlog without duplicates is not yet proven in the same story."
       ],
       "keywords": [],
       "question_examples": [
@@ -4373,7 +4473,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Opening balances traceable?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Opening stock and opening open items are traceable.",
+        "Open orders that were already partly delivered at go-live are not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4394,7 +4495,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Both lists correct?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "The 'shipped but not invoiced' list is proven.",
+        "Sales have no 'invoiced but not shipped' list."
       ],
       "keywords": [],
       "question_examples": [
@@ -4415,7 +4517,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Refused or flagged?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There are no accounting periods or period closes, so a backdated posting is neither refused nor flagged."
       ],
       "keywords": [],
       "question_examples": [
@@ -4455,7 +4557,8 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Carried over correctly?",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There are no periods and therefore no carry-over; open orders and purchases simply stay open.",
+        "A year-end crossing is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4476,7 +4579,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Stored in UTC, dated correctly?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Timestamps with an offset are stored in UTC.",
+        "There is no company time zone, and the day a late-evening local order falls on is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4497,7 +4601,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Every quantity and every euro reconciles at the end.",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Prepayment release, revision, cancellation, partial receipt and damaged returns each work.",
+        "One story reconciling every quantity and euro across all of them is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4518,7 +4623,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Cancelled demand leaves the purchase assignment.",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A cancelled customer order keeps its purchase assignment until someone reverses it by hand.",
+        "The combined story is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4539,7 +4645,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Ownership and credits on both sides.",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "There is no drop-shipping model, so ownership and credits on both sides cannot be shown."
       ],
       "keywords": [],
       "question_examples": [
@@ -4560,7 +4666,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Every position allocated.",
       "limitations": [
-        "The current model or services do not support this complete journey."
+        "Payouts, fees and chargebacks are not allocated across orders; see L03."
       ],
       "keywords": [],
       "question_examples": [
@@ -4581,7 +4687,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Revision respects what already shipped.",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Revising a line after a partial delivery works.",
+        "EDI order changes and shipping advices are not yet read."
       ],
       "keywords": [],
       "question_examples": [
@@ -4602,7 +4709,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Landed cost and customer allocation.",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "Freight and duty in landed cost and assigning supply to customers both work.",
+        "Converting the USD rate is not part of costing, and a combined container story is not yet proven."
       ],
       "keywords": [],
       "question_examples": [
@@ -4623,7 +4731,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Who is postponed, and how is it explained?",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "A count loss shows which reservations now compete for the stock.",
+        "By design no promise is named as the one to postpone."
       ],
       "keywords": [],
       "question_examples": [
@@ -4644,7 +4753,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Hold reason names all facts.",
       "limitations": [
-        "Only part of this journey is currently proven."
+        "The credit-limit check counts open invoices only.",
+        "It ignores the new order, open credits and payables, and no hold reason combines these facts."
       ],
       "keywords": [],
       "question_examples": [

@@ -1789,7 +1789,7 @@ Feature contracts: `docs/features/company-setup-demo.md` and `docs/features/mast
 
 Feature contract: `docs/features/business-journey-guide.md`.
 
-- `packages/reality-core/tests/test_business_journey_catalog.py`: canonical 228-entry parity, schema integrity, status/evidence rules and public evidence separation.
+- `packages/reality-core/tests/test_business_journey_catalog.py`: canonical 228-entry parity, schema integrity, status/evidence rules, public evidence separation, and a journey-specific limitation without repository details for every non-supported journey (FR-002a).
 - `packages/reality-core/tests/test_business_journey_questions.py`: deterministic bilingual matching, cited status-bounded answers and normal Reality Chat routing.
 - `packages/reality-core/tests/test_business_journey_api.py`: anonymous read-only catalog/question HTTP contracts and bounded inputs.
 - `packages/reality-core/tests/test_business_journey_proposals.py`: confirmed proposal creation, privacy validation and one reversible vote per account.

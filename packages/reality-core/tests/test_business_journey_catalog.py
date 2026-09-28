@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import re
 
 import pytest
 import yaml
@@ -79,3 +80,27 @@ def test_confirmed_agent_assisted_revision_is_not_described_as_person_only() -> 
     assert "confirmed revision" in entry.question
     assert "agent can prepare" in entry.summary
     assert "person with a reason" not in entry.question
+
+
+def test_non_supported_journeys_state_their_own_limitation() -> None:
+    catalog = load_journey_catalog(_payload())
+    generic = set(catalog.public_payload()["statuses"].values()) | {
+        "Only part of this journey is currently proven.",
+        "The current model or services do not support this complete journey.",
+        "This journey is deliberately outside the current product scope.",
+    }
+    limited = [entry for entry in catalog.entries if entry.status != "supported"]
+
+    assert {entry.status for entry in limited} >= {"partial", "missing", "out_of_scope"}
+    for entry in limited:
+        assert entry.limitations, entry.id
+        assert not set(entry.limitations) & generic, entry.id
+
+
+def test_public_limitations_carry_no_repository_details() -> None:
+    catalog = load_journey_catalog(_payload())
+    leaks = re.compile(r"`|\.py\b|::|\bspecs?\s+\d|#\d|\b[a-z]+_[a-z_]+\b", re.IGNORECASE)
+
+    for entry in catalog.entries:
+        for limitation in entry.limitations:
+            assert not leaks.search(limitation), f"{entry.id}: {limitation}"

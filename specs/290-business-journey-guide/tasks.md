@@ -29,6 +29,8 @@ description: "Requirement-traceable Business Journey Guide implementation tasks"
 - [x] T012 [P] [US1] [FR-023] Add failing demo-versus-capability copy contracts in `apps/docs/scripts/docs-contract.test.mjs`
 - [x] T013 [US1] [FR-001] Build the filterable accessible guide component in `apps/docs/.vitepress/theme/components/BusinessJourneyGuide.vue`
 - [x] T014 [US1] [FR-005] Add English and German guide entries in `apps/docs/content/getting-started/business-journeys.md` and `apps/docs/content/de/getting-started/business-journeys.md`
+- [x] T077 [P] [US1] [FR-002a] Add failing journey-specific-limitation and no-repository-detail tests in `packages/reality-core/tests/test_business_journey_catalog.py`
+- [x] T078 [US1] [FR-002a] Replace the generic limitation of all 74 missing, 81 partial and 3 out-of-scope journeys with the reason from `docs/scenarios/coverage.md`, rewritten for public readers, in `packages/reality-core/config/business_journey_catalog.yaml`
 - [ ] T015 [US1] [FR-004] Link public tools, demo references, limitations and related journeys in `apps/docs/.vitepress/theme/components/BusinessJourneyGuide.vue`
 - [x] T016 [US1] [FR-022] Add localized sidebar labels/routes without the reserved name in `apps/docs/.vitepress/config.mts`
 - [x] T017 [US1] [DR-001] Add Source → Evidence → Reality explanation and capability-status definitions in `docs/features/business-journey-guide.md`
