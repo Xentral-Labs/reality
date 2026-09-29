@@ -104,6 +104,7 @@ if (process.env.LAUNCHER_ONLY !== "1") {
         "Receive goods",
         "Record shipment",
         "Decide returned goods",
+        "Exchange returned goods",
         "Dispatch package",
         "Receive package",
         "Correct movement",
