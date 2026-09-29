@@ -110,6 +110,7 @@ def test_an_unknown_item_line_is_reported_until_an_item_is_assigned(session, bus
     unknown = _unknown_line(session, business)
     assert finding.record_id == unknown.id
     assert finding.causal_values["sku"] == "HELMET-M"
+    assert finding.impact == "5 of HELMET-M on order #8101 cannot be promised"
     assert finding.trace["document_id"] == unknown.document_id
 
     assign_line_item(

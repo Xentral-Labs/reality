@@ -1495,7 +1495,8 @@ def _order_line_item_unknown_exceptions(
                 (),
                 "normal",
                 "Order line with unknown item",
-                f"{Decimal(line.quantity):g} of {line.sku} on order {order.number} "
+                f"{Decimal(line.quantity).normalize():f} of {line.sku or line.description} "
+                f"on order {order.number} "
                 "cannot be promised",
                 "document_line",
                 line.id,
