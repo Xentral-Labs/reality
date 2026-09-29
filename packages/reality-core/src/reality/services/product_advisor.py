@@ -682,12 +682,10 @@ def answer_product_question(
     language = detect_question_language(
         question, history=history, surface_language=surface_language
     )
-    research_question = " ".join(
-        [
-            *(item.get("content", "") for item in history if item.get("role") == "user"),
-            question,
-        ]
-    )
+    # Retrieval is scoped to the current turn. The bounded history is available to
+    # the semantic planner and answer provider for genuine elliptical follow-ups,
+    # but must not contaminate a new, self-contained business question.
+    research_question = question
     folded_question = _fold(question)
     adversarial = any(
         phrase in folded_question

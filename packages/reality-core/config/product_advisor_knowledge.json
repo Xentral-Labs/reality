@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:d8b71566c39b49955a0293427c6efe1340ffd587e72c9a56777c9237bd0a1448",
+  "knowledge_version": "advisor-v1:sha256:45e1e30b448786caddca2965ba97edfd74e6f0cb76a1f609756e2ff970510b2f",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -729,7 +729,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E02",
-      "fingerprint": "ae65ab63199109051e63c68285731bdd6887ed3eef80cbb1511eda944aceebdf"
+      "fingerprint": "2351eac4f60222455ee25c85c2c12d0be96e0cb971b6ef98bae2ac9e7b985e3f"
     },
     {
       "id": "source_journey_e03",
@@ -3452,7 +3452,7 @@
       "source_id": "source_journey_e02",
       "subject": "Customer invoice and credit note",
       "title": "Monthly collective invoice over several shipments",
-      "search_text": "E02 Customer invoice and credit note Monthly collective invoice over several shipments One invoice, several deliveries? Monthly collective invoice over several shipments One invoice, several deliveries? Kann ich mehrere Lieferungen in einer Sammelrechnung abrechnen?",
+      "search_text": "E02 Customer invoice and credit note Monthly collective invoice over several shipments One invoice, several deliveries? Monthly collective invoice over several shipments One invoice, several deliveries? Kann ich mehrere Lieferungen in einer Sammelrechnung abrechnen? Kann ich einmal im Monat eine Rechnung für alle Lieferscheine erstellen?",
       "claim_text": "Reality can collect billable positions from several shipments and record them on one customer invoice. Once those positions are invoiced, their shipped-but-not-invoiced quantities clear.",
       "localized_claims": {
         "de": "Reality kann abrechenbare Positionen aus mehreren Lieferungen in einer Kundenrechnung zusammenfassen. Nach der Fakturierung sind diese gelieferten Mengen nicht mehr als noch nicht berechnet offen."
@@ -3463,7 +3463,7 @@
         "E02"
       ],
       "language": "en",
-      "fingerprint": "3c2fa16e6b5e79e80ff8ac5ab35281982ff42230a9d32f0141cd922f7f73cd2e"
+      "fingerprint": "af7a6554667d9113fd0cf7d8fb1f35317e197cefc2adf99892aab1afb3309070"
     },
     {
       "id": "evidence_journey_e03",

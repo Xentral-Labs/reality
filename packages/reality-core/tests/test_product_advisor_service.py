@@ -450,6 +450,26 @@ def test_common_german_erp_questions_remain_concrete_during_provider_outage() ->
         assert expected_text in answer["text"]
 
 
+def test_self_contained_follow_up_does_not_inherit_stale_b2b_retrieval() -> None:
+    def unavailable_provider(_envelope):
+        raise product_advisor.httpx.ReadTimeout("provider timed out")
+
+    answer = answer_product_question(
+        "Kann ich nur einmal im Monat eine Rechnung stellen lassen für alle Lieferscheine?",
+        surface_language="de",
+        history=(
+            {"role": "user", "content": "Wie bilde ich einen B2B-Auftrag ab?"},
+            {"role": "assistant", "content": "Ein B2B-Auftrag folgt mehreren Schritten."},
+        ),
+        provider=unavailable_provider,
+    )
+
+    assert answer["outcome"] == "fallback"
+    assert answer["citations"] == ["E02"]
+    assert "mehreren Lieferungen" in answer["text"]
+    assert "A10" not in answer["citations"]
+
+
 def test_provider_cannot_claim_migration_from_unrelated_evidence() -> None:
     def provider(envelope):
         first = envelope["evidence"][0]

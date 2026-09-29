@@ -152,3 +152,4 @@ All artifacts MUST be written in English. Tests precede the behavior they prove.
 - [x] T074 [US1] [US5] [FR-008] [FR-012] Publish the already-proven A01 invoice-open-amount conclusion and natural buyer question so semantic planning can answer whether a customer invoice is fully paid without a keyword rule
 - [x] T075 [US2] [FR-003] [FR-020] Add a regression proving provider failure for a broad German B2B question retains the complete governed process decomposition instead of collapsing to one adjacent journey
 - [x] T076 [US2] [FR-003] [FR-012] [FR-020] Make broad deterministic fallback aggregate representative evidence for every governed concern, tighten broad evidence selection, and verify a repeated live ERP-buyer matrix
+- [x] T077 [US2] [FR-003] [FR-013] Keep self-contained follow-up retrieval scoped to the current turn while preserving bounded history for semantic resolution, and cover monthly collective invoicing after a broad B2B answer

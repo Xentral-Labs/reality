@@ -1703,7 +1703,8 @@
       "question_examples": [
         "Monthly collective invoice over several shipments",
         "One invoice, several deliveries?",
-        "Kann ich mehrere Lieferungen in einer Sammelrechnung abrechnen?"
+        "Kann ich mehrere Lieferungen in einer Sammelrechnung abrechnen?",
+        "Kann ich einmal im Monat eine Rechnung für alle Lieferscheine erstellen?"
       ],
       "tools": [],
       "demo_references": [],
