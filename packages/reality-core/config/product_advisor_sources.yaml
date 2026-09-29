@@ -7,7 +7,7 @@ documents:
     title: Evaluate Reality as an ERP professional
     public_url: https://docs.runreality.ai/getting-started/product-evaluation
     authority: explanation
-    topics: [product evaluation, ERP evaluation, strengths, limitations, product boundaries, Produktbewertung, ERP-Berater, Staerken, Grenzen]
+    topics: [product evaluation, ERP evaluation, strengths, limitations, product boundaries, fit-gap, recommendation, decision, pilot, Produktbewertung, ERP-Berater, Staerken, Grenzen, Empfehlung, Entscheidung, Pilot]
   - id: connector_contract
     path: apps/docs/content/integrations/connector-contract.md
     title: Connector contract

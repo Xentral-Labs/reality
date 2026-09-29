@@ -90,7 +90,7 @@ test("widget resends bounded in-memory turns for coherent follow-up questions", 
   assert.match(widget, /this\.history = \[\]/u);
   assert.match(widget, /history: this\.history/u);
   assert.match(widget, /this\.history\.push/u);
-  assert.match(widget, /this\.history = this\.history\.slice\(-6\)/u);
+  assert.match(widget, /this\.history = this\.history\.slice\(-20\)/u);
   assert.doesNotMatch(widget, /localStorage|sessionStorage|document\.cookie/u);
 });
 

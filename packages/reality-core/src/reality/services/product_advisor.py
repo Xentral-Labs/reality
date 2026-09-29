@@ -135,6 +135,32 @@ def _expanded_tokens(question: str) -> set[str]:
         "lieferantenrechnung": {"supplier", "invoice", "purchase", "payable"},
         "abweichung": {"variance", "quantity", "price", "invoice", "receipt"},
         "retour": {"return", "credit", "refund", "restock"},
+        "ubergreifende geschaftsprozesse": {
+            "source",
+            "evidence",
+            "process",
+            "traceability",
+        },
+        "stammdaten": {
+            "business",
+            "partner",
+            "identity",
+            "address",
+            "duplicate",
+            "company",
+        },
+        "identitatsgrenzen": {
+            "business",
+            "partner",
+            "identity",
+            "company",
+        },
+        "ausnahmen und findings": {
+            "exception",
+            "finding",
+            "responsibility",
+            "view",
+        },
     }
     for needle, expansion in aliases.items():
         if _fold(needle) in folded:
@@ -244,7 +270,10 @@ def plan_product_concerns(question: str) -> tuple[str, ...]:
             "customer partial shipment open quantity invoice",
             "customer invoice payment allocation return credit",
         )
-    if any(term in folded for term in ("procure", "purchase to pay", "beschaffung")):
+    if any(
+        term in folded
+        for term in ("procure", "purchase to pay", "purchase-to-pay", "beschaffung")
+    ):
         return (
             "supplier purchase order",
             "partial goods receipt",
@@ -270,8 +299,68 @@ def _is_product_evaluation_question(question: str) -> bool:
             "erp berater",
             "wichtigsten grenzen",
             "starken und grenzen",
+            "fit-gap",
+            "fit gap",
+            "pilot recommendation",
+            "pilotempfehlung",
+            "entscheidungsempfehlung",
+            "bewerte den fit",
+            "wie gut eignet",
+            "how well suited",
+            "nicht belegt",
+            "not established",
+            "audit- und accounting-grenzen",
+            "audit and accounting limits",
+            "enterprise-anforderungen",
+            "enterprise requirements",
+            "nativ und wo braucht",
+            "native and where",
         )
     )
+
+
+def _is_synthesis_question(question: str) -> bool:
+    """Return whether the turn asks for a conclusion across prior concerns."""
+    folded = _fold(question)
+    return any(
+        phrase in folded
+        for phrase in (
+            "fit-gap",
+            "fit gap",
+            "final recommendation",
+            "recommend a pilot",
+            "pilot recommendation",
+            "decision recommendation",
+            "overall assessment",
+            "overall fit",
+            "zum abschluss",
+            "abschliessende bewertung",
+            "abschließende bewertung",
+            "pilotempfehlung",
+            "entscheidungsempfehlung",
+            "bewerte den fit",
+            "gesamtbewertung",
+            "insgesamt geeignet",
+            "gesamtfit",
+            "overall fit",
+            "pilotumfang",
+            "pilot scope",
+            "begrenzten pilot",
+            "limited pilot",
+        )
+    )
+
+
+def _conversation_user_context(
+    history: tuple[dict[str, str], ...],
+) -> tuple[str, ...]:
+    """Compact prior user concerns without treating assistant prose as authority."""
+    concerns = [
+        item.get("content", "").strip()[:400]
+        for item in history[-20:]
+        if item.get("role") == "user" and item.get("content", "").strip()
+    ]
+    return tuple(concerns[-10:])
 
 
 def detect_question_language(
@@ -494,6 +583,7 @@ def _deterministic_answer(
     intent: Intent,
     outcome: str,
 ) -> dict[str, object]:
+    synthesis = _is_synthesis_question(question)
     concerns = plan_product_concerns(question)
     if concerns:
         journey_evidence = [
@@ -599,10 +689,18 @@ def _deterministic_answer(
             ),
             None,
         )
-        if _is_product_evaluation_question(question)
+        if _is_product_evaluation_question(question) or synthesis
         else None
     )
     if evaluation is not None:
+        journey_evidence = [
+            item for item in evidence if item.id.startswith("evidence_journey_")
+        ]
+        proven = [item for item in journey_evidence if item.support == "proven"][:4]
+        restrictive = [
+            item for item in journey_evidence if item.support != "proven"
+        ][:3]
+        representative = [*proven, *restrictive]
         claims = [
             AdvisoryClaim(
                 id="claim_product_evaluation_strength",
@@ -628,7 +726,55 @@ def _deterministic_answer(
                 workflow_role="gap",
             ),
         ]
+        claims.extend(
+            AdvisoryClaim(
+                id=f"claim_{item.id.removeprefix('evidence_')}",
+                subject=item.subject,
+                statement=item.claim_text,
+                support={
+                    "proven": "proven",
+                    "limited": "limited",
+                    "unavailable": "unavailable",
+                }.get(item.support, "not_established"),
+                evidence_ids=(item.id,),
+                limitations=item.limitations,
+                workflow_role=(
+                    "native"
+                    if item.support == "proven"
+                    else "gap"
+                    if item.support == "unavailable"
+                    else "manual"
+                ),
+            )
+            for item in representative
+        )
+        citations = list(
+            dict.fromkeys(
+                reference
+                for item in representative
+                for reference in item.references
+                if re.fullmatch(r"[A-R]\d{2}", reference)
+            )
+        )
         text = (
+            (
+                "**Belegt**\n\n"
+                "Reality deckt mehrere der besprochenen Kernabläufe mit "
+                "nachvollziehbaren Quellen, Belegen und operativen Reality-Datensätzen "
+                "ab. Die verlinkten Journeys zeigen die für diese Bewertung relevanten "
+                "Stärken.\n\n"
+                "**Grenzen**\n\n"
+                "Die Quellen belegen keinen lückenlosen Ersatz für jeden ERP-Sonderfall "
+                "und keine Vollautomatisierung. Eingeschränkte oder nicht belegte "
+                "Journeys müssen als Fit-Gap-Punkte behandelt werden.\n\n"
+                "**Im Pilot prüfen**\n\n"
+                "Nehmen Sie je einen häufigen Ablauf und einen schwierigen Ausnahmefall "
+                "aus den bisherigen Fragen. Prüfen Sie daran Datenübernahme, Freigaben, "
+                "Nachvollziehbarkeit und die konkret verlinkten Grenzen, bevor Sie eine "
+                "Ablöseentscheidung treffen."
+            )
+            if language == "de" and synthesis
+            else
             "**Stark ist Reality heute bei**\n\n"
             "- nachvollziehbaren Abläufen von der empfangenen Quelle über Belege bis zu "
             "Commitments, Reservierungen, Bewegungen und Buchungen;\n"
@@ -654,10 +800,9 @@ def _deterministic_answer(
             "Tool names alone do not establish automation or an end-to-end process. "
             "Evaluate one real flow and its difficult exceptions against the linked Journeys."
         )
-        source = next(
-            item
-            for item in product_advisor_knowledge().sources
-            if item.id == evaluation.source_id
+        source_by_id = {item.id: item for item in product_advisor_knowledge().sources}
+        source_ids = dict.fromkeys(
+            [evaluation.source_id, *(item.source_id for item in representative)]
         )
         return {
             "question": question,
@@ -666,16 +811,17 @@ def _deterministic_answer(
             "intent": intent,
             "status": _aggregate_status(claims),
             "text": text,
-            "citations": [],
-            "matches": [],
+            "citations": citations,
+            "matches": _journey_matches(citations),
             "claims": [item.model_dump(mode="json") for item in claims],
             "sources": [
                 {
-                    "id": source.id,
-                    "kind": source.kind,
-                    "title": source.title,
-                    "url": source.public_url,
+                    "id": source_by_id[source_id].id,
+                    "kind": source_by_id[source_id].kind,
+                    "title": source_by_id[source_id].title,
+                    "url": source_by_id[source_id].public_url,
                 }
+                for source_id in source_ids
             ],
             "clarification": None,
             "knowledge_version": product_advisor_knowledge().knowledge_version,
@@ -685,6 +831,63 @@ def _deterministic_answer(
         (item for item in evidence if item.id.startswith("evidence_journey_")), None
     )
     if journey is None:
+        document = next(
+            (item for item in evidence if item.id.startswith("evidence_document_")),
+            None,
+        )
+        if document is not None:
+            source = next(
+                item
+                for item in product_advisor_knowledge().sources
+                if item.id == document.source_id
+            )
+            text = {
+                "de": (
+                    "Die freigegebene Produktdokumentation beschreibt diesen Bereich. "
+                    "Die verlinkte Quelle enthält den belegten Umfang und die Grenzen; "
+                    "daraus sollte keine darüber hinausgehende End-to-End-Fähigkeit "
+                    "abgeleitet werden."
+                ),
+                "nl": (
+                    "De goedgekeurde productdocumentatie beschrijft dit onderwerp. "
+                    "De gekoppelde bron bevat de bewezen reikwijdte en beperkingen."
+                ),
+            }.get(
+                language,
+                "The approved product documentation describes this area. The linked "
+                "source contains the established scope and limitations; it does not "
+                "establish a broader end-to-end capability.",
+            )
+            claim = AdvisoryClaim(
+                id=f"claim_{document.id.removeprefix('evidence_')}",
+                subject=document.subject,
+                statement=document.claim_text,
+                support="limited",
+                evidence_ids=(document.id,),
+                workflow_role="manual",
+            )
+            return {
+                "question": question,
+                "locale": language,
+                "detected_language": language,
+                "intent": intent,
+                "status": "partial",
+                "text": text,
+                "citations": [],
+                "matches": [],
+                "claims": [claim.model_dump(mode="json")],
+                "sources": [
+                    {
+                        "id": source.id,
+                        "kind": source.kind,
+                        "title": source.title,
+                        "url": source.public_url,
+                    }
+                ],
+                "clarification": None,
+                "knowledge_version": product_advisor_knowledge().knowledge_version,
+                "outcome": outcome,
+            }
         text = {
             "de": "Diese Fähigkeit ist durch die freigegebenen Produktquellen nicht belegt.",
             "nl": "Deze mogelijkheid is niet aangetoond door de goedgekeurde productbronnen.",
@@ -830,14 +1033,20 @@ def answer_product_question(
     _retry_invalid_provider: bool = True,
     _evidence: tuple[EvidenceUnit, ...] | None = None,
 ) -> dict[str, object]:
-    intent = classify_product_question(question)
+    synthesis = _is_synthesis_question(question)
+    intent = "solution_advice" if synthesis else classify_product_question(question)
     language = detect_question_language(
         question, history=history, surface_language=surface_language
     )
     # Retrieval is scoped to the current turn. The bounded history is available to
     # the semantic planner and answer provider for genuine elliptical follow-ups,
     # but must not contaminate a new, self-contained business question.
-    research_question = question
+    user_context = _conversation_user_context(history)
+    research_question = (
+        "\n".join((question, "Prior user concerns:", *user_context))
+        if synthesis and user_context
+        else question
+    )
     folded_question = _fold(question)
     adversarial = any(
         phrase in folded_question
@@ -848,14 +1057,36 @@ def answer_product_question(
             "create a proposal automatically",
         )
     )
-    concerns = plan_product_concerns(research_question)
+    concerns = plan_product_concerns(question)
     evidence = (
         _evidence
         if _evidence is not None
         else ()
         if adversarial
+        else _unique_evidence(
+            [
+                *research_evidence(question, limit=3),
+                *(
+                    item
+                    for prior_question in user_context
+                    for item in research_evidence(prior_question, limit=3)
+                ),
+            ]
+        )[:18]
+        if synthesis
         else research_evidence(research_question)
     )
+    if not adversarial and (_is_product_evaluation_question(question) or synthesis):
+        evaluation = next(
+            (
+                item
+                for item in product_advisor_knowledge().evidence
+                if item.id.startswith("evidence_document_product_evaluation_")
+            ),
+            None,
+        )
+        if evaluation is not None:
+            evidence = _unique_evidence([evaluation, *evidence])[:18]
     if _evidence is None and not adversarial and not concerns:
         planned = _planned_evidence(
             provider,
@@ -864,6 +1095,7 @@ def answer_product_question(
                 "history": list(history),
                 "detected_language": language,
                 "intent": intent,
+                "conversation_context": list(user_context) if synthesis else [],
             },
         )
         evidence = _unique_evidence([*planned, *evidence])[:18]
@@ -878,6 +1110,8 @@ def answer_product_question(
     envelope = {
         "question": question,
         "history": list(history),
+        "conversation_context": list(user_context) if synthesis else [],
+        "synthesis": synthesis,
         "detected_language": language,
         "intent": intent,
         "concerns": list(concerns),

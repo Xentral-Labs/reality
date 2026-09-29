@@ -81,6 +81,8 @@ As a prospective buyer, I can ask broad questions such as “How would we run B2
 2. **Given** a broad question has several materially different interpretations, **When** answering all of them would risk a misleading conclusion, **Then** the advisor asks one focused clarification or explicitly states the interpretation it is using.
 3. **Given** only part of a requested process is proven, **When** the advisor proposes how to model the process, **Then** it separates native supported behavior, confirmed manual or agent-assisted work, possible workaround and true product gap.
 4. **Given** a relevant mutating tool prepares a proposal, **When** it is mentioned, **Then** the answer explains its role and confirmation requirement without implying that the public advisor can execute it.
+5. **Given** an evaluator asks for a Fit-Gap conclusion, pilot recommendation or decision after several connected questions, **When** the advisor answers, **Then** it synthesizes the process areas actually discussed, distinguishes proven behavior from material gaps and does not collapse to the most recent Journey.
+6. **Given** the latest question explicitly refers to "this process" or requests a conclusion, **When** bounded history is needed, **Then** research uses a compact dossier of prior user concerns without treating prior assistant prose as evidence or contaminating an unrelated self-contained question.
 
 ---
 
@@ -187,6 +189,9 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - **FR-025**: Evaluation MUST assess factual claims and prohibited claims rather than requiring one fixed answer wording.
 - **FR-026**: Authorized maintainers MUST be able to inspect which sources and claim decisions produced an answer without exposing that internal trace on the public surface.
 - **FR-027**: The existing Business Journey Guide browsing, suggestion and voting behavior MUST remain available and MUST continue to use the same canonical journey identities.
+- **FR-028**: The advisor MUST recognize synthesis turns such as Fit-Gap conclusions, pilot recommendations and product decisions. For those turns it MUST build a bounded request-scoped conversation dossier from prior user concerns, research the dossier together with the latest question and compose a balanced conclusion across the discussed process rather than selecting only the latest adjacent capability.
+- **FR-029**: Conversation history supplied by public surfaces MUST support at least ten user/assistant exchanges while remaining ephemeral and bounded. Research MUST use prior user concerns only when the latest turn is referential or requests synthesis; prior assistant prose MUST NOT become product evidence, and an unrelated self-contained question MUST remain scoped to its current turn.
+- **FR-030**: The governed evaluation set MUST include at least five connected ERP-selection conversations covering B2B wholesale, purchase to pay, finance controls, integration/migration and multi-entity operation. Each conversation MUST define required conclusions, prohibited overclaims and a useful final synthesis without fixing exact prose.
 
 ### Domain and Traceability Requirements
 
@@ -218,6 +223,7 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - **SC-005**: Public artifact and adversarial tests disclose zero private specification text, repository paths, source code, secrets, unpublished roadmap content or tenant data.
 - **SC-006**: A change to a governed source appears in advisory evidence after one documented generation step, and every curated stale-reference case fails publication.
 - **SC-007**: Reviewed answers to broad buyer questions can be understood without opening a citation and present the direct conclusion, workflow and material limitation within 180 words unless the user asks for detail.
+- **SC-008**: Across the five governed connected ERP-selection conversations, at least 90% of turns return a useful direct answer or focused clarification, every final Fit-Gap turn names both established behavior and material gaps, and no final turn falls back to one unrelated Journey.
 - **SC-008**: For every multilingual evaluation case, questions in English, German, Dutch, Spanish, French, Polish, Turkish, Arabic and Japanese preserve the same material product conclusion and limitations, and 100% of answers use the detected question language or the documented fallback.
 - **SC-009**: Provider timeout, malformed output and failed validation cases return a safe deterministic result or clarification with zero unsupported generated claims.
 - **SC-010**: Every FR and DR maps to at least one acceptance scenario and executable proof before implementation is marked complete.

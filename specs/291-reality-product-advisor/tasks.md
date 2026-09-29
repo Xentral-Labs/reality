@@ -157,3 +157,14 @@ All artifacts MUST be written in English. Tests precede the behavior they prove.
 - [x] T079 [US3] [FR-005] [FR-012] Add an approved buyer-oriented product evaluation source covering Reality's demonstrated strengths, evidence model and current limits
 - [x] T080 [US1] [US3] [FR-012] Tighten consultative synthesis so tool vocabulary cannot imply broader workflow behavior and mixed evidence produces a balanced assessment
 - [x] T081 [US5] [FR-024] Run a connected ten-turn German ERP-evaluator conversation and record the observed answer-quality result
+
+## Phase 11: Connected ERP selection conversations
+
+- [x] T082 [P] [US2] [FR-028] [FR-029] Add failing service regressions for compact user-concern dossiers, self-contained turn isolation and Fit-Gap synthesis after bounded history
+- [x] T083 [P] [US4] [FR-029] Add failing API and widget contract tests for ten ephemeral exchanges without promoting assistant prose to evidence
+- [x] T084 [P] [US5] [FR-030] Add five connected ERP-selection fixtures with required conclusions, forbidden claims and final synthesis criteria
+- [x] T085 [US2] [FR-028] [FR-029] Implement synthesis classification, compact conversation dossiers and bounded history-aware evidence research in the shared advisor service
+- [x] T086 [US2] [FR-028] Implement a consultative deterministic synthesis fallback that combines representative strengths and gaps instead of returning one unrelated Journey
+- [x] T087 [US4] [FR-029] Extend the shared public request contract and both Docs/widget clients to retain ten ephemeral exchanges
+- [x] T088 [US5] [FR-030] Implement the connected-conversation evaluation runner and validate fixture structure in the release suite
+- [ ] T089 Run focused service, API, widget, evaluation, docs generation, Spec Policy and live five-conversation verification; record the measured result in quickstart.md (focused and live verification complete; repository gates pending)

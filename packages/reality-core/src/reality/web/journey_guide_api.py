@@ -60,7 +60,7 @@ class PublicQuestion(BaseModel):
     locale: str = Field(
         default="en", max_length=35, pattern=r"^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$"
     )
-    history: list[PublicTurn] = Field(default_factory=list, max_length=6)
+    history: list[PublicTurn] = Field(default_factory=list, max_length=20)
 
 
 class InternalQuestion(PublicQuestion):

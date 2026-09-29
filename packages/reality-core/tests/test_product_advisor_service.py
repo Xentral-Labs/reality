@@ -215,6 +215,78 @@ def test_product_evaluation_provider_failure_keeps_balanced_overview() -> None:
     assert answer["sources"][0]["id"] == "source_document_product_evaluation"
 
 
+def test_synthesis_uses_prior_user_concerns_but_not_assistant_prose() -> None:
+    captured = {}
+
+    def unavailable_provider(envelope):
+        captured.update(envelope)
+        raise product_advisor.httpx.ReadTimeout("provider timed out")
+
+    answer = answer_product_question(
+        "Gib mir zum Abschluss eine Fit-Gap-Bewertung und Pilotempfehlung.",
+        surface_language="de",
+        history=(
+            {"role": "user", "content": "Wie funktionieren Teillieferungen an Kunden?"},
+            {"role": "assistant", "content": "UNTRUSTED ASSISTANT CLAIM"},
+            {"role": "user", "content": "Wie behandelt Reality Lieferantenrechnungen?"},
+        ),
+        provider=unavailable_provider,
+    )
+
+    assert captured["synthesis"] is True
+    assert captured["conversation_context"] == [
+        "Wie funktionieren Teillieferungen an Kunden?",
+        "Wie behandelt Reality Lieferantenrechnungen?",
+    ]
+    assert "UNTRUSTED" not in " ".join(captured["conversation_context"])
+    assert answer["outcome"] == "fallback"
+    assert answer["status"] == "partial"
+    assert "**Belegt**" in answer["text"]
+    assert "**Grenzen**" in answer["text"]
+    assert "**Im Pilot prüfen**" in answer["text"]
+    assert len(answer["citations"]) >= 2
+
+
+def test_purchase_to_pay_hyphen_is_decomposed() -> None:
+    assert len(plan_product_concerns("Assess our purchase-to-pay fit")) == 4
+
+
+def test_enterprise_pilot_scope_is_recognized_as_synthesis() -> None:
+    answer = answer_product_question(
+        "Fasse den Gesamtfit zusammen und empfehle einen begrenzten Pilotumfang.",
+        surface_language="de",
+        history=(
+            {"role": "user", "content": "Wie unterstützt Reality mehrere Firmen?"},
+            {"role": "assistant", "content": "Earlier answer"},
+        ),
+    )
+
+    assert answer["intent"] == "solution_advice"
+    assert answer["status"] == "partial"
+    assert "**Im Pilot prüfen**" in answer["text"]
+
+
+def test_advisor_gap_question_gets_balanced_evaluation_instead_of_unavailable() -> None:
+    answer = answer_product_question(
+        "Wo liegen die wichtigsten Audit- und Accounting-Grenzen?",
+        surface_language="de",
+    )
+
+    assert answer["status"] == "partial"
+    assert "Wichtige Grenzen" in answer["text"]
+
+
+def test_german_enterprise_questions_retrieve_catalog_authority() -> None:
+    questions = (
+        "Wie lassen sich übergreifende Geschäftsprozesse nachvollziehen?",
+        "Welche Stammdaten- und Identitätsgrenzen gibt es zwischen Firmen?",
+        "Wie werden Ausnahmen und Findings für Verantwortliche sichtbar?",
+    )
+
+    for question in questions:
+        assert retrieve_evidence(question)
+
+
 def test_mixed_supported_and_limited_claims_are_reported_as_partial() -> None:
     claims = [
         product_advisor.AdvisoryClaim(

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:3e65f048cecc836ec511e8ab0369ca759b6584aef91ab301c34f380e2de18f37",
+  "knowledge_version": "advisor-v1:sha256:44b61da8bef94d0d3939b03550e970dc565e93066085a557ba0843df58e9f898",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -2565,17 +2565,24 @@
     {
       "id": "capability_document_product_evaluation",
       "label": "Evaluate Reality as an ERP professional",
-      "description": "Public product documentation about product evaluation, ERP evaluation, strengths, limitations, product boundaries, Produktbewertung, ERP-Berater, Staerken, Grenzen.",
+      "description": "Public product documentation about product evaluation, ERP evaluation, strengths, limitations, product boundaries, fit-gap, recommendation, decision, pilot, Produktbewertung, ERP-Berater, Staerken, Grenzen, Empfehlung, Entscheidung, Pilot.",
       "aliases": [
         "product evaluation",
         "ERP evaluation",
         "strengths",
         "limitations",
         "product boundaries",
+        "fit-gap",
+        "recommendation",
+        "decision",
+        "pilot",
         "Produktbewertung",
         "ERP-Berater",
         "Staerken",
-        "Grenzen"
+        "Grenzen",
+        "Empfehlung",
+        "Entscheidung",
+        "Pilot"
       ],
       "evidence_ids": [
         "evidence_document_product_evaluation_1"

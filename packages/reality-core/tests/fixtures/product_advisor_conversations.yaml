@@ -1,0 +1,87 @@
+version: 1
+conversations:
+  - id: b2b-order-to-cash
+    persona: ERP sales and distribution consultant
+    locale: de
+    required_conclusions: [order commitment, partial shipment remainder, invoice and settlement, explicit gaps]
+    prohibited_overclaims: [full automation, every B2B exception]
+    final_required_sections: [Belegt, Grenzen, Pilot]
+    questions:
+      - Wie bildet Reality einen vollständigen B2B-Auftrag ab?
+      - Wie werden Zusage, Verfügbarkeit und Reservierung voneinander getrennt?
+      - Was passiert bei einer Teillieferung an den Kunden?
+      - Kann sich die Auftragsmenge nach einer Teillieferung erhöhen?
+      - Wie werden mehrere Lieferungen fakturiert?
+      - Wie ordnet Reality Teilzahlungen und Überzahlungen zu?
+      - Wie laufen Retoure und Gutschrift ab?
+      - Welche Schritte sind nativ und wo braucht es Freigaben oder manuelle Arbeit?
+      - Welche wichtigen B2B-Sonderfälle sind noch nicht belegt?
+      - Gib mir zum Abschluss eine Fit-Gap-Bewertung und Pilotempfehlung.
+  - id: purchase-to-pay
+    persona: ERP procurement consultant
+    locale: de
+    required_conclusions: [purchase order, partial receipt remainder, invoice variance, explicit gaps]
+    prohibited_overclaims: [positive clean three-way match, fully automatic approval]
+    final_required_sections: [Belegt, Grenzen, Pilot]
+    questions:
+      - Wie bildet Reality Purchase-to-Pay vom Auftrag bis zur Zahlung ab?
+      - Was passiert, wenn ein Lieferant nur einen Teil liefert?
+      - Wie bleibt die offene Bestellmenge nachvollziehbar?
+      - Wie wird eine Lieferantenrechnung erfasst?
+      - Welche Mengen- und Preisabweichungen erkennt Reality?
+      - Gibt es einen Drei-Wege-Abgleich aus Bestellung, Wareneingang und Rechnung?
+      - Wie behandelt Reality Gutschriften und Rücksendungen an Lieferanten?
+      - Welche Freigaben oder manuellen Schritte sind im Einkauf nötig?
+      - Welche Purchase-to-Pay-Lücken müsste ein Kunde ergänzen?
+      - Erstelle eine abschließende Fit-Gap-Bewertung mit Pilotempfehlung.
+  - id: finance-controls
+    persona: ERP finance and audit consultant
+    locale: de
+    required_conclusions: [ledger-backed balances, source traceability, accounting limits]
+    prohibited_overclaims: [accounting completeness, automatic bank reconciliation]
+    final_required_sections: [Belegt, Grenzen, Pilot]
+    questions:
+      - Wie gut eignet sich Reality für Finanzprozesse und interne Kontrollen?
+      - Wie entsteht eine Forderung aus einer Kundenrechnung?
+      - Wie werden Zahlungen, Teilzahlungen und offene Beträge nachvollzogen?
+      - Wie behandelt Reality Überzahlungen und nicht zuordenbare Zahlungen?
+      - Wie werden Gutschriften und Retouren im Saldo berücksichtigt?
+      - Welche Buchungs- und Ledger-Nachweise sind vorhanden?
+      - Kann ein Prüfer Werte bis zur ursprünglichen Quelle zurückverfolgen?
+      - Welche Finanzautomatisierung ist tatsächlich belegt?
+      - Wo liegen die wichtigsten Audit- und Accounting-Grenzen?
+      - Bewerte den Fit für einen Finanzpilot und nenne die größten Risiken.
+  - id: integration-migration
+    persona: ERP integration and migration architect
+    locale: de
+    required_conclusions: [lossless source retention, idempotent intake, migration limits]
+    prohibited_overclaims: [complete SAP migration, every connector available]
+    final_required_sections: [Belegt, Grenzen, Pilot]
+    questions:
+      - Wie integriert sich Reality in eine bestehende ERP-Landschaft?
+      - Welche Quellen und Importwege sind belegt?
+      - Bleiben externe Nutzdaten und ihre Herkunft vollständig erhalten?
+      - Wie werden externe Identitäten von internen IDs getrennt?
+      - Welche APIs oder Agent-Tools sind öffentlich dokumentiert?
+      - Wie verhindert Reality doppelte Verarbeitung bei erneutem Import?
+      - Was ist für eine SAP- oder Legacy-Migration belegt?
+      - Welche Connectoren müsste ein Einführungspartner selbst bauen?
+      - Welche technischen und fachlichen Migrationsrisiken bleiben offen?
+      - Gib eine Entscheidungsempfehlung für einen Integrationspilot.
+  - id: multi-entity-governance
+    persona: ERP enterprise architecture consultant
+    locale: de
+    required_conclusions: [tenant scope, governed actions, multi-entity limits]
+    prohibited_overclaims: [complete intercompany processing, currency conversion]
+    final_required_sections: [Belegt, Grenzen, Pilot]
+    questions:
+      - Wie unterstützt Reality mehrere Firmen und Mandanten?
+      - Wie wird Mandantentrennung in Abfragen und Geschäftsobjekten erzwungen?
+      - Wie lassen sich übergreifende Geschäftsprozesse nachvollziehen?
+      - Welche Rollen, Bestätigungen und Freigaben gelten für Agentenaktionen?
+      - Wie behandelt Reality unterschiedliche Währungen zwischen Belegen und Buchungen?
+      - Welche Stammdaten- und Identitätsgrenzen gibt es zwischen Firmen?
+      - Wie werden Ausnahmen und Findings für Verantwortliche sichtbar?
+      - Was ist bei Intercompany-Prozessen tatsächlich belegt?
+      - Welche Enterprise-Anforderungen sind derzeit Lücken?
+      - Fasse den Gesamtfit zusammen und empfehle einen begrenzten Pilotumfang.
