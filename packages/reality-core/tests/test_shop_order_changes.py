@@ -464,3 +464,15 @@ def test_the_source_inspector_says_why_a_change_waits(session, business):
 
     assert rows["Reason"] == "quantity_increased"
     assert "quantity_increased (line 11)" in rows["Why it waits"]
+
+
+def test_a_removed_line_left_out_again_is_no_change(session, business):
+    """Regression (A16/L05 story): the next version must not trip over the removed line."""
+    first, second = _order(session, business)
+    _version(session, business, [_line(LINE_A, 10)])
+    assert _status(session, second) == "cancelled"
+
+    source, _ = _version(session, business, [_line(LINE_A, 10, current_quantity=8)])
+
+    assert _outcome(session, business, source).classification == "interpreted"
+    assert _quantity(session, business, first) == 8

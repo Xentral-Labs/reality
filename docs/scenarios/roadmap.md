@@ -14,7 +14,7 @@ whether the gap can lose a deal; it is not measured. Seven journeys whose feasib
 | Rank | Tier | Specification | Journeys |
 |---|---|---|---|
 | 1 | 1 | [295 Dunning Run and Escalation](../../specs/295-dunning-run/spec.md) | N04 (implemented; supported) |
-| 2 | 1 | [296 Shop Order Changes and Refunds](../../specs/296-shop-order-changes/spec.md) | L04, L05, A16, A09, F12, A17 |
+| 2 | 1 | [296 Shop Order Changes and Refunds](../../specs/296-shop-order-changes/spec.md) | L04, L05, A16, A09, F12, A17 (implemented; supported) |
 | 3 | 1 | [297 Chargebacks, Returned Direct Debits and Payment Fees](../../specs/297-payment-returns-fees/spec.md) | C15, E08 |
 | 4 | 1 | [298 Automatic Credit Hold](../../specs/298-automatic-credit-hold/spec.md) | C07, C08, R08 |
 | 5 | 1 | [299 Invoiced Not Shipped, Down-Payment and Pro-Forma Invoices](../../specs/299-invoiced-not-shipped/spec.md) | E03, Q01, E11, C14 |

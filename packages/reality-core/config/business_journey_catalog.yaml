@@ -173,23 +173,28 @@ entries:
   section: Order intake and order changes
   title: '"Cancelled" after shipment'
   question: Is it treated as a return or refusal, not a cancellation?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Is it treated as a return or refusal, not a cancellation?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is it treated as a return or refusal, not a cancellation? A cancellation arriving after shipment cancels nothing; it waits with cancelled_after_shipment and names the return announcement a person confirms.'
   limitations:
-  - A cancellation that arrives after full shipment is held for review without effect, and a delivered line cannot be cancelled.
-  - It is not yet classified as a return or a refusal.
-  keywords: []
+  - The return is expected only once a person confirms the announcement; Reality does not announce it by itself.
+  keywords:
+  - cancelled after shipment
+  - Storno nach Versand
+  - storniert nach Versand
   question_examples:
   - '"Cancelled" after shipment'
   - Is it treated as a return or refusal, not a cancellation?
-  tools: []
+  - The shop cancels an order we already shipped
+  - Der Shop storniert eine Bestellung, die schon versandt ist
+  tools:
+  - return_announce
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record[cancelled_at-10]; services/core.py::cancel_commitment
-    note: A `cancelled_at` sent after full shipment is held for review with no effect, and a direct cancel of a fulfilled commitment is refused. Neither is a test that classifies it as a return or a refusal.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_cancellation_after_shipment_becomes_an_expected_return
+    note: 'Both lines shipped, then the shop cancels: nothing is cancelled, the version waits with cancelled_after_shipment naming return_announce, and a confirmed announcement expects the goods back while the promise stays fulfilled.'
 - id: A10
   section: Order intake and order changes
   title: Customer swaps a variant/size in an open order
@@ -198,7 +203,7 @@ entries:
   evidence_level: none
   summary: 'Reality evaluates: Old commitment closed, new one opened, history kept?'
   limitations:
-  - Lines cannot be added to an order once it is in operation, and changed shop orders are held for review.
+  - Lines cannot be added to an order once it is in operation, and a shop edit that adds a line or raises a quantity is held for review.
   - Swapping a variant on the same order while keeping its history is therefore not possible.
   keywords: []
   question_examples:
@@ -315,44 +320,59 @@ entries:
   section: Order intake and order changes
   title: Shop sends a new version of the same order
   question: New source version, revised commitment, no overwrite?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: New source version, revised commitment, no overwrite?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: New source version, revised commitment, no overwrite? A later Shopify version is stored next to the first and, where it only lowers unshipped quantity, revises the promise citing the version; anything else waits for a person with a named reason.'
   limitations:
-  - A new version of a shop order is stored next to the old one without overwriting it.
-  - The order line is not revised automatically; the change is held for review.
-  keywords: []
+  - Only reductions of unshipped quantity apply by themselves; higher quantities, new lines and price, address or currency changes wait for review.
+  keywords:
+  - new order version
+  - shop order version
+  - Bestellversion
+  - neue Version der Bestellung
   question_examples:
   - Shop sends a new version of the same order
   - New source version, revised commitment, no overwrite?
+  - The shop sends the same order again with a lower quantity
+  - Der Shop schickt dieselbe Bestellung mit geänderter Menge erneut
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record; tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation
-    note: 'A new version with a supersedes link is stored without overwriting, but the commitment is never revised: the change is held as `needs_review` (spec 081).'
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_new_shop_version_revises_the_promise_and_keeps_the_old_version
+    note: 'A second version lowers a line from 5 to 3: the promise is revised citing the new version, the reservation above it is released, the first version keeps its payload, and there is still one order.'
+  - reference: packages/reality-core/tests/test_shop_order_changes.py
+    note: Every change class with its code, all or nothing, replay, stale and superseded versions (spec 296).
 - id: A17
   section: Order intake and order changes
   title: Shop order contains an unknown item
   question: Is the line kept and the gap visible?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Is the line kept and the gap visible?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the line kept and the gap visible? The known lines become the order and its promises; the unknown line is kept without an item and reported until a person assigns the item, which creates its promise.'
   limitations:
-  - The shop order is kept and the failure is visible.
-  - The order is not interpreted until the item is known, so its known lines are not kept alongside the gap.
-  keywords: []
+  - An item is never created from the SKU; a person assigns an existing one.
+  keywords:
+  - unknown SKU
+  - unknown item in order
+  - unbekannte SKU
+  - unbekannter Artikel
   question_examples:
   - Shop order contains an unknown item
   - Is the line kept and the gap visible?
-  tools: []
+  - The shop order has a SKU we do not know
+  - Die Shop-Bestellung enthält eine unbekannte SKU
+  tools:
+  - order_line_item_assign
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/tests/test_shopify_and_explain.py::test_source_survives_interpretation_failure; tests/operational_exceptions/test_derivation.py::test_source_interpretation_failure
-    note: The source is kept and the failure is visible, but the whole order is not interpreted. The line is not kept as a DocumentLine alongside the gap.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_shop_order_with_an_unknown_item_keeps_the_known_lines
+    note: 'One known and one unknown SKU: the known line is promised, order_line_item_unknown names the unknown line, and a reviewed order_line_item_assign creates its promise for the customer and clears the finding.'
+  - reference: packages/reality-core/tests/test_order_line_items.py
+    note: Refusal codes, the cancelled order, tenant scope and the delivery review (spec 296).
 - id: A18
   section: Order intake and order changes
   title: Order price differs from list price
@@ -2098,23 +2118,28 @@ entries:
   section: Returns and complaints
   title: Marketplace refunds first, goods later or never
   question: Refund and return independent?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Refund and return independent?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Refund and return independent? A refund of shipped goods the shop says come back announces the return; it stays expected until the goods arrive or a person withdraws it, and no credit finding is raised.'
   limitations:
-  - Credit and return are independent of each other.
-  - Marketplace refunds are not yet read from the marketplace.
-  keywords: []
+  - Only Shopify refunds are read; other marketplaces are not connected.
+  keywords:
+  - refund before return
+  - refunded not returned
+  - Erstattung vor Rücksendung
   question_examples:
   - Marketplace refunds first, goods later or never
   - Refund and return independent?
-  tools: []
+  - The marketplace refunded the customer before the goods came back
+  - Der Marktplatz hat erstattet, bevor die Ware zurückkam
+  tools:
+  - return_announcement_withdraw
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/operational_exceptions/test_derivation.py::test_credited_not_returned
-    note: Credit and return are independent, but no marketplace refund source is interpreted or tested.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_refund_before_the_goods_come_back_keeps_the_return_expected
+    note: A refund with restock return for 2 shipped units announces a return of 2 citing the refund; it stays outstanding with no credit finding until the return arrives against it.
 - id: F13
   section: Returns and complaints
   title: Return after month-end for a prior-month invoice
@@ -3549,44 +3574,56 @@ entries:
   section: E-commerce and marketplaces
   title: Shopify order partially refunded in the shop
   question: Refund recorded from the source?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Refund recorded from the source?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Refund recorded from the source? A Shopify refund becomes its own source record and a sales_refund document on the order with the stated amount and positions, without a posting.'
   limitations:
-  - A refund can refer to its source record.
-  - Refunds in Shopify orders are not interpreted yet; a refunded order is held for review.
-  keywords: []
+  - 'A refund is evidence only: Shopify orders are not invoiced in Reality, so no credit note or payment is booked.'
+  keywords:
+  - Shopify refund
+  - partial refund
+  - Teilerstattung
+  - Shopify-Erstattung
   question_examples:
   - Shopify order partially refunded in the shop
   - Refund recorded from the source?
+  - A Shopify order was partially refunded in the shop
+  - Eine Shopify-Bestellung wurde im Shop teilweise erstattet
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_unified_customer_refund.py::test_original_refund_source_is_preserved; specs/081-shopify-update-guard
-    note: A refund can cite a SourceRecord. The Shopify interpreter ignores refunds, and a refunded (changed) order goes to needs_review.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_partial_shopify_refund_is_recorded_from_its_source
+    note: A partial refund in an order version is stored as shopify/refund 9641 naming its order, becomes a sales_refund document of 10.00 for the customer with no ledger entry, and the order version itself changes nothing.
+  - reference: packages/reality-core/tests/test_shop_refunds.py
+    note: Splitting and deduplication, a refund before its order, an unknown line, a refund while the order version is held, replay and the order inspector (spec 296).
 - id: L05
   section: E-commerce and marketplaces
   title: Shopify order edited after import
   question: New version, revised commitment?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: New version, revised commitment?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: New version, revised commitment? An edit that removes or lowers an open line is applied from the new version; an edit that adds or raises waits for a person with the reason named.'
   limitations:
-  - The edited order is stored as a new version.
-  - The order line is deliberately not revised automatically; the change is held for review.
-  keywords: []
+  - Adding a line or raising a quantity in the shop waits for a person; it is not applied automatically.
+  keywords:
+  - Shopify order edited
+  - Shopify order edit
+  - Shopify-Bestellung bearbeitet
+  - Bestellung nachträglich geändert
   question_examples:
   - Shopify order edited after import
   - New version, revised commitment?
+  - The customer's Shopify order was edited after we imported it
+  - Die Shopify-Bestellung wurde nach dem Import bearbeitet
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record; tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation
-    note: 'The new version is stored, but the commitment is deliberately not revised: it is held as needs_review.'
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_an_edited_shopify_order_applies_a_removed_line_and_holds_an_added_one
+    note: An edit removing a line cancels its promise citing the version; a later edit adding a line waits with line_added and changes nothing (positive control for the other direction).
 - id: L06
   section: E-commerce and marketplaces
   title: Pre-order of an item not yet available
@@ -4363,7 +4400,7 @@ entries:
   evidence_level: executable
   summary: 'Reality evaluates: Commitment closed with source reason?'
   limitations:
-  - The shop's cancellation is held for review; a person closes the line.
+  - A cancellation before anything shipped closes the line by itself; after shipment it waits, and a person closes the open rest.
   keywords:
   - shop cancellation
   - order deleted in shop

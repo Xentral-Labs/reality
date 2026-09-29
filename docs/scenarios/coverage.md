@@ -8,22 +8,22 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 93 covered, 58 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 99 covered, 52 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
-| A Order intake and changes | 11 | 5 |  | 8 |  |
+| A Order intake and changes | 14 | 2 |  | 8 |  |
 | B Availability and reservation | 5 | 7 |  | 6 |  |
 | C Payment and release | 10 | 4 |  | 4 |  |
 | D Shipment, split and merge | 4 | 3 |  | 12 |  |
 | E Customer invoice and credit | 8 | 4 |  |  |  |
-| F Returns and complaints | 9 | 3 |  | 1 |  |
+| F Returns and complaints | 10 | 2 |  | 1 |  |
 | G Purchase demand and order | 6 | 6 |  | 5 |  |
 | H Receipt and supplier deviations | 10 | 2 |  | 7 |  |
 | I Supplier invoice and payment | 10 | 1 |  | 1 |  |
 | J Warehouse and stock | 3 | 3 |  | 5 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
-| L E-commerce and marketplaces | 3 | 4 |  | 5 |  |
+| L E-commerce and marketplaces | 5 | 2 |  | 5 |  |
 | M B2B specifics | 1 | 3 |  | 8 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 2 | 1 |  | 2 | 1 |
@@ -55,9 +55,10 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
    commitment's own location, so one promise cannot be served from two warehouses (D02).
 6. **Locations have no availability status.** Quarantine, inspection and in-transit exist only as
    "move it to another location". B05, H08, H15, J01 (J05 partial by design).
-7. **Only Shopify first-version orders are interpreted.** Changed orders are held for review
-   (spec 081); shipments, refunds, marketplace, 3PL and EDI sources have no interpreter.
-   D17, L03, M03 (A16, L01, L04, L05, M04, P04 partial).
+7. **Shopify orders and refunds are interpreted, other sources are not.** Later Shopify versions
+   apply reductions of unshipped quantity and hold everything else (specs 081, 296); refunds
+   become evidence. Shipments, marketplace, 3PL and EDI sources have no interpreter.
+   D17, L03, M03 (L01, M04 partial).
 8. **No framework contracts or schedule lines.** One supplier commitment per PO line; no blanket
    order or call-off. A23, G04, G05, M01.
 9. **Party roles and identity are thin.** No bill-to/payer role, party merge, customer or
@@ -116,15 +117,15 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | A06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_cancelling_one_line_leaves_the_other_lines_open_and_reserved | Reviewed cancellation of one of three reserved lines: only that line is cancelled and unreserved; the other two stay open with their reservations. |
 | A07 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_cancelling_every_line_of_a_reserved_order_releases_all_its_stock | Every line of a reserved two-item order cancelled through the reviewed action: no active reservation remains and stock is unchanged. |
 | A08 | gap | packages/reality-core/src/reality/services/core.py (no picking concept) | There is no picking or staging record, so "picked but not shipped" and the stock going back cannot be represented. |
-| A09 | partial | packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record[cancelled_at-10]; services/core.py::cancel_commitment | A `cancelled_at` sent after full shipment is held for review with no effect, and a direct cancel of a fulfilled commitment is refused. Neither is a test that classifies it as a return or a refusal. |
+| A09 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_cancellation_after_shipment_becomes_an_expected_return | After shipment the cancellation cancels nothing, waits with cancelled_after_shipment naming return_announce, and a confirmed announcement expects the goods back (spec 296). |
 | A10 | gap | packages/reality-core/tests/test_document_corrections.py::test_manual_line_economic_changes_lock_after_reality_but_description_remains_correctable | Adding a line is blocked once Reality exists, and Shopify changes are held for review, so no path swaps a variant on the same order while keeping its history. |
 | A11 | gap | packages/reality-core/src/reality/db/core.py (Document.ship_to_party_id; Shipment has only counterparty_id) | Ship-to exists only on the document. A shipment carries no address, so which address a shipment used cannot be answered. |
 | A12 | gap | packages/reality-core/src/reality/services/core.py::reserve | Reservation is explicit, and no rule uses `due_at` or `requested_delivery_at` to decide when to reserve. |
 | A13 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_each_order_line_keeps_its_own_promised_date | Two lines carry their own promised date; a third falls back to the order's requested delivery date. |
 | A14 | gap | packages/reality-core/src/reality/services/core.py::MANUAL_OPERATIONAL_DOCUMENT_TYPES | There is no quote document type and no quote-to-order link. Spec 259 is a pricing preview only. |
 | A15 | covered | packages/reality-core/tests/test_shopify_and_explain.py::test_shopify_ingestion_is_lossless_idempotent_and_traceable | Re-sending the payload with its keys reordered still gives exactly one SourceRecord, Document and Commitment. |
-| A16 | partial | packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record; tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation | A new version with a supersedes link is stored without overwriting, but the commitment is never revised: the change is held as `needs_review` (spec 081). |
-| A17 | partial | packages/reality-core/tests/test_shopify_and_explain.py::test_source_survives_interpretation_failure; tests/operational_exceptions/test_derivation.py::test_source_interpretation_failure | The source is kept and the failure is visible, but the whole order is not interpreted. The line is not kept as a DocumentLine alongside the gap. |
+| A16 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_new_shop_version_revises_the_promise_and_keeps_the_old_version | A second version lowering a line revises the promise citing the version, releases the reservation above it, and keeps the first version as evidence (spec 296). |
+| A17 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_shop_order_with_an_unknown_item_keeps_the_known_lines | Known lines are promised, the unknown line is kept and reported by order_line_item_unknown, and a reviewed assignment creates its promise (spec 296). |
 | A18 | covered | packages/reality-core/tests/test_pricing.py::test_document_line_retains_agreed_entry_when_current_price_changes, ::test_manual_agreement_remains_valid_without_pricing_entry | The stated price is kept against the list price. Order entry also keeps a stated gross of 24.91 against 2 x 12.50. |
 | A19 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_zero_price_line_ships_and_is_invoiced_without_revenue | A zero-price line beside a priced one is reserved, shipped and invoiced at zero through document_create and sales_invoice_post; revenue is the priced line only and shipped_not_billed clears (positive control first). |
 | A20 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_one_shipment_fulfils_two_orders_of_the_same_customer | One shipment and one package fulfil two orders (3 and 5); 8 promised, 8 dispatched. |
@@ -235,7 +236,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | F09 | covered | tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived, ::test_an_announcement_with_no_stated_day_is_judged_by_the_learned_rhythm | A stale announcement is reported by the stated date or the learned rhythm, and clears on arrival. |
 | F10 | gap | packages/reality-core/src/reality/services/return_dispositions.py (return_to_supplier is terminal) | Goods cannot go out for repair and come back while staying owned. |
 | F11 | covered | tests/operational_exceptions/test_derivation.py::test_credited_not_returned (first assertion); tests/scenarios/test_international_demo.py price_only_credit | A credit with no return raises nothing ("a decision, not a discrepancy"); the price-only allowance reduces the invoice. |
-| F12 | partial | tests/operational_exceptions/test_derivation.py::test_credited_not_returned | Credit and return are independent, but no marketplace refund source is interpreted or tested. |
+| F12 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_refund_before_the_goods_come_back_keeps_the_return_expected | A Shopify refund stating a return announces it; it stays outstanding with no credit finding until the goods arrive (spec 296). |
 | F13 | covered | tests/scenarios/test_catalog_finance.py::test_return_credit_after_month_end_books_in_the_next_month | Invoice ledger entries fall in August, the credit in September, by stated dates. |
 
 ## G. Purchasing: demand and purchase order
@@ -335,8 +336,8 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | L01 | covered | tests/scenarios/test_catalog_stock_and_returns.py::test_stock_at_an_external_fulfilment_location_is_sold_from_there | Stock at an external fulfilment location is reserved and shipped from there. No marketplace report interpreter exists. |
 | L02 | partial | tests/operational_exceptions/test_derivation.py::test_overdue_outgoing_customer_commitment, ::test_at_risk_unchanged_before_due_date | Generic due_at classes only. A fully reserved order near its deadline is not flagged until overdue. No marketplace source. |
 | L03 | gap | specs/148-accounting-journal-cost-centers/spec.md FR-050; docs/features/payment_matching.md Non-goals | Payout and fee matching is specified but not implemented: no payout or provider-clearing code exists. |
-| L04 | partial | tests/test_unified_customer_refund.py::test_original_refund_source_is_preserved; specs/081-shopify-update-guard | A refund can cite a SourceRecord. The Shopify interpreter ignores refunds, and a refunded (changed) order goes to needs_review. |
-| L05 | partial | tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record; tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation | The new version is stored, but the commitment is deliberately not revised: it is held as needs_review. |
+| L04 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_partial_shopify_refund_is_recorded_from_its_source | A partial refund becomes its own shopify/refund source and a sales_refund document on the order without a posting (spec 296). |
+| L05 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_an_edited_shopify_order_applies_a_removed_line_and_holds_an_added_one | A removed line is cancelled citing the version; an added line waits with line_added (spec 296). |
 | L06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_pre_order_shows_its_shortage_and_the_supply_that_protects_it | Dated customer order without stock; an incoming purchase is assigned through supply_assign; readiness names insufficient_stock and supply_coverage shows 5 protecting (0 before, as control). |
 | L07 | partial | specs/033-large-tenant-register-benchmark; tests/test_unified_delivery_actions.py::test_two_connections_cannot_overallocate_or_execute_two_stale_reviews; specs/181-scale-foundations (Draft) | Concurrent reservation safety and the 10k read baseline are proven. Ingest throughput is not. |
 | L08 | gap | db/core.py Commitment (no recurrence) | No recurring or subscription commitment; holds exist only per single commitment. |

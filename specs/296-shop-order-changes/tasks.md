@@ -43,8 +43,8 @@
 
 ## Phase 7: Journeys and Verification
 
-- [ ] T020 [FR-006] [SC-001] Business stories A16, L05, A09, L04, F12 and A17 through the intake and reviewed tools in `core/tests/scenarios/test_catalog_sources.py`
-- [ ] T021 [FR-006] [SC-002] Promote the proven journeys in `core/config/business_journey_catalog.yaml` with evidence and specific keywords; check neighbour questions; update `docs/scenarios/coverage.md` and the roadmap
+- [x] T020 [FR-006] [SC-001] Business stories A16, L05, A09, L04, F12 and A17 through the intake and reviewed tools in `core/tests/scenarios/test_catalog_sources.py`
+- [x] T021 [FR-006] [SC-002] Promote the proven journeys in `core/config/business_journey_catalog.yaml` with evidence and specific keywords; check neighbour questions (P04, F07, L01, A01 keep theirs); correct the stale P04 and A10 limitations; update `docs/scenarios/coverage.md` and the roadmap. The L05 story found that a removed line left out again was held as `closed_line_changed`; fixed with a regression test
 - [ ] T022 `make docs-generate`, `make docs-catalog-check`, `make spec-check lint`, the full backend suite from a clean worktree and the Web checks
 - [ ] T023 Manual check per `quickstart.md` on an isolated stack
 - [ ] T024 Review of the diff; fix findings

@@ -227,7 +227,8 @@ def classify_order_version(
                 plan.held.append(("unassigned_line_changed", line_id))
             continue
         current = core.commitment_quantity(session, tenant_id, commitment.id)
-        if target == current:
+        if target == current or (commitment.status == "cancelled" and target == 0):
+            # A cancelled line the shop still leaves out already says the same.
             continue
         if commitment.status != "open":
             plan.held.append(("closed_line_changed", line_id))

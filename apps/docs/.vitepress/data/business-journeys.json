@@ -181,19 +181,26 @@
       "section": "Order intake and order changes",
       "title": "\"Cancelled\" after shipment",
       "question": "Is it treated as a return or refusal, not a cancellation?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Is it treated as a return or refusal, not a cancellation?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is it treated as a return or refusal, not a cancellation? A cancellation arriving after shipment cancels nothing; it waits with cancelled_after_shipment and names the return announcement a person confirms.",
       "limitations": [
-        "A cancellation that arrives after full shipment is held for review without effect, and a delivered line cannot be cancelled.",
-        "It is not yet classified as a return or a refusal."
+        "The return is expected only once a person confirms the announcement; Reality does not announce it by itself."
       ],
-      "keywords": [],
+      "keywords": [
+        "cancelled after shipment",
+        "Storno nach Versand",
+        "storniert nach Versand"
+      ],
       "question_examples": [
         "\"Cancelled\" after shipment",
-        "Is it treated as a return or refusal, not a cancellation?"
+        "Is it treated as a return or refusal, not a cancellation?",
+        "The shop cancels an order we already shipped",
+        "Der Shop storniert eine Bestellung, die schon versandt ist"
       ],
-      "tools": [],
+      "tools": [
+        "return_announce"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -207,7 +214,7 @@
       "evidence_level": "none",
       "summary": "Reality evaluates: Old commitment closed, new one opened, history kept?",
       "limitations": [
-        "Lines cannot be added to an order once it is in operation, and changed shop orders are held for review.",
+        "Lines cannot be added to an order once it is in operation, and a shop edit that adds a line or raises a quantity is held for review.",
         "Swapping a variant on the same order while keeping its history is therefore not possible."
       ],
       "keywords": [],
@@ -328,17 +335,23 @@
       "section": "Order intake and order changes",
       "title": "Shop sends a new version of the same order",
       "question": "New source version, revised commitment, no overwrite?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: New source version, revised commitment, no overwrite?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: New source version, revised commitment, no overwrite? A later Shopify version is stored next to the first and, where it only lowers unshipped quantity, revises the promise citing the version; anything else waits for a person with a named reason.",
       "limitations": [
-        "A new version of a shop order is stored next to the old one without overwriting it.",
-        "The order line is not revised automatically; the change is held for review."
+        "Only reductions of unshipped quantity apply by themselves; higher quantities, new lines and price, address or currency changes wait for review."
       ],
-      "keywords": [],
+      "keywords": [
+        "new order version",
+        "shop order version",
+        "Bestellversion",
+        "neue Version der Bestellung"
+      ],
       "question_examples": [
         "Shop sends a new version of the same order",
-        "New source version, revised commitment, no overwrite?"
+        "New source version, revised commitment, no overwrite?",
+        "The shop sends the same order again with a lower quantity",
+        "Der Shop schickt dieselbe Bestellung mit geänderter Menge erneut"
       ],
       "tools": [],
       "demo_references": [],
@@ -350,19 +363,27 @@
       "section": "Order intake and order changes",
       "title": "Shop order contains an unknown item",
       "question": "Is the line kept and the gap visible?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Is the line kept and the gap visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the line kept and the gap visible? The known lines become the order and its promises; the unknown line is kept without an item and reported until a person assigns the item, which creates its promise.",
       "limitations": [
-        "The shop order is kept and the failure is visible.",
-        "The order is not interpreted until the item is known, so its known lines are not kept alongside the gap."
+        "An item is never created from the SKU; a person assigns an existing one."
       ],
-      "keywords": [],
+      "keywords": [
+        "unknown SKU",
+        "unknown item in order",
+        "unbekannte SKU",
+        "unbekannter Artikel"
+      ],
       "question_examples": [
         "Shop order contains an unknown item",
-        "Is the line kept and the gap visible?"
+        "Is the line kept and the gap visible?",
+        "The shop order has a SKU we do not know",
+        "Die Shop-Bestellung enthält eine unbekannte SKU"
       ],
-      "tools": [],
+      "tools": [
+        "order_line_item_assign"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -2155,19 +2176,26 @@
       "section": "Returns and complaints",
       "title": "Marketplace refunds first, goods later or never",
       "question": "Refund and return independent?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Refund and return independent?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Refund and return independent? A refund of shipped goods the shop says come back announces the return; it stays expected until the goods arrive or a person withdraws it, and no credit finding is raised.",
       "limitations": [
-        "Credit and return are independent of each other.",
-        "Marketplace refunds are not yet read from the marketplace."
+        "Only Shopify refunds are read; other marketplaces are not connected."
       ],
-      "keywords": [],
+      "keywords": [
+        "refund before return",
+        "refunded not returned",
+        "Erstattung vor Rücksendung"
+      ],
       "question_examples": [
         "Marketplace refunds first, goods later or never",
-        "Refund and return independent?"
+        "Refund and return independent?",
+        "The marketplace refunded the customer before the goods came back",
+        "Der Marktplatz hat erstattet, bevor die Ware zurückkam"
       ],
-      "tools": [],
+      "tools": [
+        "return_announcement_withdraw"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -3646,17 +3674,23 @@
       "section": "E-commerce and marketplaces",
       "title": "Shopify order partially refunded in the shop",
       "question": "Refund recorded from the source?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Refund recorded from the source?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Refund recorded from the source? A Shopify refund becomes its own source record and a sales_refund document on the order with the stated amount and positions, without a posting.",
       "limitations": [
-        "A refund can refer to its source record.",
-        "Refunds in Shopify orders are not interpreted yet; a refunded order is held for review."
+        "A refund is evidence only: Shopify orders are not invoiced in Reality, so no credit note or payment is booked."
       ],
-      "keywords": [],
+      "keywords": [
+        "Shopify refund",
+        "partial refund",
+        "Teilerstattung",
+        "Shopify-Erstattung"
+      ],
       "question_examples": [
         "Shopify order partially refunded in the shop",
-        "Refund recorded from the source?"
+        "Refund recorded from the source?",
+        "A Shopify order was partially refunded in the shop",
+        "Eine Shopify-Bestellung wurde im Shop teilweise erstattet"
       ],
       "tools": [],
       "demo_references": [],
@@ -3668,17 +3702,23 @@
       "section": "E-commerce and marketplaces",
       "title": "Shopify order edited after import",
       "question": "New version, revised commitment?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: New version, revised commitment?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: New version, revised commitment? An edit that removes or lowers an open line is applied from the new version; an edit that adds or raises waits for a person with the reason named.",
       "limitations": [
-        "The edited order is stored as a new version.",
-        "The order line is deliberately not revised automatically; the change is held for review."
+        "Adding a line or raising a quantity in the shop waits for a person; it is not applied automatically."
       ],
-      "keywords": [],
+      "keywords": [
+        "Shopify order edited",
+        "Shopify order edit",
+        "Shopify-Bestellung bearbeitet",
+        "Bestellung nachträglich geändert"
+      ],
       "question_examples": [
         "Shopify order edited after import",
-        "New version, revised commitment?"
+        "New version, revised commitment?",
+        "The customer's Shopify order was edited after we imported it",
+        "Die Shopify-Bestellung wurde nach dem Import bearbeitet"
       ],
       "tools": [],
       "demo_references": [],
@@ -4482,7 +4522,7 @@
       "evidence_level": "executable",
       "summary": "Reality evaluates: Commitment closed with source reason?",
       "limitations": [
-        "The shop's cancellation is held for review; a person closes the line."
+        "A cancellation before anything shipped closes the line by itself; after shipment it waits, and a person closes the open rest."
       ],
       "keywords": [
         "shop cancellation",
