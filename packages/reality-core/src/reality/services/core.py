@@ -303,13 +303,32 @@ class InterpretationNeedsReview(RealityError):
 
 
 class ShopifyUpdateNeedsReview(InterpretationNeedsReview):
-    """A changed source cannot safely amend existing operational Reality yet."""
+    """A changed source that is not applied automatically (spec 081, narrowed by 296).
+
+    Carries the reason codes of what was not applied; without them it is the
+    original guard for a version whose order was never interpreted.
+    """
 
     summary = (
         "Shopify order updates require review. The new source is retained; "
         "existing operational records remain unchanged. Automatic amendment "
         "is not supported."
     )
+    reason_code = "shopify_update_requires_review"
+
+    def __init__(
+        self,
+        *,
+        codes: list[str] | None = None,
+        reason_code: str | None = None,
+        summary: str | None = None,
+    ) -> None:
+        super().__init__(summary or type(self).summary)
+        self.codes = list(codes or [])
+        if reason_code:
+            self.reason_code = reason_code
+        if summary:
+            self.summary = summary
 
 
 class Conflict(InvalidOperation):
@@ -12398,7 +12417,15 @@ def _shopify_interpretation(
         return source, existing_document, lines, commitments_created
 
     if source.version > 1:
-        raise ShopifyUpdateNeedsReview()
+        from reality.services.shop_order_changes import (
+            apply_order_version,
+            order_for_source,
+        )
+
+        order = order_for_source(session, tenant_id, source)
+        if order is None:
+            raise ShopifyUpdateNeedsReview()
+        return apply_order_version(session, tenant_id, source, order)
 
     company_party_id = context["company_party_id"]
     customer_party_id = context["customer_party_id"]
@@ -12780,7 +12807,7 @@ def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any 
         session.rollback()
         shopify_update = isinstance(error, ShopifyUpdateNeedsReview)
         summary = (
-            ShopifyUpdateNeedsReview.summary
+            error.summary
             if shopify_update
             else "The source requires human review before Reality can be created."
         )
@@ -12804,9 +12831,7 @@ def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any 
             "needs_review",
             interpreter_name=f"{review_source.source_system}.{review_source.source_type}",
             reason_code=(
-                "shopify_update_requires_review"
-                if shopify_update
-                else "ambiguous_business_meaning"
+                error.reason_code if shopify_update else "ambiguous_business_meaning"
             ),
             summary=summary,
         )

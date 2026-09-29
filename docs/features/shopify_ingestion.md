@@ -17,21 +17,29 @@ record and become explainable issues.
 
 Idempotency is enforced by the database over the tenant-scoped source identity plus a
 SHA-256 hash of canonical JSON. Source insertion and creation of a unique ImportJob are
-one transaction. Interpretation is a separate retryable transaction. Until automatic
-order amendment is supported, a Shopify source version greater than one without an
-existing interpretation produces `needs_review` before creating any business records.
-Previous Documents, Commitments, Reservations and Movements remain unchanged. This
-includes metadata-only changes and updates whose predecessor failed or was not yet
-processed. SourceStream still points to the newest accepted source, not necessarily
-the last interpreted one.
+one transaction. Interpretation is a separate retryable transaction.
 
-The fixed review explanation is visible through interpretation coverage and ImportJob
-reads. Processing an already reviewed job is a no-op; explicit retries record another
-review attempt but cannot bypass the guard. The synchronous Shopify helper reports
-the review explanation instead of claiming stale delivery or successful interpretation.
-First-version retries and already successful interpretation replays remain supported.
-This guard does not repair old records or implement cancellation on initial import.
-See `specs/081-shopify-update-guard/spec.md` for the bounded contract.
+A later version of an interpreted order is compared with the order's current Reality
+(spec 296). It is applied automatically only when it reduces open, unshipped quantity:
+a lower `current_quantity` (or `quantity`), a removed open line, or `cancelled_at` while
+nothing has shipped. The reductions go through the ordinary revision and cancellation
+services and cite the version as their source. Every other change (a higher quantity,
+a new line, a price, address or currency change, a change on a closed line, a
+cancellation after shipment, or a reduction that needs a reservation choice) is held
+as `needs_review` with a coded reason, and nothing changes; a version is applied
+completely or not at all. A version that changes only fields Reality does not
+interpret is recorded without effect. A version whose order was never interpreted
+still requires review, as does any change while the first version failed or is
+pending. SourceStream points to the newest accepted source; an older version
+processed after a newer one applies nothing.
+
+The review explanation names every code and is visible through interpretation
+coverage and ImportJob reads. Processing an already reviewed job is a no-op; explicit
+retries record another review attempt but cannot bypass the guard. The synchronous
+Shopify helper reports the review explanation instead of claiming stale delivery or
+successful interpretation. First-version retries and already successful
+interpretation replays remain supported.
+See `specs/081-shopify-update-guard/spec.md` and `specs/296-shop-order-changes/spec.md` for the contract.
 
 A tenant-scoped SourceStream owns the external identity and points to its current
 SourceRecord. Moving that pointer never mutates a SourceRecord and stale/conflicting

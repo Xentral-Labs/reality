@@ -60,7 +60,12 @@ def enqueue(session, business, data):
 
 
 def changed_payload():
-    return {**payload(), "note": "Changed", "updated_at": "2026-09-01T11:00:00Z"}
+    """A change spec 296 still holds: the shop states a new shipping address."""
+    return {
+        **payload(),
+        "shipping_address": {"address1": "Nebenstr. 2", "city": "Ulm"},
+        "updated_at": "2026-09-01T11:00:00Z",
+    }
 
 
 def snapshot(session, tenant_id):
@@ -82,10 +87,23 @@ def snapshot(session, tenant_id):
     }
 
 
-@pytest.mark.parametrize("shipped", [0, 4, 10])
-@pytest.mark.parametrize("change", ["note", "quantity", "cancelled_at"])
+# Spec 296 narrowed the guard: lower quantities and a cancellation before anything
+# shipped now apply themselves (tests/test_shop_order_changes.py). Every change
+# below is still held, and a held change must leave every record untouched.
+@pytest.mark.parametrize(
+    ("change", "shipped", "code"),
+    [
+        ("quantity_up", 0, "quantity_increased"),
+        ("quantity_up", 4, "quantity_increased"),
+        ("quantity_up", 10, "closed_line_changed"),
+        ("quantity_down", 10, "closed_line_changed"),
+        ("cancelled_at", 4, "cancelled_after_shipment"),
+        ("cancelled_at", 10, "cancelled_after_shipment"),
+        ("address", 0, "address_changed"),
+    ],
+)
 def test_changed_order_preserves_every_business_record(
-    session, business, shipped, change
+    session, business, shipped, change, code
 ):
     first, job = enqueue(session, business, payload())
     _, _, _, commitments = process_import_job(session, business.tenant.id, job.id)
@@ -112,12 +130,14 @@ def test_changed_order_preserves_every_business_record(
     before = snapshot(session, business.tenant.id)
     changed = deepcopy(payload())
     changed["updated_at"] = "2026-09-01T11:00:00Z"
-    if change == "quantity":
+    if change == "quantity_up":
+        changed["line_items"][0]["quantity"] = 12
+    elif change == "quantity_down":
         changed["line_items"][0]["quantity"] = 7
+    elif change == "cancelled_at":
+        changed["cancelled_at"] = "2026-09-01T11:00:00Z"
     else:
-        changed[change] = (
-            "2026-09-01T11:00:00Z" if change == "cancelled_at" else "New note"
-        )
+        changed["shipping_address"] = {"address1": "Nebenstr. 2", "city": "Ulm"}
     source, update_job = enqueue(session, business, changed)
     assert process_import_job(session, business.tenant.id, update_job.id) is None
     session.expire_all()
@@ -140,8 +160,8 @@ def test_changed_order_preserves_every_business_record(
     coverage = interpretation_coverage(session, business.tenant.id, source.id)[0]
     assert coverage["current_classification"] == "needs_review"
     outcome = coverage["outcomes"][-1]
-    assert outcome["reason_code"] == "shopify_update_requires_review"
-    assert "unchanged" in outcome["summary"]
+    assert outcome["reason_code"] == code
+    assert code in outcome["summary"] and "unchanged" in outcome["summary"]
     assert outcome["produced_records"] == []
     assert update_job.next_attempt_at is None
 
@@ -156,7 +176,7 @@ def test_consecutive_updates_duplicates_and_retries_cannot_bypass_guard(
         changed = {
             **payload(),
             "updated_at": f"2026-09-01T{hour}:00:00Z",
-            "note": str(hour),
+            "shipping_address": {"city": str(hour)},
         }
         source, job = enqueue(session, business, changed)
         assert process_import_job(session, business.tenant.id, job.id) is None
@@ -204,7 +224,7 @@ def test_update_after_pending_first_version_is_held(session, business):
 def test_synchronous_review_explains_the_actual_outcome(session, business):
     _, job = enqueue(session, business, payload())
     process_import_job(session, business.tenant.id, job.id)
-    with pytest.raises(InvalidOperation, match="Shopify order updates require review"):
+    with pytest.raises(InvalidOperation, match="address_changed"):
         ingest_shopify_order(
             session,
             business.tenant.id,
@@ -265,7 +285,7 @@ def test_http_processing_exposes_review_reason_and_retry_preserves_state(
                 jobs = client.get(f"{prefix}/import-jobs")
                 assert jobs.status_code == 200
                 row = next(row for row in jobs.json() if row["id"] == updated_job.id)
-                assert "Shopify order updates require review" in row["error"]
+                assert "address_changed" in row["error"]
                 assert row["attempts"] == attempt
                 if attempt == 1:
                     assert (

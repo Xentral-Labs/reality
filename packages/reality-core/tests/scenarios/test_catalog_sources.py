@@ -59,7 +59,12 @@ def _count(session, business, model, *conditions):
 def test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason(
     session, business
 ):
-    """P04: the shop cancels afterwards; a person closes the line citing that record."""
+    """P04: the shop cancels afterwards; the line closes citing that source record.
+
+    Before anything shipped the cancellation applies itself (spec 296). After a
+    partial shipment it waits, and a person closes the open rest through the
+    reviewed tool, citing the same record.
+    """
     tenant = business.tenant.id
     core.record_movement(
         session,
@@ -73,7 +78,7 @@ def test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason(
     commitment = interpreted[3][0]
     core.reserve(session, tenant, commitment.id)
 
-    cancellation, outcome = _intake(
+    cancellation, applied = _intake(
         session,
         business,
         _order_payload(
@@ -83,32 +88,7 @@ def test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason(
             cancel_reason="customer",
         ),
     )
-    # The change is held for review; nothing closed itself.
-    assert outcome is None
-    assert (
-        core.interpretation_coverage(session, tenant, cancellation.id)[0][
-            "current_classification"
-        ]
-        == "needs_review"
-    )
-    assert record_by_id(session, Commitment, commitment.id).status == "open"
-
-    proposal = prepare_delivery_action(
-        session,
-        tenant,
-        "commitment_cancel",
-        {
-            "commitment_id": commitment.id,
-            "reason": "Cancelled in the shop by the customer",
-            "source_record_id": cancellation.id,
-        },
-        request_id="cancel-p04",
-    )
-    token = json.loads(proposal.input)["_delivery_review"]["token"]
-    approve_and_execute_proposal(
-        session, tenant, proposal.id, review_token=token, confirmed=True
-    )
-
+    assert applied is not None
     assert record_by_id(session, Commitment, commitment.id).status == "cancelled"
     assert core.active_reserved(session, tenant, business.item.id) == 0
     event = session.scalars(
@@ -119,10 +99,64 @@ def test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason(
         )
     ).one()
     assert event.source_record_id == cancellation.id
-    assert event.action_id == proposal.id
-    assert (
-        json.loads(event.payload)["reason"] == "Cancelled in the shop by the customer"
+    assert json.loads(event.payload)["reason"] == "Cancelled in Shopify (customer)"
+
+    # A second order ships one of two before the shop cancels it.
+    _, interpreted = _intake(session, business, _order_payload(6102))
+    shipped = interpreted[3][0]
+    core.reserve(session, tenant, shipped.id)
+    core.record_movement(
+        session,
+        tenant,
+        "shipment",
+        business.item.id,
+        "1",
+        from_location_id=business.location.id,
+        commitment_id=shipped.id,
     )
+    late, held = _intake(
+        session,
+        business,
+        _order_payload(
+            6102,
+            updated_at="2026-09-03T09:00:00Z",
+            cancelled_at="2026-09-03T09:00:00Z",
+            cancel_reason="customer",
+        ),
+    )
+    assert held is None
+    coverage = core.interpretation_coverage(session, tenant, late.id)[0]
+    assert coverage["current_classification"] == "needs_review"
+    assert coverage["outcomes"][-1]["reason_code"] == "cancelled_after_shipment"
+    assert record_by_id(session, Commitment, shipped.id).status == "open"
+
+    proposal = prepare_delivery_action(
+        session,
+        tenant,
+        "commitment_cancel",
+        {
+            "commitment_id": shipped.id,
+            "reason": "Cancelled in the shop after one unit shipped",
+            "source_record_id": late.id,
+        },
+        request_id="cancel-p04",
+    )
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    approve_and_execute_proposal(
+        session, tenant, proposal.id, review_token=token, confirmed=True
+    )
+
+    assert record_by_id(session, Commitment, shipped.id).status == "cancelled"
+    assert core.fulfilled_quantity(session, tenant, shipped.id) == 1
+    event = session.scalars(
+        select(BusinessEvent).where(
+            BusinessEvent.tenant_id == tenant,
+            BusinessEvent.event_type == "commitment.cancelled",
+            BusinessEvent.subject_id == shipped.id,
+        )
+    ).one()
+    assert event.source_record_id == late.id
+    assert event.action_id == proposal.id
 
 
 # --- P07 ---------------------------------------------------------------------

@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from reality.db.core import Commitment, Document, ImportJob, SourceRecord
 from reality.services.core import (
     InvalidOperation,
+    commitment_quantity,
     create_item,
     enqueue_shopify_order,
     explain_commitment,
@@ -58,7 +59,7 @@ def test_shopify_ingestion_is_lossless_idempotent_and_traceable(session, busines
     assert trace["raw_source"] == payload
 
 
-def test_changed_source_creates_version_without_replacing_interpretation(
+def test_changed_source_creates_version_and_revises_without_replacing_interpretation(
     session, business
 ):
     payload = json.loads(FIXTURE.read_text())
@@ -83,13 +84,17 @@ def test_changed_source_creates_version_without_replacing_interpretation(
         business.location.id,
     )
 
-    assert process_shopify_import_job(session, business.tenant.id, job.id) is None
+    # Spec 296: a lower quantity is applied as a revision of the same promise;
+    # the first interpretation is kept, never replaced.
+    applied = process_shopify_import_job(session, business.tenant.id, job.id)
+    assert applied[1].id == first[1].id
     assert first[0].id != source.id
     assert source.version == 2
     assert source.supersedes_source_record_id == first[0].id
     assert first[1].status == "recorded"
     assert first[3][0].status == "open"
     assert first[3][0].quantity == 30
+    assert commitment_quantity(session, business.tenant.id, first[3][0].id) == 25
     assert session.scalar(select(func.count()).select_from(Document)) == 1
     assert session.scalar(select(func.count()).select_from(SourceRecord)) == 2
 

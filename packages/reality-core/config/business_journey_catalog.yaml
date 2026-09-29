@@ -4380,9 +4380,9 @@ entries:
   related_journeys: []
   internal_evidence:
   - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason
-    note: A Shopify order is interpreted and reserved; its cancelled version is held for review; a reviewed commitment_cancel citing that source record closes the line, releases the reservation and the event carries the source and the reason.
-  - reference: packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record[cancelled_at-*]
-    note: A source cancellation is stored and held for review, and the commitment stays open. `cancel_commitment(source_record_id=...)` exists, but no test closes a commitment with a source reason.
+    note: 'A Shopify order is interpreted and reserved; its cancelled version closes the line by itself (spec 296): the reservation is released and the event carries the source and the reason. A second order shipped in part: the cancellation waits with cancelled_after_shipment, and a reviewed commitment_cancel citing that source closes the open rest.'
+  - reference: packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record
+    note: A cancellation after shipment is stored and held for review with its code, and every record stays unchanged.
 - id: P05
   section: Sources and integration
   title: Incomplete payload accepted

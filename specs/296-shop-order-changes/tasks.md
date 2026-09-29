@@ -13,16 +13,16 @@
 
 ## Phase 2: Foundational
 
-- [ ] T005 [FR-001] [FR-004] Failing unit tests for `stated_lines` (current_quantity, quantity, removed line) and for the classification table of research R4, one case per row with its code, in `core/tests/test_shop_order_changes.py`
-- [ ] T006 [FR-001] [FR-004] Implement `order_for_source`, `stated_lines` and `classify_order_version` in `core/src/reality/services/shop_order_changes.py`; give `ShopifyUpdateNeedsReview` its codes and write them in `process_import_job`
-- [ ] T007 [DR-003] Admit `revise_commitment`, `cancel_commitment`, `announce_customer_return` and the refund recording for interpretation in `core/src/reality/services/tenant_policy.py`
+- [x] T005 [FR-001] [FR-004] Failing unit tests for `stated_lines` (current_quantity, quantity, removed line) and for the classification table of research R4, one case per row with its code, in `core/tests/test_shop_order_changes.py`
+- [x] T006 [FR-001] [FR-004] Implement `order_for_source`, `stated_lines` and `classify_order_version` in `core/src/reality/services/shop_order_changes.py`; give `ShopifyUpdateNeedsReview` its codes and write them in `process_import_job`
+- [x] T007 [DR-003] Check the policy for interpretation: business companies need no admission, practice companies already admit `revise_commitment` and `cancel_commitment` (`_PRACTICE_APP_OPERATIONS`), and demo intake does not use this interpreter; `announce_customer_return` for refunds is checked in T013
 
 ## Phase 3: Order changes (A16, L05, A09)
 
-- [ ] T008 [P] [FR-001] [FR-009] Failing interpretation tests: a lowered open line revises its promise and releases reservation above it; lowered to what shipped closes the rest; a removed line and a full cancellation with nothing shipped cancel; a note-only change applies nothing (positive control: the same version with a lower quantity does); replay and a stale older version change nothing, in `core/tests/test_shop_order_changes.py`
-- [ ] T009 [P] [FR-003] [FR-004] Failing hold tests: cancellation after shipment, below shipped, increase, new line, price, address, closed line, several reservations, and a mixed version that also lowers a line (nothing applied), each with its code, in `core/tests/test_shop_order_changes.py`
-- [ ] T010 [FR-001] [FR-003] [FR-004] [FR-009] Implement `apply_order_version` and call it from `_shopify_interpretation` for version > 1 in `core/src/reality/services/core.py`
-- [ ] T011 [FR-004] Update `core/tests/test_shopify_update_guard.py`, `core/tests/test_shopify_and_explain.py` and the P04 story in `core/tests/scenarios/test_catalog_sources.py` to the narrowed guard; note in `specs/081-shopify-update-guard/spec.md` that spec 296 narrows FR-002
+- [x] T008 [P] [FR-001] [FR-009] Failing interpretation tests: a lowered open line revises its promise and releases reservation above it; lowered to what shipped closes the rest; a removed line and a full cancellation with nothing shipped cancel; a note-only change applies nothing (positive control: the same version with a lower quantity does); replay and a stale older version change nothing, in `core/tests/test_shop_order_changes.py`
+- [x] T009 [P] [FR-003] [FR-004] Failing hold tests: cancellation after shipment, below shipped, increase, new line, price, address, closed line, several reservations, and a mixed version that also lowers a line (nothing applied), each with its code, in `core/tests/test_shop_order_changes.py`
+- [x] T010 [FR-001] [FR-003] [FR-004] [FR-009] Implement `apply_order_version` and call it from `_shopify_interpretation` for version > 1 in `core/src/reality/services/core.py`
+- [x] T011 [FR-004] Update `core/tests/test_shopify_update_guard.py`, `core/tests/test_shopify_and_explain.py` and the P04 story in `core/tests/scenarios/test_catalog_sources.py` to the narrowed guard; note in `specs/081-shopify-update-guard/spec.md` that spec 296 narrows FR-002
 
 ## Phase 4: Refunds (L04, F12)
 
