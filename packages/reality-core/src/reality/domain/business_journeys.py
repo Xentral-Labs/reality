@@ -34,6 +34,7 @@ class JourneyEntry(BaseModel):
     status: JourneyStatus
     evidence_level: EvidenceLevel
     summary: str = Field(min_length=1, max_length=1000)
+    localized_summaries: dict[str, str] = Field(default_factory=dict)
     limitations: tuple[str, ...] = Field(default=(), max_length=20)
     keywords: tuple[str, ...] = Field(default=(), max_length=40)
     question_examples: tuple[str, ...] = Field(default=(), max_length=20)
@@ -52,10 +53,13 @@ class JourneyEntry(BaseModel):
         return self
 
     def public_payload(self) -> dict[str, object]:
-        return self.model_dump(
+        payload = self.model_dump(
             mode="json",
             exclude={"internal_evidence"},
         )
+        if not self.localized_summaries:
+            payload.pop("localized_summaries")
+        return payload
 
 
 class JourneyCatalog(BaseModel):

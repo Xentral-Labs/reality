@@ -94,6 +94,7 @@ class EvidenceUnit(BaseModel):
     title: str = Field(min_length=1, max_length=300)
     search_text: str = Field(min_length=1, max_length=8000)
     claim_text: str = Field(min_length=1, max_length=8000)
+    localized_claims: dict[str, str] = Field(default_factory=dict)
     support: EvidenceSupport
     limitations: tuple[str, ...] = Field(default=(), max_length=20)
     references: tuple[str, ...] = Field(default=(), max_length=40)
@@ -150,6 +151,14 @@ class ProductAdvisorKnowledge(BaseModel):
 
     def public_payload(self) -> dict[str, object]:
         public_ids = {source.id for source in self.sources if source.visibility == "public"}
+        evidence = []
+        for unit in self.evidence:
+            if unit.source_id not in public_ids:
+                continue
+            payload = unit.model_dump(mode="json")
+            if not unit.localized_claims:
+                payload.pop("localized_claims")
+            evidence.append(payload)
         return {
             "schema_version": self.schema_version,
             "knowledge_version": self.knowledge_version,
@@ -158,11 +167,7 @@ class ProductAdvisorKnowledge(BaseModel):
                 for source in self.sources
                 if source.id in public_ids
             ],
-            "evidence": [
-                unit.model_dump(mode="json")
-                for unit in self.evidence
-                if unit.source_id in public_ids
-            ],
+            "evidence": evidence,
         }
 
 

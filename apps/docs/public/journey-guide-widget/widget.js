@@ -206,7 +206,7 @@
           { role: "user", content: question },
           { role: "assistant", content: answer.text },
         );
-        this.history = this.history.slice(-6);
+        this.history = this.history.slice(-20);
       } catch (_error) {
         pending.remove();
         const message = document.createElement("div");

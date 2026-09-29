@@ -12,6 +12,11 @@ CASES = yaml.safe_load(
         encoding="utf-8"
     )
 )["cases"]
+CONVERSATIONS = yaml.safe_load(
+    (Path(__file__).parent / "fixtures/product_advisor_conversations.yaml").read_text(
+        encoding="utf-8"
+    )
+)["conversations"]
 
 
 def _journey_citations(question: str) -> set[str]:
@@ -67,3 +72,28 @@ def test_broad_cases_define_concise_workflow_and_forbidden_claim_contracts() -> 
         assert len(case["required_concerns"]) >= 4
         assert case["forbidden_claims"]
         assert case["max_default_words"] <= 180
+
+
+def test_connected_erp_selection_suite_has_five_ten_turn_conversations() -> None:
+    assert len(CONVERSATIONS) >= 5
+    assert len({item["id"] for item in CONVERSATIONS}) == len(CONVERSATIONS)
+    for conversation in CONVERSATIONS:
+        assert conversation["persona"]
+        assert conversation["locale"] in {"de", "en"}
+        assert len(conversation["required_conclusions"]) >= 3
+        assert conversation["prohibited_overclaims"]
+        assert conversation["final_required_sections"] == [
+            "Belegt",
+            "Grenzen",
+            "Pilot",
+        ]
+        assert len(conversation["questions"]) == 10
+        assert any(
+            phrase in conversation["questions"][-1].casefold()
+            for phrase in (
+                "fit-gap",
+                "pilot",
+                "entscheidungsempfehlung",
+                "gesamtfit",
+            )
+        )

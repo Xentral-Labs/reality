@@ -19,3 +19,13 @@ def test_short_follow_up_uses_history_then_surface_language() -> None:
 
     assert detect_question_language("Und später?", history=history) == "de"
     assert detect_question_language("H02?", surface_language="nl") == "nl"
+
+
+def test_substantive_compound_question_uses_surface_language_when_markers_are_weak() -> None:
+    assert (
+        detect_question_language(
+            "Woran erkenne ich, ob eine Kundenrechnung vollständig bezahlt ist?",
+            surface_language="de",
+        )
+        == "de"
+    )

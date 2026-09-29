@@ -91,3 +91,19 @@ The matrix uses automated surface contracts rather than a deployed production sm
 - Public planning has a 10-second timeout and ordinary answer attempts have a 12-second timeout. Recognized broad processes skip redundant provider planning, use their governed concern decomposition directly and receive up to 14 seconds per answer attempt. Both paths keep one validation retry below the widget's 40-second request timeout.
 - Generator/staleness, Spec Policy and Ruff checks passed. Focused Advisor, evaluation, security, API, tool and Chat tests passed: 58 tests.
 - Complete backend suite passed: 4,742 tests, 10 skipped.
+
+## German ERP-evaluator conversation — 2026-09-29
+
+- A connected ten-question local conversation covered B2B order flow, collective invoicing, customer and supplier partial delivery, invoice settlement, overpayment, returns and credits, supplier-invoice deviations, source provenance and an overall product assessment.
+- The initial run exposed stale-history retrieval, an over-broad supplier-invoice synthesis, tool-vocabulary overreach and an unusable single-Journey fallback for the overall assessment.
+- Retrieval now scopes self-contained turns independently, supplier-invoice evidence describes the exact proven findings, source-provenance research includes the connector contract, and a reviewed ERP-evaluation overview provides a balanced fallback with strengths and explicit limits.
+- The repeated affected live questions returned a bounded supplier-invoice answer with I01/I03, a source-qualified provenance answer, and a balanced partial product assessment instead of claiming that Reality cannot handle the requested topic.
+- Focused Advisor, claims, release-evaluation and generator tests passed: 53 tests. Ruff passed.
+
+## Connected ERP-selection conversations — 2026-09-29
+
+- The governed live evaluation now contains five German ten-turn conversations for B2B order to cash, purchase to pay, finance and audit controls, integration and migration, and multi-entity governance.
+- The first 50-turn run exposed loss of early concerns in final Fit-Gap questions, unrelated single-Journey fallbacks and generic `not established` answers for evaluative questions. The public contract and widget now retain twenty bounded turns (ten exchanges), while synthesis research compacts only prior user concerns; assistant prose never becomes evidence.
+- Every final decision turn now returns a balanced partial assessment with established behavior, material limits and a concrete pilot check instead of one unrelated Journey. Repeated Finance and Multi-Entity conversations also returned direct catalog-grounded answers for audit limits, master-data boundaries, governed agent actions and operational findings.
+- The remaining `not established` or `missing` conclusions in the repeated Multi-Entity conversation concern genuine catalog gaps such as Intercompany processing and currency conversion, not retrieval failure. These are useful Fit-Gap answers and remain explicit rather than being inferred from adjacent tools.
+- Focused service, API and evaluation suites passed: 51 tests. Widget contract tests passed: 15 tests. Ruff passed. The live results are reproducible with `apps/docs/scripts/evaluate-product-advisor-conversations.py`.

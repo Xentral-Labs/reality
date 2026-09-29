@@ -14,7 +14,7 @@ The existing public route remains backward compatible:
 }
 ```
 
-`locale` becomes a surface-language hint for ambiguous or very short input. The latest substantive question determines the answer language. Existing anonymous, read-only and bounded-history rules remain.
+`locale` becomes a surface-language hint for ambiguous or very short input. The latest substantive question determines the answer language. History remains anonymous, ephemeral and read-only; clients may submit at most twenty turns (ten exchanges). The service compacts prior user concerns for referential or synthesis questions and never treats prior assistant prose as product evidence.
 
 ## Additive response
 
