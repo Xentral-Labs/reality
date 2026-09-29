@@ -1,24 +1,34 @@
-"""Purchasing scenarios from the catalog (G14, H10, H11, H12, I05)."""
+"""Purchasing scenarios from the catalog (G07, G14, H03, H10, H11, H12, I05, I06, I07, K05)."""
 
 import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+import test_costing_services as cost_fixtures
 from conftest import record_by_id
 from sqlalchemy import select
 
-from reality.db.core import Movement
+from reality.db.core import Document, Movement
 from reality.services import core
+from reality.services.analytics.reports import caller
+from reality.services.costing import cost_evidence
+from reality.services.decision_attribution import record_decisions
+from reality.services.delivery_actions import prepare_delivery_action
 from reality.services.exceptions import operational_exceptions
+from reality.services.memberships import Principal
 from reality.services.shipments import shipment_explain
 from reality.services.supply_assignments import assign_supply, supply_coverage
 from reality.tools.application import (
     approve_and_execute_proposal,
+    confirm_tool,
     create_change_proposal,
+    propose_tool,
+    run_read_tool,
 )
 
 AS_OF = datetime(2026, 9, 25, 12, tzinfo=UTC)
+cost_owner = cost_fixtures.cost_owner
 
 
 def _order(session, business, direction, number, counterparty_id, quantity, price):
@@ -337,3 +347,389 @@ def test_one_supplier_invoice_bills_lines_of_two_purchase_orders(session, busine
     assert core._order_line_billing(session, business.tenant.id, second_line.id)[
         "remaining"
     ] == Decimal(0)
+
+
+# --- Spec 294: purchasing and receipt (G07, H03, I06, I07, K05) ----------------
+
+
+def _reviewed(session, business, tool, arguments, request_id):
+    proposal = prepare_delivery_action(
+        session, business.tenant.id, tool, arguments, request_id=request_id
+    )
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    executed = approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, review_token=token, confirmed=True
+    )
+    assert executed.status == "executed"
+    return proposal, json.loads(executed.output)
+
+
+def _receive_into(session, business, tracking, commitment, quantity, item_id=None):
+    return _execute_delivery(
+        session,
+        business.tenant.id,
+        "shipment_receive",
+        {
+            "purpose": "supplier_delivery",
+            "counterparty_id": business.supplier.id,
+            "tracking_number": tracking,
+            "movements": [
+                {
+                    "commitment_id": commitment.id,
+                    "item_id": item_id or business.item.id,
+                    "to_location_id": business.location.id,
+                    "quantity": quantity,
+                }
+            ],
+        },
+    )
+
+
+def _supplier_invoice(session, business, order_line, quantity, gross, number):
+    _, receipt = _reviewed(
+        session,
+        business,
+        "supplier_invoice_record",
+        {
+            "order_line_id": order_line.id,
+            "quantity": quantity,
+            "gross_amount": gross,
+            "number": number,
+            "effective_at": "2026-09-20T10:00:00Z",
+        },
+        number,
+    )
+    return next(row["id"] for row in receipt["records"] if row["family"] == "document")
+
+
+def test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported(
+    session, business
+):
+    """G07: the tier the supplier states for the quantity is the agreed price."""
+    tenant = business.tenant.id
+    tiers = core.create_price_list(
+        session, tenant, "SUP-TIERS", "Supplier tiers", "purchase", "EUR"
+    )
+    core.create_price_list_entry(
+        session, tenant, tiers.id, business.item.id, 1, "5.00", "pcs"
+    )
+    ten_or_more = core.create_price_list_entry(
+        session, tenant, tiers.id, business.item.id, 10, "4.00", "pcs"
+    )
+    core.assign_party_price_list(session, tenant, business.supplier.id, tiers.id)
+    _, _, lines, _ = core.create_manual_order(
+        session,
+        tenant,
+        "purchase",
+        "PO-G07",
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "10",
+                "unit": "pcs",
+                "unit_price": "4.00",
+                "gross_amount": "40.00",
+                "price_list_entry_id": ten_or_more.id,
+            }
+        ],
+        "40.00",
+        document_date="2026-09-01",
+    )
+    order_line = lines[0]
+    assert order_line.price_list_entry_id == ten_or_more.id
+
+    invoice_id = _supplier_invoice(
+        session, business, order_line, "8", "32.00", "ER-G07"
+    )
+    invoice = record_by_id(session, Document, invoice_id)
+    assert invoice.gross_amount == Decimal("32.00")
+    assert _records_of(session, tenant, "invoice_price_differs") == set()
+
+    # The supplier bills the rest at the single-unit tier instead.
+    recorded = json.loads(
+        confirm_tool(
+            session,
+            tenant,
+            propose_tool(
+                session,
+                tenant,
+                "document_create",
+                {
+                    "document_type": "supplier_invoice",
+                    "number": "ER-G07-2",
+                    "party_id": business.supplier.id,
+                    "gross_amount": "10.00",
+                    "document_date": "2026-09-21",
+                    "lines": [
+                        {
+                            "item_id": business.item.id,
+                            "quantity": "2",
+                            "unit": "pcs",
+                            "unit_price": "5.00",
+                            "gross_amount": "10.00",
+                            "billed_document_line_id": order_line.id,
+                        }
+                    ],
+                },
+            ).id,
+        ).output
+    )
+    differing = {
+        row.record_id: row
+        for row in operational_exceptions(session, tenant, as_of=AS_OF)
+        if row.class_id == "invoice_price_differs"
+    }
+    row = differing[recorded["document_line_ids"][0]]
+    assert row.causal_values["agreed_unit_price"] == Decimal("4.0000")
+    assert row.causal_values["billed_unit_price"] == Decimal("5.0000")
+
+
+def test_an_under_delivery_is_closed_with_its_reason_and_decision(session, business):
+    """H03: the rest never comes, and a confirmed revision says why and who."""
+    tenant = business.tenant.id
+    _, _, _lines, commitments = core.create_manual_order(
+        session,
+        tenant,
+        "purchase",
+        "PO-H03",
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "10",
+                "unit_price": "10",
+                "gross_amount": "100",
+            }
+        ],
+        "100",
+        requested_delivery_at=AS_OF - timedelta(days=10),
+    )
+    purchase = commitments[0]
+    _receive_into(session, business, "IN-H03", purchase, "7")
+    # Positive control: 3 still open and past due are reported.
+    assert purchase.id in _records_of(
+        session, tenant, "overdue_incoming_supplier_commitment"
+    )
+
+    proposal, _ = _reviewed(
+        session,
+        business,
+        "commitment_revise",
+        {
+            "commitment_id": purchase.id,
+            "quantity": "7",
+            "note": "Supplier discontinued the item; the rest will not come",
+        },
+        "revise-h03",
+    )
+
+    assert core.commitment_terms(session, tenant, [purchase.id])[purchase.id].open == 0
+    assert purchase.id not in _records_of(
+        session, tenant, "overdue_incoming_supplier_commitment"
+    )
+    revision = core.commitment_revisions(session, tenant, purchase.id)[-1]
+    assert revision.note == "Supplier discontinued the item; the rest will not come"
+    assert revision.quantity == Decimal(7)
+    decisions = record_decisions(session, tenant, "commitment", purchase.id)
+    assert (proposal.id, "commitment_revise") in {
+        (row["id"], row["tool"]) for row in decisions
+    }
+
+
+def test_several_partial_supplier_invoices_are_summed_against_the_purchase(
+    session, business
+):
+    """I06: two invoices bill one purchase line; billing beyond receipt is reported."""
+    tenant = business.tenant.id
+    _, order_line, purchase = _order(
+        session, business, "purchase", "PO-I06", business.supplier.id, "10", "10"
+    )
+    _receive_into(session, business, "IN-I06", purchase, "8")
+
+    _supplier_invoice(session, business, order_line, "6", "60.00", "ER-I06-1")
+    # Six billed of eight received is ordinary.
+    assert order_line.id not in _records_of(session, tenant, "billed_not_received")
+
+    _supplier_invoice(session, business, order_line, "4", "40.00", "ER-I06-2")
+    row = next(
+        entry
+        for entry in operational_exceptions(session, tenant, as_of=AS_OF)
+        if entry.class_id == "billed_not_received" and entry.record_id == order_line.id
+    )
+    assert row.causal_values["billed_quantity"] == Decimal("10.0000")
+    assert row.causal_values["unreceived_quantity"] == Decimal("2.0000")
+
+    # Nothing more of the line can be billed through the guided invoice.
+    with pytest.raises(core.InvalidOperation) as refused:
+        _supplier_invoice(session, business, order_line, "1", "10.00", "ER-I06-3")
+    assert refused.value.code == "invoice_quantity_exceeds_billable"
+
+
+def test_a_carrier_freight_invoice_is_attributed_to_the_receipt_cost(
+    session, business, cost_owner
+):
+    """I07: freight billed by a third party adds to the cost of the goods it carried."""
+    tenant = business.tenant.id
+    carrier = core.create_party(session, tenant, "Speedy Freight GmbH", "supplier")
+    _, _, purchase = _order(
+        session, business, "purchase", "PO-I07", business.supplier.id, "10", "10"
+    )
+    received = json.loads(
+        _receive_into(session, business, "IN-I07", purchase, "10").output
+    )
+    receipt_movement_id = received["movement_ids"][0]
+
+    freight = json.loads(
+        confirm_tool(
+            session,
+            tenant,
+            propose_tool(
+                session,
+                tenant,
+                "supplier_invoice_free_record",
+                {
+                    "supplier_id": carrier.id,
+                    "number": "FR-I07",
+                    "currency": "EUR",
+                    "gross_amount": "23.80",
+                    "document_date": "2026-09-22",
+                    "lines": [
+                        {
+                            "description": "Inbound freight PO-I07",
+                            "quantity": "1",
+                            "unit": "pcs",
+                            "unit_price": "23.80",
+                            "gross_amount": "23.80",
+                            "line_type": "charge",
+                            "reality_finance_v1": {"net": "20.00", "tax": "3.80"},
+                        }
+                    ],
+                },
+            ).id,
+            confirmed=True,
+        ).output
+    )
+    invoice_id = next(
+        row["id"] for row in freight["records"] if row["family"] == "document"
+    )
+    invoice_line_id = next(
+        row["id"] for row in freight["records"] if row["family"] == "document_line"
+    )
+    evidence = cost_evidence(session, tenant, invoice_id, invoice_line_id)
+    principal = Principal(cost_owner.id)
+    with caller(principal):
+        proposal = create_change_proposal(
+            session,
+            tenant,
+            "cost.change",
+            {
+                "operation": "assign",
+                "document_id": invoice_id,
+                "document_line_id": invoice_line_id,
+                "expected_event_sequence": evidence["event_sequence"],
+                "expected_evidence_hash": evidence["evidence_hash"],
+                "basis": "net",
+                "tax_treatment": "recoverable",
+                "selected_basis_tax_inclusion": "excluded",
+                "parts": [
+                    {
+                        "movement_id": receipt_movement_id,
+                        "category": "inbound_freight",
+                        "source_share": "20.00",
+                        "cost_effect": 1,
+                    }
+                ],
+                "reason": "Carrier freight for the PO-I07 receipt",
+            },
+        )
+    approve_and_execute_proposal(
+        session, tenant, proposal.id, confirming_principal=principal, confirmed=True
+    )
+
+    cost = run_read_tool(
+        session, tenant, "cost.receipt.get", {"movement_id": receipt_movement_id}
+    )
+    assert Decimal(cost["known_cost"]) == Decimal("20.00")
+    assert record_by_id(session, Document, invoice_id).party_id == carrier.id
+    assert carrier.id != business.supplier.id
+
+
+def test_variants_bought_together_each_hold_and_reserve_their_own_stock(
+    session, business
+):
+    """K05: three sizes on one purchase are three items with three stocks."""
+    tenant = business.tenant.id
+    sizes = [
+        core.create_item(session, tenant, f"JERSEY-{size}", f"Jersey {size}")
+        for size in ("S", "M", "L")
+    ]
+    _, _, _, purchases = core.create_manual_order(
+        session,
+        tenant,
+        "purchase",
+        "PO-K05",
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [
+            {"item_id": item.id, "quantity": q, "unit_price": "20", "gross_amount": g}
+            for item, q, g in zip(sizes, ("3", "5", "2"), ("60", "100", "40"))
+        ],
+        "200",
+    )
+    _execute_delivery(
+        session,
+        tenant,
+        "shipment_receive",
+        {
+            "purpose": "supplier_delivery",
+            "counterparty_id": business.supplier.id,
+            "tracking_number": "IN-K05",
+            "movements": [
+                {
+                    "commitment_id": purchase.id,
+                    "item_id": item.id,
+                    "to_location_id": business.location.id,
+                    "quantity": q,
+                }
+                for purchase, item, q in zip(purchases, sizes, ("3", "5", "2"))
+            ],
+        },
+    )
+    assert [
+        core.stock_at(session, tenant, item.id, business.location.id) for item in sizes
+    ] == [Decimal(3), Decimal(5), Decimal(2)]
+
+    effects = {}
+    for item, wanted in zip(sizes, ("2", "5", "4")):
+        promise = core.create_commitment(
+            session,
+            tenant,
+            "customer_delivery",
+            business.company.id,
+            business.customer.id,
+            item.id,
+            business.location.id,
+            wanted,
+            "2026-10-05",
+        )
+        proposal = prepare_delivery_action(
+            session,
+            tenant,
+            "reserve",
+            {"commitment_id": promise.id},
+            request_id=f"reserve-k05-{item.sku}",
+        )
+        effects[item.sku] = json.loads(proposal.input)["_delivery_review"]["effect"]
+
+    # Each size reserves only its own stock; only L runs short.
+    assert {sku: effect["shortage"] for sku, effect in effects.items()} == {
+        "JERSEY-S": "0",
+        "JERSEY-M": "0",
+        "JERSEY-L": "2",
+    }

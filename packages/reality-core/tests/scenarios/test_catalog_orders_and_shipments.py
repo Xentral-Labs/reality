@@ -15,9 +15,11 @@ from reality.db.core import (
     Reservation,
     Shipment,
 )
+from reality.services import core
 from reality.services.core import (
     account_balance,
     active_reserved,
+    announce_customer_return,
     commitment_quantity,
     create_commitment,
     create_item,
@@ -31,7 +33,11 @@ from reality.services.core import (
 )
 from reality.services.delivery_actions import prepare_delivery_action
 from reality.services.exceptions import operational_exceptions
+from reality.services.fulfillment_readiness import fulfillment_readiness
+from reality.services.movement_explanations import movement_explanation
+from reality.services.reference_workspace import prepare_reference, reference_detail
 from reality.services.shipments import shipment_explain
+from reality.services.supply_assignments import supply_coverage
 from reality.tools.application import (
     approve_and_execute_proposal,
     confirm_tool,
@@ -642,3 +648,182 @@ def test_a_zero_price_line_ships_and_is_invoiced_without_revenue(session, busine
     unbilled = _unbilled_lines(session, tenant_id)
     assert free_line_id not in unbilled
     assert priced_line_id not in unbilled
+
+
+# --- Spec 294: sales and master data (D16, L06, O01) ---------------------------
+
+
+def _replacement_shipment(session, business, commitment_id):
+    return session.scalars(
+        select(Movement).where(
+            Movement.tenant_id == business.tenant.id,
+            Movement.commitment_id == commitment_id,
+            Movement.type == "shipment",
+        )
+    ).one()
+
+
+def test_a_free_replacement_ships_without_an_order_and_explains_itself(
+    session, business
+):
+    """D16: a replacement for a faulty unit leaves on its own promise, not a new order."""
+    tenant = business.tenant.id
+    _receive(session, business, business.item.id, "10", business.location.id)
+    receipt = _order(session, business, "SO-D16", [_line(business.item.id, "2")])
+    delivered_id = receipt["commitment_ids"][0]
+    reserve(session, tenant, delivered_id)
+    _ship(session, business, "OUT-D16-1", delivered_id, "2")
+    announcement = announce_customer_return(
+        session, tenant, delivered_id, 1, reference="RMA-D16", reason="Faulty unit"
+    )
+
+    exchanged = json.loads(
+        _act(
+            session,
+            business,
+            "customer_exchange_record",
+            {
+                "return_announcement_id": announcement.id,
+                "quantity": "1",
+                "replacement_item_id": business.item.id,
+                "replacement_quantity": "1",
+                "reason": "Faulty unit replaced free of charge",
+            },
+            "exchange-d16",
+        ).output
+    )
+    replacement_id = exchanged["replacement_commitment_id"]
+    replacement = record_by_id(session, Commitment, replacement_id)
+    assert (replacement.document_id, replacement.amount) == (None, Decimal(0))
+    reserve(session, tenant, replacement_id)
+    _ship(session, business, "OUT-D16-2", replacement_id, "1")
+
+    assert record_by_id(session, Commitment, replacement_id).status == "fulfilled"
+    explained = movement_explanation(
+        session, tenant, _replacement_shipment(session, business, replacement_id).id
+    )
+    assert explained["kind"] == "commitment"
+    assert {("commitment", replacement_id), ("commitment", delivered_id)} <= {
+        (link["kind"], link["id"]) for link in explained["links"]
+    }
+    # Positive control: the original order, shipped and not billed, is reported;
+    # the free replacement has no order line to bill and is not.
+    assert _unbilled_lines(session, tenant) == {receipt["document_line_ids"][0]}
+
+
+def test_a_pre_order_shows_its_shortage_and_the_supply_that_protects_it(
+    session, business
+):
+    """L06: nothing in stock yet, but the incoming purchase is assigned to the order."""
+    tenant = business.tenant.id
+    receipt = _order(
+        session,
+        business,
+        "SO-L06",
+        [_line(business.item.id, "5", promised_at="2027-01-20T08:00:00Z")],
+    )
+    customer_id = receipt["commitment_ids"][0]
+    _, _, _, purchases = core.create_manual_order(
+        session,
+        tenant,
+        "purchase",
+        "PO-L06",
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "20",
+                "unit_price": "4.00",
+                "gross_amount": "80.00",
+            }
+        ],
+        "80.00",
+        requested_delivery_at="2027-01-10T08:00:00Z",
+    )
+    before = supply_coverage(session, tenant, customer_commitment_id=customer_id)
+    assert Decimal(before["customer"]["protecting_supply"]) == 0
+
+    _act(
+        session,
+        business,
+        "supply_assign",
+        {
+            "supplier_commitment_id": purchases[0].id,
+            "purpose": "customer_demand",
+            "customer_commitment_id": customer_id,
+            "quantity": "5",
+        },
+        "assign-l06",
+    )
+
+    readiness = fulfillment_readiness(session, tenant, customer_id)
+    assert "insufficient_stock" in readiness.blocker_codes
+    coverage = supply_coverage(session, tenant, customer_commitment_id=customer_id)
+    assert Decimal(coverage["customer"]["protecting_supply"]) == Decimal(5)
+    commitment = record_by_id(session, Commitment, customer_id)
+    assert commitment.due_at == datetime(2027, 1, 20, 8, tzinfo=UTC)
+
+
+def test_a_renamed_item_number_keeps_every_record_on_the_same_item(session, business):
+    """O01: numbers are not identity; history stays with the item, lines keep theirs."""
+    tenant = business.tenant.id
+    item = business.item
+    old_sku = item.sku
+    _receive(session, business, item.id, "10", business.location.id)
+    receipt = _order(session, business, "SO-O01", [_line(item.id, "4")])
+    commitment_id = receipt["commitment_ids"][0]
+    order_line_id = receipt["document_line_ids"][0]
+    reserve(session, tenant, commitment_id)
+    _ship(session, business, "OUT-O01", commitment_id, "2")
+    invoiced = core.record_sales_invoice(
+        session, tenant, order_line_id, "2", "20.00", "RE-O01"
+    )
+    invoice_line_id = next(
+        row["id"] for row in invoiced["records"] if row["family"] == "document_line"
+    )
+    stock_before = stock_at(session, tenant, item.id, business.location.id)
+
+    detail = reference_detail(session, tenant, "item", item.id)
+    proposal = prepare_reference(
+        session,
+        tenant,
+        "item",
+        "update",
+        {
+            "id": item.id,
+            "expected_revision": detail["expected_revision"],
+            "sku": "BIKE-LIGHT-2027",
+            "name": item.name,
+            "unit": item.unit,
+        },
+        request_id="rename-o01",
+    )
+    approve_and_execute_proposal(session, tenant, proposal.id)
+
+    session.refresh(item)
+    assert item.sku == "BIKE-LIGHT-2027"
+    moved = session.scalars(
+        select(Movement).where(
+            Movement.tenant_id == tenant, Movement.commitment_id == commitment_id
+        )
+    ).all()
+    assert moved and {movement.item_id for movement in moved} == {item.id}
+    assert record_by_id(session, Commitment, commitment_id).item_id == item.id
+    assert {
+        reservation.item_id
+        for reservation in session.scalars(
+            select(Reservation).where(
+                Reservation.tenant_id == tenant,
+                Reservation.commitment_id == commitment_id,
+            )
+        )
+    } == {item.id}
+    assert stock_at(session, tenant, item.id, business.location.id) == stock_before
+    # The documents keep the number they stated.
+    assert record_by_id(session, DocumentLine, order_line_id).sku == old_sku
+    assert record_by_id(session, DocumentLine, invoice_line_id).sku == old_sku
+    # And the rest ships under the new number, against the same promise.
+    _ship(session, business, "OUT-O01-2", commitment_id, "2")
+    assert open_quantity(session, tenant, commitment_id) == Decimal(0)

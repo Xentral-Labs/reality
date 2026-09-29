@@ -464,6 +464,11 @@ def movement_record(
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
+            from reality.services.fulfillment_readiness import require_paid_prepayment
+
+            require_paid_prepayment(
+                s, selected.id, movement_type, commitment_id, quantity
+            )
             movement = record_movement(
                 s,
                 selected.id,

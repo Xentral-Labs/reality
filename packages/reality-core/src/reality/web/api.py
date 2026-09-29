@@ -3868,7 +3868,12 @@ def post_serial_unit(tenant_id: str, body: SerialUnitWrite, session: DatabaseSes
     "/movements", response_model=MovementRead, status_code=status.HTTP_201_CREATED
 )
 def post_movement(tenant_id: str, body: MovementWrite, session: DatabaseSession):
+    from reality.services.fulfillment_readiness import require_paid_prepayment
+
     try:
+        require_paid_prepayment(
+            session, tenant_id, body.type, body.commitment_id, body.quantity
+        )
         movement = record_movement(
             session,
             tenant_id,

@@ -65,7 +65,7 @@ entries:
   question: What is still open after the revision?
   status: supported
   evidence_level: executable
-  summary: 'After 4 of 10 units have shipped and the reviewed order quantity rises to 12, Reality derives 8 units still open. The 4 shipped units remain fulfilled, and the newly open remainder can be reserved and shipped.'
+  summary: After 4 of 10 units have shipped and the reviewed order quantity rises to 12, Reality derives 8 units still open. The 4 shipped units remain fulfilled, and the newly open remainder can be reserved and shipped.
   limitations: []
   keywords: []
   question_examples:
@@ -1518,21 +1518,30 @@ entries:
   section: Picking, shipment, split and merge
   title: Free replacement shipment without a new order
   question: Why did stock leave, and for which commitment?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Why did stock leave, and for which commitment?'
   limitations:
-  - A replacement is shipped against a new zero-price order.
-  - A replacement without any order is possible but not yet proven.
-  keywords: []
+  - A free replacement is recorded as an exchange against a return or an announcement; a replacement without either, such as for a lost parcel, has no reviewed path yet.
+  keywords:
+  - free replacement
+  - replacement shipment
+  - no new order
+  - Ersatzlieferung
+  - kostenloser Ersatz
+  - ohne neuen Auftrag
   question_examples:
   - Free replacement shipment without a new order
   - Why did stock leave, and for which commitment?
+  - We send a free replacement without creating a new order
+  - Kostenlose Ersatzlieferung ohne neuen Auftrag
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_free_replacement_ships_without_an_order_and_explains_itself
+    note: 'Free replacement recorded as an advance customer exchange against the announced faulty unit: a document-less zero-amount promise is reserved, shipped and explained; only the original unbilled order line is reported (positive control).'
   - reference: tests/scenarios/test_international_demo.py::test_supported_edge_cases_are_source_backed_and_traceable (exchange_replacement, SO-033/SO-034)
     note: The replacement uses a new zero-price order. A commitment without a document is possible but untested.
 - id: D17
@@ -2231,21 +2240,30 @@ entries:
   section: 'Purchasing: demand and purchase order'
   title: Tiered purchase prices
   question: Stated price recorded?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Stated price recorded?'
   limitations:
-  - The unit price stated on the purchase is kept and compared.
-  - Supplier tiered prices are not yet proven.
-  keywords: []
+  - The guided supplier invoice copies the order price; an invoice at a different unit price is recorded as a document to be compared.
+  keywords:
+  - tier price
+  - volume price
+  - supplier price list
+  - Staffelpreis
+  - Mengenstaffel
+  - Lieferantenpreisliste
   question_examples:
   - Tiered purchase prices
   - Stated price recorded?
+  - Supplier charges a volume tier price on the purchase
+  - Lieferant berechnet einen Staffelpreis im Einkauf
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported
+    note: Purchase price list with a 10-unit tier; the order line takes the tier entry; the guided supplier invoice is kept as stated with no finding; a second invoice at the single-unit tier recorded through document_create is reported as invoice_price_differs.
   - reference: tests/operational_exceptions/test_derivation.py::test_invoice_price_differs; services/core.py::create_price_list_entry
     note: The stated line `unit_price` is kept and compared; supplier tiered prices are not tested (price tiers look sales-side).
 - id: G08
@@ -2476,7 +2494,7 @@ entries:
   question: Open remainder?
   status: supported
   evidence_level: executable
-  summary: 'When a supplier delivers 3 of 8 ordered units, Reality records the receipt for 3 and derives an open remainder of 5. A later receipt can fulfill that remainder without overwriting the first movement.'
+  summary: When a supplier delivers 3 of 8 ordered units, Reality records the receipt for 3 and derives an open remainder of 5. A later receipt can fulfill that remainder without overwriting the first movement.
   limitations: *id001
   keywords: []
   question_examples:
@@ -2493,21 +2511,28 @@ entries:
   section: Goods receipt and supplier deviations
   title: Under-delivery, rest never
   question: Remainder closed through a confirmed revision with a reason?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Remainder closed through a confirmed revision with a reason? An agent can prepare the revision; a person confirms the mutation.'
-  limitations:
-  - A downward revision closes the remainder.
-  - That the revision keeps its reason and who made it is not yet proven.
-  keywords: []
+  limitations: []
+  keywords:
+  - rest never comes
+  - remainder never delivered
+  - close the remainder
+  - Rest kommt nicht
+  - Restmenge abschließen
   question_examples:
   - Under-delivery, rest never
   - Remainder closed through a confirmed revision with a reason?
+  - The supplier sends less and the rest never arrives
+  - Lieferant liefert weniger und der Rest kommt nie
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_an_under_delivery_is_closed_with_its_reason_and_decision
+    note: '7 of 10 received and overdue (positive control), then a reviewed commitment_revise to 7 with a note: nothing open, not overdue, the revision keeps its note and the decision trail names the proposal.'
   - reference: tests/test_commitment_revisions.py::test_shrinking_to_what_arrived_finishes_the_promise
     note: A downward revision closes the rest; the revision's note and who made it are not asserted.
 - id: H04
@@ -2929,42 +2954,56 @@ entries:
   section: Supplier invoice and payment
   title: Several partial invoices for one purchase
   question: Sum vs purchase?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Sum vs purchase?'
-  limitations:
-  - Several partial invoices are summed against the order on the sales side.
-  - The same for purchases is not yet proven.
-  keywords: []
+  limitations: []
+  keywords:
+  - partial invoices
+  - several supplier invoices
+  - Teilrechnungen
+  - mehrere Eingangsrechnungen
   question_examples:
   - Several partial invoices for one purchase
   - Sum vs purchase?
+  - Several partial supplier invoices for one purchase order
+  - Mehrere Teilrechnungen des Lieferanten zu einer Bestellung
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_several_partial_supplier_invoices_are_summed_against_the_purchase
+    note: 8 of 10 received; guided supplier invoices of 6 (no finding) and 4 sum to 10 and billed_not_received reports 2; a third guided invoice is refused with invoice_quantity_exceeds_billable.
   - reference: tests/operational_exceptions/test_derivation.py::test_billing_sums_across_invoices
     note: Summing across invoices is tested on the sales side only.
 - id: I07
   section: Supplier invoice and payment
   title: Freight invoice from a third party for a purchase
   question: Linked to the receipt cost?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Linked to the receipt cost?'
-  limitations:
-  - Freight can be attributed to a receipt's cost.
-  - A freight invoice from a third-party carrier is not yet proven.
-  keywords: []
+  limitations: []
+  keywords:
+  - freight invoice
+  - carrier invoice
+  - landed cost
+  - Frachtrechnung
+  - Spediteur
+  - Bezugskosten
   question_examples:
   - Freight invoice from a third party for a purchase
   - Linked to the receipt cost?
+  - A carrier sends a freight invoice for goods we received
+  - Spediteur schickt eine Frachtrechnung für einen Wareneingang
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_carrier_freight_invoice_is_attributed_to_the_receipt_cost
+    note: A carrier other than the goods supplier bills freight through supplier_invoice_free_record with stated net; the owner assigns it as inbound_freight to the receipt through cost.change; the receipt's known cost is 20.00.
   - reference: tests/test_costing_services.py (inbound_freight attribution)
     note: Freight is attributed to a receipt, but the evidence is from the goods supplier; a third-party carrier invoice is untested.
 - id: I08
@@ -3369,21 +3408,30 @@ entries:
   section: Kits, bills of material and variants
   title: Variant item (size/colour) purchased together
   question: Per-variant stock?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Per-variant stock?'
   limitations:
-  - Each variant is its own item with its own stock.
-  - There is no grouping of variants under a parent item.
-  keywords: []
+  - Each variant is its own item; there is no grouping of variants under a parent item.
+  keywords:
+  - variants
+  - sizes
+  - colours
+  - Varianten
+  - Größen
+  - Farben
   question_examples:
   - Variant item (size/colour) purchased together
   - Per-variant stock?
+  - We buy several sizes of one product together
+  - Wir kaufen mehrere Größen eines Artikels zusammen ein
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_variants_bought_together_each_hold_and_reserve_their_own_stock
+    note: Three sizes on one purchase, one receipt; each size holds its own stock and reserves only its own, with a shortage only on the over-reserved size.
   - reference: tests/test_stock_at_location.py::test_pair_holds_only_this_item_at_this_location
     note: Each variant as its own item gets its own stock; there is no parent/variant grouping and no test with several variants.
 - id: K06
@@ -3513,21 +3561,29 @@ entries:
   section: E-commerce and marketplaces
   title: Pre-order of an item not yet available
   question: Commitment without stock, dated?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Commitment without stock, dated?'
   limitations:
-  - A dated order line without stock shows as a shortage or at risk.
-  - A pre-order backed by expected supply is not yet proven.
-  keywords: []
+  - The incoming supply is shown beside the shortage; it does not remove the at-risk finding before the goods arrive.
+  keywords:
+  - pre-order
+  - preorder
+  - not yet in stock
+  - Vorbestellung
+  - noch nicht lieferbar
   question_examples:
   - Pre-order of an item not yet available
   - Commitment without stock, dated?
+  - Customer pre-orders an item that is not in stock yet
+  - Kunde bestellt einen Artikel vor, der noch nicht lieferbar ist
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_pre_order_shows_its_shortage_and_the_supply_that_protects_it
+    note: Dated customer order without stock; an incoming purchase is assigned through supply_assign; readiness names insufficient_stock and supply_coverage shows 5 protecting (0 before, as control).
   - reference: tests/test_inventory_and_fulfillment.py::test_shortage_reservation_and_release; tests/operational_exceptions/test_derivation.py::test_at_risk_unchanged_before_due_date
     note: A dated commitment without stock shows as a shortage or at_risk. A pre-order backed by expected supply is not tested.
 - id: L07
@@ -4068,21 +4124,28 @@ entries:
   section: Master data and identity
   title: Item number renamed
   question: History intact (numbers are not identity)?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: History intact (numbers are not identity)?'
   limitations:
-  - An item number can be changed, and document lines keep the number they stated.
-  - That movements, stock and old documents stay intact after the change is not yet proven.
-  keywords: []
+  - Some reads show the item's current number rather than the number a document stated.
+  keywords:
+  - SKU rename
+  - item number changed
+  - Artikelnummer ändern
+  - Artikelnummer umbenannt
   question_examples:
   - Item number renamed
   - History intact (numbers are not identity)?
+  - We change an item number that already has history
+  - Wir ändern eine Artikelnummer mit bestehender Historie
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_renamed_item_number_keeps_every_record_on_the_same_item
+    note: 'After reserve, a partial shipment and an invoice, a reviewed item update renames the SKU: movements, reservations and the promise keep the item, stock is unchanged, order and invoice lines keep the old number, and the rest ships.'
   - reference: tests/test_reference_workspace.py::test_full_item_edit_changes_inventory_behaviour; tests/test_master_data_parity.py::test_cli_and_api_produce_equivalent_authoritative_lifecycle_state; tests/test_operational_previews.py::test_document_keeps_description_sku_and_received_totals
     note: SKU edits are proven and lines keep the SKU they stated; no test asserts that movements, stock and old documents stay intact after a rename.
 - id: O02
@@ -4249,21 +4312,28 @@ entries:
   section: Sources and integration
   title: Source deletes an order afterwards
   question: Commitment closed with source reason?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Commitment closed with source reason?'
   limitations:
-  - A cancellation from the source is stored and held for review; the order line stays open.
-  - Closing a line with the source as its reason is not yet proven.
-  keywords: []
+  - The shop's cancellation is held for review; a person closes the line.
+  keywords:
+  - shop cancellation
+  - order deleted in shop
+  - Stornierung im Shop
+  - Bestellung im Shop gelöscht
   question_examples:
   - Source deletes an order afterwards
   - Commitment closed with source reason?
+  - The shop cancels an order after we imported it
+  - Der Shop storniert eine Bestellung nachträglich
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason
+    note: A Shopify order is interpreted and reserved; its cancelled version is held for review; a reviewed commitment_cancel citing that source record closes the line, releases the reservation and the event carries the source and the reason.
   - reference: packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record[cancelled_at-*]
     note: A source cancellation is stored and held for review, and the commitment stays open. `cancel_commitment(source_record_id=...)` exists, but no test closes a commitment with a source reason.
 - id: P05
@@ -4312,21 +4382,29 @@ entries:
   section: Sources and integration
   title: Integration down for a day, then catches up
   question: No duplicates, silent source detected?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: No duplicates, silent source detected?'
-  limitations:
-  - A silent source is detected, and the signal clears when deliveries resume.
-  - Catching up a day's backlog without duplicates is not yet proven in the same story.
-  keywords: []
+  limitations: []
+  keywords:
+  - integration outage
+  - backlog
+  - duplicates
+  - Schnittstelle ausgefallen
+  - Rückstau
+  - Dubletten
   question_examples:
   - Integration down for a day, then catches up
   - No duplicates, silent source detected?
+  - The shop integration was down for a day and then catches up
+  - Die Shop-Schnittstelle war einen Tag aus und holt dann nach
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_day_long_outage_is_reported_and_its_backlog_arrives_without_duplicates
+    note: Daily Shopify arrivals under a controlled clock; after four quiet days silent_source reports 96 hours; the backlog of new orders plus exact repeats creates ten records, ten orders and ten promises and the silence clears.
   - reference: packages/reality-core/tests/operational_exceptions/test_derivation.py::test_silent_source, ::test_silent_source_clears_when_delivery_resumes
     note: Silence is detected and clears when deliveries resume. No test replays a day's backlog and asserts no duplicates in the same story.
 - id: P08
@@ -4460,8 +4538,8 @@ entries:
   evidence_level: reviewed
   summary: 'Reality evaluates: Every quantity and every euro reconciles at the end.'
   limitations:
-  - Prepayment release, revision, cancellation, partial receipt and damaged returns each work.
-  - One story reconciling every quantity and euro across all of them is not yet proven.
+  - A prepayment order stays unshippable until paid in full, and no reviewed release overrides that, so the story cannot ship the 80 % prepaid order.
+  - Revision, cancellation, partial receipt and damaged returns each work on their own.
   keywords: []
   question_examples:
   - Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged
@@ -4471,6 +4549,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_cannot_be_released_anyway
+    note: The 80 % prepaid order is refused by shipment_dispatch and by movement_create (spec 294 fix); spec 275 FR-005 keeps it unshippable and no reviewed release exists.
   - reference: tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside; tests/scenarios/test_b2b_operational_integrity.py::test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly; tests/scenarios/test_procure_to_pay.py::test_procure_to_pay_business_story; tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes
     note: Prepayment gating, revise/cancel, partial receipt and damaged-return pieces exist separately; no one test reconciles every quantity and euro.
 - id: R02
