@@ -1658,6 +1658,9 @@
         "values": "text"
       }
     },
+    "shop_refund_order_missing": {
+      "message": "The Shopify order of this refund has not been interpreted yet; the refund is retried."
+    },
     "source_artifact_not_found": {
       "message": "Source artifact not found."
     },

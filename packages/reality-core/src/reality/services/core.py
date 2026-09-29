@@ -12090,6 +12090,16 @@ def enqueue_source(
                     {"source_system": source_system, "source_type": source_type},
                     source_record_id=source.id,
                 )
+    if (
+        created
+        and (source_system, source_type) == ("shopify", "order")
+        and disposition != "conflict"
+    ):
+        # Spec 296: refunds are their own sources, recorded even when this
+        # version's order changes wait for review.
+        from reality.services.shop_refunds import split_refunds
+
+        split_refunds(session, tenant_id, payload, context)
     if _commit:
         session.commit()
     else:
@@ -12583,8 +12593,17 @@ def _demo_payment_interpretation(session, tenant_id, source, context):
     return interpret_payment(session, tenant_id, source, context)
 
 
+def _shopify_refund_interpretation(
+    session: OrmSession, tenant_id: str, source: SourceRecord, context: dict[str, str]
+):
+    from reality.services.shop_refunds import interpret_shop_refund
+
+    return interpret_shop_refund(session, tenant_id, source, context)
+
+
 SOURCE_INTERPRETERS = {
     ("shopify", "order"): _shopify_interpretation,
+    ("shopify", "refund"): _shopify_refund_interpretation,
     ("demo_data", "order"): _demo_interpretation,
     ("demo_data", "invoice"): _demo_invoice_interpretation,
     ("demo_data", "payment"): _demo_payment_interpretation,
@@ -12805,17 +12824,17 @@ def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any 
         return result
     except InterpretationNeedsReview as error:
         session.rollback()
-        shopify_update = isinstance(error, ShopifyUpdateNeedsReview)
+        stated_summary = getattr(error, "summary", None)
         summary = (
-            error.summary
-            if shopify_update
+            stated_summary
+            if isinstance(stated_summary, str) and stated_summary
             else "The source requires human review before Reality can be created."
         )
         review_job = _tenant_record(session, ImportJob, tenant_id, job_id)
         review_job.status = "completed"
         review_job.attempts = attempt
         review_job.error = (
-            summary if shopify_update else "Business meaning requires review."
+            summary if stated_summary else "Business meaning requires review."
         )
         review_job.completed_at = now()
         review_job.next_attempt_at = None
@@ -12830,9 +12849,8 @@ def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any 
             attempt,
             "needs_review",
             interpreter_name=f"{review_source.source_system}.{review_source.source_type}",
-            reason_code=(
-                error.reason_code if shopify_update else "ambiguous_business_meaning"
-            ),
+            reason_code=getattr(error, "reason_code", None)
+            or "ambiguous_business_meaning",
             summary=summary,
         )
         session.commit()

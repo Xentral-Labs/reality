@@ -26,9 +26,9 @@
 
 ## Phase 4: Refunds (L04, F12)
 
-- [ ] T012 [P] [FR-002] [FR-007] Failing tests: refunds split from an order version into their own sources, deduplicated across versions; a refund records one `sales_refund` document with stated amount and lines linked to the order lines and no ledger entry; a shipped `return` line is announced citing the refund (positive control), `no_restock` announces nothing; a refund before its order fails with `shop_refund_order_missing` and succeeds on retry; an unknown line id waits with `shop_refund_line_unknown`, in `core/tests/test_shop_refunds.py`
-- [ ] T013 [FR-002] [FR-007] Implement `split_refunds` and `interpret_shop_refund` in `core/src/reality/services/shop_refunds.py`, register `("shopify", "refund")`, and register the `sales_refund` document type
-- [ ] T014 [FR-002] The order inspector lists its refunds in `core/src/reality/web/api.py`, with a test
+- [x] T012 [P] [FR-002] [FR-007] Failing tests: refunds split from an order version into their own sources, deduplicated across versions; a refund records one `sales_refund` document with stated amount and lines linked to the order lines and no ledger entry; a shipped `return` line is announced citing the refund (positive control), `no_restock` announces nothing; a refund before its order fails with `shop_refund_order_missing` and succeeds on retry; an unknown line id waits with `shop_refund_line_unknown`, in `core/tests/test_shop_refunds.py`
+- [x] T013 [FR-002] [FR-007] Implement `split_refunds` and `interpret_shop_refund` in `core/src/reality/services/shop_refunds.py`, register `("shopify", "refund")`, admit `announce_customer_return` for practice companies, and add the reference-catalog exemption for refund lines (they name the Shopify line through `source_line_id`, never `billed_document_line_id`; no document-type registry exists)
+- [x] T014 [FR-002] The order inspector lists its refunds in `core/src/reality/web/api.py`, with a test
 
 ## Phase 5: Unknown items (A17)
 

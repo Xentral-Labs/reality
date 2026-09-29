@@ -88,9 +88,9 @@ refund "waits with the order").
 
 **Interpretation of one refund**:
 - Evidence: one Document of type `sales_refund` (the connector capability's target type) with the
-  refunded amount as stated (sum of `transactions[].amount` of kind `refund`, else the stated
-  total), currency, and one DocumentLine per `refund_line_items[]` entry pointing at the order
-  line through `billed_document_line_id`, with quantity and stated subtotal. No ledger posting
+  refunded amount as stated (sum of the successful `transactions[].amount` of kind `refund`), currency, and one DocumentLine per `refund_line_items[]` entry naming the Shopify line
+  through `source_line_id` (not `billed_document_line_id`, which billing readers count), with
+  quantity and stated subtotal. No ledger posting
   (Non-Goal); a `sales_refund` has no settlement control, so it is no open item.
 - Reality: for a refund line with `restock_type == "return"` on shipped quantity, a return
   announcement (`announce_customer_return`, `source_record_id` = refund source, reference

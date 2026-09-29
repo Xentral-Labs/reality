@@ -24393,3 +24393,22 @@ Object.assign(dictionaries.es, {
   "Reminded or reversed since the review": "Reclamada o anulada desde la revisión",
   Dunning: "Reclamaciones",
 });
+
+// Spec 296: Shopify refunds.
+Object.assign(dictionaries.de, {
+  Refunds: "Erstattungen",
+  "The Shopify order of this refund has not been interpreted yet; the refund is retried.":
+    "Die Shopify-Bestellung dieser Erstattung ist noch nicht interpretiert; die Erstattung wird erneut versucht.",
+});
+
+Object.assign(dictionaries.nl, {
+  Refunds: "Terugbetalingen",
+  "The Shopify order of this refund has not been interpreted yet; the refund is retried.":
+    "De Shopify-bestelling van deze terugbetaling is nog niet geïnterpreteerd; de terugbetaling wordt opnieuw geprobeerd.",
+});
+
+Object.assign(dictionaries.es, {
+  Refunds: "Reembolsos",
+  "The Shopify order of this refund has not been interpreted yet; the refund is retried.":
+    "El pedido de Shopify de este reembolso aún no se ha interpretado; el reembolso se reintentará.",
+});

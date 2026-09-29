@@ -42,6 +42,8 @@
     "reality/services/return_dispositions.py",
     "reality/services/shipment_actions.py",
     "reality/services/shipments.py",
+    "reality/services/shop_order_changes.py",
+    "reality/services/shop_refunds.py",
     "reality/services/supply_assignment_actions.py",
     "reality/services/supply_assignments.py",
     "reality/services/tenant_policy.py",

@@ -993,6 +993,7 @@ _PRACTICE_APP_OPERATIONS = frozenset(
         "emit_business_event",
         "create_commitment",
         "cancel_commitment",
+        "announce_customer_return",
         "revise_commitment",
         "revise_commitment_due_date",
         "hold_commitment",

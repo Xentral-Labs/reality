@@ -5359,6 +5359,13 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
     from reality.services.dunning_runs import invoice_dunning_rows
 
     dunning_rows = invoice_dunning_rows(session, tenant_id, document)
+    from reality.services.shop_refunds import refunds_for_order
+
+    refunds = (
+        refunds_for_order(session, tenant_id, document)
+        if document.type == "sales_order" and document.source_record_id
+        else []
+    )
     source = detail["source"]
     correction = manual_document_line_snapshot(session, tenant_id, record_id)
     pricing = {
@@ -5492,6 +5499,27 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
                     }
                 ]
                 if dunning_rows
+                else []
+            ),
+            *(
+                [
+                    {
+                        # Spec 296: refunds the shop stated for this order,
+                        # evidence of money returned, never a posting.
+                        "title": "Refunds",
+                        "rows": [
+                            inspector_row(
+                                refund.number,
+                                money(refund.gross_amount, refund.currency),
+                                kind="document",
+                                record_id=refund.id,
+                                meta=day_text(refund.document_date),
+                            )
+                            for refund in refunds
+                        ],
+                    }
+                ]
+                if refunds
                 else []
             ),
             *(
