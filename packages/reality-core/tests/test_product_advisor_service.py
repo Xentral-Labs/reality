@@ -44,7 +44,7 @@ def test_provider_prompt_constrains_workflow_roles(monkeypatch) -> None:
     assert provider is not None
     provider({"question": "What happens with a partial delivery?", "evidence": []})
 
-    assert call_count == 2
+    assert call_count == 1
 
     system = captured["system"]
     schema = captured["tools"][0]["input_schema"]
@@ -69,6 +69,7 @@ def test_provider_prompt_constrains_workflow_roles(monkeypatch) -> None:
 
 def test_provider_research_planner_selects_from_compact_catalog(monkeypatch) -> None:
     captured = {}
+    observed_timeout = None
 
     class Response:
         def raise_for_status(self) -> None:
@@ -79,13 +80,18 @@ def test_provider_research_planner_selects_from_compact_catalog(monkeypatch) -> 
                 "content": [
                     {
                         "type": "tool_use",
-                        "name": "select_product_evidence",
-                        "input": {"evidence_ids": ["evidence_journey_c03"]},
+                        "name": "select_product_capabilities",
+                        "input": {
+                            "capability_ids": ["capability_process_payment_and_release"],
+                            "search_terms": ["customer overpayment"],
+                        },
                     }
                 ]
             }
 
     def post(url, *, headers, json, timeout):
+        nonlocal observed_timeout
+        observed_timeout = timeout
         captured.update(json)
         return Response()
 
@@ -102,11 +108,58 @@ def test_provider_research_planner_selects_from_compact_catalog(monkeypatch) -> 
         }
     )
 
-    assert result == {"evidence_ids": ["evidence_journey_c03"]}
+    assert result == {
+        "capability_ids": ["capability_process_payment_and_release"],
+        "search_terms": ["customer overpayment"],
+    }
     payload = captured["messages"][0]["content"]
-    assert "evidence_journey_c03" in payload
+    assert "capability_process_payment_and_release" in payload
+    assert "evidence_journey_c03" not in payload
     assert "claim_text" not in payload
     assert "search_text" not in payload
+    assert captured["tools"][0]["input_schema"]["properties"][
+        "capability_ids"
+    ]["maxItems"] == 6
+    assert "input_schema" not in payload
+    assert observed_timeout == 3.0
+
+
+def test_provider_answer_stage_is_bounded_below_widget_timeout(monkeypatch) -> None:
+    observed_timeout = None
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self):
+            return {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "submit_product_advice",
+                        "input": {
+                            "text": "Which trading side do you mean?",
+                            "clarification": "Which trading side do you mean?",
+                            "claims": [],
+                        },
+                    }
+                ]
+            }
+
+    def post(url, *, headers, json, timeout):
+        nonlocal observed_timeout
+        observed_timeout = timeout
+        return Response()
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setattr(product_advisor.httpx, "post", post)
+
+    provider = product_advisor.product_advisor_provider()
+    assert provider is not None
+    provider({"question": "What happens with a partial delivery?", "evidence": []})
+
+    assert observed_timeout == 7.0
+    assert product_advisor._PLANNER_TIMEOUT_SECONDS + 2 * observed_timeout < 20
 
 
 def test_under_delivery_retrieves_exact_supplier_journey() -> None:
@@ -137,7 +190,10 @@ def test_semantic_plan_routes_german_overpayment_and_keeps_fallback_german() -> 
 
     def plan(envelope):
         assert envelope["detected_language"] == "de"
-        return {"evidence_ids": ["evidence_journey_c03"]}
+        return {
+            "capability_ids": ["capability_process_payment_and_release"],
+            "search_terms": ["customer overpayment"],
+        }
 
     invalid_provider.plan = plan
     answer = answer_product_question(

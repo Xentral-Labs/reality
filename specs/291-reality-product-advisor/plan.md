@@ -6,7 +6,7 @@
 
 ## Summary
 
-Extend the spec 290 Business Journey question service into one research-backed Product Advisor used by Website, Docs and authenticated Chat. Generate a versioned, public-safe knowledge artifact from existing authoritative journeys, executable catalogs and an explicit allowlist of durable public documentation. At question time, classify and decompose the request, retrieve a small evidence set, produce structured claims, validate every claim against source eligibility, status and limitations, then compose readable prose in the detected question language. Keep the existing endpoint and journey citations compatible while adding claim/source detail. Use no new database, vector store or unrestricted runtime repository access.
+Extend the spec 290 Business Journey question service into one research-backed Product Advisor used by Website, Docs and authenticated Chat. Generate a versioned, public-safe knowledge artifact and a compact Capability Map from existing authoritative journeys, business resources, executable catalogs and an explicit allowlist of durable public documentation. At question time, let the provider select a few capability identities, resolve those identities to a small server-controlled evidence set, produce structured claims, validate every claim against source eligibility, status and limitations, then compose readable prose in the detected question language. Keep the existing endpoint and journey citations compatible while adding claim/source detail. Use no new database, vector store, unrestricted runtime repository access or publicly executable business tools.
 
 ## Technical Context
 
@@ -73,19 +73,19 @@ For tenant-specific follow-ups, the existing chain remains SourceRecord → Docu
 
 ### Knowledge generation
 
-`product_advisor_sources.yaml` is an allowlist of source references and source classes, not a parallel prose database. The generator loads public Journeys, public executable vocabulary from the existing runtime catalogs and bounded sections from allowlisted durable Markdown contracts. It emits stable evidence identities, normalized search text, support semantics, visibility, source links and fingerprints. It rejects missing anchors, duplicates, internal content and stale tool/Journey references, then writes a deterministic committed JSON artifact consumed by runtime and checked by `make docs-catalog-check`.
+`product_advisor_sources.yaml` is an allowlist of source references and source classes, not a parallel prose database. The generator loads public Journeys, business-resource metadata, public executable vocabulary from the existing runtime catalogs and bounded sections from allowlisted durable Markdown contracts. It emits stable evidence identities, normalized search text, support semantics, visibility, source links and fingerprints, plus a compact generated Capability Map whose entries point back to those evidence identities and optional catalog tool names. It rejects missing anchors, duplicates, internal content and stale tool/Journey references, then writes deterministic committed JSON artifacts consumed by runtime and checked by `make docs-catalog-check`.
 
 Tests, code and private specs are not copied into the public artifact. They can constrain reviewed source status but do not independently become a public product promise.
 
 ### Question and claim pipeline
 
 1. **Classify**: deterministic signals plus the provider identify intent, detected language, subject, ambiguity and no more than six subquestions. The provider applies the same semantic ambiguity rule to all business terms. If materially different interpretations would change the workflow or conclusion, it returns one focused clarification with no claims; otherwise it continues to an evidence-backed answer. A short ambiguous follow-up inherits language from bounded history, then the surface hint. Tenant-specific requests use normal Chat tools.
-2. **Retrieve**: a provider-assisted semantic plan selects at most twelve IDs from a compact public catalog index containing identity, title, subject and source class but no claim text. The server validates every selected ID, combines it with bounded lexical fallback results and sends at most eighteen full evidence units to answer generation. Broad questions receive representative evidence for each requested concern.
+2. **Retrieve**: a provider-assisted semantic plan selects at most six IDs from the compact generated Capability Map. The map is organized around business resources and process topics and contains discovery language, evidence relationships and optional governed tool vocabulary, but no claim text, tool arguments or invocation authority. The server validates every selected capability, resolves its evidence IDs, combines them with bounded lexical fallback results and sends at most eighteen full evidence units to answer generation. Broad questions receive representative evidence for each requested concern. The complete evidence-unit index is never placed in the planning prompt.
 3. **Draft claims**: the provider returns structured claim candidates with exact evidence IDs, requested capability, support level, workflow role, limitation and optional exact tool name.
 4. **Validate**: server rules verify source visibility, citation existence, status ceiling, exact tool vocabulary, limitation preservation and prohibited confidence transitions. High-risk wording requires exact qualifying evidence. An optional second provider check may test semantic entailment but cannot raise support or authorize a source.
 5. **Compose**: only validated claims are rendered into a direct answer, workflow, tools, limits and references in the detected question language. Canonical IDs and tool names remain unchanged. Composition cannot add uncited capability statements.
 
-The provider sees only bounded history, the research task and retrieved public-safe evidence, never the complete repository.
+The provider sees only bounded history, the research task, the compact Capability Map and retrieved public-safe evidence, never the complete repository or a callable tenant/business tool surface. Planning and answer calls have bounded stage deadlines whose worst-case sum remains below the public widget timeout; timeout falls back through the same deterministic service.
 
 ### Service and adapter flow
 

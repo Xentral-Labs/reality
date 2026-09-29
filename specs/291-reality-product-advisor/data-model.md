@@ -19,6 +19,15 @@ A source must originate in a canonical catalog or explicit allowlist. Draft plan
 
 Units retain source meaning and cannot upgrade it. Tool vocabulary proves a tool's existence and mode, not an end-to-end outcome.
 
+## CapabilityMap
+
+- Deterministic schema and matching KnowledgeVersion
+- A bounded set of stable capability identities organized by business resource or process topic
+- Compact labels, descriptions and discovery aliases derived from governed sources
+- Validated EvidenceUnit relationships and optional exact governed tool names/modes
+
+The map is routing metadata, not a second product truth. It contains no claim text, tenant data, tool arguments or invocation authority. Every evidence and tool reference must resolve during generation, and runtime selection is bounded to six capability identities.
+
 ## AdvisoryQuestion
 
 - Bounded latest question and conversation history
@@ -63,3 +72,4 @@ The runner checks structured claims first and prose safety second; exact prose i
 - Informational generation time excluded from identity
 
 Equivalent public questions on the same version share evidence and support ceilings.
+The CapabilityMap and evidence artifact are regenerated together and must identify the same governed knowledge version.
