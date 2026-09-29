@@ -114,13 +114,37 @@ PROVEN_BY_STORY = {
     "A07",
     "A19",
     "C04",
+    "D16",
     "F01",
     "F05",
     "F07",
+    "G07",
+    "H03",
+    "I06",
+    "I07",
+    "K05",
+    "L06",
     "M08",
     "N01",
     "N02",
     "N06",
+    "O01",
+    "P04",
+    "P07",
+}
+#: Promoted from spec 294 on; each must be findable by an ordinary question.
+FINDABLE_BY_KEYWORD = {
+    "F07",
+    "D16",
+    "G07",
+    "H03",
+    "I06",
+    "I07",
+    "K05",
+    "L06",
+    "O01",
+    "P04",
+    "P07",
 }
 
 
@@ -137,3 +161,21 @@ def test_story_proven_journeys_cite_their_catalog_story() -> None:
 
     # Spec 293 turned the exchange from a pinned gap into a proof.
     assert "customer_exchange" in entries["F07"].internal_evidence[0].note
+
+
+def test_story_proven_journeys_can_be_found_by_ordinary_words() -> None:
+    """Spec 294 FR-005: a promotion the Guide cannot find helps nobody."""
+    entries = {entry.id: entry for entry in load_journey_catalog(_payload()).entries}
+    for journey in FINDABLE_BY_KEYWORD:
+        entry = entries[journey]
+        assert entry.keywords, journey
+        assert len(entry.question_examples) > 2, journey
+
+
+def test_the_combined_order_story_names_the_prepayment_it_cannot_release() -> None:
+    """Spec 294: R01 stays partial, and its limitation says why instead of claiming a release."""
+    entry = next(
+        item for item in load_journey_catalog(_payload()).entries if item.id == "R01"
+    )
+    assert entry.status == "partial"
+    assert any("no reviewed release" in text for text in entry.limitations)

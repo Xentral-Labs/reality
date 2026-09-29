@@ -458,3 +458,53 @@ def fulfillment_readiness(
         party_hold_ids,
         tuple(consolidated_open),
     )
+
+
+PAYMENT_BLOCKERS = (
+    "prepayment_invoice_missing",
+    "prepayment_attribution_ambiguous",
+    "prepayment_consolidated_invoice_open",
+    "prepayment_required",
+)
+
+
+def require_paid_prepayment(
+    session: Session,
+    tenant_id: str,
+    movement_type: str | None,
+    commitment_id: str | None,
+    quantity: Decimal | str,
+) -> None:
+    """A shipment a person records obeys the same payment gate as a dispatched one.
+
+    Spec 275 FR-005: a prepayment order stays non-shippable until paid, and every
+    tool reads this shared decision (FR-008). Every person-facing way of recording
+    a shipment calls this: the reviewed tool, its execution (also in practice
+    companies), the CLI and the movement endpoint. Only the payment part is
+    shared: recording goods that physically left needs no reservation. Importers
+    record what a source states and do not come through here (spec 294 FR-006).
+    """
+    if movement_type != "shipment" or not commitment_id:
+        return
+    kind = session.scalar(
+        select(Commitment.type).where(
+            Commitment.tenant_id == tenant_id, Commitment.id == commitment_id
+        )
+    )
+    if kind != "customer_delivery":
+        return
+    readiness = fulfillment_readiness(
+        session, tenant_id, commitment_id, proposed_quantity=Decimal(str(quantity))
+    )
+    payment = [code for code in readiness.blocker_codes if code in PAYMENT_BLOCKERS]
+    if payment:
+        raise InvalidOperation(
+            code="shipment_blocked_readiness",
+            values={
+                "blockers": ", ".join(payment),
+                "required_amount": readiness.required_amount,
+                "required_currency": readiness.currency,
+                "received_amount": readiness.received_amount,
+                "received_currency": readiness.currency,
+            },
+        )

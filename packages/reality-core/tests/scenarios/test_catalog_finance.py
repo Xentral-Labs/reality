@@ -985,3 +985,82 @@ def test_a_reverse_charge_supplier_invoice_keeps_its_stated_amounts(session, bus
             request_id="ER-N02-RC",
         )
     assert refused.value.code == "stated_invoice_net_tax_gross_mismatch"
+
+
+# --- R01 (spec 294) ----------------------------------------------------------
+
+
+def test_a_partly_paid_prepayment_order_cannot_be_released_anyway(session, business):
+    """R01 stays partial: the catalog story releases an 80 % prepaid order anyway.
+
+    Spec 275 FR-005 keeps a prepayment order non-shippable until paid, and no
+    reviewed release overrides that. Both shipping routes refuse, so the
+    combined story stops at its third step. The day a reviewed release exists,
+    this test turns red and R01 can be written end to end.
+    """
+    tenant = business.tenant.id
+    core.create_payment_term(
+        session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
+    )
+    core.record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "4",
+        to_location_id=business.location.id,
+    )
+    _, _, lines, commitments = _sales_order(
+        session,
+        business,
+        "SO-R01",
+        [_order_line(business, "10", "10.00", "100.00")],
+        "100.00",
+        payment_term_code="PREPAY",
+    )
+    commitment = commitments[0]
+    core.reserve(session, tenant, commitment.id)
+    invoice_id, _ = _invoice_line(
+        session, business, lines[0].id, "10", "100.00", "RE-R01"
+    )
+    core.post_customer_payment(session, tenant, invoice_id, "80.00")
+
+    readiness = fulfillment_readiness(
+        session, tenant, commitment.id, proposed_quantity=4
+    )
+    assert "prepayment_required" in readiness.blocker_codes
+    assert readiness.remaining_amount == Decimal("20.00")
+
+    for tool, arguments in (
+        (
+            "shipment_dispatch",
+            {
+                "purpose": "customer_delivery",
+                "counterparty_id": business.customer.id,
+                "movements": [
+                    {
+                        "commitment_id": commitment.id,
+                        "item_id": business.item.id,
+                        "from_location_id": business.location.id,
+                        "quantity": "4",
+                    }
+                ],
+            },
+        ),
+        (
+            "movement_create",
+            {
+                "movement_type": "shipment",
+                "item_id": business.item.id,
+                "quantity": "4",
+                "from_location_id": business.location.id,
+                "commitment_id": commitment.id,
+            },
+        ),
+    ):
+        with pytest.raises(core.InvalidOperation) as refused:
+            prepare_delivery_action(
+                session, tenant, tool, arguments, request_id=f"r01-{tool}"
+            )
+        assert refused.value.code == "shipment_blocked_readiness", tool
+    assert core.fulfilled_quantity(session, tenant, commitment.id) == 0

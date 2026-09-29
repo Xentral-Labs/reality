@@ -1566,17 +1566,25 @@
       "section": "Picking, shipment, split and merge",
       "title": "Free replacement shipment without a new order",
       "question": "Why did stock leave, and for which commitment?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Why did stock leave, and for which commitment?",
       "limitations": [
-        "A replacement is shipped against a new zero-price order.",
-        "A replacement without any order is possible but not yet proven."
+        "A free replacement is recorded as an exchange against a return or an announcement; a replacement without either, such as for a lost parcel, has no reviewed path yet."
       ],
-      "keywords": [],
+      "keywords": [
+        "free replacement",
+        "replacement shipment",
+        "no new order",
+        "Ersatzlieferung",
+        "kostenloser Ersatz",
+        "ohne neuen Auftrag"
+      ],
       "question_examples": [
         "Free replacement shipment without a new order",
-        "Why did stock leave, and for which commitment?"
+        "Why did stock leave, and for which commitment?",
+        "We send a free replacement without creating a new order",
+        "Kostenlose Ersatzlieferung ohne neuen Auftrag"
       ],
       "tools": [],
       "demo_references": [],
@@ -2292,17 +2300,25 @@
       "section": "Purchasing: demand and purchase order",
       "title": "Tiered purchase prices",
       "question": "Stated price recorded?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Stated price recorded?",
       "limitations": [
-        "The unit price stated on the purchase is kept and compared.",
-        "Supplier tiered prices are not yet proven."
+        "The guided supplier invoice copies the order price; an invoice at a different unit price is recorded as a document to be compared."
       ],
-      "keywords": [],
+      "keywords": [
+        "tier price",
+        "volume price",
+        "supplier price list",
+        "Staffelpreis",
+        "Mengenstaffel",
+        "Lieferantenpreisliste"
+      ],
       "question_examples": [
         "Tiered purchase prices",
-        "Stated price recorded?"
+        "Stated price recorded?",
+        "Supplier charges a volume tier price on the purchase",
+        "Lieferant berechnet einen Staffelpreis im Einkauf"
       ],
       "tools": [],
       "demo_references": [],
@@ -2562,17 +2578,22 @@
       "section": "Goods receipt and supplier deviations",
       "title": "Under-delivery, rest never",
       "question": "Remainder closed through a confirmed revision with a reason?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Remainder closed through a confirmed revision with a reason? An agent can prepare the revision; a person confirms the mutation.",
-      "limitations": [
-        "A downward revision closes the remainder.",
-        "That the revision keeps its reason and who made it is not yet proven."
+      "limitations": [],
+      "keywords": [
+        "rest never comes",
+        "remainder never delivered",
+        "close the remainder",
+        "Rest kommt nicht",
+        "Restmenge abschließen"
       ],
-      "keywords": [],
       "question_examples": [
         "Under-delivery, rest never",
-        "Remainder closed through a confirmed revision with a reason?"
+        "Remainder closed through a confirmed revision with a reason?",
+        "The supplier sends less and the rest never arrives",
+        "Lieferant liefert weniger und der Rest kommt nie"
       ],
       "tools": [],
       "demo_references": [],
@@ -3009,17 +3030,21 @@
       "section": "Supplier invoice and payment",
       "title": "Several partial invoices for one purchase",
       "question": "Sum vs purchase?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Sum vs purchase?",
-      "limitations": [
-        "Several partial invoices are summed against the order on the sales side.",
-        "The same for purchases is not yet proven."
+      "limitations": [],
+      "keywords": [
+        "partial invoices",
+        "several supplier invoices",
+        "Teilrechnungen",
+        "mehrere Eingangsrechnungen"
       ],
-      "keywords": [],
       "question_examples": [
         "Several partial invoices for one purchase",
-        "Sum vs purchase?"
+        "Sum vs purchase?",
+        "Several partial supplier invoices for one purchase order",
+        "Mehrere Teilrechnungen des Lieferanten zu einer Bestellung"
       ],
       "tools": [],
       "demo_references": [],
@@ -3031,17 +3056,23 @@
       "section": "Supplier invoice and payment",
       "title": "Freight invoice from a third party for a purchase",
       "question": "Linked to the receipt cost?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Linked to the receipt cost?",
-      "limitations": [
-        "Freight can be attributed to a receipt's cost.",
-        "A freight invoice from a third-party carrier is not yet proven."
+      "limitations": [],
+      "keywords": [
+        "freight invoice",
+        "carrier invoice",
+        "landed cost",
+        "Frachtrechnung",
+        "Spediteur",
+        "Bezugskosten"
       ],
-      "keywords": [],
       "question_examples": [
         "Freight invoice from a third party for a purchase",
-        "Linked to the receipt cost?"
+        "Linked to the receipt cost?",
+        "A carrier sends a freight invoice for goods we received",
+        "Spediteur schickt eine Frachtrechnung für einen Wareneingang"
       ],
       "tools": [],
       "demo_references": [],
@@ -3464,17 +3495,25 @@
       "section": "Kits, bills of material and variants",
       "title": "Variant item (size/colour) purchased together",
       "question": "Per-variant stock?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Per-variant stock?",
       "limitations": [
-        "Each variant is its own item with its own stock.",
-        "There is no grouping of variants under a parent item."
+        "Each variant is its own item; there is no grouping of variants under a parent item."
       ],
-      "keywords": [],
+      "keywords": [
+        "variants",
+        "sizes",
+        "colours",
+        "Varianten",
+        "Größen",
+        "Farben"
+      ],
       "question_examples": [
         "Variant item (size/colour) purchased together",
-        "Per-variant stock?"
+        "Per-variant stock?",
+        "We buy several sizes of one product together",
+        "Wir kaufen mehrere Größen eines Artikels zusammen ein"
       ],
       "tools": [],
       "demo_references": [],
@@ -3614,17 +3653,24 @@
       "section": "E-commerce and marketplaces",
       "title": "Pre-order of an item not yet available",
       "question": "Commitment without stock, dated?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Commitment without stock, dated?",
       "limitations": [
-        "A dated order line without stock shows as a shortage or at risk.",
-        "A pre-order backed by expected supply is not yet proven."
+        "The incoming supply is shown beside the shortage; it does not remove the at-risk finding before the goods arrive."
       ],
-      "keywords": [],
+      "keywords": [
+        "pre-order",
+        "preorder",
+        "not yet in stock",
+        "Vorbestellung",
+        "noch nicht lieferbar"
+      ],
       "question_examples": [
         "Pre-order of an item not yet available",
-        "Commitment without stock, dated?"
+        "Commitment without stock, dated?",
+        "Customer pre-orders an item that is not in stock yet",
+        "Kunde bestellt einen Artikel vor, der noch nicht lieferbar ist"
       ],
       "tools": [],
       "demo_references": [],
@@ -4184,17 +4230,23 @@
       "section": "Master data and identity",
       "title": "Item number renamed",
       "question": "History intact (numbers are not identity)?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: History intact (numbers are not identity)?",
       "limitations": [
-        "An item number can be changed, and document lines keep the number they stated.",
-        "That movements, stock and old documents stay intact after the change is not yet proven."
+        "Some reads show the item's current number rather than the number a document stated."
       ],
-      "keywords": [],
+      "keywords": [
+        "SKU rename",
+        "item number changed",
+        "Artikelnummer ändern",
+        "Artikelnummer umbenannt"
+      ],
       "question_examples": [
         "Item number renamed",
-        "History intact (numbers are not identity)?"
+        "History intact (numbers are not identity)?",
+        "We change an item number that already has history",
+        "Wir ändern eine Artikelnummer mit bestehender Historie"
       ],
       "tools": [],
       "demo_references": [],
@@ -4371,17 +4423,23 @@
       "section": "Sources and integration",
       "title": "Source deletes an order afterwards",
       "question": "Commitment closed with source reason?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Commitment closed with source reason?",
       "limitations": [
-        "A cancellation from the source is stored and held for review; the order line stays open.",
-        "Closing a line with the source as its reason is not yet proven."
+        "The shop's cancellation is held for review; a person closes the line."
       ],
-      "keywords": [],
+      "keywords": [
+        "shop cancellation",
+        "order deleted in shop",
+        "Stornierung im Shop",
+        "Bestellung im Shop gelöscht"
+      ],
       "question_examples": [
         "Source deletes an order afterwards",
-        "Commitment closed with source reason?"
+        "Commitment closed with source reason?",
+        "The shop cancels an order after we imported it",
+        "Der Shop storniert eine Bestellung nachträglich"
       ],
       "tools": [],
       "demo_references": [],
@@ -4437,17 +4495,23 @@
       "section": "Sources and integration",
       "title": "Integration down for a day, then catches up",
       "question": "No duplicates, silent source detected?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: No duplicates, silent source detected?",
-      "limitations": [
-        "A silent source is detected, and the signal clears when deliveries resume.",
-        "Catching up a day's backlog without duplicates is not yet proven in the same story."
+      "limitations": [],
+      "keywords": [
+        "integration outage",
+        "backlog",
+        "duplicates",
+        "Schnittstelle ausgefallen",
+        "Rückstau",
+        "Dubletten"
       ],
-      "keywords": [],
       "question_examples": [
         "Integration down for a day, then catches up",
-        "No duplicates, silent source detected?"
+        "No duplicates, silent source detected?",
+        "The shop integration was down for a day and then catches up",
+        "Die Shop-Schnittstelle war einen Tag aus und holt dann nach"
       ],
       "tools": [],
       "demo_references": [],
@@ -4591,8 +4655,8 @@
       "evidence_level": "reviewed",
       "summary": "Reality evaluates: Every quantity and every euro reconciles at the end.",
       "limitations": [
-        "Prepayment release, revision, cancellation, partial receipt and damaged returns each work.",
-        "One story reconciling every quantity and euro across all of them is not yet proven."
+        "A prepayment order stays unshippable until paid in full, and no reviewed release overrides that, so the story cannot ship the 80 % prepaid order.",
+        "Revision, cancellation, partial receipt and damaged returns each work on their own."
       ],
       "keywords": [],
       "question_examples": [

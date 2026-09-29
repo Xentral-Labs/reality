@@ -959,6 +959,15 @@ def _movement_create(
             quantity=str(arguments["quantity"]),
             opening_cost=opening_cost,
         ).id
+    from reality.services.fulfillment_readiness import require_paid_prepayment
+
+    require_paid_prepayment(
+        session,
+        tenant_id,
+        arguments.get("movement_type"),
+        arguments.get("commitment_id"),
+        arguments.get("quantity", "0"),
+    )
     return _entity_result("movement", record_movement(session, tenant_id, **arguments))
 
 

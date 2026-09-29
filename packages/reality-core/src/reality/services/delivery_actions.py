@@ -294,6 +294,16 @@ def review_delivery(
     else:
         result = _append_movement(session, tenant_id, **intent, validate_only=True)
         intent["quantity"] = _quantity(result["quantity"])
+        if tool == "movement_create":
+            from reality.services.fulfillment_readiness import require_paid_prepayment
+
+            require_paid_prepayment(
+                session,
+                tenant_id,
+                intent.get("movement_type"),
+                result.get("commitment_id") or intent.get("commitment_id"),
+                result["quantity"],
+            )
         effect = {
             "received"
             if intent["movement_type"] == "receipt"
