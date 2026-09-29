@@ -40,10 +40,10 @@
 
 ## Phase 5: Surfaces
 
-- [ ] T019 [P] [FR-005] [FR-012] Failing adapter tests (MCP reads and proposals, CLI, HTTP read endpoints, tenant isolation) in `core/tests/finance/test_dunning_run_adapters.py`
-- [ ] T020 [FR-005] MCP tools in `core/src/reality/mcp/catalog.py`, CLI commands, HTTP endpoints in `core/src/reality/web/api.py`, sandbox read allowlist
-- [ ] T021 [FR-005] Catalogs: `command_catalog.yaml`, `tool_catalog.json`, `action_discovery.json` and `apps/web/scripts/fixtures/action-reference.json`, `resource_catalog.yaml` (German labels), `service_refusals.json` and de/nl/es, `refusal_ratchet.json`, `business_event_catalog.yaml` and `catalogs._literal_business_events`, pinned counts
-- [ ] T022 [FR-005] Web: schedule form, run review with deselection and skip reasons, handover action, hold reason label in four languages, in `apps/web/src/finance/`; i18n audit and contract tests
+- [x] T019 [P] [FR-005] [FR-012] Failing adapter tests (MCP reads and proposals, CLI, HTTP read endpoints, tenant isolation) in `core/tests/finance/test_dunning_run_adapters.py`
+- [x] T020 [FR-005] MCP tools in `core/src/reality/mcp/catalog.py`, CLI commands, HTTP endpoints in `core/src/reality/web/api.py`, sandbox read allowlist
+- [x] T021 [FR-005] Catalogs: `command_catalog.yaml`, `tool_catalog.json`, `action_discovery.json` and `apps/web/scripts/fixtures/action-reference.json`, `resource_catalog.yaml` (German labels), `service_refusals.json` and de/nl/es, `refusal_ratchet.json`, `business_event_catalog.yaml` and `catalogs._literal_business_events`, pinned counts
+- [x] T022 [FR-005] Web: a "Dunning run" dialog on the Finance page (`apps/web/src/finance/DunningRun.tsx`) with the schedule form, run review with deselection and skip reasons, and the handover action; hold reason label in four languages; i18n audit, build and the action-discovery browser check
 
 ## Phase 6: Journey and Verification
 

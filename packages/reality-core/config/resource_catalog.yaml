@@ -203,7 +203,7 @@ resources:
         Posten vergleichen Fakturiertes mit Bezahltem oder Gutgeschriebenem, je Geschäftspartner
         und Währung.
     synonyms: [receivable, payable, open item, credit note, billing, Ausgangsrechnung, Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, Gutschrift]
-    tables: []
+    tables: [dunning_schedule_level, collection_handover, collection_handover_invoice]
     match: "invoice|credit_note|sales_credit|credit(s)?$|billed|billable|receipt_unbilled|receivable|payable|discount|open_items|open_financial|party_balances|dunning"
     views: [open_items, documents]
     projections: [open_financial_items]
@@ -668,6 +668,13 @@ labels:
       notice_detail: Mahnung anzeigen
       record_notice: Mahnung erfassen
       reverse_notice: Mahnung stornieren
+      schedule: Mahnschema anzeigen
+      set_schedule: Mahnschema festlegen
+      run_context: Mahnlauf vorbereiten
+      confirm_run: Mahnlauf bestätigen
+      record_handover: An Inkasso übergeben
+      handovers: Inkasso-Übergaben anzeigen
+      handover_detail: Inkasso-Übergabe anzeigen
       record_sales_invoice: Ausgangsrechnung erfassen
       post_sales_credit_note: Gutschrift buchen
       allocate_credit_note: Gutschrift mit Rechnung verrechnen

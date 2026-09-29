@@ -10,6 +10,7 @@ import { OpeningItems } from "../finance/OpeningItems";
 import { SettlementFlow } from "../finance/SettlementFlow";
 import { SettlementReduction } from "../finance/SettlementReduction";
 import { DunningNotice } from "../finance/DunningNotice";
+import { DunningRun } from "../finance/DunningRun";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { Wallet, Search } from "lucide-react";
@@ -156,6 +157,7 @@ function FinanceRegister({
   } | null>(null);
   const [reductionInvoice, setReductionInvoice] = useState("");
   const [dunningInvoice, setDunningInvoice] = useState("");
+  const [dunningRun, setDunningRun] = useState(false);
   const creditBalance =
     view === "open-items" && ["customer-balance", "supplier-balance"].includes(flow);
   const table = useRegisterQuery();
@@ -347,6 +349,11 @@ function FinanceRegister({
               key: "opening-positions",
               label: "Import opening positions",
               onClick: () => setOpening(true),
+            },
+            canAcceptReduction && {
+              key: "dunning-run",
+              label: "Dunning run",
+              onClick: () => setDunningRun(true),
             },
           ]}
         />
@@ -871,6 +878,16 @@ function FinanceRegister({
           tenant={tenant}
           invoice={reductionInvoice}
           close={() => setReductionInvoice("")}
+        />
+      )}
+      {dunningRun && (
+        <DunningRun
+          key={tenant}
+          tenant={tenant}
+          close={() => {
+            setDunningRun(false);
+            read.refresh();
+          }}
         />
       )}
       {dunningInvoice && (

@@ -2735,6 +2735,81 @@ MCP_TOOL_CATALOG += (
     ),
 )
 
+from reality.tools.finance import (
+    CollectionHandoverRequest,
+    DunningRunRequest,
+    DunningScheduleRequest,
+)
+
+MCP_TOOL_CATALOG += (
+    MCPToolDefinition(
+        "finance_dunning_schedule",
+        "Dunning schedule",
+        "Read the company dunning schedule: waiting days and fixed fee for levels 1 to 3, with the finance revision required to change it.",
+        "read",
+        "finance",
+        _object_schema(),
+        _read("finance.dunning.schedule"),
+    ),
+    MCPToolDefinition(
+        "finance_dunning_schedule_set_propose",
+        "Set dunning schedule",
+        "Prepare the company dunning schedule (levels 1, 2 and 3 with waiting days and a fixed fee) for owner confirmation.",
+        "propose",
+        "finance",
+        DunningScheduleRequest.model_json_schema(),
+        _propose("finance.dunning.schedule.set"),
+    ),
+    MCPToolDefinition(
+        "finance_dunning_run_context",
+        "Dunning run preview",
+        "Preview a dunning run for a date over all or selected customers: proposed notices per customer, currency and level with their fee, items ready for collection and items left out with their reason. Records nothing.",
+        "read",
+        "finance",
+        _object_schema(
+            {"run_date": STRING, "party_ids": {"type": "array", "items": STRING}},
+            required=("run_date",),
+        ),
+        _read("finance.dunning.run_context"),
+    ),
+    MCPToolDefinition(
+        "finance_dunning_run_propose",
+        "Confirm dunning run",
+        "Prepare the reviewed dunning run for owner confirmation: the selected items with their proposed level and the schedule the preview used. On confirmation, items paid, reminded or handed over since the review are skipped and named; nothing is sent.",
+        "propose",
+        "finance",
+        DunningRunRequest.model_json_schema(),
+        _propose("finance.dunning.run"),
+    ),
+    MCPToolDefinition(
+        "finance_dunning_collection_propose",
+        "Hand over to collection",
+        "Prepare handing one customer's invoices to collection after a level 3 notice, with a reason, for owner confirmation. The customer gets a delivery hold with the reason collection unless one is active.",
+        "propose",
+        "finance",
+        CollectionHandoverRequest.model_json_schema(),
+        _propose("finance.dunning.collection.handover"),
+    ),
+    MCPToolDefinition(
+        "finance_dunning_collection_handovers",
+        "Collection handovers",
+        "List collection handovers newest first with their invoices and delivery hold.",
+        "read",
+        "finance",
+        _object_schema(),
+        _read("finance.dunning.collection_handovers"),
+    ),
+    MCPToolDefinition(
+        "finance_dunning_collection_handover",
+        "Collection handover",
+        "Read one collection handover with its invoices, the last notice of each and the delivery hold.",
+        "read",
+        "finance",
+        _object_schema({"handover_id": STRING}, required=("handover_id",)),
+        _read("finance.dunning.collection_handover"),
+    ),
+)
+
 from reality.tools.finance import OpeningRequest
 
 MCP_TOOL_CATALOG += (

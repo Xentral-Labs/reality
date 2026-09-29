@@ -31,6 +31,10 @@ notice's fee (FR-003, FR-007). A JSON setting on the tenant would be read the sa
 cannot carry the level check and non-negative constraints. Rows per level keep the sequence
 explicit and the constraint simple (`level BETWEEN 1 AND 3`, unique per tenant).
 
+**Currency**: the schedule states a bare fee. A notice charges it in its own currency, so a
+customer reminded in USD pays the same number in USD. A fee per currency is not in scope; a
+company dunning in several currencies with different fees records those notices by hand.
+
 **Alternatives rejected**: per payment term or per party group (owner: one per company);
 storing the schedule on each notice (the notice already records its level and fee as stated at
 confirmation, which is all history needs).

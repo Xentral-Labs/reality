@@ -7502,6 +7502,53 @@ def get_dunning_notices(tenant_id: str, session: DatabaseSession):
         raise api_error(error) from error
 
 
+@router.get("/finance/dunning/schedule")
+def get_dunning_schedule(tenant_id: str, session: DatabaseSession):
+    from reality.services.dunning_runs import schedule
+
+    try:
+        return schedule(session, tenant_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/dunning/run-context")
+def get_dunning_run_context(
+    tenant_id: str,
+    session: DatabaseSession,
+    run_date: str,
+    party_ids: Annotated[list[str] | None, Query()] = None,
+):
+    from reality.services.dunning_runs import run_context
+
+    try:
+        return run_context(session, tenant_id, run_date=run_date, party_ids=party_ids)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/dunning/collection-handovers")
+def get_collection_handovers(tenant_id: str, session: DatabaseSession):
+    from reality.services.dunning_runs import handovers
+
+    try:
+        return {"items": handovers(session, tenant_id)}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/dunning/collection-handovers/{handover_id}")
+def get_collection_handover(
+    tenant_id: str, handover_id: str, session: DatabaseSession
+):
+    from reality.services.dunning_runs import handover_detail
+
+    try:
+        return handover_detail(session, tenant_id, handover_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.post("/finance/commercial/proposals")
 def propose_commercial_finance_action(
     tenant_id: str,

@@ -91,6 +91,7 @@ As a finance owner, I state the waiting period and fee for each of the three lev
 - Two runs confirmed one after the other for the same date do not dun an item twice; the second skips it and names the reason.
 - An item already handed to collection is never proposed again, even after the schedule changes.
 - A zero fee at a level records a notice without a fee charge, as spec 247 does.
+- The schedule's fee has no currency: a notice charges the level's fee in the notice's own currency.
 - A source-stated value is recorded as stated and never recomputed (Constitution VIII).
 
 ## Requirements *(mandatory)*
