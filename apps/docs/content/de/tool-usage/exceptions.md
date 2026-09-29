@@ -48,6 +48,7 @@ was sie auflöst und welche Agenten-Tools sie auflisten und erklären.
 | [`stale_cost_review`](#exception-stale_cost_review)                                       | Stale cost review                        | Aufträge & Erfüllung    | `normal` | Finance operations                                                                          |
 | [`negative_actual_db1`](#exception-negative_actual_db1)                                   | Negative actual DB1                      | Bereichsübergreifend    | `normal` | Sales management                                                                            |
 | [`exchange_without_return`](#exception-exchange_without_return)                           | Exchange without return                  | Aufträge & Erfüllung    | `normal` | Customer service                                                                            |
+| [`order_line_item_unknown`](#exception-order_line_item_unknown)                           | Order line with unknown item             | Aufträge & Erfüllung    | `normal` | Sales operations                                                                            |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1210,6 +1211,27 @@ it is still an ordinary step.
   `tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_leaves_a_sent_replacement_without_a_return`,
   `tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_with_an_unsent_replacement_is_not_reported`,
   `tests/operational_exceptions/test_derivation.py::test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain)
+
+## `order_line_item_unknown` — Order line with unknown item {#exception-order_line_item_unknown}
+
+A shop order names an article whose SKU matches no item of the company. The order's other lines were
+interpreted and promised; this line was kept with its stated SKU, quantity and price but without an
+item, so nothing is promised or reserved for it and it never ships. Reporting it keeps one unknown
+article from silently dropping part of an order.
+
+- **Verantwortlich:** Sales operations
+- **Aufgelöst durch:** Assigning the item the shop meant with the reviewed order_line_item_assign
+  tool, which creates the delivery promise, or cancelling the order.
+- **Schwere:** `normal`
+- **Datensatztyp:** `document_line`
+- **Spezifikation:** `296/FR-008`
+- **Nachweis:**
+  `tests/test_order_line_items.py::test_an_unknown_item_line_is_reported_until_an_item_is_assigned`,
+  `tests/test_order_line_items.py::test_a_cancelled_order_no_longer_reports_its_unknown_line`
 
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool

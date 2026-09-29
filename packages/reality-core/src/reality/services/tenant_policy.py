@@ -994,6 +994,7 @@ _PRACTICE_APP_OPERATIONS = frozenset(
         "create_commitment",
         "cancel_commitment",
         "announce_customer_return",
+        "assign_order_line_item",
         "revise_commitment",
         "revise_commitment_due_date",
         "hold_commitment",

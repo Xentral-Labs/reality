@@ -32,8 +32,8 @@
 
 ## Phase 5: Unknown items (A17)
 
-- [ ] T015 [P] [FR-008] Failing tests: an order with one unknown SKU interprets the known lines and keeps the unknown one without an item or promise; `order_line_item_unknown` reports it (positive control) and clears after assignment; the reviewed assignment creates the promise; each refusal code, in `core/tests/test_order_line_items.py` and `core/tests/operational_exceptions/test_derivation.py`
-- [ ] T016 [FR-008] Keep unknown lines in `_shopify_interpretation`; implement `preview_item_assignment` and `assign_line_item` in `core/src/reality/services/order_line_items.py`, the review in `core/src/reality/services/delivery_actions.py`, and the exception class in `core/src/reality/services/exceptions.py` with every pinned list
+- [x] T015 [P] [FR-008] Failing tests: an order with one unknown SKU interprets the known lines and keeps the unknown one without an item or promise; `order_line_item_unknown` reports it (positive control) and clears after assignment; the reviewed assignment creates the promise; each refusal code, in `core/tests/test_order_line_items.py` and `core/tests/operational_exceptions/test_derivation.py`
+- [x] T016 [FR-008] Keep unknown lines in `_shopify_interpretation`; implement `preview_item_assignment` and `assign_line_item` in `core/src/reality/services/order_line_items.py`, the review in `core/src/reality/services/delivery_actions.py`, and the exception class in `core/src/reality/services/exceptions.py` with every pinned list; rewrite `test_source_survives_interpretation_failure` (now a non-positive quantity) and the first-version retry test (now a one-time failure), which pinned the old unknown-SKU failure
 
 ## Phase 6: Surfaces
 

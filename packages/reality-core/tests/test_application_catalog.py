@@ -16,7 +16,7 @@ def test_split_catalog_is_complete_and_composed():
     catalog = load_application_catalog()
 
     assert catalog["command_count"] == 127
-    assert catalog["event_count"] == 68
+    assert catalog["event_count"] == 69
     assert catalog["projection_count"] == len(OPERATIONAL_PROJECTIONS) == 13
     assert catalog["fact_predicate_count"] == 7
     assert catalog["operational_exception_classes"] == [
@@ -60,6 +60,7 @@ def test_split_catalog_is_complete_and_composed():
         "stale_cost_review",
         "negative_actual_db1",
         "exchange_without_return",
+        "order_line_item_unknown",
     ]
     assert {entry["materialized_as"] for entry in catalog["projections"]} == set(
         OPERATIONAL_PROJECTIONS
@@ -460,13 +461,13 @@ def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
     catalog = catalogs.load_tenant_isolation_catalog()
 
     assert len(catalog.families) == 33
-    assert len(catalog.discovered_operations) == 596
+    assert len(catalog.discovered_operations) == 597
     assert (
         "reality.services.projections:refresh_projection"
         in catalog.discovered_operations
     )
     assert "reality.services.playground:start_run" in catalog.discovered_operations
-    assert sum(len(family["operations"]) for family in catalog.families) == 596
+    assert sum(len(family["operations"]) for family in catalog.families) == 597
     assert (
         "reality.services.core:validate_commitment_movement_quantity"
         in catalog.discovered_operations

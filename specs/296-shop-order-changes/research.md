@@ -119,6 +119,10 @@ the missing interpretation of the source's SKU, decided by a person.
 
 `test_source_survives_interpretation_failure` pinned the old behaviour and is rewritten.
 
+The order's promises are reached through their lines (`Commitment.document_line_id` →
+`DocumentLine.document_id`), not through `Commitment.document_id`, which the reference catalog
+keeps trace-only; the new class is a `reports_absence` consumer of `document_line_id`.
+
 ## R7. Surfaces and gates
 
 - Web: held reason codes and their lines on the import-job review; the order inspector lists its

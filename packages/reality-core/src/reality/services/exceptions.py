@@ -114,6 +114,7 @@ CLASS_ORDER = {
     "stale_cost_review": 37,
     "negative_actual_db1": 38,
     "exchange_without_return": 39,
+    "order_line_item_unknown": 40,
 }
 
 
@@ -1469,6 +1470,47 @@ def _announced_return_not_arrived_exceptions(
                     ],
                 },
                 announcement.expected_by or announcement.announced_at,
+            )
+        )
+    return result
+
+
+def _order_line_item_unknown_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """A shop order line names an article the company has not set up (spec 296).
+
+    The rest of the order was interpreted; this line has no item and so no promise,
+    and nothing ships for it until a person says which item the shop meant.
+    """
+    from reality.services.order_line_items import unknown_item_lines
+
+    result: list[OperationalException] = []
+    for row in unknown_item_lines(session, tenant_id):
+        line, order = row["line"], row["order"]
+        result.append(
+            OperationalException(
+                _identity("order_line_item_unknown", line.id),
+                "order_line_item_unknown",
+                (),
+                "normal",
+                "Order line with unknown item",
+                f"{Decimal(line.quantity):g} of {line.sku} on order {order.number} "
+                "cannot be promised",
+                "document_line",
+                line.id,
+                {
+                    "sku": line.sku,
+                    "description": line.description,
+                    "quantity": Decimal(line.quantity),
+                    "order_number": order.number,
+                },
+                {
+                    "document_line_id": line.id,
+                    "document_id": order.id,
+                    "source_record_id": order.source_record_id,
+                },
+                _document_instant(order),
             )
         )
     return result
@@ -3559,6 +3601,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "unmatched_financial_event": _financial_derivator,
     "announced_return_not_arrived": _announced_return_not_arrived_exceptions,
     "exchange_without_return": _exchange_without_return_exceptions,
+    "order_line_item_unknown": _order_line_item_unknown_exceptions,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,

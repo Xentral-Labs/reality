@@ -1203,6 +1203,27 @@
     "order_execution_unresolved": {
       "message": "An identical order execution is unresolved. Check its outcome first."
     },
+    "order_line_item_already_assigned": {
+      "message": "This order line already has its item and delivery promise."
+    },
+    "order_line_item_assign_fields_invalid": {
+      "message": "Name exactly the order line and the item to assign."
+    },
+    "order_line_item_assign_not_sales_order": {
+      "message": "Only a sales-order line can be given an item here."
+    },
+    "order_line_item_assign_unresolved": {
+      "message": "An assignment for this order line is still being recorded; reconcile it before trying again."
+    },
+    "order_line_item_location_unknown": {
+      "message": "The order names no company or location to promise this line from."
+    },
+    "order_line_item_not_item_line": {
+      "message": "This line is not an item line; shipping, service and text lines take no item."
+    },
+    "order_line_item_order_closed": {
+      "message": "The order is cancelled; nothing more will ship from it."
+    },
     "order_line_not_found": {
       "message": "Order line not found."
     },

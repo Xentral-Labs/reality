@@ -12444,15 +12444,15 @@ def _shopify_interpretation(
     _tenant_record(session, Party, tenant_id, customer_party_id)
     _tenant_record(session, Location, tenant_id, location_id)
     payload = json.loads(source.payload)
-    items_by_sku = {}
+    # Spec 296: an unknown SKU no longer stops the order. Its line is kept
+    # without an item and without a promise, and reported until a person
+    # assigns one (`order_line_item_unknown`).
+    items_by_sku: dict[str, Item | None] = {}
     for raw_line in payload.get("line_items", []):
         sku = str(raw_line.get("sku", ""))
-        item = session.scalar(
+        items_by_sku[sku] = session.scalar(
             select(Item).where(Item.tenant_id == tenant_id, Item.sku == sku)
         )
-        if item is None:
-            raise InvalidOperation(f"Unknown SKU: {sku}")
-        items_by_sku[sku] = item
 
     promised_at = next(
         (
@@ -12485,6 +12485,7 @@ def _shopify_interpretation(
     commitments_created: list[Commitment] = []
     for raw_line in payload.get("line_items", []):
         item = items_by_sku[str(raw_line.get("sku", ""))]
+        stated_sku = str(raw_line.get("sku", ""))
         quantity = positive(raw_line["quantity"])
         price = decimal(raw_line.get("price", 0))
         raw_line_id = raw_line.get("id")
@@ -12493,20 +12494,27 @@ def _shopify_interpretation(
             tenant_id=tenant_id,
             document_id=document.id,
             source_line_id=str(raw_line_id) if raw_line_id is not None else None,
-            item_id=item.id,
-            sku=item.sku,
-            description=str(raw_line.get("name") or raw_line.get("title") or item.name),
+            item_id=item.id if item else None,
+            sku=item.sku if item else stated_sku,
+            description=str(
+                raw_line.get("name")
+                or raw_line.get("title")
+                or (item.name if item else stated_sku)
+            ),
             quantity=quantity,
             unit_price=price,
             gross_amount=quantity * price,
             promised_at=promised_at,
-            unit=item.unit,
+            unit=item.unit if item else "pcs",
             requested_at=utc_datetime(promised_at),
             line_type="item",
             payload=json.dumps(raw_line, ensure_ascii=False, separators=(",", ":")),
         )
         session.add(line)
         session.flush()
+        lines.append(line)
+        if item is None:
+            continue
         commitment = Commitment(
             id=uid("com"),
             tenant_id=tenant_id,
@@ -12524,7 +12532,6 @@ def _shopify_interpretation(
             document_line_id=line.id,
         )
         session.add(commitment)
-        lines.append(line)
         commitments_created.append(commitment)
 
     session.add(

@@ -24396,18 +24396,69 @@ Object.assign(dictionaries.es, {
 
 // Spec 296: Shopify refunds.
 Object.assign(dictionaries.de, {
+  "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
+  "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
+    "Den gemeinten Artikel mit dem geprüften Werkzeug order_line_item_assign zuordnen, das die Lieferzusage anlegt, oder den Auftrag stornieren.",
+  "Only a sales-order line can be given an item here.":
+    "Nur einer Auftragszeile kann hier ein Artikel zugeordnet werden.",
+  "This line is not an item line; shipping, service and text lines take no item.":
+    "Diese Zeile ist keine Artikelzeile; Versand-, Dienstleistungs- und Textzeilen erhalten keinen Artikel.",
+  "This order line already has its item and delivery promise.":
+    "Diese Auftragszeile hat ihren Artikel und ihre Lieferzusage bereits.",
+  "The order is cancelled; nothing more will ship from it.":
+    "Der Auftrag ist storniert; daraus wird nichts mehr geliefert.",
+  "The order names no company or location to promise this line from.":
+    "Der Auftrag nennt keine Firma und keinen Lagerort, von dem diese Zeile zugesagt werden kann.",
+  "Name exactly the order line and the item to assign.":
+    "Nenne genau die Auftragszeile und den zuzuordnenden Artikel.",
+  "An assignment for this order line is still being recorded; reconcile it before trying again.":
+    "Eine Zuordnung für diese Auftragszeile wird noch erfasst; gleiche sie ab, bevor du es erneut versuchst.",
   Refunds: "Erstattungen",
   "The Shopify order of this refund has not been interpreted yet; the refund is retried.":
     "Die Shopify-Bestellung dieser Erstattung ist noch nicht interpretiert; die Erstattung wird erneut versucht.",
 });
 
 Object.assign(dictionaries.nl, {
+  "Order line with unknown item": "Orderregel met onbekend artikel",
+  "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
+    "Het bedoelde artikel toewijzen met de gecontroleerde tool order_line_item_assign, die de leverbelofte aanmaakt, of de order annuleren.",
+  "Only a sales-order line can be given an item here.":
+    "Alleen een verkooporderregel kan hier een artikel krijgen.",
+  "This line is not an item line; shipping, service and text lines take no item.":
+    "Deze regel is geen artikelregel; verzend-, dienst- en tekstregels krijgen geen artikel.",
+  "This order line already has its item and delivery promise.":
+    "Deze orderregel heeft zijn artikel en leverbelofte al.",
+  "The order is cancelled; nothing more will ship from it.":
+    "De order is geannuleerd; er wordt niets meer uit geleverd.",
+  "The order names no company or location to promise this line from.":
+    "De order noemt geen bedrijf of locatie waarvandaan deze regel kan worden toegezegd.",
+  "Name exactly the order line and the item to assign.":
+    "Noem precies de orderregel en het toe te wijzen artikel.",
+  "An assignment for this order line is still being recorded; reconcile it before trying again.":
+    "Een toewijzing voor deze orderregel wordt nog vastgelegd; stem die af voordat je het opnieuw probeert.",
   Refunds: "Terugbetalingen",
   "The Shopify order of this refund has not been interpreted yet; the refund is retried.":
     "De Shopify-bestelling van deze terugbetaling is nog niet geïnterpreteerd; de terugbetaling wordt opnieuw geprobeerd.",
 });
 
 Object.assign(dictionaries.es, {
+  "Order line with unknown item": "Línea de pedido con artículo desconocido",
+  "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
+    "Asignar el artículo que la tienda quería con la herramienta revisada order_line_item_assign, que crea el compromiso de entrega, o cancelar el pedido.",
+  "Only a sales-order line can be given an item here.":
+    "Solo se puede asignar un artículo a una línea de pedido de venta.",
+  "This line is not an item line; shipping, service and text lines take no item.":
+    "Esta línea no es de artículo; las líneas de envío, servicio o texto no llevan artículo.",
+  "This order line already has its item and delivery promise.":
+    "Esta línea de pedido ya tiene su artículo y su compromiso de entrega.",
+  "The order is cancelled; nothing more will ship from it.":
+    "El pedido está cancelado; ya no se enviará nada de él.",
+  "The order names no company or location to promise this line from.":
+    "El pedido no indica empresa ni ubicación desde la que comprometer esta línea.",
+  "Name exactly the order line and the item to assign.":
+    "Indica exactamente la línea de pedido y el artículo que se asigna.",
+  "An assignment for this order line is still being recorded; reconcile it before trying again.":
+    "Todavía se está registrando una asignación para esta línea; concílala antes de volver a intentarlo.",
   Refunds: "Reembolsos",
   "The Shopify order of this refund has not been interpreted yet; the refund is retried.":
     "El pedido de Shopify de este reembolso aún no se ha interpretado; el reembolso se reintentará.",

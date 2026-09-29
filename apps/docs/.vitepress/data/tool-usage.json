@@ -401,7 +401,8 @@
         "exception:commitment_hold_unreleased",
         "exception:party_hold_unreleased",
         "exception:stale_cost_review",
-        "exception:negative_actual_db1"
+        "exception:negative_actual_db1",
+        "exception:order_line_item_unknown"
       ],
       "tools": [
         "tool:commitments_list",
@@ -1008,7 +1009,8 @@
         "event:source_record.unmapped",
         "event:source_record.interpreted",
         "event:document.recorded",
-        "event:document.corrected"
+        "event:document.corrected",
+        "event:document_line.item_assigned"
       ],
       "workspace_actions": ["action:observe_fact", "action:hold_document_commitments"]
     },
@@ -22856,6 +22858,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "document_line.item_assigned",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -23098,6 +23101,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "document_line.item_assigned",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -23252,6 +23256,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "document_line.item_assigned",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -23313,7 +23318,8 @@
         "exception:unassigned_cost_component",
         "exception:stale_cost_review",
         "exception:negative_actual_db1",
-        "exception:exchange_without_return"
+        "exception:exchange_without_return",
+        "exception:order_line_item_unknown"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -23350,6 +23356,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "document_line.item_assigned",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -23411,7 +23418,8 @@
         "document.recorded",
         "document.corrected",
         "commitment.created",
-        "commitment.cancelled"
+        "commitment.cancelled",
+        "document_line.item_assigned"
       ],
       "clock_refresh_seconds": null,
       "service": "projection_rows",
@@ -23604,6 +23612,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "document_line.item_assigned",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -24653,6 +24662,27 @@
       "resources": ["return"]
     },
     {
+      "id": "exception:order_line_item_unknown",
+      "kind": "exception",
+      "key": "order_line_item_unknown",
+      "label": "Order line with unknown item",
+      "area": "orders",
+      "summary": "A shop order names an article whose SKU matches no item of the company. The order's other lines were interpreted and promised; this line was kept with its stated SKU, quantity and price but without an item, so nothing is promised or reserved for it and it never ships. Reporting it keeps one unknown article from silently dropping part of an order.",
+      "owner": "Sales operations",
+      "clears_through": "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.",
+      "severity": "normal",
+      "record_type": "document_line",
+      "authority": "296/FR-008",
+      "evidence": [
+        "tests/test_order_line_items.py::test_an_unknown_item_line_is_reported_until_an_item_is_assigned",
+        "tests/test_order_line_items.py::test_a_cancelled_order_no_longer_reports_its_unknown_line"
+      ],
+      "causes": [],
+      "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
+      "label_de": "Auftragszeile mit unbekanntem Artikel",
+      "resources": ["order"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -25544,6 +25574,27 @@
       "links": ["command:withdraw_return_announcement"],
       "label_de": "return.announcement_withdrawn",
       "resources": ["return"]
+    },
+    {
+      "id": "event:document_line.item_assigned",
+      "kind": "event",
+      "key": "document_line.item_assigned",
+      "label": "document_line.item_assigned",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "assign_line_item",
+      "subject": "document_line",
+      "invalidates": [
+        "Document register",
+        "Commitment register",
+        "Operational Exceptions",
+        "Fulfillment queue",
+        "Timeline",
+        "Tenant usage"
+      ],
+      "links": [],
+      "label_de": "document_line.item_assigned",
+      "resources": ["source"]
     },
     {
       "id": "event:exchange.recorded",

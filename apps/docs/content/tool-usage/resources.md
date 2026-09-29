@@ -13,7 +13,7 @@ the technical key stands beside each one.
 | [Item](#resource-item)                                           | 5     | 4       | 3                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 2                   |
-| [Order](#resource-order)                                         | 8     | 10      | 9                   |
+| [Order](#resource-order)                                         | 8     | 10      | 10                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 12      | 14                  |
@@ -282,6 +282,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Party hold not lifted](./exceptions#exception-party_hold_unreleased) (`party_hold_unreleased`)
 - [Stale cost review](./exceptions#exception-stale_cost_review) (`stale_cost_review`)
 - [Negative actual DB1](./exceptions#exception-negative_actual_db1) (`negative_actual_db1`)
+- [Order line with unknown item](./exceptions#exception-order_line_item_unknown)
+  (`order_line_item_unknown`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay)
@@ -798,8 +800,9 @@ Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping
 [`source_record.unmapped`](./events#event-source_record-unmapped),
 [`source_record.interpreted`](./events#event-source_record-interpreted),
 [`document.recorded`](./events#event-document-recorded),
-[`document.corrected`](./events#event-document-corrected) · Agent tools without a command:
-[`interpretation_coverage`](./commands#tool-interpretation_coverage)
+[`document.corrected`](./events#event-document-corrected),
+[`document_line.item_assigned`](./events#event-document_line-item_assigned) · Agent tools without a
+command: [`interpretation_coverage`](./commands#tool-interpretation_coverage)
 
 ## Company and users {#resource-company}
 

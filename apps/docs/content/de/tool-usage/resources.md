@@ -13,7 +13,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 4        | 3         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 2         |
-| [Auftrag](#resource-order)                                     | 8      | 10       | 9         |
+| [Auftrag](#resource-order)                                     | 8      | 10       | 10        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 12       | 14        |
@@ -291,6 +291,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`party_hold_unreleased`)
 - [Kostenprüfung veraltet](./exceptions#exception-stale_cost_review) (`stale_cost_review`)
 - [Tatsächlicher DB1 negativ](./exceptions#exception-negative_actual_db1) (`negative_actual_db1`)
+- [Auftragszeile mit unbekanntem Artikel](./exceptions#exception-order_line_item_unknown)
+  (`order_line_item_unknown`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay)
@@ -809,8 +811,9 @@ Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping
 [`source_record.unmapped`](./events#event-source_record-unmapped),
 [`source_record.interpreted`](./events#event-source_record-interpreted),
 [`document.recorded`](./events#event-document-recorded),
-[`document.corrected`](./events#event-document-corrected) · Agenten-Tools ohne Geschäftsaktion:
-[`interpretation_coverage`](./commands#tool-interpretation_coverage)
+[`document.corrected`](./events#event-document-corrected),
+[`document_line.item_assigned`](./events#event-document_line-item_assigned) · Agenten-Tools ohne
+Geschäftsaktion: [`interpretation_coverage`](./commands#tool-interpretation_coverage)
 
 ## Unternehmen und Benutzer {#resource-company}
 

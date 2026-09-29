@@ -100,10 +100,12 @@ def test_changed_source_creates_version_and_revises_without_replacing_interpreta
 
 
 def test_source_survives_interpretation_failure(session, business):
+    # An unknown SKU no longer fails the order (spec 296, tests/test_order_line_items.py);
+    # a quantity that is not positive still does.
     payload = json.loads(FIXTURE.read_text())
-    payload["line_items"][0]["sku"] = "UNKNOWN"
+    payload["line_items"][0]["quantity"] = 0
 
-    with pytest.raises(InvalidOperation, match="Unknown SKU"):
+    with pytest.raises(InvalidOperation, match="greater than zero"):
         ingest_shopify_order(
             session,
             business.tenant.id,
@@ -121,10 +123,24 @@ def test_source_survives_interpretation_failure(session, business):
 
 
 def test_first_version_failure_retries_but_changed_version_requires_review(
-    session, business
+    session, business, monkeypatch
 ):
+    from reality.services import core as core_services
+
     payload = json.loads(FIXTURE.read_text())
+    create_item(session, business.tenant.id, "LATER", "Later item")
     payload["line_items"][0]["sku"] = "LATER"
+    interpret = core_services.SOURCE_INTERPRETERS[("shopify", "order")]
+    failures = iter([True])
+
+    def fails_once(*args, **kwargs):
+        if next(failures, False):
+            raise InvalidOperation("Unknown SKU: LATER")
+        return interpret(*args, **kwargs)
+
+    monkeypatch.setitem(
+        core_services.SOURCE_INTERPRETERS, ("shopify", "order"), fails_once
+    )
 
     source, job = enqueue_shopify_order(
         session,
@@ -153,7 +169,6 @@ def test_first_version_failure_retries_but_changed_version_requires_review(
     )
     assert changed_source.version == 2
 
-    create_item(session, business.tenant.id, "LATER", "Later item")
     retried = process_shopify_import_job(session, business.tenant.id, job.id)
     assert retried is not None
     assert retried[1].source_record_id == source.id

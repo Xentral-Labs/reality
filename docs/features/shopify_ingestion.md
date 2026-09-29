@@ -39,6 +39,15 @@ retries record another review attempt but cannot bypass the guard. The synchrono
 Shopify helper reports the review explanation instead of claiming stale delivery or
 successful interpretation. First-version retries and already successful
 interpretation replays remain supported.
+
+An order line whose SKU matches no item no longer stops the order: the known lines
+are interpreted and promised, and the unknown line is kept as a document line without
+an item or promise. `order_line_item_unknown` reports it until a person assigns an
+item with the reviewed `order_line_item_assign` tool, which creates its promise.
+
+Refunds in an order payload are stored as their own `shopify/refund` source records
+and become `sales_refund` evidence on the order without a posting; a refund of shipped
+goods the shop says come back announces the return.
 See `specs/081-shopify-update-guard/spec.md` and `specs/296-shop-order-changes/spec.md` for the contract.
 
 A tenant-scoped SourceStream owns the external identity and points to its current
