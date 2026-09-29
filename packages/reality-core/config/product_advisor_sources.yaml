@@ -2,12 +2,18 @@ version: 1
 
 # This is an allowlist of existing public authorities, not a second prose corpus.
 documents:
+  - id: product_evaluation
+    path: apps/docs/content/getting-started/product-evaluation.md
+    title: Evaluate Reality as an ERP professional
+    public_url: https://docs.runreality.ai/getting-started/product-evaluation
+    authority: explanation
+    topics: [product evaluation, ERP evaluation, strengths, limitations, product boundaries, Produktbewertung, ERP-Berater, Staerken, Grenzen]
   - id: connector_contract
     path: apps/docs/content/integrations/connector-contract.md
     title: Connector contract
     public_url: https://docs.runreality.ai/integrations/connector-contract
     authority: technical_contract
-    topics: [integration, connector, API, import, source]
+    topics: [integration, connector, API, import, source, provenance, source file, traceability, Quelldatei, Herkunft, Nachvollziehbarkeit]
   - id: installation
     path: apps/docs/content/operations/installation.md
     title: Installation

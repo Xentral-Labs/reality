@@ -48,9 +48,9 @@ def test_provider_prompt_constrains_workflow_roles(monkeypatch) -> None:
 
     system = captured["system"]
     schema = captured["tools"][0]["input_schema"]
-    role_enum = schema["properties"]["claims"]["items"]["properties"][
-        "workflow_role"
-    ]["enum"]
+    role_enum = schema["properties"]["claims"]["items"]["properties"]["workflow_role"][
+        "enum"
+    ]
     tool_names = schema["properties"]["claims"]["items"]["properties"]["tool_names"]
     assert schema["properties"]["claims"]["minItems"] == 0
     assert schema["properties"]["claims"]["maxItems"] == 8
@@ -58,6 +58,9 @@ def test_provider_prompt_constrains_workflow_roles(monkeypatch) -> None:
     assert "materially different" in system
     assert "one focused clarification" in system
     assert "Do not use 'automatic'" in system
+    assert "requested business object primary" in system
+    assert "Tool names and vocabulary-only evidence" in system
+    assert "must not be generalized to every manually created" in system
     for role in (
         "native",
         "agent_proposal",
@@ -85,7 +88,9 @@ def test_provider_research_planner_selects_from_compact_catalog(monkeypatch) -> 
                         "type": "tool_use",
                         "name": "select_product_capabilities",
                         "input": {
-                            "capability_ids": ["capability_process_payment_and_release"],
+                            "capability_ids": [
+                                "capability_process_payment_and_release"
+                            ],
                             "search_terms": ["customer overpayment"],
                         },
                     }
@@ -120,9 +125,10 @@ def test_provider_research_planner_selects_from_compact_catalog(monkeypatch) -> 
     assert "evidence_journey_c03" not in payload
     assert "claim_text" not in payload
     assert "search_text" not in payload
-    assert captured["tools"][0]["input_schema"]["properties"][
-        "capability_ids"
-    ]["maxItems"] == 6
+    assert (
+        captured["tools"][0]["input_schema"]["properties"]["capability_ids"]["maxItems"]
+        == 6
+    )
     assert "input_schema" not in payload
     assert observed_timeout == 10.0
 
@@ -178,6 +184,56 @@ def test_german_supplier_invoice_question_retrieves_invoice_evidence() -> None:
     )
 
     assert any(item.id.startswith("evidence_journey_i") for item in evidence)
+
+
+def test_product_evaluation_question_retrieves_buyer_overview() -> None:
+    evidence = retrieve_evidence(
+        "Wo sind die wichtigsten Grenzen bei einer ERP-Bewertung von Reality?"
+    )
+
+    assert any(
+        item.id.startswith("evidence_document_product_evaluation_") for item in evidence
+    )
+
+
+def test_product_evaluation_provider_failure_keeps_balanced_overview() -> None:
+    def unavailable_provider(_envelope):
+        raise product_advisor.httpx.ReadTimeout("provider timed out")
+
+    answer = answer_product_question(
+        "Wo sind heute die wichtigsten Grenzen, wenn ich Reality als ERP-Berater bewerte?",
+        surface_language="de",
+        provider=unavailable_provider,
+    )
+
+    assert answer["outcome"] == "fallback"
+    assert answer["status"] == "partial"
+    assert "Stark ist Reality" in answer["text"]
+    assert "Wichtige Grenzen" in answer["text"]
+    assert "Drei-Wege-Abgleich" in answer["text"]
+    assert answer["citations"] == []
+    assert answer["sources"][0]["id"] == "source_document_product_evaluation"
+
+
+def test_mixed_supported_and_limited_claims_are_reported_as_partial() -> None:
+    claims = [
+        product_advisor.AdvisoryClaim(
+            id="claim_supported",
+            subject="supported capability",
+            statement="A capability is supported.",
+            support="proven",
+            workflow_role="native",
+        ),
+        product_advisor.AdvisoryClaim(
+            id="claim_gap",
+            subject="current gap",
+            statement="A different capability is not established.",
+            support="not_established",
+            workflow_role="gap",
+        ),
+    ]
+
+    assert product_advisor._aggregate_status(claims) == "partial"
 
 
 def test_german_supplier_partial_delivery_phrase_retrieves_under_delivery() -> None:
@@ -303,7 +359,9 @@ def test_explicit_supplier_partial_delivery_remains_answerable() -> None:
     assert "H02" in answer["citations"]
 
 
-def test_customer_partial_delivery_retrieval_does_not_inherit_supplier_aliases() -> None:
+def test_customer_partial_delivery_retrieval_does_not_inherit_supplier_aliases() -> (
+    None
+):
     evidence = retrieve_evidence(
         "What remains open when a customer order quantity increases after a partial delivery?"
     )
@@ -330,7 +388,10 @@ def test_partial_delivery_fallbacks_contain_concrete_erp_outcomes() -> None:
 
 
 def test_broad_and_technical_questions_are_distinguished() -> None:
-    assert classify_product_question("How would we run B2B with Reality?") == "solution_advice"
+    assert (
+        classify_product_question("How would we run B2B with Reality?")
+        == "solution_advice"
+    )
     assert (
         classify_product_question(
             "How does Reality handle B2B orders with customer credit limits?"
@@ -348,9 +409,7 @@ def test_product_intent_is_not_limited_to_fixed_can_reality_phrases() -> None:
     assert is_product_advisor_question(
         "Was passiert, wenn mein Lieferant zu wenig liefert?"
     )
-    assert is_product_advisor_question(
-        "Comment gérer une migration SAP avec Reality ?"
-    )
+    assert is_product_advisor_question("Comment gérer une migration SAP avec Reality ?")
     assert not is_product_advisor_question("Show my open customer orders")
 
 
@@ -378,9 +437,7 @@ def test_broad_b2b_provider_failure_keeps_the_complete_operating_flow() -> None:
 
     assert answer["outcome"] == "fallback"
     assert len(answer["citations"]) >= 4
-    assert {"A01", "B01", "D01", "E01", "C03", "E06"} & set(
-        answer["citations"]
-    )
+    assert {"A01", "B01", "D01", "E01", "C03", "E06"} & set(answer["citations"])
     assert "B2B-Auftrag" in answer["text"]
     for expected_stage in (
         "Auftrag",
@@ -459,7 +516,10 @@ def test_self_contained_follow_up_does_not_inherit_stale_b2b_retrieval() -> None
         surface_language="de",
         history=(
             {"role": "user", "content": "Wie bilde ich einen B2B-Auftrag ab?"},
-            {"role": "assistant", "content": "Ein B2B-Auftrag folgt mehreren Schritten."},
+            {
+                "role": "assistant",
+                "content": "Ein B2B-Auftrag folgt mehreren Schritten.",
+            },
         ),
         provider=unavailable_provider,
     )
@@ -500,7 +560,9 @@ def test_provider_cannot_claim_migration_from_unrelated_evidence() -> None:
 def test_valid_claim_returns_structured_sources() -> None:
     def provider(envelope):
         under_delivery = next(
-            item for item in envelope["evidence"] if item["id"] == "evidence_journey_h02"
+            item
+            for item in envelope["evidence"]
+            if item["id"] == "evidence_journey_h02"
         )
         return {
             "text": "Reality records the receipt and keeps the remainder open.",
@@ -534,7 +596,9 @@ def test_invalid_provider_draft_gets_one_grounded_revision() -> None:
     def provider(envelope):
         calls.append(envelope)
         under_delivery = next(
-            item for item in envelope["evidence"] if item["id"] == "evidence_journey_h02"
+            item
+            for item in envelope["evidence"]
+            if item["id"] == "evidence_journey_h02"
         )
         if len(calls) == 1:
             return {
@@ -581,7 +645,9 @@ def test_invalid_provider_draft_gets_one_grounded_revision() -> None:
 def test_unqualified_automation_word_is_safely_weakened_before_validation() -> None:
     def provider(envelope):
         under_delivery = next(
-            item for item in envelope["evidence"] if item["id"] == "evidence_journey_h02"
+            item
+            for item in envelope["evidence"]
+            if item["id"] == "evidence_journey_h02"
         )
         return {
             "text": "Reality erfasst den Eingang und berechnet den Rest automatisch.",
@@ -646,7 +712,9 @@ def test_vocabulary_evidence_support_is_normalized_to_a_narrow_proven_claim() ->
 def test_provider_cannot_invent_a_tool_name() -> None:
     def provider(envelope):
         under_delivery = next(
-            item for item in envelope["evidence"] if item["id"] == "evidence_journey_h02"
+            item
+            for item in envelope["evidence"]
+            if item["id"] == "evidence_journey_h02"
         )
         return {
             "text": "Reality keeps the remainder open. Tool: invent_everything.",
@@ -672,7 +740,9 @@ def test_provider_cannot_invent_a_tool_name() -> None:
     assert "invent_everything" not in answer["text"]
 
 
-def test_broad_provider_receives_interpretation_and_returns_only_one_clarification() -> None:
+def test_broad_provider_receives_interpretation_and_returns_only_one_clarification() -> (
+    None
+):
     captured = {}
 
     def provider(envelope):
@@ -684,7 +754,9 @@ def test_broad_provider_receives_interpretation_and_returns_only_one_clarificati
             "claims": [],
         }
 
-    answer = answer_product_question("How do I run B2B with Reality?", provider=provider)
+    answer = answer_product_question(
+        "How do I run B2B with Reality?", provider=provider
+    )
 
     assert captured["interpretation"] == "standard operating flow"
     assert len(captured["concerns"]) == 4

@@ -2958,7 +2958,10 @@
       "question": "Match confirmed?",
       "status": "partial",
       "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Match confirmed?",
+      "summary": "Reality detects specific purchase, receipt and supplier-invoice discrepancies as findings. The absence of findings is not exposed as a positive clean three-way-match result, and a complete clean three-way match is not yet proven.",
+      "localized_summaries": {
+        "de": "Reality erkennt bestimmte Abweichungen zwischen Bestellung, Wareneingang und Lieferantenrechnung als Findings. Das Fehlen von Findings wird nicht als positiv bestaetigter Drei-Wege-Abgleich ausgegeben; ein vollstaendiger sauberer Drei-Wege-Abgleich ist noch nicht belegt."
+      },
       "limitations": [
         "A match shows only as the absence of findings; there is no positive 'matched' answer.",
         "A clean three-way match is not yet proven."
@@ -2966,7 +2969,8 @@
       "keywords": [],
       "question_examples": [
         "Three-way match: purchase = receipt = invoice",
-        "Match confirmed?"
+        "Match confirmed?",
+        "Welche Abweichungen erkennt Reality bei einer Lieferantenrechnung?"
       ],
       "tools": [],
       "demo_references": [],
@@ -2980,7 +2984,10 @@
       "question": "Difference flagged?",
       "status": "supported",
       "evidence_level": "executable",
-      "summary": "Reality evaluates: Difference flagged?",
+      "summary": "Reality flags a supplier invoice quantity that exceeds the received quantity as a billed-but-not-received finding; the finding clears when the missing receipt is recorded.",
+      "localized_summaries": {
+        "de": "Reality kennzeichnet eine Lieferantenrechnungsmenge oberhalb der eingegangenen Menge als fakturiert-aber-nicht-erhalten; das Finding wird nach Erfassung des fehlenden Wareneingangs aufgehoben."
+      },
       "limitations": [],
       "keywords": [],
       "question_examples": [
@@ -2999,7 +3006,10 @@
       "question": "Price variance flagged?",
       "status": "supported",
       "evidence_level": "executable",
-      "summary": "Reality evaluates: Price variance flagged?",
+      "summary": "Reality flags a supplier invoice price that differs from the purchase price as an invoice price variance.",
+      "localized_summaries": {
+        "de": "Reality kennzeichnet einen von der Bestellung abweichenden Preis in der Lieferantenrechnung als Rechnungspreisabweichung."
+      },
       "limitations": [],
       "keywords": [],
       "question_examples": [
@@ -3018,7 +3028,10 @@
       "question": "Invoiced but not received visible?",
       "status": "supported",
       "evidence_level": "executable",
-      "summary": "Reality evaluates: Invoiced but not received visible?",
+      "summary": "Reality flags supplier-invoiced quantity for which no goods receipt exists as billed but not received; the finding clears when the receipt is recorded.",
+      "localized_summaries": {
+        "de": "Reality kennzeichnet eine bereits vom Lieferanten fakturierte Menge ohne Wareneingang als fakturiert-aber-nicht-erhalten; das Finding wird nach Erfassung des Wareneingangs aufgehoben."
+      },
       "limitations": [],
       "keywords": [],
       "question_examples": [

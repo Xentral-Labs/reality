@@ -91,3 +91,11 @@ The matrix uses automated surface contracts rather than a deployed production sm
 - Public planning has a 10-second timeout and ordinary answer attempts have a 12-second timeout. Recognized broad processes skip redundant provider planning, use their governed concern decomposition directly and receive up to 14 seconds per answer attempt. Both paths keep one validation retry below the widget's 40-second request timeout.
 - Generator/staleness, Spec Policy and Ruff checks passed. Focused Advisor, evaluation, security, API, tool and Chat tests passed: 58 tests.
 - Complete backend suite passed: 4,742 tests, 10 skipped.
+
+## German ERP-evaluator conversation — 2026-09-29
+
+- A connected ten-question local conversation covered B2B order flow, collective invoicing, customer and supplier partial delivery, invoice settlement, overpayment, returns and credits, supplier-invoice deviations, source provenance and an overall product assessment.
+- The initial run exposed stale-history retrieval, an over-broad supplier-invoice synthesis, tool-vocabulary overreach and an unusable single-Journey fallback for the overall assessment.
+- Retrieval now scopes self-contained turns independently, supplier-invoice evidence describes the exact proven findings, source-provenance research includes the connector contract, and a reviewed ERP-evaluation overview provides a balanced fallback with strengths and explicit limits.
+- The repeated affected live questions returned a bounded supplier-invoice answer with I01/I03, a source-qualified provenance answer, and a balanced partial product assessment instead of claiming that Reality cannot handle the requested topic.
+- Focused Advisor, claims, release-evaluation and generator tests passed: 53 tests. Ruff passed.

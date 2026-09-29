@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:5b379bee30136d70b3da0df513e5f56667d681fbdf5addd07d66d9263c4c4fa1",
+  "knowledge_version": "advisor-v1:sha256:3e65f048cecc836ec511e8ab0369ca759b6584aef91ab301c34f380e2de18f37",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -2563,15 +2563,41 @@
       ]
     },
     {
+      "id": "capability_document_product_evaluation",
+      "label": "Evaluate Reality as an ERP professional",
+      "description": "Public product documentation about product evaluation, ERP evaluation, strengths, limitations, product boundaries, Produktbewertung, ERP-Berater, Staerken, Grenzen.",
+      "aliases": [
+        "product evaluation",
+        "ERP evaluation",
+        "strengths",
+        "limitations",
+        "product boundaries",
+        "Produktbewertung",
+        "ERP-Berater",
+        "Staerken",
+        "Grenzen"
+      ],
+      "evidence_ids": [
+        "evidence_document_product_evaluation_1"
+      ],
+      "tools": []
+    },
+    {
       "id": "capability_document_connector_contract",
       "label": "Connector contract",
-      "description": "Public product documentation about integration, connector, API, import, source.",
+      "description": "Public product documentation about integration, connector, API, import, source, provenance, source file, traceability, Quelldatei, Herkunft, Nachvollziehbarkeit.",
       "aliases": [
         "integration",
         "connector",
         "API",
         "import",
-        "source"
+        "source",
+        "provenance",
+        "source file",
+        "traceability",
+        "Quelldatei",
+        "Herkunft",
+        "Nachvollziehbarkeit"
       ],
       "evidence_ids": [
         "evidence_document_connector_contract_1"

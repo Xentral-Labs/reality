@@ -63,6 +63,7 @@ As an ERP evaluator, I can ask whether Reality handles a specific business situa
 2. **Given** a journey is partial, **When** the answer is produced, **Then** it states the proven part and the material gap without describing the complete capability as supported, automatic or end to end.
 3. **Given** related entries exist but none proves the requested capability, **When** the answer is produced, **Then** it distinguishes adjacent available behavior from the unproven request instead of combining the entries into a stronger claim.
 4. **Given** authoritative sources disagree, **When** the advisor resolves the answer, **Then** it uses the more restrictive current conclusion and makes the discrepancy reviewable to an authorized maintainer.
+5. **Given** an evaluator asks about deviations for one business object, **When** adjacent receipt, invoice or payment evidence is also available, **Then** the answer keeps the requested object primary and labels adjacent controls separately instead of presenting them as capabilities of that object.
 
 ---
 
@@ -98,6 +99,7 @@ As a technical or procurement evaluator, I can ask about APIs, integrations, dep
 3. **Given** a plan or unimplemented specification describes future behavior, **When** the evaluator asks whether it is available, **Then** the advisor excludes it from current capability and does not expose private roadmap detail.
 4. **Given** no approved source establishes SAP or other ERP migration coverage, **When** migration is asked about, **Then** the advisor says which import or continuity primitives are actually proven and states that complete migration support is not established.
 5. **Given** a supported natural-language question in a language different from the canonical English evidence, **When** the advisor answers, **Then** it answers in the language of the question while preserving canonical identifiers, tool names and the same product conclusion.
+6. **Given** an evaluator asks for an overall assessment of Reality's strengths and current limits, **When** the advisor answers, **Then** it gives a balanced, buyer-oriented summary grounded in an approved product overview and links specific capability evidence where useful rather than selecting one unrelated gap.
 
 ---
 

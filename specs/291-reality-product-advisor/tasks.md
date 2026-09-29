@@ -153,3 +153,7 @@ All artifacts MUST be written in English. Tests precede the behavior they prove.
 - [x] T075 [US2] [FR-003] [FR-020] Add a regression proving provider failure for a broad German B2B question retains the complete governed process decomposition instead of collapsing to one adjacent journey
 - [x] T076 [US2] [FR-003] [FR-012] [FR-020] Make broad deterministic fallback aggregate representative evidence for every governed concern, tighten broad evidence selection, and verify a repeated live ERP-buyer matrix
 - [x] T077 [US2] [FR-003] [FR-013] Keep self-contained follow-up retrieval scoped to the current turn while preserving bounded history for semantic resolution, and cover monthly collective invoicing after a broad B2B answer
+- [x] T078 [US1] [FR-008] Add regression coverage that supplier-invoice advice keeps invoice variances distinct from adjacent goods-receipt deviations
+- [x] T079 [US3] [FR-005] [FR-012] Add an approved buyer-oriented product evaluation source covering Reality's demonstrated strengths, evidence model and current limits
+- [x] T080 [US1] [US3] [FR-012] Tighten consultative synthesis so tool vocabulary cannot imply broader workflow behavior and mixed evidence produces a balanced assessment
+- [x] T081 [US5] [FR-024] Run a connected ten-turn German ERP-evaluator conversation and record the observed answer-quality result
