@@ -67,6 +67,48 @@ def test_provider_prompt_constrains_workflow_roles(monkeypatch) -> None:
         assert role in role_enum
 
 
+def test_provider_research_planner_selects_from_compact_catalog(monkeypatch) -> None:
+    captured = {}
+
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self):
+            return {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "name": "select_product_evidence",
+                        "input": {"evidence_ids": ["evidence_journey_c03"]},
+                    }
+                ]
+            }
+
+    def post(url, *, headers, json, timeout):
+        captured.update(json)
+        return Response()
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setattr(product_advisor.httpx, "post", post)
+
+    provider = product_advisor.product_advisor_provider()
+    assert provider is not None
+    planner = provider.plan  # type: ignore[attr-defined]
+    result = planner(
+        {
+            "question": "Wie geht Reality mit einer Überzahlung von Kunden um?",
+            "detected_language": "de",
+        }
+    )
+
+    assert result == {"evidence_ids": ["evidence_journey_c03"]}
+    payload = captured["messages"][0]["content"]
+    assert "evidence_journey_c03" in payload
+    assert "claim_text" not in payload
+    assert "search_text" not in payload
+
+
 def test_under_delivery_retrieves_exact_supplier_journey() -> None:
     evidence = retrieve_evidence("What if a supplier delivers too little?")
 
@@ -87,6 +129,27 @@ def test_german_supplier_partial_delivery_phrase_retrieves_under_delivery() -> N
     )
 
     assert any(item.id == "evidence_journey_h02" for item in evidence)
+
+
+def test_semantic_plan_routes_german_overpayment_and_keeps_fallback_german() -> None:
+    def invalid_provider(_envelope):
+        return {"text": "Unsupported answer", "claims": []}
+
+    def plan(envelope):
+        assert envelope["detected_language"] == "de"
+        return {"evidence_ids": ["evidence_journey_c03"]}
+
+    invalid_provider.plan = plan
+    answer = answer_product_question(
+        "Wie geht Reality mit einer Überzahlung von Kunden um?",
+        provider=invalid_provider,
+    )
+
+    assert answer["outcome"] == "fallback"
+    assert answer["detected_language"] == "de"
+    assert answer["citations"] == ["C03"]
+    assert "freigegebenen Produktquellen" in answer["text"]
+    assert "Reality evaluates" not in answer["text"]
 
 
 def test_ambiguous_partial_delivery_asks_which_trading_side_is_meant() -> None:

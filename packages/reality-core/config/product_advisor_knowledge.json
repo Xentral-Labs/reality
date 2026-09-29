@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:a743c32f2066d0a0834075f8347a02f1ed63f020c0cbaf4e50c6231e9ca1747c",
+  "knowledge_version": "advisor-v1:sha256:c51542d098e19fb9ab2bba067d1300faeafe2664222a255ba58f6b63b8d74712",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -405,7 +405,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C03",
-      "fingerprint": "47f5f3b2362abb44ad004b66f8406d5462f71fe475bd947c1c6c4984e1cab092"
+      "fingerprint": "f5b12c83ce59b37b236a96b24b2bf85d3aa8c5ed787f2625e49eba0613aea360"
     },
     {
       "id": "source_journey_c04",
@@ -2842,14 +2842,14 @@
       "subject": "Payment and release",
       "title": "Prepayment overpaid",
       "search_text": "C03 Payment and release Prepayment overpaid Does a customer credit balance appear? Prepayment overpaid Does a customer credit balance appear?",
-      "claim_text": "Reality evaluates: Does a customer credit balance appear?",
+      "claim_text": "The invoice is settled and the excess remains available as customer credit for reuse or refund.",
       "support": "proven",
       "limitations": [],
       "references": [
         "C03"
       ],
       "language": "en",
-      "fingerprint": "7aaed4b4fe1c97fe15b3c0ed24cf10c49c915fe624abe787fc1ece54e0513b5e"
+      "fingerprint": "4677ccfe14f066a2fc0f201c5139524825b00dfcdd92dc6219a27e1af3c34b9c"
     },
     {
       "id": "evidence_journey_c04",

@@ -76,3 +76,10 @@ The matrix uses automated surface contracts rather than a deployed production sm
 - Spec Kit consistency analysis found no new critical, high or medium issue for the FR-013 extension; T060–T062 cover its provider contract, implementation and verification.
 - Focused Ruff checks passed.
 - Product Advisor service, security, evaluation and Business Journey regression suites passed: 49 tests.
+
+## German overpayment and fallback verification — 2026-09-28
+
+- Provider-assisted semantic catalog planning maps the German customer-overpayment question to C03 without a language-specific retrieval alias or exposing the full evidence text to the planner.
+- The C03 public claim states the tested result: the invoice settles and excess cash remains customer credit for reuse or refund.
+- Non-English deterministic fallback prose no longer exposes canonical English evidence text.
+- Focused Advisor, security, evaluation, generator and Business Journey suites passed: 54 tests.

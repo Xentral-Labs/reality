@@ -135,3 +135,4 @@ All artifacts MUST be written in English. Tests precede the behavior they prove.
 - [x] T060 [US2] [FR-013] Add provider-contract regressions for clarification-only responses, general business-term ambiguity, direct answers for immaterial missing detail, and bounded-history handling
 - [x] T061 [US2] [FR-013] Replace the partial-delivery phrase exception with the provider's general semantic ambiguity decision while retaining deterministic validation of one focused question and zero unsupported claims
 - [x] T062 [US2] [FR-013] Run focused advisor tests, static checks, Spec Kit analysis and the required repository quality gates
+- [x] T063 [US1] [US3] [FR-004] [FR-019] Add provider-assisted semantic catalog planning, prove that a German customer-overpayment question selects C03 without language-specific retrieval aliases, make non-English deterministic fallback prose language-safe, regenerate knowledge, and run required gates
