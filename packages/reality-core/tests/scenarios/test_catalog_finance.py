@@ -1204,7 +1204,12 @@ def test_three_levels_of_dunning_then_collection(session, business):
     receipt = _confirm(session, business, proposal)
     assert [notice["invoice_ids"] for notice in receipt["notices"]] == [[mueller.id]]
     assert receipt["skipped"] == [
-        {"invoice_id": weber_invoice.id, "level": 2, "code": "paid"}
+        {
+            "invoice_id": weber_invoice.id,
+            "number": "RE-N04-W",
+            "level": 2,
+            "code": "paid",
+        }
     ]
     fees = [receipt["notices"][0]["fee_document_id"]]
 

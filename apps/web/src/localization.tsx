@@ -24275,6 +24275,8 @@ Object.assign(dictionaries.es, {
 
 // Spec 295: the dunning section of an invoice's inspector.
 Object.assign(dictionaries.de, {
+  "Notices to record: {count}": "Zu erfassende Mahnungen: {count}",
+  "Notices recorded: {count}": "Erfasste Mahnungen: {count}",
   "Select the customers of a dunning run as a list.":
     "Wähle die Kunden eines Mahnlaufs als Liste aus.",
   "No longer overdue or not in this run": "Nicht mehr überfällig oder nicht in diesem Lauf",
@@ -24301,8 +24303,6 @@ Object.assign(dictionaries.de, {
     "Die aktive Liefersperre des Kunden bleibt bestehen.",
   "Waiting days": "Wartetage",
   "Not selected: {numbers}": "Nicht ausgewählt: {numbers}",
-  "{count} notices will be recorded.": "{count} Mahnungen werden erfasst.",
-  "{count} notices recorded.": "{count} Mahnungen erfasst.",
   "due on {date}": "fällig am {date}",
   "{days} days overdue": "{days} Tage überfällig",
   "last notice level {level} on {date}": "letzte Mahnung Stufe {level} am {date}",
@@ -24315,6 +24315,8 @@ Object.assign(dictionaries.de, {
 });
 
 Object.assign(dictionaries.nl, {
+  "Notices to record: {count}": "Vast te leggen aanmaningen: {count}",
+  "Notices recorded: {count}": "Vastgelegde aanmaningen: {count}",
   "Select the customers of a dunning run as a list.":
     "Kies de klanten van een aanmaningsrun als lijst.",
   "No longer overdue or not in this run": "Niet meer achterstallig of niet in deze run",
@@ -24341,8 +24343,6 @@ Object.assign(dictionaries.nl, {
     "De actieve leveringsblokkade van de klant blijft bestaan.",
   "Waiting days": "Wachtdagen",
   "Not selected: {numbers}": "Niet geselecteerd: {numbers}",
-  "{count} notices will be recorded.": "{count} aanmaningen worden vastgelegd.",
-  "{count} notices recorded.": "{count} aanmaningen vastgelegd.",
   "due on {date}": "toe op {date}",
   "{days} days overdue": "{days} dagen achterstallig",
   "last notice level {level} on {date}": "laatste aanmaning niveau {level} op {date}",
@@ -24355,6 +24355,8 @@ Object.assign(dictionaries.nl, {
 });
 
 Object.assign(dictionaries.es, {
+  "Notices to record: {count}": "Reclamaciones por registrar: {count}",
+  "Notices recorded: {count}": "Reclamaciones registradas: {count}",
   "Select the customers of a dunning run as a list.":
     "Selecciona los clientes de una ejecución de reclamaciones como lista.",
   "No longer overdue or not in this run": "Ya no está vencida o no está en esta ejecución",
@@ -24381,8 +24383,6 @@ Object.assign(dictionaries.es, {
     "Se mantiene el bloqueo de entregas activo del cliente.",
   "Waiting days": "Días de espera",
   "Not selected: {numbers}": "No seleccionadas: {numbers}",
-  "{count} notices will be recorded.": "Se registrarán {count} reclamaciones.",
-  "{count} notices recorded.": "{count} reclamaciones registradas.",
   "due on {date}": "pendiente el {date}",
   "{days} days overdue": "{days} días de retraso",
   "last notice level {level} on {date}": "última reclamación nivel {level} el {date}",

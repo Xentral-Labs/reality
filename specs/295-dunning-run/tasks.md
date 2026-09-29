@@ -49,6 +49,13 @@
 
 - [x] T023 [FR-006] [SC-001] [SC-003] N04 business story through reviewed tools (schedule, three customers at three levels, payment between runs, handover and hold) in `core/tests/scenarios/test_catalog_finance.py`
 - [x] T024 [FR-006] [SC-002] Promote N04 to `supported` in `core/config/business_journey_catalog.yaml` with evidence, tools and specific keywords; check the Guide question does not steal neighbour journeys; regenerate the product advisor knowledge
-- [ ] T025 `make docs-generate`, `make docs-catalog-check`, `make spec-check lint`, the full backend suite and the Web checks
-- [ ] T026 Manual Web check per `quickstart.md` on an isolated stack
-- [ ] T027 Review of the diff; fix findings; update `docs/scenarios/roadmap.md`
+- [x] T025 `make docs-generate`, `make docs-catalog-check`, `make spec-check lint`, the full backend suite and the Web checks
+- [x] T026 Manual Web check per `quickstart.md` on an isolated stack
+- [x] T027 Review of the diff; fix findings; update `docs/scenarios/roadmap.md`
+
+## Verification notes
+
+- T026 manual check on an isolated stack (2026-09-29, German UI): schedule set and reviewed; run on 29.09 proposed three level-1 notices and named the waiting item with its due day; a deselected customer stayed undunned; an invoice paid between review and confirmation was skipped and named; runs on 13.10 and 27.10 escalated to levels 2 and 3 with fees of 5 and 10; on 10.11 the item was ready for collection, the handover placed the delivery hold "collection" and the item was never proposed again; the invoice inspector shows the level, the last notice and the handover. Fixed from the check: skipped items named by number, count texts, localized dates.
+- Found and recorded, not fixed here: posted fees are not open items (see spec Assumptions).
+- T027 review: six confirmed findings fixed in `fix(295): review round` (web receipt cleared, stale handover revision, unbounded schedule values, coerced booleans, review and confirmation disagreeing, contract field name) plus not_due, party list and handover date normalization.
+

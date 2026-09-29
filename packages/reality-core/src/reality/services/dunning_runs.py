@@ -464,6 +464,13 @@ def run_outcome(
             ).items()
             if amount > 0
         }
+    numbers = dict(
+        session.execute(
+            select(Document.id, Document.number).where(
+                Document.tenant_id == tenant_id, Document.id.in_(chosen)
+            )
+        ).all()
+    )
     selected: dict[int, list[dict[str, Any]]] = defaultdict(list)
     skipped = []
     for invoice_id, level in chosen.items():
@@ -479,7 +486,14 @@ def run_outcome(
                 code = "not_due"
             else:
                 code = "paid"
-        skipped.append({"invoice_id": invoice_id, "level": level, "code": code})
+        skipped.append(
+            {
+                "invoice_id": invoice_id,
+                "number": numbers.get(invoice_id),
+                "level": level,
+                "code": code,
+            }
+        )
     return dict(selected), skipped
 
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { formatExactDecimal, formatMoney, t } from "../localization";
+import { formatCalendarDate, formatExactDecimal, formatMoney, t } from "../localization";
 import { ReadState } from "../unified/ReadState";
 import { useRead } from "../unified/useCompanyContext";
 
@@ -45,10 +45,11 @@ type Pending =
       id: string;
       notices: Notice[];
       notSelected: string[];
-      willSkip: { invoice_id: string; code: string }[];
+      willSkip: Skipped[];
     }
   | { kind: "collection"; id: string; party: string; items: Item[]; hold: string };
-type Receipt = { notices: { id: string }[]; skipped: { invoice_id: string; code: string }[] };
+type Skipped = { invoice_id: string; number?: string; code: string };
+type Receipt = { notices: { id: string }[]; skipped: Skipped[] };
 
 function tf(source: string, values: Record<string, string | number>): string {
   return Object.entries(values).reduce(
@@ -280,12 +281,12 @@ export function DunningRun({ tenant, close }: { tenant: string; close: () => voi
             <>
               <h3 className="mb-3 font-semibold">{t("Review dunning run")}</h3>
               <p className="mb-2">
-                {tf("{count} notices will be recorded.", { count: pending.notices.length })}
+                {tf("Notices to record: {count}", { count: pending.notices.length })}
               </p>
               <NoticeList notices={pending.notices} />
               {pending.willSkip.map((item) => (
                 <p key={item.invoice_id} className="text-sm text-fg-muted">
-                  {numberOf(item.invoice_id)}: {t(SKIPPED[item.code] ?? item.code)}
+                  {item.number ?? numberOf(item.invoice_id)}: {t(SKIPPED[item.code] ?? item.code)}
                 </p>
               ))}
               {pending.notSelected.length > 0 && (
@@ -413,10 +414,10 @@ export function DunningRun({ tenant, close }: { tenant: string; close: () => voi
               className="mb-5 rounded-lg border border-border-default p-3"
               aria-live="polite"
             >
-              <p>{tf("{count} notices recorded.", { count: receipt.notices.length })}</p>
+              <p>{tf("Notices recorded: {count}", { count: receipt.notices.length })}</p>
               {receipt.skipped.map((item) => (
                 <p key={item.invoice_id} className="text-sm text-fg-muted">
-                  {numberOf(item.invoice_id)}: {t(SKIPPED[item.code] ?? item.code)}
+                  {item.number ?? numberOf(item.invoice_id)}: {t(SKIPPED[item.code] ?? item.code)}
                 </p>
               ))}
             </section>
@@ -493,7 +494,7 @@ export function DunningRun({ tenant, close }: { tenant: string; close: () => voi
                         {item.party} · {item.number}:{" "}
                         {t(LEFT_OUT[item.code ?? ""] ?? item.code ?? "")}
                         {item.code === "waiting" && item.eligible_on
-                          ? ` (${tf("due on {date}", { date: item.eligible_on })})`
+                          ? ` (${tf("due on {date}", { date: formatCalendarDate(item.eligible_on) })})`
                           : ""}
                       </li>
                     ))}
@@ -567,7 +568,7 @@ function NoticeList({
                 {item.previous_level
                   ? ` · ${tf("last notice level {level} on {date}", {
                       level: item.previous_level,
-                      date: item.previous_notice_date ?? "",
+                      date: formatCalendarDate(item.previous_notice_date),
                     })}`
                   : ""}
               </span>

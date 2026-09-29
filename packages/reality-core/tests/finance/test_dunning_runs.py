@@ -665,7 +665,9 @@ def test_an_item_paid_after_preparation_is_skipped(session, business):
     )
 
     assert [notice["invoice_ids"] for notice in receipt["notices"]] == [[still.id]]
-    assert receipt["skipped"] == [{"invoice_id": paid.id, "level": 1, "code": "paid"}]
+    assert receipt["skipped"] == [
+        {"invoice_id": paid.id, "number": "INV-T014-PAID", "level": 1, "code": "paid"}
+    ]
 
 
 def test_a_second_run_on_the_same_day_does_not_dun_twice(session, business):
@@ -687,7 +689,12 @@ def test_a_second_run_on_the_same_day_does_not_dun_twice(session, business):
 
     assert receipt["notices"] == []
     assert receipt["skipped"] == [
-        {"invoice_id": invoice.id, "level": 1, "code": "level_changed"}
+        {
+            "invoice_id": invoice.id,
+            "number": "INV-T014-TWICE",
+            "level": 1,
+            "code": "level_changed",
+        }
     ]
     assert (
         session.scalar(
@@ -1038,7 +1045,14 @@ def test_the_run_review_names_what_confirmation_will_skip(session, business):
     assert (
         review["will_skip"]
         == receipt["skipped"]
-        == [{"invoice_id": wrong.id, "level": 2, "code": "level_changed"}]
+        == [
+            {
+                "invoice_id": wrong.id,
+                "number": "INV-T027-WRONG",
+                "level": 2,
+                "code": "level_changed",
+            }
+        ]
     )
 
 
