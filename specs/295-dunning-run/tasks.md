@@ -47,8 +47,8 @@
 
 ## Phase 6: Journey and Verification
 
-- [ ] T023 [FR-006] [SC-001] [SC-003] N04 business story through reviewed tools (schedule, three customers at three levels, payment between runs, handover and hold) in `core/tests/scenarios/test_catalog_finance.py`
-- [ ] T024 [FR-006] [SC-002] Promote N04 to `supported` in `core/config/business_journey_catalog.yaml` with evidence, tools and specific keywords; check the Guide question does not steal neighbour journeys; regenerate the product advisor knowledge
+- [x] T023 [FR-006] [SC-001] [SC-003] N04 business story through reviewed tools (schedule, three customers at three levels, payment between runs, handover and hold) in `core/tests/scenarios/test_catalog_finance.py`
+- [x] T024 [FR-006] [SC-002] Promote N04 to `supported` in `core/config/business_journey_catalog.yaml` with evidence, tools and specific keywords; check the Guide question does not steal neighbour journeys; regenerate the product advisor knowledge
 - [ ] T025 `make docs-generate`, `make docs-catalog-check`, `make spec-check lint`, the full backend suite and the Web checks
 - [ ] T026 Manual Web check per `quickstart.md` on an isolated stack
 - [ ] T027 Review of the diff; fix findings; update `docs/scenarios/roadmap.md`

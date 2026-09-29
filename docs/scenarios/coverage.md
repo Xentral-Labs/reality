@@ -8,7 +8,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 92 covered, 59 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 93 covered, 58 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -25,7 +25,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | K Kits and variants | 1 |  |  | 5 |  |
 | L E-commerce and marketplaces | 3 | 4 |  | 5 |  |
 | M B2B specifics | 1 | 3 |  | 8 |  |
-| N Finance, tax, currency | 4 | 1 |  | 1 | 2 |
+| N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 2 | 1 |  | 2 | 1 |
 | P Sources and integration | 4 | 4 |  |  |  |
 | Q Time and period | 1 | 2 |  | 2 |  |
@@ -369,7 +369,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | N01 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_intra_community_supply_keeps_its_stated_zero_tax_and_case | Customer with VAT ID; reviewed sales invoice with stated net 250 and tax 0; EU case as an internal case_code reference; nothing computed. |
 | N02 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_reverse_charge_supplier_invoice_keeps_its_stated_amounts | Reviewed supplier invoice with stated net 400 and tax 0 kept as stated; stating the self-assessed tax is refused with stated_invoice_net_tax_gross_mismatch. |
 | N03 | out | docs/features/ledger.md Non-goals (FX revaluation); specs/148-accounting-journal-cost-centers/spec.md (no accounting-currency conversion) | Foreign-currency invoices are supported, but cross-currency allocation is refused, so a EUR payment on a CHF invoice stays unallocated and no FX difference exists. |
-| N04 | partial | tests/finance/test_commercial_edges.py::test_dunning_notice_keeps_invoice_and_posts_optional_fee; ::test_mcp_dunning_context_record_detail_list_and_reverse | Manual notices at levels 1–3 with a fee exist (only levels 1 and 2 are tested); no escalation sequence, no collection handover, and runs from open items are a non-goal (spec 247). |
+| N04 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_three_levels_of_dunning_then_collection | A company schedule and reviewed runs over three customers: level 1 for all, a paid item left out, an item paid after the review skipped, levels 2 and 3 with posted fees, a collection handover with a delivery hold, and the handed-over item never dunned again (spec 295). |
 | N05 | covered | tests/finance/test_commercial_edges.py::test_bad_debt_uses_dedicated_expense_and_never_creates_credit | A partial `bad_debt` adjustment with a reason posts to bad-debt expense and creates no credit. |
 | N06 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_party_balance_counts_credits_deposits_and_prepayments_once | Open 700 (ordinary and unpaid prepayment invoice), credit 430 (credit note, deposit, unallocated prepayment), balance 270. |
 | N07 | gap | specs/148-accounting-journal-cost-centers/spec.md FR-012 (export package specified, not implemented) | No handoff or export package exists, so "reversal after export" cannot be represented; the reversal itself exists. |
