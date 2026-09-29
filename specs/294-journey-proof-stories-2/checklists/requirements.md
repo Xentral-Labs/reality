@@ -28,5 +28,5 @@
 
 ## Notes
 
-The owner asked for the next test round on 2026-09-29. Product scope acceptance is still
-required before planning. G07 and R01 carry named risks in the edge cases.
+The owner asked for the next test round on 2026-09-29. The owner accepted the scope
+the same day. G07 and R01 carry named risks in the edge cases.

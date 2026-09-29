@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: Approved
 
 **Language**: English
 
@@ -156,10 +156,11 @@ As a Guide reader, I see a journey as supported only when its story passes, and 
 - Builds on the catalog story modules and outcome rule of spec 292 and on the document-less replacement promise of spec 293 (D16).
 - Candidates come from the internal evidence notes in `business_journey_catalog.yaml` and `docs/scenarios/coverage.md`; feasibility is confirmed only by the story.
 - Existing evidence stays; each new story is added in front of it.
+- Research found a defect against spec 275 FR-005 and FR-008: the reviewed `movement_create` shipment does not consult payment readiness, so an unpaid prepayment order can be shipped through *Record shipment*. It is fixed here under FR-006 before any shipment story runs.
 
 ## Open Questions
 
-None.
+None. The owner accepted the scope on 2026-09-29.
 
 ## Requirement Traceability
 
