@@ -235,7 +235,7 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 
 | Requirement | Scenario(s) | Planned test/evidence |
 |---|---|---|
-| FR-001–FR-004, FR-012–FR-014, FR-018, DR-004 | US1, US2, US4 | Shared-service stories for narrow, broad, ambiguous and cross-surface questions |
+| FR-001–FR-004, FR-012–FR-014, FR-018, DR-004 | US1, US2, US4 | Shared-service stories for narrow, broad, ambiguous and cross-surface questions, including broad German B2B provider-failure coverage |
 | FR-005–FR-011, FR-015, FR-020, DR-001–DR-002 | US1–US3 | Source-authority, material-claim coverage, claim validation, high-risk wording and provider-failure tests |
 | FR-016–FR-017, FR-026, DR-003, DR-006–DR-007 | US3, US4 | Public non-disclosure, tenant isolation, read-only research and confirmation-boundary tests |
 | FR-019–FR-019a | US1–US4 | Language-detection, fallback and multilingual conclusion-parity evaluation |
