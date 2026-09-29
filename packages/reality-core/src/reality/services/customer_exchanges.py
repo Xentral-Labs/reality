@@ -28,6 +28,7 @@ from reality.db.core import (
     SourceRecord,
 )
 from reality.services import core
+from reality.services.core import emit_business_event
 
 ZERO = Decimal(0)
 
@@ -295,7 +296,7 @@ def record_customer_exchange(
         )
         session.add(exchange)
         session.flush()
-        core.emit_business_event(
+        emit_business_event(
             session,
             tenant_id,
             "exchange.recorded",

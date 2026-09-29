@@ -899,11 +899,12 @@
         "Lieferantenretoure",
         "Wiedereinlagerungsgebühr"
       ],
-      "tables": ["return_announcement"],
+      "tables": ["return_announcement", "customer_exchange"],
       "lists": [],
       "actions": [
         "command:announce_customer_return",
         "command:withdraw_return_announcement",
+        "command:record_customer_exchange",
         "command:record_return_disposition"
       ],
       "reads": ["command:return_announcements"],
@@ -916,8 +917,12 @@
         "exception:announced_return_not_arrived",
         "exception:exchange_without_return"
       ],
-      "tools": ["tool:return_disposition_summary"],
-      "events": ["event:return.announced", "event:return.announcement_withdrawn"],
+      "tools": ["tool:customer_exchange", "tool:return_disposition_summary"],
+      "events": [
+        "event:return.announced",
+        "event:return.announcement_withdrawn",
+        "event:exchange.recorded"
+      ],
       "workspace_actions": []
     },
     {
@@ -7960,6 +7965,82 @@
       "resources": ["item"]
     },
     {
+      "id": "tool:customer_exchange_propose",
+      "kind": "tool",
+      "key": "customer_exchange_propose",
+      "label": "Exchange returned goods",
+      "area": "cross_functional",
+      "summary": "Prepare this business mutation without changing state. Exchange returned goods. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "customer_exchange_propose [return_movement_id] [return_announcement_id] quantity replacement_item_id replacement_quantity [location_id] [due_at] reason",
+      "parameters": [
+        {
+          "name": "return_movement_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the arrived customer-return Movement whose physical outcome is being decided.",
+          "depth": 0
+        },
+        {
+          "name": "return_announcement_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the announced return these goods fulfil; absent means they were not announced.",
+          "depth": 0
+        },
+        {
+          "name": "quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        },
+        {
+          "name": "replacement_item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the Item the replacement delivers; it may differ from the returned Item.",
+          "depth": 0
+        },
+        {
+          "name": "replacement_quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity the replacement delivers, in the replacement Item's unit.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "due_at",
+          "type": "string",
+          "required": false,
+          "description": "The date the counterparty now states the promise is due on; optional if a quantity is stated.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "record_customer_exchange",
+      "projections": [],
+      "links": ["command:record_customer_exchange"],
+      "label_de": "Exchange returned goods",
+      "resources": ["return"]
+    },
+    {
       "id": "tool:return_disposition_propose",
       "kind": "tool",
       "key": "return_disposition_propose",
@@ -9276,6 +9357,66 @@
       "links": [],
       "label_de": "Movement explanation",
       "resources": ["delivery"]
+    },
+    {
+      "id": "tool:customer_exchange",
+      "kind": "tool",
+      "key": "customer_exchange",
+      "label": "Customer exchange",
+      "area": "cross_functional",
+      "summary": "Read what a customer exchange replaced, what it sent and what it still settles.",
+      "access": "read",
+      "group": "Returns",
+      "synopsis": "customer_exchange [exchange_id] [return_movement_id] [replacement_commitment_id]",
+      "parameters": [
+        {
+          "name": "exchange_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of a recorded customer exchange.",
+          "depth": 0
+        },
+        {
+          "name": "return_movement_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the arrived customer-return Movement whose physical outcome is being decided.",
+          "depth": 0
+        },
+        {
+          "name": "replacement_commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the free delivery promise an exchange sent in place of a credit.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read what a customer exchange replaced, the replacement it sent, how much of the return it settles and the decision behind it.",
+        "use_when": [
+          "Customer service or finance needs to explain why a return has no credit or a replacement has no invoice."
+        ],
+        "do_not_use_when": [
+          "A price difference between the returned and the replacement item must be settled."
+        ],
+        "limitations": [
+          "An exchange moves no money; price differences go through invoices and credit notes."
+        ],
+        "empty_result": "No exchange answers the selected return or replacement.",
+        "freshness": "Derived from the exchange, current movements and the replacement's status at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP customer_exchange",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Customer exchange",
+      "resources": ["return"]
     },
     {
       "id": "tool:return_disposition_summary",
@@ -20985,6 +21126,37 @@
       "resources": ["item"]
     },
     {
+      "id": "command:record_customer_exchange",
+      "kind": "command",
+      "key": "record_customer_exchange",
+      "label": "Exchange returned goods for a replacement",
+      "area": "cross_functional",
+      "summary": "Settles part of a customer return with a free replacement delivery to the same customer instead of a credit; no money moves.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "movement",
+        "return_announcement",
+        "commitment",
+        "document_line",
+        "source_record",
+        "customer_exchange"
+      ],
+      "writes": ["customer_exchange", "commitment", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["customer_exchange_propose"],
+      "synopses": [
+        "customer_exchange_propose [return_movement_id] [return_announcement_id] quantity replacement_item_id replacement_quantity [location_id] [due_at] reason"
+      ],
+      "events": ["exchange.recorded"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:customer_exchange_propose", "event:exchange.recorded"],
+      "label_de": "Retournierte Ware umtauschen",
+      "resources": ["return"]
+    },
+    {
       "id": "command:record_return_disposition",
       "kind": "command",
       "key": "record_return_disposition",
@@ -21901,6 +22073,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -21972,6 +22145,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22039,6 +22213,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22137,6 +22312,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22290,6 +22466,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22387,6 +22564,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22636,6 +22814,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -24523,6 +24702,28 @@
       "invalidates": ["Operational Exceptions", "Timeline", "Tenant usage"],
       "links": ["command:withdraw_return_announcement"],
       "label_de": "return.announcement_withdrawn",
+      "resources": ["return"]
+    },
+    {
+      "id": "event:exchange.recorded",
+      "kind": "event",
+      "key": "exchange.recorded",
+      "label": "exchange.recorded",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "record_customer_exchange",
+      "subject": "customer_exchange",
+      "invalidates": [
+        "Operational Exceptions",
+        "Commitment register",
+        "Timeline",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Item supply and demand",
+        "Tenant usage"
+      ],
+      "links": ["command:record_customer_exchange"],
+      "label_de": "exchange.recorded",
       "resources": ["return"]
     },
     {
@@ -70882,6 +71083,7 @@
         "command:apply_settlement",
         "command:import_opening",
         "command:assign_supply",
+        "command:record_customer_exchange",
         "command:record_return_disposition"
       ]
     },
@@ -71734,7 +71936,8 @@
         "command:correct_movement",
         "command:revise_commitment",
         "command:cancel_commitment",
-        "command:close_stale_promises"
+        "command:close_stale_promises",
+        "command:record_customer_exchange"
       ]
     },
     {

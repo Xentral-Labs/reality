@@ -19,6 +19,7 @@ all reach the same operation.
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report                | Cross-functional           | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision     | Cross-functional           | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
 | [`cost_review_draft`](#command-cost_review_draft)                                 | Draft a cost review                        | Cross-functional           | `cost_review_draft`                                                                                                                                                                          | Web · MCP · Chat                        |
+| [`record_customer_exchange`](#command-record_customer_exchange)                   | Exchange returned goods for a replacement  | Cross-functional           | `customer_exchange_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`cost_record`](#command-cost_record)                                             | Inspect retained cost record               | Cross-functional           | `cost_record_get`                                                                                                                                                                            | CLI · Web · MCP · Chat                  |
 | [`notices`](#command-notices)                                                     | List dunning notices                       | Cross-functional           | `finance_dunning_notices`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate     | Cross-functional           | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
@@ -6655,6 +6656,54 @@ identifiers.
 
 **See also:** command [`cost_review_draft`](./commands#command-cost_review_draft)
 
+### `record_customer_exchange` — Exchange returned goods for a replacement {#command-record_customer_exchange}
+
+Settles part of a customer return with a free replacement delivery to the same customer instead of a
+credit; no money moves.
+
+**Synopsis**
+
+```text
+customer_exchange_propose [return_movement_id] [return_announcement_id] quantity replacement_item_id replacement_quantity [location_id] [due_at] reason
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `movement`, `return_announcement`, `commitment`, `document_line`,
+`source_record`, `customer_exchange` · Writes: `customer_exchange`, `commitment`, `source_record`,
+`business_event` · Emits: `exchange.recorded`
+
+**See also:** agent tool [`customer_exchange_propose`](./commands#tool-customer_exchange_propose),
+event [`exchange.recorded`](./events#event-exchange-recorded)
+
+#### `customer_exchange_propose` — Exchange returned goods {#tool-customer_exchange_propose}
+
+Prepare this business mutation without changing state. Exchange returned goods. Human confirmation
+is required.
+
+**Synopsis**
+
+```text
+customer_exchange_propose [return_movement_id] [return_announcement_id] quantity replacement_item_id replacement_quantity [location_id] [due_at] reason
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                     | Type     | Required | Description                                                                                       | Default |
+| ------------------------ | -------- | -------- | ------------------------------------------------------------------------------------------------- | ------- |
+| `return_movement_id`     | `string` | no       | Opaque identity of the arrived customer-return Movement whose physical outcome is being decided.  | —       |
+| `return_announcement_id` | `string` | no       | Opaque identity of the announced return these goods fulfil; absent means they were not announced. | —       |
+| `quantity`               | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                           | —       |
+| `replacement_item_id`    | `string` | yes      | Opaque identity of the Item the replacement delivers; it may differ from the returned Item.       | —       |
+| `replacement_quantity`   | `string` | yes      | Decimal quantity the replacement delivers, in the replacement Item's unit.                        | —       |
+| `location_id`            | `string` | no       | Opaque identity of the operational or physical location.                                          | —       |
+| `due_at`                 | `string` | no       | The date the counterparty now states the promise is due on; optional if a quantity is stated.     | —       |
+| `reason`                 | `string` | yes      | Human-readable explanation for a hold, correction, or lifecycle change.                           | —       |
+
+**See also:** command [`record_customer_exchange`](./commands#command-record_customer_exchange)
+
 ### `cost_record` — Inspect retained cost record {#command-cost_record}
 
 Inspect retained evidence and decision fields with tenant-safe source links and paged exact
@@ -7547,6 +7596,7 @@ governance tools carry proposals, discovery and missing information.
 | [`reality_gap_rule_replay_propose`](#tool-reality_gap_rule_replay_propose)                       | Propose historical replay                      | `propose` | —                      |
 | [`supply_coverage`](#tool-supply_coverage)                                                       | Supply coverage                                | `read`    | —                      |
 | [`movement_explanation`](#tool-movement_explanation)                                             | Movement explanation                           | `read`    | —                      |
+| [`customer_exchange`](#tool-customer_exchange)                                                   | Customer exchange                              | `read`    | —                      |
 | [`return_disposition_summary`](#tool-return_disposition_summary)                                 | Return disposition summary                     | `read`    | —                      |
 | [`finance_credits`](#tool-finance_credits)                                                       | Available credit                               | `read`    | —                      |
 | [`finance_party_balances`](#tool-finance_party_balances)                                         | Party balances                                 | `read`    | —                      |
@@ -8692,6 +8742,46 @@ Explain why one physical stock movement exists through its shortest authoritativ
 | Name          | Type     | Required | Description                                                                      | Default |
 | ------------- | -------- | -------- | -------------------------------------------------------------------------------- | ------- |
 | `movement_id` | `string` | yes      | Opaque identity of the immutable physical Movement being inspected or corrected. | —       |
+
+### `customer_exchange` — Customer exchange {#tool-customer_exchange}
+
+Read what a customer exchange replaced, what it sent and what it still settles.
+
+**Synopsis**
+
+```text
+customer_exchange [exchange_id] [return_movement_id] [replacement_commitment_id]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query          | Kind                        | Default |
+| ----------------------- | --------------------------- | ------- |
+| `MCP customer_exchange` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read what a customer exchange replaced, the replacement it sent, how much of the return it settles
+and the decision behind it.
+
+**Use when**
+
+- Customer service or finance needs to explain why a return has no credit or a replacement has no
+  invoice.
+
+**Do not use when**
+
+- A price difference between the returned and the replacement item must be settled.
+
+**Parameters**
+
+| Name                        | Type     | Required | Description                                                                                      | Default |
+| --------------------------- | -------- | -------- | ------------------------------------------------------------------------------------------------ | ------- |
+| `exchange_id`               | `string` | no       | Opaque identity of a recorded customer exchange.                                                 | —       |
+| `return_movement_id`        | `string` | no       | Opaque identity of the arrived customer-return Movement whose physical outcome is being decided. | —       |
+| `replacement_commitment_id` | `string` | no       | Opaque identity of the free delivery promise an exchange sent in place of a credit.              | —       |
 
 ### `return_disposition_summary` — Return disposition summary {#tool-return_disposition_summary}
 

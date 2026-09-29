@@ -129,3 +129,19 @@ Precedent wiring for `return_disposition` and the gates a new tool, table and ev
   `return` resource and returns process step in `resource_catalog.yaml` (German label), de/nl/es
   label and resolution in `apps/web/src/localization.tsx`, `docs/features/operational_exceptions.md`
   and the generated Tool Usage pages follow it.
+
+## Implementation notes (T019–T024, 2026-09-29)
+
+- The Web form lives in `ShipmentActions.tsx` beside `return_disposition` rather than a new
+  `ExchangeCard`; the discovery entry's form key equals the tool (`customer_exchange_record`),
+  placed globally and in `warehouse.movements`, as the disposition is.
+- The sandbox read allowlist is unchanged: the precedent `/return-dispositions/{id}` is not in it.
+- `record_customer_exchange` joins `DELIVERY_WRITERS`, so the delivery lock is taken before the
+  exchangeable quantity is read rather than only at `create_commitment`.
+- The event scan in `catalogs._literal_business_events` only sees bare `emit_business_event(...)`
+  calls; the service imports the function directly so the scan finds `exchange.recorded`.
+- The `return` resource matches `return|exchange` and lists `customer_exchange`; no unrelated
+  entry moved into it.
+- The T014–T016 class also needed `exchange_without_return: reports_absence` for
+  `Movement.return_announcement_id` in `reference_catalog.yaml` and the pinned counts in
+  `test_reference_integrity.py`; that test was red from cac5c3af until this change.

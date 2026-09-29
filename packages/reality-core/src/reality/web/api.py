@@ -1153,6 +1153,7 @@ class DeliveryActionPrepare(ApiModel):
         "shipment_event_supersede",
         "supply_assign",
         "return_disposition",
+        "customer_exchange_record",
     ]
     arguments: dict[str, Any]
     session_id: str | None = None
@@ -1251,6 +1252,16 @@ def get_invoice_billable_positions(
             currency=currency,
             limit=limit,
         )
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/customer-exchanges/{exchange_id}")
+def get_customer_exchange(tenant_id: str, exchange_id: str, session: DatabaseSession):
+    from reality.services.customer_exchanges import customer_exchange_detail
+
+    try:
+        return customer_exchange_detail(session, tenant_id, exchange_id=exchange_id)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

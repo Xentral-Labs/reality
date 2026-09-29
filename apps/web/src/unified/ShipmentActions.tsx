@@ -12,6 +12,7 @@ type ShipmentTool = Extract<
   | "shipment_event_record"
   | "shipment_event_supersede"
   | "return_disposition"
+  | "customer_exchange_record"
 >;
 
 export function ShipmentActions({
@@ -55,6 +56,9 @@ export function ShipmentActions({
   const [disposition, setDisposition] = useState("restock");
   const [quantity, setQuantity] = useState("");
   const [destination, setDestination] = useState("");
+  const [announcement, setAnnouncement] = useState("");
+  const [replacementItem, setReplacementItem] = useState("");
+  const [replacementQuantity, setReplacementQuantity] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -87,7 +91,17 @@ export function ShipmentActions({
   const prepare = () =>
     run(async () => {
       let arguments_: Record<string, unknown>;
-      if (tool === "return_disposition") {
+      if (tool === "customer_exchange_record") {
+        arguments_ = {
+          ...(announcement
+            ? { return_announcement_id: announcement }
+            : { return_movement_id: returnMovement }),
+          quantity,
+          replacement_item_id: replacementItem,
+          replacement_quantity: replacementQuantity || quantity,
+          reason,
+        };
+      } else if (tool === "return_disposition") {
         arguments_ = {
           return_movement_id: returnMovement,
           disposition,
@@ -165,7 +179,36 @@ export function ShipmentActions({
 
       {!proposal && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {tool === "return_disposition" ? (
+          {tool === "customer_exchange_record" ? (
+            <>
+              <Field label="Return movement ID" value={returnMovement} set={setReturnMovement} />
+              <Field
+                label="Return announcement ID (instead, to exchange in advance)"
+                value={announcement}
+                set={setAnnouncement}
+              />
+              <Field label="Exchanged quantity" value={quantity} set={setQuantity} />
+              <Field label="Replacement item ID" value={replacementItem} set={setReplacementItem} />
+              <Field
+                label="Replacement quantity"
+                value={replacementQuantity}
+                set={setReplacementQuantity}
+              />
+              <label className="text-sm sm:col-span-2">
+                {t("Reason")}
+                <textarea
+                  className="br-control mt-2 w-full"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </label>
+              <p className="rounded-lg bg-surface-muted p-3 text-sm text-fg-muted sm:col-span-2">
+                {t(
+                  "The replacement goes to the same customer free of charge. No credit note, invoice, payment or refund is created.",
+                )}
+              </p>
+            </>
+          ) : tool === "return_disposition" ? (
             <>
               <Field label="Return movement ID" value={returnMovement} set={setReturnMovement} />
               <Select
@@ -282,7 +325,42 @@ export function ShipmentActions({
           <p className="font-medium text-fg-strong">
             {t(proposal.status === "executed" ? "Recorded" : "Review exact effect")}
           </p>
-          {tool === "return_disposition" && proposal.review ? (
+          {tool === "customer_exchange_record" && proposal.review ? (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <section className="rounded-lg bg-surface-muted p-4">
+                <h3 className="font-medium text-fg-strong">{t("Returned goods")}</h3>
+                <p className="mt-2 text-sm">
+                  {t("Exchanged quantity")}: {String(proposal.review.effect.exchanged_quantity)}
+                </p>
+                <p className="mt-1 text-sm">
+                  {t("Replaced delivery")}: {String(proposal.review.effect.returned_delivery_id)}
+                </p>
+              </section>
+              <section className="rounded-lg bg-surface-muted p-4">
+                <h3 className="font-medium text-fg-strong">{t("Replacement delivery")}</h3>
+                <p className="mt-2 text-sm">
+                  {t("Item")}:{" "}
+                  {String(
+                    (proposal.review.effect.replacement as unknown as Record<string, unknown>)
+                      .item_id,
+                  )}
+                </p>
+                <p className="mt-1 text-sm">
+                  {t("Quantity")}:{" "}
+                  {String(
+                    (proposal.review.effect.replacement as unknown as Record<string, unknown>)
+                      .quantity,
+                  )}
+                </p>
+              </section>
+              <section className="rounded-lg border border-border-default p-4 sm:col-span-2">
+                <h3 className="font-medium text-fg-strong">{t("Money")}</h3>
+                <p className="mt-2 text-sm text-fg-muted">
+                  {t("No money moves: nothing is invoiced, credited, paid or refunded.")}
+                </p>
+              </section>
+            </div>
+          ) : tool === "return_disposition" && proposal.review ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <section className="rounded-lg bg-surface-muted p-4">
                 <h3 className="font-medium text-fg-strong">{t("Physical goods")}</h3>

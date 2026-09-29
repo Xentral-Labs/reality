@@ -299,8 +299,8 @@ resources:
         endet in Gutschrift oder Erstattung. Jeder Schritt ist ein eigener Datensatz, deshalb ist
         eine Retoure sichtbar, die zwischen zwei Schritten hängt.
     synonyms: [RMA, return announcement, restocking fee, Retourenankündigung, Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr]
-    tables: [return_announcement]
-    match: "return"
+    tables: [return_announcement, customer_exchange]
+    match: "return|exchange"
     views: []
     projections: []
     exceptions: [return_unresolved, announced_return_not_arrived, exchange_without_return, returned_not_credited, credited_not_returned, supplier_return_not_credited, supplier_credit_not_returned]
@@ -692,6 +692,7 @@ labels:
       supersede_shipment_event: Sendungsereignis korrigieren
       assign_supply: Zulauf einem Kundenbedarf zuordnen
       record_return_disposition: Retourenware entscheiden
+      record_customer_exchange: Retournierte Ware umtauschen
     views:
       commitments: Verpflichtungen
       inventory: Bestand

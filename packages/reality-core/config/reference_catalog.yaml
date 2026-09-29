@@ -69,6 +69,7 @@ records:
       meaning: Which announced customer return these goods fulfil. Added by spec 099.
       consumers:
         announced_return_not_arrived: reports_absence
+        exchange_without_return: reports_absence
         unexplained_movement: reports_absence
     commitment_id:
       classification: trace_only

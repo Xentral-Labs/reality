@@ -18,6 +18,7 @@ from reality.db.core import ROOT, Base
 from reality.services import artifacts as artifact_service_module
 from reality.services import core as service_module
 from reality.services import credit_actions as credit_action_service_module
+from reality.services import customer_exchanges as customer_exchange_service_module
 from reality.services import demo_data as demo_data_service_module
 from reality.services import dunning as dunning_service_module
 from reality.services import file_interpreters as interpreter_service_module
@@ -1090,6 +1091,8 @@ def _service(name: str) -> Any:
         return getattr(supply_assignment_service_module, name)
     if hasattr(return_disposition_service_module, name):
         return getattr(return_disposition_service_module, name)
+    if hasattr(customer_exchange_service_module, name):
+        return getattr(customer_exchange_service_module, name)
     if hasattr(finance_target_mapping_module, name):
         return getattr(finance_target_mapping_module, name)
     if hasattr(finance_source_mapping_module, name):
@@ -1258,6 +1261,7 @@ def _literal_business_events() -> set[str]:
         service_module,
         costing_service_module,
         credit_actions,
+        customer_exchange_service_module,
         dunning_service_module,
         finance_account_service_module,
         finance_reference_service_module,

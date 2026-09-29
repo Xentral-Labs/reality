@@ -26,6 +26,7 @@ DELIVERY_WRITERS = frozenset(
         "create_commitment",
         "revise_commitment",
         "cancel_commitment",
+        "record_customer_exchange",
         "hold_commitment",
         "release_commitment_hold",
         "hold_document_commitments",

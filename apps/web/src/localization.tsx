@@ -1061,6 +1061,17 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Ready: "Bereit",
     "Company created": "Firma angelegt",
     "Waiting to start": "Wartet auf den Start",
+    "Exchange returned goods": "Retournierte Ware umtauschen",
+    "Exchanged quantity": "Umgetauschte Menge",
+    Money: "Geld",
+    "No money moves: nothing is invoiced, credited, paid or refunded.":
+      "Es fließt kein Geld: Nichts wird berechnet, gutgeschrieben, bezahlt oder erstattet.",
+    "Replacement item ID": "Artikel-ID des Ersatzes",
+    "Replacement quantity": "Ersatzmenge",
+    "Return announcement ID (instead, to exchange in advance)":
+      "ID der Retourenankündigung (stattdessen, für einen Vorab-Umtausch)",
+    "The replacement goes to the same customer free of charge. No credit note, invoice, payment or refund is created.":
+      "Der Ersatz geht kostenlos an denselben Kunden. Es entsteht keine Gutschrift, keine Rechnung, keine Zahlung und keine Erstattung.",
     "Decide returned goods": "Retournierte Ware entscheiden",
     "After confirmation": "Nach der Bestätigung",
     "Assign incoming supply": "Eingehenden Zugang zuordnen",
@@ -3160,6 +3171,17 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Ready: "Gereed",
     "Company created": "Bedrijf aangemaakt",
     "Waiting to start": "Wacht op de start",
+    "Exchange returned goods": "Retourgoederen omruilen",
+    "Exchanged quantity": "Omgeruilde hoeveelheid",
+    Money: "Geld",
+    "No money moves: nothing is invoiced, credited, paid or refunded.":
+      "Er gaat geen geld om: niets wordt gefactureerd, gecrediteerd, betaald of terugbetaald.",
+    "Replacement item ID": "Artikel-ID van de vervanging",
+    "Replacement quantity": "Vervangende hoeveelheid",
+    "Return announcement ID (instead, to exchange in advance)":
+      "ID van de retouraankondiging (in plaats daarvan, om vooraf om te ruilen)",
+    "The replacement goes to the same customer free of charge. No credit note, invoice, payment or refund is created.":
+      "De vervanging gaat kosteloos naar dezelfde klant. Er ontstaat geen creditnota, factuur, betaling of terugbetaling.",
     "Decide returned goods": "Retourgoederen beoordelen",
     "After confirmation": "Na bevestiging",
     "Assign incoming supply": "Binnenkomende voorraad toewijzen",
@@ -4954,6 +4976,17 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Ready: "Listo",
     "Company created": "Empresa creada",
     "Waiting to start": "Esperando el inicio",
+    "Exchange returned goods": "Cambiar la mercancía devuelta",
+    "Exchanged quantity": "Cantidad cambiada",
+    Money: "Dinero",
+    "No money moves: nothing is invoiced, credited, paid or refunded.":
+      "No se mueve dinero: no se factura, abona, paga ni reembolsa nada.",
+    "Replacement item ID": "ID del artículo de reposición",
+    "Replacement quantity": "Cantidad de reposición",
+    "Return announcement ID (instead, to exchange in advance)":
+      "ID del aviso de devolución (en su lugar, para cambiar por adelantado)",
+    "The replacement goes to the same customer free of charge. No credit note, invoice, payment or refund is created.":
+      "La reposición va al mismo cliente sin coste. No se crea ningún abono, factura, pago ni reembolso.",
     "Decide returned goods": "Decidir sobre la mercancía devuelta",
     "After confirmation": "Después de confirmar",
     "Assign incoming supply": "Asignar suministro entrante",

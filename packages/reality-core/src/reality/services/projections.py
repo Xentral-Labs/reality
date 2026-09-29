@@ -1852,6 +1852,7 @@ TIMELINE_SILENT_SUBJECTS = frozenset(
         "shipment",
         "shipment_event",
         "return_announcement",
+        "customer_exchange",
         "settlement_allocation",
         "financial_component",
     }

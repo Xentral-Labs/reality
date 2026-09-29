@@ -13,6 +13,8 @@
     "reality/services/cost_review_draft.py",
     "reality/services/costing.py",
     "reality/services/credit_actions.py",
+    "reality/services/customer_exchange_actions.py",
+    "reality/services/customer_exchanges.py",
     "reality/services/customer_hold_actions.py",
     "reality/services/delivery_actions.py",
     "reality/services/delivery_reads.py",

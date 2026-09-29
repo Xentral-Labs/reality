@@ -20,7 +20,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 14       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
-| [Retoure](#resource-return)                                    | 0      | 3        | 7         |
+| [Retoure](#resource-return)                                    | 0      | 4        | 7         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 11       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
@@ -697,6 +697,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 - [Retoure ankündigen](./commands#command-announce_customer_return) (`announce_customer_return`)
 - [Retourenankündigung zurückziehen](./commands#command-withdraw_return_announcement)
   (`withdraw_return_announcement`)
+- [Retournierte Ware umtauschen](./commands#command-record_customer_exchange)
+  (`record_customer_exchange`)
 - [Retourenware entscheiden](./commands#command-record_return_disposition)
   (`record_return_disposition`)
 
@@ -723,10 +725,12 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Kundenretouren](./processes#process-returns)
 
-**Darunter:** Tabellen: `return_announcement` · Events:
+**Darunter:** Tabellen: `return_announcement`, `customer_exchange` · Events:
 [`return.announced`](./events#event-return-announced),
-[`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn) · Agenten-Tools ohne
-Geschäftsaktion: [`return_disposition_summary`](./commands#tool-return_disposition_summary)
+[`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn),
+[`exchange.recorded`](./events#event-exchange-recorded) · Agenten-Tools ohne Geschäftsaktion:
+[`customer_exchange`](./commands#tool-customer_exchange),
+[`return_disposition_summary`](./commands#tool-return_disposition_summary)
 
 ## Beleg und Quellsystem {#resource-source}
 

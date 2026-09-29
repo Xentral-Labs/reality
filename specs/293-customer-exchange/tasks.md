@@ -55,15 +55,15 @@
 
 **Independent Test**: `pytest core/tests/test_customer_exchange_adapters.py`; `node --test apps/web/scripts/action-discovery.test.mjs`
 
-- [ ] T019 [P] [FR-011] Failing adapter tests: Web prepare/review/confirm and read, MCP propose and read with strict schemas, CLI read/propose/confirm and help, cross-tenant refusal, in `core/tests/test_customer_exchange_adapters.py`
-- [ ] T020 [FR-011] Register `customer_exchange_record` and `customer_exchange` in `core/src/reality/tools/application.py` (including the `_action_id` set), `core/src/reality/mcp/catalog.py`, `core/src/reality/cli/app.py` and `core/src/reality/web/api.py` (tool literal, read endpoint, sandbox read allowlist)
-- [ ] T021 [FR-011] Add the Web exchange form and Warehouse return-row action in `apps/web/src/unified/ExchangeCard.tsx`, `ActionCard.tsx`, `actionDiscovery.ts` and `WarehousePage.tsx`; explanation labels in `MovementExplanation.tsx`; de/nl/es in `apps/web/src/localization.tsx`
+- [x] T019 [P] [FR-011] Failing adapter tests: Web prepare/review/confirm and read, MCP propose and read with strict schemas, CLI read/propose/confirm and help, cross-tenant refusal, in `core/tests/test_customer_exchange_adapters.py`
+- [x] T020 [FR-011] Register `customer_exchange_record` and `customer_exchange` in `core/src/reality/tools/application.py` (including the `_action_id` set), `core/src/reality/mcp/catalog.py`, `core/src/reality/cli/app.py` and `core/src/reality/web/api.py` (tool literal, read endpoint, sandbox read allowlist)
+- [x] T021 [FR-011] Add the Web exchange form and Warehouse return-row action in `apps/web/src/unified/ExchangeCard.tsx`, `ActionCard.tsx`, `actionDiscovery.ts` and `WarehousePage.tsx`; explanation labels in `MovementExplanation.tsx`; de/nl/es in `apps/web/src/localization.tsx`
 
 ## Phase 7: Catalogs and Completeness Gates
 
-- [ ] T022 [DR-004] Declare the command, agent coverage and read capability guidance in `core/config/command_catalog.yaml`; topics in `core/config/tool_catalog.json`; `core/config/action_discovery.json`; mirror in `apps/web/scripts/fixtures/action-reference.json`
-- [ ] T023 [DR-004] Register refusals in `core/config/service_refusals.json` (with de/nl/es) and modules in `core/config/refusal_ratchet.json`; tools and service operations in `core/config/tenant_isolation_catalog.yaml`; the event in `core/config/business_event_catalog.yaml`; the service and event modules in `core/src/reality/catalogs.py`; `record_customer_exchange` in `core/src/reality/services/tenant_policy.py` practice operations and `core/src/reality/services/business_locks.py`; the subject in `TIMELINE_SILENT_SUBJECTS` in `core/src/reality/services/projections.py`
-- [ ] T024 [DR-004] Add the table and German command label to `core/config/resource_catalog.yaml`; raise the pinned command, event and discovered-operation counts in `core/tests/test_application_catalog.py`
+- [x] T022 [DR-004] Declare the command, agent coverage and read capability guidance in `core/config/command_catalog.yaml`; topics in `core/config/tool_catalog.json`; `core/config/action_discovery.json`; mirror in `apps/web/scripts/fixtures/action-reference.json`
+- [x] T023 [DR-004] Register refusals in `core/config/service_refusals.json` (with de/nl/es) and modules in `core/config/refusal_ratchet.json`; tools and service operations in `core/config/tenant_isolation_catalog.yaml`; the event in `core/config/business_event_catalog.yaml`; the service and event modules in `core/src/reality/catalogs.py`; `record_customer_exchange` in `core/src/reality/services/tenant_policy.py` practice operations and `core/src/reality/services/business_locks.py`; the subject in `TIMELINE_SILENT_SUBJECTS` in `core/src/reality/services/projections.py`
+- [x] T024 [DR-004] Add the table and German command label to `core/config/resource_catalog.yaml`; raise the pinned command, event and discovered-operation counts in `core/tests/test_application_catalog.py`
 - [ ] T025 Update the exception descriptions for `returned_not_credited`, `credited_not_returned`, `announced_return_not_arrived` and `exchange_without_return` in `core/config/operational_exception_catalog.yaml` and `docs/features/operational_exceptions.md`
 
 ## Phase 8: User Story 4 — The Guide states exchanges (P2)

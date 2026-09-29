@@ -51,6 +51,7 @@ events:
   - {type: payments.run, producer: execute_payment_run, subject: tenant, invalidates: [Open financial items, Payments, Journal, Timeline, Operational Exceptions, Tenant usage]}
   - {type: return.announced, producer: announce_customer_return, subject: return_announcement, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
   - {type: return.announcement_withdrawn, producer: withdraw_return_announcement, subject: return_announcement, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
+  - {type: exchange.recorded, producer: record_customer_exchange, subject: customer_exchange, invalidates: [Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
   - {type: commitment.held, producer: hold_commitment, subject: commitment, invalidates: [Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
   - {type: commitment.hold_released, producer: release_commitment_hold, subject: commitment, invalidates: [Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
   - {type: reservation.created, producer: reserve, subject: reservation, invalidates: [Inventory, Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}

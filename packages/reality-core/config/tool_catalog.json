@@ -214,6 +214,7 @@
   "mcp_topics": {
     "fulfillment_readiness": "orders",
     "movement_explanation": "shipping",
+    "customer_exchange": "shipping",
     "return_disposition_summary": "shipping",
     "supply_coverage": "orders",
     "capability_catalog": "evidence",

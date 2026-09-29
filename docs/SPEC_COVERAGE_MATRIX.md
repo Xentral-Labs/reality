@@ -1823,4 +1823,5 @@ Feature contract: `docs/features/business-journey-guide.md`.
 Table `customer_exchange`: a confirmed replacement that settles part of a customer return instead of a credit.
 
 - `packages/reality-core/tests/test_customer_exchanges.py`: the record's one-return-side, positive-quantity and one-exchange-per-replacement constraints; recording after a return (free, document-less replacement to the same customer, no ledger entry), partial credit, refusals with their codes, tenant isolation; the reviewed route (effect, stale and changed reviews, replay); a cancelled or partly shipped replacement.
+- `packages/reality-core/tests/test_customer_exchange_adapters.py`: the same reviewed exchange tool through MCP (strict schema, propose then confirm, shared read), Web (prepare, review, confirm, read, foreign-tenant refusal) and CLI (read, propose, confirm, help).
 - `packages/reality-core/tests/operational_exceptions/test_derivation.py`: an exchanged return is not owed a credit, a partial exchange plus a partial credit, a credit after an exchange as credited and not returned, a shipped replacement not owed an invoice, each with a positive control.

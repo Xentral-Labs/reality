@@ -2073,6 +2073,29 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         ),
     ),
     (
+        "customer_exchange_propose",
+        "Exchange returned goods",
+        "customer_exchange_record",
+        _object_schema(
+            {
+                "return_movement_id": OPTIONAL_STRING,
+                "return_announcement_id": OPTIONAL_STRING,
+                "quantity": DECIMAL_STRING,
+                "replacement_item_id": STRING,
+                "replacement_quantity": DECIMAL_STRING,
+                "location_id": OPTIONAL_STRING,
+                "due_at": OPTIONAL_STRING,
+                "reason": STRING,
+            },
+            required=(
+                "quantity",
+                "replacement_item_id",
+                "replacement_quantity",
+                "reason",
+            ),
+        ),
+    ),
+    (
         "return_disposition_propose",
         "Resolve returned goods",
         "return_disposition",
@@ -2475,6 +2498,21 @@ MCP_TOOL_CATALOG += (
         "Warehouse",
         _object_schema({"movement_id": STRING}, required=("movement_id",)),
         _read("movement_explanation"),
+    ),
+    MCPToolDefinition(
+        "customer_exchange",
+        "Customer exchange",
+        "Read what a customer exchange replaced, what it sent and what it still settles.",
+        "read",
+        "Returns",
+        _object_schema(
+            {
+                "exchange_id": OPTIONAL_STRING,
+                "return_movement_id": OPTIONAL_STRING,
+                "replacement_commitment_id": OPTIONAL_STRING,
+            }
+        ),
+        _read("customer_exchange"),
     ),
     MCPToolDefinition(
         "return_disposition_summary",
