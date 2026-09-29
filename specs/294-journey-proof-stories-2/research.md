@@ -64,3 +64,16 @@ left still needs no reservation (a net-term shipment without reservation is reco
 The Guide now has 92 supported and 59 partial journeys; an English and a German question per
 promoted journey returns it first as supported. `test_server_derives_status_from_provider_citations`
 used H03 as its example of a partial journey and now uses A02.
+
+## Review of PR #261 (T026, 2026-09-29)
+
+- The code review found the prepayment gate only in the delivery review. The CLI
+  (`reality movement record shipment`), `POST /movements` and practice companies (which execute the
+  `movement_create` handler without the review) still recorded an unpaid prepayment shipment. The
+  gate is now one shared function, `fulfillment_readiness.require_paid_prepayment`, called by the
+  review, the tool handler, the CLI and the endpoint. `record_movement` stays unchanged, because
+  importers record what a source states (Constitution VIII). Three regression tests failed without
+  the calls.
+- The first CI run failed `test_business_journey_api`: H03's keywords ("under-delivery", "short
+  delivery") and example ("Supplier delivers less…") pulled the product advisor from H02 for "What if a
+  supplier delivers too little?". H03's keywords and example now name only the never-delivered rest.

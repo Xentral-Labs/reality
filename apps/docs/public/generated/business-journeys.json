@@ -2582,17 +2582,16 @@
       "summary": "Reality evaluates: Remainder closed through a confirmed revision with a reason? An agent can prepare the revision; a person confirms the mutation.",
       "limitations": [],
       "keywords": [
-        "under-delivery",
-        "short delivery",
         "rest never comes",
-        "Unterlieferung",
-        "Minderlieferung",
-        "Rest kommt nicht"
+        "remainder never delivered",
+        "close the remainder",
+        "Rest kommt nicht",
+        "Restmenge abschließen"
       ],
       "question_examples": [
         "Under-delivery, rest never",
         "Remainder closed through a confirmed revision with a reason?",
-        "Supplier delivers less and the rest never comes",
+        "The supplier sends less and the rest never arrives",
         "Lieferant liefert weniger und der Rest kommt nie"
       ],
       "tools": [],

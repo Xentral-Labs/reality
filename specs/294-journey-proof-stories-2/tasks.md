@@ -52,7 +52,7 @@
 - [x] T023 Add `test_catalog_sources.py` and `test_movement_create_readiness.py` to `docs/SPEC_COVERAGE_MATRIX.md` and update the three catalog module rows
 - [x] T024 Run Ruff (`--no-cache`), `make spec-check`, `make docs-catalog-check`, and grep tests and web scripts for pinned counts the change moves
 - [ ] T025 Open the PR; the CI shards are the full-suite evidence
-- [ ] T026 Review the diff against FR-001–FR-008, DR-001–DR-003 and the Constitution
+- [x] T026 Review the diff against FR-001–FR-008, DR-001–DR-003 and the Constitution
 
 ## Dependencies
 

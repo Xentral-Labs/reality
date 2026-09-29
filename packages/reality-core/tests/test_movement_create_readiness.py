@@ -169,3 +169,118 @@ def test_record_shipment_still_records_an_unreserved_net_term_delivery(
 
     assert executed.status == "executed"
     assert core.fulfilled_quantity(session, tenant, commitment.id) == Decimal(2)
+
+
+# --- Every person-facing way of recording a shipment (code review of #261) ------
+
+
+def test_the_movement_tool_handler_refuses_an_unpaid_prepayment_order(
+    session, business
+):
+    """Practice companies execute the handler without the delivery review."""
+    from reality.tools.application import TOOLS
+
+    _, commitment = _prepayment_order(session, business)
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        TOOLS["movement_create"].handler(
+            session,
+            business.tenant.id,
+            {
+                "movement_type": "shipment",
+                "item_id": business.item.id,
+                "quantity": "2",
+                "from_location_id": business.location.id,
+                "commitment_id": commitment.id,
+            },
+        )
+    assert refused.value.code == "shipment_blocked_readiness"
+    assert _shipments(session, business) == 0
+
+
+def test_the_cli_refuses_to_record_an_unpaid_prepayment_shipment(
+    session, business, monkeypatch
+):
+    from sqlalchemy.orm import sessionmaker
+    from typer.testing import CliRunner
+
+    from reality.cli import app as cli_module
+
+    _, commitment = _prepayment_order(session, business)
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    monkeypatch.setattr(cli_module, "Session", factory)
+    monkeypatch.setattr(cli_module, "init_db", lambda: None)
+
+    result = CliRunner().invoke(
+        cli_module.app,
+        [
+            "movement",
+            "record",
+            "shipment",
+            business.item.id,
+            "2",
+            "--tenant",
+            business.tenant.id,
+            "--from-location-id",
+            business.location.id,
+            "--commitment-id",
+            commitment.id,
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "Shipment blocked" in result.output
+    assert _shipments(session, business) == 0
+
+
+def test_the_movement_endpoint_refuses_an_unpaid_prepayment_shipment(
+    session, business, monkeypatch
+):
+    from fastapi.testclient import TestClient
+    from sqlalchemy.orm import sessionmaker
+
+    from reality.web import api as api_module
+    from reality.web import app as web_module
+
+    _, commitment = _prepayment_order(session, business)
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    monkeypatch.setattr(api_module, "Session", factory)
+    client = TestClient(web_module.app)
+
+    response = client.post(
+        f"/api/tenants/{business.tenant.id}/movements",
+        json={
+            "type": "shipment",
+            "item_id": business.item.id,
+            "quantity": "2",
+            "from_location_id": business.location.id,
+            "commitment_id": commitment.id,
+        },
+    )
+
+    assert response.status_code in {400, 409, 422}, response.text
+    assert "shipment_blocked_readiness" in response.text
+    assert _shipments(session, business) == 0
+    # Positive control: the same endpoint records an ordinary net-term shipment.
+    ordinary = core.create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "1",
+        "2026-10-01",
+    )
+    recorded = client.post(
+        f"/api/tenants/{business.tenant.id}/movements",
+        json={
+            "type": "shipment",
+            "item_id": business.item.id,
+            "quantity": "1",
+            "from_location_id": business.location.id,
+            "commitment_id": ordinary.id,
+        },
+    )
+    assert recorded.status_code == 201, recorded.text

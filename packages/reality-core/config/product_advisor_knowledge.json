@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:475f8f723a145a4fda12a6e62a7f33efc75de900317e45a6bfbd4689f88fbf37",
+  "knowledge_version": "advisor-v1:sha256:788fe20058c730cc4c345becf18574facbd35d7f7b5a59074ca9f8c07520bddc",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1116,7 +1116,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H03",
-      "fingerprint": "a4ce0dcf8cc18cf5eb281f20cfd470719c12aad21fe5518f6f5ab048c0062d3a"
+      "fingerprint": "a9b562c15de36de2073afabbe057acfb72c285c6e81553ed0a267a0c54a43695"
     },
     {
       "id": "source_journey_h04",
@@ -4147,7 +4147,7 @@
       "source_id": "source_journey_h03",
       "subject": "Goods receipt and supplier deviations",
       "title": "Under-delivery, rest never",
-      "search_text": "H03 Goods receipt and supplier deviations Under-delivery, rest never Remainder closed through a confirmed revision with a reason? under-delivery short delivery rest never comes Unterlieferung Minderlieferung Rest kommt nicht Under-delivery, rest never Remainder closed through a confirmed revision with a reason? Supplier delivers less and the rest never comes Lieferant liefert weniger und der Rest kommt nie",
+      "search_text": "H03 Goods receipt and supplier deviations Under-delivery, rest never Remainder closed through a confirmed revision with a reason? rest never comes remainder never delivered close the remainder Rest kommt nicht Restmenge abschließen Under-delivery, rest never Remainder closed through a confirmed revision with a reason? The supplier sends less and the rest never arrives Lieferant liefert weniger und der Rest kommt nie",
       "claim_text": "Reality evaluates: Remainder closed through a confirmed revision with a reason? An agent can prepare the revision; a person confirms the mutation.",
       "support": "proven",
       "limitations": [],
@@ -4155,7 +4155,7 @@
         "H03"
       ],
       "language": "en",
-      "fingerprint": "f8cc82efdb54e3c2fda45183c5d404a9970101822208fcc84a25b054cb6d8e81"
+      "fingerprint": "e5656152091ebff9086fc68ee572456334918b49144e6a8161e253a8e73506af"
     },
     {
       "id": "evidence_journey_h04",

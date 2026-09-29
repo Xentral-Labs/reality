@@ -139,62 +139,6 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
     )
 
 
-PAYMENT_BLOCKERS = (
-    "prepayment_invoice_missing",
-    "prepayment_attribution_ambiguous",
-    "prepayment_consolidated_invoice_open",
-    "prepayment_required",
-)
-
-
-def _require_paid_prepayment(
-    session: Session,
-    tenant_id: str,
-    tool: str,
-    intent: dict[str, Any],
-    preview: dict[str, Any],
-) -> None:
-    """A recorded shipment obeys the same payment gate as a dispatched one.
-
-    Spec 275 FR-005: a prepayment order stays non-shippable until paid, and every
-    tool reads the shared readiness decision (FR-008). Only the payment part is
-    shared here: recording goods that physically left needs no reservation, but
-    it may not bypass an unpaid prepayment (spec 294 FR-006).
-    """
-    if tool != "movement_create" or intent.get("movement_type") != "shipment":
-        return
-    commitment_id = preview.get("commitment_id") or intent.get("commitment_id")
-    if not commitment_id:
-        return
-    kind = session.scalar(
-        select(Commitment.type).where(
-            Commitment.tenant_id == tenant_id, Commitment.id == commitment_id
-        )
-    )
-    if kind != "customer_delivery":
-        return
-    from reality.services.fulfillment_readiness import fulfillment_readiness
-
-    readiness = fulfillment_readiness(
-        session,
-        tenant_id,
-        commitment_id,
-        proposed_quantity=Decimal(preview["quantity"]),
-    )
-    payment = [code for code in readiness.blocker_codes if code in PAYMENT_BLOCKERS]
-    if payment:
-        raise InvalidOperation(
-            code="shipment_blocked_readiness",
-            values={
-                "blockers": ", ".join(payment),
-                "required_amount": readiness.required_amount,
-                "required_currency": readiness.currency,
-                "received_amount": readiness.received_amount,
-                "received_currency": readiness.currency,
-            },
-        )
-
-
 def action_commitment(
     session: Session, tenant_id: str, tool: str, arguments: dict[str, Any]
 ) -> str:
@@ -350,7 +294,16 @@ def review_delivery(
     else:
         result = _append_movement(session, tenant_id, **intent, validate_only=True)
         intent["quantity"] = _quantity(result["quantity"])
-        _require_paid_prepayment(session, tenant_id, tool, intent, result)
+        if tool == "movement_create":
+            from reality.services.fulfillment_readiness import require_paid_prepayment
+
+            require_paid_prepayment(
+                session,
+                tenant_id,
+                intent.get("movement_type"),
+                result.get("commitment_id") or intent.get("commitment_id"),
+                result["quantity"],
+            )
         effect = {
             "received"
             if intent["movement_type"] == "receipt"
