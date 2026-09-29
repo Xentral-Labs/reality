@@ -3,6 +3,18 @@ import json
 import pytest
 
 from reality.domain.product_advisor import ProductAdvisorKnowledge
+from reality.services.product_advisor import (
+    product_advisor_knowledge,
+    product_capability_map,
+)
+
+
+def test_checked_in_capability_map_matches_advisor_knowledge() -> None:
+    """The two runtime artifacts must remain usable after independently merged changes."""
+    knowledge = product_advisor_knowledge()
+    capability_map = product_capability_map()
+
+    assert capability_map.knowledge_version == knowledge.knowledge_version
 
 
 def test_knowledge_rejects_duplicate_evidence_identity() -> None:

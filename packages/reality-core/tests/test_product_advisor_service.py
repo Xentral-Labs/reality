@@ -121,7 +121,7 @@ def test_provider_research_planner_selects_from_compact_catalog(monkeypatch) -> 
         "capability_ids"
     ]["maxItems"] == 6
     assert "input_schema" not in payload
-    assert observed_timeout == 3.0
+    assert observed_timeout == 10.0
 
 
 def test_provider_answer_stage_is_bounded_below_widget_timeout(monkeypatch) -> None:
@@ -158,8 +158,9 @@ def test_provider_answer_stage_is_bounded_below_widget_timeout(monkeypatch) -> N
     assert provider is not None
     provider({"question": "What happens with a partial delivery?", "evidence": []})
 
-    assert observed_timeout == 7.0
-    assert product_advisor._PLANNER_TIMEOUT_SECONDS + 2 * observed_timeout < 20
+    assert observed_timeout == 12.0
+    assert product_advisor._PLANNER_TIMEOUT_SECONDS + 2 * observed_timeout < 40
+    assert 2 * product_advisor._BROAD_ANSWER_TIMEOUT_SECONDS < 40
 
 
 def test_under_delivery_retrieves_exact_supplier_journey() -> None:

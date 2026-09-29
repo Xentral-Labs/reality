@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:8ce4e43dca949cb720e9e67ef26771bfbcbcc1472b39c16b7b9e9dc1d81d883f",
+  "knowledge_version": "advisor-v1:sha256:53e1ed313d75fe067415416e9a4c1dc1cc1b6fcba2dd2af44630c5c4075bb793",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -9,7 +9,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A01",
-      "fingerprint": "80de07e2d5ccf63d484d8ad574bbffb74680896371443cad884fc1b4c0a3e4d2"
+      "fingerprint": "892cf2bdb4493e095eb4b70b44d972d65a5cf8426e53dfdc2b30c2e91091b098"
     },
     {
       "id": "source_journey_a02",
@@ -396,7 +396,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C02",
-      "fingerprint": "a99ae7254650ce802869c4cbc56966ed77b31842a3ae3b21cff723b32d51317a"
+      "fingerprint": "1aeda598947f29b4eb7e6309cf8f3fcaf8fb8bce681da5380ee6b473185c7c80"
     },
     {
       "id": "source_journey_c03",
@@ -765,7 +765,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E06",
-      "fingerprint": "719f6db900bf7f29b8ed946d49aec53b11ddb76da053515fb50dc91130551022"
+      "fingerprint": "f398d2883c8f9590aa8c2fc525450422f4d015b5bed7935c9a665b89172af651"
     },
     {
       "id": "source_journey_e07",
@@ -2106,15 +2106,15 @@
       "source_id": "source_journey_a01",
       "subject": "Order intake and order changes",
       "title": "Standard order: one customer, one line, in stock",
-      "search_text": "A01 Order intake and order changes Standard order: one customer, one line, in stock Is it committed, reserved, shipped, invoiced, paid? Standard order: one customer, one line, in stock Is it committed, reserved, shipped, invoiced, paid?",
-      "claim_text": "Reality evaluates: Is it committed, reserved, shipped, invoiced, paid?",
+      "search_text": "A01 Order intake and order changes Standard order: one customer, one line, in stock Is it committed, reserved, shipped, invoiced, paid? Standard order: one customer, one line, in stock Is it committed, reserved, shipped, invoiced, paid? How does Reality know whether a customer invoice is fully paid?",
+      "claim_text": "Reality derives the customer invoice's open amount from its posted receivable and the payments or credits allocated to it. The invoice is fully settled when the derived open amount reaches zero; an allocation that covers only part leaves the remainder open.",
       "support": "proven",
       "limitations": [],
       "references": [
         "A01"
       ],
       "language": "en",
-      "fingerprint": "fddf7fe56cc066965759219e858cfc597dbc30c509efbb9d592ac43286029670"
+      "fingerprint": "e221b2694d6c7edd6ee9d5cebb54a18a095c12a2415ce1e1470daf06dee603f7"
     },
     {
       "id": "evidence_journey_a02",
@@ -2827,14 +2827,14 @@
       "subject": "Payment and release",
       "title": "Prepayment short-paid",
       "search_text": "C02 Payment and release Prepayment short-paid Release or not, within which tolerance? Prepayment short-paid Release or not, within which tolerance?",
-      "claim_text": "Reality evaluates: Release or not, within which tolerance?",
+      "claim_text": "A payment allocation reduces the invoice's open amount. A short payment leaves the remainder open and a prepayment order blocked; the remainder closes only through another allocation or a confirmed accepted-remainder adjustment.",
       "support": "proven",
       "limitations": [],
       "references": [
         "C02"
       ],
       "language": "en",
-      "fingerprint": "06b2335c23309ed996254b493194392b3e07e0dddc70a8c61a2dfa2d3d8bae9e"
+      "fingerprint": "cd620576d9245d9321f6d937d098ce238b564eef9ae842405a0a7842f5bb084a"
     },
     {
       "id": "evidence_journey_c03",
@@ -3508,14 +3508,14 @@
       "subject": "Customer invoice and credit note",
       "title": "Credit note with returned goods",
       "search_text": "E06 Customer invoice and credit note Credit note with returned goods Both linked to the return? Credit note with returned goods Both linked to the return?",
-      "claim_text": "Reality evaluates: Both linked to the return?",
+      "claim_text": "Reality correlates the return movement and the invoice-linked credit through their shared order line, using the shortest authoritative links rather than a duplicated direct return-to-credit link. The returned-not-credited exception clears once the linked credit exists.",
       "support": "proven",
       "limitations": [],
       "references": [
         "E06"
       ],
       "language": "en",
-      "fingerprint": "3acef75bce4640acb202e35ec8bacb5070da3aa7b4b904931e9e988d7a5dfba5"
+      "fingerprint": "2c994bcfa97f426a58ce1cd808c0814d25b5cc69a0d9be0136bc7ff166ff663e"
     },
     {
       "id": "evidence_journey_e07",
