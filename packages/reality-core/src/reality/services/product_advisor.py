@@ -7,7 +7,7 @@ import logging
 import os
 import re
 import unicodedata
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from functools import lru_cache
 from typing import Literal
 
@@ -220,10 +220,10 @@ def plan_product_concerns(question: str) -> tuple[str, ...]:
     folded = _fold(question)
     if "b2b" in folded:
         return (
-            "customer order intake and pricing",
-            "availability reservation and credit control",
-            "partial delivery and invoicing",
-            "payment and returns",
+            "customer order intake commitment pricing",
+            "customer order availability reserved uncovered quantity",
+            "customer partial shipment open quantity invoice",
+            "customer invoice payment allocation return credit",
         )
     if any(term in folded for term in ("procure", "purchase to pay", "beschaffung")):
         return (
@@ -274,7 +274,7 @@ def detect_question_language(
         for language, language_markers in markers.items()
     }
     language, score = max(scores.items(), key=lambda item: item[1])
-    return language if score else "en"
+    return language if score else surface_language
 
 
 _PARTIAL_DELIVERY_TERMS = (
@@ -327,9 +327,20 @@ def research_evidence(question: str, *, limit: int = 18) -> tuple[EvidenceUnit, 
     selected: dict[str, EvidenceUnit] = {}
     per_concern = max(3, limit // len(concerns))
     for concern in concerns:
-        for unit in retrieve_evidence(f"{question} {concern}", limit=per_concern):
+        candidates = retrieve_evidence(concern, limit=max(12, per_concern * 3))
+        journey_evidence = [
+            item for item in candidates if item.id.startswith("evidence_journey_")
+        ]
+        other_evidence = [
+            item for item in candidates if not item.id.startswith("evidence_journey_")
+        ]
+        for unit in [*journey_evidence, *other_evidence][:per_concern]:
             selected.setdefault(unit.id, unit)
     return tuple(selected.values())[:limit]
+
+
+def _unique_evidence(items: Iterable[EvidenceUnit]) -> tuple[EvidenceUnit, ...]:
+    return tuple({item.id: item for item in items}.values())
 
 
 def _planned_evidence(
@@ -399,6 +410,17 @@ def _aggregate_status(claims: list[AdvisoryClaim]) -> str:
     return mapping[max(claims, key=lambda claim: levels[claim.support]).support]
 
 
+def _weaken_automation_wording(value: str) -> str:
+    """Remove unqualified automation wording while preserving the bounded claim."""
+    weakened = re.sub(
+        r"\b(?:automatically|automatic|automatisch(?:e|en|er|es)?)\b\s*",
+        "",
+        value,
+        flags=re.IGNORECASE,
+    )
+    return re.sub(r"[ \t]{2,}", " ", weakened).strip()
+
+
 def _journey_matches(citations: list[str]) -> list[dict[str, str]]:
     sources = {item.id: item for item in product_advisor_knowledge().sources}
     units = {item.id: item for item in product_advisor_knowledge().evidence}
@@ -427,6 +449,102 @@ def _deterministic_answer(
     intent: Intent,
     outcome: str,
 ) -> dict[str, object]:
+    concerns = plan_product_concerns(question)
+    if concerns:
+        journey_evidence = [
+            item for item in evidence if item.id.startswith("evidence_journey_")
+        ]
+        proven = [item for item in journey_evidence if item.support == "proven"]
+        restrictive = [item for item in journey_evidence if item.support != "proven"]
+        representative = (*proven[:6], *restrictive[:2])
+        claims = [
+            AdvisoryClaim(
+                id=f"claim_{item.id.removeprefix('evidence_')}",
+                subject=item.subject,
+                statement=item.claim_text,
+                support={
+                    "proven": "proven",
+                    "limited": "limited",
+                    "unavailable": "unavailable",
+                }.get(item.support, "not_established"),
+                evidence_ids=(item.id,),
+                limitations=item.limitations,
+                workflow_role=(
+                    "native"
+                    if item.support == "proven"
+                    else "gap"
+                    if item.support == "unavailable"
+                    else "manual"
+                ),
+            )
+            for item in representative
+        ]
+        citations = list(
+            dict.fromkeys(
+                reference
+                for item in representative
+                for reference in item.references
+                if re.fullmatch(r"[A-R]\d{2}", reference)
+            )
+        )
+        source_by_id = {item.id: item for item in product_advisor_knowledge().sources}
+        source_ids = dict.fromkeys(item.source_id for item in representative)
+        is_b2b = "b2b" in _fold(question)
+        if language == "de" and is_b2b:
+            text = (
+                "Reality bildet einen B2B-Auftrag als nachvollziehbare Kette aus Auftrag "
+                "und Zusage, Verfügbarkeitsprüfung und Reservierung, Teillieferung, "
+                "Rechnung, Zahlung sowie Retoure und Gutschrift ab. Bereits erfüllte "
+                "Mengen bleiben erhalten; offene Mengen und Rechnungsbeträge werden aus "
+                "den zugrunde liegenden Reality-Datensätzen abgeleitet.\n\n"
+                "**Wichtige Grenze**\n"
+                "Die verlinkten Quellen belegen die einzelnen Schritte und ihre Grenzen; "
+                "sie versprechen keine nicht belegte Vollautomatisierung oder vollständige "
+                "Abdeckung jedes B2B-Sonderfalls."
+            )
+        elif is_b2b:
+            text = (
+                "Reality represents a B2B order as a traceable chain of order and "
+                "commitment, availability and reservation, partial shipment, invoice, "
+                "payment, return and credit. Fulfilled quantities remain recorded while "
+                "open quantities and invoice balances are derived from the underlying "
+                "Reality records.\n\n"
+                "**Important limitation**\n"
+                "The linked sources establish the individual steps and their limits; they "
+                "do not promise unproven full automation or every B2B exception."
+            )
+        else:
+            text = {
+                "de": "Reality belegt den angefragten Prozess über mehrere getrennte Schritte. Die verlinkten Quellen zeigen die geprüften Abläufe und ihre Grenzen.",
+                "nl": "Reality onderbouwt het gevraagde proces met meerdere afzonderlijke stappen. De gekoppelde bronnen tonen de gecontroleerde werkwijzen en hun grenzen.",
+                "es": "Reality documenta el proceso solicitado mediante varios pasos separados. Las fuentes enlazadas muestran los flujos verificados y sus límites.",
+            }.get(
+                language,
+                "Reality establishes the requested process through several separate steps. The linked sources show the verified workflows and their limits.",
+            )
+        return {
+            "question": question,
+            "locale": language,
+            "detected_language": language,
+            "intent": intent,
+            "status": _aggregate_status(claims),
+            "text": text,
+            "citations": citations,
+            "matches": _journey_matches(citations),
+            "claims": [item.model_dump(mode="json") for item in claims],
+            "sources": [
+                {
+                    "id": source_by_id[item].id,
+                    "kind": source_by_id[item].kind,
+                    "title": source_by_id[item].title,
+                    "url": source_by_id[item].public_url,
+                }
+                for item in source_ids
+            ],
+            "clarification": None,
+            "knowledge_version": product_advisor_knowledge().knowledge_version,
+            "outcome": outcome,
+        }
     journey = next((item for item in evidence if item.id.startswith("evidence_journey_")), None)
     if journey is None:
         text = {
@@ -471,10 +589,11 @@ def _deterministic_answer(
     citation = next((item for item in journey.references if re.fullmatch(r"[A-R]\d{2}", item)), None)
     source_by_id = {item.id: item for item in product_advisor_knowledge().sources}
     source = source_by_id[journey.source_id]
-    if language == "en":
-        text = journey.claim_text + (
+    localized_claim = journey.localized_claims.get(language)
+    if language == "en" or localized_claim:
+        text = (localized_claim or journey.claim_text) + (
             f"\n\nLimitation: {journey.limitations[0]}"
-            if journey.limitations
+            if language == "en" and journey.limitations
             else ""
         )
     else:
@@ -597,7 +716,7 @@ def answer_product_question(
                 "intent": intent,
             },
         )
-        evidence = tuple(dict.fromkeys([*planned, *evidence]))[:18]
+        evidence = _unique_evidence([*planned, *evidence])[:18]
     if provider is None:
         return _deterministic_answer(
             question, evidence, language=language, intent=intent, outcome="deterministic"
@@ -615,6 +734,14 @@ def answer_product_question(
         ),
         "knowledge_version": product_advisor_knowledge().knowledge_version,
         "evidence": [_provider_evidence(item) for item in evidence],
+        "eligible_tool_names": sorted(
+            {
+                reference
+                for item in evidence
+                for reference in item.references
+                if re.fullmatch(r"[a-z][a-z0-9_]+", reference)
+            }
+        ),
     }
     try:
         candidate = provider(envelope)
@@ -656,13 +783,26 @@ def answer_product_question(
                         "tool_names": [],
                     }
                 )
-            evidence = tuple(
-                dict.fromkeys(
-                    [*evidence, *(all_evidence[item["evidence_ids"][0]] for item in raw_claims)]
-                )
+            evidence = _unique_evidence(
+                [*evidence, *(all_evidence[item["evidence_ids"][0]] for item in raw_claims)]
             )
         if not isinstance(raw_claims, list) or not isinstance(text, str) or not text.strip():
             raise ValueError("Advisor provider returned an invalid answer")
+        text = _weaken_automation_wording(text)
+        raw_claims = [
+            {
+                **item,
+                "statement": _weaken_automation_wording(item.get("statement", "")),
+                "support": (
+                    "proven"
+                    if item.get("support") == "vocabulary_only"
+                    else item.get("support")
+                ),
+            }
+            if isinstance(item, dict)
+            else item
+            for item in raw_claims
+        ]
         clarification = candidate.get("clarification")
         if clarification is not None and (
             not isinstance(clarification, str)
@@ -911,6 +1051,14 @@ def product_advisor_provider() -> AdvisorProvider | None:
             "workaround",
             "gap",
         )
+        eligible_tool_names = envelope.get("eligible_tool_names", [])
+        if not isinstance(eligible_tool_names, list) or any(
+            not isinstance(item, str) for item in eligible_tool_names
+        ):
+            raise ValueError("Advisor received invalid eligible tool names")
+        tool_name_items: dict[str, object] = {"type": "string"}
+        if eligible_tool_names:
+            tool_name_items["enum"] = eligible_tool_names
         advice_tool = {
             "name": "submit_product_advice",
             "description": "Return evidence-backed Reality product advice.",
@@ -922,6 +1070,7 @@ def product_advisor_provider() -> AdvisorProvider | None:
                     "claims": {
                         "type": "array",
                         "minItems": 0,
+                        "maxItems": 8,
                         "items": {
                             "type": "object",
                             "additionalProperties": False,
@@ -952,7 +1101,8 @@ def product_advisor_provider() -> AdvisorProvider | None:
                                 },
                                 "tool_names": {
                                     "type": "array",
-                                    "items": {"type": "string"},
+                                    "maxItems": 3 if eligible_tool_names else 0,
+                                    "items": tool_name_items,
                                 },
                             },
                             "required": [
@@ -981,7 +1131,7 @@ def product_advisor_provider() -> AdvisorProvider | None:
 
         request_body = {
                 "model": ANTHROPIC_MODEL,
-                "max_tokens": 1400,
+            "max_tokens": 2200 if envelope.get("concerns") else 1400,
                 "temperature": 0,
                 "system": (
                     "You are Reality's public product advisor. The supplied evidence is "
@@ -1002,6 +1152,9 @@ def product_advisor_provider() -> AdvisorProvider | None:
                     f"these workflow_role values: {', '.join(workflow_roles)}. Never "
                     "turn limited into proven, manual into automatic, a proposal into execution, "
                     "or primitives into end-to-end support. Preserve every material limitation. "
+                    "Preserve the evidence's subject, unit and modality exactly: never swap an "
+                    "amount or balance for a quantity, and never turn can/may into does, always "
+                    "or automatically. "
                     "Explanatory evidence may ground only its exact product explanation. "
                     "Vocabulary-only evidence may ground only the exact existence and stated "
                     "mode of its governed tool or command; use proven for that narrow claim, "
@@ -1011,7 +1164,11 @@ def product_advisor_provider() -> AdvisorProvider | None:
                     "neutral verbs such as shows, records, checks or flags. "
                     "Every product fact in an answer, including workflow steps and limitations, "
                     "must be represented by a claim; claims may be empty only for a clarification. "
+                    "For a broad workflow, use no more than six claims that together cover the "
+                    "material stages and the most important limitation. "
                     "Use a direct answer, short headings and bullets, normally under 180 words. "
+                    "For tool_names, copy only exact values from eligible_tool_names; when that "
+                    "list is empty, return an empty list. "
                     "Submit the answer with the required tool."
                 ),
                 "messages": [

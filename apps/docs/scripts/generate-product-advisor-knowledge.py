@@ -99,6 +99,7 @@ def _journey_evidence() -> tuple[list[EvidenceSource], list[EvidenceUnit]]:
                 )
             ),
             claim_text=entry.summary,
+            localized_claims=entry.localized_summaries,
             support=support[entry.status],
             limitations=entry.limitations,
             references=(entry.id, *entry.tools),

@@ -51,7 +51,10 @@ def test_provider_prompt_constrains_workflow_roles(monkeypatch) -> None:
     role_enum = schema["properties"]["claims"]["items"]["properties"][
         "workflow_role"
     ]["enum"]
+    tool_names = schema["properties"]["claims"]["items"]["properties"]["tool_names"]
     assert schema["properties"]["claims"]["minItems"] == 0
+    assert schema["properties"]["claims"]["maxItems"] == 8
+    assert tool_names["maxItems"] == 0
     assert "materially different" in system
     assert "one focused clarification" in system
     assert "Do not use 'automatic'" in system
@@ -205,7 +208,7 @@ def test_semantic_plan_routes_german_overpayment_and_keeps_fallback_german() -> 
     assert answer["outcome"] == "fallback"
     assert answer["detected_language"] == "de"
     assert answer["citations"] == ["C03"]
-    assert "freigegebenen Produktquellen" in answer["text"]
+    assert "Kundenguthaben" in answer["text"]
     assert "Reality evaluates" not in answer["text"]
 
 
@@ -363,6 +366,90 @@ def test_broad_b2b_research_is_decomposed_across_the_operating_flow() -> None:
     assert "payment" in subjects or "return" in subjects
 
 
+def test_broad_b2b_provider_failure_keeps_the_complete_operating_flow() -> None:
+    def unavailable_provider(_envelope):
+        raise product_advisor.httpx.ReadTimeout("provider timed out")
+
+    answer = answer_product_question(
+        "Wie bilde ich einen B2B-Auftrag ab?",
+        surface_language="de",
+        provider=unavailable_provider,
+    )
+
+    assert answer["outcome"] == "fallback"
+    assert len(answer["citations"]) >= 4
+    assert {"A01", "B01", "D01", "E01", "C03", "E06"} & set(
+        answer["citations"]
+    )
+    assert "B2B-Auftrag" in answer["text"]
+    for expected_stage in (
+        "Auftrag",
+        "Reservierung",
+        "Teillieferung",
+        "Rechnung",
+        "Zahlung",
+        "Retoure",
+    ):
+        assert expected_stage in answer["text"]
+    assert answer["citations"] != ["E07"]
+
+
+def test_german_return_credit_fallback_uses_the_reviewed_localized_claim() -> None:
+    def unavailable_provider(_envelope):
+        raise product_advisor.httpx.ReadTimeout("provider timed out")
+
+    answer = answer_product_question(
+        "Wie bilde ich eine Kundenretoure mit Gutschrift ab?",
+        surface_language="de",
+        provider=unavailable_provider,
+    )
+
+    assert answer["outcome"] == "fallback"
+    assert answer["citations"] == ["E06"]
+    assert "Warenrückgabe" in answer["text"]
+    assert "Auftragszeile" in answer["text"]
+    assert "verlinkte Quelle enthält" not in answer["text"]
+
+
+def test_common_german_erp_questions_remain_concrete_during_provider_outage() -> None:
+    def unavailable_provider(_envelope):
+        raise product_advisor.httpx.ReadTimeout("provider timed out")
+
+    cases = (
+        ("Was passiert bei einer Teillieferung an einen Kunden?", "D01", "Restmenge"),
+        (
+            "Was passiert, wenn ein Lieferant nur einen Teil der Bestellung liefert?",
+            "H02",
+            "Wareneingang",
+        ),
+        (
+            "Wie geht Reality mit einer Überzahlung eines Kunden um?",
+            "C03",
+            "Kundenguthaben",
+        ),
+        (
+            "Wie erkenne ich, dass eine Kundenrechnung vollständig bezahlt ist?",
+            "A01",
+            "offenen Betrag",
+        ),
+        (
+            "Kann ich mehrere Lieferungen in einer Sammelrechnung abrechnen?",
+            "E02",
+            "mehreren Lieferungen",
+        ),
+    )
+
+    for question, citation, expected_text in cases:
+        answer = answer_product_question(
+            question,
+            surface_language="de",
+            provider=unavailable_provider,
+        )
+        assert answer["outcome"] == "fallback"
+        assert answer["citations"] == [citation]
+        assert expected_text in answer["text"]
+
+
 def test_provider_cannot_claim_migration_from_unrelated_evidence() -> None:
     def provider(envelope):
         first = envelope["evidence"][0]
@@ -469,6 +556,71 @@ def test_invalid_provider_draft_gets_one_grounded_revision() -> None:
     assert calls[1]["validation_feedback"]
     assert answer["outcome"] == "researched"
     assert "keeps the remainder open" in answer["text"]
+
+
+def test_unqualified_automation_word_is_safely_weakened_before_validation() -> None:
+    def provider(envelope):
+        under_delivery = next(
+            item for item in envelope["evidence"] if item["id"] == "evidence_journey_h02"
+        )
+        return {
+            "text": "Reality erfasst den Eingang und berechnet den Rest automatisch.",
+            "claims": [
+                {
+                    "id": "claim_supplier_under_delivery",
+                    "subject": "supplier under-delivery",
+                    "statement": (
+                        "Reality erfasst den Eingang und berechnet den Rest automatisch."
+                    ),
+                    "support": "proven",
+                    "evidence_ids": [under_delivery["id"]],
+                    "limitations": [],
+                    "workflow_role": "native",
+                    "tool_names": [],
+                }
+            ],
+        }
+
+    answer = answer_product_question(
+        "What if a supplier delivers too little?", provider=provider
+    )
+
+    assert answer["outcome"] == "researched"
+    assert "automatisch" not in answer["text"].casefold()
+    assert "automatisch" not in answer["claims"][0]["statement"].casefold()
+
+
+def test_vocabulary_evidence_support_is_normalized_to_a_narrow_proven_claim() -> None:
+    def provider(envelope):
+        command = next(
+            item
+            for item in envelope["evidence"]
+            if item["id"] == "evidence_command_record_sales_credit"
+        )
+        return {
+            "text": "record_sales_credit records an invoice-linked customer credit.",
+            "claims": [
+                {
+                    "id": "claim_record_sales_credit",
+                    "subject": "sales credit command",
+                    "statement": (
+                        "record_sales_credit records an invoice-linked customer credit."
+                    ),
+                    "support": "vocabulary_only",
+                    "evidence_ids": [command["id"]],
+                    "limitations": [],
+                    "workflow_role": "native",
+                    "tool_names": ["record_sales_credit"],
+                }
+            ],
+        }
+
+    answer = answer_product_question(
+        "Wie hängen Kundenretoure und Gutschrift zusammen?", provider=provider
+    )
+
+    assert answer["outcome"] == "researched"
+    assert answer["claims"][0]["support"] == "proven"
 
 
 def test_provider_cannot_invent_a_tool_name() -> None:

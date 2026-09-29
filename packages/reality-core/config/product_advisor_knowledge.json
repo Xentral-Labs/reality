@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:f1297d862de865c8f77f23d79898f15f8103c4f327757c5b589d436291433b1b",
+  "knowledge_version": "advisor-v1:sha256:d8b71566c39b49955a0293427c6efe1340ffd587e72c9a56777c9237bd0a1448",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -9,7 +9,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A01",
-      "fingerprint": "892cf2bdb4493e095eb4b70b44d972d65a5cf8426e53dfdc2b30c2e91091b098"
+      "fingerprint": "ef36bec8497e9e1b951f951e752526091e2cd2113c3e7328c0789412ff8122df"
     },
     {
       "id": "source_journey_a02",
@@ -405,7 +405,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C03",
-      "fingerprint": "f5b12c83ce59b37b236a96b24b2bf85d3aa8c5ed787f2625e49eba0613aea360"
+      "fingerprint": "26fd98bb8636416ec2c7ef36096529a1bbd92ae8bb397985e7c1ebacebb0ddca"
     },
     {
       "id": "source_journey_c04",
@@ -549,7 +549,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D01",
-      "fingerprint": "dbd0135f205722b25316ce7dfc2481ee7f2468ee7db8ed2eef984141de6f76d4"
+      "fingerprint": "03aa24bbcb1a7f0d0790b734af4477dd919845692111d4639a55e073f9d1e941"
     },
     {
       "id": "source_journey_d02",
@@ -720,7 +720,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E01",
-      "fingerprint": "9eba4ae8f27113cad2b20b03003b0b2a90a2382e693258e9a8ab0d4f97b7b322"
+      "fingerprint": "c47508239d8c03e6a29e1e5d053595d94b474a09a539736635397d4f9751ca00"
     },
     {
       "id": "source_journey_e02",
@@ -729,7 +729,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E02",
-      "fingerprint": "2c6de56e25650665e9d09fd8237dec406e3548bdfe60e2b87eed0152cf7f6dff"
+      "fingerprint": "ae65ab63199109051e63c68285731bdd6887ed3eef80cbb1511eda944aceebdf"
     },
     {
       "id": "source_journey_e03",
@@ -765,7 +765,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E06",
-      "fingerprint": "f398d2883c8f9590aa8c2fc525450422f4d015b5bed7935c9a665b89172af651"
+      "fingerprint": "6779106239f4164b71443f1042a4b48b317fc1a08573bc16f5fd32a9f9b1ccc8"
     },
     {
       "id": "source_journey_e07",
@@ -1107,7 +1107,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H02",
-      "fingerprint": "1a5d764bfe3679cb101e5709ad39837faaa419c0494dc9363173ccab54691ef7"
+      "fingerprint": "8e38e163b37679684b1fb5a884bd6f4c5c47c603004d00bcdb62c1a0769a5af3"
     },
     {
       "id": "source_journey_h03",
@@ -2106,15 +2106,18 @@
       "source_id": "source_journey_a01",
       "subject": "Order intake and order changes",
       "title": "Standard order: one customer, one line, in stock",
-      "search_text": "A01 Order intake and order changes Standard order: one customer, one line, in stock Is it committed, reserved, shipped, invoiced, paid? Standard order: one customer, one line, in stock Is it committed, reserved, shipped, invoiced, paid? How does Reality know whether a customer invoice is fully paid?",
+      "search_text": "A01 Order intake and order changes Standard order: one customer, one line, in stock Is it committed, reserved, shipped, invoiced, paid? Standard order: one customer, one line, in stock Is it committed, reserved, shipped, invoiced, paid? How does Reality know whether a customer invoice is fully paid? Wie erkenne ich, dass eine Kundenrechnung vollständig bezahlt ist?",
       "claim_text": "Reality derives the customer invoice's open amount from its posted receivable and the payments or credits allocated to it. The invoice is fully settled when the derived open amount reaches zero; an allocation that covers only part leaves the remainder open.",
+      "localized_claims": {
+        "de": "Reality leitet den offenen Betrag einer Kundenrechnung aus der gebuchten Forderung und den zugeordneten Zahlungen oder Gutschriften ab. Die Rechnung ist vollständig ausgeglichen, sobald der offene Betrag null erreicht; eine Teilzahlung lässt den Rest offen."
+      },
       "support": "proven",
       "limitations": [],
       "references": [
         "A01"
       ],
       "language": "en",
-      "fingerprint": "e221b2694d6c7edd6ee9d5cebb54a18a095c12a2415ce1e1470daf06dee603f7"
+      "fingerprint": "379126ab09dac3c1af8c51c87c42618b6da68e229021d19d79c10fdc56524ccc"
     },
     {
       "id": "evidence_journey_a02",
@@ -2841,15 +2844,18 @@
       "source_id": "source_journey_c03",
       "subject": "Payment and release",
       "title": "Prepayment overpaid",
-      "search_text": "C03 Payment and release Prepayment overpaid Does a customer credit balance appear? Prepayment overpaid Does a customer credit balance appear?",
+      "search_text": "C03 Payment and release Prepayment overpaid Does a customer credit balance appear? Prepayment overpaid Does a customer credit balance appear? Wie geht Reality mit einer Überzahlung eines Kunden um?",
       "claim_text": "The invoice is settled and the excess remains available as customer credit for reuse or refund.",
+      "localized_claims": {
+        "de": "Die Rechnung ist ausgeglichen. Der überschüssige Betrag bleibt als Kundenguthaben erhalten und kann wiederverwendet oder erstattet werden."
+      },
       "support": "proven",
       "limitations": [],
       "references": [
         "C03"
       ],
       "language": "en",
-      "fingerprint": "4677ccfe14f066a2fc0f201c5139524825b00dfcdd92dc6219a27e1af3c34b9c"
+      "fingerprint": "214cd6889173ff20d7914878e0b212f1880310dc5e3a14210256084aab425989"
     },
     {
       "id": "evidence_journey_c04",
@@ -3102,15 +3108,18 @@
       "source_id": "source_journey_d01",
       "subject": "Picking, shipment, split and merge",
       "title": "Partial delivery: 3 of 5 shipped",
-      "search_text": "D01 Picking, shipment, split and merge Partial delivery: 3 of 5 shipped Open 2, shipped 3? Partial delivery: 3 of 5 shipped Open 2, shipped 3?",
-      "claim_text": "Reality evaluates: Open 2, shipped 3?",
+      "search_text": "D01 Picking, shipment, split and merge Partial delivery: 3 of 5 shipped Open 2, shipped 3? Partial delivery: 3 of 5 shipped Open 2, shipped 3? Was passiert bei einer Teillieferung an einen Kunden?",
+      "claim_text": "Reality records the shipped quantity and derives the open remainder from the order commitment. If 3 of 5 units are shipped, 3 remain fulfilled and 2 remain open for a later shipment.",
+      "localized_claims": {
+        "de": "Reality erfasst die versendete Menge und leitet die offene Restmenge aus der Auftragszusage ab. Werden 3 von 5 Einheiten geliefert, bleiben 3 erfüllt und 2 für eine spätere Lieferung offen."
+      },
       "support": "proven",
       "limitations": [],
       "references": [
         "D01"
       ],
       "language": "en",
-      "fingerprint": "6c5483f31087982a75f310d18db2fc9223b631ba50bfb23c066eeec974176f8a"
+      "fingerprint": "09e5f5b0bede8b91f632c1f73f1af2479e9c03fb7b0f5f95c123803e8ac5141e"
     },
     {
       "id": "evidence_journey_d02",
@@ -3429,29 +3438,32 @@
       "subject": "Customer invoice and credit note",
       "title": "One invoice per partial delivery",
       "search_text": "E01 Customer invoice and credit note One invoice per partial delivery Shipped but not invoiced = 0? One invoice per partial delivery Shipped but not invoiced = 0?",
-      "claim_text": "Reality evaluates: Shipped but not invoiced = 0?",
+      "claim_text": "Reality derives the shipped-but-not-invoiced quantity per order line across customer invoices. Each partial shipment can be invoiced separately; once invoiced quantities cover the shipped quantities, the unbilled quantity reaches zero.",
       "support": "proven",
       "limitations": [],
       "references": [
         "E01"
       ],
       "language": "en",
-      "fingerprint": "c64004db7fa3c265d820262d4ab53fff7cda511adde06b175b0e537fdb4cfd19"
+      "fingerprint": "c073654b2f26c88de8208e9c4eaeadba110df0cd5c398f084350825b53207954"
     },
     {
       "id": "evidence_journey_e02",
       "source_id": "source_journey_e02",
       "subject": "Customer invoice and credit note",
       "title": "Monthly collective invoice over several shipments",
-      "search_text": "E02 Customer invoice and credit note Monthly collective invoice over several shipments One invoice, several deliveries? Monthly collective invoice over several shipments One invoice, several deliveries?",
-      "claim_text": "Reality evaluates: One invoice, several deliveries?",
+      "search_text": "E02 Customer invoice and credit note Monthly collective invoice over several shipments One invoice, several deliveries? Monthly collective invoice over several shipments One invoice, several deliveries? Kann ich mehrere Lieferungen in einer Sammelrechnung abrechnen?",
+      "claim_text": "Reality can collect billable positions from several shipments and record them on one customer invoice. Once those positions are invoiced, their shipped-but-not-invoiced quantities clear.",
+      "localized_claims": {
+        "de": "Reality kann abrechenbare Positionen aus mehreren Lieferungen in einer Kundenrechnung zusammenfassen. Nach der Fakturierung sind diese gelieferten Mengen nicht mehr als noch nicht berechnet offen."
+      },
       "support": "proven",
       "limitations": [],
       "references": [
         "E02"
       ],
       "language": "en",
-      "fingerprint": "0d0dead2875e9e4b4fcc58a8b94591044500d5a5ce78f62537d109814a97f0d9"
+      "fingerprint": "3c2fa16e6b5e79e80ff8ac5ab35281982ff42230a9d32f0141cd922f7f73cd2e"
     },
     {
       "id": "evidence_journey_e03",
@@ -3508,13 +3520,16 @@
       "title": "Credit note with returned goods",
       "search_text": "E06 Customer invoice and credit note Credit note with returned goods Both linked to the return? Credit note with returned goods Both linked to the return?",
       "claim_text": "Reality correlates the return movement and the invoice-linked credit through their shared order line, using the shortest authoritative links rather than a duplicated direct return-to-credit link. The returned-not-credited exception clears once the linked credit exists.",
+      "localized_claims": {
+        "de": "Reality verbindet die Warenrückgabe und die rechnungsbezogene Gutschrift über dieselbe Auftragszeile. Eine zusätzliche direkte Verknüpfung zwischen Retourenbewegung und Gutschrift ist nicht erforderlich. Sobald die verknüpfte Gutschrift vorhanden ist, verschwindet die Ausnahme „retourniert, aber noch nicht gutgeschrieben“."
+      },
       "support": "proven",
       "limitations": [],
       "references": [
         "E06"
       ],
       "language": "en",
-      "fingerprint": "2c994bcfa97f426a58ce1cd808c0814d25b5cc69a0d9be0136bc7ff166ff663e"
+      "fingerprint": "fb960800a43cf100dfa4fdb6aa7a6d5e0947b9c947bfb6085c9974548aced7c8"
     },
     {
       "id": "evidence_journey_e07",
@@ -4132,15 +4147,18 @@
       "source_id": "source_journey_h02",
       "subject": "Goods receipt and supplier deviations",
       "title": "Under-delivery, rest later",
-      "search_text": "H02 Goods receipt and supplier deviations Under-delivery, rest later Open remainder? Under-delivery, rest later Open remainder?",
+      "search_text": "H02 Goods receipt and supplier deviations Under-delivery, rest later Open remainder? Under-delivery, rest later Open remainder? Was passiert, wenn ein Lieferant nur einen Teil der Bestellung liefert?",
       "claim_text": "When a supplier delivers 3 of 8 ordered units, Reality records the receipt for 3 and derives an open remainder of 5. A later receipt can fulfill that remainder without overwriting the first movement.",
+      "localized_claims": {
+        "de": "Liefert ein Lieferant 3 von 8 bestellten Einheiten, erfasst Reality den Wareneingang über 3 und leitet eine offene Restmenge von 5 ab. Ein späterer Wareneingang kann diesen Rest erfüllen, ohne die erste Bewegung zu überschreiben."
+      },
       "support": "proven",
       "limitations": [],
       "references": [
         "H02"
       ],
       "language": "en",
-      "fingerprint": "61782c18acecd9bbf9db63b2e3b6e62c05f859b9a19e90d6fa7bf05b014b42b6"
+      "fingerprint": "84024cf53124f0490606988246ad4ccd12c951f7ddc43ed72e1843be1a7e0b69"
     },
     {
       "id": "evidence_journey_h03",

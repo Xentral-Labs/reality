@@ -7,12 +7,15 @@ entries:
   status: supported
   evidence_level: executable
   summary: Reality derives the customer invoice's open amount from its posted receivable and the payments or credits allocated to it. The invoice is fully settled when the derived open amount reaches zero; an allocation that covers only part leaves the remainder open.
+  localized_summaries:
+    de: Reality leitet den offenen Betrag einer Kundenrechnung aus der gebuchten Forderung und den zugeordneten Zahlungen oder Gutschriften ab. Die Rechnung ist vollständig ausgeglichen, sobald der offene Betrag null erreicht; eine Teilzahlung lässt den Rest offen.
   limitations: &id001 []
   keywords: []
   question_examples:
   - 'Standard order: one customer, one line, in stock'
   - Is it committed, reserved, shipped, invoiced, paid?
   - How does Reality know whether a customer invoice is fully paid?
+  - Wie erkenne ich, dass eine Kundenrechnung vollständig bezahlt ist?
   tools: []
   demo_references: []
   product_paths: []
@@ -899,11 +902,14 @@ entries:
   status: supported
   evidence_level: executable
   summary: The invoice is settled and the excess remains available as customer credit for reuse or refund.
+  localized_summaries:
+    de: Die Rechnung ist ausgeglichen. Der überschüssige Betrag bleibt als Kundenguthaben erhalten und kann wiederverwendet oder erstattet werden.
   limitations: *id001
   keywords: []
   question_examples:
   - Prepayment overpaid
   - Does a customer credit balance appear?
+  - Wie geht Reality mit einer Überzahlung eines Kunden um?
   tools: []
   demo_references: []
   product_paths: []
@@ -1217,12 +1223,15 @@ entries:
   question: Open 2, shipped 3?
   status: supported
   evidence_level: executable
-  summary: 'Reality evaluates: Open 2, shipped 3?'
+  summary: Reality records the shipped quantity and derives the open remainder from the order commitment. If 3 of 5 units are shipped, 3 remain fulfilled and 2 remain open for a later shipment.
+  localized_summaries:
+    de: Reality erfasst die versendete Menge und leitet die offene Restmenge aus der Auftragszusage ab. Werden 3 von 5 Einheiten geliefert, bleiben 3 erfüllt und 2 für eine spätere Lieferung offen.
   limitations: *id001
   keywords: []
   question_examples:
   - 'Partial delivery: 3 of 5 shipped'
   - Open 2, shipped 3?
+  - Was passiert bei einer Teillieferung an einen Kunden?
   tools: []
   demo_references: []
   product_paths: []
@@ -1613,7 +1622,9 @@ entries:
   question: Shipped but not invoiced = 0?
   status: supported
   evidence_level: executable
-  summary: 'Reality evaluates: Shipped but not invoiced = 0?'
+  summary: Reality derives the shipped-but-not-invoiced quantity per order line across
+    customer invoices. Each partial shipment can be invoiced separately; once invoiced
+    quantities cover the shipped quantities, the unbilled quantity reaches zero.
   limitations: *id001
   keywords: []
   question_examples:
@@ -1632,12 +1643,15 @@ entries:
   question: One invoice, several deliveries?
   status: supported
   evidence_level: executable
-  summary: 'Reality evaluates: One invoice, several deliveries?'
+  summary: Reality can collect billable positions from several shipments and record them on one customer invoice. Once those positions are invoiced, their shipped-but-not-invoiced quantities clear.
+  localized_summaries:
+    de: Reality kann abrechenbare Positionen aus mehreren Lieferungen in einer Kundenrechnung zusammenfassen. Nach der Fakturierung sind diese gelieferten Mengen nicht mehr als noch nicht berechnet offen.
   limitations: *id001
   keywords: []
   question_examples:
   - Monthly collective invoice over several shipments
   - One invoice, several deliveries?
+  - Kann ich mehrere Lieferungen in einer Sammelrechnung abrechnen?
   tools: []
   demo_references: []
   product_paths: []
@@ -1711,6 +1725,8 @@ entries:
   status: supported
   evidence_level: executable
   summary: Reality correlates the return movement and the invoice-linked credit through their shared order line, using the shortest authoritative links rather than a duplicated direct return-to-credit link. The returned-not-credited exception clears once the linked credit exists.
+  localized_summaries:
+    de: Reality verbindet die Warenrückgabe und die rechnungsbezogene Gutschrift über dieselbe Auftragszeile. Eine zusätzliche direkte Verknüpfung zwischen Retourenbewegung und Gutschrift ist nicht erforderlich. Sobald die verknüpfte Gutschrift vorhanden ist, verschwindet die Ausnahme „retourniert, aber noch nicht gutgeschrieben“.
   limitations: *id001
   keywords: []
   question_examples:
@@ -2496,11 +2512,14 @@ entries:
   status: supported
   evidence_level: executable
   summary: When a supplier delivers 3 of 8 ordered units, Reality records the receipt for 3 and derives an open remainder of 5. A later receipt can fulfill that remainder without overwriting the first movement.
+  localized_summaries:
+    de: Liefert ein Lieferant 3 von 8 bestellten Einheiten, erfasst Reality den Wareneingang über 3 und leitet eine offene Restmenge von 5 ab. Ein späterer Wareneingang kann diesen Rest erfüllen, ohne die erste Bewegung zu überschreiben.
   limitations: *id001
   keywords: []
   question_examples:
   - Under-delivery, rest later
   - Open remainder?
+  - Was passiert, wenn ein Lieferant nur einen Teil der Bestellung liefert?
   tools: []
   demo_references: []
   product_paths: []
