@@ -36,3 +36,11 @@ Under FR-006 of this spec it is fixed here with a regression test naming spec 27
 - **Story placement**: purchasing stories in `test_catalog_purchasing.py`; D16, L06, O01 in
   `test_catalog_orders_and_shipments.py`; P04, P07 in a new `test_catalog_sources.py`; R01 in
   `test_catalog_finance.py`.
+
+## Fix outcome (T004–T005)
+
+Confirmed by `tests/test_movement_create_readiness.py` (refusals failed before the fix). The review
+of a `movement_create` shipment against a customer delivery now refuses with
+`shipment_blocked_readiness` when readiness reports a payment blocker (`prepayment_*`), at
+preparation and again at confirmation. Only the payment gate is shared: recording goods that already
+left still needs no reservation (a net-term shipment without reservation is recorded, pinned as a test).

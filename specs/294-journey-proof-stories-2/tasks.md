@@ -12,8 +12,8 @@
 
 ## Phase 2: Defect — a reviewed shipment movement honours readiness (FR-006)
 
-- [ ] T004 [FR-006] Failing regression test: a reviewed `movement_create` shipment of an unpaid prepayment order is refused with `shipment_blocked_readiness` at preparation and execution and creates no movement; a paid one ships (positive control), in `core/tests/test_movement_create_readiness.py`
-- [ ] T005 [FR-006] Consult `fulfillment_readiness` for `movement_create` shipments against customer deliveries in `core/src/reality/services/delivery_actions.py`, reusing the dispatch refusal values; run the delivery-action, shipment and fulfillment-safety suites
+- [x] T004 [FR-006] Failing regression test: a reviewed `movement_create` shipment of an unpaid prepayment order is refused with `shipment_blocked_readiness` at preparation and execution and creates no movement; a paid one ships (positive control), in `core/tests/test_movement_create_readiness.py`
+- [x] T005 [FR-006] Consult `fulfillment_readiness` for `movement_create` shipments against customer deliveries in `core/src/reality/services/delivery_actions.py`, reusing the dispatch refusal values; run the delivery-action, shipment and fulfillment-safety suites
 
 ## Phase 3: User Story 1 — Purchasing and receipt (P1)
 
