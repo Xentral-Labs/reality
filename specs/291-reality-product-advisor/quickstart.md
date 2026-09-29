@@ -88,6 +88,6 @@ The matrix uses automated surface contracts rather than a deployed production sm
 
 - The governed generator reduced 353 evidence units to 38 semantic Capability Map routes derived from Journey sections, business resources, executable commands and allowlisted public documents.
 - The planning provider receives no evidence IDs or claim text. It selects at most six capability identities plus bounded canonical search phrases; the server validates those routes and ranks only their related evidence.
-- Public planning has a 3-second timeout and each answer attempt has a 7-second timeout, keeping planning plus one validation retry below the widget's 20-second request timeout.
+- Public planning has a 10-second timeout and ordinary answer attempts have a 12-second timeout. Recognized broad processes skip redundant provider planning, use their governed concern decomposition directly and receive up to 14 seconds per answer attempt. Both paths keep one validation retry below the widget's 40-second request timeout.
 - Generator/staleness, Spec Policy and Ruff checks passed. Focused Advisor, evaluation, security, API, tool and Chat tests passed: 58 tests.
 - Complete backend suite passed: 4,742 tests, 10 skipped.

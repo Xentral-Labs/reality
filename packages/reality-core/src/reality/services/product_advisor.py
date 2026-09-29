@@ -33,8 +33,9 @@ Intent = Literal[
 
 logger = logging.getLogger(__name__)
 
-_PLANNER_TIMEOUT_SECONDS = 3.0
-_ANSWER_TIMEOUT_SECONDS = 7.0
+_PLANNER_TIMEOUT_SECONDS = 10.0
+_ANSWER_TIMEOUT_SECONDS = 12.0
+_BROAD_ANSWER_TIMEOUT_SECONDS = 14.0
 
 _PRODUCT_TERMS = (
     "reality",
@@ -578,6 +579,7 @@ def answer_product_question(
             "create a proposal automatically",
         )
     )
+    concerns = plan_product_concerns(research_question)
     evidence = (
         _evidence
         if _evidence is not None
@@ -585,7 +587,7 @@ def answer_product_question(
         if adversarial
         else research_evidence(research_question)
     )
-    if _evidence is None and not adversarial:
+    if _evidence is None and not adversarial and not concerns:
         planned = _planned_evidence(
             provider,
             {
@@ -605,10 +607,10 @@ def answer_product_question(
         "history": list(history),
         "detected_language": language,
         "intent": intent,
-        "concerns": list(plan_product_concerns(research_question)),
+        "concerns": list(concerns),
         "interpretation": (
             "standard operating flow"
-            if plan_product_concerns(research_question)
+            if concerns
             else None
         ),
         "knowledge_version": product_advisor_knowledge().knowledge_version,
@@ -1022,7 +1024,11 @@ def product_advisor_provider() -> AdvisorProvider | None:
             f"{ANTHROPIC_BASE_URL}/v1/messages",
             headers=headers,
             json=request_body,
-            timeout=_ANSWER_TIMEOUT_SECONDS,
+            timeout=(
+                _BROAD_ANSWER_TIMEOUT_SECONDS
+                if envelope.get("concerns")
+                else _ANSWER_TIMEOUT_SECONDS
+            ),
         )
         response.raise_for_status()
         content = response.json()["content"]

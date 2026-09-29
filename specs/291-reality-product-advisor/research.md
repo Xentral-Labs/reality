@@ -18,7 +18,7 @@
 
 ## Public tool boundary and latency budget
 
-**Decision**: Tool names and modes may be included in generated capability routing metadata, but the public advisor receives no callable business tools. Provider planning and answer stages use explicit bounded timeouts whose total worst case remains below the existing 20-second browser request timeout; any failure returns the deterministic path.
+**Decision**: Tool names and modes may be included in generated capability routing metadata, but the public advisor receives no callable business tools. Provider planning and answer stages use explicit bounded timeouts whose total worst case remains below the 40-second browser request timeout; any failure returns the deterministic path. Recognized broad processes use their governed concern decomposition directly; other questions use semantic catalog planning so ordinary ERP paraphrases do not fall through to weaker lexical retrieval merely because the provider needs more than three seconds.
 
 **Rationale**: The model benefits from knowing which governed operations exist, but public product research must not cross tenant or mutation boundaries. An end-to-end request budget prevents a valid safe fallback from arriving after the browser has already displayed an error.
 

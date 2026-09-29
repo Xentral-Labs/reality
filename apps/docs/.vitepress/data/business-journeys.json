@@ -15,12 +15,13 @@
       "question": "Is it committed, reserved, shipped, invoiced, paid?",
       "status": "supported",
       "evidence_level": "executable",
-      "summary": "Reality evaluates: Is it committed, reserved, shipped, invoiced, paid?",
+      "summary": "Reality derives the customer invoice's open amount from its posted receivable and the payments or credits allocated to it. The invoice is fully settled when the derived open amount reaches zero; an allocation that covers only part leaves the remainder open.",
       "limitations": [],
       "keywords": [],
       "question_examples": [
         "Standard order: one customer, one line, in stock",
-        "Is it committed, reserved, shipped, invoiced, paid?"
+        "Is it committed, reserved, shipped, invoiced, paid?",
+        "How does Reality know whether a customer invoice is fully paid?"
       ],
       "tools": [],
       "demo_references": [],
@@ -907,7 +908,7 @@
       "question": "Release or not, within which tolerance?",
       "status": "supported",
       "evidence_level": "executable",
-      "summary": "Reality evaluates: Release or not, within which tolerance?",
+      "summary": "A payment allocation reduces the invoice's open amount. A short payment leaves the remainder open and a prepayment order blocked; the remainder closes only through another allocation or a confirmed accepted-remainder adjustment.",
       "limitations": [],
       "keywords": [],
       "question_examples": [
@@ -1760,7 +1761,7 @@
       "question": "Both linked to the return?",
       "status": "supported",
       "evidence_level": "executable",
-      "summary": "Reality evaluates: Both linked to the return?",
+      "summary": "Reality correlates the return movement and the invoice-linked credit through their shared order line, using the shortest authoritative links rather than a duplicated direct return-to-credit link. The returned-not-credited exception clears once the linked credit exists.",
       "limitations": [],
       "keywords": [],
       "question_examples": [

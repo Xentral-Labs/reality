@@ -190,7 +190,7 @@
       this.conversation.append(pending);
       this.scrollConversation();
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
+      const timeout = setTimeout(() => controller.abort(), 40000);
       try {
         const response = await fetch(`${apiUrl}/api/journey-guide/questions`, {
           method: "POST",

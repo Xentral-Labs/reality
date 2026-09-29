@@ -177,7 +177,7 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - **FR-018**: Equivalent public questions MUST return materially consistent claim conclusions and public source references across Website, Docs and authenticated Chat for the same knowledge version.
 - **FR-019**: The advisor MUST detect the natural language used in the latest substantive user question and answer in that language while preserving canonical tool names, identifiers, references and equivalent capability conclusions.
 - **FR-019a**: When the latest question is too short or linguistically ambiguous, the advisor MUST use the language established by the bounded conversation history and then the active surface language as fallback; language detection MUST NOT change evidence selection or capability status.
-- **FR-020**: If research, generation or validation fails or exceeds its bounded stage or request budget, the service MUST return a deterministic evidence result, a focused clarification or an explicit not-established answer without unsupported generated claims and before the public widget's 20-second request timeout.
+- **FR-020**: If research, generation or validation fails or exceeds its bounded stage or request budget, the service MUST return a deterministic evidence result, a focused clarification or an explicit not-established answer without unsupported generated claims and before the public widget's 40-second request timeout.
 - **FR-021**: Authoritative source changes MUST update both advisory evidence and its compact Capability Map through one governed generation process without a parallel hand-maintained answer or routing corpus.
 - **FR-022**: Each generated evidence unit MUST retain its authoritative source identity, public/internal eligibility, current support meaning and freshness information sufficient to detect stale or ineligible references.
 - **FR-023**: Publication validation MUST reject duplicate evidence identity, broken references, public leakage, unsupported status upgrades and current-capability claims derived only from non-authoritative material.
@@ -219,7 +219,7 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - **SC-008**: For every multilingual evaluation case, questions in English, German, Dutch, Spanish, French, Polish, Turkish, Arabic and Japanese preserve the same material product conclusion and limitations, and 100% of answers use the detected question language or the documented fallback.
 - **SC-009**: Provider timeout, malformed output and failed validation cases return a safe deterministic result or clarification with zero unsupported generated claims.
 - **SC-010**: Every FR and DR maps to at least one acceptance scenario and executable proof before implementation is marked complete.
-- **SC-011**: In production-like timeout tests, 100% of public advisor requests return an answer, clarification or safe fallback before the existing 20-second widget timeout; provider planning never receives the complete evidence-unit index.
+- **SC-011**: In production-like timeout tests, 100% of public advisor requests return an answer, clarification or safe fallback before the 40-second widget timeout; provider planning never receives the complete evidence-unit index.
 
 ## Assumptions and Dependencies
 
