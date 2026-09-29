@@ -131,6 +131,8 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 2. **Given** an entry references a removed, private or ineligible source, **When** validation runs, **Then** publication fails with the affected claim and reference.
 3. **Given** a curated buyer question set, **When** advisor behavior changes, **Then** evaluation detects unsupported claims, missed material limitations, incorrect source scope and prohibited confidence upgrades before release.
 4. **Given** a generated answer contains “automatic”, “fully supported”, “end to end”, “compliant”, “migration” or an equivalent high-risk claim, **When** it lacks exact qualifying evidence, **Then** validation rejects or safely weakens the claim before it reaches the user.
+5. **Given** the governed Journey, resource or executable catalogs change, **When** advisory knowledge is generated, **Then** a compact Capability Map is regenerated from those sources without maintaining a second hand-written routing catalog.
+6. **Given** a public question is semantically phrased without catalog keywords, **When** the provider plans retrieval, **Then** it selects bounded Capability Map identities and the server resolves and validates their evidence; the provider neither receives the complete evidence index nor invokes a business tool.
 
 ### Edge Cases
 
@@ -157,7 +159,7 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - **FR-001**: Website, Docs and authenticated Reality Chat MUST use one shared Product Advisor service for general Reality capability and product questions.
 - **FR-002**: The advisor MUST classify each question as a narrow capability check, broad solution question, product/technical question, tenant-specific question or out-of-scope request before selecting evidence.
 - **FR-003**: For a broad or compound question, the advisor MUST identify the material subquestions needed for a useful conclusion and MUST NOT infer complete-process support from unrelated or merely adjacent primitives.
-- **FR-004**: The advisor MUST retrieve only relevant bounded evidence from approved source classes rather than treating the complete repository or complete knowledge corpus as the answer context. Provider-assisted semantic retrieval MAY inspect a compact public catalog index containing evidence identity, title, subject and source class, but not claim text; every selected identity MUST be server-validated, no more than twelve planned entries may be selected and no more than eighteen full evidence units may reach answer generation.
+- **FR-004**: The advisor MUST retrieve only relevant bounded evidence from approved source classes rather than treating the complete repository or complete knowledge corpus as the answer context. Provider-assisted semantic retrieval MAY inspect a compact generated Capability Map organized by business resource and process topic, but MUST NOT receive the complete evidence-unit index or claim text. It may select no more than six capability identities; the server MUST validate those identities, resolve their governed evidence relationships and send no more than eighteen full evidence units to answer generation.
 - **FR-005**: Approved public source classes MUST include published Business Journeys, public product documentation, public executable tool and command descriptions, public interface and integration contracts, and public durable product contracts.
 - **FR-006**: Verified tests and implementation metadata MAY strengthen or restrict an internal evidence assessment, but MUST become public answer evidence only through an explicitly public-safe product claim or reference.
 - **FR-007**: Plans, tasks, ideas, draft specifications, disabled code, comments and general model knowledge MUST NOT establish current product capability.
@@ -169,14 +171,14 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - **FR-012**: Answers MUST lead with a direct plain-language conclusion and, when relevant, separately present the practical workflow, important tools, material limitations and public references in a readable structure.
 - **FR-013**: When a question remains materially ambiguous after bounded research, the advisor MUST use the same provider-assisted semantic assessment for every business term and MUST ask one focused clarification before giving an answer if the plausible interpretations would materially change the workflow or conclusion. It MUST answer directly when missing detail would not materially change the result. Conversation history MAY resolve an explicit referent but MUST NOT silently choose between materially different ERP flows. A clarification response MUST contain no product claims or citations; partial delivery between customer shipment and supplier receipt is one acceptance example, not a hard-coded exception.
 - **FR-014**: The advisor MUST distinguish native supported behavior, agent-prepared and confirmation-required behavior, documented manual handling, workaround and product gap.
-- **FR-015**: Tool names MUST be selected from the governed executable catalogs, and the answer MUST describe whether a tool reads, previews, proposes or executes without inventing a tool or implying public execution.
+- **FR-015**: Tool names and modes MUST be derived from governed executable catalogs and MAY appear in the generated Capability Map for discovery. The public advisor MUST treat them only as vocabulary and evidence relationships, MUST NOT invoke them or accept tool arguments, and MUST describe whether a referenced tool reads, previews, proposes or executes without inventing a tool or implying public execution.
 - **FR-016**: Public answers MUST be read-only, ephemeral and limited to public-safe evidence; they MUST NOT inspect tenant data, disclose internal source content or reveal provider and repository internals.
 - **FR-017**: Authenticated tenant-specific follow-ups MUST use existing tenant-scoped services and tools, distinguish company observations from general product capability and preserve confirmation for mutations.
 - **FR-018**: Equivalent public questions MUST return materially consistent claim conclusions and public source references across Website, Docs and authenticated Chat for the same knowledge version.
 - **FR-019**: The advisor MUST detect the natural language used in the latest substantive user question and answer in that language while preserving canonical tool names, identifiers, references and equivalent capability conclusions.
 - **FR-019a**: When the latest question is too short or linguistically ambiguous, the advisor MUST use the language established by the bounded conversation history and then the active surface language as fallback; language detection MUST NOT change evidence selection or capability status.
-- **FR-020**: If research, generation or validation fails, the service MUST return a deterministic evidence result, a focused clarification or an explicit not-established answer without unsupported generated claims.
-- **FR-021**: Authoritative source changes MUST update advisory knowledge through one governed generation process without a parallel hand-maintained answer corpus.
+- **FR-020**: If research, generation or validation fails or exceeds its bounded stage or request budget, the service MUST return a deterministic evidence result, a focused clarification or an explicit not-established answer without unsupported generated claims and before the public widget's 20-second request timeout.
+- **FR-021**: Authoritative source changes MUST update both advisory evidence and its compact Capability Map through one governed generation process without a parallel hand-maintained answer or routing corpus.
 - **FR-022**: Each generated evidence unit MUST retain its authoritative source identity, public/internal eligibility, current support meaning and freshness information sufficient to detect stale or ineligible references.
 - **FR-023**: Publication validation MUST reject duplicate evidence identity, broken references, public leakage, unsupported status upgrades and current-capability claims derived only from non-authoritative material.
 - **FR-024**: A governed ERP-buyer evaluation set MUST cover narrow business cases, broad operating models, technical/product questions, unsupported capabilities, ambiguity and adversarial prompts. Its initial language matrix MUST include English, German, Dutch, Spanish, French, Polish, Turkish, Arabic and Japanese without limiting production answers to those languages.
@@ -199,6 +201,7 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - **Advisory Question**: The latest user question, supported language, bounded conversational context, classified intent and authorized evidence scope.
 - **Evidence Source**: An authoritative source with identity, source class, visibility, currentness and rules governing which claims it may establish.
 - **Evidence Unit**: A bounded public-safe or internal excerpt derived through the governed source process, retaining its source identity and relevant qualification.
+- **Capability Map**: A deterministic compact routing artifact derived from governed Journeys, business resources and executable catalogs. Each capability has stable identity, discovery language, validated evidence relationships and optional catalog tool vocabulary, but contains no executable authority or tenant data.
 - **Advisory Claim**: One material statement about Reality with requested subject, support level, evidence references, limitations and validation result.
 - **Advisory Answer**: A readable composition of validated claims, workflow guidance, tools, limitations, clarification and public references.
 - **Buyer Evaluation Case**: A representative question with required facts, required limitations, forbidden claims, permitted source classes and supported languages, without fixing exact prose.
@@ -216,6 +219,7 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - **SC-008**: For every multilingual evaluation case, questions in English, German, Dutch, Spanish, French, Polish, Turkish, Arabic and Japanese preserve the same material product conclusion and limitations, and 100% of answers use the detected question language or the documented fallback.
 - **SC-009**: Provider timeout, malformed output and failed validation cases return a safe deterministic result or clarification with zero unsupported generated claims.
 - **SC-010**: Every FR and DR maps to at least one acceptance scenario and executable proof before implementation is marked complete.
+- **SC-011**: In production-like timeout tests, 100% of public advisor requests return an answer, clarification or safe fallback before the existing 20-second widget timeout; provider planning never receives the complete evidence-unit index.
 
 ## Assumptions and Dependencies
 
@@ -235,6 +239,6 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 | FR-005–FR-011, FR-015, FR-020, DR-001–DR-002 | US1–US3 | Source-authority, material-claim coverage, claim validation, high-risk wording and provider-failure tests |
 | FR-016–FR-017, FR-026, DR-003, DR-006–DR-007 | US3, US4 | Public non-disclosure, tenant isolation, read-only research and confirmation-boundary tests |
 | FR-019–FR-019a | US1–US4 | Language-detection, fallback and multilingual conclusion-parity evaluation |
-| FR-021–FR-025 | US5 | Knowledge-generation freshness, stale-reference and ERP-buyer evaluation gates |
+| FR-021–FR-025 | US5 | Evidence and Capability Map generation freshness, stale-reference and ERP-buyer evaluation gates |
 | FR-027 | US4, US5 | Business Journey Guide browsing, proposal and voting regressions |
-| SC-001–SC-010 | All | Reviewed acceptance corpus and required repository quality gates |
+| SC-001–SC-011 | All | Reviewed acceptance corpus, bounded-time provider tests and required repository quality gates |

@@ -42,3 +42,8 @@ When the latest question can refer to materially different ERP flows, the Adviso
 Authorized internal calls receive the same public conclusion and may additionally receive allowlisted internal evidence for cited Journey IDs. This diagnostic material is returned separately, remains tenant-independent and is never serialized by the public API or widget. Remediation starts by fixing the canonical source or allowlist, regenerating the artifact and rerunning the claim and buyer-case evaluations; generated JSON is not edited by hand.
 
 The [Demo Data Catalog](demo-data-catalog.md) remains the smaller inventory of concrete cases seeded in the current demo profile. A cataloged journey without a demo reference is not presented as immediately explorable.
+## Product Advisor capability routing
+
+The public Product Advisor does not send the complete evidence catalog to the language model and does not expose callable business tools. `make docs-generate` derives `product_capability_map.json` from the governed Business Journeys, business-resource catalog, command catalog and allowlisted public documents. The provider may select at most six compact capability identities; the server validates them, resolves their evidence relationships and supplies at most eighteen evidence units to answer generation.
+
+Tool names in the map are discovery vocabulary only. They help the advisor explain which governed operations exist, but they carry no arguments, tenant access or invocation authority. Public planning and answer stages have bounded timeouts below the browser widget's 20-second request limit; failures use the deterministic evidence fallback.

@@ -39,7 +39,7 @@ docs-generate:
 	PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-journey-guide.py
 	PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-product-advisor-knowledge.py
 docs-catalog-check: docs-generate
-	git diff --exit-code -- apps/docs/content/tool-usage apps/docs/content/de/tool-usage apps/docs/content/storylines apps/docs/content/de/storylines apps/docs/content/public/storylines apps/docs/.vitepress/data packages/reality-core/config/product_advisor_knowledge.json
+	git diff --exit-code -- apps/docs/content/tool-usage apps/docs/content/de/tool-usage apps/docs/content/storylines apps/docs/content/de/storylines apps/docs/content/public/storylines apps/docs/.vitepress/data packages/reality-core/config/product_advisor_knowledge.json packages/reality-core/config/product_capability_map.json
 docs-build: docs-generate
 	PYTHONPATH=packages/reality-core/src .venv/bin/python -m unittest discover -s apps/docs/scripts -p 'test_*_reference.py'
 	cd apps/docs && npm run format:check && npm run test && npm run build

@@ -9,19 +9,23 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
 from reality.domain.business_journeys import load_journey_catalog
 from reality.domain.product_advisor import (
     EvidenceSource,
     EvidenceUnit,
     ProductAdvisorKnowledge,
+    ProductCapability,
+    ProductCapabilityMap,
+    ProductCapabilityTool,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
 CONFIG = ROOT / "packages/reality-core/config/product_advisor_sources.yaml"
 JOURNEYS = ROOT / "packages/reality-core/config/business_journey_catalog.yaml"
 COMMANDS = ROOT / "packages/reality-core/config/command_catalog.yaml"
+RESOURCES = ROOT / "packages/reality-core/config/resource_catalog.yaml"
 TARGET = ROOT / "packages/reality-core/config/product_advisor_knowledge.json"
+CAPABILITY_TARGET = ROOT / "packages/reality-core/config/product_capability_map.json"
 
 
 def _hash(value: str) -> str:
@@ -29,8 +33,8 @@ def _hash(value: str) -> str:
 
 
 def _clean_markdown(value: str) -> str:
-    value = re.sub(r"^---\n.*?\n---\n", "", value, flags=re.S)
-    value = re.sub(r"```.*?```", " ", value, flags=re.S)
+    value = re.sub(r"^---\n.*?\n---\n", "", value, flags=re.DOTALL)
+    value = re.sub(r"```.*?```", " ", value, flags=re.DOTALL)
     value = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", value)
     value = re.sub(r"[#>*_`|]", " ", value)
     return re.sub(r"\s+", " ", value).strip()
@@ -212,15 +216,133 @@ def build_knowledge() -> ProductAdvisorKnowledge:
     )
 
 
+def _slug(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", value.casefold()).strip("_")
+
+
+def build_capability_map(knowledge: ProductAdvisorKnowledge) -> ProductCapabilityMap:
+    """Derive compact semantic routes; evidence remains the product authority."""
+    configured = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
+    command_catalog = yaml.safe_load(COMMANDS.read_text(encoding="utf-8"))
+    resource_catalog = yaml.safe_load(RESOURCES.read_text(encoding="utf-8"))
+    evidence_by_id = {item.id: item for item in knowledge.evidence}
+    command_modes = {
+        str(row["service"]): str(row["mode"])
+        for row in command_catalog.get("commands", [])
+        if row.get("service") and row.get("mode")
+    }
+    capabilities: list[ProductCapability] = []
+
+    journey_groups: dict[str, list[EvidenceUnit]] = {}
+    for unit in knowledge.evidence:
+        if unit.source_id.startswith("source_journey_"):
+            journey_groups.setdefault(unit.subject, []).append(unit)
+    for subject, units in sorted(journey_groups.items()):
+        capabilities.append(
+            ProductCapability(
+                id=f"capability_process_{_slug(subject)}",
+                label=subject,
+                description=f"Business Journey evidence for {subject}.",
+                aliases=tuple(dict.fromkeys(unit.title for unit in units))[:30],
+                evidence_ids=tuple(unit.id for unit in units),
+                tools=tuple(
+                    ProductCapabilityTool(name=name, mode=command_modes[name])
+                    for name in dict.fromkeys(
+                        reference
+                        for unit in units
+                        for reference in unit.references
+                        if reference in command_modes
+                    )
+                ),
+            )
+        )
+
+    commands = command_catalog.get("commands", [])
+    for resource in resource_catalog.get("resources", []):
+        pattern = str(resource.get("match", ""))
+        tables = set(resource.get("tables", []))
+        matching_names: list[str] = []
+        for command in commands:
+            name = str(command.get("service", ""))
+            command_tables = set(command.get("reads", [])) | set(command.get("writes", []))
+            if (
+                (pattern and re.search(pattern, name)) or (tables & command_tables)
+            ) and f"evidence_command_{name}" in evidence_by_id:
+                matching_names.append(name)
+        if not matching_names:
+            continue
+        label = str(resource.get("label", {}).get("en", resource["key"]))
+        description = str(resource.get("description", {}).get("en", label))
+        capabilities.append(
+            ProductCapability(
+                id=f"capability_resource_{_slug(str(resource['key']))}",
+                label=label,
+                description=description,
+                aliases=tuple(str(item) for item in resource.get("synonyms", []))[:30],
+                evidence_ids=tuple(
+                    f"evidence_command_{name}" for name in dict.fromkeys(matching_names)
+                ),
+                tools=tuple(
+                    ProductCapabilityTool(name=name, mode=command_modes[name])
+                    for name in dict.fromkeys(matching_names)
+                ),
+            )
+        )
+
+    for document in configured.get("documents", []):
+        prefix = f"evidence_document_{document['id']}_"
+        evidence_ids = tuple(
+            item.id for item in knowledge.evidence if item.id.startswith(prefix)
+        )
+        if not evidence_ids:
+            continue
+        topics = tuple(str(item) for item in document.get("topics", []))
+        capabilities.append(
+            ProductCapability(
+                id=f"capability_document_{_slug(str(document['id']))}",
+                label=str(document["title"]),
+                description=f"Public product documentation about {', '.join(topics)}.",
+                aliases=topics,
+                evidence_ids=evidence_ids,
+            )
+        )
+
+    result = ProductCapabilityMap(
+        schema_version=1,
+        knowledge_version=knowledge.knowledge_version,
+        capabilities=tuple(capabilities),
+    )
+    known_evidence = set(evidence_by_id)
+    known_tools = {
+        str(row.get("service")) for row in commands if row.get("service")
+    }
+    for capability in result.capabilities:
+        unknown_evidence = set(capability.evidence_ids) - known_evidence
+        unknown_tools = {tool.name for tool in capability.tools} - known_tools
+        if unknown_evidence or unknown_tools:
+            raise ValueError(
+                f"{capability.id}: unresolved evidence/tools: "
+                f"{sorted(unknown_evidence | unknown_tools)}"
+            )
+    return result
+
+
 def main() -> None:
     knowledge = build_knowledge()
+    capability_map = build_capability_map(knowledge)
     TARGET.write_text(
         json.dumps(knowledge.public_payload(), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    CAPABILITY_TARGET.write_text(
+        json.dumps(capability_map.model_dump(mode="json"), ensure_ascii=False, indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
     print(
         "Generated Product Advisor knowledge: "
-        f"{len(knowledge.sources)} sources, {len(knowledge.evidence)} evidence units"
+        f"{len(knowledge.sources)} sources, {len(knowledge.evidence)} evidence units, "
+        f"{len(capability_map.capabilities)} capability routes"
     )
 
 

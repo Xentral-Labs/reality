@@ -166,6 +166,46 @@ class ProductAdvisorKnowledge(BaseModel):
         }
 
 
+class ProductCapabilityTool(BaseModel):
+    """Non-callable governed command vocabulary exposed for discovery."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    name: str = Field(pattern=r"^[a-z][a-z0-9_]+$")
+    mode: Literal["read", "query", "mutation"]
+
+
+class ProductCapability(BaseModel):
+    """Compact generated routing metadata without claim or execution authority."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    id: str = Field(pattern=r"^capability_[a-z0-9_]+$")
+    label: str = Field(min_length=1, max_length=200)
+    description: str = Field(min_length=1, max_length=600)
+    aliases: tuple[str, ...] = Field(default=(), max_length=30)
+    evidence_ids: tuple[str, ...] = Field(min_length=1, max_length=80)
+    tools: tuple[ProductCapabilityTool, ...] = Field(default=(), max_length=80)
+
+
+class ProductCapabilityMap(BaseModel):
+    """Versioned capability routes derived alongside ProductAdvisorKnowledge."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: int = Field(ge=1)
+    knowledge_version: str = Field(min_length=1, max_length=200)
+    capabilities: tuple[ProductCapability, ...] = Field(max_length=60)
+
+    @model_validator(mode="after")
+    def identities_are_unique(self) -> ProductCapabilityMap:
+        identities = [item.id for item in self.capabilities]
+        if len(identities) != len(set(identities)):
+            duplicate = next(item for item in identities if identities.count(item) > 1)
+            raise ValueError(f"Duplicate capability id: {duplicate}")
+        return self
+
+
 def validate_claim(
     claim: AdvisoryClaim, evidence_by_id: dict[str, EvidenceUnit]
 ) -> AdvisoryClaim:

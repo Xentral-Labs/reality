@@ -1,0 +1,2520 @@
+{
+  "schema_version": 1,
+  "knowledge_version": "advisor-v1:sha256:c51542d098e19fb9ab2bba067d1300faeafe2664222a255ba58f6b63b8d74712",
+  "capabilities": [
+    {
+      "id": "capability_process_availability_reservation_and_backorder",
+      "label": "Availability, reservation and backorder",
+      "description": "Business Journey evidence for Availability, reservation and backorder.",
+      "aliases": [
+        "Too little stock: partial reservation, rest backordered",
+        "No stock at all",
+        "Two orders compete for the last units",
+        "Re-reservation to a more important customer",
+        "Stock exists but is blocked (quality, quarantine, expiry)",
+        "Stock exists in the wrong warehouse",
+        "Stock only on order (open purchase)",
+        "Receipt resolves backorders",
+        "Receipt covers only part of the backorders",
+        "Customer refuses partial delivery",
+        "Partial delivery allowed up to two parcels",
+        "Reservation lapses because prepayment did not arrive",
+        "Count difference leaves a reservation uncovered",
+        "Oversold across channels (shop and marketplace)",
+        "Safety stock withheld from B2C, given to key accounts",
+        "Channel quotas (e.g. 20 % for Amazon)",
+        "Batch/expiry: customer demands minimum remaining shelf life",
+        "Serial-numbered item reserved by serial number"
+      ],
+      "evidence_ids": [
+        "evidence_journey_b01",
+        "evidence_journey_b02",
+        "evidence_journey_b03",
+        "evidence_journey_b04",
+        "evidence_journey_b05",
+        "evidence_journey_b06",
+        "evidence_journey_b07",
+        "evidence_journey_b08",
+        "evidence_journey_b09",
+        "evidence_journey_b10",
+        "evidence_journey_b11",
+        "evidence_journey_b12",
+        "evidence_journey_b13",
+        "evidence_journey_b14",
+        "evidence_journey_b15",
+        "evidence_journey_b16",
+        "evidence_journey_b17",
+        "evidence_journey_b18"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_b2b_specifics",
+      "label": "B2B specifics",
+      "description": "Business Journey evidence for B2B specifics.",
+      "aliases": [
+        "Blanket order for 10,000 units with monthly call-offs",
+        "Customer-specific prices, item numbers and names",
+        "EDI chain ORDERS → ORDRSP → DESADV → INVOIC → REMADV",
+        "ORDCHG after confirmation",
+        "Retail chain: central warehouse plus store delivery",
+        "Customer rule: cancel backorders instead of delivering later",
+        "Customer-prescribed delivery note or pallet label",
+        "Customer deducts penalty or marketing contribution",
+        "Annual rebate at year end",
+        "Orderer, recipient, bill-to and payer are four parties",
+        "Customer is also a supplier (netting)",
+        "Sample or loan with return obligation"
+      ],
+      "evidence_ids": [
+        "evidence_journey_m01",
+        "evidence_journey_m02",
+        "evidence_journey_m03",
+        "evidence_journey_m04",
+        "evidence_journey_m05",
+        "evidence_journey_m06",
+        "evidence_journey_m07",
+        "evidence_journey_m08",
+        "evidence_journey_m09",
+        "evidence_journey_m10",
+        "evidence_journey_m11",
+        "evidence_journey_m12"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_combined_stress_stories",
+      "label": "Combined stress stories",
+      "description": "Business Journey evidence for Combined stress stories.",
+      "aliases": [
+        "Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged",
+        "Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels",
+        "Drop shipment with wrong item; customer returns it to us instead of the supplier",
+        "Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees",
+        "EDI customer sends ORDCHG after a partial delivery was advised",
+        "Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting",
+        "Month-end count difference uncovers three reservations",
+        "Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit"
+      ],
+      "evidence_ids": [
+        "evidence_journey_r01",
+        "evidence_journey_r02",
+        "evidence_journey_r03",
+        "evidence_journey_r04",
+        "evidence_journey_r05",
+        "evidence_journey_r06",
+        "evidence_journey_r07",
+        "evidence_journey_r08"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_customer_invoice_and_credit_note",
+      "label": "Customer invoice and credit note",
+      "description": "Business Journey evidence for Customer invoice and credit note.",
+      "aliases": [
+        "One invoice per partial delivery",
+        "Monthly collective invoice over several shipments",
+        "Invoice before delivery (prepayment, pro forma)",
+        "Invoice corrected: reversal plus new invoice",
+        "Partial credit note without returned goods",
+        "Credit note with returned goods",
+        "Invoice differs from the order (quantity/price)",
+        "Shipping cost, small-quantity surcharge, payment fees",
+        "Invoice addressed to another party than the recipient",
+        "E-invoice (XRechnung/ZUGFeRD)",
+        "Down-payment invoice and final invoice",
+        "Rounding difference between lines and total"
+      ],
+      "evidence_ids": [
+        "evidence_journey_e01",
+        "evidence_journey_e02",
+        "evidence_journey_e03",
+        "evidence_journey_e04",
+        "evidence_journey_e05",
+        "evidence_journey_e06",
+        "evidence_journey_e07",
+        "evidence_journey_e08",
+        "evidence_journey_e09",
+        "evidence_journey_e10",
+        "evidence_journey_e11",
+        "evidence_journey_e12"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_e_commerce_and_marketplaces",
+      "label": "E-commerce and marketplaces",
+      "description": "Business Journey evidence for E-commerce and marketplaces.",
+      "aliases": [
+        "Amazon FBA: stock at Amazon, sales/returns/fees via reports",
+        "Marketplace order shipped by us with a deadline",
+        "Marketplace payout: one payment for hundreds of orders minus fees and refunds",
+        "Shopify order partially refunded in the shop",
+        "Shopify order edited after import",
+        "Pre-order of an item not yet available",
+        "Black Friday: 10,000 orders in two hours",
+        "Subscription order, payment fails",
+        "Promotion: free item above EUR 50",
+        "Guest order, later with an account (duplicate party)",
+        "OSS: EU consumer, destination-country VAT",
+        "Shipment to Switzerland/UK (customs, DDP/DAP)"
+      ],
+      "evidence_ids": [
+        "evidence_journey_l01",
+        "evidence_journey_l02",
+        "evidence_journey_l03",
+        "evidence_journey_l04",
+        "evidence_journey_l05",
+        "evidence_journey_l06",
+        "evidence_journey_l07",
+        "evidence_journey_l08",
+        "evidence_journey_l09",
+        "evidence_journey_l10",
+        "evidence_journey_l11",
+        "evidence_journey_l12"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_finance_tax_and_currency",
+      "label": "Finance, tax and currency",
+      "description": "Business Journey evidence for Finance, tax and currency.",
+      "aliases": [
+        "Intra-community supply (VAT-exempt, VAT ID)",
+        "Reverse charge on purchase",
+        "Sale in CHF or USD, payment in EUR",
+        "Dunning in three levels, then collection",
+        "Bad debt write-off",
+        "Open items per party incl. credits and prepayments",
+        "Handover to DATEV/external accounting, later correction",
+        "VAT rate change at a cut-off date"
+      ],
+      "evidence_ids": [
+        "evidence_journey_n01",
+        "evidence_journey_n02",
+        "evidence_journey_n03",
+        "evidence_journey_n04",
+        "evidence_journey_n05",
+        "evidence_journey_n06",
+        "evidence_journey_n07",
+        "evidence_journey_n08"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_goods_receipt_and_supplier_deviations",
+      "label": "Goods receipt and supplier deviations",
+      "description": "Business Journey evidence for Goods receipt and supplier deviations.",
+      "aliases": [
+        "Receipt exactly as ordered",
+        "Under-delivery, rest later",
+        "Under-delivery, rest never",
+        "Over-delivery accepted",
+        "Over-delivery rejected or returned",
+        "Wrong item delivered",
+        "Substitute/successor item delivered",
+        "Damaged goods, part to quarantine",
+        "Receipt without purchase order (free, sample, misdelivery)",
+        "One delivery for several purchase orders",
+        "Delivery earlier than confirmed",
+        "Receipt recorded before the purchase order exists",
+        "Receipt with batches, expiry, serial numbers",
+        "Wrong receipt recorded, then corrected",
+        "Quality inspection releases days later",
+        "Receipt for a customer-specific purchase (cross-docking)",
+        "Advice says 100, 96 arrive",
+        "Return to supplier with supplier credit",
+        "Freight and duty arrive later and change landed cost"
+      ],
+      "evidence_ids": [
+        "evidence_journey_h01",
+        "evidence_journey_h02",
+        "evidence_journey_h03",
+        "evidence_journey_h04",
+        "evidence_journey_h05",
+        "evidence_journey_h06",
+        "evidence_journey_h07",
+        "evidence_journey_h08",
+        "evidence_journey_h09",
+        "evidence_journey_h10",
+        "evidence_journey_h11",
+        "evidence_journey_h12",
+        "evidence_journey_h13",
+        "evidence_journey_h14",
+        "evidence_journey_h15",
+        "evidence_journey_h16",
+        "evidence_journey_h17",
+        "evidence_journey_h18",
+        "evidence_journey_h19"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_kits_bills_of_material_and_variants",
+      "label": "Kits, bills of material and variants",
+      "description": "Business Journey evidence for Kits, bills of material and variants.",
+      "aliases": [
+        "Kit sold, shipped from components",
+        "One component missing, no partial kit allowed",
+        "Return of a single component from a kit",
+        "Light assembly: components consumed, finished item produced",
+        "Variant item (size/colour) purchased together",
+        "Bundle price split across components (revenue, tax)"
+      ],
+      "evidence_ids": [
+        "evidence_journey_k01",
+        "evidence_journey_k02",
+        "evidence_journey_k03",
+        "evidence_journey_k04",
+        "evidence_journey_k05",
+        "evidence_journey_k06"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_master_data_and_identity",
+      "label": "Master data and identity",
+      "description": "Business Journey evidence for Master data and identity.",
+      "aliases": [
+        "Item number renamed",
+        "Two parties merged as duplicates",
+        "Customer moves; old orders keep the old address",
+        "Item delisted with open orders or purchases",
+        "Unit conversion: buy in cartons of 12, sell in pieces",
+        "Supplier item number ≠ own number, several suppliers"
+      ],
+      "evidence_ids": [
+        "evidence_journey_o01",
+        "evidence_journey_o02",
+        "evidence_journey_o03",
+        "evidence_journey_o04",
+        "evidence_journey_o05",
+        "evidence_journey_o06"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_order_intake_and_order_changes",
+      "label": "Order intake and order changes",
+      "description": "Business Journey evidence for Order intake and order changes.",
+      "aliases": [
+        "Standard order: one customer, one line, in stock",
+        "Order with 30 lines from several warehouses",
+        "Same item twice in one order (discounted and free)",
+        "Customer raises the quantity after a partial delivery",
+        "Customer lowers the quantity below the delivered quantity",
+        "One line cancelled, the rest stays",
+        "Whole order cancelled after reservation",
+        "Cancelled after picking, before shipment",
+        "\"Cancelled\" after shipment",
+        "Customer swaps a variant/size in an open order",
+        "Delivery address changes after release, before shipment",
+        "Requested delivery date in the future",
+        "Different requested dates per line",
+        "Quote converted to an order with changed quantities/prices",
+        "Same order arrives twice (webhook retry)",
+        "Shop sends a new version of the same order",
+        "Shop order contains an unknown item",
+        "Order price differs from list price",
+        "Zero-price line (sample, gift, replacement)",
+        "Two orders of one customer to be shipped together",
+        "One order split across two delivery addresses",
+        "Order parked or held (clarification, fraud check)",
+        "Blanket order with call-offs",
+        "Line added later that should ride with the open shipment"
+      ],
+      "evidence_ids": [
+        "evidence_journey_a01",
+        "evidence_journey_a02",
+        "evidence_journey_a03",
+        "evidence_journey_a04",
+        "evidence_journey_a05",
+        "evidence_journey_a06",
+        "evidence_journey_a07",
+        "evidence_journey_a08",
+        "evidence_journey_a09",
+        "evidence_journey_a10",
+        "evidence_journey_a11",
+        "evidence_journey_a12",
+        "evidence_journey_a13",
+        "evidence_journey_a14",
+        "evidence_journey_a15",
+        "evidence_journey_a16",
+        "evidence_journey_a17",
+        "evidence_journey_a18",
+        "evidence_journey_a19",
+        "evidence_journey_a20",
+        "evidence_journey_a21",
+        "evidence_journey_a22",
+        "evidence_journey_a23",
+        "evidence_journey_a24"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_payment_and_release",
+      "label": "Payment and release",
+      "description": "Business Journey evidence for Payment and release.",
+      "aliases": [
+        "Prepayment: ship only after payment",
+        "Prepayment short-paid",
+        "Prepayment overpaid",
+        "One payment for two prepaid orders",
+        "Payment without a usable reference",
+        "Payment arrives after the order was cancelled",
+        "Credit limit exceeded: order held, released by a person",
+        "Limit exceeded by overdue items, not by order value",
+        "Card/PayPal/Klarna: authorization ≠ capture",
+        "Authorization expires before a late partial shipment",
+        "B2B invoice with 30 days net, 2 % discount within 10 days",
+        "Discount taken after the discount window",
+        "Cash on delivery",
+        "30 % down payment, rest before shipment",
+        "Chargeback / returned direct debit after shipment",
+        "Customer delivery block (dunning, insolvency)",
+        "Fraud check holds and releases an order",
+        "Voucher or gift card as (part) payment"
+      ],
+      "evidence_ids": [
+        "evidence_journey_c01",
+        "evidence_journey_c02",
+        "evidence_journey_c03",
+        "evidence_journey_c04",
+        "evidence_journey_c05",
+        "evidence_journey_c06",
+        "evidence_journey_c07",
+        "evidence_journey_c08",
+        "evidence_journey_c09",
+        "evidence_journey_c10",
+        "evidence_journey_c11",
+        "evidence_journey_c12",
+        "evidence_journey_c13",
+        "evidence_journey_c14",
+        "evidence_journey_c15",
+        "evidence_journey_c16",
+        "evidence_journey_c17",
+        "evidence_journey_c18"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_picking_shipment_split_and_merge",
+      "label": "Picking, shipment, split and merge",
+      "description": "Business Journey evidence for Picking, shipment, split and merge.",
+      "aliases": [
+        "Partial delivery: 3 of 5 shipped",
+        "Two warehouses, two parcels, one order",
+        "Several orders of one customer in one shipment",
+        "Picking error caught before shipment",
+        "Picking error found by the customer",
+        "Picker finds less stock than recorded",
+        "Parcel lost, carrier insurance pays",
+        "Parcel undeliverable, returns",
+        "Delivery refused",
+        "Drop shipping: supplier ships directly",
+        "Partial drop shipping: part own stock, part supplier",
+        "3PL confirms shipments late",
+        "Pallet freight with booked delivery slot",
+        "Export to a third country (customs, proof of export)",
+        "Customer pickup",
+        "Free replacement shipment without a new order",
+        "Shipment confirmation arrives before the order",
+        "Shipment reported twice",
+        "Returnable packaging or deposit (pallets, crates)"
+      ],
+      "evidence_ids": [
+        "evidence_journey_d01",
+        "evidence_journey_d02",
+        "evidence_journey_d03",
+        "evidence_journey_d04",
+        "evidence_journey_d05",
+        "evidence_journey_d06",
+        "evidence_journey_d07",
+        "evidence_journey_d08",
+        "evidence_journey_d09",
+        "evidence_journey_d10",
+        "evidence_journey_d11",
+        "evidence_journey_d12",
+        "evidence_journey_d13",
+        "evidence_journey_d14",
+        "evidence_journey_d15",
+        "evidence_journey_d16",
+        "evidence_journey_d17",
+        "evidence_journey_d18",
+        "evidence_journey_d19"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_purchasing_demand_and_purchase_order",
+      "label": "Purchasing: demand and purchase order",
+      "description": "Business Journey evidence for Purchasing: demand and purchase order.",
+      "aliases": [
+        "Reorder for a specific customer backorder",
+        "Reorder for stock at reorder point",
+        "Mixed purchase: customer, stock and unassigned",
+        "One purchase order with several delivery dates per line",
+        "Purchase against a supplier framework agreement",
+        "Minimum order quantity / pack size forces more",
+        "Tiered purchase prices",
+        "Purchase order in foreign currency (USD, CNY)",
+        "Supplier confirms different quantity/price/date",
+        "Supplier never confirms",
+        "Supplier moves the date several times",
+        "Purchase cancelled after supplier produced",
+        "Purchase reduced after the customer order was cancelled",
+        "Two suppliers for the same item, split sourcing",
+        "Drop-ship purchase order for a customer order",
+        "Import by sea (8 weeks), one container, many purchases",
+        "Purchase of non-stock items (service, consumables)"
+      ],
+      "evidence_ids": [
+        "evidence_journey_g01",
+        "evidence_journey_g02",
+        "evidence_journey_g03",
+        "evidence_journey_g04",
+        "evidence_journey_g05",
+        "evidence_journey_g06",
+        "evidence_journey_g07",
+        "evidence_journey_g08",
+        "evidence_journey_g09",
+        "evidence_journey_g10",
+        "evidence_journey_g11",
+        "evidence_journey_g12",
+        "evidence_journey_g13",
+        "evidence_journey_g14",
+        "evidence_journey_g15",
+        "evidence_journey_g16",
+        "evidence_journey_g17"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_returns_and_complaints",
+      "label": "Returns and complaints",
+      "description": "Business Journey evidence for Returns and complaints.",
+      "aliases": [
+        "B2C withdrawal within 14 days, full refund",
+        "Partial return: 2 of 5",
+        "Different item returned than announced",
+        "Unannounced return",
+        "Damaged return, partial refund",
+        "Mixed disposition: restock, quarantine, scrap, back to supplier",
+        "Exchange: return plus new delivery, no money",
+        "Refund before the return arrives (goodwill)",
+        "Return announced, never arrives",
+        "Warranty repair via the manufacturer",
+        "Complaint without return (photo), credit note",
+        "Marketplace refunds first, goods later or never",
+        "Return after month-end for a prior-month invoice"
+      ],
+      "evidence_ids": [
+        "evidence_journey_f01",
+        "evidence_journey_f02",
+        "evidence_journey_f03",
+        "evidence_journey_f04",
+        "evidence_journey_f05",
+        "evidence_journey_f06",
+        "evidence_journey_f07",
+        "evidence_journey_f08",
+        "evidence_journey_f09",
+        "evidence_journey_f10",
+        "evidence_journey_f11",
+        "evidence_journey_f12",
+        "evidence_journey_f13"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_sources_and_integration",
+      "label": "Sources and integration",
+      "description": "Business Journey evidence for Sources and integration.",
+      "aliases": [
+        "Same event delivered twice",
+        "Events out of order",
+        "Source corrects an earlier record",
+        "Source deletes an order afterwards",
+        "Incomplete payload accepted",
+        "Two systems contradict each other",
+        "Integration down for a day, then catches up",
+        "Legacy import at go-live (opening stock, open items, open orders)"
+      ],
+      "evidence_ids": [
+        "evidence_journey_p01",
+        "evidence_journey_p02",
+        "evidence_journey_p03",
+        "evidence_journey_p04",
+        "evidence_journey_p05",
+        "evidence_journey_p06",
+        "evidence_journey_p07",
+        "evidence_journey_p08"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_supplier_invoice_and_payment",
+      "label": "Supplier invoice and payment",
+      "description": "Business Journey evidence for Supplier invoice and payment.",
+      "aliases": [
+        "Three-way match: purchase = receipt = invoice",
+        "Invoiced quantity > received quantity",
+        "Invoiced price ≠ purchase price",
+        "Invoice before receipt",
+        "One invoice for several purchase orders",
+        "Several partial invoices for one purchase",
+        "Freight invoice from a third party for a purchase",
+        "Supplier credit note for defective goods",
+        "Down payment to the supplier before production",
+        "Payment with discount; partial payment; offset with credit",
+        "Exchange difference between USD invoice and payment",
+        "Duplicate supplier invoice"
+      ],
+      "evidence_ids": [
+        "evidence_journey_i01",
+        "evidence_journey_i02",
+        "evidence_journey_i03",
+        "evidence_journey_i04",
+        "evidence_journey_i05",
+        "evidence_journey_i06",
+        "evidence_journey_i07",
+        "evidence_journey_i08",
+        "evidence_journey_i09",
+        "evidence_journey_i10",
+        "evidence_journey_i11",
+        "evidence_journey_i12"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_time_and_period",
+      "label": "Time and period",
+      "description": "Business Journey evidence for Time and period.",
+      "aliases": [
+        "Month-end: shipped not invoiced, invoiced not shipped",
+        "Backdated posting into a closed period",
+        "Stock as of 31 December",
+        "Year end with open backorders and purchases",
+        "Time zones: order at 23:30 in New York"
+      ],
+      "evidence_ids": [
+        "evidence_journey_q01",
+        "evidence_journey_q02",
+        "evidence_journey_q03",
+        "evidence_journey_q04",
+        "evidence_journey_q05"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_process_warehouse_and_stock",
+      "label": "Warehouse and stock",
+      "description": "Business Journey evidence for Warehouse and stock.",
+      "aliases": [
+        "Transfer between warehouses with transit time",
+        "Stock count with gains and losses",
+        "Cycle count of single bins during operation",
+        "Shrinkage, theft, breakage with reason",
+        "Expired stock blocked and scrapped",
+        "Negative stock because shipment was booked before receipt",
+        "3PL stock differs from own records",
+        "Consignment stock at the customer (still ours)",
+        "Consignment from the supplier (here, not ours)",
+        "Stock valuation after a freight surcharge",
+        "Re-labelling item A into item B"
+      ],
+      "evidence_ids": [
+        "evidence_journey_j01",
+        "evidence_journey_j02",
+        "evidence_journey_j03",
+        "evidence_journey_j04",
+        "evidence_journey_j05",
+        "evidence_journey_j06",
+        "evidence_journey_j07",
+        "evidence_journey_j08",
+        "evidence_journey_j09",
+        "evidence_journey_j10",
+        "evidence_journey_j11"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_resource_analytics",
+      "label": "Analytics report",
+      "description": "Read-time observations over retained evidence and operational services, with scoped contributors and private saved definitions.",
+      "aliases": [
+        "analytics",
+        "report",
+        "Auswertung",
+        "Bericht",
+        "graph",
+        "Graph"
+      ],
+      "evidence_ids": [
+        "evidence_command_change_graph_report"
+      ],
+      "tools": [
+        {
+          "name": "change_graph_report",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_party",
+      "label": "Business partner",
+      "description": "One record per company or person you trade with. Roles such as customer or supplier are stated on the partner, not by keeping two address books. Delivery holds and pricing groups attach here.",
+      "aliases": [
+        "customer",
+        "supplier",
+        "debtor",
+        "creditor",
+        "Kunde",
+        "Lieferant",
+        "Debitor",
+        "Kreditor",
+        "Adresse"
+      ],
+      "evidence_ids": [
+        "evidence_command_propose_cost_review",
+        "evidence_command_propose_company_party",
+        "evidence_command_cost_review_draft",
+        "evidence_command_create_manual_order",
+        "evidence_command_correct_manual_document",
+        "evidence_command_create_party",
+        "evidence_command_update_party",
+        "evidence_command_set_master_data_active",
+        "evidence_command_assign_party_price_list",
+        "evidence_command_resolve_price",
+        "evidence_command_create_party_group",
+        "evidence_command_hold_party_delivery",
+        "evidence_command_preview_payment_run",
+        "evidence_command_execute_payment_run",
+        "evidence_command_preview_stale_promise_closure",
+        "evidence_command_close_stale_promises",
+        "evidence_command_create_manual_document_with_lines",
+        "evidence_command_record_free_supplier_invoice",
+        "evidence_command_billable_positions",
+        "evidence_command_dunning_context",
+        "evidence_command_record_notice",
+        "evidence_command_opening_context",
+        "evidence_command_import_opening",
+        "evidence_command_record_shipment_notice",
+        "evidence_command_record_packaged_execution"
+      ],
+      "tools": [
+        {
+          "name": "propose_cost_review",
+          "mode": "mutation"
+        },
+        {
+          "name": "propose_company_party",
+          "mode": "mutation"
+        },
+        {
+          "name": "cost_review_draft",
+          "mode": "read"
+        },
+        {
+          "name": "create_manual_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_manual_document",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_party",
+          "mode": "mutation"
+        },
+        {
+          "name": "update_party",
+          "mode": "mutation"
+        },
+        {
+          "name": "set_master_data_active",
+          "mode": "mutation"
+        },
+        {
+          "name": "assign_party_price_list",
+          "mode": "mutation"
+        },
+        {
+          "name": "resolve_price",
+          "mode": "read"
+        },
+        {
+          "name": "create_party_group",
+          "mode": "mutation"
+        },
+        {
+          "name": "hold_party_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "preview_payment_run",
+          "mode": "query"
+        },
+        {
+          "name": "execute_payment_run",
+          "mode": "mutation"
+        },
+        {
+          "name": "preview_stale_promise_closure",
+          "mode": "query"
+        },
+        {
+          "name": "close_stale_promises",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_manual_document_with_lines",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_free_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "billable_positions",
+          "mode": "query"
+        },
+        {
+          "name": "dunning_context",
+          "mode": "query"
+        },
+        {
+          "name": "record_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "opening_context",
+          "mode": "read"
+        },
+        {
+          "name": "import_opening",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_shipment_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_packaged_execution",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_item",
+      "label": "Item",
+      "description": "The operational identity of a product with its unit. Stock is never stored on the item; it is derived from movements and reservations at read time, which is why the stock lists live here.",
+      "aliases": [
+        "product",
+        "SKU",
+        "stock",
+        "inventory",
+        "Produkt",
+        "Bestand",
+        "Lagerbestand",
+        "Verfügbarkeit"
+      ],
+      "evidence_ids": [
+        "evidence_command_cost_query",
+        "evidence_command_propose_cost_review",
+        "evidence_command_cost_review_draft",
+        "evidence_command_inventory_cost",
+        "evidence_command_create_manual_order",
+        "evidence_command_correct_manual_document",
+        "evidence_command_create_item",
+        "evidence_command_update_item",
+        "evidence_command_create_lot",
+        "evidence_command_create_serial_unit",
+        "evidence_command_set_master_data_active",
+        "evidence_command_create_price_list_entry",
+        "evidence_command_resolve_price",
+        "evidence_command_reserve",
+        "evidence_command_record_movement",
+        "evidence_command_correct_movement",
+        "evidence_command_create_manual_document_with_lines",
+        "evidence_command_record_free_supplier_invoice",
+        "evidence_command_record_packaged_execution",
+        "evidence_command_assign_supply"
+      ],
+      "tools": [
+        {
+          "name": "cost_query",
+          "mode": "read"
+        },
+        {
+          "name": "propose_cost_review",
+          "mode": "mutation"
+        },
+        {
+          "name": "cost_review_draft",
+          "mode": "read"
+        },
+        {
+          "name": "inventory_cost",
+          "mode": "read"
+        },
+        {
+          "name": "create_manual_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_manual_document",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_item",
+          "mode": "mutation"
+        },
+        {
+          "name": "update_item",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_lot",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_serial_unit",
+          "mode": "mutation"
+        },
+        {
+          "name": "set_master_data_active",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_price_list_entry",
+          "mode": "mutation"
+        },
+        {
+          "name": "resolve_price",
+          "mode": "read"
+        },
+        {
+          "name": "reserve",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_manual_document_with_lines",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_free_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_packaged_execution",
+          "mode": "mutation"
+        },
+        {
+          "name": "assign_supply",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_location",
+      "label": "Warehouse location",
+      "description": "A physical or logical place. Only stock-capable locations can hold goods; a hierarchy is expressed through the parent location.",
+      "aliases": [
+        "warehouse",
+        "bin",
+        "zone",
+        "Lager",
+        "Lagerplatz"
+      ],
+      "evidence_ids": [
+        "evidence_command_create_manual_order",
+        "evidence_command_create_item",
+        "evidence_command_update_item",
+        "evidence_command_create_location",
+        "evidence_command_update_location",
+        "evidence_command_set_master_data_active",
+        "evidence_command_reserve",
+        "evidence_command_record_movement",
+        "evidence_command_correct_movement",
+        "evidence_command_record_packaged_execution",
+        "evidence_command_record_return_disposition"
+      ],
+      "tools": [
+        {
+          "name": "create_manual_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_item",
+          "mode": "mutation"
+        },
+        {
+          "name": "update_item",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_location",
+          "mode": "mutation"
+        },
+        {
+          "name": "update_location",
+          "mode": "mutation"
+        },
+        {
+          "name": "set_master_data_active",
+          "mode": "mutation"
+        },
+        {
+          "name": "reserve",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_packaged_execution",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_return_disposition",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_terms",
+      "label": "Prices and payment terms",
+      "description": "The commercial conditions an order or invoice is judged against. Price resolution shows which list applies to which partner; payment terms drive due dates and early payment discounts.",
+      "aliases": [
+        "price list",
+        "discount",
+        "tier",
+        "condition",
+        "Preisliste",
+        "Staffelpreis",
+        "Kondition",
+        "Skonto",
+        "Zahlungsziel"
+      ],
+      "evidence_ids": [
+        "evidence_command_create_manual_order",
+        "evidence_command_correct_manual_document",
+        "evidence_command_set_master_data_active",
+        "evidence_command_create_payment_term",
+        "evidence_command_create_price_list",
+        "evidence_command_create_price_list_entry",
+        "evidence_command_assign_party_price_list",
+        "evidence_command_resolve_price",
+        "evidence_command_create_party_group",
+        "evidence_command_preview_payment_run",
+        "evidence_command_execute_payment_run",
+        "evidence_command_create_manual_document_with_lines"
+      ],
+      "tools": [
+        {
+          "name": "create_manual_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_manual_document",
+          "mode": "mutation"
+        },
+        {
+          "name": "set_master_data_active",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_payment_term",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_price_list",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_price_list_entry",
+          "mode": "mutation"
+        },
+        {
+          "name": "assign_party_price_list",
+          "mode": "mutation"
+        },
+        {
+          "name": "resolve_price",
+          "mode": "read"
+        },
+        {
+          "name": "create_party_group",
+          "mode": "mutation"
+        },
+        {
+          "name": "preview_payment_run",
+          "mode": "query"
+        },
+        {
+          "name": "execute_payment_run",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_manual_document_with_lines",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_order",
+      "label": "Order",
+      "description": "A promise to deliver or to receive: Reality calls it a commitment. The order document is evidence; open quantity, ship readiness and delays are derived from the commitment, its reservations and the movements that fulfil it.",
+      "aliases": [
+        "sales order",
+        "purchase order",
+        "commitment",
+        "reservation",
+        "backlog",
+        "Kundenauftrag",
+        "Bestellung",
+        "Verpflichtung",
+        "Lieferverpflichtung",
+        "Reservierung",
+        "Rückstand",
+        "Liefersperre"
+      ],
+      "evidence_ids": [
+        "evidence_command_contribution_preview",
+        "evidence_command_observe_fact",
+        "evidence_command_create_manual_order",
+        "evidence_command_correct_manual_document",
+        "evidence_command_reserve",
+        "evidence_command_release_reservation",
+        "evidence_command_record_movement",
+        "evidence_command_correct_movement",
+        "evidence_command_revise_commitment",
+        "evidence_command_cancel_commitment",
+        "evidence_command_hold_commitment",
+        "evidence_command_hold_document_commitments",
+        "evidence_command_hold_party_delivery",
+        "evidence_command_announce_customer_return",
+        "evidence_command_return_announcements",
+        "evidence_command_preview_stale_promise_closure",
+        "evidence_command_close_stale_promises",
+        "evidence_command_record_sales_credit",
+        "evidence_command_billable_positions",
+        "evidence_command_record_packaged_execution",
+        "evidence_command_assign_supply"
+      ],
+      "tools": [
+        {
+          "name": "contribution_preview",
+          "mode": "read"
+        },
+        {
+          "name": "observe_fact",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_manual_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_manual_document",
+          "mode": "mutation"
+        },
+        {
+          "name": "reserve",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_reservation",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "revise_commitment",
+          "mode": "mutation"
+        },
+        {
+          "name": "cancel_commitment",
+          "mode": "mutation"
+        },
+        {
+          "name": "hold_commitment",
+          "mode": "mutation"
+        },
+        {
+          "name": "hold_document_commitments",
+          "mode": "mutation"
+        },
+        {
+          "name": "hold_party_delivery",
+          "mode": "mutation"
+        },
+        {
+          "name": "announce_customer_return",
+          "mode": "mutation"
+        },
+        {
+          "name": "return_announcements",
+          "mode": "query"
+        },
+        {
+          "name": "preview_stale_promise_closure",
+          "mode": "query"
+        },
+        {
+          "name": "close_stale_promises",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_sales_credit",
+          "mode": "mutation"
+        },
+        {
+          "name": "billable_positions",
+          "mode": "query"
+        },
+        {
+          "name": "record_packaged_execution",
+          "mode": "mutation"
+        },
+        {
+          "name": "assign_supply",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_delivery",
+      "label": "Delivery and goods receipt",
+      "description": "Every physical change of stock is an append-only movement; corrections add a compensating movement instead of editing. A shipment is the consignment that carries movements to or from a counterparty, with carrier observations attached.",
+      "aliases": [
+        "goods receipt",
+        "goods issue",
+        "shipment",
+        "movement",
+        "transfer",
+        "adjustment",
+        "Warenausgang",
+        "Lagerbewegung",
+        "Umlagerung",
+        "Bestandsanpassung",
+        "Sendung",
+        "Packstück",
+        "Tracking"
+      ],
+      "evidence_ids": [
+        "evidence_command_propose_cost_review",
+        "evidence_command_cost_review_draft",
+        "evidence_command_cost_record",
+        "evidence_command_contribution_preview",
+        "evidence_command_cost_evidence",
+        "evidence_command_receipt_cost",
+        "evidence_command_execute_cost_change",
+        "evidence_command_reserve",
+        "evidence_command_record_movement",
+        "evidence_command_correct_movement",
+        "evidence_command_announce_customer_return",
+        "evidence_command_return_announcements",
+        "evidence_command_preview_stale_promise_closure",
+        "evidence_command_close_stale_promises",
+        "evidence_command_record_sales_credit",
+        "evidence_command_billable_positions",
+        "evidence_command_record_shipment_notice",
+        "evidence_command_record_packaged_execution",
+        "evidence_command_record_shipment_event",
+        "evidence_command_supersede_shipment_event",
+        "evidence_command_record_return_disposition"
+      ],
+      "tools": [
+        {
+          "name": "propose_cost_review",
+          "mode": "mutation"
+        },
+        {
+          "name": "cost_review_draft",
+          "mode": "read"
+        },
+        {
+          "name": "cost_record",
+          "mode": "read"
+        },
+        {
+          "name": "contribution_preview",
+          "mode": "read"
+        },
+        {
+          "name": "cost_evidence",
+          "mode": "read"
+        },
+        {
+          "name": "receipt_cost",
+          "mode": "read"
+        },
+        {
+          "name": "execute_cost_change",
+          "mode": "mutation"
+        },
+        {
+          "name": "reserve",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "announce_customer_return",
+          "mode": "mutation"
+        },
+        {
+          "name": "return_announcements",
+          "mode": "query"
+        },
+        {
+          "name": "preview_stale_promise_closure",
+          "mode": "query"
+        },
+        {
+          "name": "close_stale_promises",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_sales_credit",
+          "mode": "mutation"
+        },
+        {
+          "name": "billable_positions",
+          "mode": "query"
+        },
+        {
+          "name": "record_shipment_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_packaged_execution",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_shipment_event",
+          "mode": "mutation"
+        },
+        {
+          "name": "supersede_shipment_event",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_return_disposition",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_lot",
+      "label": "Lot, serial number and pallet",
+      "description": "A lot or serial unit identifies a subset of an item; a handling unit identifies a pallet by its NVE/SSCC. Best-before dates are stated by someone who read them, never computed.",
+      "aliases": [
+        "batch",
+        "serial",
+        "handling unit",
+        "NVE",
+        "SSCC",
+        "best before",
+        "MHD",
+        "Charge",
+        "Ladeeinheit"
+      ],
+      "evidence_ids": [
+        "evidence_command_create_handling_unit",
+        "evidence_command_create_lot",
+        "evidence_command_state_lot_expiry",
+        "evidence_command_correct_lot_expiry",
+        "evidence_command_expired_lots",
+        "evidence_command_create_serial_unit",
+        "evidence_command_reserve",
+        "evidence_command_record_movement",
+        "evidence_command_correct_movement"
+      ],
+      "tools": [
+        {
+          "name": "create_handling_unit",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_lot",
+          "mode": "mutation"
+        },
+        {
+          "name": "state_lot_expiry",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_lot_expiry",
+          "mode": "mutation"
+        },
+        {
+          "name": "expired_lots",
+          "mode": "query"
+        },
+        {
+          "name": "create_serial_unit",
+          "mode": "mutation"
+        },
+        {
+          "name": "reserve",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_movement",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_invoice",
+      "label": "Invoice and credit note",
+      "description": "Recording an invoice stores the evidence; booking it posts the ledger entries. Open items compare what was billed with what was paid or credited, per partner and currency.",
+      "aliases": [
+        "receivable",
+        "payable",
+        "open item",
+        "credit note",
+        "billing",
+        "Ausgangsrechnung",
+        "Eingangsrechnung",
+        "Forderung",
+        "Verbindlichkeit",
+        "Offene Posten",
+        "Rechnungsprüfung",
+        "Gutschrift"
+      ],
+      "evidence_ids": [
+        "evidence_command_post_sales_invoice",
+        "evidence_command_post_supplier_invoice",
+        "evidence_command_record_sales_credit",
+        "evidence_command_record_supplier_invoice",
+        "evidence_command_record_free_supplier_invoice",
+        "evidence_command_invoice_credit_context",
+        "evidence_command_billable_positions",
+        "evidence_command_record_sales_invoice",
+        "evidence_command_post_sales_credit_note",
+        "evidence_command_allocate_credit_note",
+        "evidence_command_post_supplier_credit_note",
+        "evidence_command_allocate_supplier_credit_note"
+      ],
+      "tools": [
+        {
+          "name": "post_sales_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_sales_credit",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_free_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "invoice_credit_context",
+          "mode": "query"
+        },
+        {
+          "name": "billable_positions",
+          "mode": "query"
+        },
+        {
+          "name": "record_sales_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_sales_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "allocate_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "allocate_supplier_credit_note",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_payment",
+      "label": "Payment and settlement",
+      "description": "A payment is evidence with a balanced posting behind it. Allocating it to invoices or credits is the settlement; a short payment is accepted as an agreed deduction or left open. Payment runs pay suppliers in bulk. Public payment reads filter direction only as incoming or outgoing; customer or supplier is a party-balance side, not a payment direction.",
+      "aliases": [
+        "payment receipt",
+        "allocation",
+        "matching",
+        "short payment",
+        "refund",
+        "payment run",
+        "Zahlungseingang",
+        "zuordnen",
+        "Minderzahlung",
+        "Abzug",
+        "Skontoabzug",
+        "Erstattung",
+        "Zahllauf",
+        "Saldo"
+      ],
+      "evidence_ids": [
+        "evidence_command_reverse_ledger_posting_group",
+        "evidence_command_post_customer_payment",
+        "evidence_command_preview_payment_run",
+        "evidence_command_execute_payment_run",
+        "evidence_command_record_sales_credit",
+        "evidence_command_invoice_credit_context",
+        "evidence_command_dunning_context",
+        "evidence_command_record_notice",
+        "evidence_command_allocate_credit_note",
+        "evidence_command_post_customer_refund",
+        "evidence_command_allocate_supplier_credit_note",
+        "evidence_command_post_supplier_refund",
+        "evidence_command_post_supplier_payment",
+        "evidence_command_adjustment_context",
+        "evidence_command_accept_adjustment",
+        "evidence_command_settlement_context",
+        "evidence_command_apply_settlement"
+      ],
+      "tools": [
+        {
+          "name": "reverse_ledger_posting_group",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_customer_payment",
+          "mode": "mutation"
+        },
+        {
+          "name": "preview_payment_run",
+          "mode": "query"
+        },
+        {
+          "name": "execute_payment_run",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_sales_credit",
+          "mode": "mutation"
+        },
+        {
+          "name": "invoice_credit_context",
+          "mode": "query"
+        },
+        {
+          "name": "dunning_context",
+          "mode": "query"
+        },
+        {
+          "name": "record_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "allocate_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_customer_refund",
+          "mode": "mutation"
+        },
+        {
+          "name": "allocate_supplier_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_refund",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_payment",
+          "mode": "mutation"
+        },
+        {
+          "name": "adjustment_context",
+          "mode": "read"
+        },
+        {
+          "name": "accept_adjustment",
+          "mode": "mutation"
+        },
+        {
+          "name": "settlement_context",
+          "mode": "read"
+        },
+        {
+          "name": "apply_settlement",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_accounting",
+      "label": "Ledger and accounts",
+      "description": "The balanced journal every posting lands in, the operational accounts it uses, and the configuration that maps postings to an external accounting system. Reversals add an inverse posting group; nothing is deleted.",
+      "aliases": [
+        "journal",
+        "GL",
+        "chart of accounts",
+        "reversal",
+        "opening balance",
+        "export",
+        "DATEV",
+        "Journal",
+        "Kontenrahmen",
+        "Storno",
+        "Eröffnungsbilanz",
+        "Sachkonto"
+      ],
+      "evidence_ids": [
+        "evidence_command_commercial_match",
+        "evidence_command_cost_query",
+        "evidence_command_propose_cost_review",
+        "evidence_command_cost_review_draft",
+        "evidence_command_cost_record",
+        "evidence_command_reviewed_contribution",
+        "evidence_command_contribution_preview",
+        "evidence_command_inventory_cost",
+        "evidence_command_cost_evidence",
+        "evidence_command_receipt_cost",
+        "evidence_command_execute_cost_change",
+        "evidence_command_list_targets",
+        "evidence_command_list_target_references",
+        "evidence_command_list_mappings",
+        "evidence_command_mapping_history",
+        "evidence_command_preview_document",
+        "evidence_command_maintain_target_configuration",
+        "evidence_command_list_source_mappings",
+        "evidence_command_source_mapping_history",
+        "evidence_command_set_source_mapping",
+        "evidence_command_component_context",
+        "evidence_command_component_history",
+        "evidence_command_assign_component",
+        "evidence_command_list_references",
+        "evidence_command_reference_history",
+        "evidence_command_maintain_reference",
+        "evidence_command_initialize_accounts",
+        "evidence_command_create_account",
+        "evidence_command_update_account",
+        "evidence_command_set_default_account",
+        "evidence_command_transaction_matrix",
+        "evidence_command_list_accounts",
+        "evidence_command_correct_manual_document",
+        "evidence_command_reverse_ledger_posting_group",
+        "evidence_command_post_customer_payment",
+        "evidence_command_preview_payment_run",
+        "evidence_command_execute_payment_run",
+        "evidence_command_post_sales_invoice",
+        "evidence_command_post_supplier_invoice",
+        "evidence_command_record_sales_credit",
+        "evidence_command_record_supplier_invoice",
+        "evidence_command_record_free_supplier_invoice",
+        "evidence_command_invoice_credit_context",
+        "evidence_command_billable_positions",
+        "evidence_command_dunning_context",
+        "evidence_command_notices",
+        "evidence_command_notice_detail",
+        "evidence_command_record_notice",
+        "evidence_command_reverse_notice",
+        "evidence_command_record_sales_invoice",
+        "evidence_command_post_sales_credit_note",
+        "evidence_command_allocate_credit_note",
+        "evidence_command_post_customer_refund",
+        "evidence_command_post_supplier_credit_note",
+        "evidence_command_allocate_supplier_credit_note",
+        "evidence_command_post_supplier_refund",
+        "evidence_command_post_supplier_payment",
+        "evidence_command_adjustment_context",
+        "evidence_command_accept_adjustment",
+        "evidence_command_settlement_context",
+        "evidence_command_apply_settlement",
+        "evidence_command_opening_context",
+        "evidence_command_import_opening"
+      ],
+      "tools": [
+        {
+          "name": "commercial_match",
+          "mode": "read"
+        },
+        {
+          "name": "cost_query",
+          "mode": "read"
+        },
+        {
+          "name": "propose_cost_review",
+          "mode": "mutation"
+        },
+        {
+          "name": "cost_review_draft",
+          "mode": "read"
+        },
+        {
+          "name": "cost_record",
+          "mode": "read"
+        },
+        {
+          "name": "reviewed_contribution",
+          "mode": "read"
+        },
+        {
+          "name": "contribution_preview",
+          "mode": "read"
+        },
+        {
+          "name": "inventory_cost",
+          "mode": "read"
+        },
+        {
+          "name": "cost_evidence",
+          "mode": "read"
+        },
+        {
+          "name": "receipt_cost",
+          "mode": "read"
+        },
+        {
+          "name": "execute_cost_change",
+          "mode": "mutation"
+        },
+        {
+          "name": "list_targets",
+          "mode": "read"
+        },
+        {
+          "name": "list_target_references",
+          "mode": "read"
+        },
+        {
+          "name": "list_mappings",
+          "mode": "read"
+        },
+        {
+          "name": "mapping_history",
+          "mode": "read"
+        },
+        {
+          "name": "preview_document",
+          "mode": "read"
+        },
+        {
+          "name": "maintain_target_configuration",
+          "mode": "mutation"
+        },
+        {
+          "name": "list_source_mappings",
+          "mode": "read"
+        },
+        {
+          "name": "source_mapping_history",
+          "mode": "read"
+        },
+        {
+          "name": "set_source_mapping",
+          "mode": "mutation"
+        },
+        {
+          "name": "component_context",
+          "mode": "read"
+        },
+        {
+          "name": "component_history",
+          "mode": "read"
+        },
+        {
+          "name": "assign_component",
+          "mode": "mutation"
+        },
+        {
+          "name": "list_references",
+          "mode": "read"
+        },
+        {
+          "name": "reference_history",
+          "mode": "read"
+        },
+        {
+          "name": "maintain_reference",
+          "mode": "mutation"
+        },
+        {
+          "name": "initialize_accounts",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_account",
+          "mode": "mutation"
+        },
+        {
+          "name": "update_account",
+          "mode": "mutation"
+        },
+        {
+          "name": "set_default_account",
+          "mode": "mutation"
+        },
+        {
+          "name": "transaction_matrix",
+          "mode": "read"
+        },
+        {
+          "name": "list_accounts",
+          "mode": "read"
+        },
+        {
+          "name": "correct_manual_document",
+          "mode": "mutation"
+        },
+        {
+          "name": "reverse_ledger_posting_group",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_customer_payment",
+          "mode": "mutation"
+        },
+        {
+          "name": "preview_payment_run",
+          "mode": "query"
+        },
+        {
+          "name": "execute_payment_run",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_sales_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_sales_credit",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_free_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "invoice_credit_context",
+          "mode": "query"
+        },
+        {
+          "name": "billable_positions",
+          "mode": "query"
+        },
+        {
+          "name": "dunning_context",
+          "mode": "query"
+        },
+        {
+          "name": "notices",
+          "mode": "query"
+        },
+        {
+          "name": "notice_detail",
+          "mode": "query"
+        },
+        {
+          "name": "record_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "reverse_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_sales_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_sales_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "allocate_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_customer_refund",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "allocate_supplier_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_refund",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_payment",
+          "mode": "mutation"
+        },
+        {
+          "name": "adjustment_context",
+          "mode": "read"
+        },
+        {
+          "name": "accept_adjustment",
+          "mode": "mutation"
+        },
+        {
+          "name": "settlement_context",
+          "mode": "read"
+        },
+        {
+          "name": "apply_settlement",
+          "mode": "mutation"
+        },
+        {
+          "name": "opening_context",
+          "mode": "read"
+        },
+        {
+          "name": "import_opening",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_contribution",
+      "label": "Contribution margin",
+      "description": "The explainable bridge from received net revenue through reviewed consumed acquisition cost to DB1, and through direct and allocated selling costs to DB2. Missing evidence stays unknown; every confirmed result retains its review and knowledge boundary.",
+      "aliases": [
+        "contribution margin",
+        "gross margin",
+        "DB1",
+        "DB2",
+        "Deckungsbeitrag",
+        "Rohertrag",
+        "Marge"
+      ],
+      "evidence_ids": [
+        "evidence_command_commercial_match",
+        "evidence_command_cost_query",
+        "evidence_command_propose_cost_review",
+        "evidence_command_propose_company_party",
+        "evidence_command_cost_review_draft",
+        "evidence_command_cost_record",
+        "evidence_command_reviewed_contribution",
+        "evidence_command_contribution_preview",
+        "evidence_command_inventory_cost",
+        "evidence_command_cost_evidence",
+        "evidence_command_receipt_cost",
+        "evidence_command_execute_cost_change"
+      ],
+      "tools": [
+        {
+          "name": "commercial_match",
+          "mode": "read"
+        },
+        {
+          "name": "cost_query",
+          "mode": "read"
+        },
+        {
+          "name": "propose_cost_review",
+          "mode": "mutation"
+        },
+        {
+          "name": "propose_company_party",
+          "mode": "mutation"
+        },
+        {
+          "name": "cost_review_draft",
+          "mode": "read"
+        },
+        {
+          "name": "cost_record",
+          "mode": "read"
+        },
+        {
+          "name": "reviewed_contribution",
+          "mode": "read"
+        },
+        {
+          "name": "contribution_preview",
+          "mode": "read"
+        },
+        {
+          "name": "inventory_cost",
+          "mode": "read"
+        },
+        {
+          "name": "cost_evidence",
+          "mode": "read"
+        },
+        {
+          "name": "receipt_cost",
+          "mode": "read"
+        },
+        {
+          "name": "execute_cost_change",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_return",
+      "label": "Return",
+      "description": "A return is announced, arrives as a goods receipt, is decided on, and ends in a credit or refund. Each step is its own record, so a return that stalls between two steps is visible.",
+      "aliases": [
+        "RMA",
+        "return announcement",
+        "restocking fee",
+        "Retourenankündigung",
+        "Retourenwareneingang",
+        "Lieferantenretoure",
+        "Wiedereinlagerungsgebühr"
+      ],
+      "evidence_ids": [
+        "evidence_command_announce_customer_return",
+        "evidence_command_withdraw_return_announcement",
+        "evidence_command_return_announcements",
+        "evidence_command_record_packaged_execution",
+        "evidence_command_record_return_disposition"
+      ],
+      "tools": [
+        {
+          "name": "announce_customer_return",
+          "mode": "mutation"
+        },
+        {
+          "name": "withdraw_return_announcement",
+          "mode": "mutation"
+        },
+        {
+          "name": "return_announcements",
+          "mode": "query"
+        },
+        {
+          "name": "record_packaged_execution",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_return_disposition",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_source",
+      "label": "Document and source system",
+      "description": "Everything Reality knows arrives as an immutable source record from a system, a file or a person. Documents are the normalized evidence; a fact is one stated observation about an existing record. Interpretation failures and silent sources surface as exceptions.",
+      "aliases": [
+        "ERP",
+        "shop",
+        "import",
+        "connector",
+        "interface",
+        "evidence",
+        "Schnittstelle",
+        "Import",
+        "Beleg",
+        "Nachweis",
+        "Quelle"
+      ],
+      "evidence_ids": [
+        "evidence_command_commercial_match",
+        "evidence_command_cost_query",
+        "evidence_command_propose_cost_review",
+        "evidence_command_cost_review_draft",
+        "evidence_command_reviewed_contribution",
+        "evidence_command_contribution_preview",
+        "evidence_command_cost_evidence",
+        "evidence_command_receipt_cost",
+        "evidence_command_execute_cost_change",
+        "evidence_command_list_targets",
+        "evidence_command_list_target_references",
+        "evidence_command_list_mappings",
+        "evidence_command_mapping_history",
+        "evidence_command_preview_document",
+        "evidence_command_maintain_target_configuration",
+        "evidence_command_list_source_mappings",
+        "evidence_command_source_mapping_history",
+        "evidence_command_set_source_mapping",
+        "evidence_command_component_context",
+        "evidence_command_component_history",
+        "evidence_command_assign_component",
+        "evidence_command_observe_fact",
+        "evidence_command_create_manual_order",
+        "evidence_command_install_connector_shell",
+        "evidence_command_create_source_system",
+        "evidence_command_create_source_capability",
+        "evidence_command_enqueue_source",
+        "evidence_command_correct_manual_document",
+        "evidence_command_record_corrected_document_source",
+        "evidence_command_reverse_ledger_posting_group",
+        "evidence_command_hold_document_commitments",
+        "evidence_command_post_customer_payment",
+        "evidence_command_preview_payment_run",
+        "evidence_command_execute_payment_run",
+        "evidence_command_create_manual_document_with_lines",
+        "evidence_command_post_sales_invoice",
+        "evidence_command_post_supplier_invoice",
+        "evidence_command_record_sales_credit",
+        "evidence_command_record_supplier_invoice",
+        "evidence_command_record_free_supplier_invoice",
+        "evidence_command_invoice_credit_context",
+        "evidence_command_billable_positions",
+        "evidence_command_dunning_context",
+        "evidence_command_notices",
+        "evidence_command_notice_detail",
+        "evidence_command_record_notice",
+        "evidence_command_reverse_notice",
+        "evidence_command_record_sales_invoice",
+        "evidence_command_post_sales_credit_note",
+        "evidence_command_allocate_credit_note",
+        "evidence_command_post_customer_refund",
+        "evidence_command_post_supplier_credit_note",
+        "evidence_command_allocate_supplier_credit_note",
+        "evidence_command_post_supplier_refund",
+        "evidence_command_post_supplier_payment",
+        "evidence_command_adjustment_context",
+        "evidence_command_accept_adjustment",
+        "evidence_command_settlement_context",
+        "evidence_command_apply_settlement",
+        "evidence_command_import_opening"
+      ],
+      "tools": [
+        {
+          "name": "commercial_match",
+          "mode": "read"
+        },
+        {
+          "name": "cost_query",
+          "mode": "read"
+        },
+        {
+          "name": "propose_cost_review",
+          "mode": "mutation"
+        },
+        {
+          "name": "cost_review_draft",
+          "mode": "read"
+        },
+        {
+          "name": "reviewed_contribution",
+          "mode": "read"
+        },
+        {
+          "name": "contribution_preview",
+          "mode": "read"
+        },
+        {
+          "name": "cost_evidence",
+          "mode": "read"
+        },
+        {
+          "name": "receipt_cost",
+          "mode": "read"
+        },
+        {
+          "name": "execute_cost_change",
+          "mode": "mutation"
+        },
+        {
+          "name": "list_targets",
+          "mode": "read"
+        },
+        {
+          "name": "list_target_references",
+          "mode": "read"
+        },
+        {
+          "name": "list_mappings",
+          "mode": "read"
+        },
+        {
+          "name": "mapping_history",
+          "mode": "read"
+        },
+        {
+          "name": "preview_document",
+          "mode": "read"
+        },
+        {
+          "name": "maintain_target_configuration",
+          "mode": "mutation"
+        },
+        {
+          "name": "list_source_mappings",
+          "mode": "read"
+        },
+        {
+          "name": "source_mapping_history",
+          "mode": "read"
+        },
+        {
+          "name": "set_source_mapping",
+          "mode": "mutation"
+        },
+        {
+          "name": "component_context",
+          "mode": "read"
+        },
+        {
+          "name": "component_history",
+          "mode": "read"
+        },
+        {
+          "name": "assign_component",
+          "mode": "mutation"
+        },
+        {
+          "name": "observe_fact",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_manual_order",
+          "mode": "mutation"
+        },
+        {
+          "name": "install_connector_shell",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_source_system",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_source_capability",
+          "mode": "mutation"
+        },
+        {
+          "name": "enqueue_source",
+          "mode": "mutation"
+        },
+        {
+          "name": "correct_manual_document",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_corrected_document_source",
+          "mode": "mutation"
+        },
+        {
+          "name": "reverse_ledger_posting_group",
+          "mode": "mutation"
+        },
+        {
+          "name": "hold_document_commitments",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_customer_payment",
+          "mode": "mutation"
+        },
+        {
+          "name": "preview_payment_run",
+          "mode": "query"
+        },
+        {
+          "name": "execute_payment_run",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_manual_document_with_lines",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_sales_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_sales_credit",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_free_supplier_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "invoice_credit_context",
+          "mode": "query"
+        },
+        {
+          "name": "billable_positions",
+          "mode": "query"
+        },
+        {
+          "name": "dunning_context",
+          "mode": "query"
+        },
+        {
+          "name": "notices",
+          "mode": "query"
+        },
+        {
+          "name": "notice_detail",
+          "mode": "query"
+        },
+        {
+          "name": "record_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "reverse_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_sales_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_sales_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "allocate_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_customer_refund",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "allocate_supplier_credit_note",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_refund",
+          "mode": "mutation"
+        },
+        {
+          "name": "post_supplier_payment",
+          "mode": "mutation"
+        },
+        {
+          "name": "adjustment_context",
+          "mode": "read"
+        },
+        {
+          "name": "accept_adjustment",
+          "mode": "mutation"
+        },
+        {
+          "name": "settlement_context",
+          "mode": "read"
+        },
+        {
+          "name": "apply_settlement",
+          "mode": "mutation"
+        },
+        {
+          "name": "import_opening",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_company",
+      "label": "Company and users",
+      "description": "Who may work in a company and how far its data has been set up. Every business record is scoped to one company; another company's records behave as not found.",
+      "aliases": [
+        "tenant",
+        "member",
+        "invitation",
+        "access",
+        "Mandant",
+        "Mitglied",
+        "Einladung",
+        "Zugang"
+      ],
+      "evidence_ids": [
+        "evidence_command_change_graph_report",
+        "evidence_command_create_invitation",
+        "evidence_command_resend_invitation",
+        "evidence_command_revoke_invitation",
+        "evidence_command_remove_member"
+      ],
+      "tools": [
+        {
+          "name": "change_graph_report",
+          "mode": "mutation"
+        },
+        {
+          "name": "create_invitation",
+          "mode": "mutation"
+        },
+        {
+          "name": "resend_invitation",
+          "mode": "mutation"
+        },
+        {
+          "name": "revoke_invitation",
+          "mode": "mutation"
+        },
+        {
+          "name": "remove_member",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_governance",
+      "label": "Approvals, exceptions and open questions",
+      "description": "An agent never changes business state directly: it proposes, a person approves, and the proposal executes through the same command a clerk would use. Exceptions are the derived attention queue; missing information collects questions the records cannot answer yet.",
+      "aliases": [
+        "proposal",
+        "approval",
+        "exception",
+        "attention",
+        "missing information",
+        "Vorschlag",
+        "Freigabe",
+        "Abweichung",
+        "Klärfall",
+        "Timeline",
+        "Verlauf"
+      ],
+      "evidence_ids": [
+        "evidence_command_business_journey_guide",
+        "evidence_command_business_journey_proposal_create",
+        "evidence_command_business_journey_vote_set"
+      ],
+      "tools": [
+        {
+          "name": "business_journey_guide",
+          "mode": "read"
+        },
+        {
+          "name": "business_journey_proposal_create",
+          "mode": "mutation"
+        },
+        {
+          "name": "business_journey_vote_set",
+          "mode": "mutation"
+        }
+      ]
+    },
+    {
+      "id": "capability_document_connector_contract",
+      "label": "Connector contract",
+      "description": "Public product documentation about integration, connector, API, import, source.",
+      "aliases": [
+        "integration",
+        "connector",
+        "API",
+        "import",
+        "source"
+      ],
+      "evidence_ids": [
+        "evidence_document_connector_contract_1"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_document_installation",
+      "label": "Installation",
+      "description": "Public product documentation about installation, deployment, hosting, Docker.",
+      "aliases": [
+        "installation",
+        "deployment",
+        "hosting",
+        "Docker"
+      ],
+      "evidence_ids": [
+        "evidence_document_installation_1"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_document_deployment",
+      "label": "Deployment",
+      "description": "Public product documentation about deployment, upgrade, backup, operations.",
+      "aliases": [
+        "deployment",
+        "upgrade",
+        "backup",
+        "operations"
+      ],
+      "evidence_ids": [
+        "evidence_document_deployment_1"
+      ],
+      "tools": []
+    },
+    {
+      "id": "capability_document_tool_usage",
+      "label": "Tool Usage",
+      "description": "Public product documentation about tools, commands, views, events, exceptions.",
+      "aliases": [
+        "tools",
+        "commands",
+        "views",
+        "events",
+        "exceptions"
+      ],
+      "evidence_ids": [
+        "evidence_document_tool_usage_1",
+        "evidence_document_tool_usage_2",
+        "evidence_document_tool_usage_3"
+      ],
+      "tools": []
+    }
+  ]
+}

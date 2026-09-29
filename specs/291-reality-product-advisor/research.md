@@ -10,11 +10,17 @@
 
 ## Retrieval without a new database
 
-**Decision**: Start with normalized lexical retrieval, aliases, source metadata and explicit relationships over the bounded generated corpus.
+**Decision**: Generate a compact Capability Map from canonical Journey sections, business-resource metadata and governed executable vocabulary. Let the provider select at most six capability identities, then resolve their evidence relationships on the server and combine them with normalized lexical fallback retrieval.
 
-**Rationale**: Journeys and executable catalogs already contain structured identifiers, questions, keywords and process areas. This is deterministic and sufficient to measure before introducing infrastructure.
+**Rationale**: Journeys and executable catalogs already contain structured identifiers, questions, keywords and process areas. Grouping them once during generation gives the model semantic orientation without placing hundreds of evidence rows in every request. The map remains reproducible and cannot authorize a claim or action by itself.
 
-**Alternatives considered**: PostgreSQL vectors and hosted vector search were rejected until the buyer evaluation demonstrates an actual recall gap.
+**Alternatives considered**: Sending the complete evidence-unit index to a planning model was rejected because payload size and a second sequential model call exceeded the public widget timeout. Giving the public model real application tools was rejected because discovery does not require tenant access or execution authority. A separately curated answer/routing file was rejected as parallel truth. PostgreSQL vectors and hosted vector search remain deferred until evaluation demonstrates an actual recall gap.
+
+## Public tool boundary and latency budget
+
+**Decision**: Tool names and modes may be included in generated capability routing metadata, but the public advisor receives no callable business tools. Provider planning and answer stages use explicit bounded timeouts whose total worst case remains below the existing 20-second browser request timeout; any failure returns the deterministic path.
+
+**Rationale**: The model benefits from knowing which governed operations exist, but public product research must not cross tenant or mutation boundaries. An end-to-end request budget prevents a valid safe fallback from arriving after the browser has already displayed an error.
 
 ## Claims before prose
 

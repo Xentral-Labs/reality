@@ -136,3 +136,13 @@ All artifacts MUST be written in English. Tests precede the behavior they prove.
 - [x] T061 [US2] [FR-013] Replace the partial-delivery phrase exception with the provider's general semantic ambiguity decision while retaining deterministic validation of one focused question and zero unsupported claims
 - [x] T062 [US2] [FR-013] Run focused advisor tests, static checks, Spec Kit analysis and the required repository quality gates
 - [x] T063 [US1] [US3] [FR-004] [FR-019] Add provider-assisted semantic catalog planning, prove that a German customer-overpayment question selects C03 without language-specific retrieval aliases, make non-English deterministic fallback prose language-safe, regenerate knowledge, and run required gates
+
+## Phase 10: Generated Capability Map and bounded public retrieval
+
+- [x] T064 [P] [US5] [FR-004] [FR-015] [FR-021] Add failing generator/domain tests for a deterministic compact Capability Map derived from governed Journey, resource and executable catalogs, with resolvable evidence/tool relationships and no invocation metadata
+- [x] T065 [P] [US1] [US3] [FR-004] [FR-015] Add failing service tests proving semantic planning receives only bounded Capability Map entries, selects at most six identities, resolves evidence server-side and cannot invoke public business tools
+- [x] T066 [P] [US1] [FR-020] Add failing provider timeout and request-budget regressions proving every outcome returns before the 20-second widget timeout through answer, clarification or deterministic fallback
+- [x] T067 [US5] [FR-004] [FR-015] [FR-021] Generate and validate the committed Capability Map alongside advisory knowledge and include it in stale-output checks
+- [x] T068 [US1] [US3] [FR-004] [FR-015] Replace full evidence-index planning with Capability Map selection and server-side evidence resolution while preserving bounded lexical fallback and claim validation
+- [x] T069 [US1] [FR-020] Bound provider stages below the widget timeout, remove redundant unbounded retries and preserve safe deterministic failure behavior
+- [x] T070 Update public advisor documentation, regenerate catalogs and run focused, evaluation, security, Spec Kit and repository quality gates
