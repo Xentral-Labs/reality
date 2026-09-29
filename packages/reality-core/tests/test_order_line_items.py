@@ -253,3 +253,104 @@ def test_the_unknown_line_stays_in_its_company(session, business):
         preview_item_assignment(
             session, other.id, document_line_id=unknown.id, item_id=business.item.id
         )
+
+
+def test_a_cancelled_order_of_unknown_items_alone_is_not_reported(session, business):
+    only_unknown = _payload(
+        id=8102,
+        name="#8102",
+        line_items=[{"id": 83, "sku": "HELMET-M", "quantity": 1, "price": "10.00"}],
+    )
+    _intake(session, business, only_unknown)
+    assert _findings(session, business)
+
+    _intake(
+        session,
+        business,
+        {
+            **only_unknown,
+            "updated_at": "2026-09-02T10:00:00Z",
+            "cancelled_at": "2026-09-02T10:00:00Z",
+        },
+    )
+
+    assert _findings(session, business) == []
+    line = _unknown_line(session, business)
+    with pytest.raises(core.InvalidOperation) as refused:
+        preview_item_assignment(
+            session,
+            business.tenant.id,
+            document_line_id=line.id,
+            item_id=_helmet(session, business).id,
+        )
+    assert refused.value.code == "order_line_item_order_closed"
+
+
+def test_empty_and_null_skus_are_reported_and_non_shipping_lines_are_kept(
+    session, business
+):
+    _intake(
+        session,
+        business,
+        _payload(
+            line_items=[
+                {
+                    "id": 84,
+                    "sku": None,
+                    "name": "Engraving plate",
+                    "quantity": 1,
+                    "price": "5.00",
+                },
+                {
+                    "id": 85,
+                    "sku": "",
+                    "name": "Custom frame",
+                    "quantity": 1,
+                    "price": "50.00",
+                },
+                {
+                    "id": 86,
+                    "sku": "",
+                    "name": "Tip",
+                    "quantity": 1,
+                    "price": "2.00",
+                    "requires_shipping": False,
+                },
+            ]
+        ),
+    )
+
+    lines = {
+        line.source_line_id: line
+        for line in session.scalars(
+            select(DocumentLine).where(DocumentLine.tenant_id == business.tenant.id)
+        )
+    }
+    assert lines["84"].sku == "" and lines["86"].line_type == "service"
+    reported = {finding.record_id for finding in _findings(session, business)}
+    assert reported == {lines["84"].id, lines["85"].id}
+
+
+def test_an_inactive_item_cannot_be_assigned_and_the_unit_follows_the_item(
+    session, business
+):
+    _intake(session, business, _payload())
+    unknown = _unknown_line(session, business)
+    helmet = core.create_item(
+        session, business.tenant.id, "HELMET-BOX", "Helmet box", unit="box"
+    )
+    helmet.is_active = False
+    session.commit()
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        preview_item_assignment(
+            session, business.tenant.id, document_line_id=unknown.id, item_id=helmet.id
+        )
+    assert refused.value.code == "order_line_item_item_inactive"
+
+    helmet.is_active = True
+    session.commit()
+    assign_line_item(
+        session, business.tenant.id, document_line_id=unknown.id, item_id=helmet.id
+    )
+    assert record_by_id(session, DocumentLine, unknown.id).unit == "box"

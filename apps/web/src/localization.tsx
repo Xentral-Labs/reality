@@ -24396,6 +24396,8 @@ Object.assign(dictionaries.es, {
 
 // Spec 296: Shopify refunds.
 Object.assign(dictionaries.de, {
+  "This item is inactive; assign an active item.":
+    "Dieser Artikel ist inaktiv; ordne einen aktiven Artikel zu.",
   "Assign item": "Artikel zuordnen",
   "Choose an item": "Artikel wählen",
   "Item assigned; the delivery promise was created.":
@@ -24428,6 +24430,8 @@ Object.assign(dictionaries.de, {
 });
 
 Object.assign(dictionaries.nl, {
+  "This item is inactive; assign an active item.":
+    "Dit artikel is inactief; wijs een actief artikel toe.",
   "Assign item": "Artikel toewijzen",
   "Choose an item": "Kies een artikel",
   "Item assigned; the delivery promise was created.":
@@ -24460,6 +24464,8 @@ Object.assign(dictionaries.nl, {
 });
 
 Object.assign(dictionaries.es, {
+  "This item is inactive; assign an active item.":
+    "Este artículo está inactivo; asigna un artículo activo.",
   "Assign item": "Asignar artículo",
   "Choose an item": "Elige un artículo",
   "Item assigned; the delivery promise was created.":

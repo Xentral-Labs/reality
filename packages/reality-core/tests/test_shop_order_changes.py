@@ -476,3 +476,110 @@ def test_a_removed_line_left_out_again_is_no_change(session, business):
 
     assert _outcome(session, business, source).classification == "interpreted"
     assert _quantity(session, business, first) == 8
+
+
+# --- Review round (T024) ------------------------------------------------------------
+
+
+def test_a_redelivered_version_never_undoes_a_persons_later_revision(session, business):
+    first, _ = _order(session, business)
+    payload = _payload(
+        updated_at="2026-09-02T10:00:00Z",
+        lines=[_line(LINE_A, 10, current_quantity=6), _line(LINE_B, 5)],
+    )
+    source, _ = _intake(session, business, payload)
+    assert _quantity(session, business, first) == 6
+
+    for quantity in (8, 4):
+        core.revise_commitment(
+            session, business.tenant.id, first.id, quantity=quantity, note="Phoned"
+        )
+        # The webhook delivers the same version again, and a person retries its job.
+        _intake(session, business, payload)
+        job = session.scalars(
+            select(core.ImportJob).where(core.ImportJob.source_record_id == source.id)
+        ).one()
+        core.retry_import_job(session, business.tenant.id, job.id)
+        core.process_import_job(session, business.tenant.id, job.id)
+        assert _quantity(session, business, first) == quantity
+
+
+def test_an_address_change_is_held_once_and_does_not_block_a_later_cancellation(
+    session, business
+):
+    first, second = _order(session, business)
+    moved = {"address1": "Nebenstr. 2", "city": "Ulm"}
+    held, _ = _version(session, business, None, shipping_address=moved)
+    assert _outcome(session, business, held).reason_code == "address_changed"
+
+    source, _ = _version(
+        session,
+        business,
+        None,
+        shipping_address=moved,
+        cancelled_at="2026-09-03T00:00:00Z",
+    )
+
+    assert _outcome(session, business, source).classification == "interpreted"
+    assert {_status(session, first), _status(session, second)} == {"cancelled"}
+
+
+def test_a_later_version_after_a_held_price_change_is_not_held_for_it(
+    session, business
+):
+    first, _ = _order(session, business)
+    priced = [_line(LINE_A, 10, price="9.00"), _line(LINE_B, 5)]
+    held, _ = _version(session, business, priced)
+    assert _outcome(session, business, held).reason_code == "price_changed"
+
+    source, _ = _version(
+        session,
+        business,
+        [_line(LINE_A, 10, price="9.00", current_quantity=7), _line(LINE_B, 5)],
+    )
+
+    assert _outcome(session, business, source).classification == "interpreted"
+    assert _quantity(session, business, first) == 7
+
+
+def test_geocoded_address_fields_are_no_address_change(session, business):
+    first, _ = _order(session, business)
+    geocoded = {
+        "address1": "Hauptstr. 1",
+        "city": "Augsburg",
+        "latitude": 48.37,
+        "longitude": 10.89,
+    }
+
+    source, _ = _version(
+        session,
+        business,
+        [_line(LINE_A, 10, current_quantity=9), _line(LINE_B, 5)],
+        shipping_address=geocoded,
+    )
+
+    assert _outcome(session, business, source).classification == "interpreted"
+    assert _quantity(session, business, first) == 9
+
+
+def test_a_refunded_shipped_line_does_not_block_later_versions(session, business):
+    first, second = _order(session, business)
+    _ship(session, business, first, "10")
+    refund = {
+        "id": 931,
+        "refund_line_items": [
+            {"line_item_id": LINE_A, "quantity": 2, "restock_type": "return"}
+        ],
+    }
+
+    # Should Shopify lower current_quantity for refunded shipped goods, the kept
+    # promise must not read as a reduction below what shipped.
+    source, _ = _version(
+        session,
+        business,
+        [_line(LINE_A, 10, current_quantity=8), _line(LINE_B, 5, current_quantity=3)],
+        refunds=[refund],
+    )
+
+    assert _outcome(session, business, source).classification == "interpreted"
+    assert _quantity(session, business, second) == 3

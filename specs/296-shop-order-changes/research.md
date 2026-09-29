@@ -134,3 +134,29 @@ keeps trace-only; the new class is a `reports_absence` consumer of `document_lin
 - Gates: new tool (isolation catalog, command catalog, discovery, resource labels), new exception
   class (all pinned lists), new refusal codes, `sales_refund` document type registration, spec 081
   noted as narrowed, docs regeneration.
+
+## R8. Review round (T024)
+
+- **A version is applied once.** A version with an `interpreted` outcome applies nothing when it
+  is redelivered or retried; otherwise a replay would re-impose its quantities over a person's
+  later revision.
+- **Stated fields are compared with the version before.** Address, price and an unassigned
+  line's quantity are compared with the previous version's payload (quantities stay compared
+  with Reality), so a change is held once, when it appears. Geocoding fields (`latitude`,
+  `longitude`) are not an address change. A cancellation decides the whole order and is not
+  blocked by other holds.
+- **Refunds of shipped goods** in the version's own `refunds[]` explain a `current_quantity`
+  below what shipped, in case Shopify lowers it for them; the kept promise is not a reduction.
+- **A refund is recorded once per Shopify identity.** A later payload of the same refund is not
+  a second refund; a refund whose transactions have not succeeded waits
+  (`shop_refund_pending`). A cancelling refund lowers the promise itself, to the ordered quantity
+  less every cancelling refund of the line, so it acts even when its order version is held and
+  lowers nothing more when the version already did. Refunds are split from conflicting versions
+  too.
+- **Unknown items**: a cancelled shop order is closed even with no promise; a `null` or empty SKU
+  is an unknown line and reported; a line the shop says does not ship (`requires_shipping:
+  false`) is kept as a service line and not promised; an inactive item cannot be assigned
+  (`order_line_item_item_inactive`), and the assigned item's unit replaces the line's.
+- **Not changed**: version 1 still promises the stated `quantity` and does not read
+  `current_quantity` or `cancelled_at` (an order first seen after an edit); recorded as a
+  limitation.

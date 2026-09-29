@@ -24,6 +24,8 @@ from reality.db.core import (
     DocumentLine,
     ImportJob,
     Item,
+    SourceRecord,
+    SourceStream,
 )
 from reality.services import core
 from reality.services.core import emit_business_event
@@ -33,7 +35,31 @@ FIELDS = {"document_line_id", "item_id"}
 
 
 def _order_closed(session: Session, tenant_id: str, document_id: str) -> bool:
-    """An order whose every promise was cancelled: nothing more will ship from it."""
+    """An order nothing more will ship from: its source cancelled it, or every promise.
+
+    An order of unknown articles alone has no promise to cancel, so the shop's
+    cancellation is read from the version its stream stands on.
+    """
+    order = core._tenant_record(session, Document, tenant_id, document_id)
+    if order.source_record_id:
+        source = session.get(SourceRecord, (tenant_id, order.source_record_id))
+        current = source and session.scalar(
+            select(SourceRecord)
+            .join(
+                SourceStream,
+                and_(
+                    SourceStream.tenant_id == tenant_id,
+                    SourceStream.current_source_record_id == SourceRecord.id,
+                ),
+            )
+            .where(
+                SourceStream.source_system == source.source_system,
+                SourceStream.source_type == source.source_type,
+                SourceStream.external_id == source.external_id,
+            )
+        )
+        if current and json.loads(current.payload or "{}").get("cancelled_at"):
+            return True
     statuses = set(
         session.scalars(
             select(Commitment.status)
@@ -73,7 +99,6 @@ def unknown_item_lines(session: Session, tenant_id: str) -> list[dict[str, Any]]
             Document.type == "sales_order",
             DocumentLine.line_type == "item",
             DocumentLine.item_id.is_(None),
-            DocumentLine.sku != "",
             ~promised,
         )
         .order_by(Document.number, DocumentLine.id)
@@ -119,6 +144,8 @@ def preview_item_assignment(
     if _order_closed(session, tenant_id, order.id):
         raise core.InvalidOperation(code="order_line_item_order_closed")
     item = core._tenant_record(session, Item, tenant_id, item_id)
+    if not item.is_active:
+        raise core.InvalidOperation(code="order_line_item_item_inactive")
     sibling = session.scalar(
         select(Commitment)
         .join(
@@ -185,6 +212,9 @@ def assign_line_item(
         )
         line = core._tenant_record(session, DocumentLine, tenant_id, document_line_id)
         line.item_id = preview["item_id"]
+        line.unit = core._tenant_record(
+            session, Item, tenant_id, preview["item_id"]
+        ).unit
         quantity = core.decimal(preview["quantity"])
         commitment = core.create_commitment(
             session,

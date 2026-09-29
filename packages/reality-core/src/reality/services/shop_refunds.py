@@ -102,10 +102,18 @@ def _refunded_amount(refund: dict[str, Any]) -> tuple[Decimal, str | None]:
 def interpret_shop_refund(
     session: Session, tenant_id: str, source: SourceRecord, context: dict[str, Any]
 ) -> tuple[SourceRecord, Document, list[DocumentLine], list[Any]]:
+    # One refund is recorded once, whichever version of it arrives: a later
+    # payload of the same refund id is not a second refund.
+    versions = select(SourceRecord.id).where(
+        SourceRecord.tenant_id == tenant_id,
+        SourceRecord.source_system == SOURCE[0],
+        SourceRecord.source_type == SOURCE[1],
+        SourceRecord.external_id == source.external_id,
+    )
     existing = session.scalar(
         select(Document).where(
             Document.tenant_id == tenant_id,
-            Document.source_record_id == source.id,
+            Document.source_record_id.in_(versions),
             Document.type == DOCUMENT_TYPE,
         )
     )
@@ -143,6 +151,12 @@ def interpret_shop_refund(
             f"order {order.number} does not have; nothing was recorded.",
         )
     amount, currency = _refunded_amount(refund)
+    if refund.get("transactions") and not amount:
+        raise ShopRefundNeedsReview(
+            "shop_refund_pending",
+            f"Refund {source.external_id} has no successful refund transaction yet; "
+            "it is recorded when the shop reports the money returned.",
+        )
     document = Document(
         id=uid("doc"),
         tenant_id=tenant_id,
@@ -197,10 +211,82 @@ def interpret_shop_refund(
         },
         source_record_id=source.id,
     )
+    reduced = _reduce_cancelled(session, tenant_id, source, order, stated, order_lines)
     announcements = _announce_returns(
         session, tenant_id, source, order, stated, order_lines
     )
-    return source, document, lines, announcements
+    return source, document, lines, [*reduced, *announcements]
+
+
+def _reduce_cancelled(session, tenant_id, source, order, stated, order_lines) -> list:
+    """Lower the promise for refunded goods the shop says will not ship.
+
+    The target is the ordered quantity less every cancelling refund recorded for
+    the line, so it does not matter whether the order version that lowered
+    `current_quantity` or the refund arrives first: the second finds the promise
+    already where it should be.
+    """
+    from reality.services.shop_order_changes import _needs_reservation_choice
+
+    reduced = []
+    cancelling = {
+        str(entry.get("line_item_id"))
+        for entry in stated
+        if entry.get("restock_type") == "cancel"
+    }
+    for line_id in sorted(cancelling):
+        order_line = order_lines[line_id]
+        commitment = session.scalar(
+            select(Commitment).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.document_line_id == order_line.id,
+                Commitment.type == "customer_delivery",
+            )
+        )
+        if commitment is None or commitment.status != "open":
+            continue
+        refunded = Decimal(0)
+        for refund in refunds_for_order(session, tenant_id, order):
+            for line in session.scalars(
+                select(DocumentLine).where(
+                    DocumentLine.tenant_id == tenant_id,
+                    DocumentLine.document_id == refund.id,
+                    DocumentLine.source_line_id == line_id,
+                )
+            ):
+                if json.loads(line.payload or "{}").get("restock_type") == "cancel":
+                    refunded += core.decimal(line.quantity)
+        target = core.decimal(order_line.quantity) - refunded
+        current = core.commitment_quantity(session, tenant_id, commitment.id)
+        fulfilled = core.fulfilled_quantity(session, tenant_id, commitment.id)
+        if target >= current or target < fulfilled:
+            continue
+        note = f"Refunded in Shopify before shipment (refund {source.external_id})"
+        if target == 0:
+            core.cancel_commitment(
+                session,
+                tenant_id,
+                commitment.id,
+                reason=note,
+                source_record_id=source.id,
+                _commit=False,
+            )
+        elif _needs_reservation_choice(
+            session, tenant_id, commitment, target, fulfilled
+        ):
+            continue
+        else:
+            core.revise_commitment(
+                session,
+                tenant_id,
+                commitment.id,
+                quantity=target,
+                note=note,
+                source_record_id=source.id,
+                _commit=False,
+            )
+        reduced.append(commitment)
+    return reduced
 
 
 def _announce_returns(session, tenant_id, source, order, stated, order_lines) -> list:

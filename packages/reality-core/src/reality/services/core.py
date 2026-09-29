@@ -12090,11 +12090,7 @@ def enqueue_source(
                     {"source_system": source_system, "source_type": source_type},
                     source_record_id=source.id,
                 )
-    if (
-        created
-        and (source_system, source_type) == ("shopify", "order")
-        and disposition != "conflict"
-    ):
+    if created and (source_system, source_type) == ("shopify", "order"):
         # Spec 296: refunds are their own sources, recorded even when this
         # version's order changes wait for review.
         from reality.services.shop_refunds import split_refunds
@@ -12449,9 +12445,13 @@ def _shopify_interpretation(
     # assigns one (`order_line_item_unknown`).
     items_by_sku: dict[str, Item | None] = {}
     for raw_line in payload.get("line_items", []):
-        sku = str(raw_line.get("sku", ""))
-        items_by_sku[sku] = session.scalar(
-            select(Item).where(Item.tenant_id == tenant_id, Item.sku == sku)
+        sku = str(raw_line.get("sku") or "")
+        items_by_sku[sku] = (
+            session.scalar(
+                select(Item).where(Item.tenant_id == tenant_id, Item.sku == sku)
+            )
+            if sku
+            else None
         )
 
     promised_at = next(
@@ -12484,8 +12484,10 @@ def _shopify_interpretation(
     lines: list[DocumentLine] = []
     commitments_created: list[Commitment] = []
     for raw_line in payload.get("line_items", []):
-        item = items_by_sku[str(raw_line.get("sku", ""))]
-        stated_sku = str(raw_line.get("sku", ""))
+        stated_sku = str(raw_line.get("sku") or "")
+        item = items_by_sku[stated_sku]
+        # A line the shop says does not ship (a tip, a service) is kept, not promised.
+        ships = raw_line.get("requires_shipping", True) is not False
         quantity = positive(raw_line["quantity"])
         price = decimal(raw_line.get("price", 0))
         raw_line_id = raw_line.get("id")
@@ -12507,13 +12509,13 @@ def _shopify_interpretation(
             promised_at=promised_at,
             unit=item.unit if item else "pcs",
             requested_at=utc_datetime(promised_at),
-            line_type="item",
+            line_type="item" if ships else "service",
             payload=json.dumps(raw_line, ensure_ascii=False, separators=(",", ":")),
         )
         session.add(line)
         session.flush()
         lines.append(line)
-        if item is None:
+        if item is None or not ships:
             continue
         commitment = Commitment(
             id=uid("com"),

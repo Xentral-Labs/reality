@@ -360,3 +360,94 @@ def test_the_order_inspector_lists_its_refunds(session, business):
     (refund,) = _refund_documents(session, business)
     assert row["label"] == "Refund 901"
     assert row["link"] == {"kind": "document", "id": refund.id}
+
+
+def test_a_changed_payload_of_the_same_refund_is_not_a_second_refund(session, business):
+    commitment = _interpreted_order(session, business, shipped="5")
+    pending = {
+        **_refund(),
+        "transactions": [{**_refund()["transactions"][0], "status": "pending"}],
+    }
+    _enqueue(
+        session, business, _order(updated_at="2026-09-05T10:00:00Z", refunds=[pending])
+    )
+    _process_all(session, business)
+    assert _refund_documents(session, business) == []
+    (pending_source,) = _refund_sources(session, business)
+    assert _outcome(session, pending_source).reason_code == "shop_refund_pending"
+
+    _enqueue(
+        session,
+        business,
+        _order(updated_at="2026-09-06T10:00:00Z", refunds=[_refund()]),
+    )
+    _enqueue(
+        session,
+        business,
+        _order(
+            updated_at="2026-09-07T10:00:00Z",
+            refunds=[{**_refund(), "note": "Edited note"}],
+        ),
+    )
+    _process_all(session, business)
+
+    (refund,) = _refund_documents(session, business)
+    assert refund.gross_amount == Decimal("20.00")
+    assert len(_announcements(session, commitment)) == 1
+
+
+def test_a_cancelling_refund_lowers_the_promise_even_when_its_order_version_waits(
+    session, business
+):
+    commitment = _interpreted_order(session, business)
+    cancelling = _refund(quantity=2, restock="cancel")
+
+    order_version, _ = _enqueue(
+        session,
+        business,
+        _order(
+            updated_at="2026-09-05T10:00:00Z",
+            refunds=[cancelling],
+            shipping_address={"city": "Ulm"},
+            line_items=[
+                {
+                    "id": LINE,
+                    "sku": "BIKE-LIGHT",
+                    "quantity": 5,
+                    "current_quantity": 3,
+                    "price": "10.00",
+                }
+            ],
+        ),
+    )
+    _process_all(session, business)
+
+    assert _outcome(session, order_version).reason_code == "address_changed"
+    assert core.commitment_quantity(session, business.tenant.id, commitment.id) == 3
+
+
+def test_a_cancelling_refund_after_its_applied_order_version_lowers_nothing_more(
+    session, business
+):
+    commitment = _interpreted_order(session, business)
+    _enqueue(
+        session,
+        business,
+        _order(
+            updated_at="2026-09-05T10:00:00Z",
+            refunds=[_refund(quantity=2, restock="cancel")],
+            line_items=[
+                {
+                    "id": LINE,
+                    "sku": "BIKE-LIGHT",
+                    "quantity": 5,
+                    "current_quantity": 3,
+                    "price": "10.00",
+                }
+            ],
+        ),
+    )
+
+    _process_all(session, business)
+
+    assert core.commitment_quantity(session, business.tenant.id, commitment.id) == 3

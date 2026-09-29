@@ -116,6 +116,7 @@ As a shop operator, I see edits, cancellations and refunds from the shop reflect
 
 - Created as a short draft from the sales-gap roadmap; clarified with the owner on 2026-09-29.
 - Builds on spec 081 (Shopify update guard), which this feature narrows rather than removes.
+- Limitation: the first version of an order promises the stated `quantity`; an order first seen after an edit or a cancellation (a missed create webhook) is not corrected from `current_quantity` or `cancelled_at`.
 - Builds on the capabilities and limitations recorded in `docs/scenarios/coverage.md` for the journeys in scope.
 
 ## Requirement Traceability

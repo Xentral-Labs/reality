@@ -1215,6 +1215,9 @@
     "order_line_item_assign_unresolved": {
       "message": "An assignment for this order line is still being recorded; reconcile it before trying again."
     },
+    "order_line_item_item_inactive": {
+      "message": "This item is inactive; assign an active item."
+    },
     "order_line_item_location_unknown": {
       "message": "The order names no company or location to promise this line from."
     },

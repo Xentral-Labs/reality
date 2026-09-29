@@ -20,6 +20,7 @@ from reality.db.core import (
     Commitment,
     Document,
     DocumentLine,
+    InterpretationOutcome,
     Reservation,
     SourceRecord,
     SourceStream,
@@ -128,8 +129,76 @@ def is_current_version(session: Session, tenant_id: str, source: SourceRecord) -
     return current in {None, source.id}
 
 
+#: Fields Shopify adds to an address by itself (geocoding) rather than the customer.
+_DERIVED_ADDRESS_FIELDS = {"latitude", "longitude"}
+#: Refund restock types for goods that had shipped; they do not reduce the promise.
+_SHIPPED_RESTOCK_TYPES = {"return", "no_restock", "legacy_restock"}
+
+
 def _address(payload: dict[str, Any]) -> Any:
-    return payload.get("shipping_address") or None
+    address = payload.get("shipping_address") or None
+    if isinstance(address, dict):
+        return {
+            key: value
+            for key, value in address.items()
+            if key not in _DERIVED_ADDRESS_FIELDS
+        } or None
+    return address
+
+
+def _previous_payload(
+    session: Session, tenant_id: str, source: SourceRecord
+) -> dict[str, Any]:
+    """What the shop stated just before this version, held or not.
+
+    A change is reviewed once, when it appears; comparing every later version with
+    the first one would hold them all for the same reviewed difference.
+    """
+    previous = None
+    if source.supersedes_source_record_id:
+        previous = session.get(
+            SourceRecord, (tenant_id, source.supersedes_source_record_id)
+        )
+    if previous is None:
+        previous = session.scalars(
+            select(SourceRecord)
+            .where(
+                SourceRecord.tenant_id == tenant_id,
+                SourceRecord.source_system == source.source_system,
+                SourceRecord.source_type == source.source_type,
+                SourceRecord.external_id == source.external_id,
+                SourceRecord.version < source.version,
+            )
+            .order_by(SourceRecord.version.desc())
+        ).first()
+    return json.loads(previous.payload) if previous else {}
+
+
+def _shipped_refunds(payload: dict[str, Any]) -> dict[str, Decimal]:
+    """Per line, the refunded quantity of goods that had shipped (not a reduction)."""
+    refunded: dict[str, Decimal] = {}
+    for refund in payload.get("refunds") or []:
+        for entry in (refund or {}).get("refund_line_items") or []:
+            if entry.get("restock_type") in _SHIPPED_RESTOCK_TYPES:
+                line_id = str(entry.get("line_item_id"))
+                refunded[line_id] = refunded.get(line_id, Decimal(0)) + core.decimal(
+                    entry.get("quantity") or 0
+                )
+    return refunded
+
+
+def already_applied(session: Session, tenant_id: str, source: SourceRecord) -> bool:
+    """Whether this version was interpreted before: it is never applied twice."""
+    return (
+        session.scalar(
+            select(InterpretationOutcome.id).where(
+                InterpretationOutcome.tenant_id == tenant_id,
+                InterpretationOutcome.source_record_id == source.id,
+                InterpretationOutcome.classification == "interpreted",
+            )
+        )
+        is not None
+    )
 
 
 def _needs_reservation_choice(
@@ -159,17 +228,16 @@ def classify_order_version(
     tenant_id: str,
     order: Document,
     payload: dict[str, Any],
+    previous: dict[str, Any] | None = None,
 ) -> VersionPlan:
-    """What a later version asks of the order's current Reality."""
+    """What a later version asks of the order's current Reality.
+
+    Quantities are compared with Reality; stated fields Reality does not hold
+    (address, price, an unassigned line) with the version before, so a change is
+    held once, when it appears, and does not block every later version.
+    """
     plan = VersionPlan()
-    original = core._tenant_record(
-        session, SourceRecord, tenant_id, order.source_record_id
-    )
-    original_payload = json.loads(original.payload)
-    if payload.get("currency", order.currency) != order.currency:
-        plan.held.append(("currency_changed", ""))
-    if _address(payload) != _address(original_payload):
-        plan.held.append(("address_changed", ""))
+    previous = previous or {}
     lines = list(
         session.scalars(
             select(DocumentLine)
@@ -185,61 +253,84 @@ def classify_order_version(
         for commitment in session.scalars(
             select(Commitment).where(
                 Commitment.tenant_id == tenant_id,
-                Commitment.document_id == order.id,
+                Commitment.document_line_id.in_([line.id for line in lines]),
                 Commitment.type == "customer_delivery",
             )
         )
     }
-    stated = stated_lines(payload)
-    known = {line.source_line_id for line in lines}
-    plan.held.extend(
-        ("line_added", line_id) for line_id in stated if line_id not in known
-    )
-    cancelled = bool(payload.get("cancelled_at"))
     shipped = {
         commitment.id: core.fulfilled_quantity(session, tenant_id, commitment.id)
         for commitment in promises.values()
     }
-    if cancelled:
+    if payload.get("cancelled_at"):
+        # A cancellation decides the whole order; nothing else it carries matters.
         if any(shipped.values()):
             plan.held.append(("cancelled_after_shipment", ""))
-        else:
-            plan.cancellations = [
-                commitment
-                for commitment in promises.values()
-                if commitment.status == "open"
-            ]
-            reason = str(payload.get("cancel_reason") or "").strip()
-            plan.cancel_reason = (
-                f"Cancelled in Shopify ({reason})" if reason else "Cancelled in Shopify"
-            )
+            return plan
+        plan.cancellations = [
+            commitment
+            for commitment in promises.values()
+            if commitment.status == "open"
+        ]
+        reason = str(payload.get("cancel_reason") or "").strip()
+        plan.cancel_reason = (
+            f"Cancelled in Shopify ({reason})" if reason else "Cancelled in Shopify"
+        )
         return plan
+    if payload.get("currency", order.currency) != order.currency:
+        plan.held.append(("currency_changed", ""))
+    if previous and _address(payload) != _address(previous):
+        plan.held.append(("address_changed", ""))
+    stated = stated_lines(payload)
+    before = stated_lines(previous) if previous else {}
+    refunded_shipped = _shipped_refunds(payload)
+    known = {line.source_line_id for line in lines}
+    plan.held.extend(
+        ("line_added", line_id) for line_id in stated if line_id not in known
+    )
     for line in lines:
         line_id = line.source_line_id or ""
         target = stated.get(line_id, {"quantity": Decimal(0)})["quantity"]
-        if line_id in stated and stated[line_id]["price"] != core.decimal(
-            line.unit_price
-        ):
+        prior_price = (
+            before[line_id]["price"]
+            if line_id in before
+            else core.decimal(line.unit_price)
+        )
+        if line_id in stated and stated[line_id]["price"] != prior_price:
             plan.held.append(("price_changed", line_id))
         commitment = promises.get(line.id)
         if commitment is None:
-            if target != core.decimal(line.quantity):
+            prior_quantity = (
+                before[line_id]["quantity"]
+                if line_id in before
+                else core.decimal(line.quantity)
+            )
+            if target != prior_quantity:
                 plan.held.append(("unassigned_line_changed", line_id))
             continue
+        fulfilled = shipped[commitment.id]
+        if (
+            target < fulfilled
+            and target + refunded_shipped.get(line_id, 0) >= fulfilled
+        ):
+            # Shipped goods refunded afterwards: the promise was kept all the same.
+            target = fulfilled
         current = core.commitment_quantity(session, tenant_id, commitment.id)
         if target == current or (commitment.status == "cancelled" and target == 0):
             # A cancelled line the shop still leaves out already says the same.
+            continue
+        if commitment.status == "fulfilled" and target == fulfilled:
             continue
         if commitment.status != "open":
             plan.held.append(("closed_line_changed", line_id))
         elif target > current:
             plan.held.append(("quantity_increased", line_id))
-        elif target < shipped[commitment.id]:
+        elif target < fulfilled:
             plan.held.append(("reduces_shipped_quantity", line_id))
         elif target == 0:
             plan.cancellations.append(commitment)
         elif _needs_reservation_choice(
-            session, tenant_id, commitment, target, shipped[commitment.id]
+            session, tenant_id, commitment, target, fulfilled
         ):
             plan.held.append(("reservation_choice_required", line_id))
         else:
@@ -257,11 +348,20 @@ def apply_order_version(
     Callers own the transaction: nothing here commits, and a held version raises
     before anything was changed.
     """
-    if not is_current_version(session, tenant_id, source):
-        # A newer version already stands for the order and states all of it.
+    if already_applied(session, tenant_id, source) or not is_current_version(
+        session, tenant_id, source
+    ):
+        # Applied once already, or a newer version stands for the order and states
+        # all of it: a redelivery or retry must not undo what happened since.
         return source, order, [], []
     payload = json.loads(source.payload)
-    plan = classify_order_version(session, tenant_id, order, payload)
+    plan = classify_order_version(
+        session,
+        tenant_id,
+        order,
+        payload,
+        _previous_payload(session, tenant_id, source),
+    )
     if plan.held:
         raise core.ShopifyUpdateNeedsReview(
             codes=[code for code, _ in plan.held],
