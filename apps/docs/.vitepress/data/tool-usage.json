@@ -10874,7 +10874,7 @@
         },
         {
           "name": "levels[].fee_amount",
-          "type": "string",
+          "type": "string | integer",
           "required": false,
           "description": "Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.",
           "depth": 1,
@@ -11024,8 +11024,7 @@
           "type": "integer",
           "required": true,
           "description": "Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted.",
-          "depth": 1,
-          "enum": [1, 2, 3]
+          "depth": 1
         }
       ],
       "guidance": {

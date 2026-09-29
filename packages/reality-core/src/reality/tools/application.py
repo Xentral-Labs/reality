@@ -3130,35 +3130,39 @@ def create_change_proposal(
             ),
         }
     if tool_name == DUNNING_RUN_COMMAND:
-        from reality.services.dunning_runs import run_context
+        from reality.services.dunning_runs import (
+            _run_items,
+            run_context,
+            run_outcome,
+        )
 
-        chosen = {item["invoice_id"] for item in normalized_arguments["items"]}
+        chosen = _run_items(session, tenant_id, normalized_arguments["items"])
         context = run_context(
             session,
             tenant_id,
             run_date=normalized_arguments["run_date"],
             party_ids=normalized_arguments["party_ids"],
         )
+        if (
+            context["schedule_source_record_id"]
+            != normalized_arguments["schedule_source_record_id"]
+        ):
+            raise InvalidOperation(code="dunning_preview_stale")
+        selected, will_skip = run_outcome(session, tenant_id, context, chosen)
         preview["dunning_run"] = {
             "run_date": context["run_date"],
             "notices": [
-                {**notice, "items": items}
-                for notice in context["notices"]
-                if (
-                    items := [
-                        item
-                        for item in notice["items"]
-                        if item["invoice_id"] in chosen
-                    ]
-                )
+                {**context["notices"][index], "items": items}
+                for index, items in sorted(selected.items())
             ],
+            "will_skip": will_skip,
             "not_selected": sorted(
                 {
                     item["invoice_id"]
                     for notice in context["notices"]
                     for item in notice["items"]
                 }
-                - chosen
+                - set(chosen)
             ),
         }
     if tool_name == COLLECTION_HANDOVER_COMMAND:

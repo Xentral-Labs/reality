@@ -40,7 +40,13 @@ type Context = {
 };
 type Pending =
   | { kind: "schedule"; id: string; levels: Level[] }
-  | { kind: "run"; id: string; notices: Notice[]; notSelected: string[] }
+  | {
+      kind: "run";
+      id: string;
+      notices: Notice[];
+      notSelected: string[];
+      willSkip: { invoice_id: string; code: string }[];
+    }
   | { kind: "collection"; id: string; party: string; items: Item[]; hold: string };
 type Receipt = { notices: { id: string }[]; skipped: { invoice_id: string; code: string }[] };
 
@@ -63,6 +69,13 @@ async function call<T>(url: string, body?: unknown): Promise<T> {
   return data;
 }
 
+// The clerk's calendar day, not the UTC one: a run just after midnight is today's.
+function localToday(): string {
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
 const LEFT_OUT: Record<string, string> = {
   waiting: "Waiting period not over",
   credit_available: "Customer credit available; settle it first",
@@ -71,6 +84,7 @@ const LEFT_OUT: Record<string, string> = {
 const SKIPPED: Record<string, string> = {
   paid: "Paid since the review",
   level_changed: "Reminded or reversed since the review",
+  not_due: "No longer overdue or not in this run",
   in_collection: "In collection",
   credit_available: "Customer credit available; settle it first",
 };
@@ -81,7 +95,7 @@ export function DunningRun({ tenant, close }: { tenant: string; close: () => voi
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(false);
-  const [runDate, setRunDate] = useState(new Date().toISOString().slice(0, 10));
+  const [runDate, setRunDate] = useState(localToday);
   const [context, setContext] = useState<Context | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, setPending] = useState<Pending | null>(null);
@@ -120,13 +134,13 @@ export function DunningRun({ tenant, close }: { tenant: string; close: () => voi
     );
   }
 
-  async function prepareRun() {
+  async function prepareRun(keepReceipt = false) {
     const read = await run(() =>
       call<Context>(`${base}/finance/dunning/run-context?run_date=${encodeURIComponent(runDate)}`),
     );
     if (!read) return;
     setContext(read);
-    setReceipt(null);
+    if (!keepReceipt) setReceipt(null);
     setSelected(new Set(read.notices.flatMap((n) => n.items.map((i) => i.invoice_id))));
   }
 
@@ -173,6 +187,7 @@ export function DunningRun({ tenant, close }: { tenant: string; close: () => voi
         id: proposal.id,
         notices: proposal.preview.dunning_run.notices,
         notSelected: proposal.preview.dunning_run.not_selected,
+        willSkip: proposal.preview.dunning_run.will_skip,
       });
   }
 
@@ -183,7 +198,7 @@ export function DunningRun({ tenant, close }: { tenant: string; close: () => voi
     const fields = new FormData(event.currentTarget);
     const proposal = await run(() =>
       propose("finance.dunning.collection.handover", {
-        expected_revision: schedule.data!.revision,
+        expected_revision: context.revision,
         invoice_ids: items.map((item) => item.invoice_id),
         handover_date: context.run_date,
         reason: String(fields.get("reason") || ""),
@@ -221,7 +236,7 @@ export function DunningRun({ tenant, close }: { tenant: string; close: () => voi
     }
     if (kind === "run" && decided.output) setReceipt(decided.output);
     schedule.refresh();
-    await prepareRun();
+    await prepareRun(true);
   }
 
   const levels = schedule.data?.levels ?? [];
@@ -268,6 +283,11 @@ export function DunningRun({ tenant, close }: { tenant: string; close: () => voi
                 {tf("{count} notices will be recorded.", { count: pending.notices.length })}
               </p>
               <NoticeList notices={pending.notices} />
+              {pending.willSkip.map((item) => (
+                <p key={item.invoice_id} className="text-sm text-fg-muted">
+                  {numberOf(item.invoice_id)}: {t(SKIPPED[item.code] ?? item.code)}
+                </p>
+              ))}
               {pending.notSelected.length > 0 && (
                 <p className="mb-3 text-sm text-fg-muted">
                   {tf("Not selected: {numbers}", {

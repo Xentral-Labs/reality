@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, TypeAdapter
 
 from reality.domain.target_mappings import COMMANDS as TARGET_COMMANDS
 from reality.services.finance import accounts
@@ -110,10 +110,12 @@ class DunningReverseRequest(AccountRequest):
 
 
 class DunningScheduleLevelRequest(BaseModel):
+    # Strict, so `true` or `7.0` reach the service as stated and are refused
+    # there with a code instead of being coerced into a schedule.
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    level: int
-    wait_days: int | str
-    fee_amount: str = "0"
+    level: StrictInt
+    wait_days: StrictInt | StrictStr
+    fee_amount: StrictStr | StrictInt = "0"
 
 
 class DunningScheduleRequest(AccountRequest):
@@ -124,7 +126,7 @@ class DunningScheduleRequest(AccountRequest):
 class DunningRunItemRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     invoice_id: str = Field(min_length=1)
-    level: Literal[1, 2, 3]
+    level: StrictInt = Field(ge=1, le=3)
 
 
 class DunningRunRequest(BaseModel):

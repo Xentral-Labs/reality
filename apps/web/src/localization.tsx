@@ -24275,6 +24275,9 @@ Object.assign(dictionaries.es, {
 
 // Spec 295: the dunning section of an invoice's inspector.
 Object.assign(dictionaries.de, {
+  "Select the customers of a dunning run as a list.":
+    "Wähle die Kunden eines Mahnlaufs als Liste aus.",
+  "No longer overdue or not in this run": "Nicht mehr überfällig oder nicht in diesem Lauf",
   "Dunning run": "Mahnlauf",
   "Dunning schedule": "Mahnschema",
   "Change schedule": "Schema ändern",
@@ -24312,6 +24315,9 @@ Object.assign(dictionaries.de, {
 });
 
 Object.assign(dictionaries.nl, {
+  "Select the customers of a dunning run as a list.":
+    "Kies de klanten van een aanmaningsrun als lijst.",
+  "No longer overdue or not in this run": "Niet meer achterstallig of niet in deze run",
   "Dunning run": "Aanmaningsrun",
   "Dunning schedule": "Aanmaningsschema",
   "Change schedule": "Schema wijzigen",
@@ -24349,6 +24355,9 @@ Object.assign(dictionaries.nl, {
 });
 
 Object.assign(dictionaries.es, {
+  "Select the customers of a dunning run as a list.":
+    "Selecciona los clientes de una ejecución de reclamaciones como lista.",
+  "No longer overdue or not in this run": "Ya no está vencida o no está en esta ejecución",
   "Dunning run": "Ejecución de reclamaciones",
   "Dunning schedule": "Esquema de reclamaciones",
   "Change schedule": "Cambiar esquema",

@@ -466,6 +466,9 @@
     "dunning_run_items_invalid": {
       "message": "Select between 1 and 500 invoices, each with its proposed level."
     },
+    "dunning_run_parties_invalid": {
+      "message": "Select the customers of a dunning run as a list."
+    },
     "dunning_schedule_incomplete": {
       "message": "A dunning schedule states exactly levels 1, 2 and 3."
     },

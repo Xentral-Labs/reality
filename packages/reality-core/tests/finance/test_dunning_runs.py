@@ -967,3 +967,142 @@ def test_the_invoice_names_its_level_notice_and_handover(session, business):
     rows = _dunning_section(session, tenant, invoice)
     assert [row["label"] for row in rows] == ["Dunning level", "Collection"]
     assert rows[1]["link"]["id"] == handover["source_record_id"]
+
+
+# --- Review round (T027) ----------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "entry",
+    [
+        {"level": 3, "wait_days": 3651, "fee_amount": "0"},
+        {"level": 3, "wait_days": 14, "fee_amount": "1000000.01"},
+    ],
+)
+def test_a_schedule_value_outside_its_bounds_is_refused(session, business, entry):
+    tenant = business.tenant.id
+    _fee_account(session, tenant)
+    # Positive control: the bounds themselves are accepted.
+    _set_schedule(
+        session,
+        tenant,
+        [
+            SCHEDULE[0],
+            SCHEDULE[1],
+            {"level": 3, "wait_days": 3650, "fee_amount": "1000000"},
+        ],
+    )
+    with pytest.raises(core.InvalidOperation) as refused:
+        _set_schedule(session, tenant, [SCHEDULE[0], SCHEDULE[1], entry])
+    assert refused.value.code == "dunning_schedule_value_invalid"
+
+
+@pytest.mark.parametrize("wait_days", [True, 7.0])
+def test_a_schedule_is_not_coerced_from_a_bool_or_a_float(session, business, wait_days):
+    tenant = business.tenant.id
+    _fee_account(session, tenant)
+    with pytest.raises(core.InvalidOperation):
+        _set_schedule(
+            session, tenant, [{**SCHEDULE[0], "wait_days": wait_days}, *SCHEDULE[1:]]
+        )
+    assert dunning_runs.schedule(session, tenant)["levels"] == []
+
+
+def test_the_run_review_names_what_confirmation_will_skip(session, business):
+    tenant = _scheduled(session, business)
+    due = _dated_invoice(session, business, "INV-T027-DUE", "2026-08-01")
+    wrong = _dated_invoice(session, business, "INV-T027-WRONG", "2026-08-01")
+    context = _context(session, tenant, "2026-09-01")
+
+    proposal = create_change_proposal(
+        session,
+        tenant,
+        "finance.dunning.run",
+        {
+            "schedule_source_record_id": context["schedule_source_record_id"],
+            "run_date": "2026-09-01",
+            "items": [
+                {"invoice_id": due.id, "level": 1},
+                {"invoice_id": wrong.id, "level": 2},
+            ],
+        },
+    )
+    review = json.loads(proposal.output)["dunning_run"]
+    receipt = json.loads(
+        approve_and_execute_proposal(session, tenant, proposal.id).output
+    )
+
+    assert [
+        item["invoice_id"] for notice in review["notices"] for item in notice["items"]
+    ] == [due.id]
+    assert (
+        review["will_skip"]
+        == receipt["skipped"]
+        == [{"invoice_id": wrong.id, "level": 2, "code": "level_changed"}]
+    )
+
+
+def test_a_run_proposal_under_a_changed_schedule_is_refused(session, business):
+    tenant = _scheduled(session, business)
+    invoice = _dated_invoice(session, business, "INV-T027-OLD", "2026-08-01")
+    context = _context(session, tenant, "2026-09-01")
+    _set_schedule(session, tenant, [{**entry, "fee_amount": "3"} for entry in SCHEDULE])
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        create_change_proposal(
+            session,
+            tenant,
+            "finance.dunning.run",
+            {
+                "schedule_source_record_id": context["schedule_source_record_id"],
+                "run_date": "2026-09-01",
+                "items": [{"invoice_id": invoice.id, "level": 1}],
+            },
+        )
+    assert refused.value.code == "dunning_preview_stale"
+
+
+def test_an_open_item_outside_the_run_is_not_due_rather_than_paid(session, business):
+    tenant = _scheduled(session, business)
+    other = core.create_party(session, tenant, "Weber AG", "customer")
+    mine = _dated_invoice(session, business, "INV-T027-MINE", "2026-08-01")
+    theirs = _dated_invoice(
+        session, business, "INV-T027-THEIRS", "2026-08-01", party=other
+    )
+    paid = _dated_invoice(session, business, "INV-T027-PAID", "2026-08-01", party=other)
+    core.post_customer_payment(session, tenant, paid.id, "100")
+
+    receipt = _run(
+        session,
+        tenant,
+        "2026-09-01",
+        [
+            {"invoice_id": mine.id, "level": 1},
+            {"invoice_id": theirs.id, "level": 1},
+            {"invoice_id": paid.id, "level": 1},
+        ],
+        party_ids=[business.customer.id],
+    )
+
+    assert {item["invoice_id"]: item["code"] for item in receipt["skipped"]} == {
+        theirs.id: "not_due",
+        paid.id: "paid",
+    }
+
+
+def test_items_ready_for_collection_name_their_last_notice(session, business):
+    tenant = _scheduled(session, business)
+    invoice = _at_level_three(session, business, "INV-T027-READY")
+    ready = _context(session, tenant, "2026-09-01")["ready_for_collection"]
+
+    assert ready[0]["last_notice_id"] == ready[0]["previous_notice_id"]
+    assert ready[0]["invoice_id"] == invoice.id
+
+
+def test_customers_of_a_run_are_a_list(session, business):
+    tenant = _scheduled(session, business)
+    with pytest.raises(core.InvalidOperation) as refused:
+        dunning_runs.run_context(
+            session, tenant, run_date="2026-09-01", party_ids=business.customer.id
+        )
+    assert refused.value.code == "dunning_run_parties_invalid"

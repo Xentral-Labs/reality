@@ -6658,7 +6658,7 @@ Record the reviewed dunning run's notices for owner confirmation.
 | `party_ids`                 | `array`   | no       | Opaque business-partner identities the caller can still reach, used to select which partners are answered for; absent means every partner of the company. A balance is summed within one partner and currency and never across them, so naming fewer returns fewer rows of identical arithmetic. | —       |
 | `items`                     | `array`   | yes      | The reviewed invoices of a dunning run, each with the level the preview proposed; items left out are not reminded.                                                                                                                                                                               | —       |
 | `items[].invoice_id`        | `string`  | yes      | Opaque identity of the invoice evidence associated with a payment or allocation.                                                                                                                                                                                                                 | —       |
-| `items[].level`             | `integer` | yes      | Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted. `1`, `2`, `3`                                                                                                                                                                                                   | —       |
+| `items[].level`             | `integer` | yes      | Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted.                                                                                                                                                                                                                 | —       |
 
 **Verify with:** `finance.dunning.notices` — The recorded notices; `finance.dunning.run_context` —
 Reminded items now wait for their next level.
@@ -7993,7 +7993,7 @@ Set the company's dunning schedule for owner confirmation.
 | `levels`              | `array`             | yes      | The company's complete dunning schedule, exactly levels 1, 2 and 3, each with its waiting days and fixed fee.          | —       |
 | `levels[].level`      | `integer`           | yes      | Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted.                                       | —       |
 | `levels[].wait_days`  | `integer \| string` | yes      | Whole days a dunning level waits; level 1 counts days overdue, levels 2 and 3 count days since the item's last notice. | —       |
-| `levels[].fee_amount` | `string`            | no       | Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.                           | `0`     |
+| `levels[].fee_amount` | `string \| integer` | no       | Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.                           | `0`     |
 
 **Verify with:** `finance.dunning.schedule` — The confirmed waiting days and fees are retained.
 

@@ -22,6 +22,7 @@ from reality.db.core import (
     DunningNotice,
     DunningNoticeInvoice,
     DunningScheduleLevel,
+    FinanceState,
     Party,
     SourceRecord,
     now,
@@ -34,15 +35,23 @@ from reality.services.finance.accounts import lock_finance, resolve_account
 
 LEVELS = (1, 2, 3)
 FEE_SCALE = Decimal("0.0001")
+# Bounds a stated value must stay within to be a schedule rather than a typo.
+MAX_WAIT_DAYS = 3650
+MAX_FEE = Decimal(1000000)
 # The customer items a notice may remind (spec 247 `preview_notice`).
 DUNNABLE_TYPES = ("sales_invoice", "opening_customer_debt")
 RUN_ITEM_LIMIT = 500
 
 
+def _finance_revision(session: Session, tenant_id: str) -> int:
+    revision = session.scalar(
+        select(FinanceState.revision).where(FinanceState.tenant_id == tenant_id)
+    )
+    return revision or 0
+
+
 def schedule(session: Session, tenant_id: str) -> dict[str, Any]:
     """The company's dunning levels, empty when none is set, with the finance revision."""
-    from reality.services.finance.accounts import list_accounts
-
     core.get_tenant(session, tenant_id)
     rows = list(
         session.scalars(
@@ -52,7 +61,7 @@ def schedule(session: Session, tenant_id: str) -> dict[str, Any]:
         )
     )
     return {
-        "revision": list_accounts(session, tenant_id)["revision"],
+        "revision": _finance_revision(session, tenant_id),
         "levels": [
             {
                 "level": row.level,
@@ -81,9 +90,9 @@ def _stated_levels(session: Session, tenant_id: str, levels: Any) -> list[dict]:
             ) from error
         if (
             str(entry["wait_days"]).strip() != str(wait_days)
-            or wait_days < 0
+            or not 0 <= wait_days <= MAX_WAIT_DAYS
             or not fee.is_finite()
-            or fee < 0
+            or not 0 <= fee <= MAX_FEE
             or fee.as_tuple().exponent < -4
         ):
             raise core.InvalidOperation(
@@ -255,6 +264,8 @@ def _schedule_levels(session: Session, tenant_id: str) -> dict[int, Any]:
 def _customers(session: Session, tenant_id: str, party_ids: Any) -> set[str] | None:
     if not party_ids:
         return None
+    if not isinstance(party_ids, list | tuple):
+        raise core.InvalidOperation(code="dunning_run_parties_invalid")
     return {
         core._tenant_record(session, Party, tenant_id, str(party_id)).id
         for party_id in party_ids
@@ -288,8 +299,6 @@ def run_context(
     Records nothing. Each item's level follows from its last non-reversed notice
     and the company schedule; items that cannot be reminded are named with a code.
     """
-    from reality.services.finance.accounts import list_accounts
-
     core.get_tenant(session, tenant_id)
     day = _run_date(run_date)
     levels = _schedule_levels(session, tenant_id)
@@ -342,7 +351,7 @@ def run_context(
             continue
         previous = known.get("level")
         if previous == LEVELS[-1]:
-            ready.append(item)
+            ready.append({**item, "last_notice_id": known["last_notice_id"]})
             continue
         level = (previous or 0) + 1
         wait_days = levels[level].wait_days
@@ -379,7 +388,7 @@ def run_context(
         for (party_id, currency, level), items in groups.items()
     ]
     return {
-        "revision": list_accounts(session, tenant_id)["revision"],
+        "revision": _finance_revision(session, tenant_id),
         "run_date": day.isoformat(),
         "party_ids": sorted(customers) if customers else [],
         "schedule_source_record_id": levels[1].source_record_id,
@@ -401,13 +410,77 @@ def _run_items(session: Session, tenant_id: str, items: Any) -> dict[str, int]:
             invoice_id, level = str(entry["invoice_id"]), int(entry["level"])
         except (KeyError, TypeError, ValueError) as error:
             raise core.InvalidOperation(code="dunning_run_items_invalid") from error
-        document = core._tenant_record(session, Document, tenant_id, invoice_id)
-        if document.type not in DUNNABLE_TYPES or level not in LEVELS:
+        chosen[invoice_id] = level
+    types = dict(
+        session.execute(
+            select(Document.id, Document.type).where(
+                Document.tenant_id == tenant_id, Document.id.in_(chosen)
+            )
+        ).all()
+    )
+    for invoice_id, level in chosen.items():
+        if types.get(invoice_id) not in DUNNABLE_TYPES or level not in LEVELS:
             raise core.InvalidOperation(
                 code="dunning_run_item_unknown", values={"invoice_id": invoice_id}
             )
-        chosen[invoice_id] = level
     return chosen
+
+
+def run_outcome(
+    session: Session, tenant_id: str, context: dict[str, Any], chosen: dict[str, int]
+) -> tuple[dict[int, list[dict[str, Any]]], list[dict[str, Any]]]:
+    """Which chosen items a run records, per notice, and which it skips and why.
+
+    The one rule behind the proposal's review and the confirmation, so what a
+    person approves is what is recorded.
+    """
+    due = {
+        item["invoice_id"]: (index, item)
+        for index, notice in enumerate(context["notices"])
+        for item in notice["items"]
+    }
+    left_out = {item["invoice_id"]: item["code"] for item in context["left_out"]}
+    ready = {item["invoice_id"] for item in context["ready_for_collection"]}
+    missing = [
+        invoice_id
+        for invoice_id in chosen
+        if invoice_id not in due
+        and invoice_id not in left_out
+        and invoice_id not in ready
+    ]
+    still_open = set()
+    if missing:
+        documents = list(
+            session.scalars(
+                select(Document).where(
+                    Document.tenant_id == tenant_id, Document.id.in_(missing)
+                )
+            )
+        )
+        still_open = {
+            invoice_id
+            for invoice_id, amount in core.open_invoice_amounts(
+                session, tenant_id, documents
+            ).items()
+            if amount > 0
+        }
+    selected: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    skipped = []
+    for invoice_id, level in chosen.items():
+        if invoice_id in due and due[invoice_id][1]["level"] == level:
+            selected[due[invoice_id][0]].append(due[invoice_id][1])
+            continue
+        code = left_out.get(invoice_id)
+        if code not in {"in_collection", "credit_available"}:
+            if invoice_id in due or invoice_id in ready or code == "waiting":
+                code = "level_changed"
+            elif invoice_id in still_open:
+                # Open but no longer overdue, or outside the run's customers.
+                code = "not_due"
+            else:
+                code = "paid"
+        skipped.append({"invoice_id": invoice_id, "level": level, "code": code})
+    return dict(selected), skipped
 
 
 def _run_receipt(
@@ -503,31 +576,7 @@ def confirm_run(
     context = run_context(session, tenant_id, run_date=run_date, party_ids=party_ids)
     if context["schedule_source_record_id"] != schedule_source_record_id:
         raise core.Conflict(code="dunning_preview_stale")
-    due = {
-        item["invoice_id"]: (index, item)
-        for index, notice in enumerate(context["notices"])
-        for item in notice["items"]
-    }
-    named = {
-        item["invoice_id"]: item["code"]
-        for item in context["left_out"]
-        if item["code"] in {"in_collection", "credit_available"}
-    }
-    present = (
-        set(due)
-        | {item["invoice_id"] for item in context["left_out"]}
-        | {item["invoice_id"] for item in context["ready_for_collection"]}
-    )
-    selected: dict[int, list[dict[str, Any]]] = defaultdict(list)
-    skipped = []
-    for invoice_id, level in chosen.items():
-        if invoice_id in due and due[invoice_id][1]["level"] == level:
-            selected[due[invoice_id][0]].append(due[invoice_id][1])
-            continue
-        code = named.get(invoice_id) or (
-            "level_changed" if invoice_id in present else "paid"
-        )
-        skipped.append({"invoice_id": invoice_id, "level": level, "code": code})
+    selected, skipped = run_outcome(session, tenant_id, context, chosen)
     run_source, _, _ = core.store_source_record(
         session,
         tenant_id,
@@ -755,7 +804,7 @@ def record_handover(
         action_id,
         {
             **preview,
-            "handover_date": handover_date,
+            "handover_date": _run_date(handover_date).isoformat(),
             "reason": reason.strip(),
             "actor_id": actor_id,
             "confirmation_id": action_id,
