@@ -76,6 +76,7 @@ WITHOUT_A_SCENARIO = {
     "overdue_payable",
     "purchase_discount_available",
     "announced_return_not_arrived",
+    "exchange_without_return",
     "commitment_hold_unreleased",
     "party_hold_unreleased",
     "stock_expired",

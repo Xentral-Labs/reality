@@ -46,6 +46,7 @@ it, and which agent tools list and explain it.
 | [`unassigned_cost_component`](#exception-unassigned_cost_component)                       | Unassigned cost component                | Finance                    | `high`   | Purchasing or finance operations                                                            |
 | [`stale_cost_review`](#exception-stale_cost_review)                                       | Stale cost review                        | Orders & fulfilment        | `normal` | Finance operations                                                                          |
 | [`negative_actual_db1`](#exception-negative_actual_db1)                                   | Negative actual DB1                      | Cross-functional           | `normal` | Sales management                                                                            |
+| [`exchange_without_return`](#exception-exchange_without_return)                           | Exchange without return                  | Orders & fulfilment        | `normal` | Customer service                                                                            |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -196,14 +197,17 @@ the third thing that can be wrong about one pair of lines is the price, which is
 differs from the agreement. Quantities are compared across the item's own stated units where it says
 how they relate, and a pair that still cannot be reconciled is reported as Units not comparable
 rather than skipped in silence. Goods that have come back are not counted here at all, and a return
-nobody has credited is the second half of the same line's life: Returned and not credited.
+nobody has credited is the second half of the same line's life: Returned and not credited. A free
+replacement sent for a customer exchange is a promise without an order line, so it is never billable
+and never reported here.
 
 - **Owner:** Billing, with order fulfilment when the delivery is in doubt
 - **Clears through:** Billing the outstanding quantity on an invoice line that names the order line.
 - **Severity:** `high`
 - **Record type:** `document_line`
 - **Authority:** `076/FR-004`
-- **Evidence:** `tests/operational_exceptions/test_derivation.py::test_shipped_not_billed`
+- **Evidence:** `tests/operational_exceptions/test_derivation.py::test_shipped_not_billed`,
+  `tests/operational_exceptions/test_derivation.py::test_a_shipped_replacement_is_not_owed_an_invoice`
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
@@ -318,15 +322,18 @@ to a supplier and no credit followed, is Returned to supplier and not credited. 
 that came back were ever dealt with is another half, and that is Return not dealt with. And this
 class counts credit notes as written, not as paid: a credit note that was never booked is Credit
 note not booked, and one booked and never given back is Credit note not given back. Seeing nothing
-here means the paperwork exists, not that the customer has their money.
+here means the paperwork exists, not that the customer has their money. A customer exchange settles
+returned goods the way a credit does: the exchanged quantity of goods that arrived is not owed a
+credit, and a partial exchange leaves only the rest reported.
 
 - **Owner:** Customer service, with billing when the credit note is the missing step
 - **Clears through:** Crediting the returned quantity on a credit note line that names the order
-  line.
+  line, or exchanging it for a replacement.
 - **Severity:** `high`
 - **Record type:** `document_line`
 - **Authority:** `079/FR-007`
-- **Evidence:** `tests/operational_exceptions/test_derivation.py::test_returned_not_credited`
+- **Evidence:** `tests/operational_exceptions/test_derivation.py::test_returned_not_credited`,
+  `tests/operational_exceptions/test_derivation.py::test_an_exchanged_return_is_not_owed_a_credit`
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
@@ -345,14 +352,16 @@ that still cannot be reconciled is reported as Units not comparable rather than 
 silence. The opposite direction, goods back with no credit, is Returned and not credited; the same
 shape on the buying side, where an invoice runs ahead of the goods, is Billed and not received.
 Where it is a supplier that credited more than came back, that is Supplier credited more than went
-back.
+back. Goods a customer exchange answered are not there to be credited as well, so a credit recorded
+on top of an exchange is reported here for the quantity settled twice.
 
 - **Owner:** Customer service, with credit control when the money is already gone
 - **Clears through:** The outstanding goods arriving, or correcting the credit note.
 - **Severity:** `high`
 - **Record type:** `document_line`
 - **Authority:** `079/FR-008`
-- **Evidence:** `tests/operational_exceptions/test_derivation.py::test_credited_not_returned`
+- **Evidence:** `tests/operational_exceptions/test_derivation.py::test_credited_not_returned`,
+  `tests/operational_exceptions/test_derivation.py::test_a_credit_after_an_exchange_settles_the_unit_twice`
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
@@ -952,7 +961,9 @@ The goods half after is Return not dealt with, and the money half is Returned an
 - **Severity:** `normal`
 - **Record type:** `return_announcement`
 - **Authority:** `099/FR-011`
-- **Evidence:** `tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived`
+- **Evidence:**
+  `tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived`,
+  `tests/operational_exceptions/test_derivation.py::test_an_overdue_advance_exchange_names_the_replacement_already_sent`
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
@@ -1158,6 +1169,32 @@ Complete supported actual goods cost exceeds the received net revenue of the rev
 | ID                              | Label                         | Authority    |
 | ------------------------------- | ----------------------------- | ------------ |
 | `supported_actual_db1_negative` | Supported actual DB1 negative | `234/FR-011` |
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain)
+
+## `exchange_without_return` — Exchange without return {#exception-exchange_without_return}
+
+A replacement went out in advance for goods a customer announced, and the customer then withdrew the
+announcement. An advance exchange is ordinary service: the faulty unit is expected to follow the
+replacement. Withdrawing the announcement says it will not, and the replacement cannot be taken back
+by saying so, so the goods it answered are still owed. Without this entry the withdrawal would
+silently turn the replacement into a free delivery. Goods that arrived against the announcement
+before it was withdrawn count as returned, and so does a later ordinary return on the same delivery
+that no other exchange has claimed. A replacement that has not left yet is not reported: cancelling
+it is still an ordinary step.
+
+- **Owner:** Customer service
+- **Clears through:** The goods arriving after all as a return on the original delivery, or
+  cancelling what of the replacement has not shipped.
+- **Severity:** `normal`
+- **Record type:** `customer_exchange`
+- **Authority:** `293/FR-007`
+- **Evidence:**
+  `tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_leaves_a_sent_replacement_without_a_return`,
+  `tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_with_an_unsent_replacement_is_not_reported`,
+  `tests/operational_exceptions/test_derivation.py::test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return`
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool

@@ -1008,6 +1008,7 @@ _PRACTICE_APP_OPERATIONS = frozenset(
         "correct_movement",
         "assign_supply",
         "record_return_disposition",
+        "record_customer_exchange",
         "create_lot",
         "create_serial_unit",
         "create_handling_unit",

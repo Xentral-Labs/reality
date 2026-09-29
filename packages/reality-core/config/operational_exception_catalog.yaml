@@ -106,6 +106,7 @@ classes:
       comparable rather than skipped in silence. Goods that have come back are not counted here
       at all, and a return nobody has credited is the second half of the same line's life: Returned and not
       credited.
+      A free replacement sent for a customer exchange is a promise without an order line, so it is never billable and never reported here.
     owner: Billing, with order fulfilment when the delivery is in doubt
     clears_through: Billing the outstanding quantity on an invoice line that names the order line.
     severity: high
@@ -114,6 +115,7 @@ classes:
     authority: 076/FR-004
     evidence:
       - tests/operational_exceptions/test_derivation.py::test_shipped_not_billed
+      - tests/operational_exceptions/test_derivation.py::test_a_shipped_replacement_is_not_owed_an_invoice
   - id: billed_not_received
     label: Billed and not received
     description: >-
@@ -224,14 +226,16 @@ classes:
       written, not as paid: a credit note that was never booked is Credit note not booked, and
       one booked and never given back is Credit note not given back. Seeing nothing here means
       the paperwork exists, not that the customer has their money.
+      A customer exchange settles returned goods the way a credit does: the exchanged quantity of goods that arrived is not owed a credit, and a partial exchange leaves only the rest reported.
     owner: Customer service, with billing when the credit note is the missing step
-    clears_through: Crediting the returned quantity on a credit note line that names the order line.
+    clears_through: Crediting the returned quantity on a credit note line that names the order line, or exchanging it for a replacement.
     severity: high
     derivation: returned_not_credited
     record_type: document_line
     authority: 079/FR-007
     evidence:
       - tests/operational_exceptions/test_derivation.py::test_returned_not_credited
+      - tests/operational_exceptions/test_derivation.py::test_an_exchanged_return_is_not_owed_a_credit
   - id: credited_not_returned
     label: Credited and not returned
     description: >-
@@ -249,6 +253,7 @@ classes:
       where an invoice runs ahead of the goods, is Billed and not received. Where it is a
       supplier that credited more than came back, that is Supplier credited more than went
       back.
+      Goods a customer exchange answered are not there to be credited as well, so a credit recorded on top of an exchange is reported here for the quantity settled twice.
     owner: Customer service, with credit control when the money is already gone
     clears_through: The outstanding goods arriving, or correcting the credit note.
     severity: high
@@ -257,6 +262,7 @@ classes:
     authority: 079/FR-008
     evidence:
       - tests/operational_exceptions/test_derivation.py::test_credited_not_returned
+      - tests/operational_exceptions/test_derivation.py::test_a_credit_after_an_exchange_settles_the_unit_twice
   - id: supplier_return_not_credited
     label: Returned to supplier and not credited
     description: >-
@@ -765,6 +771,7 @@ classes:
     authority: 099/FR-011
     evidence:
       - tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived
+      - tests/operational_exceptions/test_derivation.py::test_an_overdue_advance_exchange_names_the_replacement_already_sent
   - id: commitment_hold_unreleased
     label: Promise hold not lifted
     description: >-
@@ -942,3 +949,24 @@ classes:
         authority: 234/FR-011
         evidence:
           - tests/test_cost_findings.py::test_negative_actual_db1_requires_complete_supported_db1_not_db2
+  - id: exchange_without_return
+    label: Exchange without return
+    description: >-
+      A replacement went out in advance for goods a customer announced, and the customer then
+      withdrew the announcement. An advance exchange is ordinary service: the faulty unit is
+      expected to follow the replacement. Withdrawing the announcement says it will not, and the
+      replacement cannot be taken back by saying so, so the goods it answered are still owed.
+      Without this entry the withdrawal would silently turn the replacement into a free delivery.
+      Goods that arrived against the announcement before it was withdrawn count as returned, and
+      so does a later ordinary return on the same delivery that no other exchange has claimed. A
+      replacement that has not left yet is not reported: cancelling it is still an ordinary step.
+    owner: Customer service
+    clears_through: The goods arriving after all as a return on the original delivery, or cancelling what of the replacement has not shipped.
+    severity: normal
+    derivation: exchange_without_return
+    record_type: customer_exchange
+    authority: 293/FR-007
+    evidence:
+      - tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_leaves_a_sent_replacement_without_a_return
+      - tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_with_an_unsent_replacement_is_not_reported
+      - tests/operational_exceptions/test_derivation.py::test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return

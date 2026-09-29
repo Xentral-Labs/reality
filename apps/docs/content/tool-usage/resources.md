@@ -20,7 +20,7 @@ the technical key stands beside each one.
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 2                   |
 | [Ledger and accounts](#resource-accounting)                      | 2     | 14      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
-| [Return](#resource-return)                                       | 0     | 3       | 6                   |
+| [Return](#resource-return)                                       | 0     | 4       | 7                   |
 | [Document and source system](#resource-source)                   | 3     | 11      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
@@ -686,6 +686,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
   (`announce_customer_return`)
 - [Withdraw return announcement](./commands#command-withdraw_return_announcement)
   (`withdraw_return_announcement`)
+- [Exchange returned goods for a replacement](./commands#command-record_customer_exchange)
+  (`record_customer_exchange`)
 - [Resolve arrived customer-return goods](./commands#command-record_return_disposition)
   (`record_return_disposition`)
 
@@ -706,14 +708,18 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 - [Return not dealt with](./exceptions#exception-return_unresolved) (`return_unresolved`)
 - [Announced return has not arrived](./exceptions#exception-announced_return_not_arrived)
   (`announced_return_not_arrived`)
+- [Exchange without return](./exceptions#exception-exchange_without_return)
+  (`exchange_without_return`)
 
 **Appears in processes:** [Procure to pay](./processes#process-procure_to_pay),
 [Customer returns](./processes#process-returns)
 
-**Underneath:** Tables: `return_announcement` · Events:
+**Underneath:** Tables: `return_announcement`, `customer_exchange` · Events:
 [`return.announced`](./events#event-return-announced),
-[`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn) · Agent tools
-without a command: [`return_disposition_summary`](./commands#tool-return_disposition_summary)
+[`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn),
+[`exchange.recorded`](./events#event-exchange-recorded) · Agent tools without a command:
+[`customer_exchange`](./commands#tool-customer_exchange),
+[`return_disposition_summary`](./commands#tool-return_disposition_summary)
 
 ## Document and source system {#resource-source}
 

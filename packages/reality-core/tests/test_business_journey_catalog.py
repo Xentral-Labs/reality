@@ -116,6 +116,7 @@ PROVEN_BY_STORY = {
     "C04",
     "F01",
     "F05",
+    "F07",
     "M08",
     "N01",
     "N02",
@@ -124,7 +125,7 @@ PROVEN_BY_STORY = {
 
 
 def test_story_proven_journeys_cite_their_catalog_story() -> None:
-    """Spec 292: a promotion stands on a named story, and a failed one says why."""
+    """Specs 292 and 293: a promotion stands on a named catalog story."""
     entries = {entry.id: entry for entry in load_journey_catalog(_payload()).entries}
     story = "packages/reality-core/tests/scenarios/test_catalog_"
 
@@ -134,7 +135,5 @@ def test_story_proven_journeys_cite_their_catalog_story() -> None:
         assert entry.internal_evidence[0].reference.startswith(story), journey
         assert not any("not yet proven" in text for text in entry.limitations)
 
-    exchange = entries["F07"]
-    assert exchange.status == "partial"
-    assert exchange.internal_evidence[0].reference.startswith(story)
-    assert not any("not yet proven" in text for text in exchange.limitations)
+    # Spec 293 turned the exchange from a pinned gap into a proof.
+    assert "customer_exchange" in entries["F07"].internal_evidence[0].note

@@ -50,7 +50,12 @@ _STAGE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("source", re.compile(r"^(source_|import_job|interpretation)")),
     ("document", re.compile(r"^document")),
     ("fact", re.compile(r"^fact")),
-    ("commitment", re.compile(r"^(commitment|return_announcement|supply_assignment)")),
+    (
+        "commitment",
+        re.compile(
+            r"^(commitment|return_announcement|supply_assignment|customer_exchange)"
+        ),
+    ),
     ("reservation", re.compile(r"^reservation")),
     ("movement", re.compile(r"^(movement|shipment|handling_unit|lot$|serial_unit)")),
     (

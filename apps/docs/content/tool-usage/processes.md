@@ -286,7 +286,9 @@ From the announcement through the goods receipt and the decision to credit note 
 
 **Can leave behind:**
 [Announced return has not arrived](./exceptions#exception-announced_return_not_arrived)
-(`announced_return_not_arrived`)
+(`announced_return_not_arrived`),
+[Exchange without return](./exceptions#exception-exchange_without_return)
+(`exchange_without_return`)
 
 ### 2. The goods arrive
 

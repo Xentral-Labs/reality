@@ -73,6 +73,7 @@ def test_the_migrations_together_create_exactly_the_derived_indexes():
     later_tables = {
         "analytics_report",
         "analysis_request",
+        "customer_exchange",
         "dunning_notice",
         "dunning_notice_invoice",
         "supply_assignment",

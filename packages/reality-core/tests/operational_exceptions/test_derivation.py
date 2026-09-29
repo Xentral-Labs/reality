@@ -6262,3 +6262,294 @@ def test_the_queue_follows_a_corrected_best_before(session, business):
     assert row.record_id == wrong_late.id
     assert row.causal_values["expires_at"] == date(2026, 8, 1)
     assert row.causal_values["expired_days"] == 30
+
+
+# --- Spec 293: a customer exchange settles a return instead of a credit ---------
+
+
+def exchange(session, business, goods_back, quantity, *, item=None):
+    from reality.services.customer_exchanges import record_customer_exchange
+
+    return record_customer_exchange(
+        session,
+        business.tenant.id,
+        return_movement_id=goods_back.id,
+        quantity=quantity,
+        replacement_item_id=(item or business.item).id,
+        replacement_quantity=quantity,
+        reason="Exchanged for another size",
+    )
+
+
+def test_an_exchanged_return_is_not_owed_a_credit(session, business):
+    stock(session, business)
+    _, line, commitment = order(session, business, number="SO-293-1")
+    ship(session, business, commitment, 10)
+    bill(session, business, line, number="RE-293-1", quantity="10")
+    goods_back = send_back(session, business, commitment, 2)
+    # Positive control: back and not credited is reported.
+    assert by_class(session, business.tenant.id)["returned_not_credited"].record_id == (
+        line.id
+    )
+
+    exchange(session, business, goods_back, "2")
+
+    classes = by_class(session, business.tenant.id)
+    assert "returned_not_credited" not in classes
+    assert "credited_not_returned" not in classes
+
+
+def test_a_partial_exchange_and_a_partial_credit_settle_a_return_together(
+    session, business
+):
+    stock(session, business)
+    _, line, commitment = order(session, business, number="SO-293-2")
+    ship(session, business, commitment, 10)
+    bill(session, business, line, number="RE-293-2", quantity="10")
+    goods_back = send_back(session, business, commitment, 3)
+
+    exchange(session, business, goods_back, "1")
+    row = by_class(session, business.tenant.id)["returned_not_credited"]
+    assert row.causal_values["exchanged_quantity"] == Decimal("1.0000")
+    assert row.causal_values["uncredited_quantity"] == Decimal("2.0000")
+
+    credit(session, business, line, number="GS-293-2", quantity="2")
+    assert "returned_not_credited" not in by_class(session, business.tenant.id)
+
+
+def test_a_credit_after_an_exchange_settles_the_unit_twice(session, business):
+    """Spec 293 edge case: the double settlement surfaces as credited and not returned."""
+    stock(session, business)
+    _, line, commitment = order(session, business, number="SO-293-3")
+    ship(session, business, commitment, 10)
+    bill(session, business, line, number="RE-293-3", quantity="10")
+    goods_back = send_back(session, business, commitment, 2)
+    exchange(session, business, goods_back, "2")
+    assert "credited_not_returned" not in by_class(session, business.tenant.id)
+
+    credit(session, business, line, number="GS-293-3", quantity="1")
+
+    row = by_class(session, business.tenant.id)["credited_not_returned"]
+    assert row.record_id == line.id
+    assert row.causal_values["exchanged_quantity"] == Decimal("2.0000")
+
+
+def test_a_shipped_replacement_is_not_owed_an_invoice(session, business):
+    from reality.db.core import Commitment
+
+    stock(session, business)
+    _, line, commitment = order(session, business, number="SO-293-4")
+    ship(session, business, commitment, 10)
+    bill(session, business, line, number="RE-293-4", quantity="10")
+    goods_back = send_back(session, business, commitment, 1)
+    swapped = exchange(session, business, goods_back, "1")
+    replacement = session.get(
+        Commitment, (business.tenant.id, swapped.replacement_commitment_id)
+    )
+
+    ship(session, business, replacement, 1)
+
+    assert replacement.status == "fulfilled"
+    unbilled = [
+        row
+        for row in operational_exceptions(session, business.tenant.id, as_of=AS_OF)
+        if row.class_id == "shipped_not_billed"
+    ]
+    assert unbilled == []
+    # Positive control: an ordinary delivery shipped and not billed is reported.
+    _, other_line, other = order(session, business, number="SO-293-4B")
+    ship(session, business, other, 2)
+    assert by_class(session, business.tenant.id)["shipped_not_billed"].record_id == (
+        other_line.id
+    )
+
+
+# --- Spec 293 US2: exchanging in advance of the goods ---------------------------
+
+
+def advance_exchange(session, business, announcement, quantity):
+    from reality.services.customer_exchanges import record_customer_exchange
+
+    return record_customer_exchange(
+        session,
+        business.tenant.id,
+        return_announcement_id=announcement.id,
+        quantity=quantity,
+        replacement_item_id=business.item.id,
+        replacement_quantity=quantity,
+        reason="Faulty unit replaced ahead of the return",
+    )
+
+
+def replacement_of(session, business, exchanged):
+    from reality.db.core import Commitment
+
+    return session.get(
+        Commitment, (business.tenant.id, exchanged.replacement_commitment_id)
+    )
+
+
+def sold_and_announced(session, business, number, *, expected_by):
+    stock(session, business)
+    _, line, commitment = order(session, business, number=number)
+    ship(session, business, commitment, 5)
+    bill(session, business, line, number=f"RE-{number}", quantity="5")
+    announced = announce(
+        session, business, commitment, 1, expected_by=expected_by, reference=number
+    )
+    return line, commitment, announced
+
+
+def test_an_advance_exchange_waits_for_the_goods_without_a_credit_finding(
+    session, business
+):
+    """US2.1 and US2.3: the replacement leaves first, the faulty unit follows."""
+    _, commitment, announced = sold_and_announced(
+        session, business, "SO-293-A1", expected_by=AS_OF + timedelta(days=3)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+    ship(session, business, replacement_of(session, business, exchanged), 1)
+
+    classes = by_class(session, business.tenant.id)
+    for class_id in (
+        "shipped_not_billed",
+        "returned_not_credited",
+        "credited_not_returned",
+        "announced_return_not_arrived",
+        "exchange_without_return",
+    ):
+        assert class_id not in classes, class_id
+
+    arrive(session, business, commitment, announced, 1)
+
+    classes = by_class(session, business.tenant.id)
+    assert "returned_not_credited" not in classes
+    assert "announced_return_not_arrived" not in classes
+    # Positive control: the same arrival without the exchange is owed a credit.
+    _, other_line, other = order(session, business, number="SO-293-A1B")
+    ship(session, business, other, 5)
+    bill(session, business, other_line, number="RE-293-A1B", quantity="5")
+    plain = announce(session, business, other, 1, reference="SO-293-A1B")
+    arrive(session, business, other, plain, 1)
+    assert by_class(session, business.tenant.id)["returned_not_credited"].record_id == (
+        other_line.id
+    )
+
+
+def test_an_overdue_advance_exchange_names_the_replacement_already_sent(
+    session, business
+):
+    """US2.2: the customer still owes the goods, and the entry says what already left."""
+    _, _, announced = sold_and_announced(
+        session, business, "SO-293-A2", expected_by=AS_OF - timedelta(days=4)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+    ship(session, business, replacement_of(session, business, exchanged), 1)
+
+    row = by_class(session, business.tenant.id)["announced_return_not_arrived"]
+
+    assert row.record_id == announced.id
+    assert row.causal_values["outstanding_quantity"] == Decimal(1)
+    assert row.causal_values["exchange_ids"] == [exchanged.id]
+    assert row.causal_values["replacement_commitment_ids"] == [
+        exchanged.replacement_commitment_id
+    ]
+    assert row.trace["customer_exchange_ids"] == [exchanged.id]
+
+
+def test_a_withdrawn_announcement_leaves_a_sent_replacement_without_a_return(
+    session, business
+):
+    """US2.4: the replacement went out and the goods it answered are not coming."""
+    _, _, announced = sold_and_announced(
+        session, business, "SO-293-A3", expected_by=AS_OF + timedelta(days=3)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+    replacement = replacement_of(session, business, exchanged)
+    ship(session, business, replacement, 1)
+    # Positive control: while the announcement is open, nothing is missing yet.
+    assert "exchange_without_return" not in by_class(session, business.tenant.id)
+
+    core.withdraw_return_announcement(
+        session, business.tenant.id, announced.id, note="Customer keeps it"
+    )
+
+    row = by_class(session, business.tenant.id)["exchange_without_return"]
+    assert (row.record_type, row.record_id) == ("customer_exchange", exchanged.id)
+    assert row.causal_values["exchanged_quantity"] == Decimal(1)
+    assert row.causal_values["arrived_quantity"] == Decimal(0)
+    assert row.causal_values["replacement_shipped_quantity"] == Decimal(1)
+    assert row.trace["replacement_commitment_id"] == replacement.id
+    assert row.trace["return_announcement_id"] == announced.id
+
+
+def test_a_withdrawn_announcement_with_an_unsent_replacement_is_not_reported(
+    session, business
+):
+    """Nothing has left yet: cancelling the replacement is still an ordinary step."""
+    _, _, announced = sold_and_announced(
+        session, business, "SO-293-A4", expected_by=AS_OF + timedelta(days=3)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+
+    core.withdraw_return_announcement(session, business.tenant.id, announced.id)
+
+    assert "exchange_without_return" not in by_class(session, business.tenant.id)
+    # Positive control: once the replacement leaves, it is reported.
+    ship(session, business, replacement_of(session, business, exchanged), 1)
+    assert by_class(session, business.tenant.id)[
+        "exchange_without_return"
+    ].record_id == (exchanged.id)
+
+
+def test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return(
+    session, business
+):
+    """The goods came after all, as an ordinary return on the same delivery."""
+    _, commitment, announced = sold_and_announced(
+        session, business, "SO-293-A5", expected_by=AS_OF + timedelta(days=3)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+    ship(session, business, replacement_of(session, business, exchanged), 1)
+    core.withdraw_return_announcement(session, business.tenant.id, announced.id)
+    assert "exchange_without_return" in by_class(session, business.tenant.id)
+
+    withdrawn = core.return_announcements(
+        session, business.tenant.id, commitment_id=commitment.id
+    )[0]
+    # Dated after the withdrawal, which carries the real clock's time.
+    send_back(
+        session, business, commitment, 1, at=withdrawn.closed_at + timedelta(minutes=5)
+    )
+
+    assert "exchange_without_return" not in by_class(session, business.tenant.id)
+
+
+def test_goods_after_a_withdrawal_are_settled_by_the_advance_exchange(
+    session, business
+):
+    """Review 4: the unit that clears Exchange without return is not owed a credit."""
+    line, commitment, announced = sold_and_announced(
+        session, business, "SO-293-R4", expected_by=AS_OF + timedelta(days=3)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+    ship(session, business, replacement_of(session, business, exchanged), 1)
+    core.withdraw_return_announcement(session, business.tenant.id, announced.id)
+    withdrawn = core.return_announcements(
+        session, business.tenant.id, commitment_id=commitment.id
+    )[0]
+
+    send_back(
+        session, business, commitment, 1, at=withdrawn.closed_at + timedelta(minutes=5)
+    )
+
+    classes = by_class(session, business.tenant.id)
+    assert "exchange_without_return" not in classes
+    assert "returned_not_credited" not in classes
+    # Positive control: a second, unexchanged unit back is owed a credit.
+    send_back(
+        session, business, commitment, 1, at=withdrawn.closed_at + timedelta(minutes=6)
+    )
+    assert by_class(session, business.tenant.id)["returned_not_credited"].record_id == (
+        line.id
+    )

@@ -899,11 +899,12 @@
         "Lieferantenretoure",
         "Wiedereinlagerungsgebühr"
       ],
-      "tables": ["return_announcement"],
+      "tables": ["return_announcement", "customer_exchange"],
       "lists": [],
       "actions": [
         "command:announce_customer_return",
         "command:withdraw_return_announcement",
+        "command:record_customer_exchange",
         "command:record_return_disposition"
       ],
       "reads": ["command:return_announcements"],
@@ -913,10 +914,15 @@
         "exception:supplier_return_not_credited",
         "exception:supplier_credit_not_returned",
         "exception:return_unresolved",
-        "exception:announced_return_not_arrived"
+        "exception:announced_return_not_arrived",
+        "exception:exchange_without_return"
       ],
-      "tools": ["tool:return_disposition_summary"],
-      "events": ["event:return.announced", "event:return.announcement_withdrawn"],
+      "tools": ["tool:customer_exchange", "tool:return_disposition_summary"],
+      "events": [
+        "event:return.announced",
+        "event:return.announcement_withdrawn",
+        "event:exchange.recorded"
+      ],
       "workspace_actions": []
     },
     {
@@ -1331,7 +1337,10 @@
           ],
           "tools": [],
           "lists": [],
-          "exceptions": ["exception:announced_return_not_arrived"]
+          "exceptions": [
+            "exception:announced_return_not_arrived",
+            "exception:exchange_without_return"
+          ]
         },
         {
           "title": {
@@ -7956,6 +7965,82 @@
       "resources": ["item"]
     },
     {
+      "id": "tool:customer_exchange_propose",
+      "kind": "tool",
+      "key": "customer_exchange_propose",
+      "label": "Exchange returned goods",
+      "area": "cross_functional",
+      "summary": "Prepare this business mutation without changing state. Exchange returned goods. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "customer_exchange_propose [return_movement_id] [return_announcement_id] quantity replacement_item_id replacement_quantity [location_id] [due_at] reason",
+      "parameters": [
+        {
+          "name": "return_movement_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the arrived customer-return Movement whose physical outcome is being decided.",
+          "depth": 0
+        },
+        {
+          "name": "return_announcement_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the announced return these goods fulfil; absent means they were not announced.",
+          "depth": 0
+        },
+        {
+          "name": "quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        },
+        {
+          "name": "replacement_item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the Item the replacement delivers; it may differ from the returned Item.",
+          "depth": 0
+        },
+        {
+          "name": "replacement_quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity the replacement delivers, in the replacement Item's unit.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "due_at",
+          "type": "string",
+          "required": false,
+          "description": "The date the counterparty now states the promise is due on; optional if a quantity is stated.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "record_customer_exchange",
+      "projections": [],
+      "links": ["command:record_customer_exchange"],
+      "label_de": "Exchange returned goods",
+      "resources": ["return"]
+    },
+    {
       "id": "tool:return_disposition_propose",
       "kind": "tool",
       "key": "return_disposition_propose",
@@ -9272,6 +9357,66 @@
       "links": [],
       "label_de": "Movement explanation",
       "resources": ["delivery"]
+    },
+    {
+      "id": "tool:customer_exchange",
+      "kind": "tool",
+      "key": "customer_exchange",
+      "label": "Customer exchange",
+      "area": "cross_functional",
+      "summary": "Read what a customer exchange replaced, what it sent and what it still settles.",
+      "access": "read",
+      "group": "Returns",
+      "synopsis": "customer_exchange [exchange_id] [return_movement_id] [replacement_commitment_id]",
+      "parameters": [
+        {
+          "name": "exchange_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of a recorded customer exchange.",
+          "depth": 0
+        },
+        {
+          "name": "return_movement_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the arrived customer-return Movement whose physical outcome is being decided.",
+          "depth": 0
+        },
+        {
+          "name": "replacement_commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the free delivery promise an exchange sent in place of a credit.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read what a customer exchange replaced, the replacement it sent, how much of the return it settles and the decision behind it.",
+        "use_when": [
+          "Customer service or finance needs to explain why a return has no credit or a replacement has no invoice."
+        ],
+        "do_not_use_when": [
+          "A price difference between the returned and the replacement item must be settled."
+        ],
+        "limitations": [
+          "An exchange moves no money; price differences go through invoices and credit notes."
+        ],
+        "empty_result": "No exchange answers the selected return or replacement.",
+        "freshness": "Derived from the exchange, current movements and the replacement's status at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP customer_exchange",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Customer exchange",
+      "resources": ["return"]
     },
     {
       "id": "tool:return_disposition_summary",
@@ -20981,6 +21126,37 @@
       "resources": ["item"]
     },
     {
+      "id": "command:record_customer_exchange",
+      "kind": "command",
+      "key": "record_customer_exchange",
+      "label": "Exchange returned goods for a replacement",
+      "area": "cross_functional",
+      "summary": "Settles part of a customer return with a free replacement delivery to the same customer instead of a credit; no money moves.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "movement",
+        "return_announcement",
+        "commitment",
+        "document_line",
+        "source_record",
+        "customer_exchange"
+      ],
+      "writes": ["customer_exchange", "commitment", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["customer_exchange_propose"],
+      "synopses": [
+        "customer_exchange_propose [return_movement_id] [return_announcement_id] quantity replacement_item_id replacement_quantity [location_id] [due_at] reason"
+      ],
+      "events": ["exchange.recorded"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:customer_exchange_propose", "event:exchange.recorded"],
+      "label_de": "Retournierte Ware umtauschen",
+      "resources": ["return"]
+    },
+    {
       "id": "command:record_return_disposition",
       "kind": "command",
       "key": "record_return_disposition",
@@ -21897,6 +22073,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -21968,6 +22145,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22035,6 +22213,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22133,6 +22312,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22286,6 +22466,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22345,7 +22526,8 @@
         "exception:missing_acquisition_cost",
         "exception:unassigned_cost_component",
         "exception:stale_cost_review",
-        "exception:negative_actual_db1"
+        "exception:negative_actual_db1",
+        "exception:exchange_without_return"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -22382,6 +22564,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22631,6 +22814,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
         "reservation.created",
@@ -22861,13 +23045,16 @@
       "key": "shipped_not_billed",
       "label": "Shipped and not billed",
       "area": "finance",
-      "summary": "Goods left the building against a customer order line and no invoice line bills them. Reality takes the quantity actually shipped against that line's promise, subtracts everything invoice lines have billed against the same line, and reports what is left over. Every invoice line pointing at the order line counts, so billing an order across two invoices, or in instalments, behaves without special handling. Only lines that promised a delivery are considered — freight, a discount or a service promises no goods, so it is never asked to have been shipped. A line with nothing shipped says nothing at all, whatever has been billed: invoicing ahead of the goods is a prepayment, not a finding. This is revenue the company has already earned and not asked for — which is what separates it from Overdue receivable, where the invoice exists and the customer is late paying it. The same comparison on the buying side, where an invoice runs ahead of the goods, is Billed and not received; the third thing that can be wrong about one pair of lines is the price, which is Invoice price differs from the agreement. Quantities are compared across the item's own stated units where it says how they relate, and a pair that still cannot be reconciled is reported as Units not comparable rather than skipped in silence. Goods that have come back are not counted here at all, and a return nobody has credited is the second half of the same line's life: Returned and not credited.",
+      "summary": "Goods left the building against a customer order line and no invoice line bills them. Reality takes the quantity actually shipped against that line's promise, subtracts everything invoice lines have billed against the same line, and reports what is left over. Every invoice line pointing at the order line counts, so billing an order across two invoices, or in instalments, behaves without special handling. Only lines that promised a delivery are considered — freight, a discount or a service promises no goods, so it is never asked to have been shipped. A line with nothing shipped says nothing at all, whatever has been billed: invoicing ahead of the goods is a prepayment, not a finding. This is revenue the company has already earned and not asked for — which is what separates it from Overdue receivable, where the invoice exists and the customer is late paying it. The same comparison on the buying side, where an invoice runs ahead of the goods, is Billed and not received; the third thing that can be wrong about one pair of lines is the price, which is Invoice price differs from the agreement. Quantities are compared across the item's own stated units where it says how they relate, and a pair that still cannot be reconciled is reported as Units not comparable rather than skipped in silence. Goods that have come back are not counted here at all, and a return nobody has credited is the second half of the same line's life: Returned and not credited. A free replacement sent for a customer exchange is a promise without an order line, so it is never billable and never reported here.",
       "owner": "Billing, with order fulfilment when the delivery is in doubt",
       "clears_through": "Billing the outstanding quantity on an invoice line that names the order line.",
       "severity": "high",
       "record_type": "document_line",
       "authority": "076/FR-004",
-      "evidence": ["tests/operational_exceptions/test_derivation.py::test_shipped_not_billed"],
+      "evidence": [
+        "tests/operational_exceptions/test_derivation.py::test_shipped_not_billed",
+        "tests/operational_exceptions/test_derivation.py::test_a_shipped_replacement_is_not_owed_an_invoice"
+      ],
       "causes": [],
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Geliefert, nicht fakturiert",
@@ -22935,13 +23122,16 @@
       "key": "returned_not_credited",
       "label": "Returned and not credited",
       "area": "finance",
-      "summary": "A customer has sent goods back and has not been given the money back. Reality takes what has come back against that order line's delivery promise, and compares it with what credit note lines credit against the same line. Only goods somebody was actually charged for can need crediting: a return of something no invoice line ever billed leaves the company owing nothing, so nothing is reported. Every credit note line pointing at the order line counts, so crediting across two notes or in instalments behaves without special handling. Quantities are compared across the item's own stated units where it says how they relate, and a pair that still cannot be reconciled is not compared here at all — it is reported as Units not comparable rather than ignored. A line with nothing returned says nothing at all. A restocking fee, a damage deduction or a write-off is recorded as a charge line beside a full credit — credit the goods that came back, charge for what is being kept — and the charge names no order line, because it is not credit for goods. Recorded the other way, as a credit note for fewer units than came back, the document says exactly that: the remainder is uncredited, this class reports it, and nothing will ever clear it, because nobody is going to credit it. This is the second half of one line's life: the first is Shipped and not billed, where goods went out and no invoice followed. Money credited without goods arriving is the opposite direction, and that is Credited and not returned. The same condition on the buying side, where the company sent goods back to a supplier and no credit followed, is Returned to supplier and not credited. Whether the goods that came back were ever dealt with is another half, and that is Return not dealt with. And this class counts credit notes as written, not as paid: a credit note that was never booked is Credit note not booked, and one booked and never given back is Credit note not given back. Seeing nothing here means the paperwork exists, not that the customer has their money.",
+      "summary": "A customer has sent goods back and has not been given the money back. Reality takes what has come back against that order line's delivery promise, and compares it with what credit note lines credit against the same line. Only goods somebody was actually charged for can need crediting: a return of something no invoice line ever billed leaves the company owing nothing, so nothing is reported. Every credit note line pointing at the order line counts, so crediting across two notes or in instalments behaves without special handling. Quantities are compared across the item's own stated units where it says how they relate, and a pair that still cannot be reconciled is not compared here at all — it is reported as Units not comparable rather than ignored. A line with nothing returned says nothing at all. A restocking fee, a damage deduction or a write-off is recorded as a charge line beside a full credit — credit the goods that came back, charge for what is being kept — and the charge names no order line, because it is not credit for goods. Recorded the other way, as a credit note for fewer units than came back, the document says exactly that: the remainder is uncredited, this class reports it, and nothing will ever clear it, because nobody is going to credit it. This is the second half of one line's life: the first is Shipped and not billed, where goods went out and no invoice followed. Money credited without goods arriving is the opposite direction, and that is Credited and not returned. The same condition on the buying side, where the company sent goods back to a supplier and no credit followed, is Returned to supplier and not credited. Whether the goods that came back were ever dealt with is another half, and that is Return not dealt with. And this class counts credit notes as written, not as paid: a credit note that was never booked is Credit note not booked, and one booked and never given back is Credit note not given back. Seeing nothing here means the paperwork exists, not that the customer has their money. A customer exchange settles returned goods the way a credit does: the exchanged quantity of goods that arrived is not owed a credit, and a partial exchange leaves only the rest reported.",
       "owner": "Customer service, with billing when the credit note is the missing step",
-      "clears_through": "Crediting the returned quantity on a credit note line that names the order line.",
+      "clears_through": "Crediting the returned quantity on a credit note line that names the order line, or exchanging it for a replacement.",
       "severity": "high",
       "record_type": "document_line",
       "authority": "079/FR-007",
-      "evidence": ["tests/operational_exceptions/test_derivation.py::test_returned_not_credited"],
+      "evidence": [
+        "tests/operational_exceptions/test_derivation.py::test_returned_not_credited",
+        "tests/operational_exceptions/test_derivation.py::test_an_exchanged_return_is_not_owed_a_credit"
+      ],
       "causes": [],
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Retourniert, nicht gutgeschrieben",
@@ -22953,13 +23143,16 @@
       "key": "credited_not_returned",
       "label": "Credited and not returned",
       "area": "finance",
-      "summary": "More has been credited against an order line than has actually come back. Reality compares what credit note lines credit with what the delivery promise has received back, and reports the excess. It waits for a return before saying anything: crediting a customer without asking for the goods is a decision rather than a discrepancy, and in consumer trade telling somebody to keep an item is ordinary, so a credit with nothing returned is never reported. Once goods have started coming back, a credit larger than what arrived is a real difference and money the company has given away. Quantities are compared across the item's own stated units where it says how they relate, and a pair that still cannot be reconciled is reported as Units not comparable rather than being passed over in silence. The opposite direction, goods back with no credit, is Returned and not credited; the same shape on the buying side, where an invoice runs ahead of the goods, is Billed and not received. Where it is a supplier that credited more than came back, that is Supplier credited more than went back.",
+      "summary": "More has been credited against an order line than has actually come back. Reality compares what credit note lines credit with what the delivery promise has received back, and reports the excess. It waits for a return before saying anything: crediting a customer without asking for the goods is a decision rather than a discrepancy, and in consumer trade telling somebody to keep an item is ordinary, so a credit with nothing returned is never reported. Once goods have started coming back, a credit larger than what arrived is a real difference and money the company has given away. Quantities are compared across the item's own stated units where it says how they relate, and a pair that still cannot be reconciled is reported as Units not comparable rather than being passed over in silence. The opposite direction, goods back with no credit, is Returned and not credited; the same shape on the buying side, where an invoice runs ahead of the goods, is Billed and not received. Where it is a supplier that credited more than came back, that is Supplier credited more than went back. Goods a customer exchange answered are not there to be credited as well, so a credit recorded on top of an exchange is reported here for the quantity settled twice.",
       "owner": "Customer service, with credit control when the money is already gone",
       "clears_through": "The outstanding goods arriving, or correcting the credit note.",
       "severity": "high",
       "record_type": "document_line",
       "authority": "079/FR-008",
-      "evidence": ["tests/operational_exceptions/test_derivation.py::test_credited_not_returned"],
+      "evidence": [
+        "tests/operational_exceptions/test_derivation.py::test_credited_not_returned",
+        "tests/operational_exceptions/test_derivation.py::test_a_credit_after_an_exchange_settles_the_unit_twice"
+      ],
       "causes": [],
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Gutgeschrieben, nicht retourniert",
@@ -23458,7 +23651,8 @@
       "record_type": "return_announcement",
       "authority": "099/FR-011",
       "evidence": [
-        "tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived"
+        "tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived",
+        "tests/operational_exceptions/test_derivation.py::test_an_overdue_advance_exchange_names_the_replacement_already_sent"
       ],
       "causes": [],
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
@@ -23645,6 +23839,28 @@
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Tatsächlicher DB1 negativ",
       "resources": ["contribution", "order"]
+    },
+    {
+      "id": "exception:exchange_without_return",
+      "kind": "exception",
+      "key": "exchange_without_return",
+      "label": "Exchange without return",
+      "area": "orders",
+      "summary": "A replacement went out in advance for goods a customer announced, and the customer then withdrew the announcement. An advance exchange is ordinary service: the faulty unit is expected to follow the replacement. Withdrawing the announcement says it will not, and the replacement cannot be taken back by saying so, so the goods it answered are still owed. Without this entry the withdrawal would silently turn the replacement into a free delivery. Goods that arrived against the announcement before it was withdrawn count as returned, and so does a later ordinary return on the same delivery that no other exchange has claimed. A replacement that has not left yet is not reported: cancelling it is still an ordinary step.",
+      "owner": "Customer service",
+      "clears_through": "The goods arriving after all as a return on the original delivery, or cancelling what of the replacement has not shipped.",
+      "severity": "normal",
+      "record_type": "customer_exchange",
+      "authority": "293/FR-007",
+      "evidence": [
+        "tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_leaves_a_sent_replacement_without_a_return",
+        "tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_with_an_unsent_replacement_is_not_reported",
+        "tests/operational_exceptions/test_derivation.py::test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return"
+      ],
+      "causes": [],
+      "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
+      "label_de": "Umtausch ohne Rücksendung",
+      "resources": ["return"]
     },
     {
       "id": "event:cost.attributed",
@@ -24495,6 +24711,28 @@
       "invalidates": ["Operational Exceptions", "Timeline", "Tenant usage"],
       "links": ["command:withdraw_return_announcement"],
       "label_de": "return.announcement_withdrawn",
+      "resources": ["return"]
+    },
+    {
+      "id": "event:exchange.recorded",
+      "kind": "event",
+      "key": "exchange.recorded",
+      "label": "exchange.recorded",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "record_customer_exchange",
+      "subject": "customer_exchange",
+      "invalidates": [
+        "Operational Exceptions",
+        "Commitment register",
+        "Timeline",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Item supply and demand",
+        "Tenant usage"
+      ],
+      "links": ["command:record_customer_exchange"],
+      "label_de": "exchange.recorded",
       "resources": ["return"]
     },
     {
@@ -70854,6 +71092,7 @@
         "command:apply_settlement",
         "command:import_opening",
         "command:assign_supply",
+        "command:record_customer_exchange",
         "command:record_return_disposition"
       ]
     },
@@ -71706,7 +71945,8 @@
         "command:correct_movement",
         "command:revise_commitment",
         "command:cancel_commitment",
-        "command:close_stale_promises"
+        "command:close_stale_promises",
+        "command:record_customer_exchange"
       ]
     },
     {

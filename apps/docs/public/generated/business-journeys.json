@@ -2011,17 +2011,29 @@
       "section": "Returns and complaints",
       "title": "Exchange: return plus new delivery, no money",
       "question": "Two commitments, no refund?",
-      "status": "partial",
-      "evidence_level": "reviewed",
+      "status": "supported",
+      "evidence_level": "executable",
       "summary": "Reality evaluates: Two commitments, no refund?",
       "limitations": [
-        "The return and the replacement delivery are recorded, and no money moves.",
-        "Reality has no exchange, so the return reads as not yet credited and the free replacement as not yet invoiced."
+        "Price differences between the returned and the replacement item go through an invoice or a credit note; the exchange itself moves no money."
       ],
-      "keywords": [],
+      "keywords": [
+        "exchange",
+        "exchanges",
+        "swap",
+        "replacement",
+        "another size",
+        "Umtausch",
+        "umtauschen",
+        "tauscht",
+        "Ersatz",
+        "andere Größe"
+      ],
       "question_examples": [
         "Exchange: return plus new delivery, no money",
-        "Two commitments, no refund?"
+        "Two commitments, no refund?",
+        "Customer exchanges an item for another size",
+        "Kunde tauscht einen Artikel gegen eine andere Größe um"
       ],
       "tools": [],
       "demo_references": [],

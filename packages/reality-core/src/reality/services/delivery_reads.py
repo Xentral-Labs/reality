@@ -321,6 +321,10 @@ def delivery_case(
                         "label": "Original source",
                     }
                 )
+    # A replacement names the exchange and the delivery it replaces (spec 293).
+    from reality.services.customer_exchanges import exchange_links
+
+    links += exchange_links(session, tenant_id, commitment_id=commitment_id)
     reservation_ids = select(Reservation.id).where(
         Reservation.tenant_id == tenant_id, Reservation.commitment_id == commitment_id
     )

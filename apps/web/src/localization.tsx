@@ -1061,6 +1061,17 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Ready: "Bereit",
     "Company created": "Firma angelegt",
     "Waiting to start": "Wartet auf den Start",
+    "Exchange returned goods": "Retournierte Ware umtauschen",
+    "Exchanged quantity": "Umgetauschte Menge",
+    Money: "Geld",
+    "No money moves: nothing is invoiced, credited, paid or refunded.":
+      "Es fließt kein Geld: Nichts wird berechnet, gutgeschrieben, bezahlt oder erstattet.",
+    "Replacement item ID": "Artikel-ID des Ersatzes",
+    "Replacement quantity": "Ersatzmenge",
+    "Return announcement ID (instead, to exchange in advance)":
+      "ID der Retourenankündigung (stattdessen, für einen Vorab-Umtausch)",
+    "The replacement goes to the same customer free of charge. No credit note, invoice, payment or refund is created.":
+      "Der Ersatz geht kostenlos an denselben Kunden. Es entsteht keine Gutschrift, keine Rechnung, keine Zahlung und keine Erstattung.",
     "Decide returned goods": "Retournierte Ware entscheiden",
     "After confirmation": "Nach der Bestätigung",
     "Assign incoming supply": "Eingehenden Zugang zuordnen",
@@ -3160,6 +3171,17 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Ready: "Gereed",
     "Company created": "Bedrijf aangemaakt",
     "Waiting to start": "Wacht op de start",
+    "Exchange returned goods": "Retourgoederen omruilen",
+    "Exchanged quantity": "Omgeruilde hoeveelheid",
+    Money: "Geld",
+    "No money moves: nothing is invoiced, credited, paid or refunded.":
+      "Er gaat geen geld om: niets wordt gefactureerd, gecrediteerd, betaald of terugbetaald.",
+    "Replacement item ID": "Artikel-ID van de vervanging",
+    "Replacement quantity": "Vervangende hoeveelheid",
+    "Return announcement ID (instead, to exchange in advance)":
+      "ID van de retouraankondiging (in plaats daarvan, om vooraf om te ruilen)",
+    "The replacement goes to the same customer free of charge. No credit note, invoice, payment or refund is created.":
+      "De vervanging gaat kosteloos naar dezelfde klant. Er ontstaat geen creditnota, factuur, betaling of terugbetaling.",
     "Decide returned goods": "Retourgoederen beoordelen",
     "After confirmation": "Na bevestiging",
     "Assign incoming supply": "Binnenkomende voorraad toewijzen",
@@ -4954,6 +4976,17 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Ready: "Listo",
     "Company created": "Empresa creada",
     "Waiting to start": "Esperando el inicio",
+    "Exchange returned goods": "Cambiar la mercancía devuelta",
+    "Exchanged quantity": "Cantidad cambiada",
+    Money: "Dinero",
+    "No money moves: nothing is invoiced, credited, paid or refunded.":
+      "No se mueve dinero: no se factura, abona, paga ni reembolsa nada.",
+    "Replacement item ID": "ID del artículo de reposición",
+    "Replacement quantity": "Cantidad de reposición",
+    "Return announcement ID (instead, to exchange in advance)":
+      "ID del aviso de devolución (en su lugar, para cambiar por adelantado)",
+    "The replacement goes to the same customer free of charge. No credit note, invoice, payment or refund is created.":
+      "La reposición va al mismo cliente sin coste. No se crea ningún abono, factura, pago ni reembolso.",
     "Decide returned goods": "Decidir sobre la mercancía devuelta",
     "After confirmation": "Después de confirmar",
     "Assign incoming supply": "Asignar suministro entrante",
@@ -14658,6 +14691,10 @@ Object.assign(dictionaries.de, {
   "the source matches": "die Quelle passt",
   "the delivery commitment": "die Lieferzusage",
   "each matching order line": "jede passende Auftragsposition",
+  Exchange: "Umtausch",
+  "Replacement delivery": "Ersatzlieferung",
+  "Replaced delivery": "Ersetzte Lieferung",
+  "Returned goods": "Zurückgekommene Ware",
   "Delivery commitment": "Lieferzusage",
   Characteristic: "Merkmal",
   "Record type": "Art des Datensatzes",
@@ -14695,6 +14732,10 @@ Object.assign(dictionaries.nl, {
   "the source matches": "de bron overeenkomt",
   "the delivery commitment": "de leveringsverplichting",
   "each matching order line": "elke passende orderregel",
+  Exchange: "Omruiling",
+  "Replacement delivery": "Vervangende levering",
+  "Replaced delivery": "Vervangen levering",
+  "Returned goods": "Teruggekomen goederen",
   "Delivery commitment": "Leveringsverplichting",
   Characteristic: "Kenmerk",
   "Record type": "Recordtype",
@@ -14732,6 +14773,10 @@ Object.assign(dictionaries.es, {
   "the source matches": "la fuente coincide",
   "the delivery commitment": "el compromiso de entrega",
   "each matching order line": "cada línea de pedido coincidente",
+  Exchange: "Cambio",
+  "Replacement delivery": "Entrega de reposición",
+  "Replaced delivery": "Entrega sustituida",
+  "Returned goods": "Mercancía devuelta",
   "Delivery commitment": "Compromiso de entrega",
   Characteristic: "Característica",
   "Record type": "Tipo de registro",
@@ -20705,8 +20750,8 @@ Object.assign(dictionaries.de, {
   "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
     "Einen Preis in Höhe des Einkaufspreises oder darüber vereinbaren oder den Einkaufspreis korrigieren, falls er falsch ist.",
   "Returned and not credited": "Retourniert, nicht gutgeschrieben",
-  "Crediting the returned quantity on a credit note line that names the order line.":
-    "Die retournierte Menge auf einer Gutschriftsposition gutschreiben, die die Auftragsposition nennt.",
+  "Crediting the returned quantity on a credit note line that names the order line, or exchanging it for a replacement.":
+    "Die retournierte Menge auf einer Gutschriftsposition gutschreiben, die die Auftragsposition nennt, oder sie gegen einen Ersatz umtauschen.",
   "Credited and not returned": "Gutgeschrieben, nicht retourniert",
   "The outstanding goods arriving, or correcting the credit note.":
     "Die offene Ware trifft ein, oder die Gutschrift wird korrigiert.",
@@ -20772,6 +20817,9 @@ Object.assign(dictionaries.de, {
   "Unmatched financial event": "Nicht zugeordneter Finanzvorgang",
   "Allocating the remainder to the invoices it pays.":
     "Den Rest den Rechnungen zuordnen, die er bezahlt.",
+  "Exchange without return": "Umtausch ohne Rücksendung",
+  "The goods arriving after all as a return on the original delivery, or cancelling what of the replacement has not shipped.":
+    "Die Ware kommt doch noch als Retoure auf die ursprüngliche Lieferung zurück, oder du stornierst den noch nicht versendeten Teil des Ersatzes.",
   "Announced return has not arrived": "Angekündigte Retoure nicht eingetroffen",
   "The goods arriving against the announcement, or the customer withdrawing it.":
     "Die Ware trifft zur Ankündigung ein, oder der Kunde zieht sie zurück.",
@@ -20821,8 +20869,8 @@ Object.assign(dictionaries.nl, {
   "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
     "Een prijs op of boven de inkoopprijs afspreken, of de inkoopprijs corrigeren als die niet klopt.",
   "Returned and not credited": "Geretourneerd, niet gecrediteerd",
-  "Crediting the returned quantity on a credit note line that names the order line.":
-    "De geretourneerde hoeveelheid crediteren op een creditnotaregel die de orderregel noemt.",
+  "Crediting the returned quantity on a credit note line that names the order line, or exchanging it for a replacement.":
+    "De geretourneerde hoeveelheid crediteren op een creditnotaregel die de orderregel noemt, of haar omruilen tegen een vervanging.",
   "Credited and not returned": "Gecrediteerd, niet geretourneerd",
   "The outstanding goods arriving, or correcting the credit note.":
     "De openstaande goederen komen binnen, of de creditnota wordt gecorrigeerd.",
@@ -20888,6 +20936,9 @@ Object.assign(dictionaries.nl, {
   "Unmatched financial event": "Niet gekoppelde financiële gebeurtenis",
   "Allocating the remainder to the invoices it pays.":
     "Het restant toewijzen aan de facturen die het betaalt.",
+  "Exchange without return": "Omruiling zonder retour",
+  "The goods arriving after all as a return on the original delivery, or cancelling what of the replacement has not shipped.":
+    "De goederen komen alsnog terug als retour op de oorspronkelijke levering, of je annuleert wat van de vervanging nog niet is verzonden.",
   "Announced return has not arrived": "Aangekondigde retour niet ontvangen",
   "The goods arriving against the announcement, or the customer withdrawing it.":
     "De goederen komen binnen op de aankondiging, of de klant trekt die in.",
@@ -20937,8 +20988,8 @@ Object.assign(dictionaries.es, {
   "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
     "Acordar un precio igual o superior al de compra, o corregir el precio de compra si es el que está mal.",
   "Returned and not credited": "Devuelto y no abonado",
-  "Crediting the returned quantity on a credit note line that names the order line.":
-    "Abonar la cantidad devuelta en una línea de abono que indique la línea de pedido.",
+  "Crediting the returned quantity on a credit note line that names the order line, or exchanging it for a replacement.":
+    "Abonar la cantidad devuelta en una línea de abono que indique la línea de pedido, o cambiarla por una reposición.",
   "Credited and not returned": "Abonado y no devuelto",
   "The outstanding goods arriving, or correcting the credit note.":
     "Que llegue la mercancía pendiente o corregir el abono.",
@@ -21003,6 +21054,9 @@ Object.assign(dictionaries.es, {
     "Anular el asiento hecho por error o confirmar que los números son distintos.",
   "Unmatched financial event": "Movimiento financiero sin asignar",
   "Allocating the remainder to the invoices it pays.": "Asignar el resto a las facturas que paga.",
+  "Exchange without return": "Cambio sin devolución",
+  "The goods arriving after all as a return on the original delivery, or cancelling what of the replacement has not shipped.":
+    "La mercancía llega finalmente como devolución de la entrega original, o cancelas la parte de la reposición que aún no se ha enviado.",
   "Announced return has not arrived": "La devolución anunciada no ha llegado",
   "The goods arriving against the announcement, or the customer withdrawing it.":
     "Que llegue la mercancía anunciada o que el cliente retire el aviso.",
@@ -22054,6 +22108,24 @@ Object.assign(dictionaries.de, {
     "Das gespeicherte Manifest der Wareneingangskosten ist unvollständig oder beschädigt.",
   "Return disposition exceeds unresolved arrived quantity.":
     "Die Retourenentscheidung übersteigt die noch offene eingegangene Menge.",
+  "An exchange names exactly one customer return: goods back or an open announcement.":
+    "Ein Umtausch nennt genau eine Kundenretoure: zurückgekommene Ware oder eine offene Ankündigung.",
+  "Only goods a customer sent back can be exchanged.":
+    "Nur Ware, die ein Kunde zurückgeschickt hat, kann umgetauscht werden.",
+  "Link the return to the delivery it reverses before exchanging it.":
+    "Ordne die Retoure zuerst der Lieferung zu, die sie rückgängig macht, bevor du sie umtauschst.",
+  "Only an open return announcement can be exchanged in advance.":
+    "Nur eine offene Retourenankündigung kann vorab umgetauscht werden.",
+  "The exchange exceeds what can still be exchanged on this return.":
+    "Der Umtausch übersteigt, was bei dieser Retoure noch umgetauscht werden kann.",
+  "These returned goods are already credited, so they cannot also be exchanged.":
+    "Diese zurückgekommene Ware ist bereits gutgeschrieben und kann deshalb nicht auch umgetauscht werden.",
+  "Exchanged and replacement quantities must be positive.":
+    "Umgetauschte Menge und Ersatzmenge müssen positiv sein.",
+  "An exchange requires a reason.": "Ein Umtausch braucht einen Grund.",
+  "Customer exchange not found.": "Umtausch nicht gefunden.",
+  "Another exchange of this return is still being recorded.":
+    "Ein anderer Umtausch dieser Retoure wird gerade noch erfasst.",
   "Return disposition fields are incomplete or unsupported.":
     "Die Felder der Retourenentscheidung sind unvollständig oder nicht unterstützt.",
   "Return disposition requires a customer-return Movement with type return.":
@@ -22916,6 +22988,24 @@ Object.assign(dictionaries.nl, {
     "Het bewaarde manifest van de ontvangstkosten is onvolledig of beschadigd.",
   "Return disposition exceeds unresolved arrived quantity.":
     "De retourbestemming overschrijdt de nog open ontvangen hoeveelheid.",
+  "An exchange names exactly one customer return: goods back or an open announcement.":
+    "Een omruiling noemt precies één klantretour: teruggekomen goederen of een open aankondiging.",
+  "Only goods a customer sent back can be exchanged.":
+    "Alleen goederen die een klant heeft teruggestuurd, kunnen worden omgeruild.",
+  "Link the return to the delivery it reverses before exchanging it.":
+    "Koppel de retour eerst aan de levering die hij terugdraait voordat je hem omruilt.",
+  "Only an open return announcement can be exchanged in advance.":
+    "Alleen een open retouraankondiging kan vooraf worden omgeruild.",
+  "The exchange exceeds what can still be exchanged on this return.":
+    "De omruiling overschrijdt wat bij deze retour nog kan worden omgeruild.",
+  "These returned goods are already credited, so they cannot also be exchanged.":
+    "Deze teruggekomen goederen zijn al gecrediteerd en kunnen dus niet ook worden omgeruild.",
+  "Exchanged and replacement quantities must be positive.":
+    "De omgeruilde hoeveelheid en de vervangende hoeveelheid moeten positief zijn.",
+  "An exchange requires a reason.": "Een omruiling vereist een reden.",
+  "Customer exchange not found.": "Omruiling niet gevonden.",
+  "Another exchange of this return is still being recorded.":
+    "Een andere omruiling van deze retour wordt nog vastgelegd.",
   "Return disposition fields are incomplete or unsupported.":
     "De velden van de retourbestemming zijn onvolledig of niet ondersteund.",
   "Return disposition requires a customer-return Movement with type return.":
@@ -23779,6 +23869,24 @@ Object.assign(dictionaries.es, {
     "El manifiesto de costes de recepción conservado está incompleto o dañado.",
   "Return disposition exceeds unresolved arrived quantity.":
     "La disposición de devolución supera la cantidad recibida pendiente.",
+  "An exchange names exactly one customer return: goods back or an open announcement.":
+    "Un cambio indica exactamente una devolución del cliente: mercancía recibida o un aviso abierto.",
+  "Only goods a customer sent back can be exchanged.":
+    "Solo se puede cambiar la mercancía que un cliente ha devuelto.",
+  "Link the return to the delivery it reverses before exchanging it.":
+    "Vincula primero la devolución a la entrega que revierte antes de cambiarla.",
+  "Only an open return announcement can be exchanged in advance.":
+    "Solo un aviso de devolución abierto se puede cambiar por adelantado.",
+  "The exchange exceeds what can still be exchanged on this return.":
+    "El cambio supera lo que aún se puede cambiar en esta devolución.",
+  "These returned goods are already credited, so they cannot also be exchanged.":
+    "Esta mercancía devuelta ya está abonada, así que no se puede cambiar también.",
+  "Exchanged and replacement quantities must be positive.":
+    "La cantidad cambiada y la de reposición deben ser positivas.",
+  "An exchange requires a reason.": "Un cambio requiere un motivo.",
+  "Customer exchange not found.": "No se encontró el cambio.",
+  "Another exchange of this return is still being recorded.":
+    "Otro cambio de esta devolución todavía se está registrando.",
   "Return disposition fields are incomplete or unsupported.":
     "Los campos de la disposición de devolución están incompletos o no se admiten.",
   "Return disposition requires a customer-return Movement with type return.":

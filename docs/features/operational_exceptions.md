@@ -21,8 +21,8 @@ specification-level mapping only.
 | `billed_not_received` | — | Purchase order DocumentLine whose quantity billed by invoice lines naming it exceeds the quantity received through its Commitment |
 | `invoice_price_differs` | — | Invoice DocumentLine whose unit price differs from the unit price on the order line it names |
 | `sold_below_purchase_price` | — | Sales order DocumentLine agreed below the standing default purchase price for its item, currency and unit at the moment of agreement |
-| `returned_not_credited` | — | Sales order DocumentLine whose returned quantity, limited to what invoice lines billed, exceeds what credit note lines credit |
-| `credited_not_returned` | — | Sales order DocumentLine whose credited quantity exceeds what has come back, where some quantity has come back |
+| `returned_not_credited` | — | Sales order DocumentLine whose returned quantity, limited to what invoice lines billed, exceeds what credit note lines credit and customer exchanges settle |
+| `credited_not_returned` | — | Sales order DocumentLine whose credited quantity exceeds what has come back and was not exchanged, where some quantity has come back |
 | `supplier_return_not_credited` | — | Purchase order DocumentLine whose goods went back to the supplier and were not credited, counting only what a supplier invoice billed |
 | `supplier_credit_not_returned` | — | Purchase order DocumentLine credited by the supplier for more than actually went back, silent while nothing has gone back |
 | `return_unresolved` | — | `return` Movement with quantity no later movement has settled, older than the learned resolution threshold |
@@ -351,6 +351,19 @@ arrived, taken from the movement's own date rather than from when the status cha
 the rule would learn how fast this company types. A withdrawn announcement is not reported at all:
 the customer has said the parcel is not coming, and there is nothing left for anybody to do. See
 [movements](./movements.md).
+
+A customer exchange (spec 293) settles returned goods the way a credit does: the customer receives
+a replacement instead of money. The exchanged quantity of goods that arrived is subtracted in
+`returned_not_credited` and `credited_not_returned`, so a correct exchange leaves neither, and a
+credit recorded on top of an exchange shows as credited and not returned, because the unit is then
+settled twice. The replacement is a promise without an order line, so it is never billable and
+never `shipped_not_billed`. An exchange recorded in advance against an announcement keeps the
+announcement's expectation: `announced_return_not_arrived` still reports the goods when they are
+late, and names the replacement that already left. `exchange_without_return` reports the one case
+the announcement class cannot see: the customer withdrew the announcement after the replacement
+shipped. Goods that arrived against the announcement before the withdrawal, or later as an ordinary
+return on the same delivery that no other exchange claims, count as returned; a replacement that
+has not shipped is not reported, because cancelling it is still an ordinary step.
 
 `reservation_exceeds_stock` and `units_not_comparable` are the two classes whose authoritative
 record is not a transaction. Reserving cannot over-allocate — the shared reserve operation allocates at

@@ -346,6 +346,36 @@
     "customer_dispatch_quantity_invalid": {
       "message": "Customer dispatch requires a valid movement quantity."
     },
+    "customer_exchange_already_credited": {
+      "message": "These returned goods are already credited, so they cannot also be exchanged."
+    },
+    "customer_exchange_announcement_not_open": {
+      "message": "Only an open return announcement can be exchanged in advance."
+    },
+    "customer_exchange_exceeds_exchangeable": {
+      "message": "The exchange exceeds what can still be exchanged on this return."
+    },
+    "customer_exchange_fields_invalid": {
+      "message": "An exchange names exactly one customer return: goods back or an open announcement."
+    },
+    "customer_exchange_not_found": {
+      "message": "Customer exchange not found."
+    },
+    "customer_exchange_quantity_not_positive": {
+      "message": "Exchanged and replacement quantities must be positive."
+    },
+    "customer_exchange_reason_required": {
+      "message": "An exchange requires a reason."
+    },
+    "customer_exchange_return_not_customer": {
+      "message": "Only goods a customer sent back can be exchanged."
+    },
+    "customer_exchange_return_unlinked": {
+      "message": "Link the return to the delivery it reverses before exchanging it."
+    },
+    "customer_exchange_unresolved": {
+      "message": "Another exchange of this return is still being recorded."
+    },
     "customer_hold_action_unresolved": {
       "message": "An action affecting this customer’s shipment hold is unresolved. Check its outcome first."
     },

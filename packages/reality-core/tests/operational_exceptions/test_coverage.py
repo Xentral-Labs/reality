@@ -59,6 +59,7 @@ def test_production_operational_exception_catalog_has_closed_registry():
         "unassigned_cost_component",
         "stale_cost_review",
         "negative_actual_db1",
+        "exchange_without_return",
     ]
     assert catalog.classes[0]["causes"][0]["id"] == "insufficient_reservation"
     assert {entry["derivation"] for entry in catalog.classes} == set(

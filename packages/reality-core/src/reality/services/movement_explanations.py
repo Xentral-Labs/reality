@@ -224,6 +224,16 @@ def movement_explanation(
             summary = "This movement is a manually stated inventory adjustment."
             reason = json.loads(proposal.input or "{}").get("reason")
 
+    # An exchange adds to what a return or a replacement shipment already is, so it
+    # is appended rather than taking over the kind (spec 293 FR-012).
+    from reality.services.customer_exchanges import exchange_links
+
+    links += [
+        link
+        for link in exchange_links(session, tenant_id, movement=movement)
+        if link not in links
+    ]
+
     return {
         "movement_id": movement.id,
         "kind": kind,
