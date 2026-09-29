@@ -15,7 +15,7 @@ from decimal import Decimal
 from decimal import InvalidOperation as DecimalError
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
@@ -24,6 +24,7 @@ from reality.db.core import (
     Item,
     Location,
     Movement,
+    MovementCorrection,
     ReturnAnnouncement,
     SourceRecord,
 )
@@ -83,12 +84,6 @@ def _in_force(session: Session, tenant_id: str, exchange: CustomerExchange) -> D
     )
 
 
-def _in_force_total(
-    session: Session, tenant_id: str, exchanges: list[CustomerExchange]
-) -> Decimal:
-    return sum((_in_force(session, tenant_id, row) for row in exchanges), ZERO)
-
-
 def _returned_delivery(
     session: Session,
     tenant_id: str,
@@ -120,11 +115,169 @@ def _returned_delivery(
     return delivery, None, announcement
 
 
-def _exchanged_on_delivery(
-    session: Session, tenant_id: str, delivery_id: str
-) -> Decimal:
-    """What exchanges answer of goods that have actually come back on a delivery."""
-    return settled_by_delivery(session, tenant_id).get(delivery_id, ZERO)
+class _Accounting:
+    """Which goods that came back on one delivery answer which exchange.
+
+    Every returned unit is counted once. A return a correction voided counts as
+    nothing. Goods arriving against an announcement answer its advance exchanges
+    first, in the order they arrived; once the customer withdrew the announcement,
+    a later ordinary return on the same delivery may answer them too. Whatever is
+    left of a return answers the exchanges recorded on that return itself.
+    """
+
+    def __init__(self, session: Session, tenant_id: str, delivery_id: str) -> None:
+        returns = list(
+            session.scalars(
+                select(Movement)
+                .where(
+                    Movement.tenant_id == tenant_id,
+                    Movement.type == "return",
+                    Movement.commitment_id == delivery_id,
+                )
+                .order_by(Movement.occurred_at, Movement.id)
+            )
+        )
+        voided = set(
+            session.scalars(
+                select(MovementCorrection.original_movement_id).where(
+                    MovementCorrection.tenant_id == tenant_id,
+                    MovementCorrection.original_movement_id.in_(
+                        [row.id for row in returns]
+                    ),
+                )
+            )
+        )
+        self.effective = {
+            row.id: ZERO if row.id in voided else Decimal(row.quantity)
+            for row in returns
+        }
+        announcements = list(
+            session.scalars(
+                select(ReturnAnnouncement).where(
+                    ReturnAnnouncement.tenant_id == tenant_id,
+                    ReturnAnnouncement.commitment_id == delivery_id,
+                )
+            )
+        )
+        self.announcements = {row.id: row for row in announcements}
+        movement_ids = [row.id for row in returns]
+        exchanges = list(
+            session.scalars(
+                select(CustomerExchange)
+                .where(
+                    CustomerExchange.tenant_id == tenant_id,
+                    or_(
+                        CustomerExchange.return_movement_id.in_(movement_ids),
+                        CustomerExchange.return_announcement_id.in_(
+                            list(self.announcements)
+                        ),
+                    ),
+                )
+                .order_by(CustomerExchange.created_at, CustomerExchange.id)
+            )
+        )
+        self.in_force = {
+            row.id: _in_force(session, tenant_id, row) for row in exchanges
+        }
+        self.on_movement: dict[str, list[CustomerExchange]] = defaultdict(list)
+        self.in_advance: dict[str, list[CustomerExchange]] = defaultdict(list)
+        for row in exchanges:
+            if row.return_movement_id:
+                self.on_movement[row.return_movement_id].append(row)
+            else:
+                self.in_advance[row.return_announcement_id].append(row)
+        self.arrived = {
+            announcement_id: sum(
+                (
+                    self.effective[row.id]
+                    for row in returns
+                    if row.return_announcement_id == announcement_id
+                ),
+                ZERO,
+            )
+            for announcement_id in self.announcements
+        }
+
+        # Arrivals answer advance exchanges before anything else.
+        self.answering: dict[str, Decimal] = defaultdict(lambda: ZERO)
+        self.answered: dict[str, Decimal] = defaultdict(lambda: ZERO)
+        remaining = {
+            announcement_id: self._advance_total(announcement_id)
+            for announcement_id in self.announcements
+        }
+        for row in returns:
+            owner = row.return_announcement_id
+            if owner in remaining and remaining[owner] > ZERO:
+                share = min(self.effective[row.id], remaining[owner])
+                self.answering[row.id] += share
+                self.answered[owner] += share
+                remaining[owner] -= share
+        withdrawn = sorted(
+            (
+                row
+                for row in announcements
+                if row.status == "withdrawn" and remaining[row.id] > ZERO
+            ),
+            key=lambda row: (row.closed_at, row.id),
+        )
+        for announcement in withdrawn:
+            for row in returns:
+                if (
+                    row.return_announcement_id is not None
+                    or announcement.closed_at is None
+                    or row.occurred_at < announcement.closed_at
+                    or remaining[announcement.id] <= ZERO
+                ):
+                    continue
+                share = min(self.free(row.id), remaining[announcement.id])
+                if share > ZERO:
+                    self.answering[row.id] += share
+                    self.answered[announcement.id] += share
+                    remaining[announcement.id] -= share
+
+        # What each exchange settles of goods that are actually back.
+        self.settles: dict[str, Decimal] = {}
+        for announcement_id, rows in self.in_advance.items():
+            left = self.answered[announcement_id]
+            for row in rows:
+                share = min(self.in_force[row.id], left)
+                self.settles[row.id] = share
+                left -= share
+        for movement_id, rows in self.on_movement.items():
+            left = self.effective.get(movement_id, ZERO) - self.answering[movement_id]
+            for row in rows:
+                share = max(min(self.in_force[row.id], left), ZERO)
+                self.settles[row.id] = share
+                left -= share
+
+    def _advance_total(self, announcement_id: str) -> Decimal:
+        return sum(
+            (self.in_force[row.id] for row in self.in_advance.get(announcement_id, [])),
+            ZERO,
+        )
+
+    def free(self, movement_id: str) -> Decimal:
+        """What of one return neither an advance nor its own exchanges answer."""
+        return (
+            self.effective.get(movement_id, ZERO)
+            - self.answering[movement_id]
+            - sum(
+                (
+                    self.in_force[row.id]
+                    for row in self.on_movement.get(movement_id, [])
+                ),
+                ZERO,
+            )
+        )
+
+    def announcement_exchangeable(self, announcement: ReturnAnnouncement) -> Decimal:
+        """Announced goods not yet back and not yet exchanged in advance."""
+        return Decimal(announcement.quantity) - max(
+            self._advance_total(announcement.id), self.arrived[announcement.id]
+        )
+
+    def settled(self) -> Decimal:
+        return sum(self.settles.values(), ZERO)
 
 
 def preview_customer_exchange(
@@ -154,38 +307,25 @@ def preview_customer_exchange(
         session, Location, tenant_id, location_id or delivery.location_id
     )
 
+    accounting = _Accounting(session, tenant_id, delivery.id)
     if movement is not None:
-        exchangeable = Decimal(movement.quantity) - _in_force_total(
-            session,
-            tenant_id,
-            _exchanges(session, tenant_id, return_movement_id=movement.id),
-        )
-        if movement.return_announcement_id:
-            exchangeable -= _in_force_total(
-                session,
-                tenant_id,
-                _exchanges(
-                    session,
-                    tenant_id,
-                    return_announcement_id=movement.return_announcement_id,
-                ),
-            )
+        exchangeable = accounting.free(movement.id)
         if delivery.document_line_id is not None:
             # Goods credited cannot also be exchanged: that would settle them twice.
-            uncredited = core.uncredited_return_quantity(
-                session, tenant_id, delivery.document_line_id
-            ) - _exchanged_on_delivery(session, tenant_id, delivery.id)
+            uncredited = (
+                core.uncredited_return_quantity(
+                    session, tenant_id, delivery.document_line_id
+                )
+                - accounting.settled()
+            )
             if uncredited <= ZERO < exchangeable:
                 raise core.InvalidOperation(code="customer_exchange_already_credited")
             exchangeable = min(exchangeable, uncredited)
         kind, return_id = "movement", movement.id
     else:
-        exchangeable = Decimal(announcement.quantity) - _in_force_total(
-            session,
-            tenant_id,
-            _exchanges(session, tenant_id, return_announcement_id=announcement.id),
-        )
+        exchangeable = accounting.announcement_exchangeable(announcement)
         kind, return_id = "announcement", announcement.id
+    exchangeable = max(exchangeable, ZERO)
     if exchanged > exchangeable:
         raise core.InvalidOperation(code="customer_exchange_exceeds_exchangeable")
 
@@ -319,47 +459,36 @@ def record_customer_exchange(
 def settled_by_delivery(session: Session, tenant_id: str) -> dict[str, Decimal]:
     """Per returned customer delivery, how much of what came back exchanges answer.
 
-    Capped by what has arrived: goods announced and not yet back are not settled
-    by an exchange, they are still owed by the customer.
+    Goods announced and not yet back are not settled by an exchange; they are still
+    owed by the customer. The per-delivery rule is `_Accounting`.
     """
-    rows = list(
-        session.execute(
-            select(CustomerExchange, Movement, ReturnAnnouncement)
-            .outerjoin(
-                Movement,
-                (Movement.tenant_id == CustomerExchange.tenant_id)
-                & (Movement.id == CustomerExchange.return_movement_id),
+    deliveries = set(
+        session.scalars(
+            select(Movement.commitment_id)
+            .join(
+                CustomerExchange,
+                (CustomerExchange.tenant_id == Movement.tenant_id)
+                & (CustomerExchange.return_movement_id == Movement.id),
             )
-            .outerjoin(
-                ReturnAnnouncement,
-                (ReturnAnnouncement.tenant_id == CustomerExchange.tenant_id)
-                & (ReturnAnnouncement.id == CustomerExchange.return_announcement_id),
+            .where(Movement.tenant_id == tenant_id)
+        )
+    ) | set(
+        session.scalars(
+            select(ReturnAnnouncement.commitment_id)
+            .join(
+                CustomerExchange,
+                (CustomerExchange.tenant_id == ReturnAnnouncement.tenant_id)
+                & (CustomerExchange.return_announcement_id == ReturnAnnouncement.id),
             )
-            .where(CustomerExchange.tenant_id == tenant_id)
+            .where(ReturnAnnouncement.tenant_id == tenant_id)
         )
     )
-    by_return: dict[tuple[str, str], list[CustomerExchange]] = defaultdict(list)
-    caps: dict[tuple[str, str], Decimal] = {}
-    deliveries: dict[tuple[str, str], str] = {}
-    for exchange, movement, announcement in rows:
-        if movement is not None:
-            key = ("movement", movement.id)
-            caps[key] = Decimal(movement.quantity)
-            deliveries[key] = movement.commitment_id
-        else:
-            key = ("announcement", announcement.id)
-            if key not in caps:
-                caps[key] = core.arrived_against_announcement(
-                    session, tenant_id, announcement.id
-                )
-            deliveries[key] = announcement.commitment_id
-        by_return[key].append(exchange)
-    settled: dict[str, Decimal] = defaultdict(lambda: ZERO)
-    for key, exchanges in by_return.items():
-        answered = min(_in_force_total(session, tenant_id, exchanges), caps[key])
-        if answered > ZERO:
-            settled[deliveries[key]] += answered
-    return dict(settled)
+    settled: dict[str, Decimal] = {}
+    for delivery_id in sorted(deliveries):
+        amount = _Accounting(session, tenant_id, delivery_id).settled()
+        if amount > ZERO:
+            settled[delivery_id] = amount
+    return settled
 
 
 def customer_exchange_detail(
@@ -394,12 +523,9 @@ def customer_exchange_detail(
     source = core._tenant_record(
         session, SourceRecord, tenant_id, exchange.source_record_id
     )
-    arrived = (
-        Decimal(movement.quantity)
-        if movement is not None
-        else core.arrived_against_announcement(session, tenant_id, announcement.id)
-    )
-    in_force = _in_force(session, tenant_id, exchange)
+    accounting = _Accounting(session, tenant_id, delivery.id)
+    in_force = accounting.in_force[exchange.id]
+    settles = accounting.settles.get(exchange.id, ZERO)
     return {
         "id": exchange.id,
         "returned_delivery_id": delivery.id,
@@ -420,8 +546,8 @@ def customer_exchange_detail(
             ),
             "status": replacement.status,
         },
-        "settles": str(min(in_force, arrived)),
-        "outstanding": str(max(in_force - arrived, ZERO)),
+        "settles": str(settles),
+        "outstanding": str(max(in_force - settles, ZERO)),
         "source_record_id": source.id,
         "action_id": source.external_id,
         "created_at": exchange.created_at.isoformat(),
@@ -471,10 +597,10 @@ def exchanges_without_return(session: Session, tenant_id: str) -> list[dict[str,
     """Advance exchanges whose announcement was withdrawn after the replacement left.
 
     The customer said the goods would come back, received a replacement, and then
-    said they would not. What the replacement answered is still owed. Goods count as
-    returned when they arrived against the announcement before it was withdrawn, or
-    later as an ordinary return on the same delivery that nothing else has claimed,
-    in the order the exchanges were recorded.
+    said they would not. What the replacement answered is still owed. Goods count
+    as returned exactly as `_Accounting` attributes them: arrivals against the
+    announcement, then later ordinary returns on the same delivery nothing else
+    claims.
     """
     result: list[dict[str, Any]] = []
     for announcement_id, exchanges in exchanges_by_announcement(
@@ -485,13 +611,10 @@ def exchanges_without_return(session: Session, tenant_id: str) -> list[dict[str,
         )
         if announcement.status != "withdrawn":
             continue
-        arrived = core.arrived_against_announcement(
-            session, tenant_id, announcement_id
-        ) + _later_unclaimed_returns(session, tenant_id, announcement)
+        accounting = _Accounting(session, tenant_id, announcement.commitment_id)
         for exchange in exchanges:
-            in_force = _in_force(session, tenant_id, exchange)
-            answered = min(in_force, arrived)
-            arrived -= answered
+            in_force = accounting.in_force[exchange.id]
+            answered = accounting.settles.get(exchange.id, ZERO)
             shipped = core.fulfilled_quantity(
                 session, tenant_id, exchange.replacement_commitment_id
             )
@@ -508,30 +631,6 @@ def exchanges_without_return(session: Session, tenant_id: str) -> list[dict[str,
                 }
             )
     return result
-
-
-def _later_unclaimed_returns(
-    session: Session, tenant_id: str, announcement: ReturnAnnouncement
-) -> Decimal:
-    """Ordinary returns on the delivery after the withdrawal, not exchanged themselves."""
-    later = session.scalars(
-        select(Movement).where(
-            Movement.tenant_id == tenant_id,
-            Movement.type == "return",
-            Movement.commitment_id == announcement.commitment_id,
-            Movement.return_announcement_id.is_(None),
-            Movement.occurred_at >= announcement.closed_at,
-        )
-    )
-    unclaimed = ZERO
-    for movement in later:
-        claimed = _in_force_total(
-            session,
-            tenant_id,
-            _exchanges(session, tenant_id, return_movement_id=movement.id),
-        )
-        unclaimed += max(Decimal(movement.quantity) - claimed, ZERO)
-    return unclaimed
 
 
 def exchange_links(

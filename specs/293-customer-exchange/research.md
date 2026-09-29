@@ -145,3 +145,28 @@ Precedent wiring for `return_disposition` and the gates a new tool, table and ev
 - The T014–T016 class also needed `exchange_without_return: reports_absence` for
   `Movement.return_announcement_id` in `reference_catalog.yaml` and the pinned counts in
   `test_reference_integrity.py`; that test was red from cac5c3af until this change.
+
+## Review of PR #259 (T032, 2026-09-29)
+
+A code review found six issues in `services/customer_exchanges.py`; four were real and share one
+cause, fixed by a single per-delivery `_Accounting` that attributes every returned unit once:
+
+1. An advance exchange ignored goods already arrived against its announcement (exchanged or
+   credited on their own): the announcement now offers `quantity − max(advance, arrived)`.
+2. A return a correction voided still counted at full quantity: returns are read correction-aware.
+3. Line-level credit against delivery-level exchanges: not reachable, because a document line has
+   at most one customer delivery (`UniqueConstraint(tenant_id, document_line_id, type)`).
+4. After a withdrawal, a later ordinary return cleared *Exchange without return* but was still owed
+   a credit: both readers now use the same attribution.
+5. Each arrival lost the whole advance exchange: arrivals answer it in order.
+6. An unreadable due date is not dropped: `utc_datetime` refuses it with `datetime_not_iso8601`
+   (pinned by a test).
+
+Regression tests: `test_an_advance_exchange_counts_goods_already_arrived_against_it`,
+`test_a_corrected_return_cannot_be_exchanged_or_stay_settled`,
+`test_an_advance_exchange_is_answered_once_by_its_arrivals`, `test_an_unreadable_due_date_is_refused`,
+`test_goods_after_a_withdrawal_are_settled_by_the_advance_exchange`.
+
+Spec and Constitution check: the only schema change is `customer_exchange`; no column on document,
+commitment, movement or announcement; supplier return classes unchanged; adapters write only
+through the service.

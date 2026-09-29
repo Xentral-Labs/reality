@@ -698,3 +698,95 @@ def test_the_exchange_names_who_confirmed_it_when_and_why(session, business):
         session, business.tenant.id, exchange_id=receipt["exchange_id"]
     )
     assert (detail["reason"], detail["action_id"]) == ("Wrong size", proposal.id)
+
+
+# --- Review of PR #259: settlement counts each unit once -------------------------
+
+
+def _announce(session, business, commitment, quantity, reference):
+    return core.announce_customer_return(
+        session, business.tenant.id, commitment.id, quantity, reference=reference
+    )
+
+
+def _arrive(session, business, commitment, announcement, quantity):
+    return core.record_movement(
+        session,
+        business.tenant.id,
+        "return",
+        business.item.id,
+        quantity,
+        to_location_id=business.location.id,
+        commitment_id=commitment.id,
+        return_announcement_id=announcement.id,
+    )
+
+
+def test_an_advance_exchange_counts_goods_already_arrived_against_it(session, business):
+    """Review 1: arrived goods, exchanged on their own, are not announced goods any more."""
+    commitment = _delivered(session, business, "3")
+    announcement = _announce(session, business, commitment, 3, "RMA-R1")
+    arrived = _arrive(session, business, commitment, announcement, "2")
+    _exchange(session, business, return_movement_id=arrived.id, quantity="2")
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _exchange(
+            session, business, return_announcement_id=announcement.id, quantity="2"
+        )
+    assert refused.value.code == "customer_exchange_exceeds_exchangeable"
+    # Positive control: the one unit still to come can be exchanged in advance.
+    _exchange(session, business, return_announcement_id=announcement.id, quantity="1")
+
+
+def test_a_corrected_return_cannot_be_exchanged_or_stay_settled(session, business):
+    """Review 2: a return recorded in error settles nothing and offers nothing."""
+    tenant = business.tenant.id
+    commitment = _delivered(session, business, "2")
+    first = _returned(session, business, commitment, "1")
+    exchange = _exchange(session, business, return_movement_id=first.id)
+    second = _returned(session, business, commitment, "1")
+    assert customer_exchanges.settled_by_delivery(session, tenant) == {
+        commitment.id: Decimal(1)
+    }
+
+    core.correct_movement(session, tenant, first.id, reason="Recorded twice")
+    core.correct_movement(session, tenant, second.id, reason="Recorded twice")
+
+    assert customer_exchanges.settled_by_delivery(session, tenant) == {}
+    detail = customer_exchanges.customer_exchange_detail(
+        session, tenant, exchange_id=exchange.id
+    )
+    assert detail["settles"] == "0"
+    with pytest.raises(core.InvalidOperation) as refused:
+        _exchange(session, business, return_movement_id=second.id)
+    assert refused.value.code == "customer_exchange_exceeds_exchangeable"
+
+
+def test_an_advance_exchange_is_answered_once_by_its_arrivals(session, business):
+    """Review 5: arrivals answer the advance exchange in order, not each in full."""
+    commitment = _delivered(session, business, "4")
+    announcement = _announce(session, business, commitment, 4, "RMA-R5")
+    _exchange(session, business, return_announcement_id=announcement.id, quantity="2")
+    first = _arrive(session, business, commitment, announcement, "2")
+    second = _arrive(session, business, commitment, announcement, "2")
+
+    # The first arrival answered the advance exchange; the second is free.
+    with pytest.raises(core.InvalidOperation) as refused:
+        _exchange(session, business, return_movement_id=first.id, quantity="1")
+    assert refused.value.code == "customer_exchange_exceeds_exchangeable"
+    _exchange(session, business, return_movement_id=second.id, quantity="2")
+    assert customer_exchanges.settled_by_delivery(session, business.tenant.id) == {
+        commitment.id: Decimal(4)
+    }
+
+
+def test_an_unreadable_due_date_is_refused(session, business):
+    """Review 6: a stated date that cannot be read is refused, not silently dropped."""
+    commitment = _delivered(session, business)
+    goods_back = _returned(session, business, commitment)
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _exchange(
+            session, business, return_movement_id=goods_back.id, due_at="next Tuesday"
+        )
+    assert refused.value.code == "datetime_not_iso8601"

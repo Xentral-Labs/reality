@@ -6523,3 +6523,33 @@ def test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return(
     )
 
     assert "exchange_without_return" not in by_class(session, business.tenant.id)
+
+
+def test_goods_after_a_withdrawal_are_settled_by_the_advance_exchange(
+    session, business
+):
+    """Review 4: the unit that clears Exchange without return is not owed a credit."""
+    line, commitment, announced = sold_and_announced(
+        session, business, "SO-293-R4", expected_by=AS_OF + timedelta(days=3)
+    )
+    exchanged = advance_exchange(session, business, announced, "1")
+    ship(session, business, replacement_of(session, business, exchanged), 1)
+    core.withdraw_return_announcement(session, business.tenant.id, announced.id)
+    withdrawn = core.return_announcements(
+        session, business.tenant.id, commitment_id=commitment.id
+    )[0]
+
+    send_back(
+        session, business, commitment, 1, at=withdrawn.closed_at + timedelta(minutes=5)
+    )
+
+    classes = by_class(session, business.tenant.id)
+    assert "exchange_without_return" not in classes
+    assert "returned_not_credited" not in classes
+    # Positive control: a second, unexchanged unit back is owed a credit.
+    send_back(
+        session, business, commitment, 1, at=withdrawn.closed_at + timedelta(minutes=6)
+    )
+    assert by_class(session, business.tenant.id)["returned_not_credited"].record_id == (
+        line.id
+    )

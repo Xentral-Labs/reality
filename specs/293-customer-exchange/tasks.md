@@ -77,7 +77,7 @@
 - [x] T029 Add the new test files and `` `customer_exchange` `` to `docs/SPEC_COVERAGE_MATRIX.md`
 - [x] T030 Run the completeness gates from `specs/293-customer-exchange/quickstart.md`, Ruff (`--no-cache`), `make spec-check`, `make docs-catalog-check`, the Web i18n audit and action-discovery tests
 - [x] T031 Run the complete backend suite (CI shards are the evidence) and the manual Web check in `specs/293-customer-exchange/quickstart.md` on an isolated stack
-- [ ] T032 Review the diff against FR-001–FR-013, DR-001–DR-005 and the Constitution; confirm supplier return classes and spec 079 regressions are unchanged
+- [x] T032 Review the diff against FR-001–FR-013, DR-001–DR-005 and the Constitution; confirm supplier return classes and spec 079 regressions are unchanged
 
 ## Dependencies
 
@@ -90,18 +90,18 @@
 
 | Requirement | Test task(s) | Implementation task(s) | Status |
 |---|---|---|---|
-| FR-001–FR-004 | T005, T008 | T006, T010 | Pending |
-| FR-005, FR-006 | T009 | T011 | Pending |
-| FR-007 | T014, T015 | T016 | Pending |
-| FR-008 | T013 | T013 | Pending |
-| FR-009 | T008 | T010 | Pending |
-| FR-010 | T012 | T012 | Pending |
-| FR-011 | T019 | T020, T021 | Pending |
-| FR-012 | T017 | T018 | Pending |
-| FR-013 | T026 | T027, T028 | Pending |
-| DR-001–DR-003 | T005, T009 | T006, T011 | Pending |
-| DR-004 | T019, T030 | T007, T022–T024 | Pending |
-| DR-005 | T032 | — | Pending |
+| FR-001–FR-004 | T005, T008 | T006, T010 | Done |
+| FR-005, FR-006 | T009 | T011 | Done |
+| FR-007 | T014, T015 | T016 | Done |
+| FR-008 | T013 | T013 | Done |
+| FR-009 | T008 | T010 | Done |
+| FR-010 | T012 | T012 | Done |
+| FR-011 | T019 | T020, T021 | Done |
+| FR-012 | T017 | T018 | Done |
+| FR-013 | T026 | T027, T028 | Done |
+| DR-001–DR-003 | T005, T009 | T006, T011 | Done |
+| DR-004 | T019, T030 | T007, T022–T024 | Done |
+| DR-005 | T032 | — | Done |
 
 ## MVP
 
