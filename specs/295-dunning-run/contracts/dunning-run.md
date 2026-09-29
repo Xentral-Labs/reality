@@ -22,7 +22,9 @@ Input: `{"expected_revision": 7, "levels": [{"level": 1, "wait_days": 7, "fee_am
 
 Refusals: `dunning_schedule_incomplete` (not exactly levels 1, 2, 3),
 `dunning_schedule_value_invalid` (negative days or fee, more than four decimals),
-`dunning_fee_account_missing` (a positive fee without a `dunning_fee_revenue` default).
+`finance_account_default_missing` (the existing code: a positive fee without a `dunning_fee_revenue` default), `dunning_preview_stale` (the finance revision changed).
+
+Setting the schedule raises the finance revision, so a run prepared under the old schedule is stale.
 
 ## Read `finance_dunning_run_context`
 
@@ -57,7 +59,7 @@ Execution re-derives the context for the same date and customers. Receipt:
 
 Skip codes: `paid`, `level_changed`, `in_collection`, `credit_available`.
 Refusals: `dunning_schedule_missing`, `dunning_run_item_unknown` (an item that was never a
-customer invoice of the tenant), `Conflict` on a stale revision. Replay of the same confirmed
+customer invoice of the tenant), `dunning_preview_stale` on a stale revision. Replay of the same confirmed
 proposal returns the same receipt.
 
 ## Command `finance.dunning.collection.handover`

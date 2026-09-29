@@ -78,10 +78,6 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 - [Create and assign pricing group](./commands#command-create_party_group) (`create_party_group`)
 - [Set party delivery hold](./commands#command-hold_party_delivery) (`hold_party_delivery`)
 
-**Look up**
-
-- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
-
 **Exceptions to clear**
 
 - [Credit limit exceeded](./exceptions#exception-credit_limit_exceeded) (`credit_limit_exceeded`)
@@ -424,6 +420,7 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 - [Read invoice credit context](./commands#command-invoice_credit_context)
   (`invoice_credit_context`)
 - [Read billable invoice positions](./commands#command-billable_positions) (`billable_positions`)
+- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
 
 **Exceptions to clear**
 
@@ -455,7 +452,8 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 [Customer returns](./processes#process-returns)
 
 **Underneath:** Events: [`credit.recorded`](./events#event-credit-recorded),
-[`invoice.recorded`](./events#event-invoice-recorded) · Agent tools without a command:
+[`invoice.recorded`](./events#event-invoice-recorded),
+[`dunning.schedule_set`](./events#event-dunning-schedule_set) · Agent tools without a command:
 [`finance_credits`](./commands#tool-finance_credits),
 [`finance_party_balances`](./commands#tool-finance_party_balances)
 
@@ -489,7 +487,6 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 **Look up**
 
 - [Preview payment run](./commands#command-preview_payment_run) (`preview_payment_run`)
-- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
 - [Read settlement reduction context](./commands#command-adjustment_context) (`adjustment_context`)
 - [Read payment and credit context](./commands#command-settlement_context) (`settlement_context`)
 
@@ -574,7 +571,6 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Read operational transaction matrix](./commands#command-transaction_matrix)
   (`transaction_matrix`)
 - [Read operational accounts](./commands#command-list_accounts) (`list_accounts`)
-- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
 - [List dunning notices](./commands#command-notices) (`notices`)
 - [Read dunning notice](./commands#command-notice_detail) (`notice_detail`)
 - [Read opening position context](./commands#command-opening_context) (`opening_context`)
@@ -765,7 +761,6 @@ Nachweis, Quelle
 - [Read source code mappings](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Read source mapping history](./commands#command-source_mapping_history)
   (`source_mapping_history`)
-- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
 - [List dunning notices](./commands#command-notices) (`notices`)
 - [Read dunning notice](./commands#command-notice_detail) (`notice_detail`)
 

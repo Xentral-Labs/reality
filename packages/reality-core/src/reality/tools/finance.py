@@ -86,6 +86,7 @@ SETTLEMENT_COMMAND = "finance.settlement.apply"
 OPENING_COMMAND = "finance.opening.import"
 DUNNING_COMMAND = "finance.dunning.record"
 DUNNING_REVERSE_COMMAND = "finance.dunning.reverse"
+DUNNING_SCHEDULE_COMMAND = "finance.dunning.schedule.set"
 DEPOSIT_RECORD_COMMAND = "finance.deposit.record"
 DEPOSIT_CLEAR_COMMAND = "finance.deposit.clear"
 
@@ -104,6 +105,18 @@ class DunningReverseRequest(AccountRequest):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     notice_id: str = Field(min_length=1)
     reason: str = Field(min_length=1, max_length=4000)
+
+
+class DunningScheduleLevelRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    level: int
+    wait_days: int | str
+    fee_amount: str = "0"
+
+
+class DunningScheduleRequest(AccountRequest):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    levels: list[DunningScheduleLevelRequest] = Field(max_length=3)
 
 
 class DepositRecordRequest(AccountRequest):
@@ -126,6 +139,7 @@ class DepositClearRequest(AccountRequest):
 EDGE_COMMANDS = {
     DUNNING_COMMAND: DunningRequest,
     DUNNING_REVERSE_COMMAND: DunningReverseRequest,
+    DUNNING_SCHEDULE_COMMAND: DunningScheduleRequest,
     DEPOSIT_RECORD_COMMAND: DepositRecordRequest,
     DEPOSIT_CLEAR_COMMAND: DepositClearRequest,
 }
@@ -401,6 +415,16 @@ def execute_finance_command(
         from reality.services.dunning import reverse_notice
 
         return reverse_notice(
+            session,
+            tenant_id,
+            **validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
+    if name == DUNNING_SCHEDULE_COMMAND:
+        from reality.services.dunning_runs import set_schedule
+
+        return set_schedule(
             session,
             tenant_id,
             **validate_finance_request(name, arguments),

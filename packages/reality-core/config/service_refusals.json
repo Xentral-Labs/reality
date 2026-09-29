@@ -424,6 +424,18 @@
     "document_date_format_invalid": {
       "message": "Document date must use YYYY-MM-DD."
     },
+    "dunning_preview_stale": {
+      "message": "Dunning preview is stale; reload and confirm again."
+    },
+    "dunning_schedule_incomplete": {
+      "message": "A dunning schedule states exactly levels 1, 2 and 3."
+    },
+    "dunning_schedule_value_invalid": {
+      "message": "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.",
+      "values": {
+        "level": "number"
+      }
+    },
     "finance_account_blocked_or_wrong_role": {
       "message": "Account is blocked or has the wrong operational role."
     },

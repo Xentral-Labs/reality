@@ -125,6 +125,33 @@ def record_notice(
             "number": number,
         },
     )
+    return _record_notice(
+        session,
+        tenant_id,
+        values=values,
+        source_key=action_id,
+        action_id=action_id,
+        actor_id=actor_id,
+    )
+
+
+def _record_notice(
+    session: Session,
+    tenant_id: str,
+    *,
+    values: dict[str, Any],
+    source_key: str,
+    action_id: str,
+    actor_id: str | None,
+    context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Record one previewed notice under its own source record, idempotent on its key.
+
+    A single notice keys its source by the confirmation; a dunning run records
+    several notices under one confirmation, so each gets its own key and the
+    run's ``context`` is kept in the notice's source payload. Callers hold the
+    finance lock and own the outer transaction.
+    """
     existing = session.scalar(
         select(DunningNotice).where(
             DunningNotice.tenant_id == tenant_id,
@@ -133,7 +160,7 @@ def record_notice(
             .where(
                 SourceRecord.tenant_id == tenant_id,
                 SourceRecord.source_system == SOURCE_SYSTEM,
-                SourceRecord.external_id == action_id,
+                SourceRecord.external_id == source_key,
             )
             .scalar_subquery(),
         )
@@ -146,10 +173,15 @@ def record_notice(
             tenant_id,
             SOURCE_SYSTEM,
             "dunning_notice",
-            action_id,
-            {**values, "actor_id": actor_id, "confirmation_id": action_id},
+            source_key,
+            {
+                **values,
+                **(context or {}),
+                "actor_id": actor_id,
+                "confirmation_id": action_id,
+            },
         )
-        reference = values["number"] or f"DN-{action_id[-8:].upper()}"
+        reference = values["number"] or f"DN-{source_key[-8:].upper()}"
         document = core.create_document(
             session,
             tenant_id,

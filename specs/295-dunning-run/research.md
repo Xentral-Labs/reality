@@ -98,8 +98,8 @@ customer gets a delivery hold with the new hold reason `collection` unless a hol
 read and the invoice explanation join on it. A level-4 notice would create a dunning document
 and a notice the customer never receives. Hard rule 2 forbids a document field.
 
-`core.hold_party_delivery` commits; the handover needs it inside its transaction, so the hold
-body moves into `_place_party_delivery_hold(..., _commit=False)` used by both.
+`core.hold_party_delivery` commits; the handover needs it inside its transaction, so it gets
+the codebase's `_commit` flag (as `create_document` has) and the handover passes `_commit=False`.
 
 **Not in scope**: taking an item back from collection (spec non-goal).
 

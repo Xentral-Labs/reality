@@ -10805,6 +10805,7 @@ Object.assign(dictionaries.de, {
   "Compliance review": "Compliance-Prüfung",
   "Manual review": "Manuelle Prüfung",
   "Other hold reason": "Sonstiger Sperrgrund",
+  "Collection": "Inkasso",
 });
 
 Object.assign(dictionaries.nl, {
@@ -10828,6 +10829,7 @@ Object.assign(dictionaries.nl, {
   "Compliance review": "Nalevingscontrole",
   "Manual review": "Handmatige controle",
   "Other hold reason": "Andere blokkadereden",
+  "Collection": "Incasso",
 });
 
 Object.assign(dictionaries.es, {
@@ -10851,6 +10853,7 @@ Object.assign(dictionaries.es, {
   "Compliance review": "Revisión de cumplimiento",
   "Manual review": "Revisión manual",
   "Other hold reason": "Otro motivo de bloqueo",
+  "Collection": "Recobro",
 });
 
 Object.assign(dictionaries.de, {
@@ -21706,6 +21709,12 @@ Object.assign(dictionaries.de, {
   "Costing evidence preview is stale.": "Die Evidence-Vorschau der Kalkulation ist veraltet.",
   "Costing preview is stale; reload the held evidence.":
     "Die Kalkulationsvorschau ist veraltet; lade die vorhandene Evidence neu.",
+  "Dunning preview is stale; reload and confirm again.":
+    "Die Mahnvorschau ist veraltet; lade neu und bestätige erneut.",
+  "A dunning schedule states exactly levels 1, 2 and 3.":
+    "Ein Mahnschema legt genau die Stufen 1, 2 und 3 fest.",
+  "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.":
+    "Mahnstufe {level} braucht ganze Wartetage und eine nicht negative Gebühr mit höchstens vier Nachkommastellen.",
   "Costing scope not found.": "Kalkulationsumfang nicht gefunden.",
   "Counterparty role does not match shipment purpose.":
     "Die Rolle des Geschäftspartners passt nicht zum Sendungszweck.",
@@ -22592,6 +22601,12 @@ Object.assign(dictionaries.nl, {
   "Costing evidence preview is stale.": "Het Evidence-voorbeeld van de kostprijs is verouderd.",
   "Costing preview is stale; reload the held evidence.":
     "Het kostprijsvoorbeeld is verouderd; laad de aanwezige Evidence opnieuw.",
+  "Dunning preview is stale; reload and confirm again.":
+    "Het aanmaningsvoorbeeld is verouderd; laad opnieuw en bevestig nogmaals.",
+  "A dunning schedule states exactly levels 1, 2 and 3.":
+    "Een aanmaningsschema bevat precies de niveaus 1, 2 en 3.",
+  "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.":
+    "Aanmaningsniveau {level} heeft hele wachtdagen en een niet-negatieve vergoeding met hoogstens vier decimalen nodig.",
   "Costing scope not found.": "Kostprijsbereik niet gevonden.",
   "Counterparty role does not match shipment purpose.":
     "De rol van de tegenpartij past niet bij het doel van de zending.",
@@ -23469,6 +23484,12 @@ Object.assign(dictionaries.es, {
     "La vista previa de la Evidence del costeo está desactualizada.",
   "Costing preview is stale; reload the held evidence.":
     "La vista previa del costeo está desactualizada; vuelve a cargar la Evidence disponible.",
+  "Dunning preview is stale; reload and confirm again.":
+    "La vista previa de la reclamación está desactualizada; vuelve a cargar y confirma de nuevo.",
+  "A dunning schedule states exactly levels 1, 2 and 3.":
+    "Un esquema de reclamaciones indica exactamente los niveles 1, 2 y 3.",
+  "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.":
+    "El nivel de reclamación {level} necesita días de espera enteros y una comisión no negativa con como máximo cuatro decimales.",
   "Costing scope not found.": "Ámbito de costeo no encontrado.",
   "Counterparty role does not match shipment purpose.":
     "El rol de la contraparte no coincide con la finalidad del envío.",

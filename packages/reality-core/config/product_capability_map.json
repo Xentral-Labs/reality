@@ -1433,6 +1433,7 @@
         "evidence_command_record_free_supplier_invoice",
         "evidence_command_invoice_credit_context",
         "evidence_command_billable_positions",
+        "evidence_command_dunning_context",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_sales_credit_note",
         "evidence_command_allocate_credit_note",
@@ -1466,6 +1467,10 @@
         },
         {
           "name": "billable_positions",
+          "mode": "query"
+        },
+        {
+          "name": "dunning_context",
           "mode": "query"
         },
         {

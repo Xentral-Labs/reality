@@ -13,18 +13,18 @@
 
 ## Phase 2: Foundational — Schema and Shared Readers
 
-- [ ] T005 [FR-007] [FR-004] [DR-001] Failing migration and model parity test for `dunning_schedule_level`, `collection_handover` and `collection_handover_invoice` (checks, uniques, FK indexes) in `core/tests/finance/test_dunning_runs.py`
-- [ ] T006 [DR-001] Add the models in `core/src/reality/db/core.py` and migration `core/migrations/versions/0102_dunning_run.py`
-- [ ] T007 [DR-001] Register the tables in `core/config/data_model.yaml`, the reporting-graph deferral in `core/tests/test_reporting_graph_coverage.py`, `core/tests/test_schema_indexes.py` and `core/config/tenant_isolation_catalog.yaml`
-- [ ] T008 [DR-003] Extract `_record_notice(..., source_key)` in `core/src/reality/services/dunning.py`; the spec 247 tests in `core/tests/finance/test_commercial_edges.py` stay green unchanged
-- [ ] T009 [FR-011] Add `collection` to `HOLD_REASONS` and extract `_place_party_delivery_hold(..., _commit)` in `core/src/reality/services/core.py`; existing hold tests stay green
+- [x] T005 [FR-007] [FR-004] [DR-001] Failing migration and model parity test for `dunning_schedule_level`, `collection_handover` and `collection_handover_invoice` (checks, uniques, FK indexes) in `core/tests/finance/test_dunning_runs.py`
+- [x] T006 [DR-001] Add the models in `core/src/reality/db/core.py` and migration `core/migrations/versions/0102_dunning_run.py`
+- [x] T007 [DR-001] Register the tables in `core/config/data_model.yaml`, the reporting-graph deferral in `core/tests/test_reporting_graph_coverage.py`, `core/tests/test_schema_indexes.py` and `core/config/tenant_isolation_catalog.yaml`
+- [x] T008 [DR-003] Extract `_record_notice(..., source_key)` in `core/src/reality/services/dunning.py`; the spec 247 tests in `core/tests/finance/test_commercial_edges.py` stay green unchanged
+- [x] T009 [FR-011] Add `collection` to `HOLD_REASONS` (with its Web label in four languages) and give `hold_party_delivery` the codebase's `_commit` flag in `core/src/reality/services/core.py`; existing hold tests stay green
 
 ## Phase 3: User Story 2 — Company dunning schedule (P1)
 
 **Independent Test**: `pytest core/tests/finance/test_dunning_runs.py -k schedule`
 
-- [ ] T010 [P] [US2] [FR-007] Failing tests: set and read the schedule, change it, each coded refusal (`dunning_schedule_incomplete`, `dunning_schedule_value_invalid`, `dunning_fee_account_missing`), stale revision, tenant isolation, in `core/tests/finance/test_dunning_runs.py`
-- [ ] T011 [US2] [FR-007] Implement `schedule` and `set_schedule` in `core/src/reality/services/dunning_runs.py` and the `finance.dunning.schedule.set` route in `core/src/reality/tools/finance.py`
+- [x] T010 [P] [US2] [FR-007] Failing tests: set and read the schedule, change it, each coded refusal (`dunning_schedule_incomplete`, `dunning_schedule_value_invalid`, the existing `finance_account_default_missing`), stale revision (`dunning_preview_stale`), tenant isolation, in `core/tests/finance/test_dunning_runs.py`
+- [x] T011 [US2] [FR-007] Implement `schedule` and `set_schedule` in `core/src/reality/services/dunning_runs.py` and the `finance.dunning.schedule.set` route in `core/src/reality/tools/finance.py`
 
 ## Phase 4: User Story 1 — Dunning run and escalation (P1)
 

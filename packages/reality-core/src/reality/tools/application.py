@@ -316,6 +316,14 @@ def _dunning_notices(
     return notices(session, tenant_id)
 
 
+def _dunning_schedule(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.dunning_runs import schedule
+
+    return schedule(session, tenant_id)
+
+
 def _dunning_notice(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     from reality.services.dunning import notice_detail
 
@@ -1977,6 +1985,12 @@ TOOLS = {
         False,
         _dunning_notice,
     ),
+    "finance.dunning.schedule": Tool(
+        "finance.dunning.schedule",
+        "Read the company dunning schedule: waiting days and fixed fee per level.",
+        False,
+        _dunning_schedule,
+    ),
     "fulfillment_queue": Tool(
         "fulfillment_queue",
         "Read the materialized order fulfillment queue.",
@@ -2590,6 +2604,7 @@ from reality.tools.finance import (
     DEPOSIT_RECORD_COMMAND,
     DUNNING_COMMAND,
     DUNNING_REVERSE_COMMAND,
+    DUNNING_SCHEDULE_COMMAND,
     FINANCE_COMMANDS,
     OPENING_COMMAND,
     REFERENCE_COMMANDS,
@@ -3056,6 +3071,15 @@ def create_change_proposal(
         from reality.services.dunning import preview_notice
 
         preview["dunning"] = preview_notice(session, tenant_id, normalized_arguments)
+    if tool_name == DUNNING_SCHEDULE_COMMAND:
+        from reality.services.dunning_runs import _stated_levels, schedule
+
+        preview["dunning_schedule"] = {
+            "current": schedule(session, tenant_id)["levels"],
+            "proposed": _stated_levels(
+                session, tenant_id, normalized_arguments["levels"]
+            ),
+        }
     if tool_name == DUNNING_REVERSE_COMMAND:
         from reality.services.dunning import notice_detail
 

@@ -1831,3 +1831,9 @@ Table `customer_exchange`: a confirmed replacement that settles part of a custom
 - `packages/reality-core/tests/scenarios/test_catalog_sources.py`: P04 a shop cancellation closes the line citing its source record; P07 a silent source is reported and its backlog, repeats included, arrives without duplicates.
 - `packages/reality-core/tests/test_movement_create_readiness.py`: Record shipment refuses an unpaid or reversed prepayment at preparation and confirmation (spec 275 FR-005), ships a paid one, and still records an unreserved net-term delivery.
 - `packages/reality-core/tests/test_business_journey_catalog.py`: promoted journeys cite their story and carry keywords; R01 names the prepayment it cannot release.
+
+## Dunning run and escalation — Spec 295
+
+Tables `dunning_schedule_level` (the company's waiting days and fixed fee per level), `collection_handover` and `collection_handover_invoice` (a confirmed handover of dunned invoices to collection).
+
+- `packages/reality-core/tests/finance/test_dunning_runs.py`: the level, waiting-day and fee constraints, one level per company, one handover per invoice and a stated reason; the reviewed schedule command (set, read back with its source and event, change without touching recorded notices, coded refusals, the fee account, a stale confirmation, tenant isolation).

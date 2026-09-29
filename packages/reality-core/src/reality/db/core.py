@@ -1371,6 +1371,90 @@ class DunningNoticeInvoice(Base):
     invoice_id: Mapped[str] = mapped_column(String)
 
 
+class DunningScheduleLevel(Base):
+    """The company's stated waiting period and fixed fee for one dunning level.
+
+    Configuration, not Reality: every dunning run reads it to decide an item's
+    next level and a notice's fee. A notice keeps the fee it was recorded with,
+    so changing the schedule never rewrites history.
+    """
+
+    __tablename__ = "dunning_schedule_level"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint("tenant_id", "level", name="uq_dunning_schedule_level_level"),
+        CheckConstraint("level BETWEEN 1 AND 3", name="ck_dunning_schedule_level_level"),
+        CheckConstraint("wait_days >= 0", name="ck_dunning_schedule_level_wait_days"),
+        CheckConstraint("fee_amount >= 0", name="ck_dunning_schedule_level_fee"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    level: Mapped[int] = mapped_column(Integer)
+    # Level 1: days overdue; levels 2 and 3: days since the item's last notice.
+    wait_days: Mapped[int] = mapped_column(Integer)
+    fee_amount: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    source_record_id: Mapped[str] = mapped_column(String)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class CollectionHandover(Base):
+    """A confirmed decision to hand a customer's dunned items to collection.
+
+    Reality, append-only. Whether an item is in collection is read from its
+    link below; the invoice carries no field for it.
+    """
+
+    __tablename__ = "collection_handover"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"], ["party.tenant_id", "party.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint(
+            "tenant_id", "source_record_id", name="uq_collection_handover_source"
+        ),
+        CheckConstraint("btrim(reason) <> ''", name="ck_collection_handover_reason"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    party_id: Mapped[str] = mapped_column(String)
+    handover_date: Mapped[date] = mapped_column(Date)
+    reason: Mapped[str] = mapped_column(Text)
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class CollectionHandoverInvoice(Base):
+    """Shortest opaque link from one handover to one invoice; an invoice goes once."""
+
+    __tablename__ = "collection_handover_invoice"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "handover_id"],
+            ["collection_handover.tenant_id", "collection_handover.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "invoice_id"], ["document.tenant_id", "document.id"]
+        ),
+        UniqueConstraint(
+            "tenant_id", "invoice_id", name="uq_collection_handover_invoice_invoice"
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    handover_id: Mapped[str] = mapped_column(String)
+    invoice_id: Mapped[str] = mapped_column(String)
+
+
 class Commitment(Base):
     __tablename__ = "commitment"
     __table_args__ = (

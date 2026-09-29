@@ -80,10 +80,6 @@ Preisgruppen hängen hier.
 - [Liefersperre setzen oder aufheben](./commands#command-hold_party_delivery)
   (`hold_party_delivery`)
 
-**Nachschlagen**
-
-- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
-
 **Klärfälle**
 
 - [Kreditlimit überschritten](./exceptions#exception-credit_limit_exceeded)
@@ -435,6 +431,7 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
   (`invoice_credit_context`)
 - [Abrechenbare Auftragspositionen anzeigen](./commands#command-billable_positions)
   (`billable_positions`)
+- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
 
 **Klärfälle**
 
@@ -465,7 +462,8 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 [Purchase-to-Pay](./processes#process-procure_to_pay), [Kundenretouren](./processes#process-returns)
 
 **Darunter:** Events: [`credit.recorded`](./events#event-credit-recorded),
-[`invoice.recorded`](./events#event-invoice-recorded) · Agenten-Tools ohne Geschäftsaktion:
+[`invoice.recorded`](./events#event-invoice-recorded),
+[`dunning.schedule_set`](./events#event-dunning-schedule_set) · Agenten-Tools ohne Geschäftsaktion:
 [`finance_credits`](./commands#tool-finance_credits),
 [`finance_party_balances`](./commands#tool-finance_party_balances)
 
@@ -501,7 +499,6 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 **Nachschlagen**
 
 - [Zahllauf vorschauen](./commands#command-preview_payment_run) (`preview_payment_run`)
-- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
 - [Kontext für Abzug anzeigen](./commands#command-adjustment_context) (`adjustment_context`)
 - [Kontext für Zahlung und Gutschrift anzeigen](./commands#command-settlement_context)
   (`settlement_context`)
@@ -585,7 +582,6 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Verlauf der Finanzreferenz](./commands#command-reference_history) (`reference_history`)
 - [Buchungsmatrix anzeigen](./commands#command-transaction_matrix) (`transaction_matrix`)
 - [Operative Konten anzeigen](./commands#command-list_accounts) (`list_accounts`)
-- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
 - [Mahnungen anzeigen](./commands#command-notices) (`notices`)
 - [Mahnung anzeigen](./commands#command-notice_detail) (`notice_detail`)
 - [Kontext der Eröffnungsposten anzeigen](./commands#command-opening_context) (`opening_context`)
@@ -776,7 +772,6 @@ Nachweis, Quelle
 - [Quellcode-Zuordnungen anzeigen](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Verlauf der Quellcode-Zuordnung](./commands#command-source_mapping_history)
   (`source_mapping_history`)
-- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
 - [Mahnungen anzeigen](./commands#command-notices) (`notices`)
 - [Mahnung anzeigen](./commands#command-notice_detail) (`notice_detail`)
 

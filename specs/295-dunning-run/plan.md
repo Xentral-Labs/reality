@@ -46,7 +46,7 @@ files
 | IV. Tenant and service boundaries | PASS | Composite tenant FKs; service writes only; commands through the shared finance change proposal on every surface. |
 | V. Specification and test evidence | PASS | Approved spec; tests planned before each implementation task. |
 | VI. Explainable Web product | PASS | Each proposed notice names its items, previous notice and waiting period; handovers link notices, hold and source (FR-012). |
-| VII. Simplicity and storage discipline | PASS | Run notices reuse `record_notice` through one private helper; the hold reuses `hold_party_delivery`'s body. |
+| VII. Simplicity and storage discipline | PASS | Run notices reuse `record_notice` through one private helper; the hold reuses `hold_party_delivery` with `_commit=False`. |
 | VIII. Received values are recorded, never recomputed | PASS | Waiting days and fees are stated by the company; a notice records the fee as stated at confirmation; no amount is calculated. |
 
 Post-design check: PASS. [data-model.md](data-model.md) adds no column to existing tables and
@@ -82,8 +82,8 @@ level 3 notice ── collection handover ── party delivery hold "collection
 
 - `services/dunning.py`: extract `_record_notice(..., source_key, run_source_record_id=None)`;
   `record_notice` calls it with `source_key=action_id` (unchanged behaviour).
-- `services/core.py`: add `collection` to `HOLD_REASONS`; extract
-  `_place_party_delivery_hold(..., _commit)` from `hold_party_delivery`.
+- `services/core.py`: add `collection` to `HOLD_REASONS`; give `hold_party_delivery` a
+  `_commit` flag.
 - `tools/finance.py`: three request models and routes in `EDGE_COMMANDS` and the executor.
 - Invoice explanation / finance invoice read: name the last notice, the derived level and any
   handover.

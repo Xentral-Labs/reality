@@ -440,6 +440,8 @@ families:
       - tool:finance.deposit.record
       - tool:finance.dunning.record
       - tool:finance.dunning.reverse
+      - tool:finance.dunning.schedule
+      - tool:finance.dunning.schedule.set
       - tool:fact_observe
       - tool:reality_gap_create
       - tool:reality_gap_decide

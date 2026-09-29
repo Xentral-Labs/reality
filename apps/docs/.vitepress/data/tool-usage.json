@@ -180,7 +180,7 @@
         "command:create_party_group",
         "command:hold_party_delivery"
       ],
-      "reads": ["command:dunning_context"],
+      "reads": [],
       "exceptions": ["exception:credit_limit_exceeded", "exception:party_hold_unreleased"],
       "tools": ["tool:finance_party_balances"],
       "events": [
@@ -580,7 +580,11 @@
         "command:post_supplier_credit_note",
         "command:allocate_supplier_credit_note"
       ],
-      "reads": ["command:invoice_credit_context", "command:billable_positions"],
+      "reads": [
+        "command:invoice_credit_context",
+        "command:billable_positions",
+        "command:dunning_context"
+      ],
       "exceptions": [
         "exception:shipped_not_billed",
         "exception:billed_not_received",
@@ -598,7 +602,7 @@
         "exception:duplicate_supplier_invoice"
       ],
       "tools": ["tool:finance_credits", "tool:finance_party_balances"],
-      "events": ["event:credit.recorded", "event:invoice.recorded"],
+      "events": ["event:credit.recorded", "event:invoice.recorded", "event:dunning.schedule_set"],
       "workspace_actions": []
     },
     {
@@ -644,7 +648,6 @@
       ],
       "reads": [
         "command:preview_payment_run",
-        "command:dunning_context",
         "command:adjustment_context",
         "command:settlement_context"
       ],
@@ -790,7 +793,6 @@
         "command:reference_history",
         "command:transaction_matrix",
         "command:list_accounts",
-        "command:dunning_context",
         "command:notices",
         "command:notice_detail",
         "command:opening_context"
@@ -972,7 +974,6 @@
         "command:preview_document",
         "command:list_source_mappings",
         "command:source_mapping_history",
-        "command:dunning_context",
         "command:notices",
         "command:notice_detail"
       ],
@@ -10541,7 +10542,7 @@
       "projections": [],
       "links": ["command:dunning_context"],
       "label_de": "Dunning context",
-      "resources": ["accounting", "party", "payment", "source"]
+      "resources": ["invoice"]
     },
     {
       "id": "tool:finance_dunning_notices",
@@ -20288,7 +20289,7 @@
       },
       "links": ["tool:finance_dunning_context"],
       "label_de": "Mahnkontext anzeigen",
-      "resources": ["accounting", "party", "payment", "source"]
+      "resources": ["invoice"]
     },
     {
       "id": "command:notices",
@@ -22276,6 +22277,7 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "dunning.schedule_set",
         "order.recorded",
         "source_record.stored",
         "commitment.fulfilled",
@@ -24057,6 +24059,20 @@
       "links": ["command:reverse_notice"],
       "label_de": "dunning.notice_reversed",
       "resources": ["accounting"]
+    },
+    {
+      "id": "event:dunning.schedule_set",
+      "kind": "event",
+      "key": "dunning.schedule_set",
+      "label": "dunning.schedule_set",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "set_schedule",
+      "subject": "tenant",
+      "invalidates": ["Tenant usage"],
+      "links": [],
+      "label_de": "dunning.schedule_set",
+      "resources": ["invoice"]
     },
     {
       "id": "event:order.recorded",
