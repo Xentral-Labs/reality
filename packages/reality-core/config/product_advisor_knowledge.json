@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:8ce4e43dca949cb720e9e67ef26771bfbcbcc1472b39c16b7b9e9dc1d81d883f",
+  "knowledge_version": "advisor-v1:sha256:475f8f723a145a4fda12a6e62a7f33efc75de900317e45a6bfbd4689f88fbf37",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -684,7 +684,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D16",
-      "fingerprint": "99a2a3616fa5f910da163ff6c7769e16bba8589037e866823fbceae76fff297b"
+      "fingerprint": "cdb33f4de71f5513aa89f4fc6a93945ff6b71fbe3980902eea5e54857e0adcb4"
     },
     {
       "id": "source_journey_d17",
@@ -999,7 +999,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G07",
-      "fingerprint": "b7c4645abafb84738f32c559b084d3d455c1a95db610eb902e7214f63677303a"
+      "fingerprint": "87892127d89a8bf73fc0bd567ecc07e8fd0088e5dd11d5a5173f81ffab40a710"
     },
     {
       "id": "source_journey_g08",
@@ -1116,7 +1116,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H03",
-      "fingerprint": "80a4edb048bee27bd42a1b6cd782982c9f38f4729918aec75b210260fcafefb5"
+      "fingerprint": "a4ce0dcf8cc18cf5eb281f20cfd470719c12aad21fe5518f6f5ab048c0062d3a"
     },
     {
       "id": "source_journey_h04",
@@ -1314,7 +1314,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#I06",
-      "fingerprint": "7b9e75c1a73da869473b1d71da5922728963abd2e8af3baa3836c4ec95f10074"
+      "fingerprint": "1f93367b1c0121eff2a8779187d1e5660e1c4bb5883ad56dbfc7342080445d40"
     },
     {
       "id": "source_journey_i07",
@@ -1323,7 +1323,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#I07",
-      "fingerprint": "6574ebc27b6e7dd8df51d549fd50f73ba514d4352d5c92a1f6986bf036d231cd"
+      "fingerprint": "c3a3bfd5d8255dedff13efa529e4aaf96783169bfd079ec30005c26188c82382"
     },
     {
       "id": "source_journey_i08",
@@ -1512,7 +1512,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K05",
-      "fingerprint": "a4038ead0aa1c86047606f75281ff34748fa1621eb34f77f0892868b049dbc8e"
+      "fingerprint": "e0008a0ab3631e6d5bdaf7d12ccb21e85c6e54c2f840d8173c70f5bacdcec935"
     },
     {
       "id": "source_journey_k06",
@@ -1575,7 +1575,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L06",
-      "fingerprint": "59e8b490e76fd112bed1dc7888a497882d11fef7152f54a094c09ef8ff3b29b6"
+      "fingerprint": "3984d814e0cdf3b1fab1942220d8b100ae7e6771559190c7371b3710c72fbb56"
     },
     {
       "id": "source_journey_l07",
@@ -1818,7 +1818,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#O01",
-      "fingerprint": "3f3bf4ee3a9e219d32587734522e7c25dc53b5075fae6f6279dffd85fa8fef83"
+      "fingerprint": "1a51d29a605353f614829883dd19ed758cc10ef76958ca7d4ac51ba67a5da28f"
     },
     {
       "id": "source_journey_o02",
@@ -1899,7 +1899,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#P04",
-      "fingerprint": "e6d7702626393c92bf25725d8bc053df260a3b5916ac34fcc0b175146764f520"
+      "fingerprint": "34962334e97ec1ccf52b3548e40c9ae39ba18b26961f0a4a5e22c31cefedb863"
     },
     {
       "id": "source_journey_p05",
@@ -1926,7 +1926,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#P07",
-      "fingerprint": "d34df4d2e26912eb194420b014573ae471945db4d8f686f0e6ebdb2bf4f4d84b"
+      "fingerprint": "71d5f171ed947569cfd26c1db1bcf8a98f0f6d5d254f640ac6c9e7ecba694807"
     },
     {
       "id": "source_journey_p08",
@@ -1989,7 +1989,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#R01",
-      "fingerprint": "21556ce7c2917c6ae983b0a43d86be5690417fe5bdd8a3a07900549e421c6e1b"
+      "fingerprint": "9cb9d0903037812fd8d24e15fb33183f72ee74f480f1ca8951a2317227d9dd35"
     },
     {
       "id": "source_journey_r02",
@@ -3358,18 +3358,17 @@
       "source_id": "source_journey_d16",
       "subject": "Picking, shipment, split and merge",
       "title": "Free replacement shipment without a new order",
-      "search_text": "D16 Picking, shipment, split and merge Free replacement shipment without a new order Why did stock leave, and for which commitment? Free replacement shipment without a new order Why did stock leave, and for which commitment?",
+      "search_text": "D16 Picking, shipment, split and merge Free replacement shipment without a new order Why did stock leave, and for which commitment? free replacement replacement shipment no new order Ersatzlieferung kostenloser Ersatz ohne neuen Auftrag Free replacement shipment without a new order Why did stock leave, and for which commitment? We send a free replacement without creating a new order Kostenlose Ersatzlieferung ohne neuen Auftrag",
       "claim_text": "Reality evaluates: Why did stock leave, and for which commitment?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "A replacement is shipped against a new zero-price order.",
-        "A replacement without any order is possible but not yet proven."
+        "A free replacement is recorded as an exchange against a return or an announcement; a replacement without either, such as for a lost parcel, has no reviewed path yet."
       ],
       "references": [
         "D16"
       ],
       "language": "en",
-      "fingerprint": "3d70368882d8bc39e6e7a97e502529419353049ab9b53cf548fe99fdd7767224"
+      "fingerprint": "2f2804524af65de30241954cbe86a31aa7f9453c9fe3ae2bd1f336001f9a97d9"
     },
     {
       "id": "evidence_journey_d17",
@@ -3931,18 +3930,17 @@
       "source_id": "source_journey_g07",
       "subject": "Purchasing: demand and purchase order",
       "title": "Tiered purchase prices",
-      "search_text": "G07 Purchasing: demand and purchase order Tiered purchase prices Stated price recorded? Tiered purchase prices Stated price recorded?",
+      "search_text": "G07 Purchasing: demand and purchase order Tiered purchase prices Stated price recorded? tier price volume price supplier price list Staffelpreis Mengenstaffel Lieferantenpreisliste Tiered purchase prices Stated price recorded? Supplier charges a volume tier price on the purchase Lieferant berechnet einen Staffelpreis im Einkauf",
       "claim_text": "Reality evaluates: Stated price recorded?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "The unit price stated on the purchase is kept and compared.",
-        "Supplier tiered prices are not yet proven."
+        "The guided supplier invoice copies the order price; an invoice at a different unit price is recorded as a document to be compared."
       ],
       "references": [
         "G07"
       ],
       "language": "en",
-      "fingerprint": "3be34fc104833757417e85b7af3b0aa0e5265ad540713f7577c937e432608e85"
+      "fingerprint": "2802f24b3229334ac19dc74dca30cceb1aa8a218f1389e93702fb67e7290789f"
     },
     {
       "id": "evidence_journey_g08",
@@ -4149,18 +4147,15 @@
       "source_id": "source_journey_h03",
       "subject": "Goods receipt and supplier deviations",
       "title": "Under-delivery, rest never",
-      "search_text": "H03 Goods receipt and supplier deviations Under-delivery, rest never Remainder closed through a confirmed revision with a reason? Under-delivery, rest never Remainder closed through a confirmed revision with a reason?",
+      "search_text": "H03 Goods receipt and supplier deviations Under-delivery, rest never Remainder closed through a confirmed revision with a reason? under-delivery short delivery rest never comes Unterlieferung Minderlieferung Rest kommt nicht Under-delivery, rest never Remainder closed through a confirmed revision with a reason? Supplier delivers less and the rest never comes Lieferant liefert weniger und der Rest kommt nie",
       "claim_text": "Reality evaluates: Remainder closed through a confirmed revision with a reason? An agent can prepare the revision; a person confirms the mutation.",
-      "support": "limited",
-      "limitations": [
-        "A downward revision closes the remainder.",
-        "That the revision keeps its reason and who made it is not yet proven."
-      ],
+      "support": "proven",
+      "limitations": [],
       "references": [
         "H03"
       ],
       "language": "en",
-      "fingerprint": "7c898d49ab376f2d0589aaa219d12a5b75b57720340c8d818c973b4c043cd73d"
+      "fingerprint": "f8cc82efdb54e3c2fda45183c5d404a9970101822208fcc84a25b054cb6d8e81"
     },
     {
       "id": "evidence_journey_h04",
@@ -4508,36 +4503,30 @@
       "source_id": "source_journey_i06",
       "subject": "Supplier invoice and payment",
       "title": "Several partial invoices for one purchase",
-      "search_text": "I06 Supplier invoice and payment Several partial invoices for one purchase Sum vs purchase? Several partial invoices for one purchase Sum vs purchase?",
+      "search_text": "I06 Supplier invoice and payment Several partial invoices for one purchase Sum vs purchase? partial invoices several supplier invoices Teilrechnungen mehrere Eingangsrechnungen Several partial invoices for one purchase Sum vs purchase? Several partial supplier invoices for one purchase order Mehrere Teilrechnungen des Lieferanten zu einer Bestellung",
       "claim_text": "Reality evaluates: Sum vs purchase?",
-      "support": "limited",
-      "limitations": [
-        "Several partial invoices are summed against the order on the sales side.",
-        "The same for purchases is not yet proven."
-      ],
+      "support": "proven",
+      "limitations": [],
       "references": [
         "I06"
       ],
       "language": "en",
-      "fingerprint": "d5adc669c5ba406f7205a16c87205c6de4bb70dfc035bf3a9829e141c7690961"
+      "fingerprint": "dc3455bddbf00936a22c114d7b6136c8d938598a46a1481197e6e6e17cc9c118"
     },
     {
       "id": "evidence_journey_i07",
       "source_id": "source_journey_i07",
       "subject": "Supplier invoice and payment",
       "title": "Freight invoice from a third party for a purchase",
-      "search_text": "I07 Supplier invoice and payment Freight invoice from a third party for a purchase Linked to the receipt cost? Freight invoice from a third party for a purchase Linked to the receipt cost?",
+      "search_text": "I07 Supplier invoice and payment Freight invoice from a third party for a purchase Linked to the receipt cost? freight invoice carrier invoice landed cost Frachtrechnung Spediteur Bezugskosten Freight invoice from a third party for a purchase Linked to the receipt cost? A carrier sends a freight invoice for goods we received Spediteur schickt eine Frachtrechnung für einen Wareneingang",
       "claim_text": "Reality evaluates: Linked to the receipt cost?",
-      "support": "limited",
-      "limitations": [
-        "Freight can be attributed to a receipt's cost.",
-        "A freight invoice from a third-party carrier is not yet proven."
-      ],
+      "support": "proven",
+      "limitations": [],
       "references": [
         "I07"
       ],
       "language": "en",
-      "fingerprint": "1f6e15e132e11a4539b1bc8322efaf53b1a0111435876256cb78bd3a81c863cb"
+      "fingerprint": "f99009b91d13120952ab6b12a6c25344ac421c9b0eee7b742e7aeb60c0c6ce40"
     },
     {
       "id": "evidence_journey_i08",
@@ -4875,18 +4864,17 @@
       "source_id": "source_journey_k05",
       "subject": "Kits, bills of material and variants",
       "title": "Variant item (size/colour) purchased together",
-      "search_text": "K05 Kits, bills of material and variants Variant item (size/colour) purchased together Per-variant stock? Variant item (size/colour) purchased together Per-variant stock?",
+      "search_text": "K05 Kits, bills of material and variants Variant item (size/colour) purchased together Per-variant stock? variants sizes colours Varianten Größen Farben Variant item (size/colour) purchased together Per-variant stock? We buy several sizes of one product together Wir kaufen mehrere Größen eines Artikels zusammen ein",
       "claim_text": "Reality evaluates: Per-variant stock?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "Each variant is its own item with its own stock.",
-        "There is no grouping of variants under a parent item."
+        "Each variant is its own item; there is no grouping of variants under a parent item."
       ],
       "references": [
         "K05"
       ],
       "language": "en",
-      "fingerprint": "f8584c32f9a15ccb2c96b046e7f53712bde61b22a54663987fe72b1a3d8d6110"
+      "fingerprint": "af59f6cd27691e1802e56b8b700eb1f251e9b8dcd7be268e3ed57ff4bcb19ff0"
     },
     {
       "id": "evidence_journey_k06",
@@ -4997,18 +4985,17 @@
       "source_id": "source_journey_l06",
       "subject": "E-commerce and marketplaces",
       "title": "Pre-order of an item not yet available",
-      "search_text": "L06 E-commerce and marketplaces Pre-order of an item not yet available Commitment without stock, dated? Pre-order of an item not yet available Commitment without stock, dated?",
+      "search_text": "L06 E-commerce and marketplaces Pre-order of an item not yet available Commitment without stock, dated? pre-order preorder not yet in stock Vorbestellung noch nicht lieferbar Pre-order of an item not yet available Commitment without stock, dated? Customer pre-orders an item that is not in stock yet Kunde bestellt einen Artikel vor, der noch nicht lieferbar ist",
       "claim_text": "Reality evaluates: Commitment without stock, dated?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "A dated order line without stock shows as a shortage or at risk.",
-        "A pre-order backed by expected supply is not yet proven."
+        "The incoming supply is shown beside the shortage; it does not remove the at-risk finding before the goods arrive."
       ],
       "references": [
         "L06"
       ],
       "language": "en",
-      "fingerprint": "7831dd34281a7b20e9984e3513a795480c834a73f27c05593dc6f729bf607b06"
+      "fingerprint": "af804a87f5b94a638b2a18c3faaed6677e5db55fd5fec4fe084f49389551edf1"
     },
     {
       "id": "evidence_journey_l07",
@@ -5459,18 +5446,17 @@
       "source_id": "source_journey_o01",
       "subject": "Master data and identity",
       "title": "Item number renamed",
-      "search_text": "O01 Master data and identity Item number renamed History intact (numbers are not identity)? Item number renamed History intact (numbers are not identity)?",
+      "search_text": "O01 Master data and identity Item number renamed History intact (numbers are not identity)? SKU rename item number changed Artikelnummer ändern Artikelnummer umbenannt Item number renamed History intact (numbers are not identity)? We change an item number that already has history Wir ändern eine Artikelnummer mit bestehender Historie",
       "claim_text": "Reality evaluates: History intact (numbers are not identity)?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "An item number can be changed, and document lines keep the number they stated.",
-        "That movements, stock and old documents stay intact after the change is not yet proven."
+        "Some reads show the item's current number rather than the number a document stated."
       ],
       "references": [
         "O01"
       ],
       "language": "en",
-      "fingerprint": "0b60529ab7916d089c406eb087c9eb98e03965b2c03518cca45428e8f64982af"
+      "fingerprint": "546a70ab5e3e3c4f78861fda147eda263c571b98a1249ea18e57069bb6e753df"
     },
     {
       "id": "evidence_journey_o02",
@@ -5610,18 +5596,17 @@
       "source_id": "source_journey_p04",
       "subject": "Sources and integration",
       "title": "Source deletes an order afterwards",
-      "search_text": "P04 Sources and integration Source deletes an order afterwards Commitment closed with source reason? Source deletes an order afterwards Commitment closed with source reason?",
+      "search_text": "P04 Sources and integration Source deletes an order afterwards Commitment closed with source reason? shop cancellation order deleted in shop Stornierung im Shop Bestellung im Shop gelöscht Source deletes an order afterwards Commitment closed with source reason? The shop cancels an order after we imported it Der Shop storniert eine Bestellung nachträglich",
       "claim_text": "Reality evaluates: Commitment closed with source reason?",
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "A cancellation from the source is stored and held for review; the order line stays open.",
-        "Closing a line with the source as its reason is not yet proven."
+        "The shop's cancellation is held for review; a person closes the line."
       ],
       "references": [
         "P04"
       ],
       "language": "en",
-      "fingerprint": "1ffbe78dff70f6b24a0bc5bee9728328b91abb0b592b100e9f68fdeb6616eb2d"
+      "fingerprint": "90288ee94181a9c96f562f952aab087fc4ee7c1cfc6c870523f3be97ec22a610"
     },
     {
       "id": "evidence_journey_p05",
@@ -5664,18 +5649,15 @@
       "source_id": "source_journey_p07",
       "subject": "Sources and integration",
       "title": "Integration down for a day, then catches up",
-      "search_text": "P07 Sources and integration Integration down for a day, then catches up No duplicates, silent source detected? Integration down for a day, then catches up No duplicates, silent source detected?",
+      "search_text": "P07 Sources and integration Integration down for a day, then catches up No duplicates, silent source detected? integration outage backlog duplicates Schnittstelle ausgefallen Rückstau Dubletten Integration down for a day, then catches up No duplicates, silent source detected? The shop integration was down for a day and then catches up Die Shop-Schnittstelle war einen Tag aus und holt dann nach",
       "claim_text": "Reality evaluates: No duplicates, silent source detected?",
-      "support": "limited",
-      "limitations": [
-        "A silent source is detected, and the signal clears when deliveries resume.",
-        "Catching up a day's backlog without duplicates is not yet proven in the same story."
-      ],
+      "support": "proven",
+      "limitations": [],
       "references": [
         "P07"
       ],
       "language": "en",
-      "fingerprint": "aac320cc96901f070a896be62ac37479929b109c3de93ab6b9901238c199b525"
+      "fingerprint": "e83b96793cf21fb97e70deaae579f14436de8fe02dda26340a4e7ceb7c9ee289"
     },
     {
       "id": "evidence_journey_p08",
@@ -5790,14 +5772,14 @@
       "claim_text": "Reality evaluates: Every quantity and every euro reconciles at the end.",
       "support": "limited",
       "limitations": [
-        "Prepayment release, revision, cancellation, partial receipt and damaged returns each work.",
-        "One story reconciling every quantity and euro across all of them is not yet proven."
+        "A prepayment order stays unshippable until paid in full, and no reviewed release overrides that, so the story cannot ship the 80 % prepaid order.",
+        "Revision, cancellation, partial receipt and damaged returns each work on their own."
       ],
       "references": [
         "R01"
       ],
       "language": "en",
-      "fingerprint": "0e997d1764a812c28a65e5913562ad99ee9492f6883e23159222870c33d97fb8"
+      "fingerprint": "c5fc9e58c24e918e6f401ba7d51d876f2759cbef16fdac5621230b8146f61bd9"
     },
     {
       "id": "evidence_journey_r02",

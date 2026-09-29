@@ -2,32 +2,32 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 82 covered, 69 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 92 covered, 59 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 11 | 5 |  | 8 |  |
 | B Availability and reservation | 5 | 7 |  | 6 |  |
 | C Payment and release | 10 | 4 |  | 4 |  |
-| D Shipment, split and merge | 3 | 4 |  | 12 |  |
+| D Shipment, split and merge | 4 | 3 |  | 12 |  |
 | E Customer invoice and credit | 8 | 4 |  |  |  |
 | F Returns and complaints | 9 | 3 |  | 1 |  |
-| G Purchase demand and order | 5 | 7 |  | 5 |  |
-| H Receipt and supplier deviations | 9 | 3 |  | 7 |  |
-| I Supplier invoice and payment | 8 | 3 |  | 1 |  |
+| G Purchase demand and order | 6 | 6 |  | 5 |  |
+| H Receipt and supplier deviations | 10 | 2 |  | 7 |  |
+| I Supplier invoice and payment | 10 | 1 |  | 1 |  |
 | J Warehouse and stock | 3 | 3 |  | 5 |  |
-| K Kits and variants |  | 1 |  | 5 |  |
-| L E-commerce and marketplaces | 2 | 5 |  | 5 |  |
+| K Kits and variants | 1 |  |  | 5 |  |
+| L E-commerce and marketplaces | 3 | 4 |  | 5 |  |
 | M B2B specifics | 1 | 3 |  | 8 |  |
 | N Finance, tax, currency | 4 | 1 |  | 1 | 2 |
-| O Master data and identity | 1 | 2 |  | 2 | 1 |
-| P Sources and integration | 2 | 6 |  |  |  |
+| O Master data and identity | 2 | 1 |  | 2 | 1 |
+| P Sources and integration | 4 | 4 |  |  |  |
 | Q Time and period | 1 | 2 |  | 2 |  |
 | R Combined stress stories |  | 6 |  | 2 |  |
 
@@ -198,7 +198,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | D13 | gap | packages/reality-core/src/reality/db/core.py Shipment/ShipmentEvent (no slot/appointment field) | There is no booked delivery slot record, only movement occurred_at and carrier events. |
 | D14 | gap | db/core.py Shipment/Document (no customs or export-proof link) | Export evidence could only sit in a lossless payload; nothing typed links it to the shipment. |
 | D15 | partial | tests/test_inventory_and_fulfillment.py::test_partial_shipments_derive_fulfillment_and_consume_reservations | Fulfilment without carrier or package works, but pickup is not recorded or tested as a mode of its own. |
-| D16 | partial | tests/scenarios/test_international_demo.py::test_supported_edge_cases_are_source_backed_and_traceable (exchange_replacement, SO-033/SO-034) | The replacement uses a new zero-price order. A commitment without a document is possible but untested. |
+| D16 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_free_replacement_ships_without_an_order_and_explains_itself | Free replacement recorded as an advance customer exchange against the announced faulty unit: a document-less zero-amount promise is reserved, shipped and explained; only the original unbilled order line is reported (positive control). |
 | D17 | gap | packages/reality-core/src/reality/services/core.py SOURCE_INTERPRETERS (no shipment interpreter) | No shipment source is interpreted, so nothing holds an early confirmation and links it later. |
 | D18 | partial | tests/test_shipment_actions.py::test_receive_confirmation_replays_one_atomic_package; tests/test_unified_delivery_actions.py::test_same_preparation_and_confirmation_have_one_effect | Replaying a proposal is idempotent. A duplicate shipment report from a source is never ingested, so that case is untested. |
 | D19 | gap | db/core.py (no deposit or returnable-packaging concept) | Nothing tracks returnable packaging or the deposit owed. |
@@ -248,7 +248,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | G04 | gap | src/reality/db/core.py `uq_commitment_document_line_type` | Only one supplier_delivery commitment is allowed per PO line, so several schedule lines per line cannot be represented. |
 | G05 | gap | — | No framework agreement or call-off concept exists. |
 | G06 | partial | tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt | Surplus shows up as stock or unassigned supply; MOQ and pack size are not modelled or tested. |
-| G07 | partial | tests/operational_exceptions/test_derivation.py::test_invoice_price_differs; services/core.py::create_price_list_entry | The stated line `unit_price` is kept and compared; supplier tiered prices are not tested (price tiers look sales-side). |
+| G07 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported | Purchase price list with a 10-unit tier; the order line takes the tier entry; the guided supplier invoice is kept as stated with no finding; a second invoice at the single-unit tier recorded through document_create is reported as invoice_price_differs. |
 | G08 | partial | db/core.py Commitment.currency; tests/test_payment_runs.py::test_a_run_is_one_currency | Currency is kept and cross-currency is refused; nothing converts at posting (docs/features/ledger.md Non-goals: FX revaluation). |
 | G09 | partial | tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated, ::test_one_statement_can_restate_both | Confirmed quantity/date are revisions against the original; a confirmed *price* cannot be stated. |
 | G10 | gap | — | No acknowledgement expectation, so an unconfirmed PO is never flagged (only overdue after the due date). |
@@ -266,7 +266,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 |---|---|---|---|
 | H01 | covered | tests/scenarios/test_procure_to_pay.py::test_procure_to_pay_business_story | Fulfilled 20 of 20 through two receipts. |
 | H02 | covered | tests/test_unified_receipt_release.py::test_partial_receipt_review_replay_and_trace; tests/scenarios/test_storyline_purchase_to_pay.py (receipt/rest-receipt) | Open remainder 5 after 3 of 8. |
-| H03 | partial | tests/test_commitment_revisions.py::test_shrinking_to_what_arrived_finishes_the_promise | A downward revision closes the rest; the revision's note and who made it are not asserted. |
+| H03 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_an_under_delivery_is_closed_with_its_reason_and_decision | 7 of 10 received and overdue (positive control), then a reviewed commitment_revise to 7 with a note: nothing open, not overdue, the revision keeps its note and the decision trail names the proposal. |
 | H04 | gap | services/core.py "Movement exceeds the commitment's open quantity"; tests/test_unified_receipt_release.py (excess refused) | Over-receipt is refused. Workaround: revise upward first (finance/test_commercial_edges.py::test_higher_revision_allows_only_the_new_quantity, sales-side); no surplus signal. |
 | H05 | gap | services/core.py supplier_return bound | A supplier return must reference a received delivery, and the surplus cannot be received against the PO. |
 | H06 | gap | services/core.py "Movement does not match the commitment" | Wrong item cannot be tied to the PO; it only appears as an unexplained receipt. |
@@ -293,8 +293,8 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | I03 | covered | tests/scenarios/test_storyline_purchase_to_pay.py::test_the_default_path_raises_and_clears_every_finding_by_rule | `invoice_price_differs` on the supplier invoice remains at month end. |
 | I04 | covered | tests/operational_exceptions/test_derivation.py::test_billed_not_received | Billed 6, received 0, clears on receipt. |
 | I05 | covered | tests/scenarios/test_catalog_purchasing.py::test_one_supplier_invoice_bills_lines_of_two_purchase_orders | One guided supplier invoice bills lines of two purchase orders, allocated per purchase (spec 283). |
-| I06 | partial | tests/operational_exceptions/test_derivation.py::test_billing_sums_across_invoices | Summing across invoices is tested on the sales side only. |
-| I07 | partial | tests/test_costing_services.py (inbound_freight attribution) | Freight is attributed to a receipt, but the evidence is from the goods supplier; a third-party carrier invoice is untested. |
+| I06 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_several_partial_supplier_invoices_are_summed_against_the_purchase | 8 of 10 received; guided supplier invoices of 6 (no finding) and 4 sum to 10 and billed_not_received reports 2; a third guided invoice is refused with invoice_quantity_exceeds_billable. |
+| I07 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_carrier_freight_invoice_is_attributed_to_the_receipt_cost | A carrier other than the goods supplier bills freight through supplier_invoice_free_record with stated net; the owner assigns it as inbound_freight to the receipt through cost.change; the receipt's known cost is 20.00. |
 | I08 | covered | tests/test_credit_notes.py::test_netting_leaves_the_remainder_open; tests/scenarios/test_storyline_purchase_to_pay.py::test_the_credit_branch_pays_less_and_keeps_the_quantity_finding | |
 | I09 | covered | tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice[supplier] | The deposit is not linked to the PO. |
 | I10 | covered | tests/scenarios/test_storyline_purchase_to_pay.py (discount-full, credit-allocate, discount-net); tests/test_ledger.py::test_supplier_invoice_and_partial_payment_leave_open_payable | |
@@ -325,7 +325,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | K02 | gap | services/core.py create_item | There is no kit concept, so the whole kit cannot be held when one component is missing. |
 | K03 | gap | services/core.py create_item | A component can be returned as its own item, but there is no kit link, so no partial kit credit can be derived. |
 | K04 | gap | specs/242-inventory-cost-contribution/spec.md (Non-Goals: no production/WIP) | There is no assembly or production movement that pairs components consumed with the finished item produced. |
-| K05 | partial | tests/test_stock_at_location.py::test_pair_holds_only_this_item_at_this_location | Each variant as its own item gets its own stock; there is no parent/variant grouping and no test with several variants. |
+| K05 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_variants_bought_together_each_hold_and_reserve_their_own_stock | Three sizes on one purchase, one receipt; each size holds its own stock and reserves only its own, with a shortage only on the over-reserved size. |
 | K06 | gap | tests/test_commercial_matching_services.py::test_shipping_kit_production_direct_cost_and_unresolved_wip_are_explicit | A `kit_input` role exists for cost matching only; there is no bundle-to-component revenue or tax split, so lines carry only stated amounts. |
 
 ## L. E-commerce and marketplaces
@@ -337,7 +337,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | L03 | gap | specs/148-accounting-journal-cost-centers/spec.md FR-050; docs/features/payment_matching.md Non-goals | Payout and fee matching is specified but not implemented: no payout or provider-clearing code exists. |
 | L04 | partial | tests/test_unified_customer_refund.py::test_original_refund_source_is_preserved; specs/081-shopify-update-guard | A refund can cite a SourceRecord. The Shopify interpreter ignores refunds, and a refunded (changed) order goes to needs_review. |
 | L05 | partial | tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record; tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation | The new version is stored, but the commitment is deliberately not revised: it is held as needs_review. |
-| L06 | partial | tests/test_inventory_and_fulfillment.py::test_shortage_reservation_and_release; tests/operational_exceptions/test_derivation.py::test_at_risk_unchanged_before_due_date | A dated commitment without stock shows as a shortage or at_risk. A pre-order backed by expected supply is not tested. |
+| L06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_pre_order_shows_its_shortage_and_the_supply_that_protects_it | Dated customer order without stock; an incoming purchase is assigned through supply_assign; readiness names insufficient_stock and supply_coverage shows 5 protecting (0 before, as control). |
 | L07 | partial | specs/033-large-tenant-register-benchmark; tests/test_unified_delivery_actions.py::test_two_connections_cannot_overallocate_or_execute_two_stale_reviews; specs/181-scale-foundations (Draft) | Concurrent reservation safety and the 10k read baseline are proven. Ingest throughput is not. |
 | L08 | gap | db/core.py Commitment (no recurrence) | No recurring or subscription commitment; holds exist only per single commitment. |
 | L09 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_shopify_free_promotion_item_is_its_own_zero_price_line_and_commitment | A Shopify gift line at 0.00 becomes its own line and commitment; the raw line payload is kept. |
@@ -379,7 +379,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 
 | ID | Status | Evidence | Note |
 |---|---|---|---|
-| O01 | partial | tests/test_reference_workspace.py::test_full_item_edit_changes_inventory_behaviour; tests/test_master_data_parity.py::test_cli_and_api_produce_equivalent_authoritative_lifecycle_state; tests/test_operational_previews.py::test_document_keeps_description_sku_and_received_totals | SKU edits are proven and lines keep the SKU they stated; no test asserts that movements, stock and old documents stay intact after a rename. |
+| O01 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_renamed_item_number_keeps_every_record_on_the_same_item | After reserve, a partial shipment and an invoice, a reviewed item update renames the SKU: movements, reservations and the promise keep the item, stock is unchanged, order and invoice lines keep the old number, and the rest ships. |
 | O02 | gap | — (no merge service in services/) | There is no party merge or duplicate-resolution operation. |
 | O03 | out | specs/004-master-data/spec.md Non-Goals ("postal addresses") | Addresses exist only in lossless party or source payloads; no test proves an old order shows the old address. |
 | O04 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_delisted_item_still_serves_its_open_commitment | An inactive item is still reserved and shipped for its open commitment. |
@@ -393,10 +393,10 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | P01 | covered | packages/reality-core/tests/test_shopify_and_explain.py::test_shopify_ingestion_is_lossless_idempotent_and_traceable; tests/test_source_ingestion.py::test_unknown_source_is_stored_idempotently_as_unmapped; tests/test_payment_intake.py::test_replay_of_the_same_source_records_no_second_cash_entry | Idempotency is proven for orders, unmapped sources and payments. |
 | P02 | partial | packages/reality-core/tests/test_shopify_and_explain.py::test_stale_and_conflicting_webhooks_are_stored_but_not_interpreted, ::test_first_version_failure_retries_but_changed_version_requires_review | A stale webhook is stored but ignored, and an order is linked once its item exists. No test covers cross-record ordering, such as a payment or invoice arriving before its order and linking later. |
 | P03 | covered | packages/reality-core/tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation; tests/test_document_corrections.py::test_external_document_correction_appends_immutable_source_version | A correction creates a new version with a supersedes link and keeps the original payload. |
-| P04 | partial | packages/reality-core/tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record[cancelled_at-*] | A source cancellation is stored and held for review, and the commitment stays open. `cancel_commitment(source_record_id=...)` exists, but no test closes a commitment with a source reason. |
+| P04 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason | A Shopify order is interpreted and reserved; its cancelled version is held for review; a reviewed commitment_cancel citing that source record closes the line, releases the reservation and the event carries the source and the reason. |
 | P05 | partial | packages/reality-core/tests/test_interpretation_coverage.py::test_unsupported_and_historical_sources_have_explicit_coverage; tests/test_unified_order_entry.py::test_missing_or_ambiguous_evidence_is_not_success | Unsupported and failed payloads are visible. No test accepts a partially complete payload and flags the missing field. |
 | P06 | partial | packages/reality-core/tests/test_shipment_story.py::test_supplier_source_payload_and_carrier_warehouse_discrepancy_remain_distinct; tests/test_provenance.py::test_several_contributing_systems_are_disclosed | Only the carrier-versus-warehouse contradiction is surfaced. There is no general check when two systems state different values. |
-| P07 | partial | packages/reality-core/tests/operational_exceptions/test_derivation.py::test_silent_source, ::test_silent_source_clears_when_delivery_resumes | Silence is detected and clears when deliveries resume. No test replays a day's backlog and asserts no duplicates in the same story. |
+| P07 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_day_long_outage_is_reported_and_its_backlog_arrives_without_duplicates | Daily Shopify arrivals under a controlled clock; after four quiet days silent_source reports 96 hours; the backlog of new orders plus exact repeats creates ten records, ten orders and ten promises and the silence clears. |
 | P08 | partial | packages/reality-core/tests/test_unified_opening_stock.py::test_opening_review_adds_and_replay_is_inert; tests/finance/test_opening.py::test_four_directions_are_residual_positions_without_cash_or_turnover | Opening stock and opening open items are traceable. Open orders already partly delivered at go-live are not proven. |
 
 ## Q. Time and period
@@ -413,7 +413,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 
 | ID | Status | Evidence | Note |
 |---|---|---|---|
-| R01 | partial | tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside; tests/scenarios/test_b2b_operational_integrity.py::test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly; tests/scenarios/test_procure_to_pay.py::test_procure_to_pay_business_story; tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes | Prepayment gating, revise/cancel, partial receipt and damaged-return pieces exist separately; no one test reconciles every quantity and euro. |
+| R01 | partial | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_cannot_be_released_anyway | The 80 % prepaid order is refused by shipment_dispatch and by movement_create (spec 294 fix); spec 275 FR-005 keeps it unshippable and no reviewed release exists. |
 | R02 | partial | tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt, ::test_partial_reversal_is_append_only_and_idempotent; tests/test_incremental_derivation.py::test_a_cancelled_promise_leaves_the_demand_it_was_counted_in | `supply_assignments._effective_rows` ignores customer status, so a cancelled demand keeps its purchase assignment until someone reverses it by hand; there's no combined test. |
 | R03 | gap | specs/242-inventory-cost-contribution/spec.md (drop shipping listed only as an edge case) | There is no drop-shipment model (supplier ships to the customer, no own stock). |
 | R04 | gap | services/payment_intake.py (refuses references to several invoices); tests/test_payment_intake.py::test_two_invoices_for_one_order_and_a_consolidated_invoice_yield_no_allocation | There's no payout, fee or chargeback allocation across many orders. |

@@ -44,3 +44,23 @@ of a `movement_create` shipment against a customer delivery now refuses with
 `shipment_blocked_readiness` when readiness reports a payment blocker (`prepayment_*`), at
 preparation and again at confirmation. Only the payment gate is shared: recording goods that already
 left still needs no reservation (a net-term shipment without reservation is recorded, pinned as a test).
+
+## Story outcomes (2026-09-29)
+
+| ID | Story | Result |
+|---|---|---|
+| D16 | `test_a_free_replacement_ships_without_an_order_and_explains_itself` | pass through an advance exchange; limitation names replacements without a return |
+| G07 | `test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported` | pass; limitation names the guided invoice copying the order price |
+| H03 | `test_an_under_delivery_is_closed_with_its_reason_and_decision` | pass |
+| I06 | `test_several_partial_supplier_invoices_are_summed_against_the_purchase` | pass, fully guided |
+| I07 | `test_a_carrier_freight_invoice_is_attributed_to_the_receipt_cost` | pass |
+| K05 | `test_variants_bought_together_each_hold_and_reserve_their_own_stock` | pass |
+| L06 | `test_a_pre_order_shows_its_shortage_and_the_supply_that_protects_it` | pass |
+| O01 | `test_a_renamed_item_number_keeps_every_record_on_the_same_item` | pass |
+| P04 | `test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason` | pass |
+| P07 | `test_a_day_long_outage_is_reported_and_its_backlog_arrives_without_duplicates` | pass under a patched `db.core.datetime` |
+| R01 | `test_a_partly_paid_prepayment_order_cannot_be_released_anyway` | missing capability by design (spec 275 FR-005): pinned, stays partial with a corrected limitation |
+
+The Guide now has 92 supported and 59 partial journeys; an English and a German question per
+promoted journey returns it first as supported. `test_server_derives_status_from_provider_citations`
+used H03 as its example of a partial journey and now uses A02.

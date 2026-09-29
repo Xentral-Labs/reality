@@ -117,11 +117,12 @@ def test_server_derives_status_from_provider_citations() -> None:
         return {
             "text": "Reality supports the standard case, with documented limitations.",
             "status": "supported",
-            "citations": ["H03"],
+            # A journey that is still partial: the provider's claim must not win.
+            "citations": ["A02"],
         }
 
     answer = answer_public_question(
-        _catalog(), "Can the remainder be closed?", provider=provider
+        _catalog(), "Can one order ship from several warehouses?", provider=provider
     )
 
     assert answer.outcome == "provider"
