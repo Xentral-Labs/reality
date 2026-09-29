@@ -20750,8 +20750,8 @@ Object.assign(dictionaries.de, {
   "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
     "Einen Preis in Höhe des Einkaufspreises oder darüber vereinbaren oder den Einkaufspreis korrigieren, falls er falsch ist.",
   "Returned and not credited": "Retourniert, nicht gutgeschrieben",
-  "Crediting the returned quantity on a credit note line that names the order line.":
-    "Die retournierte Menge auf einer Gutschriftsposition gutschreiben, die die Auftragsposition nennt.",
+  "Crediting the returned quantity on a credit note line that names the order line, or exchanging it for a replacement.":
+    "Die retournierte Menge auf einer Gutschriftsposition gutschreiben, die die Auftragsposition nennt, oder sie gegen einen Ersatz umtauschen.",
   "Credited and not returned": "Gutgeschrieben, nicht retourniert",
   "The outstanding goods arriving, or correcting the credit note.":
     "Die offene Ware trifft ein, oder die Gutschrift wird korrigiert.",
@@ -20869,8 +20869,8 @@ Object.assign(dictionaries.nl, {
   "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
     "Een prijs op of boven de inkoopprijs afspreken, of de inkoopprijs corrigeren als die niet klopt.",
   "Returned and not credited": "Geretourneerd, niet gecrediteerd",
-  "Crediting the returned quantity on a credit note line that names the order line.":
-    "De geretourneerde hoeveelheid crediteren op een creditnotaregel die de orderregel noemt.",
+  "Crediting the returned quantity on a credit note line that names the order line, or exchanging it for a replacement.":
+    "De geretourneerde hoeveelheid crediteren op een creditnotaregel die de orderregel noemt, of haar omruilen tegen een vervanging.",
   "Credited and not returned": "Gecrediteerd, niet geretourneerd",
   "The outstanding goods arriving, or correcting the credit note.":
     "De openstaande goederen komen binnen, of de creditnota wordt gecorrigeerd.",
@@ -20988,8 +20988,8 @@ Object.assign(dictionaries.es, {
   "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
     "Acordar un precio igual o superior al de compra, o corregir el precio de compra si es el que está mal.",
   "Returned and not credited": "Devuelto y no abonado",
-  "Crediting the returned quantity on a credit note line that names the order line.":
-    "Abonar la cantidad devuelta en una línea de abono que indique la línea de pedido.",
+  "Crediting the returned quantity on a credit note line that names the order line, or exchanging it for a replacement.":
+    "Abonar la cantidad devuelta en una línea de abono que indique la línea de pedido, o cambiarla por una reposición.",
   "Credited and not returned": "Abonado y no devuelto",
   "The outstanding goods arriving, or correcting the credit note.":
     "Que llegue la mercancía pendiente o corregir el abono.",

@@ -1958,23 +1958,34 @@ entries:
   section: Returns and complaints
   title: 'Exchange: return plus new delivery, no money'
   question: Two commitments, no refund?
-  status: partial
-  evidence_level: reviewed
+  status: supported
+  evidence_level: executable
   summary: 'Reality evaluates: Two commitments, no refund?'
   limitations:
-  - The return and the replacement delivery are recorded, and no money moves.
-  - Reality has no exchange, so the return reads as not yet credited and the free replacement as not yet invoiced.
-  keywords: []
+  - Price differences between the returned and the replacement item go through an invoice or a credit note; the exchange itself moves no money.
+  keywords:
+  - exchange
+  - exchanges
+  - swap
+  - replacement
+  - another size
+  - Umtausch
+  - umtauschen
+  - tauscht
+  - Ersatz
+  - andere Größe
   question_examples:
   - 'Exchange: return plus new delivery, no money'
   - Two commitments, no refund?
+  - Customer exchanges an item for another size
+  - Kunde tauscht einen Artikel gegen eine andere Größe um
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_exchange_moves_no_money_but_reads_as_uncredited_and_unbilled
-    note: Goods and money are right, but the return raises returned_not_credited and the zero-price replacement shipped_not_billed; spec 246 US7 requires only that neither movement overwrites the other.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_exchange_returns_one_unit_and_sends_another_without_money
+    note: 'Paid delivery returned and exchanged for a larger size through the reviewed customer_exchange_record tool (spec 293): the free replacement ships, no credit, invoice, payment or refund exists, and neither returned_not_credited, shipped_not_billed nor exchange_without_return is reported (positive control first).'
   - reference: tests/scenarios/test_international_demo.py::test_supported_edge_cases_are_source_backed_and_traceable (exchange_replacement)
     note: Only the order of the return and replacement movements is asserted; "no refund / no money moved" is not.
 - id: F08

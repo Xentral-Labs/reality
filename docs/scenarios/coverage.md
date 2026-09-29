@@ -2,13 +2,13 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06 and pinned F07. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 81 covered, 70 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 82 covered, 69 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -17,7 +17,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | C Payment and release | 10 | 4 |  | 4 |  |
 | D Shipment, split and merge | 3 | 4 |  | 12 |  |
 | E Customer invoice and credit | 8 | 4 |  |  |  |
-| F Returns and complaints | 8 | 4 |  | 1 |  |
+| F Returns and complaints | 9 | 3 |  | 1 |  |
 | G Purchase demand and order | 5 | 7 |  | 5 |  |
 | H Receipt and supplier deviations | 9 | 3 |  | 7 |  |
 | I Supplier invoice and payment | 8 | 3 |  | 1 |  |
@@ -230,7 +230,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | F04 | partial | tests/test_return_announcements.py::test_the_parcel_names_its_announcement; tests/scenarios/test_normal_month.py::test_the_month_ends_with_exactly_these_exceptions | Accepting an unannounced return is tested. Linking an orphan return later (e.g. via correct_movement) is not. |
 | F05 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_damaged_return_is_disposed_and_credited_independently | Two back, one restocked and one scrapped through reviewed dispositions; full-quantity credit with a damage charge line, refunded; dispositions and credit each reconcile with no signal (positive control first). |
 | F06 | covered | tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes; tests/scenarios/test_b2b_operational_chain.py::test_supply_and_return_reconciliations_are_exact | Arrived 5 = restock 2 + quarantine 1 + scrap 1 + back to supplier 1; over-disposition is refused. |
-| F07 | partial | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_exchange_moves_no_money_but_reads_as_uncredited_and_unbilled | Goods and money are right, but the return raises returned_not_credited and the zero-price replacement shipped_not_billed; spec 246 US7 requires only that neither movement overwrites the other. No exchange concept exists. |
+| F07 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_exchange_returns_one_unit_and_sends_another_without_money | A paid delivery is returned and exchanged for a larger size through the reviewed exchange tool (spec 293): the free replacement ships and no credit, invoice, payment or refund exists, with no finding. |
 | F08 | partial | tests/operational_exceptions/test_derivation.py::test_credited_not_returned | A credit before the goods arrive is covered. The refund payment and a "return still expected" signal are not asserted. |
 | F09 | covered | tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived, ::test_an_announcement_with_no_stated_day_is_judged_by_the_learned_rhythm | A stale announcement is reported by the stated date or the learned rhythm, and clears on arrival. |
 | F10 | gap | packages/reality-core/src/reality/services/return_dispositions.py (return_to_supplier is terminal) | Goods cannot go out for repair and come back while staying owned. |

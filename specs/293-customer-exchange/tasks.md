@@ -64,17 +64,17 @@
 - [x] T022 [DR-004] Declare the command, agent coverage and read capability guidance in `core/config/command_catalog.yaml`; topics in `core/config/tool_catalog.json`; `core/config/action_discovery.json`; mirror in `apps/web/scripts/fixtures/action-reference.json`
 - [x] T023 [DR-004] Register refusals in `core/config/service_refusals.json` (with de/nl/es) and modules in `core/config/refusal_ratchet.json`; tools and service operations in `core/config/tenant_isolation_catalog.yaml`; the event in `core/config/business_event_catalog.yaml`; the service and event modules in `core/src/reality/catalogs.py`; `record_customer_exchange` in `core/src/reality/services/tenant_policy.py` practice operations and `core/src/reality/services/business_locks.py`; the subject in `TIMELINE_SILENT_SUBJECTS` in `core/src/reality/services/projections.py`
 - [x] T024 [DR-004] Add the table and German command label to `core/config/resource_catalog.yaml`; raise the pinned command, event and discovered-operation counts in `core/tests/test_application_catalog.py`
-- [ ] T025 Update the exception descriptions for `returned_not_credited`, `credited_not_returned`, `announced_return_not_arrived` and `exchange_without_return` in `core/config/operational_exception_catalog.yaml` and `docs/features/operational_exceptions.md`
+- [x] T025 Update the exception descriptions for `returned_not_credited`, `credited_not_returned`, `announced_return_not_arrived` and `exchange_without_return` in `core/config/operational_exception_catalog.yaml` and `docs/features/operational_exceptions.md`
 
 ## Phase 8: User Story 4 — The Guide states exchanges (P2)
 
-- [ ] T026 [US4] [FR-013] Replace the pinned gap test with the F07 exchange story (recorded exchange, no finding, no money, positive controls) in `core/tests/scenarios/test_catalog_stock_and_returns.py`
-- [ ] T027 [US4] [FR-013] Promote F07 in `core/config/business_journey_catalog.yaml` (limitation: price differences go through invoices and credit notes), move F07 into `PROVEN_BY_STORY` in `core/tests/test_business_journey_catalog.py`, update `docs/scenarios/coverage.md`
-- [ ] T028 [US4] Run `make docs-generate` and commit the generated Docs, Guide and product advisor knowledge
+- [x] T026 [US4] [FR-013] Replace the pinned gap test with the F07 exchange story (recorded exchange, no finding, no money, positive controls) in `core/tests/scenarios/test_catalog_stock_and_returns.py`
+- [x] T027 [US4] [FR-013] Promote F07 in `core/config/business_journey_catalog.yaml` (limitation: price differences go through invoices and credit notes), move F07 into `PROVEN_BY_STORY` in `core/tests/test_business_journey_catalog.py`, update `docs/scenarios/coverage.md`
+- [x] T028 [US4] Run `make docs-generate` and commit the generated Docs, Guide and product advisor knowledge
 
 ## Final Phase: Verification and Review
 
-- [ ] T029 Add the new test files and `` `customer_exchange` `` to `docs/SPEC_COVERAGE_MATRIX.md`
+- [x] T029 Add the new test files and `` `customer_exchange` `` to `docs/SPEC_COVERAGE_MATRIX.md`
 - [ ] T030 Run the completeness gates from `specs/293-customer-exchange/quickstart.md`, Ruff (`--no-cache`), `make spec-check`, `make docs-catalog-check`, the Web i18n audit and action-discovery tests
 - [ ] T031 Run the complete backend suite (CI shards are the evidence) and the manual Web check in `specs/293-customer-exchange/quickstart.md` on an isolated stack
 - [ ] T032 Review the diff against FR-001–FR-013, DR-001–DR-005 and the Constitution; confirm supplier return classes and spec 079 regressions are unchanged

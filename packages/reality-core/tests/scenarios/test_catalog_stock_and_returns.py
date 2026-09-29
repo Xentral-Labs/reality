@@ -688,19 +688,18 @@ def test_a_damaged_return_is_disposed_and_credited_independently(session, busine
     assert _signals(session, business, {order_line_id, goods_back.id}) == set()
 
 
-def test_an_exchange_moves_no_money_but_reads_as_uncredited_and_unbilled(
+def test_an_exchange_returns_one_unit_and_sends_another_without_money(
     session, business
 ):
-    """F07 stays partial: Reality has no exchange, so the swap leaves two findings.
+    """F07: a return plus a replacement delivery moves no money and leaves no work.
 
-    The goods and the money are right: one unit back, one out, nothing paid or
-    refunded. But the return still waits for a credit and the zero-price
-    replacement for an invoice, because nothing says the one replaces the other.
-    Spec 246 US7 asks only that neither movement overwrites the other. The day an
-    exchange exists, this test turns red and F07 can be promoted.
+    The exchange is recorded through the same reviewed tool the web and the agent
+    use (spec 293); before it, the returned unit is owed a credit.
     """
     tenant = business.tenant.id
     opening_stock(session, business, 10)
+    larger = create_item(session, tenant, "BIKE-LIGHT-XL", "Bike Light XL")
+    opening_stock(session, business, 5, item=larger)
     commitment, order_line_id = _sales_order(session, business, "SO-F07", "1", "20.00")
     _deliver(session, business, commitment, 1, days_ago=20)
     invoice_id, _ = _invoice(session, business, "RE-F07", order_line_id, "1", "20.00")
@@ -712,7 +711,6 @@ def test_an_exchange_moves_no_money_but_reads_as_uncredited_and_unbilled(
         "pay-f07",
     )
     cash_before = account_balance(session, tenant, "cash")
-
     goods_back = record_movement(
         session,
         tenant,
@@ -723,24 +721,60 @@ def test_an_exchange_moves_no_money_but_reads_as_uncredited_and_unbilled(
         commitment_id=commitment.id,
         occurred_at=AS_OF - timedelta(days=10),
     )
-    replacement, replacement_line_id = _sales_order(
-        session, business, "SO-F07-R", "1", "0.00"
+    # Positive control: back and neither credited nor exchanged is reported.
+    assert ("returned_not_credited", order_line_id) in _signals(
+        session, business, {order_line_id}
     )
-    sent = _deliver(session, business, replacement, 1, days_ago=9)
 
-    assert stock_at(session, tenant, business.item.id, business.location.id) == (
-        Decimal(9)
-    )
-    assert open_invoice_amount(session, tenant, invoice_id) == Decimal(0)
-    assert account_balance(session, tenant, "cash") == cash_before
-    assert _signals(
+    receipt = _reviewed(
         session,
         business,
-        {order_line_id, replacement_line_id, goods_back.id, sent.id},
-    ) == {
-        ("returned_not_credited", order_line_id),
-        ("shipped_not_billed", replacement_line_id),
-    }
-    # Neither movement overwrote the other (spec 246 US7).
+        "customer_exchange_record",
+        {
+            "return_movement_id": goods_back.id,
+            "quantity": "1",
+            "replacement_item_id": larger.id,
+            "replacement_quantity": "1",
+            "reason": "Customer needs the larger size",
+        },
+        "exchange-f07",
+    )
+    replacement = record_by_id(
+        session, Commitment, receipt["replacement_commitment_id"]
+    )
+    reserve(session, tenant, replacement.id)
+    sent = record_movement(
+        session,
+        tenant,
+        "shipment",
+        larger.id,
+        1,
+        from_location_id=business.location.id,
+        commitment_id=replacement.id,
+        occurred_at=AS_OF - timedelta(days=9),
+    )
+
+    assert replacement.status == "fulfilled"
+    assert (replacement.to_party_id, replacement.amount) == (
+        business.customer.id,
+        Decimal(0),
+    )
+    assert stock_at(session, tenant, business.item.id, business.location.id) == (
+        Decimal(10)
+    )
+    assert stock_at(session, tenant, larger.id, business.location.id) == Decimal(4)
+    # No money moved: the invoice stays paid, nothing was credited or refunded.
+    assert open_invoice_amount(session, tenant, invoice_id) == Decimal(0)
+    assert account_balance(session, tenant, "cash") == cash_before
+    assert account_balance(session, tenant, "accounts_receivable") == Decimal(0)
+    assert {
+        (row.class_id, row.record_id)
+        for row in operational_exceptions(session, tenant, as_of=AS_OF)
+        if row.class_id in WATCHED | {"exchange_without_return"}
+    } == set()
+    # Neither movement overwrote the other (spec 246 US7), and each explains the other.
     assert fulfilled_quantity(session, tenant, commitment.id) == Decimal(1)
-    assert fulfilled_quantity(session, tenant, replacement.id) == Decimal(1)
+    assert ("customer_exchange", receipt["exchange_id"]) in {
+        (link["kind"], link["id"])
+        for link in movement_explanation(session, tenant, sent.id)["links"]
+    }
