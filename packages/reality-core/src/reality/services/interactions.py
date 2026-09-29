@@ -62,7 +62,7 @@ _STAGE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         "ledger",
         re.compile(
             r"^(ledger|posting|subledger|settlement|finance|financial_component|"
-            r"accounting_target|dunning)"
+            r"accounting_target|dunning|collection_handover)"
         ),
     ),
     (

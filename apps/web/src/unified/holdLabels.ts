@@ -7,6 +7,7 @@ export function holdReason(code: string): string {
     address_clarification: "Address clarification",
     compliance: "Compliance review",
     manual_review: "Manual review",
+    collection: "Collection",
     other: "Other hold reason",
   };
   return t(labels[code] || "Other hold reason");

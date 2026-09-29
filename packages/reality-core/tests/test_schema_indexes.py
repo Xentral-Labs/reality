@@ -73,9 +73,12 @@ def test_the_migrations_together_create_exactly_the_derived_indexes():
     later_tables = {
         "analytics_report",
         "analysis_request",
+        "collection_handover",
+        "collection_handover_invoice",
         "customer_exchange",
         "dunning_notice",
         "dunning_notice_invoice",
+        "dunning_schedule_level",
         "supply_assignment",
     }
     assert {entry for entry in after_second if entry[1] not in later_tables} == {

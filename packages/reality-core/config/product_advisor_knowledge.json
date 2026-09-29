@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:f1297d862de865c8f77f23d79898f15f8103c4f327757c5b589d436291433b1b",
+  "knowledge_version": "advisor-v1:sha256:0085d14ec5df04a4307625914aa2fce41f972a11c334bafc0c7992c001b8c419",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1773,7 +1773,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#N04",
-      "fingerprint": "7f499e286d8ac73ac86add663d3ddfc7ada56d53642e05f9c6936d16995d6fca"
+      "fingerprint": "8dee029801d9b4c7dc9421a5b03f37a2e44f25fb16ecebe5db4d08d003001382"
     },
     {
       "id": "source_journey_n05",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "937f912955fbce42e3ee3a1117810ec1dc02f07475c4e919a84ce16f8f12e4b5"
+      "fingerprint": "29e1ddf04455bbf0286a09610e1b6d84170801a5ce69985eea8af1c1bc4a167d"
     },
     {
       "id": "source_document_connector_contract",
@@ -5362,18 +5362,23 @@
       "source_id": "source_journey_n04",
       "subject": "Finance, tax and currency",
       "title": "Dunning in three levels, then collection",
-      "search_text": "N04 Finance, tax and currency Dunning in three levels, then collection Dunning notices from open items? Dunning in three levels, then collection Dunning notices from open items?",
-      "claim_text": "Reality evaluates: Dunning notices from open items?",
-      "support": "limited",
+      "search_text": "N04 Finance, tax and currency Dunning in three levels, then collection Dunning notices from open items? dunning run dunning level reminder level hand over to collection Mahnlauf Mahnstufe Inkasso Dunning in three levels, then collection Dunning notices from open items? Run the reminders for all overdue invoices and escalate to the next level Mahnlauf über alle überfälligen Rechnungen und danach ans Inkasso",
+      "claim_text": "Reality evaluates: Dunning notices from open items? A person starts a dunning run over all or selected customers; each overdue item is proposed at its next level with the fee the schedule states, and after level 3 it is handed to collection with a delivery hold. An agent can prepare the run; a person confirms it.",
+      "support": "proven",
       "limitations": [
-        "Dunning notices at levels 1 to 3 with a fee can be created by hand.",
-        "There is no escalation sequence, no dunning run from open items and no handover to collection."
+        "Letters and emails are not sent; the notice is recorded evidence.",
+        "The schedule is one per company with a fixed fee per level, charged in each notice's currency; interest is not calculated.",
+        "Disputed items are not known to Reality; the person deselects them in the review."
       ],
       "references": [
-        "N04"
+        "N04",
+        "finance_dunning_schedule",
+        "finance_dunning_run_context",
+        "finance_dunning_run_propose",
+        "finance_dunning_collection_propose"
       ],
       "language": "en",
-      "fingerprint": "bc86bbdadbbf4b5cd33b8c5dac04dfff01cf4ff12bdda9e240dc9bff5db97d3f"
+      "fingerprint": "8d790e32fcc44623f522d61dbe139903ba5bb66591202a85be7cc098140ca4c2"
     },
     {
       "id": "evidence_journey_n05",
@@ -7329,6 +7334,111 @@
       ],
       "language": "en",
       "fingerprint": "5331d9f65c4b4698610b2a4fed1dd107e89393f2faf8e5fa12d6a44dcb83817f"
+    },
+    {
+      "id": "evidence_command_schedule",
+      "source_id": "source_executable_commands",
+      "subject": "Read dunning schedule",
+      "title": "Read dunning schedule",
+      "search_text": "schedule Read dunning schedule Reads the company's waiting days and fixed fee for dunning levels 1 to 3. query",
+      "claim_text": "schedule is a governed query command for Reads the company's waiting days and fixed fee for dunning levels 1 to 3..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "schedule"
+      ],
+      "language": "en",
+      "fingerprint": "0c21cec1d5cdbd6c8af9b8c41e56086b69a29806de2897a191ae8bb62c8709ce"
+    },
+    {
+      "id": "evidence_command_set_schedule",
+      "source_id": "source_executable_commands",
+      "subject": "Set dunning schedule",
+      "title": "Set dunning schedule",
+      "search_text": "set_schedule Set dunning schedule Replaces the company's three dunning levels with the confirmed waiting days and fees; recorded notices keep theirs. mutation",
+      "claim_text": "set_schedule is a governed mutation command for Replaces the company's three dunning levels with the confirmed waiting days and fees; recorded notices keep theirs..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "set_schedule"
+      ],
+      "language": "en",
+      "fingerprint": "c989dbeb3b0a032fa6b044bb2668ceff2d23f207d3dc2ea106f8ca08cb1f9c46"
+    },
+    {
+      "id": "evidence_command_run_context",
+      "source_id": "source_executable_commands",
+      "subject": "Preview dunning run",
+      "title": "Preview dunning run",
+      "search_text": "run_context Preview dunning run Proposes notices per customer, currency and level for overdue items and names items waiting, with credit or in collection, without recording anything. query",
+      "claim_text": "run_context is a governed query command for Proposes notices per customer, currency and level for overdue items and names items waiting, with credit or in collection, without recording anything..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "run_context"
+      ],
+      "language": "en",
+      "fingerprint": "6cf9fdca3003b57aa828cb6b25b248683e4c7a0067042eeb5aee85e60cee704c"
+    },
+    {
+      "id": "evidence_command_confirm_run",
+      "source_id": "source_executable_commands",
+      "subject": "Confirm dunning run",
+      "title": "Confirm dunning run",
+      "search_text": "confirm_run Confirm dunning run Records the reviewed notices still due at their reviewed level and names every skipped item, in one transaction, without sending anything. mutation",
+      "claim_text": "confirm_run is a governed mutation command for Records the reviewed notices still due at their reviewed level and names every skipped item, in one transaction, without sending anything..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "confirm_run"
+      ],
+      "language": "en",
+      "fingerprint": "ff22deaccd34617ba98cef84f8605d26029194fd6ae6a0670086ba8b0aebd398"
+    },
+    {
+      "id": "evidence_command_record_handover",
+      "source_id": "source_executable_commands",
+      "subject": "Hand over to collection",
+      "title": "Hand over to collection",
+      "search_text": "record_handover Hand over to collection Hands one customer's level-3 invoices to collection with a reason and places a delivery hold with the reason collection. mutation",
+      "claim_text": "record_handover is a governed mutation command for Hands one customer's level-3 invoices to collection with a reason and places a delivery hold with the reason collection..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "record_handover"
+      ],
+      "language": "en",
+      "fingerprint": "c10207b01e16dc128b7b4093951513334632425b8fcd2c9dce031ecdf806126f"
+    },
+    {
+      "id": "evidence_command_handovers",
+      "source_id": "source_executable_commands",
+      "subject": "List collection handovers",
+      "title": "List collection handovers",
+      "search_text": "handovers List collection handovers Lists collection handovers with their invoices and delivery hold. query",
+      "claim_text": "handovers is a governed query command for Lists collection handovers with their invoices and delivery hold..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "handovers"
+      ],
+      "language": "en",
+      "fingerprint": "e1f924dd1c818ef6ee4620e3c5407b39846c1b0da61e6de5b42843fc10d74501"
+    },
+    {
+      "id": "evidence_command_handover_detail",
+      "source_id": "source_executable_commands",
+      "subject": "Read collection handover",
+      "title": "Read collection handover",
+      "search_text": "handover_detail Read collection handover Reads one collection handover with its invoices, last notices and delivery hold. query",
+      "claim_text": "handover_detail is a governed query command for Reads one collection handover with its invoices, last notices and delivery hold..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "handover_detail"
+      ],
+      "language": "en",
+      "fingerprint": "8ace2f85dca62e6e453f58382f35049ae5dc42b2231108bb6ea0f2bfe0eca142"
     },
     {
       "id": "evidence_command_record_sales_invoice",

@@ -1893,6 +1893,98 @@ def finance_adjustment_propose(arguments: str, tenant_id: str | None = None) -> 
         )
 
 
+def _finance_propose(tool: str, arguments: str, tenant_id: str | None) -> None:
+    from reality.tools.application import create_change_proposal
+
+    try:
+        values = json.loads(arguments)
+        if not isinstance(values, dict):
+            raise TypeError
+    except (json.JSONDecodeError, TypeError) as error:
+        raise typer.BadParameter("Arguments must be a JSON object.") from error
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            proposal = create_change_proposal(
+                session, tenant.id, tool, values, actor_type="human"
+            )
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+        con.print_json(
+            data={"id": proposal.id, "preview": json.loads(proposal.output)},
+            default=str,
+        )
+
+
+def _finance_read(tool: str, arguments: dict, tenant_id: str | None) -> None:
+    from reality.tools.application import run_read_tool
+
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            result = run_read_tool(session, tenant.id, tool, arguments)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+        con.print_json(data=result, default=str)
+
+
+@app.command("finance-dunning-schedule")
+def finance_dunning_schedule(tenant_id: str | None = None) -> None:
+    """Read the company dunning schedule: waiting days and fee per level."""
+    _finance_read("finance.dunning.schedule", {}, tenant_id)
+
+
+@app.command("finance-dunning-schedule-propose")
+def finance_dunning_schedule_propose(
+    arguments: str, tenant_id: str | None = None
+) -> None:
+    """Prepare the company dunning schedule for owner confirmation."""
+    _finance_propose("finance.dunning.schedule.set", arguments, tenant_id)
+
+
+@app.command("finance-dunning-run-context")
+def finance_dunning_run_context(
+    run_date: str,
+    party_id: Annotated[list[str] | None, typer.Option("--party-id")] = None,
+    tenant_id: str | None = None,
+) -> None:
+    """Preview a dunning run: notices per customer and level, and items left out."""
+    _finance_read(
+        "finance.dunning.run_context",
+        {"run_date": run_date, "party_ids": party_id or []},
+        tenant_id,
+    )
+
+
+@app.command("finance-dunning-run-propose")
+def finance_dunning_run_propose(arguments: str, tenant_id: str | None = None) -> None:
+    """Prepare the reviewed dunning run for owner confirmation."""
+    _finance_propose("finance.dunning.run", arguments, tenant_id)
+
+
+@app.command("finance-dunning-collection-propose")
+def finance_dunning_collection_propose(
+    arguments: str, tenant_id: str | None = None
+) -> None:
+    """Prepare handing level-3 invoices to collection for owner confirmation."""
+    _finance_propose("finance.dunning.collection.handover", arguments, tenant_id)
+
+
+@app.command("finance-dunning-collection")
+def finance_dunning_collection(
+    handover_id: str | None = None, tenant_id: str | None = None
+) -> None:
+    """List collection handovers, or read one by its identity."""
+    if handover_id:
+        _finance_read(
+            "finance.dunning.collection_handover",
+            {"handover_id": handover_id},
+            tenant_id,
+        )
+    else:
+        _finance_read("finance.dunning.collection_handovers", {}, tenant_id)
+
+
 @app.command("finance-settlement-context")
 def finance_settlement_context(
     document_id: str, query: str = "", tenant_id: str | None = None

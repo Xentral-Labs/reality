@@ -9,19 +9,19 @@ the technical key stands beside each one.
 | Object                                                           | Lists | Actions | Exceptions to clear |
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
-| [Business partner](#resource-party)                              | 1     | 7       | 2                   |
+| [Business partner](#resource-party)                              | 1     | 8       | 2                   |
 | [Item](#resource-item)                                           | 5     | 4       | 3                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 2                   |
 | [Order](#resource-order)                                         | 8     | 10      | 9                   |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
-| [Invoice and credit note](#resource-invoice)                     | 3     | 10      | 14                  |
+| [Invoice and credit note](#resource-invoice)                     | 3     | 12      | 14                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 2                   |
-| [Ledger and accounts](#resource-accounting)                      | 2     | 14      | 3                   |
+| [Ledger and accounts](#resource-accounting)                      | 2     | 15      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 4       | 7                   |
-| [Document and source system](#resource-source)                   | 3     | 11      | 2                   |
+| [Document and source system](#resource-source)                   | 3     | 12      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
 
@@ -77,10 +77,7 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 - [Assign party price list](./commands#command-assign_party_price_list) (`assign_party_price_list`)
 - [Create and assign pricing group](./commands#command-create_party_group) (`create_party_group`)
 - [Set party delivery hold](./commands#command-hold_party_delivery) (`hold_party_delivery`)
-
-**Look up**
-
-- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
+- [Hand over to collection](./commands#command-record_handover) (`record_handover`)
 
 **Exceptions to clear**
 
@@ -90,8 +87,9 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 **Appears in processes:** [Master data and sources](./processes#process-master_data)
 
 **Underneath:** Tables: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold` ·
-Events: [`party.created`](./events#event-party-created),
-[`party.updated`](./events#event-party-updated),
+Events:
+[`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded),
+[`party.created`](./events#event-party-created), [`party.updated`](./events#event-party-updated),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`party.delivery_hold_released`](./events#event-party-delivery_hold_released),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed),
@@ -410,6 +408,8 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 - [Record supplier invoice](./commands#command-record_supplier_invoice) (`record_supplier_invoice`)
 - [Record free supplier invoice](./commands#command-record_free_supplier_invoice)
   (`record_free_supplier_invoice`)
+- [Set dunning schedule](./commands#command-set_schedule) (`set_schedule`)
+- [Hand over to collection](./commands#command-record_handover) (`record_handover`)
 - [Record sales invoice](./commands#command-record_sales_invoice) (`record_sales_invoice`)
 - [Post credit note](./commands#command-post_sales_credit_note) (`post_sales_credit_note`)
 - [Net credit note against invoice](./commands#command-allocate_credit_note)
@@ -424,6 +424,11 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 - [Read invoice credit context](./commands#command-invoice_credit_context)
   (`invoice_credit_context`)
 - [Read billable invoice positions](./commands#command-billable_positions) (`billable_positions`)
+- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
+- [Read dunning schedule](./commands#command-schedule) (`schedule`)
+- [Preview dunning run](./commands#command-run_context) (`run_context`)
+- [List collection handovers](./commands#command-handovers) (`handovers`)
+- [Read collection handover](./commands#command-handover_detail) (`handover_detail`)
 
 **Exceptions to clear**
 
@@ -454,9 +459,12 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 [Procure to pay](./processes#process-procure_to_pay),
 [Customer returns](./processes#process-returns)
 
-**Underneath:** Events: [`credit.recorded`](./events#event-credit-recorded),
-[`invoice.recorded`](./events#event-invoice-recorded) · Agent tools without a command:
-[`finance_credits`](./commands#tool-finance_credits),
+**Underneath:** Tables: `dunning_schedule_level`, `collection_handover`,
+`collection_handover_invoice` · Events: [`credit.recorded`](./events#event-credit-recorded),
+[`invoice.recorded`](./events#event-invoice-recorded),
+[`dunning.schedule_set`](./events#event-dunning-schedule_set),
+[`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded) ·
+Agent tools without a command: [`finance_credits`](./commands#tool-finance_credits),
 [`finance_party_balances`](./commands#tool-finance_party_balances)
 
 ## Payment and settlement {#resource-payment}
@@ -489,7 +497,7 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 **Look up**
 
 - [Preview payment run](./commands#command-preview_payment_run) (`preview_payment_run`)
-- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
+- [Preview dunning run](./commands#command-run_context) (`run_context`)
 - [Read settlement reduction context](./commands#command-adjustment_context) (`adjustment_context`)
 - [Read payment and credit context](./commands#command-settlement_context) (`settlement_context`)
 
@@ -545,6 +553,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
   (`reverse_ledger_posting_group`)
 - [Record dunning notice](./commands#command-record_notice) (`record_notice`)
 - [Reverse dunning notice](./commands#command-reverse_notice) (`reverse_notice`)
+- [Confirm dunning run](./commands#command-confirm_run) (`confirm_run`)
 - [Import opening positions](./commands#command-import_opening) (`import_opening`)
 
 **Look up**
@@ -574,9 +583,9 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Read operational transaction matrix](./commands#command-transaction_matrix)
   (`transaction_matrix`)
 - [Read operational accounts](./commands#command-list_accounts) (`list_accounts`)
-- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
 - [List dunning notices](./commands#command-notices) (`notices`)
 - [Read dunning notice](./commands#command-notice_detail) (`notice_detail`)
+- [Preview dunning run](./commands#command-run_context) (`run_context`)
 - [Read opening position context](./commands#command-opening_context) (`opening_context`)
 
 **Exceptions to clear**
@@ -620,6 +629,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 [`finance.account_changed`](./events#event-finance-account_changed),
 [`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
 [`dunning.notice_reversed`](./events#event-dunning-notice_reversed),
+[`dunning.run_confirmed`](./events#event-dunning-run_confirmed),
 [`ledger.posted`](./events#event-ledger-posted), [`ledger.reversed`](./events#event-ledger-reversed)
 
 ## Contribution margin {#resource-contribution}
@@ -757,6 +767,7 @@ Nachweis, Quelle
 - [Record manual document](./commands#command-create_manual_document_with_lines)
   (`create_manual_document_with_lines`)
 - [Record dunning notice](./commands#command-record_notice) (`record_notice`)
+- [Confirm dunning run](./commands#command-confirm_run) (`confirm_run`)
 
 **Look up**
 
@@ -765,9 +776,9 @@ Nachweis, Quelle
 - [Read source code mappings](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Read source mapping history](./commands#command-source_mapping_history)
   (`source_mapping_history`)
-- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
 - [List dunning notices](./commands#command-notices) (`notices`)
 - [Read dunning notice](./commands#command-notice_detail) (`notice_detail`)
+- [Preview dunning run](./commands#command-run_context) (`run_context`)
 
 **Exceptions to clear**
 
@@ -780,6 +791,7 @@ Nachweis, Quelle
 **Underneath:** Tables: `source_system`, `source_capability`, `document`, `document_line`, `fact` ·
 Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed),
 [`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
+[`dunning.run_confirmed`](./events#event-dunning-run_confirmed),
 [`source_record.stored`](./events#event-source_record-stored),
 [`fact.observed`](./events#event-fact-observed),
 [`source_record.received`](./events#event-source_record-received),

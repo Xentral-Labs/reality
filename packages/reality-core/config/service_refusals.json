@@ -79,6 +79,33 @@
     "chat_session_not_found": {
       "message": "ChatSession not found."
     },
+    "collection_already_handed_over": {
+      "message": "Invoice {number} is already handed over to collection.",
+      "values": {
+        "number": "text"
+      }
+    },
+    "collection_invoice_not_open": {
+      "message": "Invoice {number} has nothing open.",
+      "values": {
+        "number": "text"
+      }
+    },
+    "collection_invoices_missing": {
+      "message": "Select at least one invoice to hand over to collection."
+    },
+    "collection_level_missing": {
+      "message": "Invoice {number} can go to collection only after a dunning notice at level 3.",
+      "values": {
+        "number": "text"
+      }
+    },
+    "collection_mixed_customers": {
+      "message": "One collection handover cannot mix customers."
+    },
+    "collection_reason_missing": {
+      "message": "State why the invoices go to collection."
+    },
     "commitment_action_unresolved": {
       "message": "An earlier action for this commitment is unresolved. Check its outcome first."
     },
@@ -423,6 +450,36 @@
     },
     "document_date_format_invalid": {
       "message": "Document date must use YYYY-MM-DD."
+    },
+    "dunning_preview_stale": {
+      "message": "Dunning preview is stale; reload and confirm again."
+    },
+    "dunning_run_date_invalid": {
+      "message": "Enter the dunning date as a valid date."
+    },
+    "dunning_run_item_unknown": {
+      "message": "Invoice {invoice_id} is not a customer invoice that can be dunned at levels 1 to 3.",
+      "values": {
+        "invoice_id": "text"
+      }
+    },
+    "dunning_run_items_invalid": {
+      "message": "Select between 1 and 500 invoices, each with its proposed level."
+    },
+    "dunning_run_parties_invalid": {
+      "message": "Select the customers of a dunning run as a list."
+    },
+    "dunning_schedule_incomplete": {
+      "message": "A dunning schedule states exactly levels 1, 2 and 3."
+    },
+    "dunning_schedule_missing": {
+      "message": "Set the dunning schedule with levels 1, 2 and 3 before a dunning run."
+    },
+    "dunning_schedule_value_invalid": {
+      "message": "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.",
+      "values": {
+        "level": "number"
+      }
     },
     "finance_account_blocked_or_wrong_role": {
       "message": "Account is blocked or has the wrong operational role."
