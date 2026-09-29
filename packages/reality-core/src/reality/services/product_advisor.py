@@ -861,7 +861,7 @@ def _deterministic_answer(
             claim = AdvisoryClaim(
                 id=f"claim_{document.id.removeprefix('evidence_')}",
                 subject=document.subject,
-                statement=document.claim_text,
+                statement=text,
                 support="limited",
                 evidence_ids=(document.id,),
                 workflow_role="manual",

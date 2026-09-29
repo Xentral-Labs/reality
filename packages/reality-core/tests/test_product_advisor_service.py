@@ -287,6 +287,21 @@ def test_german_enterprise_questions_retrieve_catalog_authority() -> None:
         assert retrieve_evidence(question)
 
 
+def test_long_document_fallback_uses_a_bounded_claim_statement() -> None:
+    document_evidence = tuple(
+        item
+        for item in product_advisor.product_advisor_knowledge().evidence
+        if item.id == "evidence_document_tool_usage_1"
+    )
+    answer = product_advisor.answer_product_question(
+        "How are operational findings documented?",
+        _evidence=document_evidence,
+    )
+
+    assert answer["status"] == "partial"
+    assert len(answer["claims"][0]["statement"]) <= 2000
+
+
 def test_mixed_supported_and_limited_claims_are_reported_as_partial() -> None:
     claims = [
         product_advisor.AdvisoryClaim(
