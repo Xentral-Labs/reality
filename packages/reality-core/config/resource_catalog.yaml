@@ -700,6 +700,7 @@ labels:
       assign_supply: Zulauf einem Kundenbedarf zuordnen
       record_return_disposition: Retourenware entscheiden
       record_customer_exchange: Retournierte Ware umtauschen
+      assign_line_item: Artikel für Auftragszeile zuordnen
     views:
       commitments: Verpflichtungen
       inventory: Bestand

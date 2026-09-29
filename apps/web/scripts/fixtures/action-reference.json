@@ -917,6 +917,14 @@
       "effect": "Settles part of a customer return with a free replacement delivery to the same customer instead of a credit; no money moves."
     },
     {
+      "name": "Assign an item to an order line",
+      "service": "assign_line_item",
+      "related_services": ["preview_item_assignment"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its delivery promise from the order; no money moves."
+    },
+    {
       "name": "Resolve arrived customer-return goods",
       "service": "record_return_disposition",
       "mode": "mutation",

@@ -13,7 +13,7 @@ the technical key stands beside each one.
 | [Item](#resource-item)                                           | 5     | 4       | 3                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 2                   |
-| [Order](#resource-order)                                         | 8     | 10      | 10                  |
+| [Order](#resource-order)                                         | 8     | 11      | 10                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 12      | 14                  |
@@ -21,7 +21,7 @@ the technical key stands beside each one.
 | [Ledger and accounts](#resource-accounting)                      | 2     | 15      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 4       | 7                   |
-| [Document and source system](#resource-source)                   | 3     | 12      | 2                   |
+| [Document and source system](#resource-source)                   | 3     | 13      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
 
@@ -260,6 +260,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Close stale promises](./commands#command-close_stale_promises) (`close_stale_promises`)
 - [Dispatch or receive shipment package](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
+- [Assign an item to an order line](./commands#command-assign_line_item) (`assign_line_item`)
 
 **Look up**
 
@@ -295,6 +296,7 @@ Events: [`order.recorded`](./events#event-order-recorded),
 [`commitment.cancelled`](./events#event-commitment-cancelled),
 [`commitment.revised`](./events#event-commitment-revised),
 [`promises.closed`](./events#event-promises-closed),
+[`document_line.item_assigned`](./events#event-document_line-item_assigned),
 [`commitment.held`](./events#event-commitment-held),
 [`commitment.hold_released`](./events#event-commitment-hold_released),
 [`reservation.created`](./events#event-reservation-created),
@@ -770,6 +772,7 @@ Nachweis, Quelle
   (`create_manual_document_with_lines`)
 - [Record dunning notice](./commands#command-record_notice) (`record_notice`)
 - [Confirm dunning run](./commands#command-confirm_run) (`confirm_run`)
+- [Assign an item to an order line](./commands#command-assign_line_item) (`assign_line_item`)
 
 **Look up**
 

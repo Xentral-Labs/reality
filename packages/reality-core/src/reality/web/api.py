@@ -1154,6 +1154,7 @@ class DeliveryActionPrepare(ApiModel):
         "supply_assign",
         "return_disposition",
         "customer_exchange_record",
+        "order_line_item_assign",
     ]
     arguments: dict[str, Any]
     session_id: str | None = None

@@ -37,9 +37,9 @@
 
 ## Phase 6: Surfaces
 
-- [ ] T017 [P] [FR-005] Failing adapter tests: MCP propose/confirm with a strict schema, Web prepare/confirm, CLI propose/confirm/help, tenant isolation, in `core/tests/test_shop_order_change_adapters.py`
-- [ ] T018 [FR-005] MCP tool, CLI commands, Web pass-through; catalogs (`command_catalog.yaml`, `tool_catalog.json`, `action_discovery.json` and its Web fixture, `resource_catalog.yaml`, `service_refusals.json` with de/nl/es, `refusal_ratchet.json`, `business_event_catalog.yaml`, `resolution_guidance.json`, isolation catalog and pinned counts)
-- [ ] T019 [FR-004] [FR-005] Web: held reason codes on the import-job review, the refunds section on the order, "Assign item" on the exception row and order line, labels in four languages; i18n audit and contract tests
+- [x] T017 [P] [FR-005] Failing adapter tests: MCP propose/confirm with a strict schema, Web prepare/confirm, CLI propose/confirm/help, tenant isolation, in `core/tests/test_shop_order_change_adapters.py`
+- [x] T018 [FR-005] MCP tool, CLI commands, Web pass-through; catalogs (`command_catalog.yaml`, `tool_catalog.json`, `action_discovery.json` and its Web fixture, `resource_catalog.yaml`, `service_refusals.json` with de/nl/es, `refusal_ratchet.json`, `business_event_catalog.yaml`, isolation catalog and pinned counts; `resolution_guidance.json` covers cost and delivery blockers only, so the next step for `cancelled_after_shipment` is named in the held summary)
+- [x] T019 [FR-004] [FR-005] Web: a held version's source record names every reason and the next step ("Why it waits"; the Web shows no import-job list); the refunds section on the order; "Assign item" on the `order_line_item_unknown` finding (`apps/web/src/unified/OrderLineItemCard.tsx`); labels in four languages; i18n audit, build and action-discovery contract tests
 
 ## Phase 7: Journeys and Verification
 

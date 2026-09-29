@@ -1497,6 +1497,16 @@ commands:
     writes: [customer_exchange, commitment, source_record, business_event]
     effect: Settles part of a customer return with a free replacement delivery to the same customer instead of a credit; no money moves.
 
+  - name: Assign an item to an order line
+    service: assign_line_item
+    related_services: [preview_item_assignment]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [document_line, document, commitment, item, import_job]
+    writes: [document_line, commitment, business_event]
+    effect: Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its delivery promise from the order; no money moves.
+
   - name: Resolve arrived customer-return goods
     service: record_return_disposition
     mode: mutation
@@ -4897,6 +4907,7 @@ agent_command_coverage:
   assign_supply: {classification: eligible, tools: [supply_assign_propose]}
   record_return_disposition: {classification: eligible, tools: [return_disposition_propose]}
   record_customer_exchange: {classification: eligible, tools: [customer_exchange_propose]}
+  assign_line_item: {classification: eligible, tools: [order_line_item_assign_propose]}
   list_targets:
     classification: eligible
     tools:

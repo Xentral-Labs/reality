@@ -64,11 +64,18 @@ class VersionPlan:
             for held_code, line in self.held
             if held_code == code
         ]
+        next_step = (
+            " Next step: confirm a return announcement (return_announce) for what shipped."
+            if any(code == "cancelled_after_shipment" for code, _ in self.held)
+            else ""
+        )
         return (
-            "This Shopify order change was not applied: "
+            "Shopify change not applied: "
             + ", ".join(parts)
-            + ". Only lower quantities, removed open lines and a cancellation before "
-            "anything shipped are applied automatically; the order is unchanged."
+            + "."
+            + next_step
+            + " Only reductions of unshipped quantity apply automatically; "
+            "the order is unchanged."
         )
 
 

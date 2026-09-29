@@ -15,6 +15,7 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation                  | Unternehmen & Zugang    | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation                  | Unternehmen & Zugang    | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`business_journey_guide`](#command-business_journey_guide)                       | Ask the Business Journey Guide             | Bereichsübergreifend    | `business_journey_guide`                                                                                                                                                                     | Web · API · MCP · Chat                  |
+| [`assign_line_item`](#command-assign_line_item)                                   | Assign an item to an order line            | Bereichsübergreifend    | `order_line_item_assign_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`assign_supply`](#command-assign_supply)                                         | Assign incoming supply to customer demand  | Bereichsübergreifend    | `supply_assign_propose`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report                | Bereichsübergreifend    | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision     | Bereichsübergreifend    | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
@@ -6274,6 +6275,48 @@ explicit limitations.
 
 **Siehe auch:** Geschäftsaktion
 [`business_journey_guide`](./commands#command-business_journey_guide)
+
+### `assign_line_item` — Assign an item to an order line {#command-assign_line_item}
+
+Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its
+delivery promise from the order; no money moves.
+
+**Aufruf**
+
+```text
+order_line_item_assign_propose document_line_id item_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `document_line`, `document`, `commitment`, `item`, `import_job` · Schreibt:
+`document_line`, `commitment`, `business_event` · Erzeugt: `document_line.item_assigned`
+
+**Siehe auch:** Agenten-Tool
+[`order_line_item_assign_propose`](./commands#tool-order_line_item_assign_propose), Event
+[`document_line.item_assigned`](./events#event-document_line-item_assigned)
+
+#### `order_line_item_assign_propose` — Assign an item to an order line {#tool-order_line_item_assign_propose}
+
+Prepare this business mutation without changing state. Assign an item to an order line. Human
+confirmation is required.
+
+**Aufruf**
+
+```text
+order_line_item_assign_propose document_line_id item_id
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name               | Typ      | Pflicht | Beschreibung                                                                              | Standard |
+| ------------------ | -------- | ------- | ----------------------------------------------------------------------------------------- | -------- |
+| `document_line_id` | `string` | ja      | Opaque same-tenant received document line identity; must belong to the selected document. | —        |
+| `item_id`          | `string` | ja      | Opaque identity of the operational item reference.                                        | —        |
+
+**Siehe auch:** Geschäftsaktion [`assign_line_item`](./commands#command-assign_line_item)
 
 ### `assign_supply` — Assign incoming supply to customer demand {#command-assign_supply}
 

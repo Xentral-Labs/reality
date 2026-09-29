@@ -366,7 +366,9 @@ def test_a_cancellation_after_shipment_waits_and_cancels_nothing(session, busine
         session, business, cancelled_at="2026-09-03T08:00:00Z", cancel_reason="customer"
     )
 
-    assert _held(session, business, source).reason_code == "cancelled_after_shipment"
+    outcome = _held(session, business, source)
+    assert outcome.reason_code == "cancelled_after_shipment"
+    assert "return_announce" in outcome.summary
     assert _status(session, second) == "open"
 
 
@@ -444,3 +446,21 @@ def test_a_mixed_version_applies_nothing_and_names_every_code(session, business)
     # The lowered line is not applied on its own.
     assert _quantity(session, business, first) == 10
     assert _quantity(session, business, second) == 5
+
+
+def test_the_source_inspector_says_why_a_change_waits(session, business):
+    from reality.services.delivery_reads import delivery_evidence
+
+    _order(session, business)
+    source, _ = _version(session, business, [_line(LINE_A, 12), _line(LINE_B, 5)])
+
+    rows = {
+        row["label"]: row["value"]
+        for section in delivery_evidence(
+            session, business.tenant.id, "source_record", source.id
+        )["sections"]
+        for row in section["rows"]
+    }
+
+    assert rows["Reason"] == "quantity_increased"
+    assert "quantity_increased (line 11)" in rows["Why it waits"]

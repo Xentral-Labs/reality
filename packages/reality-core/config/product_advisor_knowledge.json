@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:44b61da8bef94d0d3939b03550e970dc565e93066085a557ba0843df58e9f898",
+  "knowledge_version": "advisor-v1:sha256:0d374994b3ad4f7a7fa608c3f5ba188b3d4bd21ace486bdc09d873e33261b813",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "29e1ddf04455bbf0286a09610e1b6d84170801a5ce69985eea8af1c1bc4a167d"
+      "fingerprint": "197856a0ac31bdf02149091581e7f324197e8b37fb78c0525521330f9b1fbf35"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7838,6 +7838,21 @@
       ],
       "language": "en",
       "fingerprint": "f4dcd7a9d5de42bf638b2504dee545f12faf4ad057d7de28edce73678644825c"
+    },
+    {
+      "id": "evidence_command_assign_line_item",
+      "source_id": "source_executable_commands",
+      "subject": "Assign an item to an order line",
+      "title": "Assign an item to an order line",
+      "search_text": "assign_line_item Assign an item to an order line Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its delivery promise from the order; no money moves. mutation",
+      "claim_text": "assign_line_item is a governed mutation command for Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its delivery promise from the order; no money moves..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "assign_line_item"
+      ],
+      "language": "en",
+      "fingerprint": "ba64c60d32295d4460f6566c76767512ba8d36c1aeef0f96e493cf9e377e4ad7"
     },
     {
       "id": "evidence_command_record_return_disposition",

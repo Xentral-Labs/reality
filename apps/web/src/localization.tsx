@@ -24396,6 +24396,15 @@ Object.assign(dictionaries.es, {
 
 // Spec 296: Shopify refunds.
 Object.assign(dictionaries.de, {
+  "Assign item": "Artikel zuordnen",
+  "Choose an item": "Artikel wählen",
+  "Item assigned; the delivery promise was created.":
+    "Artikel zugeordnet; die Lieferzusage wurde angelegt.",
+  "Preparing a review changes nothing; confirming creates the delivery promise.":
+    "Die Prüfung ändert nichts; erst die Bestätigung legt die Lieferzusage an.",
+  "Search items": "Artikel suchen",
+  "Stated SKU": "Angegebene SKU",
+  "Why it waits": "Warum es wartet",
   "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
   "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
     "Den gemeinten Artikel mit dem geprüften Werkzeug order_line_item_assign zuordnen, das die Lieferzusage anlegt, oder den Auftrag stornieren.",
@@ -24419,6 +24428,15 @@ Object.assign(dictionaries.de, {
 });
 
 Object.assign(dictionaries.nl, {
+  "Assign item": "Artikel toewijzen",
+  "Choose an item": "Kies een artikel",
+  "Item assigned; the delivery promise was created.":
+    "Artikel toegewezen; de leverbelofte is aangemaakt.",
+  "Preparing a review changes nothing; confirming creates the delivery promise.":
+    "Het voorbereiden van een controle verandert niets; pas bevestigen maakt de leverbelofte aan.",
+  "Search items": "Artikelen zoeken",
+  "Stated SKU": "Opgegeven SKU",
+  "Why it waits": "Waarom het wacht",
   "Order line with unknown item": "Orderregel met onbekend artikel",
   "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
     "Het bedoelde artikel toewijzen met de gecontroleerde tool order_line_item_assign, die de leverbelofte aanmaakt, of de order annuleren.",
@@ -24442,6 +24460,15 @@ Object.assign(dictionaries.nl, {
 });
 
 Object.assign(dictionaries.es, {
+  "Assign item": "Asignar artículo",
+  "Choose an item": "Elige un artículo",
+  "Item assigned; the delivery promise was created.":
+    "Artículo asignado; se creó el compromiso de entrega.",
+  "Preparing a review changes nothing; confirming creates the delivery promise.":
+    "Preparar la revisión no cambia nada; al confirmar se crea el compromiso de entrega.",
+  "Search items": "Buscar artículos",
+  "Stated SKU": "SKU indicada",
+  "Why it waits": "Por qué espera",
   "Order line with unknown item": "Línea de pedido con artículo desconocido",
   "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
     "Asignar el artículo que la tienda quería con la herramienta revisada order_line_item_assign, que crea el compromiso de entrega, o cancelar el pedido.",

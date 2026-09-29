@@ -13,7 +13,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 4        | 3         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 2         |
-| [Auftrag](#resource-order)                                     | 8      | 10       | 10        |
+| [Auftrag](#resource-order)                                     | 8      | 11       | 10        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 12       | 14        |
@@ -21,7 +21,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 15       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 4        | 7         |
-| [Beleg und Quellsystem](#resource-source)                      | 3      | 12       | 2         |
+| [Beleg und Quellsystem](#resource-source)                      | 3      | 13       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
 
@@ -268,6 +268,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Alte Verpflichtungen schließen](./commands#command-close_stale_promises) (`close_stale_promises`)
 - [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
+- [Artikel für Auftragszeile zuordnen](./commands#command-assign_line_item) (`assign_line_item`)
 
 **Nachschlagen**
 
@@ -304,6 +305,7 @@ Events: [`order.recorded`](./events#event-order-recorded),
 [`commitment.cancelled`](./events#event-commitment-cancelled),
 [`commitment.revised`](./events#event-commitment-revised),
 [`promises.closed`](./events#event-promises-closed),
+[`document_line.item_assigned`](./events#event-document_line-item_assigned),
 [`commitment.held`](./events#event-commitment-held),
 [`commitment.hold_released`](./events#event-commitment-hold_released),
 [`reservation.created`](./events#event-reservation-created),
@@ -781,6 +783,7 @@ Nachweis, Quelle
   (`create_manual_document_with_lines`)
 - [Mahnung erfassen](./commands#command-record_notice) (`record_notice`)
 - [Mahnlauf bestätigen](./commands#command-confirm_run) (`confirm_run`)
+- [Artikel für Auftragszeile zuordnen](./commands#command-assign_line_item) (`assign_line_item`)
 
 **Nachschlagen**
 

@@ -389,7 +389,8 @@
         "command:hold_document_commitments",
         "command:hold_party_delivery",
         "command:close_stale_promises",
-        "command:record_packaged_execution"
+        "command:record_packaged_execution",
+        "command:assign_line_item"
       ],
       "reads": ["command:preview_stale_promise_closure"],
       "exceptions": [
@@ -418,6 +419,7 @@
         "event:commitment.cancelled",
         "event:commitment.revised",
         "event:promises.closed",
+        "event:document_line.item_assigned",
         "event:commitment.held",
         "event:commitment.hold_released",
         "event:reservation.created",
@@ -986,7 +988,8 @@
         "command:hold_document_commitments",
         "command:create_manual_document_with_lines",
         "command:record_notice",
-        "command:confirm_run"
+        "command:confirm_run",
+        "command:assign_line_item"
       ],
       "reads": [
         "command:commercial_match",
@@ -8062,6 +8065,40 @@
       "links": ["command:record_customer_exchange"],
       "label_de": "Exchange returned goods",
       "resources": ["return"]
+    },
+    {
+      "id": "tool:order_line_item_assign_propose",
+      "kind": "tool",
+      "key": "order_line_item_assign_propose",
+      "label": "Assign an item to an order line",
+      "area": "orders",
+      "summary": "Prepare this business mutation without changing state. Assign an item to an order line. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "order_line_item_assign_propose document_line_id item_id",
+      "parameters": [
+        {
+          "name": "document_line_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant received document line identity; must belong to the selected document.",
+          "depth": 0
+        },
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "assign_line_item",
+      "projections": [],
+      "links": ["command:assign_line_item"],
+      "label_de": "Assign an item to an order line",
+      "resources": ["order", "source"]
     },
     {
       "id": "tool:return_disposition_propose",
@@ -21942,6 +21979,28 @@
       "resources": ["return"]
     },
     {
+      "id": "command:assign_line_item",
+      "kind": "command",
+      "key": "assign_line_item",
+      "label": "Assign an item to an order line",
+      "area": "cross_functional",
+      "summary": "Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its delivery promise from the order; no money moves.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["document_line", "document", "commitment", "item", "import_job"],
+      "writes": ["document_line", "commitment", "business_event"],
+      "confirmation": "required",
+      "related_services": ["preview_item_assignment"],
+      "tools": ["order_line_item_assign_propose"],
+      "synopses": ["order_line_item_assign_propose document_line_id item_id"],
+      "events": ["document_line.item_assigned"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:order_line_item_assign_propose", "event:document_line.item_assigned"],
+      "label_de": "Artikel für Auftragszeile zuordnen",
+      "resources": ["order", "source"]
+    },
+    {
       "id": "command:record_return_disposition",
       "kind": "command",
       "key": "record_return_disposition",
@@ -25592,9 +25651,9 @@
         "Timeline",
         "Tenant usage"
       ],
-      "links": [],
+      "links": ["command:assign_line_item"],
       "label_de": "document_line.item_assigned",
-      "resources": ["source"]
+      "resources": ["order", "source"]
     },
     {
       "id": "event:exchange.recorded",
@@ -72540,7 +72599,8 @@
         "command:record_sales_credit",
         "command:record_supplier_invoice",
         "command:record_free_supplier_invoice",
-        "command:record_sales_invoice"
+        "command:record_sales_invoice",
+        "command:assign_line_item"
       ]
     },
     {
@@ -72833,7 +72893,8 @@
         "command:revise_commitment",
         "command:cancel_commitment",
         "command:close_stale_promises",
-        "command:record_customer_exchange"
+        "command:record_customer_exchange",
+        "command:assign_line_item"
       ]
     },
     {

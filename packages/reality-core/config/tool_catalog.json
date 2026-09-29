@@ -215,6 +215,7 @@
     "fulfillment_readiness": "orders",
     "movement_explanation": "shipping",
     "customer_exchange": "shipping",
+    "order_line_item_assign_propose": "orders",
     "return_disposition_summary": "shipping",
     "supply_coverage": "orders",
     "capability_catalog": "evidence",
