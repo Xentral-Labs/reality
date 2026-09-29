@@ -75,8 +75,8 @@
 ## Final Phase: Verification and Review
 
 - [x] T029 Add the new test files and `` `customer_exchange` `` to `docs/SPEC_COVERAGE_MATRIX.md`
-- [ ] T030 Run the completeness gates from `specs/293-customer-exchange/quickstart.md`, Ruff (`--no-cache`), `make spec-check`, `make docs-catalog-check`, the Web i18n audit and action-discovery tests
-- [ ] T031 Run the complete backend suite (CI shards are the evidence) and the manual Web check in `specs/293-customer-exchange/quickstart.md` on an isolated stack
+- [x] T030 Run the completeness gates from `specs/293-customer-exchange/quickstart.md`, Ruff (`--no-cache`), `make spec-check`, `make docs-catalog-check`, the Web i18n audit and action-discovery tests
+- [x] T031 Run the complete backend suite (CI shards are the evidence) and the manual Web check in `specs/293-customer-exchange/quickstart.md` on an isolated stack
 - [ ] T032 Review the diff against FR-001–FR-013, DR-001–DR-005 and the Constitution; confirm supplier return classes and spec 079 regressions are unchanged
 
 ## Dependencies
