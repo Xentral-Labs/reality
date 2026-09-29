@@ -131,6 +131,33 @@ tables:
       reason: {}
       source_record_id: {}
       created_at: {}
+  dunning_schedule_level:
+    description: The company's stated waiting days and fixed fee for one dunning level.
+    columns:
+      id: {}
+      tenant_id: {}
+      level: {}
+      wait_days: {}
+      fee_amount: {}
+      source_record_id: {}
+      updated_at: {}
+  collection_handover:
+    description: A confirmed decision to hand a customer's dunned invoices to collection.
+    columns:
+      id: {}
+      tenant_id: {}
+      party_id: {}
+      handover_date: {}
+      reason: {}
+      source_record_id: {}
+      created_at: {}
+  collection_handover_invoice:
+    description: Link from one collection handover to one invoice; an invoice is handed over once.
+    columns:
+      id: {}
+      tenant_id: {}
+      handover_id: {}
+      invoice_id: {}
   accounting_target:
     description: Finance-only external configuration; no financial amount authority.
     columns:

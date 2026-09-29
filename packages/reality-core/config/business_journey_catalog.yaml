@@ -4042,23 +4042,40 @@ entries:
   section: Finance, tax and currency
   title: Dunning in three levels, then collection
   question: Dunning notices from open items?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Dunning notices from open items?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Dunning notices from open items? A person starts a dunning run over all or selected customers; each overdue item is proposed at its next level with the fee the schedule states, and after level 3 it is handed to collection with a delivery hold. An agent can prepare the run; a person confirms it.'
   limitations:
-  - Dunning notices at levels 1 to 3 with a fee can be created by hand.
-  - There is no escalation sequence, no dunning run from open items and no handover to collection.
-  keywords: []
+  - Letters and emails are not sent; the notice is recorded evidence.
+  - The schedule is one per company with a fixed fee per level, charged in each notice's currency; interest is not calculated.
+  - Disputed items are not known to Reality; the person deselects them in the review.
+  keywords:
+  - dunning run
+  - dunning level
+  - reminder level
+  - hand over to collection
+  - Mahnlauf
+  - Mahnstufe
+  - Inkasso
   question_examples:
   - Dunning in three levels, then collection
   - Dunning notices from open items?
-  tools: []
+  - Run the reminders for all overdue invoices and escalate to the next level
+  - Mahnlauf über alle überfälligen Rechnungen und danach ans Inkasso
+  tools:
+  - finance_dunning_schedule
+  - finance_dunning_run_context
+  - finance_dunning_run_propose
+  - finance_dunning_collection_propose
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys:
+  - C16
   internal_evidence:
-  - reference: tests/finance/test_commercial_edges.py::test_dunning_notice_keeps_invoice_and_posts_optional_fee; ::test_mcp_dunning_context_record_detail_list_and_reverse
-    note: Manual notices at levels 1–3 with a fee exist (only levels 1 and 2 are tested); no escalation sequence, no collection handover, and runs from open items are a non-goal (spec 247).
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_three_levels_of_dunning_then_collection
+    note: 'A company schedule (7/14/14 days, fees 0/5/10), runs over three customers: level 1 for all, a paid item left out, an item paid after the review skipped as paid, levels 2 and 3 with posted fees, then ready for collection, a handover with a collection delivery hold, the handed-over item never dunned again and a newer invoice of the same customer dunned at level 1.'
+  - reference: packages/reality-core/tests/finance/test_dunning_runs.py; packages/reality-core/tests/finance/test_dunning_run_adapters.py
+    note: Waiting periods with positive controls, reversed notices, grouping, credit left out, replay, all-or-nothing, a changed schedule stale, coded handover refusals; the same tools through MCP, Web and CLI (spec 295).
 - id: N05
   section: Finance, tax and currency
   title: Bad debt write-off

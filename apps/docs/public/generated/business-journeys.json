@@ -4150,22 +4150,40 @@
       "section": "Finance, tax and currency",
       "title": "Dunning in three levels, then collection",
       "question": "Dunning notices from open items?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Dunning notices from open items?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Dunning notices from open items? A person starts a dunning run over all or selected customers; each overdue item is proposed at its next level with the fee the schedule states, and after level 3 it is handed to collection with a delivery hold. An agent can prepare the run; a person confirms it.",
       "limitations": [
-        "Dunning notices at levels 1 to 3 with a fee can be created by hand.",
-        "There is no escalation sequence, no dunning run from open items and no handover to collection."
+        "Letters and emails are not sent; the notice is recorded evidence.",
+        "The schedule is one per company with a fixed fee per level, charged in each notice's currency; interest is not calculated.",
+        "Disputed items are not known to Reality; the person deselects them in the review."
       ],
-      "keywords": [],
+      "keywords": [
+        "dunning run",
+        "dunning level",
+        "reminder level",
+        "hand over to collection",
+        "Mahnlauf",
+        "Mahnstufe",
+        "Inkasso"
+      ],
       "question_examples": [
         "Dunning in three levels, then collection",
-        "Dunning notices from open items?"
+        "Dunning notices from open items?",
+        "Run the reminders for all overdue invoices and escalate to the next level",
+        "Mahnlauf über alle überfälligen Rechnungen und danach ans Inkasso"
       ],
-      "tools": [],
+      "tools": [
+        "finance_dunning_schedule",
+        "finance_dunning_run_context",
+        "finance_dunning_run_propose",
+        "finance_dunning_collection_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": []
+      "related_journeys": [
+        "C16"
+      ]
     },
     {
       "id": "N05",

@@ -9,19 +9,19 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | Objekt                                                         | Listen | Aktionen | Klärfälle |
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
-| [Geschäftspartner](#resource-party)                            | 1      | 7        | 2         |
+| [Geschäftspartner](#resource-party)                            | 1      | 8        | 2         |
 | [Artikel](#resource-item)                                      | 5      | 4        | 3         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 2         |
 | [Auftrag](#resource-order)                                     | 8      | 10       | 9         |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
-| [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 10       | 14        |
+| [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 12       | 14        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
-| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 14       | 3         |
+| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 15       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 4        | 7         |
-| [Beleg und Quellsystem](#resource-source)                      | 3      | 11       | 2         |
+| [Beleg und Quellsystem](#resource-source)                      | 3      | 12       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
 
@@ -79,10 +79,7 @@ Preisgruppen hängen hier.
 - [Preisgruppe anlegen und zuweisen](./commands#command-create_party_group) (`create_party_group`)
 - [Liefersperre setzen oder aufheben](./commands#command-hold_party_delivery)
   (`hold_party_delivery`)
-
-**Nachschlagen**
-
-- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
+- [An Inkasso übergeben](./commands#command-record_handover) (`record_handover`)
 
 **Klärfälle**
 
@@ -94,8 +91,9 @@ Preisgruppen hängen hier.
 **Kommt vor in:** [Stammdaten und Quellen](./processes#process-master_data)
 
 **Darunter:** Tabellen: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold` ·
-Events: [`party.created`](./events#event-party-created),
-[`party.updated`](./events#event-party-updated),
+Events:
+[`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded),
+[`party.created`](./events#event-party-created), [`party.updated`](./events#event-party-updated),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`party.delivery_hold_released`](./events#event-party-delivery_hold_released),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed),
@@ -420,6 +418,8 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
   (`record_supplier_invoice`)
 - [Freie Eingangsrechnung erfassen](./commands#command-record_free_supplier_invoice)
   (`record_free_supplier_invoice`)
+- [Mahnschema festlegen](./commands#command-set_schedule) (`set_schedule`)
+- [An Inkasso übergeben](./commands#command-record_handover) (`record_handover`)
 - [Ausgangsrechnung erfassen](./commands#command-record_sales_invoice) (`record_sales_invoice`)
 - [Gutschrift buchen](./commands#command-post_sales_credit_note) (`post_sales_credit_note`)
 - [Gutschrift mit Rechnung verrechnen](./commands#command-allocate_credit_note)
@@ -435,6 +435,11 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
   (`invoice_credit_context`)
 - [Abrechenbare Auftragspositionen anzeigen](./commands#command-billable_positions)
   (`billable_positions`)
+- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
+- [Mahnschema anzeigen](./commands#command-schedule) (`schedule`)
+- [Mahnlauf vorbereiten](./commands#command-run_context) (`run_context`)
+- [Inkasso-Übergaben anzeigen](./commands#command-handovers) (`handovers`)
+- [Inkasso-Übergabe anzeigen](./commands#command-handover_detail) (`handover_detail`)
 
 **Klärfälle**
 
@@ -464,9 +469,12 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay), [Kundenretouren](./processes#process-returns)
 
-**Darunter:** Events: [`credit.recorded`](./events#event-credit-recorded),
-[`invoice.recorded`](./events#event-invoice-recorded) · Agenten-Tools ohne Geschäftsaktion:
-[`finance_credits`](./commands#tool-finance_credits),
+**Darunter:** Tabellen: `dunning_schedule_level`, `collection_handover`,
+`collection_handover_invoice` · Events: [`credit.recorded`](./events#event-credit-recorded),
+[`invoice.recorded`](./events#event-invoice-recorded),
+[`dunning.schedule_set`](./events#event-dunning-schedule_set),
+[`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded) ·
+Agenten-Tools ohne Geschäftsaktion: [`finance_credits`](./commands#tool-finance_credits),
 [`finance_party_balances`](./commands#tool-finance_party_balances)
 
 ## Zahlung und Ausgleich {#resource-payment}
@@ -501,7 +509,7 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 **Nachschlagen**
 
 - [Zahllauf vorschauen](./commands#command-preview_payment_run) (`preview_payment_run`)
-- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
+- [Mahnlauf vorbereiten](./commands#command-run_context) (`run_context`)
 - [Kontext für Abzug anzeigen](./commands#command-adjustment_context) (`adjustment_context`)
 - [Kontext für Zahlung und Gutschrift anzeigen](./commands#command-settlement_context)
   (`settlement_context`)
@@ -557,6 +565,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
   (`reverse_ledger_posting_group`)
 - [Mahnung erfassen](./commands#command-record_notice) (`record_notice`)
 - [Mahnung stornieren](./commands#command-reverse_notice) (`reverse_notice`)
+- [Mahnlauf bestätigen](./commands#command-confirm_run) (`confirm_run`)
 - [Eröffnungsposten importieren](./commands#command-import_opening) (`import_opening`)
 
 **Nachschlagen**
@@ -585,9 +594,9 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Verlauf der Finanzreferenz](./commands#command-reference_history) (`reference_history`)
 - [Buchungsmatrix anzeigen](./commands#command-transaction_matrix) (`transaction_matrix`)
 - [Operative Konten anzeigen](./commands#command-list_accounts) (`list_accounts`)
-- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
 - [Mahnungen anzeigen](./commands#command-notices) (`notices`)
 - [Mahnung anzeigen](./commands#command-notice_detail) (`notice_detail`)
+- [Mahnlauf vorbereiten](./commands#command-run_context) (`run_context`)
 - [Kontext der Eröffnungsposten anzeigen](./commands#command-opening_context) (`opening_context`)
 
 **Klärfälle**
@@ -631,6 +640,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 [`finance.account_changed`](./events#event-finance-account_changed),
 [`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
 [`dunning.notice_reversed`](./events#event-dunning-notice_reversed),
+[`dunning.run_confirmed`](./events#event-dunning-run_confirmed),
 [`ledger.posted`](./events#event-ledger-posted), [`ledger.reversed`](./events#event-ledger-reversed)
 
 ## Deckungsbeitrag {#resource-contribution}
@@ -768,6 +778,7 @@ Nachweis, Quelle
 - [Manuellen Beleg erfassen](./commands#command-create_manual_document_with_lines)
   (`create_manual_document_with_lines`)
 - [Mahnung erfassen](./commands#command-record_notice) (`record_notice`)
+- [Mahnlauf bestätigen](./commands#command-confirm_run) (`confirm_run`)
 
 **Nachschlagen**
 
@@ -776,9 +787,9 @@ Nachweis, Quelle
 - [Quellcode-Zuordnungen anzeigen](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Verlauf der Quellcode-Zuordnung](./commands#command-source_mapping_history)
   (`source_mapping_history`)
-- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
 - [Mahnungen anzeigen](./commands#command-notices) (`notices`)
 - [Mahnung anzeigen](./commands#command-notice_detail) (`notice_detail`)
+- [Mahnlauf vorbereiten](./commands#command-run_context) (`run_context`)
 
 **Klärfälle**
 
@@ -791,6 +802,7 @@ Nachweis, Quelle
 **Darunter:** Tabellen: `source_system`, `source_capability`, `document`, `document_line`, `fact` ·
 Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed),
 [`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
+[`dunning.run_confirmed`](./events#event-dunning-run_confirmed),
 [`source_record.stored`](./events#event-source_record-stored),
 [`fact.observed`](./events#event-fact-observed),
 [`source_record.received`](./events#event-source_record-received),

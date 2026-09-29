@@ -125,11 +125,15 @@ if (process.env.LAUNCHER_ONLY !== "1") {
       if (flow === "payable" || flow === "supplier-balance")
         assert.ok(!buttons.some((s) => /credit note|refund|customer/i.test(s)), buttons.join(","));
       if (view === "journal")
-        assert.deepEqual(buttons, ["Reverse posting", "Import opening positions"]);
+        assert.deepEqual(buttons, ["Reverse posting", "Import opening positions", "Dunning run"]);
     }
   }
   await go("finance?finance_view=payments&flow=receivable&direction=outgoing");
-  assert.deepEqual(await pageActions(), ["Record supplier payment", "Import opening positions"]);
+  assert.deepEqual(await pageActions(), [
+    "Record supplier payment",
+    "Import opening positions",
+    "Dunning run",
+  ]);
 }
 // The global launcher is the command palette inside the [data-action-menu] popover: typed
 // queries list actions as options.

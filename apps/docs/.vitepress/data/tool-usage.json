@@ -178,12 +178,14 @@
         "command:set_master_data_active",
         "command:assign_party_price_list",
         "command:create_party_group",
-        "command:hold_party_delivery"
+        "command:hold_party_delivery",
+        "command:record_handover"
       ],
-      "reads": ["command:dunning_context"],
+      "reads": [],
       "exceptions": ["exception:credit_limit_exceeded", "exception:party_hold_unreleased"],
       "tools": ["tool:finance_party_balances"],
       "events": [
+        "event:dunning.collection_handover_recorded",
         "event:party.created",
         "event:party.updated",
         "event:party.delivery_hold_placed",
@@ -566,7 +568,7 @@
         "Rechnungsprüfung",
         "Gutschrift"
       ],
-      "tables": [],
+      "tables": ["dunning_schedule_level", "collection_handover", "collection_handover_invoice"],
       "lists": ["view:open_items", "view:documents", "projection:open_financial_items"],
       "actions": [
         "command:post_sales_invoice",
@@ -574,13 +576,23 @@
         "command:record_sales_credit",
         "command:record_supplier_invoice",
         "command:record_free_supplier_invoice",
+        "command:set_schedule",
+        "command:record_handover",
         "command:record_sales_invoice",
         "command:post_sales_credit_note",
         "command:allocate_credit_note",
         "command:post_supplier_credit_note",
         "command:allocate_supplier_credit_note"
       ],
-      "reads": ["command:invoice_credit_context", "command:billable_positions"],
+      "reads": [
+        "command:invoice_credit_context",
+        "command:billable_positions",
+        "command:dunning_context",
+        "command:schedule",
+        "command:run_context",
+        "command:handovers",
+        "command:handover_detail"
+      ],
       "exceptions": [
         "exception:shipped_not_billed",
         "exception:billed_not_received",
@@ -598,7 +610,12 @@
         "exception:duplicate_supplier_invoice"
       ],
       "tools": ["tool:finance_credits", "tool:finance_party_balances"],
-      "events": ["event:credit.recorded", "event:invoice.recorded"],
+      "events": [
+        "event:credit.recorded",
+        "event:invoice.recorded",
+        "event:dunning.schedule_set",
+        "event:dunning.collection_handover_recorded"
+      ],
       "workspace_actions": []
     },
     {
@@ -644,7 +661,7 @@
       ],
       "reads": [
         "command:preview_payment_run",
-        "command:dunning_context",
+        "command:run_context",
         "command:adjustment_context",
         "command:settlement_context"
       ],
@@ -766,6 +783,7 @@
         "command:reverse_ledger_posting_group",
         "command:record_notice",
         "command:reverse_notice",
+        "command:confirm_run",
         "command:import_opening"
       ],
       "reads": [
@@ -790,9 +808,9 @@
         "command:reference_history",
         "command:transaction_matrix",
         "command:list_accounts",
-        "command:dunning_context",
         "command:notices",
         "command:notice_detail",
+        "command:run_context",
         "command:opening_context"
       ],
       "exceptions": [
@@ -811,6 +829,7 @@
         "event:finance.account_changed",
         "event:dunning.notice_recorded",
         "event:dunning.notice_reversed",
+        "event:dunning.run_confirmed",
         "event:ledger.posted",
         "event:ledger.reversed"
       ],
@@ -965,22 +984,24 @@
         "command:record_corrected_document_source",
         "command:hold_document_commitments",
         "command:create_manual_document_with_lines",
-        "command:record_notice"
+        "command:record_notice",
+        "command:confirm_run"
       ],
       "reads": [
         "command:commercial_match",
         "command:preview_document",
         "command:list_source_mappings",
         "command:source_mapping_history",
-        "command:dunning_context",
         "command:notices",
-        "command:notice_detail"
+        "command:notice_detail",
+        "command:run_context"
       ],
       "exceptions": ["exception:silent_source", "exception:source_interpretation_failure"],
       "tools": ["tool:interpretation_coverage"],
       "events": [
         "event:finance.source_mapping_changed",
         "event:dunning.notice_recorded",
+        "event:dunning.run_confirmed",
         "event:source_record.stored",
         "event:fact.observed",
         "event:source_record.received",
@@ -10541,7 +10562,7 @@
       "projections": [],
       "links": ["command:dunning_context"],
       "label_de": "Dunning context",
-      "resources": ["accounting", "party", "payment", "source"]
+      "resources": ["invoice"]
     },
     {
       "id": "tool:finance_dunning_notices",
@@ -10781,6 +10802,433 @@
       "resources": ["accounting"]
     },
     {
+      "id": "tool:finance_dunning_schedule",
+      "kind": "tool",
+      "key": "finance_dunning_schedule",
+      "label": "Dunning schedule",
+      "area": "finance",
+      "summary": "Read the company dunning schedule: waiting days and fixed fee for levels 1 to 3, with the finance revision required to change it.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_dunning_schedule",
+      "parameters": [],
+      "guidance": {
+        "purpose": "Read the company's dunning schedule and the finance revision required to change it.",
+        "use_when": ["A dunning run or a schedule change needs the current waiting days and fees."],
+        "do_not_use_when": ["The level of one invoice is needed; the run preview derives it."],
+        "limitations": ["One schedule per company; no schedule per payment term or party group."],
+        "empty_result": "No schedule is set; a dunning run is refused until one is.",
+        "freshness": "Read from the committed schedule."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_dunning_schedule",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "schedule",
+      "projections": [],
+      "links": ["command:schedule"],
+      "label_de": "Dunning schedule",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "tool:finance_dunning_schedule_set_propose",
+      "kind": "tool",
+      "key": "finance_dunning_schedule_set_propose",
+      "label": "Set dunning schedule",
+      "area": "finance",
+      "summary": "Prepare the company dunning schedule (levels 1, 2 and 3 with waiting days and a fixed fee) for owner confirmation.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "finance_dunning_schedule_set_propose expected_revision levels",
+      "parameters": [
+        {
+          "name": "expected_revision",
+          "type": "integer",
+          "required": true,
+          "description": "Canonical revision of the Evidence snapshot on which a correction is based.",
+          "depth": 0
+        },
+        {
+          "name": "levels",
+          "type": "array",
+          "required": true,
+          "description": "The company's complete dunning schedule, exactly levels 1, 2 and 3, each with its waiting days and fixed fee.",
+          "depth": 0
+        },
+        {
+          "name": "levels[].level",
+          "type": "integer",
+          "required": true,
+          "description": "Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted.",
+          "depth": 1
+        },
+        {
+          "name": "levels[].wait_days",
+          "type": "integer | string",
+          "required": true,
+          "description": "Whole days a dunning level waits; level 1 counts days overdue, levels 2 and 3 count days since the item's last notice.",
+          "depth": 1
+        },
+        {
+          "name": "levels[].fee_amount",
+          "type": "string | integer",
+          "required": false,
+          "description": "Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.",
+          "depth": 1,
+          "default": "0"
+        }
+      ],
+      "guidance": {
+        "purpose": "Set the company's dunning schedule for owner confirmation.",
+        "use_when": ["A person states the waiting days and fixed fee for levels 1", "2 and 3."],
+        "do_not_use_when": ["Only one reminder's fee should differ; record that notice by hand."],
+        "preconditions": [
+          "Exactly levels 1",
+          "2 and 3; a positive fee needs the dunning_fee_revenue account default."
+        ],
+        "refusals": [
+          {
+            "code": "dunning_schedule_incomplete",
+            "description": "Not exactly levels 1",
+            "2 and 3.": null
+          },
+          {
+            "code": "dunning_schedule_value_invalid",
+            "description": "Waiting days or fee are negative or not exact."
+          },
+          {
+            "code": "finance_account_default_missing",
+            "description": "A fee needs the dunning fee account."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.dunning.schedule",
+            "proves": "The confirmed waiting days and fees are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the schedule."
+        }
+      },
+      "read_modes": [],
+      "command": "set_schedule",
+      "projections": [],
+      "links": ["command:set_schedule"],
+      "label_de": "Set dunning schedule",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "tool:finance_dunning_run_context",
+      "kind": "tool",
+      "key": "finance_dunning_run_context",
+      "label": "Dunning run preview",
+      "area": "finance",
+      "summary": "Preview a dunning run for a date over all or selected customers: proposed notices per customer, currency and level with their fee, items ready for collection and items left out with their reason. Records nothing.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_dunning_run_context run_date [party_ids]",
+      "parameters": [
+        {
+          "name": "run_date",
+          "type": "string",
+          "required": true,
+          "description": "Calendar date of the dunning run; overdue days and waiting periods are counted up to its end.",
+          "depth": 0
+        },
+        {
+          "name": "party_ids",
+          "type": "array",
+          "required": false,
+          "description": "Opaque business-partner identities the caller can still reach, used to select which partners are answered for; absent means every partner of the company. A balance is summed within one partner and currency and never across them, so naming fewer returns fewer rows of identical arithmetic.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Preview which overdue items a dunning run on a date would remind, at which level and fee, and why others are left out.",
+        "use_when": ["A person starts a dunning run over all or selected customers."],
+        "do_not_use_when": [
+          "One specific reminder is chosen by hand; use finance_dunning_context."
+        ],
+        "limitations": [
+          "Disputed items are not known to Reality; the person deselects them. Nothing is sent."
+        ],
+        "empty_result": "No overdue item is due for a notice on that date; waiting items are listed with the day they become due.",
+        "freshness": "Derived at read time from open amounts, due dates, non-reversed notices, credits and handovers."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_dunning_run_context",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "run_context",
+      "projections": [],
+      "links": ["command:run_context"],
+      "label_de": "Dunning run preview",
+      "resources": ["accounting", "invoice", "payment", "source"]
+    },
+    {
+      "id": "tool:finance_dunning_run_propose",
+      "kind": "tool",
+      "key": "finance_dunning_run_propose",
+      "label": "Confirm dunning run",
+      "area": "finance",
+      "summary": "Prepare the reviewed dunning run for owner confirmation: the selected items with their proposed level and the schedule the preview used. On confirmation, items paid, reminded or handed over since the review are skipped and named; nothing is sent.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "finance_dunning_run_propose schedule_source_record_id run_date [party_ids] items",
+      "parameters": [
+        {
+          "name": "schedule_source_record_id",
+          "type": "string",
+          "required": true,
+          "description": "The schedule the dunning run preview used; a schedule changed since then makes the run stale.",
+          "depth": 0
+        },
+        {
+          "name": "run_date",
+          "type": "string",
+          "required": true,
+          "description": "Calendar date of the dunning run; overdue days and waiting periods are counted up to its end.",
+          "depth": 0
+        },
+        {
+          "name": "party_ids",
+          "type": "array",
+          "required": false,
+          "description": "Opaque business-partner identities the caller can still reach, used to select which partners are answered for; absent means every partner of the company. A balance is summed within one partner and currency and never across them, so naming fewer returns fewer rows of identical arithmetic.",
+          "depth": 0
+        },
+        {
+          "name": "items",
+          "type": "array",
+          "required": true,
+          "description": "The reviewed invoices of a dunning run, each with the level the preview proposed; items left out are not reminded.",
+          "depth": 0
+        },
+        {
+          "name": "items[].invoice_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the invoice evidence associated with a payment or allocation.",
+          "depth": 1
+        },
+        {
+          "name": "items[].level",
+          "type": "integer",
+          "required": true,
+          "description": "Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted.",
+          "depth": 1
+        }
+      ],
+      "guidance": {
+        "purpose": "Record the reviewed dunning run's notices for owner confirmation.",
+        "use_when": ["A person has reviewed the run preview and kept the items to remind."],
+        "do_not_use_when": ["No preview was read; the proposal needs its items and schedule."],
+        "preconditions": ["Each item is a customer invoice of the tenant with its proposed level."],
+        "refusals": [
+          {
+            "code": "dunning_preview_stale",
+            "description": "The schedule changed since the preview."
+          },
+          {
+            "code": "dunning_run_item_unknown",
+            "description": "An item is not a customer invoice of the tenant."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.dunning.notices",
+            "proves": "The recorded notices",
+            "their invoices and fees are retained.": null
+          },
+          {
+            "name": "finance.dunning.run_context",
+            "proves": "Reminded items now wait for their next level."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the same receipt."
+        }
+      },
+      "read_modes": [],
+      "command": "confirm_run",
+      "projections": [],
+      "links": ["command:confirm_run"],
+      "label_de": "Confirm dunning run",
+      "resources": ["accounting", "source"]
+    },
+    {
+      "id": "tool:finance_dunning_collection_propose",
+      "kind": "tool",
+      "key": "finance_dunning_collection_propose",
+      "label": "Hand over to collection",
+      "area": "finance",
+      "summary": "Prepare handing one customer's invoices to collection after a level 3 notice, with a reason, for owner confirmation. The customer gets a delivery hold with the reason collection unless one is active.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "finance_dunning_collection_propose expected_revision invoice_ids handover_date reason",
+      "parameters": [
+        {
+          "name": "expected_revision",
+          "type": "integer",
+          "required": true,
+          "description": "Canonical revision of the Evidence snapshot on which a correction is based.",
+          "depth": 0
+        },
+        {
+          "name": "invoice_ids",
+          "type": "array",
+          "required": true,
+          "description": "Opaque same-tenant customer-invoice identities explicitly selected for one reminder.",
+          "depth": 0
+        },
+        {
+          "name": "handover_date",
+          "type": "string",
+          "required": true,
+          "description": "Calendar date the invoices are handed to collection.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Hand one customer's invoices to collection after a level 3 notice, for owner confirmation.",
+        "use_when": [
+          "An item stays unpaid after the third reminder and a person decides to hand it over."
+        ],
+        "do_not_use_when": ["The item has no level 3 notice yet", "or the customer has paid."],
+        "preconditions": [
+          "One customer; each invoice open",
+          "with a level 3 notice and not handed over before."
+        ],
+        "refusals": [
+          {
+            "code": "collection_level_missing",
+            "description": "An invoice has no level 3 notice."
+          },
+          {
+            "code": "collection_invoice_not_open",
+            "description": "An invoice has nothing open."
+          },
+          {
+            "code": "collection_already_handed_over",
+            "description": "An invoice is already in collection."
+          },
+          {
+            "code": "collection_mixed_customers",
+            "description": "The invoices belong to different customers."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.dunning.collection_handover",
+            "proves": "The handover",
+            "its invoices and the delivery hold are retained.": null
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the handover."
+        }
+      },
+      "read_modes": [],
+      "command": "record_handover",
+      "projections": [],
+      "links": ["command:record_handover"],
+      "label_de": "Hand over to collection",
+      "resources": ["invoice", "party"]
+    },
+    {
+      "id": "tool:finance_dunning_collection_handovers",
+      "kind": "tool",
+      "key": "finance_dunning_collection_handovers",
+      "label": "Collection handovers",
+      "area": "finance",
+      "summary": "List collection handovers newest first with their invoices and delivery hold.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_dunning_collection_handovers",
+      "parameters": [],
+      "guidance": {
+        "purpose": "List collection handovers with their invoices and delivery hold.",
+        "use_when": ["Items handed to collection must be reconciled."],
+        "do_not_use_when": [
+          "Items still to be handed over are needed; the run preview lists them as ready for collection."
+        ],
+        "limitations": ["No collection agency integration; the handover is an internal decision."],
+        "empty_result": "No invoice has been handed to collection.",
+        "freshness": "Read from committed handovers."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_dunning_collection_handovers",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "handovers",
+      "projections": [],
+      "links": ["command:handovers"],
+      "label_de": "Collection handovers",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "tool:finance_dunning_collection_handover",
+      "kind": "tool",
+      "key": "finance_dunning_collection_handover",
+      "label": "Collection handover",
+      "area": "finance",
+      "summary": "Read one collection handover with its invoices, the last notice of each and the delivery hold.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_dunning_collection_handover handover_id",
+      "parameters": [
+        {
+          "name": "handover_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of a collection handover.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read one collection handover with its invoices, the last notice of each and the delivery hold.",
+        "use_when": ["One known handover identity needs reconciliation."],
+        "do_not_use_when": ["The handover has not been discovered; list them first."],
+        "limitations": [
+          "The hold may since have been released through the ordinary release action."
+        ],
+        "empty_result": "Unknown and foreign identities are refused as not found.",
+        "freshness": "Read from the selected tenant-owned handover."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_dunning_collection_handover",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "handover_detail",
+      "projections": [],
+      "links": ["command:handover_detail"],
+      "label_de": "Collection handover",
+      "resources": ["invoice"]
+    },
+    {
       "id": "tool:finance_opening_context",
       "kind": "tool",
       "key": "finance_opening_context",
@@ -10878,7 +11326,7 @@
           "name": "items",
           "type": "array",
           "required": true,
-          "description": "",
+          "description": "The reviewed invoices of a dunning run, each with the level the preview proposed; items left out are not reminded.",
           "depth": 0
         },
         {
@@ -20288,7 +20736,7 @@
       },
       "links": ["tool:finance_dunning_context"],
       "label_de": "Mahnkontext anzeigen",
-      "resources": ["accounting", "party", "payment", "source"]
+      "resources": ["invoice"]
     },
     {
       "id": "command:notices",
@@ -20444,6 +20892,341 @@
       "links": ["tool:finance_dunning_reverse_propose", "event:dunning.notice_reversed"],
       "label_de": "Mahnung stornieren",
       "resources": ["accounting"]
+    },
+    {
+      "id": "command:schedule",
+      "kind": "command",
+      "key": "schedule",
+      "label": "Read dunning schedule",
+      "area": "cross_functional",
+      "summary": "Reads the company's waiting days and fixed fee for dunning levels 1 to 3.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["dunning_schedule_level"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_dunning_schedule"],
+      "synopses": ["finance_dunning_schedule"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read the company's dunning schedule and the finance revision required to change it.",
+        "use_when": ["A dunning run or a schedule change needs the current waiting days and fees."],
+        "do_not_use_when": ["The level of one invoice is needed; the run preview derives it."],
+        "limitations": ["One schedule per company; no schedule per payment term or party group."],
+        "empty_result": "No schedule is set; a dunning run is refused until one is.",
+        "freshness": "Read from the committed schedule."
+      },
+      "links": ["tool:finance_dunning_schedule"],
+      "label_de": "Mahnschema anzeigen",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "command:set_schedule",
+      "kind": "command",
+      "key": "set_schedule",
+      "label": "Set dunning schedule",
+      "area": "cross_functional",
+      "summary": "Replaces the company's three dunning levels with the confirmed waiting days and fees; recorded notices keep theirs.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["dunning_schedule_level", "subledger_account"],
+      "writes": ["dunning_schedule_level", "source_record", "business_event"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_dunning_schedule_set_propose"],
+      "synopses": ["finance_dunning_schedule_set_propose expected_revision levels"],
+      "events": ["dunning.schedule_set"],
+      "actions": [],
+      "guidance": {
+        "purpose": "Set the company's dunning schedule for owner confirmation.",
+        "use_when": ["A person states the waiting days and fixed fee for levels 1", "2 and 3."],
+        "do_not_use_when": ["Only one reminder's fee should differ; record that notice by hand."],
+        "preconditions": [
+          "Exactly levels 1",
+          "2 and 3; a positive fee needs the dunning_fee_revenue account default."
+        ],
+        "refusals": [
+          {
+            "code": "dunning_schedule_incomplete",
+            "description": "Not exactly levels 1",
+            "2 and 3.": null
+          },
+          {
+            "code": "dunning_schedule_value_invalid",
+            "description": "Waiting days or fee are negative or not exact."
+          },
+          {
+            "code": "finance_account_default_missing",
+            "description": "A fee needs the dunning fee account."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.dunning.schedule",
+            "proves": "The confirmed waiting days and fees are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the schedule."
+        }
+      },
+      "links": ["tool:finance_dunning_schedule_set_propose", "event:dunning.schedule_set"],
+      "label_de": "Mahnschema festlegen",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "command:run_context",
+      "kind": "command",
+      "key": "run_context",
+      "label": "Preview dunning run",
+      "area": "cross_functional",
+      "summary": "Proposes notices per customer, currency and level for overdue items and names items waiting, with credit or in collection, without recording anything.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": [
+        "document",
+        "ledger_entry",
+        "settlement_allocation",
+        "dunning_notice",
+        "dunning_notice_invoice",
+        "dunning_schedule_level",
+        "collection_handover_invoice"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": ["invoice_dunning_state"],
+      "tools": ["finance_dunning_run_context"],
+      "synopses": ["finance_dunning_run_context run_date [party_ids]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Preview which overdue items a dunning run on a date would remind, at which level and fee, and why others are left out.",
+        "use_when": ["A person starts a dunning run over all or selected customers."],
+        "do_not_use_when": [
+          "One specific reminder is chosen by hand; use finance_dunning_context."
+        ],
+        "limitations": [
+          "Disputed items are not known to Reality; the person deselects them. Nothing is sent."
+        ],
+        "empty_result": "No overdue item is due for a notice on that date; waiting items are listed with the day they become due.",
+        "freshness": "Derived at read time from open amounts, due dates, non-reversed notices, credits and handovers."
+      },
+      "links": ["tool:finance_dunning_run_context"],
+      "label_de": "Mahnlauf vorbereiten",
+      "resources": ["accounting", "invoice", "payment", "source"]
+    },
+    {
+      "id": "command:confirm_run",
+      "kind": "command",
+      "key": "confirm_run",
+      "label": "Confirm dunning run",
+      "area": "cross_functional",
+      "summary": "Records the reviewed notices still due at their reviewed level and names every skipped item, in one transaction, without sending anything.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": [
+        "document",
+        "ledger_entry",
+        "settlement_allocation",
+        "dunning_notice",
+        "dunning_notice_invoice",
+        "dunning_schedule_level",
+        "collection_handover_invoice"
+      ],
+      "writes": [
+        "source_record",
+        "document",
+        "dunning_notice",
+        "dunning_notice_invoice",
+        "ledger_entry",
+        "business_event"
+      ],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_dunning_run_propose"],
+      "synopses": [
+        "finance_dunning_run_propose schedule_source_record_id run_date [party_ids] items"
+      ],
+      "events": ["dunning.run_confirmed"],
+      "actions": [],
+      "guidance": {
+        "purpose": "Record the reviewed dunning run's notices for owner confirmation.",
+        "use_when": ["A person has reviewed the run preview and kept the items to remind."],
+        "do_not_use_when": ["No preview was read; the proposal needs its items and schedule."],
+        "preconditions": ["Each item is a customer invoice of the tenant with its proposed level."],
+        "refusals": [
+          {
+            "code": "dunning_preview_stale",
+            "description": "The schedule changed since the preview."
+          },
+          {
+            "code": "dunning_run_item_unknown",
+            "description": "An item is not a customer invoice of the tenant."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.dunning.notices",
+            "proves": "The recorded notices",
+            "their invoices and fees are retained.": null
+          },
+          {
+            "name": "finance.dunning.run_context",
+            "proves": "Reminded items now wait for their next level."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the same receipt."
+        }
+      },
+      "links": ["tool:finance_dunning_run_propose", "event:dunning.run_confirmed"],
+      "label_de": "Mahnlauf bestätigen",
+      "resources": ["accounting", "source"]
+    },
+    {
+      "id": "command:record_handover",
+      "kind": "command",
+      "key": "record_handover",
+      "label": "Hand over to collection",
+      "area": "cross_functional",
+      "summary": "Hands one customer's level-3 invoices to collection with a reason and places a delivery hold with the reason collection.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": [
+        "document",
+        "ledger_entry",
+        "dunning_notice",
+        "dunning_notice_invoice",
+        "collection_handover_invoice",
+        "party_hold"
+      ],
+      "writes": [
+        "collection_handover",
+        "collection_handover_invoice",
+        "party_hold",
+        "source_record",
+        "business_event"
+      ],
+      "confirmation": null,
+      "related_services": ["preview_handover"],
+      "tools": ["finance_dunning_collection_propose"],
+      "synopses": [
+        "finance_dunning_collection_propose expected_revision invoice_ids handover_date reason"
+      ],
+      "events": ["dunning.collection_handover_recorded"],
+      "actions": [],
+      "guidance": {
+        "purpose": "Hand one customer's invoices to collection after a level 3 notice, for owner confirmation.",
+        "use_when": [
+          "An item stays unpaid after the third reminder and a person decides to hand it over."
+        ],
+        "do_not_use_when": ["The item has no level 3 notice yet", "or the customer has paid."],
+        "preconditions": [
+          "One customer; each invoice open",
+          "with a level 3 notice and not handed over before."
+        ],
+        "refusals": [
+          {
+            "code": "collection_level_missing",
+            "description": "An invoice has no level 3 notice."
+          },
+          {
+            "code": "collection_invoice_not_open",
+            "description": "An invoice has nothing open."
+          },
+          {
+            "code": "collection_already_handed_over",
+            "description": "An invoice is already in collection."
+          },
+          {
+            "code": "collection_mixed_customers",
+            "description": "The invoices belong to different customers."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.dunning.collection_handover",
+            "proves": "The handover",
+            "its invoices and the delivery hold are retained.": null
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the handover."
+        }
+      },
+      "links": [
+        "tool:finance_dunning_collection_propose",
+        "event:dunning.collection_handover_recorded"
+      ],
+      "label_de": "An Inkasso übergeben",
+      "resources": ["invoice", "party"]
+    },
+    {
+      "id": "command:handovers",
+      "kind": "command",
+      "key": "handovers",
+      "label": "List collection handovers",
+      "area": "cross_functional",
+      "summary": "Lists collection handovers with their invoices and delivery hold.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["collection_handover", "collection_handover_invoice", "business_event"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_dunning_collection_handovers"],
+      "synopses": ["finance_dunning_collection_handovers"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "List collection handovers with their invoices and delivery hold.",
+        "use_when": ["Items handed to collection must be reconciled."],
+        "do_not_use_when": [
+          "Items still to be handed over are needed; the run preview lists them as ready for collection."
+        ],
+        "limitations": ["No collection agency integration; the handover is an internal decision."],
+        "empty_result": "No invoice has been handed to collection.",
+        "freshness": "Read from committed handovers."
+      },
+      "links": ["tool:finance_dunning_collection_handovers"],
+      "label_de": "Inkasso-Übergaben anzeigen",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "command:handover_detail",
+      "kind": "command",
+      "key": "handover_detail",
+      "label": "Read collection handover",
+      "area": "cross_functional",
+      "summary": "Reads one collection handover with its invoices, last notices and delivery hold.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["collection_handover", "collection_handover_invoice", "business_event"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_dunning_collection_handover"],
+      "synopses": ["finance_dunning_collection_handover handover_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read one collection handover with its invoices, the last notice of each and the delivery hold.",
+        "use_when": ["One known handover identity needs reconciliation."],
+        "do_not_use_when": ["The handover has not been discovered; list them first."],
+        "limitations": [
+          "The hold may since have been released through the ordinary release action."
+        ],
+        "empty_result": "Unknown and foreign identities are refused as not found.",
+        "freshness": "Read from the selected tenant-owned handover."
+      },
+      "links": ["tool:finance_dunning_collection_handover"],
+      "label_de": "Inkasso-Übergabe anzeigen",
+      "resources": ["invoice"]
     },
     {
       "id": "command:record_sales_invoice",
@@ -22276,6 +23059,9 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "dunning.schedule_set",
+        "dunning.run_confirmed",
+        "dunning.collection_handover_recorded",
         "order.recorded",
         "source_record.stored",
         "commitment.fulfilled",
@@ -22669,6 +23455,8 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "dunning.run_confirmed",
+        "dunning.collection_handover_recorded",
         "party.updated",
         "payment_term.updated",
         "document.recorded",
@@ -22791,6 +23579,8 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "dunning.run_confirmed",
+        "dunning.collection_handover_recorded",
         "order.recorded",
         "source_record.stored",
         "commitment.fulfilled",
@@ -24057,6 +24847,48 @@
       "links": ["command:reverse_notice"],
       "label_de": "dunning.notice_reversed",
       "resources": ["accounting"]
+    },
+    {
+      "id": "event:dunning.schedule_set",
+      "kind": "event",
+      "key": "dunning.schedule_set",
+      "label": "dunning.schedule_set",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "set_schedule",
+      "subject": "tenant",
+      "invalidates": ["Tenant usage"],
+      "links": ["command:set_schedule"],
+      "label_de": "dunning.schedule_set",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "event:dunning.run_confirmed",
+      "kind": "event",
+      "key": "dunning.run_confirmed",
+      "label": "dunning.run_confirmed",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "confirm_run",
+      "subject": "source_record",
+      "invalidates": ["Open financial items", "Timeline", "Tenant usage"],
+      "links": ["command:confirm_run"],
+      "label_de": "dunning.run_confirmed",
+      "resources": ["accounting", "source"]
+    },
+    {
+      "id": "event:dunning.collection_handover_recorded",
+      "kind": "event",
+      "key": "dunning.collection_handover_recorded",
+      "label": "dunning.collection_handover_recorded",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "record_handover",
+      "subject": "collection_handover",
+      "invalidates": ["Open financial items", "Timeline", "Tenant usage"],
+      "links": ["command:record_handover"],
+      "label_de": "dunning.collection_handover_recorded",
+      "resources": ["invoice", "party"]
     },
     {
       "id": "event:order.recorded",
@@ -71084,6 +71916,9 @@
         "command:record_supplier_invoice",
         "command:record_free_supplier_invoice",
         "command:record_notice",
+        "command:set_schedule",
+        "command:confirm_run",
+        "command:record_handover",
         "command:record_sales_invoice",
         "command:post_customer_refund",
         "command:post_supplier_refund",
@@ -71364,6 +72199,7 @@
         "command:record_supplier_invoice",
         "command:record_free_supplier_invoice",
         "command:record_notice",
+        "command:confirm_run",
         "command:record_sales_invoice",
         "command:post_customer_refund",
         "command:post_supplier_refund",
@@ -72794,6 +73630,7 @@
         "command:record_free_supplier_invoice",
         "command:record_notice",
         "command:reverse_notice",
+        "command:confirm_run",
         "command:record_sales_invoice",
         "command:post_sales_credit_note",
         "command:post_customer_refund",
@@ -73445,7 +74282,7 @@
           "references": []
         }
       ],
-      "actions": ["command:hold_party_delivery"]
+      "actions": ["command:hold_party_delivery", "command:record_handover"]
     },
     {
       "key": "item",

@@ -695,6 +695,57 @@
       "effect": "Retains the original reminder and explicitly reverses its fee effect and reminder state."
     },
     {
+      "name": "Read dunning schedule",
+      "service": "schedule",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Reads the company's waiting days and fixed fee for dunning levels 1 to 3."
+    },
+    {
+      "name": "Set dunning schedule",
+      "service": "set_schedule",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Replaces the company's three dunning levels with the confirmed waiting days and fees; recorded notices keep theirs."
+    },
+    {
+      "name": "Preview dunning run",
+      "service": "run_context",
+      "related_services": ["invoice_dunning_state"],
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Proposes notices per customer, currency and level for overdue items and names items waiting, with credit or in collection, without recording anything."
+    },
+    {
+      "name": "Confirm dunning run",
+      "service": "confirm_run",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Records the reviewed notices still due at their reviewed level and names every skipped item, in one transaction, without sending anything."
+    },
+    {
+      "name": "Hand over to collection",
+      "service": "record_handover",
+      "related_services": ["preview_handover"],
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Hands one customer's level-3 invoices to collection with a reason and places a delivery hold with the reason collection."
+    },
+    {
+      "name": "List collection handovers",
+      "service": "handovers",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Lists collection handovers with their invoices and delivery hold."
+    },
+    {
+      "name": "Read collection handover",
+      "service": "handover_detail",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Reads one collection handover with its invoices, last notices and delivery hold."
+    },
+    {
       "name": "Record sales invoice",
       "service": "record_sales_invoice",
       "mode": "mutation",

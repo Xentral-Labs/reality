@@ -21,6 +21,7 @@ from reality.services import credit_actions as credit_action_service_module
 from reality.services import customer_exchanges as customer_exchange_service_module
 from reality.services import demo_data as demo_data_service_module
 from reality.services import dunning as dunning_service_module
+from reality.services import dunning_runs as dunning_run_service_module
 from reality.services import file_interpreters as interpreter_service_module
 from reality.services import invoice_actions as invoice_action_service_module
 from reality.services import invoice_billing as invoice_billing_service_module
@@ -1073,6 +1074,8 @@ def _service(name: str) -> Any:
         return getattr(credit_action_service_module, name)
     if hasattr(dunning_service_module, name):
         return getattr(dunning_service_module, name)
+    if hasattr(dunning_run_service_module, name):
+        return getattr(dunning_run_service_module, name)
     if hasattr(invoice_action_service_module, name):
         return getattr(invoice_action_service_module, name)
     if hasattr(invoice_billing_service_module, name):
@@ -1263,6 +1266,7 @@ def _literal_business_events() -> set[str]:
         credit_actions,
         customer_exchange_service_module,
         dunning_service_module,
+        dunning_run_service_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

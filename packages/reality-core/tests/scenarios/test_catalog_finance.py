@@ -1,6 +1,6 @@
 """Scenario catalog: finance cases that were supported but never proven.
 
-Each test names its catalog ID (C04, C06, E09, E10, F13, M08, N01, N02, N06) and drives the business
+Each test names its catalog ID (C04, C06, E09, E10, F13, M08, N01, N02, N04, N06) and drives the business
 through the same application services the web, CLI and agent use.
 """
 
@@ -1064,3 +1064,193 @@ def test_a_partly_paid_prepayment_order_cannot_be_released_anyway(session, busin
             )
         assert refused.value.code == "shipment_blocked_readiness", tool
     assert core.fulfilled_quantity(session, tenant, commitment.id) == 0
+
+
+# --- N04 (spec 295) ------------------------------------------------------------
+
+
+def _dunning_fee_account(session, business):
+    from reality.services.finance.accounts import create_account, set_default_account
+
+    tenant = business.tenant.id
+    account = create_account(
+        session,
+        tenant,
+        code="4740",
+        name="Dunning fees",
+        role="dunning_fee_revenue",
+        expected_revision=_revision(session, business),
+    )
+    set_default_account(
+        session,
+        tenant,
+        role="dunning_fee_revenue",
+        account_id=account["id"],
+        expected_revision=_revision(session, business),
+    )
+
+
+def _overdue_invoice(session, business, number, party, day, amount="400.00"):
+    invoice = core.create_document(
+        session,
+        business.tenant.id,
+        "sales_invoice",
+        number,
+        party.id,
+        amount,
+        document_date=day,
+    )
+    core.post_sales_invoice(session, business.tenant.id, invoice.id)
+    return invoice
+
+
+def _run_preview(session, business, day):
+    from reality.tools.application import run_read_tool
+
+    return run_read_tool(
+        session, business.tenant.id, "finance.dunning.run_context", {"run_date": day}
+    )
+
+
+def _proposed_levels(context):
+    return {
+        item["number"]: (notice["level"], notice["fee_amount"])
+        for notice in context["notices"]
+        for item in notice["items"]
+    }
+
+
+def _run_proposal(session, business, context):
+    return create_change_proposal(
+        session,
+        business.tenant.id,
+        "finance.dunning.run",
+        {
+            "schedule_source_record_id": context["schedule_source_record_id"],
+            "run_date": context["run_date"],
+            "items": [
+                {"invoice_id": item["invoice_id"], "level": notice["level"]}
+                for notice in context["notices"]
+                for item in notice["items"]
+            ],
+        },
+        actor_type="human",
+    )
+
+
+def _confirm(session, business, proposal):
+    return json.loads(
+        approve_and_execute_proposal(session, business.tenant.id, proposal.id).output
+    )
+
+
+def test_three_levels_of_dunning_then_collection(session, business):
+    """N04: a company schedule, runs over three customers, escalation and collection."""
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    _dunning_fee_account(session, business)
+    weber = core.create_party(session, tenant, "Weber AG", "customer")
+    klein = core.create_party(session, tenant, "Klein KG", "customer")
+    _finance(
+        session,
+        business,
+        "finance.dunning.schedule.set",
+        {
+            "expected_revision": _revision(session, business),
+            "levels": [
+                {"level": 1, "wait_days": 7, "fee_amount": "0"},
+                {"level": 2, "wait_days": 14, "fee_amount": "5.00"},
+                {"level": 3, "wait_days": 14, "fee_amount": "10.00"},
+            ],
+        },
+    )
+    mueller = _overdue_invoice(
+        session, business, "RE-N04-M", business.customer, "2026-06-01"
+    )
+    _overdue_invoice(session, business, "RE-N04-W", weber, "2026-06-01")
+    klein_invoice = _overdue_invoice(session, business, "RE-N04-K", klein, "2026-06-01")
+    later = _overdue_invoice(
+        session, business, "RE-N04-M2", business.customer, "2026-08-25"
+    )
+
+    # Run 1: every customer's item is overdue by more than seven days.
+    first = _run_preview(session, business, "2026-06-10")
+    assert _proposed_levels(first) == {
+        "RE-N04-M": (1, "0.0000"),
+        "RE-N04-W": (1, "0.0000"),
+        "RE-N04-K": (1, "0.0000"),
+    }
+    receipt = _confirm(session, business, _run_proposal(session, business, first))
+    assert len(receipt["notices"]) == 3 and receipt["skipped"] == []
+    assert all(notice["fee_document_id"] is None for notice in receipt["notices"])
+
+    # Klein pays; before its waiting period nothing else is due.
+    core.post_customer_payment(session, tenant, klein_invoice.id, "400.00")
+    assert _proposed_levels(_run_preview(session, business, "2026-06-20")) == {}
+
+    # Run 2: the second level with its fee. Weber pays after the review.
+    second = _run_preview(session, business, "2026-06-24")
+    assert _proposed_levels(second) == {
+        "RE-N04-M": (2, "5.0000"),
+        "RE-N04-W": (2, "5.0000"),
+    }
+    proposal = _run_proposal(session, business, second)
+    weber_invoice = session.scalar(
+        select(Document).where(
+            Document.tenant_id == tenant, Document.number == "RE-N04-W"
+        )
+    )
+    core.post_customer_payment(session, tenant, weber_invoice.id, "400.00")
+    receipt = _confirm(session, business, proposal)
+    assert [notice["invoice_ids"] for notice in receipt["notices"]] == [[mueller.id]]
+    assert receipt["skipped"] == [
+        {
+            "invoice_id": weber_invoice.id,
+            "number": "RE-N04-W",
+            "level": 2,
+            "code": "paid",
+        }
+    ]
+    fees = [receipt["notices"][0]["fee_document_id"]]
+
+    # Run 3: the last level.
+    third = _run_preview(session, business, "2026-07-08")
+    assert _proposed_levels(third) == {"RE-N04-M": (3, "10.0000")}
+    receipt = _confirm(session, business, _run_proposal(session, business, third))
+    fees.append(receipt["notices"][0]["fee_document_id"])
+    assert [core.open_invoice_amount(session, tenant, fee) for fee in fees] == [
+        Decimal("5.00"),
+        Decimal("10.00"),
+    ]
+
+    # After level 3 the item is ready for collection, not dunned again.
+    fourth = _run_preview(session, business, "2026-07-22")
+    assert _proposed_levels(fourth) == {}
+    assert [item["number"] for item in fourth["ready_for_collection"]] == ["RE-N04-M"]
+    assert (
+        core.active_party_delivery_hold(session, tenant, business.customer.id) is None
+    )
+
+    _, handover = _finance(
+        session,
+        business,
+        "finance.dunning.collection.handover",
+        {
+            "expected_revision": _revision(session, business),
+            "invoice_ids": [mueller.id],
+            "handover_date": "2026-08-01",
+            "reason": "Unpaid after the third reminder",
+        },
+    )
+    hold = core.active_party_delivery_hold(session, tenant, business.customer.id)
+    assert hold.reason_code == "collection" and handover["hold_id"] == hold.id
+
+    # The handed-over item is never dunned again; the customer's newer invoice is.
+    fifth = _run_preview(session, business, "2026-09-10")
+    assert _proposed_levels(fifth) == {"RE-N04-M2": (1, "0.0000")}
+    assert {item["number"]: item["code"] for item in fifth["left_out"]} == {
+        "RE-N04-M": "in_collection"
+    }
+    assert later.id in {
+        item["invoice_id"] for notice in fifth["notices"] for item in notice["items"]
+    }

@@ -10805,6 +10805,7 @@ Object.assign(dictionaries.de, {
   "Compliance review": "Compliance-Prüfung",
   "Manual review": "Manuelle Prüfung",
   "Other hold reason": "Sonstiger Sperrgrund",
+  Collection: "Inkasso",
 });
 
 Object.assign(dictionaries.nl, {
@@ -10828,6 +10829,7 @@ Object.assign(dictionaries.nl, {
   "Compliance review": "Nalevingscontrole",
   "Manual review": "Handmatige controle",
   "Other hold reason": "Andere blokkadereden",
+  Collection: "Incasso",
 });
 
 Object.assign(dictionaries.es, {
@@ -10851,6 +10853,7 @@ Object.assign(dictionaries.es, {
   "Compliance review": "Revisión de cumplimiento",
   "Manual review": "Revisión manual",
   "Other hold reason": "Otro motivo de bloqueo",
+  Collection: "Recobro",
 });
 
 Object.assign(dictionaries.de, {
@@ -21706,6 +21709,29 @@ Object.assign(dictionaries.de, {
   "Costing evidence preview is stale.": "Die Evidence-Vorschau der Kalkulation ist veraltet.",
   "Costing preview is stale; reload the held evidence.":
     "Die Kalkulationsvorschau ist veraltet; lade die vorhandene Evidence neu.",
+  "Dunning preview is stale; reload and confirm again.":
+    "Die Mahnvorschau ist veraltet; lade neu und bestätige erneut.",
+  "Enter the dunning date as a valid date.": "Gib das Mahndatum als gültiges Datum ein.",
+  "Set the dunning schedule with levels 1, 2 and 3 before a dunning run.":
+    "Lege vor einem Mahnlauf das Mahnschema mit den Stufen 1, 2 und 3 fest.",
+  "Select between 1 and 500 invoices, each with its proposed level.":
+    "Wähle zwischen 1 und 500 Rechnungen, jede mit ihrer vorgeschlagenen Stufe.",
+  "Invoice {invoice_id} is not a customer invoice that can be dunned at levels 1 to 3.":
+    "Rechnung {invoice_id} ist keine Ausgangsrechnung, die in den Stufen 1 bis 3 gemahnt werden kann.",
+  "Select at least one invoice to hand over to collection.":
+    "Wähle mindestens eine Rechnung für die Übergabe an das Inkasso.",
+  "One collection handover cannot mix customers.":
+    "Eine Inkasso-Übergabe kann keine verschiedenen Kunden mischen.",
+  "Invoice {number} is already handed over to collection.":
+    "Rechnung {number} ist bereits an das Inkasso übergeben.",
+  "Invoice {number} can go to collection only after a dunning notice at level 3.":
+    "Rechnung {number} kann erst nach einer Mahnung der Stufe 3 an das Inkasso gehen.",
+  "Invoice {number} has nothing open.": "Rechnung {number} hat keinen offenen Betrag.",
+  "State why the invoices go to collection.": "Gib an, warum die Rechnungen an das Inkasso gehen.",
+  "A dunning schedule states exactly levels 1, 2 and 3.":
+    "Ein Mahnschema legt genau die Stufen 1, 2 und 3 fest.",
+  "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.":
+    "Mahnstufe {level} braucht ganze Wartetage und eine nicht negative Gebühr mit höchstens vier Nachkommastellen.",
   "Costing scope not found.": "Kalkulationsumfang nicht gefunden.",
   "Counterparty role does not match shipment purpose.":
     "Die Rolle des Geschäftspartners passt nicht zum Sendungszweck.",
@@ -22592,6 +22618,29 @@ Object.assign(dictionaries.nl, {
   "Costing evidence preview is stale.": "Het Evidence-voorbeeld van de kostprijs is verouderd.",
   "Costing preview is stale; reload the held evidence.":
     "Het kostprijsvoorbeeld is verouderd; laad de aanwezige Evidence opnieuw.",
+  "Dunning preview is stale; reload and confirm again.":
+    "Het aanmaningsvoorbeeld is verouderd; laad opnieuw en bevestig nogmaals.",
+  "Enter the dunning date as a valid date.": "Voer de aanmaningsdatum in als een geldige datum.",
+  "Set the dunning schedule with levels 1, 2 and 3 before a dunning run.":
+    "Stel vóór een aanmaningsrun het aanmaningsschema met de niveaus 1, 2 en 3 in.",
+  "Select between 1 and 500 invoices, each with its proposed level.":
+    "Kies tussen 1 en 500 facturen, elk met het voorgestelde niveau.",
+  "Invoice {invoice_id} is not a customer invoice that can be dunned at levels 1 to 3.":
+    "Factuur {invoice_id} is geen verkoopfactuur die op niveau 1 tot 3 kan worden aangemaand.",
+  "Select at least one invoice to hand over to collection.":
+    "Kies minstens één factuur om over te dragen aan incasso.",
+  "One collection handover cannot mix customers.":
+    "Eén incasso-overdracht kan geen klanten mengen.",
+  "Invoice {number} is already handed over to collection.":
+    "Factuur {number} is al overgedragen aan incasso.",
+  "Invoice {number} can go to collection only after a dunning notice at level 3.":
+    "Factuur {number} kan pas na een aanmaning van niveau 3 naar incasso.",
+  "Invoice {number} has nothing open.": "Factuur {number} heeft niets openstaand.",
+  "State why the invoices go to collection.": "Geef aan waarom de facturen naar incasso gaan.",
+  "A dunning schedule states exactly levels 1, 2 and 3.":
+    "Een aanmaningsschema bevat precies de niveaus 1, 2 en 3.",
+  "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.":
+    "Aanmaningsniveau {level} heeft hele wachtdagen en een niet-negatieve vergoeding met hoogstens vier decimalen nodig.",
   "Costing scope not found.": "Kostprijsbereik niet gevonden.",
   "Counterparty role does not match shipment purpose.":
     "De rol van de tegenpartij past niet bij het doel van de zending.",
@@ -23469,6 +23518,30 @@ Object.assign(dictionaries.es, {
     "La vista previa de la Evidence del costeo está desactualizada.",
   "Costing preview is stale; reload the held evidence.":
     "La vista previa del costeo está desactualizada; vuelve a cargar la Evidence disponible.",
+  "Dunning preview is stale; reload and confirm again.":
+    "La vista previa de la reclamación está desactualizada; vuelve a cargar y confirma de nuevo.",
+  "Enter the dunning date as a valid date.":
+    "Introduce la fecha de reclamación como una fecha válida.",
+  "Set the dunning schedule with levels 1, 2 and 3 before a dunning run.":
+    "Define el esquema de reclamaciones con los niveles 1, 2 y 3 antes de una ejecución de reclamaciones.",
+  "Select between 1 and 500 invoices, each with its proposed level.":
+    "Selecciona entre 1 y 500 facturas, cada una con su nivel propuesto.",
+  "Invoice {invoice_id} is not a customer invoice that can be dunned at levels 1 to 3.":
+    "La factura {invoice_id} no es una factura de cliente que pueda reclamarse en los niveles 1 a 3.",
+  "Select at least one invoice to hand over to collection.":
+    "Selecciona al menos una factura para entregar a recobro.",
+  "One collection handover cannot mix customers.":
+    "Una entrega a recobro no puede mezclar clientes.",
+  "Invoice {number} is already handed over to collection.":
+    "La factura {number} ya se ha entregado a recobro.",
+  "Invoice {number} can go to collection only after a dunning notice at level 3.":
+    "La factura {number} solo puede ir a recobro tras una reclamación de nivel 3.",
+  "Invoice {number} has nothing open.": "La factura {number} no tiene nada pendiente.",
+  "State why the invoices go to collection.": "Indica por qué las facturas van a recobro.",
+  "A dunning schedule states exactly levels 1, 2 and 3.":
+    "Un esquema de reclamaciones indica exactamente los niveles 1, 2 y 3.",
+  "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.":
+    "El nivel de reclamación {level} necesita días de espera enteros y una comisión no negativa con como máximo cuatro decimales.",
   "Costing scope not found.": "Ámbito de costeo no encontrado.",
   "Counterparty role does not match shipment purpose.":
     "El rol de la contraparte no coincide con la finalidad del envío.",
@@ -24198,4 +24271,125 @@ Object.assign(dictionaries.es, {
     "Registrar la empresa como socio comercial no necesita campos; el nombre es el de la empresa.",
   "Only an ordinary business company records itself as a business partner here.":
     "Solo una empresa normal se registra aquí a sí misma como socio comercial.",
+});
+
+// Spec 295: the dunning section of an invoice's inspector.
+Object.assign(dictionaries.de, {
+  "Notices to record: {count}": "Zu erfassende Mahnungen: {count}",
+  "Notices recorded: {count}": "Erfasste Mahnungen: {count}",
+  "Select the customers of a dunning run as a list.":
+    "Wähle die Kunden eines Mahnlaufs als Liste aus.",
+  "No longer overdue or not in this run": "Nicht mehr überfällig oder nicht in diesem Lauf",
+  "Dunning run": "Mahnlauf",
+  "Dunning schedule": "Mahnschema",
+  "Change schedule": "Schema ändern",
+  "Hand over to collection": "An Inkasso übergeben",
+  "Items paid, reminded or handed over since this review are skipped and named. No email is sent automatically.":
+    "Posten, die seit dieser Prüfung bezahlt, gemahnt oder übergeben wurden, werden übersprungen und genannt. Es wird keine E-Mail automatisch versendet.",
+  "Left out": "Nicht berücksichtigt",
+  "Level 1 waits for days overdue; levels 2 and 3 wait for days since the last notice. The fee is fixed per level.":
+    "Stufe 1 wartet auf die Tage der Überfälligkeit; Stufe 2 und 3 warten auf die Tage seit der letzten Mahnung. Die Gebühr ist je Stufe fest.",
+  "No item is due for a notice.": "Kein Posten ist fällig für eine Mahnung.",
+  "Prepare dunning run": "Mahnlauf vorbereiten",
+  "Proposed notices": "Vorgeschlagene Mahnungen",
+  "Ready for collection": "Bereit für Inkasso",
+  "Review dunning run": "Mahnlauf prüfen",
+  "Review dunning schedule": "Mahnschema prüfen",
+  "Review handover to collection": "Inkasso-Übergabe prüfen",
+  "Run date": "Laufdatum",
+  "The customer gets a delivery hold with the reason Collection.":
+    "Der Kunde erhält eine Liefersperre mit dem Grund Inkasso.",
+  "The customer's active delivery hold is kept.":
+    "Die aktive Liefersperre des Kunden bleibt bestehen.",
+  "Waiting days": "Wartetage",
+  "Not selected: {numbers}": "Nicht ausgewählt: {numbers}",
+  "due on {date}": "fällig am {date}",
+  "{days} days overdue": "{days} Tage überfällig",
+  "last notice level {level} on {date}": "letzte Mahnung Stufe {level} am {date}",
+  "Waiting period not over": "Wartezeit noch nicht vorbei",
+  "Customer credit available; settle it first": "Kundenguthaben vorhanden; zuerst ausgleichen",
+  "In collection": "Im Inkasso",
+  "Paid since the review": "Seit der Prüfung bezahlt",
+  "Reminded or reversed since the review": "Seit der Prüfung gemahnt oder storniert",
+  Dunning: "Mahnwesen",
+});
+
+Object.assign(dictionaries.nl, {
+  "Notices to record: {count}": "Vast te leggen aanmaningen: {count}",
+  "Notices recorded: {count}": "Vastgelegde aanmaningen: {count}",
+  "Select the customers of a dunning run as a list.":
+    "Kies de klanten van een aanmaningsrun als lijst.",
+  "No longer overdue or not in this run": "Niet meer achterstallig of niet in deze run",
+  "Dunning run": "Aanmaningsrun",
+  "Dunning schedule": "Aanmaningsschema",
+  "Change schedule": "Schema wijzigen",
+  "Hand over to collection": "Overdragen aan incasso",
+  "Items paid, reminded or handed over since this review are skipped and named. No email is sent automatically.":
+    "Posten die sinds deze controle zijn betaald, aangemaand of overgedragen, worden overgeslagen en genoemd. Er wordt niet automatisch een e-mail verstuurd.",
+  "Left out": "Niet meegenomen",
+  "Level 1 waits for days overdue; levels 2 and 3 wait for days since the last notice. The fee is fixed per level.":
+    "Niveau 1 wacht op het aantal dagen achterstand; niveau 2 en 3 wachten op de dagen sinds de laatste aanmaning. De vergoeding ligt per niveau vast.",
+  "No item is due for a notice.": "Geen post is toe aan een aanmaning.",
+  "Prepare dunning run": "Aanmaningsrun voorbereiden",
+  "Proposed notices": "Voorgestelde aanmaningen",
+  "Ready for collection": "Klaar voor incasso",
+  "Review dunning run": "Aanmaningsrun controleren",
+  "Review dunning schedule": "Aanmaningsschema controleren",
+  "Review handover to collection": "Incasso-overdracht controleren",
+  "Run date": "Rundatum",
+  "The customer gets a delivery hold with the reason Collection.":
+    "De klant krijgt een leveringsblokkade met de reden Incasso.",
+  "The customer's active delivery hold is kept.":
+    "De actieve leveringsblokkade van de klant blijft bestaan.",
+  "Waiting days": "Wachtdagen",
+  "Not selected: {numbers}": "Niet geselecteerd: {numbers}",
+  "due on {date}": "toe op {date}",
+  "{days} days overdue": "{days} dagen achterstallig",
+  "last notice level {level} on {date}": "laatste aanmaning niveau {level} op {date}",
+  "Waiting period not over": "Wachttijd nog niet voorbij",
+  "Customer credit available; settle it first": "Klanttegoed beschikbaar; eerst verrekenen",
+  "In collection": "In incasso",
+  "Paid since the review": "Sinds de controle betaald",
+  "Reminded or reversed since the review": "Sinds de controle aangemaand of teruggedraaid",
+  Dunning: "Aanmaningen",
+});
+
+Object.assign(dictionaries.es, {
+  "Notices to record: {count}": "Reclamaciones por registrar: {count}",
+  "Notices recorded: {count}": "Reclamaciones registradas: {count}",
+  "Select the customers of a dunning run as a list.":
+    "Selecciona los clientes de una ejecución de reclamaciones como lista.",
+  "No longer overdue or not in this run": "Ya no está vencida o no está en esta ejecución",
+  "Dunning run": "Ejecución de reclamaciones",
+  "Dunning schedule": "Esquema de reclamaciones",
+  "Change schedule": "Cambiar esquema",
+  "Hand over to collection": "Entregar a recobro",
+  "Items paid, reminded or handed over since this review are skipped and named. No email is sent automatically.":
+    "Las partidas pagadas, reclamadas o entregadas desde esta revisión se omiten y se indican. No se envía ningún correo automáticamente.",
+  "Left out": "No incluidas",
+  "Level 1 waits for days overdue; levels 2 and 3 wait for days since the last notice. The fee is fixed per level.":
+    "El nivel 1 espera los días de retraso; los niveles 2 y 3 esperan los días desde la última reclamación. La comisión es fija por nivel.",
+  "No item is due for a notice.": "Ninguna partida está pendiente de reclamación.",
+  "Prepare dunning run": "Preparar ejecución de reclamaciones",
+  "Proposed notices": "Reclamaciones propuestas",
+  "Ready for collection": "Listas para recobro",
+  "Review dunning run": "Revisar ejecución de reclamaciones",
+  "Review dunning schedule": "Revisar esquema de reclamaciones",
+  "Review handover to collection": "Revisar entrega a recobro",
+  "Run date": "Fecha de ejecución",
+  "The customer gets a delivery hold with the reason Collection.":
+    "El cliente recibe un bloqueo de entregas con el motivo Recobro.",
+  "The customer's active delivery hold is kept.":
+    "Se mantiene el bloqueo de entregas activo del cliente.",
+  "Waiting days": "Días de espera",
+  "Not selected: {numbers}": "No seleccionadas: {numbers}",
+  "due on {date}": "pendiente el {date}",
+  "{days} days overdue": "{days} días de retraso",
+  "last notice level {level} on {date}": "última reclamación nivel {level} el {date}",
+  "Waiting period not over": "El plazo de espera no ha terminado",
+  "Customer credit available; settle it first": "Hay saldo a favor del cliente; compénsalo primero",
+  "In collection": "En recobro",
+  "Paid since the review": "Pagada desde la revisión",
+  "Reminded or reversed since the review": "Reclamada o anulada desde la revisión",
+  Dunning: "Reclamaciones",
 });

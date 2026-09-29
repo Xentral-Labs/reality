@@ -107,6 +107,7 @@ HOLD_REASONS = {
     "address_clarification",
     "compliance",
     "manual_review",
+    "collection",
     "other",
 }
 
@@ -6210,6 +6211,7 @@ def hold_party_delivery(
     *,
     created_by: str = "human",
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> PartyHold:
     _require_business_mutation(session, tenant_id, "hold_party_delivery")
     if action_id:
@@ -6246,7 +6248,8 @@ def hold_party_delivery(
         correlation_id=action_id,
         occurred_at=hold.created_at,
     )
-    session.commit()
+    if _commit:
+        session.commit()
     return hold
 
 

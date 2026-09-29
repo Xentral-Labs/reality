@@ -5356,6 +5356,9 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
             record.id,
         ),
     )
+    from reality.services.dunning_runs import invoice_dunning_rows
+
+    dunning_rows = invoice_dunning_rows(session, tenant_id, document)
     source = detail["source"]
     correction = manual_document_line_snapshot(session, tenant_id, record_id)
     pricing = {
@@ -5468,6 +5471,27 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
                     }
                 ]
                 if billed_order_documents
+                else []
+            ),
+            *(
+                [
+                    {
+                        # Spec 295: level and collection are read from the notices
+                        # and the handover; the invoice carries neither.
+                        "title": "Dunning",
+                        "rows": [
+                            inspector_row(
+                                row["label"],
+                                row["value"],
+                                kind=row["kind"],
+                                record_id=row["record_id"],
+                                meta=row.get("meta"),
+                            )
+                            for row in dunning_rows
+                        ],
+                    }
+                ]
+                if dunning_rows
                 else []
             ),
             *(
@@ -7474,6 +7498,53 @@ def get_dunning_notices(tenant_id: str, session: DatabaseSession):
 
     try:
         return {"items": notices(session, tenant_id)}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/dunning/schedule")
+def get_dunning_schedule(tenant_id: str, session: DatabaseSession):
+    from reality.services.dunning_runs import schedule
+
+    try:
+        return schedule(session, tenant_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/dunning/run-context")
+def get_dunning_run_context(
+    tenant_id: str,
+    session: DatabaseSession,
+    run_date: str,
+    party_ids: Annotated[list[str] | None, Query()] = None,
+):
+    from reality.services.dunning_runs import run_context
+
+    try:
+        return run_context(session, tenant_id, run_date=run_date, party_ids=party_ids)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/dunning/collection-handovers")
+def get_collection_handovers(tenant_id: str, session: DatabaseSession):
+    from reality.services.dunning_runs import handovers
+
+    try:
+        return {"items": handovers(session, tenant_id)}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/dunning/collection-handovers/{handover_id}")
+def get_collection_handover(
+    tenant_id: str, handover_id: str, session: DatabaseSession
+):
+    from reality.services.dunning_runs import handover_detail
+
+    try:
+        return handover_detail(session, tenant_id, handover_id)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

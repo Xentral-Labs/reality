@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:45e1e30b448786caddca2965ba97edfd74e6f0cb76a1f609756e2ff970510b2f",
+  "knowledge_version": "advisor-v1:sha256:5b379bee30136d70b3da0df513e5f56667d681fbdf5addd07d66d9263c4c4fa1",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -697,6 +697,7 @@
         "evidence_command_billable_positions",
         "evidence_command_dunning_context",
         "evidence_command_record_notice",
+        "evidence_command_record_handover",
         "evidence_command_opening_context",
         "evidence_command_import_opening",
         "evidence_command_record_shipment_notice",
@@ -785,6 +786,10 @@
         },
         {
           "name": "record_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_handover",
           "mode": "mutation"
         },
         {
@@ -1433,6 +1438,14 @@
         "evidence_command_record_free_supplier_invoice",
         "evidence_command_invoice_credit_context",
         "evidence_command_billable_positions",
+        "evidence_command_dunning_context",
+        "evidence_command_schedule",
+        "evidence_command_set_schedule",
+        "evidence_command_run_context",
+        "evidence_command_confirm_run",
+        "evidence_command_record_handover",
+        "evidence_command_handovers",
+        "evidence_command_handover_detail",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_sales_credit_note",
         "evidence_command_allocate_credit_note",
@@ -1466,6 +1479,38 @@
         },
         {
           "name": "billable_positions",
+          "mode": "query"
+        },
+        {
+          "name": "dunning_context",
+          "mode": "query"
+        },
+        {
+          "name": "schedule",
+          "mode": "query"
+        },
+        {
+          "name": "set_schedule",
+          "mode": "mutation"
+        },
+        {
+          "name": "run_context",
+          "mode": "query"
+        },
+        {
+          "name": "confirm_run",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_handover",
+          "mode": "mutation"
+        },
+        {
+          "name": "handovers",
+          "mode": "query"
+        },
+        {
+          "name": "handover_detail",
           "mode": "query"
         },
         {
@@ -1519,6 +1564,8 @@
         "evidence_command_invoice_credit_context",
         "evidence_command_dunning_context",
         "evidence_command_record_notice",
+        "evidence_command_run_context",
+        "evidence_command_confirm_run",
         "evidence_command_allocate_credit_note",
         "evidence_command_post_customer_refund",
         "evidence_command_allocate_supplier_credit_note",
@@ -1560,6 +1607,14 @@
         },
         {
           "name": "record_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "run_context",
+          "mode": "query"
+        },
+        {
+          "name": "confirm_run",
           "mode": "mutation"
         },
         {
@@ -1668,6 +1723,10 @@
         "evidence_command_notice_detail",
         "evidence_command_record_notice",
         "evidence_command_reverse_notice",
+        "evidence_command_set_schedule",
+        "evidence_command_run_context",
+        "evidence_command_confirm_run",
+        "evidence_command_record_handover",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_sales_credit_note",
         "evidence_command_allocate_credit_note",
@@ -1878,6 +1937,22 @@
         },
         {
           "name": "reverse_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "set_schedule",
+          "mode": "mutation"
+        },
+        {
+          "name": "run_context",
+          "mode": "query"
+        },
+        {
+          "name": "confirm_run",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_handover",
           "mode": "mutation"
         },
         {
@@ -2129,6 +2204,9 @@
         "evidence_command_notice_detail",
         "evidence_command_record_notice",
         "evidence_command_reverse_notice",
+        "evidence_command_run_context",
+        "evidence_command_confirm_run",
+        "evidence_command_record_handover",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_sales_credit_note",
         "evidence_command_allocate_credit_note",
@@ -2331,6 +2409,18 @@
         },
         {
           "name": "reverse_notice",
+          "mode": "mutation"
+        },
+        {
+          "name": "run_context",
+          "mode": "query"
+        },
+        {
+          "name": "confirm_run",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_handover",
           "mode": "mutation"
         },
         {

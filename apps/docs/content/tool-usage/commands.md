@@ -18,15 +18,21 @@ all reach the same operation.
 | [`assign_supply`](#command-assign_supply)                                         | Assign incoming supply to customer demand  | Cross-functional           | `supply_assign_propose`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report                | Cross-functional           | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision     | Cross-functional           | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
+| [`confirm_run`](#command-confirm_run)                                             | Confirm dunning run                        | Cross-functional           | `finance_dunning_run_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`cost_review_draft`](#command-cost_review_draft)                                 | Draft a cost review                        | Cross-functional           | `cost_review_draft`                                                                                                                                                                          | Web · MCP · Chat                        |
 | [`record_customer_exchange`](#command-record_customer_exchange)                   | Exchange returned goods for a replacement  | Cross-functional           | `customer_exchange_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
+| [`record_handover`](#command-record_handover)                                     | Hand over to collection                    | Cross-functional           | `finance_dunning_collection_propose`                                                                                                                                                         | Web · MCP · Chat                        |
 | [`cost_record`](#command-cost_record)                                             | Inspect retained cost record               | Cross-functional           | `cost_record_get`                                                                                                                                                                            | CLI · Web · MCP · Chat                  |
+| [`handovers`](#command-handovers)                                                 | List collection handovers                  | Cross-functional           | `finance_dunning_collection_handovers`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`notices`](#command-notices)                                                     | List dunning notices                       | Cross-functional           | `finance_dunning_notices`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate     | Cross-functional           | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
+| [`run_context`](#command-run_context)                                             | Preview dunning run                        | Cross-functional           | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review              | Cross-functional           | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
+| [`handover_detail`](#command-handover_detail)                                     | Read collection handover                   | Cross-functional           | `finance_dunning_collection_handover`                                                                                                                                                        | Web · MCP · Chat                        |
 | [`cost_query`](#command-cost_query)                                               | Read cost query context                    | Cross-functional           | `cost_query_get`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
 | [`dunning_context`](#command-dunning_context)                                     | Read dunning context                       | Cross-functional           | `finance_dunning_context`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`notice_detail`](#command-notice_detail)                                         | Read dunning notice                        | Cross-functional           | `finance_dunning_notice`                                                                                                                                                                     | Web · MCP · Chat                        |
+| [`schedule`](#command-schedule)                                                   | Read dunning schedule                      | Cross-functional           | `finance_dunning_schedule`                                                                                                                                                                   | Web · MCP · Chat                        |
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs             | Cross-functional           | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`cost_evidence`](#command-cost_evidence)                                         | Read received acquisition-cost evidence    | Cross-functional           | `cost_evidence_get`                                                                                                                                                                          | CLI · Web · MCP · Chat                  |
 | [`reviewed_contribution`](#command-reviewed_contribution)                         | Read reviewed commercial contribution      | Cross-functional           | `cost_contribution_get`                                                                                                                                                                      | CLI · Web · MCP · Chat                  |
@@ -34,6 +40,7 @@ all reach the same operation.
 | [`propose_company_party`](#command-propose_company_party)                         | Record the company as its business partner | Cross-functional           | `company_party_record_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`reverse_notice`](#command-reverse_notice)                                       | Reverse dunning notice                     | Cross-functional           | `finance_dunning_reverse_propose`                                                                                                                                                            | Web · MCP · Chat                        |
 | [`business_journey_vote_set`](#command-business_journey_vote_set)                 | Set a Business Journey suggestion vote     | Cross-functional           | `business_journey_vote_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
+| [`set_schedule`](#command-set_schedule)                                           | Set dunning schedule                       | Cross-functional           | `finance_dunning_schedule_set_propose`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`accept_adjustment`](#command-accept_adjustment)                                 | Accept settlement reduction                | Finance                    | `finance_adjustment_propose`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`assign_component`](#command-assign_component)                                   | Assign received financial component        | Finance                    | `finance_component_assign_propose`                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`create_account`](#command-create_account)                                       | Create operational account                 | Finance                    | `finance_create_account_propose`                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -1486,7 +1493,7 @@ Prepare explicit customer/supplier opening residuals with stable source coverage
 | `cutover_date`                   | `string`  | yes      | —                                                                                                                                                | —       |
 | `coverage_kind`                  | `string`  | yes      | `individual`, `summary`                                                                                                                          | —       |
 | `reason`                         | `string`  | yes      | Human-readable explanation for a hold, correction, or lifecycle change.                                                                          | —       |
-| `items`                          | `array`   | yes      | —                                                                                                                                                | —       |
+| `items`                          | `array`   | yes      | The reviewed invoices of a dunning run, each with the level the preview proposed; items left out are not reminded.                               | —       |
 | `items[].party_id`               | `string`  | yes      | Opaque identity of the customer, supplier, or other operational party.                                                                           | —       |
 | `items[].direction`              | `string`  | yes      | Business flow direction, such as sales or purchase, incoming or outgoing. `customer_debt`, `customer_credit`, `supplier_debt`, `supplier_credit` | —       |
 | `items[].currency`               | `string`  | yes      | ISO 4217 currency code for monetary values.                                                                                                      | —       |
@@ -6587,6 +6594,77 @@ acquisition value and consumption at an exact retained cutoff.
 
 **See also:** command [`execute_cost_change`](./commands#command-execute_cost_change)
 
+### `confirm_run` — Confirm dunning run {#command-confirm_run}
+
+Records the reviewed notices still due at their reviewed level and names every skipped item, in one
+transaction, without sending anything.
+
+**Synopsis**
+
+```text
+finance_dunning_run_propose schedule_source_record_id run_date [party_ids] items
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `document`, `ledger_entry`, `settlement_allocation`, `dunning_notice`,
+`dunning_notice_invoice`, `dunning_schedule_level`, `collection_handover_invoice` · Writes:
+`source_record`, `document`, `dunning_notice`, `dunning_notice_invoice`, `ledger_entry`,
+`business_event` · Emits: `dunning.run_confirmed`
+
+**See also:** agent tool
+[`finance_dunning_run_propose`](./commands#tool-finance_dunning_run_propose), event
+[`dunning.run_confirmed`](./events#event-dunning-run_confirmed)
+
+#### `finance_dunning_run_propose` — Confirm dunning run {#tool-finance_dunning_run_propose}
+
+Prepare the reviewed dunning run for owner confirmation: the selected items with their proposed
+level and the schedule the preview used. On confirmation, items paid, reminded or handed over since
+the review are skipped and named; nothing is sent.
+
+**Synopsis**
+
+```text
+finance_dunning_run_propose schedule_source_record_id run_date [party_ids] items
+```
+
+**Access:** `propose`
+
+Record the reviewed dunning run's notices for owner confirmation.
+
+**Use when**
+
+- A person has reviewed the run preview and kept the items to remind.
+
+**Do not use when**
+
+- No preview was read; the proposal needs its items and schedule.
+
+**Preconditions**
+
+- Each item is a customer invoice of the tenant with its proposed level.
+
+**Refused when**
+
+- `dunning_preview_stale` — The schedule changed since the preview.
+- `dunning_run_item_unknown` — An item is not a customer invoice of the tenant.
+
+**Parameters**
+
+| Name                        | Type      | Required | Description                                                                                                                                                                                                                                                                                      | Default |
+| --------------------------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| `schedule_source_record_id` | `string`  | yes      | The schedule the dunning run preview used; a schedule changed since then makes the run stale.                                                                                                                                                                                                    | —       |
+| `run_date`                  | `string`  | yes      | Calendar date of the dunning run; overdue days and waiting periods are counted up to its end.                                                                                                                                                                                                    | —       |
+| `party_ids`                 | `array`   | no       | Opaque business-partner identities the caller can still reach, used to select which partners are answered for; absent means every partner of the company. A balance is summed within one partner and currency and never across them, so naming fewer returns fewer rows of identical arithmetic. | —       |
+| `items`                     | `array`   | yes      | The reviewed invoices of a dunning run, each with the level the preview proposed; items left out are not reminded.                                                                                                                                                                               | —       |
+| `items[].invoice_id`        | `string`  | yes      | Opaque identity of the invoice evidence associated with a payment or allocation.                                                                                                                                                                                                                 | —       |
+| `items[].level`             | `integer` | yes      | Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted.                                                                                                                                                                                                                 | —       |
+
+**Verify with:** `finance.dunning.notices` — The recorded notices; `finance.dunning.run_context` —
+Reminded items now wait for their next level.
+
+**See also:** command [`confirm_run`](./commands#command-confirm_run)
+
 ### `cost_review_draft` — Draft a cost review {#command-cost_review_draft}
 
 Draft the inventory or contribution review the held records support, or name the inputs a person
@@ -6704,6 +6782,78 @@ customer_exchange_propose [return_movement_id] [return_announcement_id] quantity
 
 **See also:** command [`record_customer_exchange`](./commands#command-record_customer_exchange)
 
+### `record_handover` — Hand over to collection {#command-record_handover}
+
+Hands one customer's level-3 invoices to collection with a reason and places a delivery hold with
+the reason collection.
+
+**Synopsis**
+
+```text
+finance_dunning_collection_propose expected_revision invoice_ids handover_date reason
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `document`, `ledger_entry`, `dunning_notice`, `dunning_notice_invoice`,
+`collection_handover_invoice`, `party_hold` · Writes: `collection_handover`,
+`collection_handover_invoice`, `party_hold`, `source_record`, `business_event` · Emits:
+`dunning.collection_handover_recorded`
+
+**See also:** agent tool
+[`finance_dunning_collection_propose`](./commands#tool-finance_dunning_collection_propose), event
+[`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded)
+
+#### `finance_dunning_collection_propose` — Hand over to collection {#tool-finance_dunning_collection_propose}
+
+Prepare handing one customer's invoices to collection after a level 3 notice, with a reason, for
+owner confirmation. The customer gets a delivery hold with the reason collection unless one is
+active.
+
+**Synopsis**
+
+```text
+finance_dunning_collection_propose expected_revision invoice_ids handover_date reason
+```
+
+**Access:** `propose`
+
+Hand one customer's invoices to collection after a level 3 notice, for owner confirmation.
+
+**Use when**
+
+- An item stays unpaid after the third reminder and a person decides to hand it over.
+
+**Do not use when**
+
+- The item has no level 3 notice yet
+- or the customer has paid.
+
+**Preconditions**
+
+- One customer; each invoice open
+- with a level 3 notice and not handed over before.
+
+**Refused when**
+
+- `collection_level_missing` — An invoice has no level 3 notice.
+- `collection_invoice_not_open` — An invoice has nothing open.
+- `collection_already_handed_over` — An invoice is already in collection.
+- `collection_mixed_customers` — The invoices belong to different customers.
+
+**Parameters**
+
+| Name                | Type      | Required | Description                                                                          | Default |
+| ------------------- | --------- | -------- | ------------------------------------------------------------------------------------ | ------- |
+| `expected_revision` | `integer` | yes      | Canonical revision of the Evidence snapshot on which a correction is based.          | —       |
+| `invoice_ids`       | `array`   | yes      | Opaque same-tenant customer-invoice identities explicitly selected for one reminder. | —       |
+| `handover_date`     | `string`  | yes      | Calendar date the invoices are handed to collection.                                 | —       |
+| `reason`            | `string`  | yes      | Human-readable explanation for a hold, correction, or lifecycle change.              | —       |
+
+**Verify with:** `finance.dunning.collection_handover` — The handover
+
+**See also:** command [`record_handover`](./commands#command-record_handover)
+
 ### `cost_record` — Inspect retained cost record {#command-cost_record}
 
 Inspect retained evidence and decision fields with tenant-safe source links and paged exact
@@ -6777,6 +6927,60 @@ same reader as the web Inspector and CLI.
 | `language`  | `string`  | no       | Requested inspection labels (en/de); nl/es use English fallback. `en`, `de`, `nl`, `es` | `en`    |
 
 **See also:** command [`cost_record`](./commands#command-cost_record)
+
+### `handovers` — List collection handovers {#command-handovers}
+
+Lists collection handovers with their invoices and delivery hold.
+
+**Synopsis**
+
+```text
+finance_dunning_collection_handovers
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `collection_handover`, `collection_handover_invoice`, `business_event` · Writes:
+—
+
+**See also:** agent tool
+[`finance_dunning_collection_handovers`](./commands#tool-finance_dunning_collection_handovers)
+
+#### `finance_dunning_collection_handovers` — Collection handovers {#tool-finance_dunning_collection_handovers}
+
+List collection handovers newest first with their invoices and delivery hold.
+
+**Synopsis**
+
+```text
+finance_dunning_collection_handovers
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                             | Kind                        | Default |
+| ------------------------------------------ | --------------------------- | ------- |
+| `MCP finance_dunning_collection_handovers` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+List collection handovers with their invoices and delivery hold.
+
+**Use when**
+
+- Items handed to collection must be reconciled.
+
+**Do not use when**
+
+- Items still to be handed over are needed; the run preview lists them as ready for collection.
+
+**Parameters**
+
+No parameters.
+
+**See also:** command [`handovers`](./commands#command-handovers)
 
 ### `notices` — List dunning notices {#command-notices}
 
@@ -6889,6 +7093,67 @@ basis.
 
 **See also:** command [`contribution_preview`](./commands#command-contribution_preview)
 
+### `run_context` — Preview dunning run {#command-run_context}
+
+Proposes notices per customer, currency and level for overdue items and names items waiting, with
+credit or in collection, without recording anything.
+
+**Synopsis**
+
+```text
+finance_dunning_run_context run_date [party_ids]
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `document`, `ledger_entry`, `settlement_allocation`, `dunning_notice`,
+`dunning_notice_invoice`, `dunning_schedule_level`, `collection_handover_invoice` · Writes: —
+
+**See also:** agent tool
+[`finance_dunning_run_context`](./commands#tool-finance_dunning_run_context)
+
+#### `finance_dunning_run_context` — Dunning run preview {#tool-finance_dunning_run_context}
+
+Preview a dunning run for a date over all or selected customers: proposed notices per customer,
+currency and level with their fee, items ready for collection and items left out with their reason.
+Records nothing.
+
+**Synopsis**
+
+```text
+finance_dunning_run_context run_date [party_ids]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                    | Kind                        | Default |
+| --------------------------------- | --------------------------- | ------- |
+| `MCP finance_dunning_run_context` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Preview which overdue items a dunning run on a date would remind, at which level and fee, and why
+others are left out.
+
+**Use when**
+
+- A person starts a dunning run over all or selected customers.
+
+**Do not use when**
+
+- One specific reminder is chosen by hand; use finance_dunning_context.
+
+**Parameters**
+
+| Name        | Type     | Required | Description                                                                                                                                                                                                                                                                                      | Default |
+| ----------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| `run_date`  | `string` | yes      | Calendar date of the dunning run; overdue days and waiting periods are counted up to its end.                                                                                                                                                                                                    | —       |
+| `party_ids` | `array`  | no       | Opaque business-partner identities the caller can still reach, used to select which partners are answered for; absent means every partner of the company. A balance is summed within one partner and currency and never across them, so naming fewer returns fewer rows of identical arithmetic. | —       |
+
+**See also:** command [`run_context`](./commands#command-run_context)
+
 ### `propose_cost_review` — Propose a drafted cost review {#command-propose_cost_review}
 
 Draft the review again from held records and create one proposal for it; a company owner confirms it
@@ -6958,6 +7223,62 @@ arguments.
 the proposal.
 
 **See also:** command [`propose_cost_review`](./commands#command-propose_cost_review)
+
+### `handover_detail` — Read collection handover {#command-handover_detail}
+
+Reads one collection handover with its invoices, last notices and delivery hold.
+
+**Synopsis**
+
+```text
+finance_dunning_collection_handover handover_id
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `collection_handover`, `collection_handover_invoice`, `business_event` · Writes:
+—
+
+**See also:** agent tool
+[`finance_dunning_collection_handover`](./commands#tool-finance_dunning_collection_handover)
+
+#### `finance_dunning_collection_handover` — Collection handover {#tool-finance_dunning_collection_handover}
+
+Read one collection handover with its invoices, the last notice of each and the delivery hold.
+
+**Synopsis**
+
+```text
+finance_dunning_collection_handover handover_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                            | Kind                        | Default |
+| ----------------------------------------- | --------------------------- | ------- |
+| `MCP finance_dunning_collection_handover` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read one collection handover with its invoices, the last notice of each and the delivery hold.
+
+**Use when**
+
+- One known handover identity needs reconciliation.
+
+**Do not use when**
+
+- The handover has not been discovered; list them first.
+
+**Parameters**
+
+| Name          | Type     | Required | Description                                           | Default |
+| ------------- | -------- | -------- | ----------------------------------------------------- | ------- |
+| `handover_id` | `string` | yes      | Opaque same-tenant identity of a collection handover. | —       |
+
+**See also:** command [`handover_detail`](./commands#command-handover_detail)
 
 ### `cost_query` — Read cost query context {#command-cost_query}
 
@@ -7144,6 +7465,59 @@ Read one retained manual reminder with its exact invoice membership, fee and rev
 | `notice_id` | `string` | yes      | Opaque same-tenant identity of the retained manual reminder. | —       |
 
 **See also:** command [`notice_detail`](./commands#command-notice_detail)
+
+### `schedule` — Read dunning schedule {#command-schedule}
+
+Reads the company's waiting days and fixed fee for dunning levels 1 to 3.
+
+**Synopsis**
+
+```text
+finance_dunning_schedule
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `dunning_schedule_level` · Writes: —
+
+**See also:** agent tool [`finance_dunning_schedule`](./commands#tool-finance_dunning_schedule)
+
+#### `finance_dunning_schedule` — Dunning schedule {#tool-finance_dunning_schedule}
+
+Read the company dunning schedule: waiting days and fixed fee for levels 1 to 3, with the finance
+revision required to change it.
+
+**Synopsis**
+
+```text
+finance_dunning_schedule
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                 | Kind                        | Default |
+| ------------------------------ | --------------------------- | ------- |
+| `MCP finance_dunning_schedule` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read the company's dunning schedule and the finance revision required to change it.
+
+**Use when**
+
+- A dunning run or a schedule change needs the current waiting days and fees.
+
+**Do not use when**
+
+- The level of one invoice is needed; the run preview derives it.
+
+**Parameters**
+
+No parameters.
+
+**See also:** command [`schedule`](./commands#command-schedule)
 
 ### `receipt_cost` — Read receipt acquisition costs {#command-receipt_cost}
 
@@ -7555,6 +7929,75 @@ business_journey_vote_propose proposal_id active
 | `active`      | `boolean` | yes      | True votes; false withdraws the account's vote. | `True`  |
 
 **See also:** command [`business_journey_vote_set`](./commands#command-business_journey_vote_set)
+
+### `set_schedule` — Set dunning schedule {#command-set_schedule}
+
+Replaces the company's three dunning levels with the confirmed waiting days and fees; recorded
+notices keep theirs.
+
+**Synopsis**
+
+```text
+finance_dunning_schedule_set_propose expected_revision levels
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `dunning_schedule_level`, `subledger_account` · Writes: `dunning_schedule_level`,
+`source_record`, `business_event` · Emits: `dunning.schedule_set`
+
+**See also:** agent tool
+[`finance_dunning_schedule_set_propose`](./commands#tool-finance_dunning_schedule_set_propose),
+event [`dunning.schedule_set`](./events#event-dunning-schedule_set)
+
+#### `finance_dunning_schedule_set_propose` — Set dunning schedule {#tool-finance_dunning_schedule_set_propose}
+
+Prepare the company dunning schedule (levels 1, 2 and 3 with waiting days and a fixed fee) for owner
+confirmation.
+
+**Synopsis**
+
+```text
+finance_dunning_schedule_set_propose expected_revision levels
+```
+
+**Access:** `propose`
+
+Set the company's dunning schedule for owner confirmation.
+
+**Use when**
+
+- A person states the waiting days and fixed fee for levels 1
+- 2 and 3.
+
+**Do not use when**
+
+- Only one reminder's fee should differ; record that notice by hand.
+
+**Preconditions**
+
+- Exactly levels 1
+- 2 and 3; a positive fee needs the dunning_fee_revenue account default.
+
+**Refused when**
+
+- `dunning_schedule_incomplete` — Not exactly levels 1
+- `dunning_schedule_value_invalid` — Waiting days or fee are negative or not exact.
+- `finance_account_default_missing` — A fee needs the dunning fee account.
+
+**Parameters**
+
+| Name                  | Type                | Required | Description                                                                                                            | Default |
+| --------------------- | ------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- | ------- |
+| `expected_revision`   | `integer`           | yes      | Canonical revision of the Evidence snapshot on which a correction is based.                                            | —       |
+| `levels`              | `array`             | yes      | The company's complete dunning schedule, exactly levels 1, 2 and 3, each with its waiting days and fixed fee.          | —       |
+| `levels[].level`      | `integer`           | yes      | Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted.                                       | —       |
+| `levels[].wait_days`  | `integer \| string` | yes      | Whole days a dunning level waits; level 1 counts days overdue, levels 2 and 3 count days since the item's last notice. | —       |
+| `levels[].fee_amount` | `string \| integer` | no       | Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.                           | `0`     |
+
+**Verify with:** `finance.dunning.schedule` — The confirmed waiting days and fees are retained.
+
+**See also:** command [`set_schedule`](./commands#command-set_schedule)
 
 ## Agent tools without a business command
 
