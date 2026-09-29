@@ -16,6 +16,8 @@ events:
   - {type: dunning.notice_recorded, producer: record_notice, subject: dunning_notice, invalidates: [Open financial items, Timeline, Tenant usage]}
   - {type: dunning.notice_reversed, producer: reverse_notice, subject: dunning_notice, invalidates: [Open financial items, Timeline, Tenant usage]}
   - {type: dunning.schedule_set, producer: set_schedule, subject: tenant, invalidates: [Tenant usage]}
+  - {type: dunning.run_confirmed, producer: confirm_run, subject: source_record, invalidates: [Open financial items, Timeline, Tenant usage]}
+  - {type: dunning.collection_handover_recorded, producer: record_handover, subject: collection_handover, invalidates: [Open financial items, Timeline, Tenant usage]}
   - {type: order.recorded, producer: create_manual_order, subject: document, invalidates: [Document register, Commitment register, Timeline, Tenant usage]}
   - {type: source_record.stored, producer: create_master_source_record, subject: source_record, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
   - {type: commitment.fulfilled, producer: record_movement, subject: commitment, invalidates: [Inventory, Operational Exceptions, Commitment register, Document register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}

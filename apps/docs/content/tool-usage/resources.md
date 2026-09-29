@@ -453,8 +453,10 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 
 **Underneath:** Events: [`credit.recorded`](./events#event-credit-recorded),
 [`invoice.recorded`](./events#event-invoice-recorded),
-[`dunning.schedule_set`](./events#event-dunning-schedule_set) · Agent tools without a command:
-[`finance_credits`](./commands#tool-finance_credits),
+[`dunning.schedule_set`](./events#event-dunning-schedule_set),
+[`dunning.run_confirmed`](./events#event-dunning-run_confirmed),
+[`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded) ·
+Agent tools without a command: [`finance_credits`](./commands#tool-finance_credits),
 [`finance_party_balances`](./commands#tool-finance_party_balances)
 
 ## Payment and settlement {#resource-payment}

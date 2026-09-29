@@ -551,7 +551,8 @@ Change Proposal, and chat activity without loading business rows or querying onc
 `shipment.event_recorded`, `shipment.event_superseded`, `finance.target_configuration_changed`,
 `finance.source_mapping_changed`, `finance.component_assigned`, `finance.reference_changed`,
 `finance.account_changed`, `credit.recorded`, `invoice.recorded`, `dunning.notice_recorded`,
-`dunning.notice_reversed`, `dunning.schedule_set`, `order.recorded`, `source_record.stored`,
+`dunning.notice_reversed`, `dunning.schedule_set`, `dunning.run_confirmed`,
+`dunning.collection_handover_recorded`, `order.recorded`, `source_record.stored`,
 `commitment.fulfilled`, `reservation.consumed`, `fact.observed`, `source_record.received`,
 `source_record.unmapped`, `source_record.interpreted`, `party.created`, `party.updated`,
 `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.created`, `item.updated`,
@@ -751,8 +752,9 @@ payment truth.
 [How this query runs](./views#read-execution)
 
 **Background refresh after:** `credit.recorded`, `invoice.recorded`, `dunning.notice_recorded`,
-`dunning.notice_reversed`, `party.updated`, `payment_term.updated`, `document.recorded`,
-`document.corrected`, `payments.run`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`dunning.notice_reversed`, `dunning.run_confirmed`, `dunning.collection_handover_recorded`,
+`party.updated`, `payment_term.updated`, `document.recorded`, `document.corrected`, `payments.run`,
+`ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 **See also:** view [`open_items`](./views#view-open_items)
 
@@ -817,11 +819,12 @@ Normalizes important evidence and reality timestamps into one chronological oper
 **Background refresh after:** `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
 `shipment.event_recorded`, `shipment.event_superseded`, `finance.component_assigned`,
 `credit.recorded`, `invoice.recorded`, `dunning.notice_recorded`, `dunning.notice_reversed`,
-`order.recorded`, `source_record.stored`, `commitment.fulfilled`, `reservation.consumed`,
-`fact.observed`, `source_record.received`, `source_record.unmapped`, `source_record.interpreted`,
-`party.created`, `party.updated`, `item.created`, `item.updated`, `location.created`,
-`location.updated`, `document.recorded`, `document.corrected`, `commitment.created`,
-`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
+`dunning.run_confirmed`, `dunning.collection_handover_recorded`, `order.recorded`,
+`source_record.stored`, `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
+`source_record.received`, `source_record.unmapped`, `source_record.interpreted`, `party.created`,
+`party.updated`, `item.created`, `item.updated`, `location.created`, `location.updated`,
+`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
+`commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
 `return.announcement_withdrawn`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
 `reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
 `lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,

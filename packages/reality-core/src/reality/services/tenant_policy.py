@@ -1038,6 +1038,8 @@ _PRACTICE_APP_OPERATIONS = frozenset(
         "record_dunning_notice",
         "reverse_dunning_notice",
         "set_dunning_schedule",
+        "record_dunning_run",
+        "record_collection_handover",
         "record_deposit",
         "clear_deposit",
         "post_supplier_refund",

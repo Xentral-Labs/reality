@@ -87,6 +87,8 @@ OPENING_COMMAND = "finance.opening.import"
 DUNNING_COMMAND = "finance.dunning.record"
 DUNNING_REVERSE_COMMAND = "finance.dunning.reverse"
 DUNNING_SCHEDULE_COMMAND = "finance.dunning.schedule.set"
+DUNNING_RUN_COMMAND = "finance.dunning.run"
+COLLECTION_HANDOVER_COMMAND = "finance.dunning.collection.handover"
 DEPOSIT_RECORD_COMMAND = "finance.deposit.record"
 DEPOSIT_CLEAR_COMMAND = "finance.deposit.clear"
 
@@ -119,6 +121,29 @@ class DunningScheduleRequest(AccountRequest):
     levels: list[DunningScheduleLevelRequest] = Field(max_length=3)
 
 
+class DunningRunItemRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    invoice_id: str = Field(min_length=1)
+    level: Literal[1, 2, 3]
+
+
+class DunningRunRequest(BaseModel):
+    # No finance revision: every payment raises it, and a payment since the review
+    # must skip its item, not refuse the run. The schedule is what the review pins.
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    schedule_source_record_id: str = Field(min_length=1)
+    run_date: str
+    party_ids: list[str] = Field(default_factory=list, max_length=500)
+    items: list[DunningRunItemRequest] = Field(min_length=1, max_length=500)
+
+
+class CollectionHandoverRequest(AccountRequest):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    invoice_ids: list[str] = Field(min_length=1, max_length=100)
+    handover_date: str
+    reason: str = Field(max_length=4000)
+
+
 class DepositRecordRequest(AccountRequest):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     side: Literal["customer", "supplier"]
@@ -140,6 +165,8 @@ EDGE_COMMANDS = {
     DUNNING_COMMAND: DunningRequest,
     DUNNING_REVERSE_COMMAND: DunningReverseRequest,
     DUNNING_SCHEDULE_COMMAND: DunningScheduleRequest,
+    DUNNING_RUN_COMMAND: DunningRunRequest,
+    COLLECTION_HANDOVER_COMMAND: CollectionHandoverRequest,
     DEPOSIT_RECORD_COMMAND: DepositRecordRequest,
     DEPOSIT_CLEAR_COMMAND: DepositClearRequest,
 }
@@ -425,6 +452,26 @@ def execute_finance_command(
         from reality.services.dunning_runs import set_schedule
 
         return set_schedule(
+            session,
+            tenant_id,
+            **validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
+    if name == DUNNING_RUN_COMMAND:
+        from reality.services.dunning_runs import confirm_run
+
+        return confirm_run(
+            session,
+            tenant_id,
+            **validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
+    if name == COLLECTION_HANDOVER_COMMAND:
+        from reality.services.dunning_runs import record_handover
+
+        return record_handover(
             session,
             tenant_id,
             **validate_finance_request(name, arguments),

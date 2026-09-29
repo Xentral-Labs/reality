@@ -33,22 +33,32 @@ Input: `{"run_date": "2026-10-01", "party_ids": ["pty_..."]}` (`party_ids` optio
 Output:
 
 ```json
-{"revision": 7, "run_date": "2026-10-01",
+{"revision": 7, "run_date": "2026-10-01", "party_ids": [],
+ "schedule_source_record_id": "src_...",
  "notices": [{"party_id": "pty_...", "currency": "EUR", "level": 2, "fee_amount": "5.0000",
    "items": [{"invoice_id": "doc_...", "number": "INV-1", "open": "100.00",
               "days_overdue": 30, "previous_notice_id": "dun_...",
               "previous_level": 1, "previous_notice_date": "2026-09-10", "wait_days": 14}]}],
  "ready_for_collection": [{"invoice_id": "doc_...", "party_id": "pty_...",
                            "last_notice_id": "dun_...", "open": "80.00"}],
- "left_out": [{"invoice_id": "doc_...", "party_id": "pty_...", "code": "credit_available"}]}
+ "left_out": [{"invoice_id": "doc_...", "party_id": "pty_...", "code": "credit_available"},
+              {"invoice_id": "doc_...", "code": "waiting", "level": 2, "wait_days": 14,
+               "eligible_on": "2026-10-05"}]}
 ```
 
-Refusal: `dunning_schedule_missing`.
+`left_out` codes: `in_collection`, `credit_available`, and `waiting` (the level's waiting
+period has not passed; `eligible_on` names the first day it has).
+
+Refusals: `dunning_schedule_missing`, `dunning_run_date_invalid`.
 
 ## Command `finance.dunning.run`
 
-Input: `{"expected_revision": 7, "run_date": "2026-10-01", "party_ids": [],
+Input: `{"schedule_source_record_id": "src_...", "run_date": "2026-10-01", "party_ids": [],
 "items": [{"invoice_id": "doc_...", "level": 2}]}` (at least one item, at most 500).
+
+The run carries no finance revision: every payment raises it, and a payment since the review
+must skip its item rather than refuse the run. The review pins the schedule instead, because a
+changed schedule changes the fees the person approved.
 
 Execution re-derives the context for the same date and customers. Receipt:
 
@@ -58,8 +68,9 @@ Execution re-derives the context for the same date and customers. Receipt:
 ```
 
 Skip codes: `paid`, `level_changed`, `in_collection`, `credit_available`.
-Refusals: `dunning_schedule_missing`, `dunning_run_item_unknown` (an item that was never a
-customer invoice of the tenant), `dunning_preview_stale` on a stale revision. Replay of the same confirmed
+Refusals: `dunning_schedule_missing`, `dunning_run_items_invalid`, `dunning_run_item_unknown`
+(not a customer invoice of the tenant), `dunning_preview_stale` (the schedule changed since the
+review). Replay of the same confirmed
 proposal returns the same receipt.
 
 ## Command `finance.dunning.collection.handover`
@@ -69,8 +80,10 @@ Input: `{"expected_revision": 7, "invoice_ids": ["doc_..."], "handover_date": "2
 
 Receipt: the handover detail plus `hold_id` (the new or the already active delivery hold).
 
-Refusals: `collection_mixed_customers`, `collection_level_missing`,
-`collection_invoice_not_open`, `collection_already_handed_over`, `collection_reason_missing`.
+Refusals: `collection_invoices_missing`, `collection_mixed_customers`, `collection_level_missing`,
+`collection_invoice_not_open`, `collection_already_handed_over`, `collection_reason_missing`,
+`dunning_run_date_invalid` (the handover date), `dunning_preview_stale` (the finance revision
+changed since the review).
 
 ## Reads `finance_dunning_collection_handovers` / `finance_dunning_collection_handover`
 
@@ -79,5 +92,6 @@ List newest first; detail by `handover_id`:
 ```json
 {"id": "col_...", "party_id": "pty_...", "handover_date": "2026-11-01", "reason": "...",
  "invoice_ids": ["doc_..."], "last_notice_ids": {"doc_...": "dun_..."},
- "hold_id": "phd_...", "source_record_id": "src_..."}
+ "hold_id": "phd_...", "hold_placed": true, "source_record_id": "src_...",
+ "created_at": "..."}
 ```

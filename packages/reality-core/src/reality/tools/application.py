@@ -324,6 +324,35 @@ def _dunning_schedule(
     return schedule(session, tenant_id)
 
 
+def _dunning_run_context(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.dunning_runs import run_context
+
+    return run_context(
+        session,
+        tenant_id,
+        run_date=arguments.get("run_date"),
+        party_ids=arguments.get("party_ids") or None,
+    )
+
+
+def _collection_handovers(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.dunning_runs import handovers
+
+    return handovers(session, tenant_id)
+
+
+def _collection_handover(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.dunning_runs import handover_detail
+
+    return handover_detail(session, tenant_id, str(arguments.get("handover_id") or ""))
+
+
 def _dunning_notice(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     from reality.services.dunning import notice_detail
 
@@ -1991,6 +2020,24 @@ TOOLS = {
         False,
         _dunning_schedule,
     ),
+    "finance.dunning.run_context": Tool(
+        "finance.dunning.run_context",
+        "Preview a dunning run: overdue items per customer, currency and level, items ready for collection and items left out with their reason.",
+        False,
+        _dunning_run_context,
+    ),
+    "finance.dunning.collection_handovers": Tool(
+        "finance.dunning.collection_handovers",
+        "List collection handovers with their invoices and delivery hold.",
+        False,
+        _collection_handovers,
+    ),
+    "finance.dunning.collection_handover": Tool(
+        "finance.dunning.collection_handover",
+        "Read one collection handover with its invoices, last notices and delivery hold.",
+        False,
+        _collection_handover,
+    ),
     "fulfillment_queue": Tool(
         "fulfillment_queue",
         "Read the materialized order fulfillment queue.",
@@ -2600,10 +2647,12 @@ from reality.services.finance.accounts import list_accounts, lock_finance
 from reality.tools.finance import (
     ADJUSTMENT_COMMAND,
     ASSIGNMENT_COMMAND,
+    COLLECTION_HANDOVER_COMMAND,
     DEPOSIT_CLEAR_COMMAND,
     DEPOSIT_RECORD_COMMAND,
     DUNNING_COMMAND,
     DUNNING_REVERSE_COMMAND,
+    DUNNING_RUN_COMMAND,
     DUNNING_SCHEDULE_COMMAND,
     FINANCE_COMMANDS,
     OPENING_COMMAND,
@@ -3080,6 +3129,44 @@ def create_change_proposal(
                 session, tenant_id, normalized_arguments["levels"]
             ),
         }
+    if tool_name == DUNNING_RUN_COMMAND:
+        from reality.services.dunning_runs import run_context
+
+        chosen = {item["invoice_id"] for item in normalized_arguments["items"]}
+        context = run_context(
+            session,
+            tenant_id,
+            run_date=normalized_arguments["run_date"],
+            party_ids=normalized_arguments["party_ids"],
+        )
+        preview["dunning_run"] = {
+            "run_date": context["run_date"],
+            "notices": [
+                {**notice, "items": items}
+                for notice in context["notices"]
+                if (
+                    items := [
+                        item
+                        for item in notice["items"]
+                        if item["invoice_id"] in chosen
+                    ]
+                )
+            ],
+            "not_selected": sorted(
+                {
+                    item["invoice_id"]
+                    for notice in context["notices"]
+                    for item in notice["items"]
+                }
+                - chosen
+            ),
+        }
+    if tool_name == COLLECTION_HANDOVER_COMMAND:
+        from reality.services.dunning_runs import preview_handover
+
+        preview["collection_handover"] = preview_handover(
+            session, tenant_id, normalized_arguments
+        )
     if tool_name == DUNNING_REVERSE_COMMAND:
         from reality.services.dunning import notice_detail
 

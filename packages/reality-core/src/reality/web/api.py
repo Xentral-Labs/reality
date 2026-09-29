@@ -5356,6 +5356,9 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
             record.id,
         ),
     )
+    from reality.services.dunning_runs import invoice_dunning_rows
+
+    dunning_rows = invoice_dunning_rows(session, tenant_id, document)
     source = detail["source"]
     correction = manual_document_line_snapshot(session, tenant_id, record_id)
     pricing = {
@@ -5468,6 +5471,27 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
                     }
                 ]
                 if billed_order_documents
+                else []
+            ),
+            *(
+                [
+                    {
+                        # Spec 295: level and collection are read from the notices
+                        # and the handover; the invoice carries neither.
+                        "title": "Dunning",
+                        "rows": [
+                            inspector_row(
+                                row["label"],
+                                row["value"],
+                                kind=row["kind"],
+                                record_id=row["record_id"],
+                                meta=row.get("meta"),
+                            )
+                            for row in dunning_rows
+                        ],
+                    }
+                ]
+                if dunning_rows
                 else []
             ),
             *(

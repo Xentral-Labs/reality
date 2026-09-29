@@ -30,13 +30,13 @@
 
 **Independent Test**: `pytest core/tests/finance/test_dunning_runs.py -k "run or collection"`
 
-- [ ] T012 [P] [US1] [FR-001–FR-003] [FR-008] [FR-010] Failing preview tests: level 1 after the waiting days (and not one day earlier, as positive control), level 2 after a level 1 notice plus waiting days, reversed notice ignored, per-currency and per-level grouping, customer filter, credit available left out and named, schedule missing refused with its code, nothing recorded by the preview, in `core/tests/finance/test_dunning_runs.py`
-- [ ] T013 [US1] [FR-001–FR-003] [FR-010] [DR-002] Implement `invoice_dunning_state` and `run_context` in `core/src/reality/services/dunning_runs.py` with one read per source (statement-count test)
-- [ ] T014 [P] [US1] [FR-009] [DR-003] Failing confirmation tests: notices recorded as spec 247 notices with schedule fees; deselected item not dunned; item paid after preparation skipped as `paid`; second run on the same date skips as `level_changed`; zero fee without a fee charge; replay idempotent; all-or-nothing on a failure, in `core/tests/finance/test_dunning_runs.py`
-- [ ] T015 [US1] [FR-009] Implement `confirm_run` and the `finance.dunning.run` route
-- [ ] T016 [P] [US1] [FR-004] [FR-011] Failing handover tests: level 3 required (`collection_level_missing`, with a level 3 positive control), open required, mixed customers, handed over twice, reason required; hold placed with reason `collection`; existing hold kept; later run proposes nothing for the item, in `core/tests/finance/test_dunning_runs.py`
-- [ ] T017 [US1] [FR-004] [FR-011] Implement `record_handover`, `handover_detail`, `handovers` and the `finance.dunning.collection.handover` route
-- [ ] T018 [US1] [FR-012] Name the last notice, derived level and handover in the finance invoice read and its explanation
+- [x] T012 [P] [US1] [FR-001–FR-003] [FR-008] [FR-010] Failing preview tests: level 1 after the waiting days (and not one day earlier, as positive control), level 2 after a level 1 notice plus waiting days, reversed notice ignored, per-currency and per-level grouping, customer filter, credit available left out and named, schedule missing refused with its code, nothing recorded by the preview, in `core/tests/finance/test_dunning_runs.py`
+- [x] T013 [US1] [FR-001–FR-003] [FR-010] [DR-002] Implement `invoice_dunning_state` and `run_context` in `core/src/reality/services/dunning_runs.py` with one read per source (statement-count test)
+- [x] T014 [P] [US1] [FR-009] [DR-003] Failing confirmation tests: notices recorded as spec 247 notices with schedule fees; deselected item not dunned; item paid after preparation skipped as `paid`; second run on the same date skips as `level_changed`; zero fee without a fee charge; replay idempotent; all-or-nothing on a failure; a schedule changed since the review is stale (`dunning_preview_stale`), in `core/tests/finance/test_dunning_runs.py`
+- [x] T015 [US1] [FR-009] Implement `confirm_run` and the `finance.dunning.run` route
+- [x] T016 [P] [US1] [FR-004] [FR-011] Failing handover tests: level 3 required (`collection_level_missing`, with a level 3 positive control), open required, mixed customers, handed over twice, reason required; hold placed with reason `collection`; existing hold kept; later run proposes nothing for the item, in `core/tests/finance/test_dunning_runs.py`
+- [x] T017 [US1] [FR-004] [FR-011] Implement `record_handover`, `handover_detail`, `handovers` and the `finance.dunning.collection.handover` route
+- [x] T018 [US1] [FR-012] Name the last notice, derived level and handover in the invoice's document inspector (a "Dunning" section linking the notice and the handover's source)
 
 ## Phase 5: Surfaces
 

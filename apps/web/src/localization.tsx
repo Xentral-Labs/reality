@@ -21711,6 +21711,26 @@ Object.assign(dictionaries.de, {
     "Die Kalkulationsvorschau ist veraltet; lade die vorhandene Evidence neu.",
   "Dunning preview is stale; reload and confirm again.":
     "Die Mahnvorschau ist veraltet; lade neu und bestätige erneut.",
+  "Enter the dunning date as a valid date.":
+    "Gib das Mahndatum als gültiges Datum ein.",
+  "Set the dunning schedule with levels 1, 2 and 3 before a dunning run.":
+    "Lege vor einem Mahnlauf das Mahnschema mit den Stufen 1, 2 und 3 fest.",
+  "Select between 1 and 500 invoices, each with its proposed level.":
+    "Wähle zwischen 1 und 500 Rechnungen, jede mit ihrer vorgeschlagenen Stufe.",
+  "Invoice {invoice_id} is not a customer invoice that can be dunned at levels 1 to 3.":
+    "Rechnung {invoice_id} ist keine Ausgangsrechnung, die in den Stufen 1 bis 3 gemahnt werden kann.",
+  "Select at least one invoice to hand over to collection.":
+    "Wähle mindestens eine Rechnung für die Übergabe an das Inkasso.",
+  "One collection handover cannot mix customers.":
+    "Eine Inkasso-Übergabe kann keine verschiedenen Kunden mischen.",
+  "Invoice {number} is already handed over to collection.":
+    "Rechnung {number} ist bereits an das Inkasso übergeben.",
+  "Invoice {number} can go to collection only after a dunning notice at level 3.":
+    "Rechnung {number} kann erst nach einer Mahnung der Stufe 3 an das Inkasso gehen.",
+  "Invoice {number} has nothing open.":
+    "Rechnung {number} hat keinen offenen Betrag.",
+  "State why the invoices go to collection.":
+    "Gib an, warum die Rechnungen an das Inkasso gehen.",
   "A dunning schedule states exactly levels 1, 2 and 3.":
     "Ein Mahnschema legt genau die Stufen 1, 2 und 3 fest.",
   "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.":
@@ -22603,6 +22623,26 @@ Object.assign(dictionaries.nl, {
     "Het kostprijsvoorbeeld is verouderd; laad de aanwezige Evidence opnieuw.",
   "Dunning preview is stale; reload and confirm again.":
     "Het aanmaningsvoorbeeld is verouderd; laad opnieuw en bevestig nogmaals.",
+  "Enter the dunning date as a valid date.":
+    "Voer de aanmaningsdatum in als een geldige datum.",
+  "Set the dunning schedule with levels 1, 2 and 3 before a dunning run.":
+    "Stel vóór een aanmaningsrun het aanmaningsschema met de niveaus 1, 2 en 3 in.",
+  "Select between 1 and 500 invoices, each with its proposed level.":
+    "Kies tussen 1 en 500 facturen, elk met het voorgestelde niveau.",
+  "Invoice {invoice_id} is not a customer invoice that can be dunned at levels 1 to 3.":
+    "Factuur {invoice_id} is geen verkoopfactuur die op niveau 1 tot 3 kan worden aangemaand.",
+  "Select at least one invoice to hand over to collection.":
+    "Kies minstens één factuur om over te dragen aan incasso.",
+  "One collection handover cannot mix customers.":
+    "Eén incasso-overdracht kan geen klanten mengen.",
+  "Invoice {number} is already handed over to collection.":
+    "Factuur {number} is al overgedragen aan incasso.",
+  "Invoice {number} can go to collection only after a dunning notice at level 3.":
+    "Factuur {number} kan pas na een aanmaning van niveau 3 naar incasso.",
+  "Invoice {number} has nothing open.":
+    "Factuur {number} heeft niets openstaand.",
+  "State why the invoices go to collection.":
+    "Geef aan waarom de facturen naar incasso gaan.",
   "A dunning schedule states exactly levels 1, 2 and 3.":
     "Een aanmaningsschema bevat precies de niveaus 1, 2 en 3.",
   "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.":
@@ -23486,6 +23526,26 @@ Object.assign(dictionaries.es, {
     "La vista previa del costeo está desactualizada; vuelve a cargar la Evidence disponible.",
   "Dunning preview is stale; reload and confirm again.":
     "La vista previa de la reclamación está desactualizada; vuelve a cargar y confirma de nuevo.",
+  "Enter the dunning date as a valid date.":
+    "Introduce la fecha de reclamación como una fecha válida.",
+  "Set the dunning schedule with levels 1, 2 and 3 before a dunning run.":
+    "Define el esquema de reclamaciones con los niveles 1, 2 y 3 antes de una ejecución de reclamaciones.",
+  "Select between 1 and 500 invoices, each with its proposed level.":
+    "Selecciona entre 1 y 500 facturas, cada una con su nivel propuesto.",
+  "Invoice {invoice_id} is not a customer invoice that can be dunned at levels 1 to 3.":
+    "La factura {invoice_id} no es una factura de cliente que pueda reclamarse en los niveles 1 a 3.",
+  "Select at least one invoice to hand over to collection.":
+    "Selecciona al menos una factura para entregar a recobro.",
+  "One collection handover cannot mix customers.":
+    "Una entrega a recobro no puede mezclar clientes.",
+  "Invoice {number} is already handed over to collection.":
+    "La factura {number} ya se ha entregado a recobro.",
+  "Invoice {number} can go to collection only after a dunning notice at level 3.":
+    "La factura {number} solo puede ir a recobro tras una reclamación de nivel 3.",
+  "Invoice {number} has nothing open.":
+    "La factura {number} no tiene nada pendiente.",
+  "State why the invoices go to collection.":
+    "Indica por qué las facturas van a recobro.",
   "A dunning schedule states exactly levels 1, 2 and 3.":
     "Un esquema de reclamaciones indica exactamente los niveles 1, 2 y 3.",
   "Dunning level {level} needs whole waiting days and a non-negative fee with at most four decimals.":
@@ -24219,4 +24279,17 @@ Object.assign(dictionaries.es, {
     "Registrar la empresa como socio comercial no necesita campos; el nombre es el de la empresa.",
   "Only an ordinary business company records itself as a business partner here.":
     "Solo una empresa normal se registra aquí a sí misma como socio comercial.",
+});
+
+// Spec 295: the dunning section of an invoice's inspector.
+Object.assign(dictionaries.de, {
+  Dunning: "Mahnwesen",
+});
+
+Object.assign(dictionaries.nl, {
+  Dunning: "Aanmaningen",
+});
+
+Object.assign(dictionaries.es, {
+  Dunning: "Reclamaciones",
 });

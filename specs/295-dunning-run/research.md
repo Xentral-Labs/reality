@@ -14,9 +14,10 @@ Code reading on 2026-09-29 against `origin/main` (`c1e1b853`). Paths are relativ
   `tools/finance.py` `EDGE_COMMANDS` and the finance change proposal; the Web posts them to
   `/finance/commercial/proposals` (`apps/web/src/finance/DunningNotice.tsx`).
 - `services/finance/worklists.py` `overdue_document_ids` reads `aging_register` once for a date.
-- `lock_finance` serializes finance writers. Its revision changes with account configuration,
-  not with payments, so a payment between preparation and confirmation does not make the run
-  stale; it is caught by re-derivation (R4).
+- `lock_finance` serializes finance writers. Its revision rises with every finance posting,
+  payments included (`core._require_business_mutation`), so the run cannot use it as its
+  staleness check: a payment since the review would refuse the whole run instead of skipping
+  the paid item. The run pins the schedule's source record instead (R4).
 - The existing refusals in `dunning.py` are uncoded; new refusals are coded (spec 286 ratchet).
 
 ## R2. Where the schedule lives
@@ -55,7 +56,7 @@ tenant (optionally limited to the selected customers); there is no per-invoice q
 
 **Decision**: A read `finance_dunning_run_context` returns the preview and the finance revision.
 The command `finance.dunning.run` takes `run_date`, optional `party_ids`, the prepared
-`items` (`invoice_id` plus proposed `level`) and `expected_revision`. On execution it takes
+`items` (`invoice_id` plus proposed `level`) and the reviewed `schedule_source_record_id`. On execution it takes
 `lock_finance`, re-derives the preview for the same date and customers, and records one spec 247
 notice per customer, currency and level for items still eligible at their proposed level. Every
 other prepared item is skipped with a code: `paid` (no longer open or overdue), `level_changed`

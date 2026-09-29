@@ -602,7 +602,13 @@
         "exception:duplicate_supplier_invoice"
       ],
       "tools": ["tool:finance_credits", "tool:finance_party_balances"],
-      "events": ["event:credit.recorded", "event:invoice.recorded", "event:dunning.schedule_set"],
+      "events": [
+        "event:credit.recorded",
+        "event:invoice.recorded",
+        "event:dunning.schedule_set",
+        "event:dunning.run_confirmed",
+        "event:dunning.collection_handover_recorded"
+      ],
       "workspace_actions": []
     },
     {
@@ -22278,6 +22284,8 @@
         "dunning.notice_recorded",
         "dunning.notice_reversed",
         "dunning.schedule_set",
+        "dunning.run_confirmed",
+        "dunning.collection_handover_recorded",
         "order.recorded",
         "source_record.stored",
         "commitment.fulfilled",
@@ -22671,6 +22679,8 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "dunning.run_confirmed",
+        "dunning.collection_handover_recorded",
         "party.updated",
         "payment_term.updated",
         "document.recorded",
@@ -22793,6 +22803,8 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "dunning.run_confirmed",
+        "dunning.collection_handover_recorded",
         "order.recorded",
         "source_record.stored",
         "commitment.fulfilled",
@@ -24072,6 +24084,34 @@
       "invalidates": ["Tenant usage"],
       "links": [],
       "label_de": "dunning.schedule_set",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "event:dunning.run_confirmed",
+      "kind": "event",
+      "key": "dunning.run_confirmed",
+      "label": "dunning.run_confirmed",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "confirm_run",
+      "subject": "source_record",
+      "invalidates": ["Open financial items", "Timeline", "Tenant usage"],
+      "links": [],
+      "label_de": "dunning.run_confirmed",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "event:dunning.collection_handover_recorded",
+      "kind": "event",
+      "key": "dunning.collection_handover_recorded",
+      "label": "dunning.collection_handover_recorded",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "record_handover",
+      "subject": "collection_handover",
+      "invalidates": ["Open financial items", "Timeline", "Tenant usage"],
+      "links": [],
+      "label_de": "dunning.collection_handover_recorded",
       "resources": ["invoice"]
     },
     {
