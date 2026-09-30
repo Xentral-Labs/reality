@@ -1856,3 +1856,8 @@ Table `payment_return`: a customer payment that came back as a returned direct d
 - `packages/reality-core/tests/finance/test_payment_return_adapters.py`: the return command through MCP (strict schema, propose then confirm, reads), Web (commercial proposal, reads, foreign company refused) and CLI (propose, list, help).
 - `packages/reality-core/tests/scenarios/test_catalog_finance.py`: stories C15 (a returned direct debit with a fee charged on, the finding until the invoice is paid again) and E08 (freight and surcharge lines on a sales invoice that leave no delivery unbilled, with a positive control; a payout with a deducted provider fee).
 - `packages/reality-core/tests/test_business_journey_catalog.py`: C15 and E08 cite their stories and carry keywords and question examples.
+
+## Journey proof stories, round three — Spec 314
+
+- `packages/reality-core/tests/test_movement_reasons.py`: a receipt without a purchase and with a stated reason is explained by it and not reported, with an unexplained receipt as control; a blank reason counts as none; a delivery-path receipt without a purchase is reported unless a reason explains it, with a received purchase as control; a correction onto a purchase clears an unexplained receipt.
+- `packages/reality-core/tests/test_payment_candidates_reference.py`: a payment stating an order before it exists is offered that order's invoice once invoiced, by its reference and despite a different amount; a reference naming two invoices keeps saying "among others".

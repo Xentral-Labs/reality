@@ -2708,7 +2708,9 @@ def _movement_exceptions(
             Movement.source_record_id.is_(None),
             Movement.return_announcement_id.is_(None),
             Movement.resolves_movement_id.is_(None),
-            Movement.shipment_package_id.is_(None),
+            # A package says how goods arrived, not why: a receipt without a
+            # purchase is unexplained even in a recorded package (spec 314).
+            or_(Movement.shipment_package_id.is_(None), Movement.type == "receipt"),
             ~Movement.id.in_(
                 select(MovementCorrection.original_movement_id).where(
                     MovementCorrection.tenant_id == tenant_id
@@ -2716,6 +2718,15 @@ def _movement_exceptions(
             ),
         )
     )
+    from reality.services.movement_explanations import stated_movement_reasons
+
+    rows = list(rows)
+    stated = (
+        stated_movement_reasons(session, tenant_id, {row.id for row in rows})
+        if rows
+        else {}
+    )
+    rows = [row for row in rows if row.id not in stated]
     return [
         OperationalException(
             _identity("unexplained_movement", row.id),

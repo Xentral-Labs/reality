@@ -4877,6 +4877,11 @@ def _projected_movement_quantity(
     return quantity
 
 
+#: Movements a stated reason can explain when no promise does (spec 314).
+MOVEMENT_REASON_TYPES = frozenset({"receipt", "shipment", "return"})
+MOVEMENT_REASON_RECORD = "movement_reason_stated"
+
+
 def _append_movement(
     session: OrmSession,
     tenant_id: str,
@@ -5195,6 +5200,25 @@ def _append_movement(
                 tenant_id=tenant_id,
                 type="inventory_adjusted",
                 input=json.dumps({"reason": reason}),
+                output=json.dumps({"movement_id": movement.id}),
+            )
+        )
+    elif (
+        movement_type in MOVEMENT_REASON_TYPES
+        and not commitment_id
+        and reason
+        and reason.strip()
+    ):
+        # Spec 314: goods that arrived or left without a promise are explained by
+        # what the person recording them said — a sample, free goods, a
+        # misdelivery. The reason belongs to that decision, kept the way an
+        # adjustment's is, not to a field on the movement.
+        session.add(
+            ChangeProposal(
+                id=uid("act"),
+                tenant_id=tenant_id,
+                type=MOVEMENT_REASON_RECORD,
+                input=json.dumps({"reason": reason.strip()}),
                 output=json.dumps({"movement_id": movement.id}),
             )
         )

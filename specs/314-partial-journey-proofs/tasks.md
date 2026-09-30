@@ -12,22 +12,22 @@
 
 ## Phase 2: Defect — a receipt explains itself or is reported (FR-003, FR-004)
 
-- [ ] T004 [FR-003] [FR-004] Failing tests in `core/tests/test_movement_reasons.py`:
+- [x] T004 [FR-003] [FR-004] Failing tests in `core/tests/test_movement_reasons.py`:
   - a receipt without a commitment recorded with reason "free sample" through reviewed `movement_create` is explained as `explicit_reason` with that reason and is not reported;
   - the same without a reason is reported (positive control);
   - a blank reason counts as none;
   - a `shipment_receive` receipt without a commitment and without a reason is reported;
   - a correction onto a purchase clears it.
-- [ ] T005 [FR-003] Keep a non-blank reason on a receipt, shipment or return without a commitment as a `movement_reason_stated` change record in `core/src/reality/services/core.py`; read it in `core/src/reality/services/movement_explanations.py`.
-- [ ] T006 [FR-004] In `core/src/reality/services/exceptions.py`, exclude movements with a stated reason from `unexplained_movement` and stop a shipment package from explaining a receipt without a commitment. Pass a line's `reason` through `shipment_receive` if the review refuses it. Run the delivery-action, shipment, movement-correction and operational-exception suites, and update tests that pinned the old package rule.
+- [x] T005 [FR-003] Keep a non-blank reason on a receipt, shipment or return without a commitment as a `movement_reason_stated` change record in `core/src/reality/services/core.py`; read it in `core/src/reality/services/movement_explanations.py`.
+- [x] T006 [FR-004] In `core/src/reality/services/exceptions.py`, exclude movements with a stated reason from `unexplained_movement` and stop a shipment package from explaining a receipt without a commitment. Pass a line's `reason` through `shipment_receive` if the review refuses it. Run the delivery-action, shipment, movement-correction and operational-exception suites, and update tests that pinned the old package rule.
 
 ## Phase 3: Defect — a unique stated reference is a candidate (FR-005)
 
-- [ ] T007 [FR-005] Failing test in `core/tests/test_payment_candidates_reference.py`:
+- [x] T007 [FR-005] Failing test in `core/tests/test_payment_candidates_reference.py`:
   - a payment stating shop order 9701 before the order exists is unallocated with its reason;
   - after the order is taken in and invoiced for 100, a payment of 95 has that invoice as a candidate with the reason "stated reference names this invoice";
   - a reference matching two invoices keeps "among others" (control).
-- [ ] T008 [FR-005] Add the unique-reference reason in `core/src/reality/services/payment_intake.py::payment_candidates`; run the payment-intake and settlement suites.
+- [x] T008 [FR-005] Add the unique-reference reason in `core/src/reality/services/payment_intake.py::payment_candidates`; run the payment-intake and settlement suites.
 
 ## Phase 4: Defect — a shop line without price or quantity (FR-006)
 
