@@ -83,4 +83,5 @@ Surfaces:
 - A promise revised upwards runs the same credit check as a new order.
 - The exposure is read for many customers at once: invoiced quantities, open items, credits and orders in a bounded number of reads, whatever the number of lines or customers; the credit-limit finding reads all limited customers in one pass and links the open orders too.
 - Limitations kept: an invoice without links to its order lines counts next to the order; `as_of` moves the aging, not which postings count.
+- The owner rule applies to holds the credit check placed (`created_by = credit_limit`). A `credit_check` hold a person places by hand stays theirs to release, as before; the full suite found five tests relying on that.
 

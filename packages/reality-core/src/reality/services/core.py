@@ -103,6 +103,8 @@ MANUAL_OPERATIONAL_DOCUMENT_TYPES = (
 )
 #: Holds only an owner releases, with a reason (spec 298 FR-004).
 OWNER_RELEASED_HOLD_REASONS = frozenset({"credit_check"})
+#: Who a hold placed by the order-entry credit check is created by.
+CREDIT_CHECK_CREATOR = "credit_limit"
 HOLD_REASONS = {
     "credit_check",
     "customer_request",
@@ -6185,7 +6187,12 @@ def release_commitment_hold(
                 CommitmentHold.tenant_id == tenant_id,
                 CommitmentHold.commitment_id == commitment_id,
                 CommitmentHold.released_at.is_(None),
-                CommitmentHold.reason_code.not_in(_keep_reason_codes),
+                # A hold the credit check placed stays until an owner lifts it;
+                # one a person placed with the same reason is theirs to lift.
+                ~(
+                    CommitmentHold.reason_code.in_(_keep_reason_codes)
+                    & (CommitmentHold.created_by == CREDIT_CHECK_CREATOR)
+                ),
             )
         )
     )

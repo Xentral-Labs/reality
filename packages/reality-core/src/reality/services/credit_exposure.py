@@ -376,6 +376,7 @@ def active_credit_holds(
                 CommitmentHold.tenant_id == tenant_id,
                 CommitmentHold.commitment_id.in_(commitment_ids),
                 CommitmentHold.reason_code == "credit_check",
+                CommitmentHold.created_by == "credit_limit",
                 CommitmentHold.released_at.is_(None),
             )
             .order_by(CommitmentHold.created_at, CommitmentHold.id)

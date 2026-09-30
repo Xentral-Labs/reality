@@ -56,8 +56,13 @@ def review_hold(
         if not holds:
             raise InvalidOperation(code="delivery_hold_not_active")
         # Credit holds stay: an owner releases them with a reason (spec 298).
-        credit = [hold for hold in holds if hold.reason_code == "credit_check"]
-        holds = [hold for hold in holds if hold.reason_code != "credit_check"]
+        def owner_released(hold: CommitmentHold) -> bool:
+            return (
+                hold.reason_code == "credit_check" and hold.created_by == "credit_limit"
+            )
+
+        credit = [hold for hold in holds if owner_released(hold)]
+        holds = [hold for hold in holds if not owner_released(hold)]
         if not holds:
             raise InvalidOperation(code="credit_hold_owner_release_required")
         effect = {"holds_released": str(len(holds))}

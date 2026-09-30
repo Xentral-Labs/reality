@@ -104,7 +104,7 @@ As a credit manager, I see which overdue items and which offsets are behind a ho
 - **FR-001**: The credit exposure MUST be open invoices plus the value of open, not yet invoiced orders, minus available credits, in the customer's currency, derived at read time from Reality; each part MUST be shown.
 - **FR-002**: A new order whose value would take the exposure past a positive limit MUST have its promises held with the reason `credit_check` at entry, through every order entry path, until released.
 - **FR-003**: The hold MUST name the limit, the exposure parts, the overdue invoices with their amounts and, for a customer who is also a supplier, the open payables, which MUST NOT reduce the exposure.
-- **FR-004**: Only a company owner MUST be able to release a credit hold, and only with a stated reason, recorded with the person; other holds keep their current rule.
+- **FR-004**: Only a company owner MUST be able to release a credit hold the credit check placed, and only with a stated reason, recorded with the person; other holds, including a `credit_check` hold a person placed by hand, keep their current rule.
 - **FR-005**: The credit-limit finding MUST read the same exposure and name the overdue items.
 - **FR-006**: Every mutation this feature adds MUST use the reviewed, tenant-scoped application tools shared by Web, Chat/MCP and CLI.
 - **FR-007**: When the journeys in scope are proven by a business story, the Business Journey Guide MUST promote them with executable evidence, as specs 292 to 294 did.
