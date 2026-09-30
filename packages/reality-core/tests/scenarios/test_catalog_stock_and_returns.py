@@ -778,3 +778,206 @@ def test_an_exchange_returns_one_unit_and_sends_another_without_money(
         (link["kind"], link["id"])
         for link in movement_explanation(session, tenant, sent.id)["links"]
     }
+
+
+# --- Spec 314: an unannounced return and a refund ahead of the goods (F04, F08) ----
+
+
+def _findings_at(session, business, as_of, record_ids):
+    return {
+        (row.class_id, row.record_id)
+        for row in operational_exceptions(session, business.tenant.id, as_of=as_of)
+        if row.record_id in record_ids
+    }
+
+
+def _returns_of(session, business):
+    from sqlalchemy import select
+
+    from reality.db.core import Movement
+
+    return set(
+        session.scalars(
+            select(Movement.id).where(
+                Movement.tenant_id == business.tenant.id, Movement.type == "return"
+            )
+        )
+    )
+
+
+def test_an_unannounced_return_is_linked_to_its_delivery_later(session, business):
+    """F04: a parcel without paperwork is taken in, reported, and linked by a person."""
+    tenant = business.tenant.id
+    opening_stock(session, business, 10)
+    commitment, order_line_id = _sales_order(session, business, "SO-F04", "2", "49.95")
+    _deliver(session, business, commitment, 2, days_ago=20)
+    invoice_id, invoice_line_id = _invoice(
+        session, business, "RE-F04", order_line_id, "2", "49.95"
+    )
+
+    # A parcel arrives with no announcement and no order number on it.
+    arrived_at = AS_OF - timedelta(days=5)
+    parcel = record_movement(
+        session,
+        tenant,
+        "return",
+        business.item.id,
+        2,
+        to_location_id=business.location.id,
+        occurred_at=arrived_at,
+    )
+    assert stock_at(session, tenant, business.item.id, business.location.id) == 10
+    assert movement_explanation(session, tenant, parcel.id)["kind"] == "unexplained"
+    watched = {order_line_id, parcel.id}
+    assert _signals(session, business, watched) == {("unexplained_movement", parcel.id)}
+
+    # The warehouse finds the packing slip: the parcel is the delivery of SO-F04.
+    before = _returns_of(session, business)
+    _reviewed(
+        session,
+        business,
+        "movement_correct",
+        {
+            "movement_id": parcel.id,
+            "reason": "Packing slip names SO-F04",
+            "replacement": {
+                "type": "return",
+                "item_id": business.item.id,
+                "quantity": "2",
+                "to_location_id": business.location.id,
+                "commitment_id": commitment.id,
+                "occurred_at": arrived_at.isoformat(),
+            },
+        },
+        "link-f04",
+    )
+    (linked,) = _returns_of(session, business) - before
+    watched |= {linked}
+
+    # Linked, what is owed back is visible: two back without a credit.
+    assert stock_at(session, tenant, business.item.id, business.location.id) == 10
+    assert _signals(session, business, watched) == {
+        ("returned_not_credited", order_line_id)
+    }
+
+    _reviewed(
+        session,
+        business,
+        "sales_credit_record",
+        {
+            "invoice_id": invoice_id,
+            "lines": [
+                {
+                    "invoice_line_id": invoice_line_id,
+                    "quantity": "2",
+                    "gross_amount": "99.90",
+                }
+            ],
+            "gross_amount": "99.90",
+            "number": "GS-F04",
+            "reason": "Return of SO-F04",
+            # The invoice is still open, so the credit settles it.
+            "allocation_amount": "99.90",
+        },
+        "credit-f04",
+    )
+    assert _signals(session, business, watched) == set()
+    assert open_invoice_amount(session, tenant, invoice_id) == 0
+
+
+def test_a_goodwill_refund_is_paid_while_the_return_is_still_expected(
+    session, business
+):
+    """F08: credit and refund go out first; the announced return stays expected."""
+    tenant = business.tenant.id
+    opening_stock(session, business, 10)
+    commitment, order_line_id = _sales_order(session, business, "SO-F08", "2", "49.95")
+    _deliver(session, business, commitment, 2, days_ago=20)
+    invoice_id, _ = _invoice(session, business, "RE-F08", order_line_id, "2", "49.95")
+    _reviewed(
+        session,
+        business,
+        "customer_payment_post",
+        {"invoice_id": invoice_id, "amount": "99.90"},
+        "pay-f08",
+    )
+    announcement = announce_customer_return(
+        session,
+        tenant,
+        commitment.id,
+        "2",
+        reference="RMA-F08",
+        reason="Goodwill: wrong colour",
+        announced_at=AS_OF - timedelta(days=1),
+        expected_by=AS_OF + timedelta(days=5),
+    )
+
+    # Goodwill: the customer is credited and refunded before anything is back.
+    credit = _tool(
+        session,
+        business,
+        "document_create",
+        {
+            "document_type": "credit_note",
+            "number": "GS-F08",
+            "party_id": business.customer.id,
+            "gross_amount": "99.90",
+            "document_date": "2026-08-31",
+            "lines": [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "2",
+                    "unit": "pcs",
+                    "unit_price": "49.95",
+                    "gross_amount": "99.90",
+                    "billed_document_line_id": order_line_id,
+                }
+            ],
+        },
+    )["document_id"]
+    _tool(session, business, "credit_note_post", {"credit_note_id": credit})
+    # Positive control for the refund: the posted credit is owed to the customer.
+    assert open_invoice_amount(session, tenant, credit) == Decimal("99.90")
+    _reviewed(
+        session,
+        business,
+        "customer_refund_post",
+        {"credit_note_id": credit, "amount": "99.90"},
+        "refund-f08",
+    )
+    assert open_invoice_amount(session, tenant, credit) == 0
+
+    watched = {order_line_id, announcement.id}
+    # Paid out, still expected, and not yet late: nothing to do.
+    assert announcement_outstanding(session, tenant, announcement) == 2
+    assert _findings_at(session, business, AS_OF, watched) == set()
+    # Past its date the expected return is reported.
+    late = AS_OF + timedelta(days=10)
+    assert _findings_at(session, business, late, watched) == {
+        ("announced_return_not_arrived", announcement.id)
+    }
+
+    def arrive(quantity, days):
+        record_movement(
+            session,
+            tenant,
+            "return",
+            business.item.id,
+            quantity,
+            to_location_id=business.location.id,
+            commitment_id=commitment.id,
+            return_announcement_id=announcement.id,
+            occurred_at=AS_OF + timedelta(days=days),
+        )
+
+    # One unit arrives: the credit now exceeds what came back.
+    arrive(1, 11)
+    assert (
+        "credited_not_returned",
+        order_line_id,
+    ) in _findings_at(session, business, AS_OF + timedelta(days=12), watched)
+
+    # The second unit fulfils the announcement and nothing is left.
+    arrive(1, 12)
+    assert announcement_outstanding(session, tenant, announcement) == 0
+    assert _findings_at(session, business, AS_OF + timedelta(days=13), watched) == set()

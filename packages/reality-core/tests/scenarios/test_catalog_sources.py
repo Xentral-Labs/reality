@@ -585,3 +585,312 @@ def test_a_shop_order_with_an_unknown_item_keeps_the_known_lines(session, busine
     assert "order_line_item_unknown" not in {
         row.class_id for row in operational_exceptions(session, tenant)
     }
+
+
+# --- Spec 314: out of order (P02), incomplete (P05), go-live (P08) -------------
+
+
+def _classes(session, business, class_id):
+    return {
+        row.record_id
+        for row in operational_exceptions(session, business.tenant.id)
+        if row.class_id == class_id
+    }
+
+
+def test_records_arriving_before_their_order_are_linked_once_it_is_in(
+    session, business, monkeypatch
+):
+    """P02: a refund links itself on retry; a payment is offered by its reference."""
+    from reality.db.core import ImportJob
+    from reality.services import payment_intake
+    from reality.services.finance.accounts import list_accounts
+    from reality.services.payment_intake import NormalisedPayment, Reference
+    from reality.tools.application import create_change_proposal
+
+    tenant = business.tenant.id
+    _stocked(session, business)
+    clock = _Clock(datetime(2026, 9, 10, 9, tzinfo=UTC))
+    monkeypatch.setattr(db_core, "datetime", clock)
+
+    # The shop sends a refund for order 9701 before the order itself.
+    refund, refund_job = core.enqueue_source(
+        session,
+        tenant,
+        "shopify",
+        "refund",
+        "97011",
+        _refund(97011, 9701, 97010, 1, "10.00", "no_restock"),
+        context={},
+    )
+    assert core.process_pending_import_jobs(session, tenant) == (0, 1)
+    assert refund_job.id in _classes(session, business, "source_interpretation_failure")
+
+    # The bank sends a payment naming order #9702, which is not in yet either.
+    at = datetime(2026, 9, 10, 9, 30, tzinfo=UTC)
+    reference = Reference(type="shop_order_number", value="#9702")
+    payment_source, _ = core.enqueue_source(
+        session,
+        tenant,
+        "bank_statement",
+        "payment",
+        "stmt-9702",
+        {"references": [{"type": reference.type, "value": reference.value}]},
+    )
+    _, payment, _, allocation, resolution = payment_intake.interpret_customer_payment(
+        session,
+        tenant,
+        payment_source,
+        NormalisedPayment(
+            party_id=business.customer.id,
+            amount=Decimal("18.00"),
+            currency="EUR",
+            effective_at=at,
+            external_payment_id="stmt-9702",
+            references=(reference,),
+            remittance_text="",
+        ),
+    )
+    assert allocation is None
+    assert resolution.reasons == ("no order #9702 for this customer",)
+
+    # Both orders arrive; order #9702 is shipped and invoiced for 20.
+    _intake(session, business, _order_payload(9701))
+    _, interpreted = _intake(session, business, _order_payload(9702))
+    line = interpreted[2][0]
+    commitment = interpreted[3][0]
+    _ship_line(session, business, commitment, "2")
+    invoice = core.record_sales_invoice(
+        session,
+        tenant,
+        lines=[{"order_line_id": line.id, "quantity": "2", "gross_amount": "20.00"}],
+        gross_amount="20.00",
+        number="RE-9702",
+        effective_at=at + timedelta(hours=2),
+    )
+    invoice_id = next(
+        row["id"] for row in invoice["records"] if row["family"] == "document"
+    )
+
+    # No person needed for the refund: its retry comes due and it links itself.
+    clock.instant = clock.instant + timedelta(minutes=10)
+    core.process_pending_import_jobs(session, tenant)
+    assert session.get(ImportJob, (tenant, refund_job.id)).status == "completed"
+    (refunded,) = session.scalars(
+        select(Document).where(
+            Document.tenant_id == tenant,
+            Document.type == "sales_refund",
+            Document.source_record_id == refund.id,
+        )
+    )
+    assert refunded.party_id == business.customer.id
+    assert refund_job.id not in _classes(
+        session, business, "source_interpretation_failure"
+    )
+
+    # The payment is short, so only its stated reference names the invoice.
+    (candidate,) = payment_intake.payment_candidates(session, tenant, payment.id)
+    assert (candidate.number, candidate.reasons) == (
+        "RE-9702",
+        ("stated reference names this invoice",),
+    )
+    # Positive control: until someone allocates it, the money is unallocated.
+    assert payment_intake.unallocated_amount(session, tenant, payment.id) == 18
+    proposal = create_change_proposal(
+        session,
+        tenant,
+        "finance.settlement.apply",
+        {
+            "document_id": payment.id,
+            "mode": "allocate_credit",
+            "invoice_id": invoice_id,
+            "amount": "18.00",
+            "expected_revision": list_accounts(session, tenant)["revision"],
+        },
+        actor_type="human",
+    )
+    approve_and_execute_proposal(session, tenant, proposal.id)
+
+    assert payment_intake.unallocated_amount(session, tenant, payment.id) == 0
+    assert core.open_invoice_amount(session, tenant, invoice_id) == 2
+
+
+def test_an_incomplete_shop_order_is_accepted_and_its_gap_reported(session, business):
+    """P05: a line without a price is kept without one; no quantity fails visibly."""
+    from reality.db.core import DocumentLine, ImportJob
+
+    tenant = business.tenant.id
+    unpriced = _order_payload(
+        9801,
+        line_items=[
+            {"id": 98010, "sku": "BIKE-LIGHT", "quantity": 2, "price": "10.00"},
+            {"id": 98011, "sku": "BIKE-LIGHT", "quantity": 1},
+        ],
+    )
+    _, interpreted = _intake(session, business, unpriced)
+    lines = {line.source_line_id: line for line in interpreted[2]}
+    assert (lines["98010"].unit_price, lines["98011"].unit_price) == (10, None)
+    assert len(interpreted[3]) == 2
+    # Only the line without a price is reported; the priced line is the control.
+    assert _classes(session, business, "order_line_price_missing") == {
+        lines["98011"].id
+    }
+    stored = record_by_id(session, DocumentLine, lines["98011"].id)
+    assert json.loads(stored.payload) == unpriced["line_items"][1]
+
+    # An order line without a quantity stops only its own order.
+    _, broken = core.enqueue_shopify_order(
+        session,
+        tenant,
+        _order_payload(
+            9802, line_items=[{"id": 98020, "sku": "BIKE-LIGHT", "price": "10.00"}]
+        ),
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+    )
+    _, following = core.enqueue_shopify_order(
+        session,
+        tenant,
+        _order_payload(9803),
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+    )
+    assert core.process_pending_import_jobs(session, tenant) == (1, 1)
+    failed = session.get(ImportJob, (tenant, broken.id))
+    assert "states no quantity" in failed.error
+    assert broken.id in _classes(session, business, "source_interpretation_failure")
+    assert session.get(ImportJob, (tenant, following.id)).status == "completed"
+
+
+def test_an_open_order_partly_delivered_before_go_live_is_traceable(
+    session, business, tmp_path, monkeypatch
+):
+    """P08: the legacy order states 10, the promise is the open 6, both cite the source."""
+    import csv
+
+    from reality.services.artifacts import stage_artifact
+    from reality.services.file_interpreters import suggested_mapping
+
+    tenant = business.tenant.id
+    monkeypatch.setenv("REALITY_ARTIFACT_DIR", str(tmp_path / "artifacts"))
+    _stocked(session, business)
+    legacy = tmp_path / "open_orders.csv"
+    with legacy.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(
+            [
+                "order_id",
+                "order_number",
+                "line_id",
+                "party_name",
+                "sku",
+                "quantity",
+                "unit_price",
+                "currency",
+                "location",
+                "delivered_quantity",
+            ]
+        )
+        writer.writerow(
+            [
+                "L-4711",
+                "AB-4711",
+                "1",
+                business.customer.name,
+                business.item.sku,
+                "10",
+                "10.00",
+                "EUR",
+                business.location.name,
+                "4",
+            ]
+        )
+    columns = next(csv.reader(legacy.open(encoding="utf-8")))
+    with legacy.open("rb") as handle:
+        artifact, _ = stage_artifact(
+            session, tenant, handle, filename=legacy.name, content_type="text/csv"
+        )
+    proposal = propose_tool(
+        session,
+        tenant,
+        "source_ingest",
+        {
+            "artifact_id": artifact.id,
+            "source_system": "previous_erp",
+            "source_type": "order",
+            "expected_target": "sales_order",
+            "column_mapping": suggested_mapping(columns, "sales_order"),
+        },
+    )
+    job_id = json.loads(confirm_tool(session, tenant, proposal.id).output)[
+        "import_job_id"
+    ]
+    core.process_import_job(session, tenant, job_id)
+
+    order = session.scalars(
+        select(Document).where(
+            Document.tenant_id == tenant, Document.number == "AB-4711"
+        )
+    ).one()
+    legacy_source = record_by_id(session, SourceRecord, order.source_record_id)
+    assert legacy_source.source_system == "previous_erp"
+    commitment = session.scalars(
+        select(Commitment).where(
+            Commitment.tenant_id == tenant, Commitment.document_id == order.id
+        )
+    ).one()
+    assert commitment.quantity == 10
+    assert "delivered_quantity" in legacy_source.payload
+
+    # At go-live a person states the open rest, citing the legacy record.
+    receipt = _reviewed_revision(session, business, commitment, legacy_source)
+    assert receipt["status"] == "executed"
+    assert core.open_quantity(session, tenant, commitment.id) == 6
+    revision = core.commitment_revisions(session, tenant, commitment.id)[-1]
+    assert revision.source_record_id == legacy_source.id
+
+    core.reserve(session, tenant, commitment.id)
+    _ship_line(session, business, commitment, "6")
+    # Positive control: the six shipped since go-live are unbilled until invoiced.
+    unbilled = _classes(session, business, "shipped_not_billed")
+    assert commitment.document_line_id in unbilled
+    core.record_sales_invoice(
+        session,
+        tenant,
+        lines=[
+            {
+                "order_line_id": commitment.document_line_id,
+                "quantity": "6",
+                "gross_amount": "60.00",
+            }
+        ],
+        gross_amount="60.00",
+        number="RE-4711",
+    )
+    # The four delivered before go-live are no one's open work.
+    for class_id in ("shipped_not_billed", "overdue_outgoing_customer_commitment"):
+        assert commitment.document_line_id not in _classes(session, business, class_id)
+        assert commitment.id not in _classes(session, business, class_id)
+    assert core.open_quantity(session, tenant, commitment.id) == 0
+
+
+def _reviewed_revision(session, business, commitment, legacy_source):
+    proposal = prepare_delivery_action(
+        session,
+        business.tenant.id,
+        "commitment_revise",
+        {
+            "commitment_id": commitment.id,
+            "quantity": "6",
+            "source_record_id": legacy_source.id,
+            "note": "4 delivered before go-live in the previous ERP",
+        },
+        request_id="p08-open-rest",
+    )
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    executed = approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, review_token=token, confirmed=True
+    )
+    return {"status": executed.status}
