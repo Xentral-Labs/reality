@@ -20,7 +20,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 3         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 15       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
-| [Retoure](#resource-return)                                    | 0      | 4        | 8         |
+| [Retoure](#resource-return)                                    | 0      | 5        | 8         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 13       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
@@ -530,7 +530,6 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 [Purchase-to-Pay](./processes#process-procure_to_pay), [Kundenretouren](./processes#process-returns)
 
 **Darunter:** Tabellen: `settlement_allocation` · Events:
-[`payment.returned`](./events#event-payment-returned),
 [`payments.run`](./events#event-payments-run),
 [`settlement.allocated`](./events#event-settlement-allocated) · Agenten-Tools ohne Geschäftsaktion:
 [`finance_balances`](./commands#tool-finance_balances),
@@ -713,6 +712,7 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 - [Retoure ankündigen](./commands#command-announce_customer_return) (`announce_customer_return`)
 - [Retourenankündigung zurückziehen](./commands#command-withdraw_return_announcement)
   (`withdraw_return_announcement`)
+- [Zahlungsrückgabe erfassen](./commands#command-record_return) (`record_return`)
 - [Retournierte Ware umtauschen](./commands#command-record_customer_exchange)
   (`record_customer_exchange`)
 - [Retourenware entscheiden](./commands#command-record_return_disposition)
@@ -721,6 +721,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 **Nachschlagen**
 
 - [Angekündigte Retouren anzeigen](./commands#command-return_announcements) (`return_announcements`)
+- [Zahlungsrückgaben anzeigen](./commands#command-returns) (`returns`)
+- [Zahlungsrückgabe anzeigen](./commands#command-return_detail) (`return_detail`)
 
 **Klärfälle**
 

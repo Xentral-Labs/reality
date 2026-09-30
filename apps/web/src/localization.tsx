@@ -24499,6 +24499,22 @@ Object.assign(dictionaries.es, {
 
 // Spec 297: returned payments and payment fees.
 Object.assign(dictionaries.de, {
+  Chargeback: "Rückbelastung (Chargeback)",
+  "Bank or provider reference": "Referenz der Bank oder des Zahlungsdienstes",
+  "Charge on to the customer": "An den Kunden weiterbelasten",
+  "charged on to the customer": "an den Kunden weiterbelastet",
+  Fee: "Gebühr",
+  "Keep as payment-fee expense": "Als Zahlungsgebühren-Aufwand behalten",
+  "kept as payment-fee expense": "als Zahlungsgebühren-Aufwand gebucht",
+  "Open again": "Wieder offen",
+  "Return date": "Rückgabedatum",
+  "Review return": "Rückgabe prüfen",
+  "The payment is recorded as returned; its invoices are open again.":
+    "Die Zahlung ist als zurückgegangen erfasst; ihre Rechnungen sind wieder offen.",
+  "Who bears the fee": "Wer trägt die Gebühr",
+  "A payment fee applies to customer payments only.":
+    "Eine Zahlungsgebühr gibt es nur bei Kundenzahlungen.",
+  "Payment fee deducted by the provider": "Vom Zahlungsdienst abgezogene Gebühr",
   "Only a recorded customer payment can be returned.":
     "Nur eine erfasste Kundenzahlung kann zurückgehen.",
   "This payment has already been recorded as returned.":
@@ -24520,10 +24536,25 @@ Object.assign(dictionaries.de, {
     "Die Rechnung wird wieder ausgeglichen: durch eine neue Zahlung, eine Gutschrift oder eine akzeptierte Abschreibung.",
   "Returned payments": "Zurückgegangene Zahlungen",
   "Returned direct debit": "Rücklastschrift",
-  Chargeback: "Chargeback",
 });
 
 Object.assign(dictionaries.nl, {
+  Chargeback: "Terugboeking (chargeback)",
+  "Bank or provider reference": "Referentie van de bank of betaaldienst",
+  "Charge on to the customer": "Doorbelasten aan de klant",
+  "charged on to the customer": "doorbelast aan de klant",
+  Fee: "Kosten",
+  "Keep as payment-fee expense": "Houden als betalingskosten",
+  "kept as payment-fee expense": "geboekt als betalingskosten",
+  "Open again": "Weer open",
+  "Return date": "Datum van terugboeking",
+  "Review return": "Terugboeking controleren",
+  "The payment is recorded as returned; its invoices are open again.":
+    "De betaling is als teruggeboekt vastgelegd; de facturen staan weer open.",
+  "Who bears the fee": "Wie draagt de kosten",
+  "A payment fee applies to customer payments only.":
+    "Betalingskosten gelden alleen voor klantbetalingen.",
+  "Payment fee deducted by the provider": "Door de betaaldienst ingehouden kosten",
   "Only a recorded customer payment can be returned.":
     "Alleen een vastgelegde klantbetaling kan worden teruggeboekt.",
   "This payment has already been recorded as returned.":
@@ -24545,10 +24576,24 @@ Object.assign(dictionaries.nl, {
     "De factuur wordt opnieuw vereffend: door een nieuwe betaling, een creditnota of een geaccepteerde afboeking.",
   "Returned payments": "Teruggeboekte betalingen",
   "Returned direct debit": "Gestorneerde incasso",
-  Chargeback: "Chargeback",
 });
 
 Object.assign(dictionaries.es, {
+  "Bank or provider reference": "Referencia del banco o proveedor",
+  "Charge on to the customer": "Repercutir al cliente",
+  "charged on to the customer": "repercutida al cliente",
+  Fee: "Comisión",
+  "Keep as payment-fee expense": "Mantener como gasto de comisiones",
+  "kept as payment-fee expense": "registrada como gasto de comisiones",
+  "Open again": "De nuevo pendiente",
+  "Return date": "Fecha de devolución",
+  "Review return": "Revisar devolución",
+  "The payment is recorded as returned; its invoices are open again.":
+    "El cobro se registró como devuelto; sus facturas vuelven a estar pendientes.",
+  "Who bears the fee": "Quién asume la comisión",
+  "A payment fee applies to customer payments only.":
+    "Una comisión de pago solo se aplica a cobros de clientes.",
+  "Payment fee deducted by the provider": "Comisión descontada por el proveedor de pagos",
   "Only a recorded customer payment can be returned.":
     "Solo se puede devolver un cobro de cliente registrado.",
   "This payment has already been recorded as returned.": "Este cobro ya se registró como devuelto.",

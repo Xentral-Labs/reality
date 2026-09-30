@@ -1287,6 +1287,9 @@
     "payment_execution_unresolved": {
       "message": "A financial execution for this record is unresolved. Check its outcome first."
     },
+    "payment_fee_customer_only": {
+      "message": "A payment fee applies to customer payments only."
+    },
     "payment_fields_invalid": {
       "message": "Payment fields are incomplete or unsupported."
     },

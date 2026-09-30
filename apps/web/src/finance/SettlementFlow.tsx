@@ -416,6 +416,11 @@ export function SettlementFlow({
                         <option value="accepted_small_remainder">
                           {t("Accepted small remainder")}
                         </option>
+                        {data.side === "customer" && (
+                          <option value="payment_fee">
+                            {t("Payment fee deducted by the provider")}
+                          </option>
+                        )}
                       </select>
                     </label>
                     <label className="grid gap-1">

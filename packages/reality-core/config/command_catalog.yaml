@@ -22,6 +22,12 @@ parameter_descriptions:
   schedule_source_record_id: The schedule the dunning run preview used; a schedule changed since then makes the run stale.
   handover_date: Calendar date the invoices are handed to collection.
   handover_id: Opaque same-tenant identity of a collection handover.
+  payment_document_id: Opaque same-tenant identity of the recorded customer payment that came back.
+  kind: Whether the payment came back as a returned direct debit or a chargeback.
+  returned_on: Calendar date the bank or provider states for the return.
+  reference: The bank's or provider's own reference for the return, as stated.
+  fee_bearer: Who bears a stated fee - charged on to the customer, or kept by the company as payment-fee expense; none when there is no fee.
+  return_id: Opaque same-tenant identity of a returned payment.
   knowledge_at: Optional exact retained knowledge cutoff in UTC; mismatches refuse instead of reinterpreting current evidence as historical.
   scope_id: Exact item identity for inventory or received invoice-line identity for contribution.
   policy_revision_id: Optional exact retained valuation-policy constraint; mismatches refuse without activating policy.
@@ -1270,6 +1276,28 @@ commands:
     reads: [document, ledger_entry, dunning_notice, dunning_notice_invoice, collection_handover_invoice, party_hold]
     writes: [collection_handover, collection_handover_invoice, party_hold, source_record, business_event]
     effect: Hands one customer's level-3 invoices to collection with a reason and places a delivery hold with the reason collection.
+  - name: Record a returned payment
+    service: record_return
+    related_services: [preview_return]
+    mode: mutation
+    adapters: [Web, MCP, Chat, CLI]
+    reads: [document, ledger_entry, settlement_allocation, ledger_reversal, subledger_account]
+    writes: [payment_return, ledger_reversal, ledger_entry, document, source_record, business_event]
+    effect: Reverses a returned customer payment so its invoices are open again, keeps the stated kind, reason and reference, and books a stated fee as expense or charges it to the customer.
+  - name: List returned payments
+    service: returns
+    mode: query
+    adapters: [Web, MCP, Chat, CLI]
+    reads: [payment_return, document, settlement_allocation]
+    writes: []
+    effect: Lists returned direct debits and chargebacks with their reason, fee and reopened invoices.
+  - name: Read a returned payment
+    service: return_detail
+    mode: query
+    adapters: [Web, MCP, Chat, CLI]
+    reads: [payment_return, document, settlement_allocation]
+    writes: []
+    effect: Reads one returned payment with its reason, reference, fee and reopened invoices.
   - name: List collection handovers
     service: handovers
     mode: query
@@ -4836,6 +4864,55 @@ capability_guidance:
     events: [dunning.schedule_set]
     verification_reads: [{name: finance.dunning.schedule, proves: The confirmed waiting days and fees are retained.}]
     examples: {use: [{scenario: Remind after 7 days, then every 14 days with fees of 5 and 10., reason: One schedule states all three levels.}], do_not_use: [{scenario: Change the fee of a notice already recorded., reason: Recorded notices keep their fee.}]}
+  finance_payment_returns:
+    kind: read
+    application_tool: finance.payment_returns
+    purpose: List returned customer payments with their reason, fee and reopened invoices.
+    use_when: [Returned direct debits or chargebacks must be reconciled or followed up.]
+    do_not_use_when: [A payment has not come back; use the payments read.]
+    required_context: [tenant]
+    data_basis: [payment_return, document, settlement_allocation]
+    limitations: [Returns are recorded by a person; bank and provider files are not read.]
+    freshness: Read from committed returns and current open amounts.
+    empty_result: No customer payment has been recorded as returned.
+    refusal_behavior: Only tenant-owned returns are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which payments came back, why, and which invoices are open again.], does_not_prove: [That the customer has paid again.]}
+    unknown_when: [A return exists at the bank that nobody recorded.]
+    next_steps: [Read one return with finance_payment_return.]
+    examples: {use: [{scenario: List this month's returned direct debits., reason: Each return names its reason and reopened invoices.}], do_not_use: [{scenario: Record a new return., reason: Use finance_payment_return_propose.}]}
+  finance_payment_return:
+    kind: read
+    application_tool: finance.payment_return
+    purpose: Read one returned customer payment with its reason, reference, fee and reopened invoices.
+    use_when: [One known return needs reconciliation.]
+    do_not_use_when: [The return is not known yet; list them first.]
+    required_context: [return_id]
+    data_basis: [payment_return, document, settlement_allocation]
+    limitations: [A fee charged on is a ledger receivable but not an open item.]
+    freshness: Read from the selected return and current open amounts.
+    empty_result: Unknown and foreign identities are refused as not found.
+    refusal_behavior: Cross-tenant identities disclose nothing.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [The return, its reversal, its fee documents and what is open again.], does_not_prove: [Payment by the customer.]}
+    unknown_when: [The invoices were settled again after the read.]
+    next_steps: [Follow up the reopened invoices; dun them as usual.]
+    examples: {use: [{scenario: Check what a chargeback reopened., reason: The read names every invoice and its open amount.}], do_not_use: [{scenario: Reverse a payment entered twice., reason: That is a ledger reversal, not a return.}]}
+  finance_payment_return_propose:
+    application_tool: finance.payment.return
+    purpose: Record a returned direct debit or chargeback of a customer payment for owner confirmation.
+    use_when: [The bank or provider says a customer payment came back.]
+    do_not_use_when: [A payment was entered by mistake; reverse its posting instead.]
+    required_context: [payment_document_id, kind, returned_on, reason]
+    preconditions: [A recorded customer payment, not reversed or returned before, not settled together with a payment fee.]
+    confirmation: required
+    idempotency: {mode: supported, guidance: Reconcile the proposal identity; confirmed replay returns the same return.}
+    refusals: [{code: payment_return_already_returned, description: The payment was recorded as returned before.}, {code: payment_return_fee_adjusted, description: The payment was settled together with a payment fee.}, {code: finance_account_default_missing, description: A fee needs the payment-fee account.}]
+    events: [payment.returned, ledger.reversed, ledger.posted]
+    verification_reads: [{name: finance.payment_return, proves: The return, its reversal and fee documents are retained.}]
+    examples: {use: [{scenario: A direct debit came back with a bank fee of 3.50., reason: The invoice is open again and the customer owes the fee.}], do_not_use: [{scenario: A customer asks for a refund., reason: A refund is recorded from a credit note.}]}
   finance_dunning_run_propose:
     application_tool: finance.dunning.run
     purpose: Record the reviewed dunning run's notices for owner confirmation.
@@ -4899,6 +4976,9 @@ agent_command_coverage:
   record_handover: {classification: eligible, tools: [finance_dunning_collection_propose]}
   handovers: {classification: eligible, tools: [finance_dunning_collection_handovers]}
   handover_detail: {classification: eligible, tools: [finance_dunning_collection_handover]}
+  record_return: {classification: eligible, tools: [finance_payment_return_propose]}
+  returns: {classification: eligible, tools: [finance_payment_returns]}
+  return_detail: {classification: eligible, tools: [finance_payment_return]}
   change_graph_report: {classification: eligible, tools: [graph_report_change_propose]}
   record_shipment_notice: {classification: eligible, tools: [shipment_notice_record_propose]}
   record_packaged_execution: {classification: eligible, tools: [shipment_dispatch_propose, shipment_receive_propose]}

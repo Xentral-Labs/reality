@@ -71,7 +71,7 @@ return.
 `accept_adjustment` against `payment_fee_expense` instead of `customer_reduction`. The clerk states
 the cash received (97) and the fee (3); the invoice is settled in full.
 
-**Returning such a payment** is refused (`payment_return_fee_adjusted`) in this specification: the
+**Returning such a payment** is refused (`payment_return_fee_adjusted`) in this specification. It is recognised by the confirmation both source records name (`confirmation_id`), because the payment and its fee adjustment have separate source records: the
 fee adjustment would stay in force and the invoice would reopen short. The clerk reverses the
 adjustment first. Recorded as a limitation.
 

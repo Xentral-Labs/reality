@@ -7,12 +7,14 @@ first; charged on, the customer owes it as its own receivable, which recovers
 that cost.
 """
 
+import json
 from datetime import date
 from decimal import Decimal
 from decimal import InvalidOperation as DecimalInvalid
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import cast, select
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
@@ -78,9 +80,24 @@ def _paid_invoices(
 
 
 def _fee_adjusted(session: Session, tenant_id: str, payment: Document) -> bool:
-    """Whether the same settlement also booked a payment fee against the invoice."""
+    """Whether the same confirmed settlement also booked a payment fee on the invoice.
+
+    The payment and its fee adjustment are recorded under one confirmation; their
+    source records both name it.
+    """
     if not payment.source_record_id:
         return False
+    source = session.get(SourceRecord, (tenant_id, payment.source_record_id))
+    confirmation = (
+        json.loads(source.payload or "{}").get("confirmation_id") if source else None
+    )
+    if not confirmation:
+        return False
+    adjustments = select(SourceRecord.id).where(
+        SourceRecord.tenant_id == tenant_id,
+        SourceRecord.source_system == "internal_settlement_adjustment",
+        cast(SourceRecord.payload, JSONB)["confirmation_id"].astext == confirmation,
+    )
     return (
         session.scalar(
             select(LedgerEntry.id)
@@ -92,7 +109,7 @@ def _fee_adjusted(session: Session, tenant_id: str, payment: Document) -> bool:
             .where(
                 LedgerEntry.tenant_id == tenant_id,
                 Document.type == "customer_settlement_adjustment",
-                Document.source_record_id == payment.source_record_id,
+                Document.source_record_id.in_(adjustments),
                 LedgerEntry.account == "payment_fee_expense",
             )
         )

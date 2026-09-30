@@ -732,6 +732,28 @@
       "effect": "Hands one customer's level-3 invoices to collection with a reason and places a delivery hold with the reason collection."
     },
     {
+      "name": "Record a returned payment",
+      "service": "record_return",
+      "related_services": ["preview_return"],
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "effect": "Reverses a returned customer payment so its invoices are open again, keeps the stated kind, reason and reference, and books a stated fee as expense or charges it to the customer."
+    },
+    {
+      "name": "List returned payments",
+      "service": "returns",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "effect": "Lists returned direct debits and chargebacks with their reason, fee and reopened invoices."
+    },
+    {
+      "name": "Read a returned payment",
+      "service": "return_detail",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "effect": "Reads one returned payment with its reason, reference, fee and reopened invoices."
+    },
+    {
       "name": "List collection handovers",
       "service": "handovers",
       "mode": "query",

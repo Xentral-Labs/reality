@@ -25,14 +25,14 @@
 
 ## Phase 4: Payment fees and charges (E08)
 
-- [ ] T011 [P] [FR-006] Failing tests: a payment of 97 with a stated payment fee of 3 settles an invoice of 100 and books 3 as payment-fee expense; returning such a payment is refused with `payment_return_fee_adjusted`, in `core/tests/finance/test_payment_returns.py`
-- [ ] T012 [FR-006] Add the `payment_fee` category to `StatedReduction` and `accept_adjustment`
+- [x] T011 [P] [FR-006] Failing tests: a payment of 97 with a stated payment fee of 3 settles an invoice of 100 and books 3 as payment-fee expense; returning such a payment is refused with `payment_return_fee_adjusted`, in `core/tests/finance/test_payment_returns.py`
+- [x] T012 [FR-006] Add the `payment_fee` category to `StatedReduction` and `accept_adjustment`
 
 ## Phase 5: Surfaces
 
-- [ ] T013 [P] [FR-004] Failing adapter tests (MCP propose and reads, CLI, HTTP, tenant isolation) in `core/tests/finance/test_payment_return_adapters.py`
-- [ ] T014 [FR-004] MCP tools, CLI commands, HTTP reads; catalogs (command, tool topics, discovery and its Web fixture, resource labels, refusals with de/nl/es, ratchet, business events, reference catalog), pinned counts, docs regeneration
-- [ ] T015 [FR-004] Web: "Payment returned" on recorded customer payments with its dialog, the "Payment fee" reduction label, labels in four languages; i18n audit and build
+- [x] T013 [P] [FR-004] Failing adapter tests (MCP propose and reads, CLI, HTTP, tenant isolation) in `core/tests/finance/test_payment_return_adapters.py`
+- [x] T014 [FR-004] MCP tools, CLI commands, HTTP reads; catalogs (command, tool topics, discovery and its Web fixture, resource labels, refusals with de/nl/es, ratchet, business events, reference catalog), pinned counts, docs regeneration
+- [x] T015 [FR-004] Web: "Payment returned" on recorded customer payments with its dialog, the "Payment fee" reduction label, labels in four languages; i18n audit and build
 
 ## Phase 6: Journeys and Verification
 

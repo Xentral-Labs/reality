@@ -74,7 +74,11 @@ class AdjustmentRequest(AccountRequest):
     invoice_id: str = Field(min_length=1)
     amount: str
     reason_category: Literal[
-        "early_payment_discount", "agreed_deduction", "accepted_small_remainder", "bad_debt"
+        "early_payment_discount",
+        "agreed_deduction",
+        "accepted_small_remainder",
+        "bad_debt",
+        "payment_fee",
     ]
     reason: str = Field(min_length=1, max_length=4000)
     agreement: str = Field(default="", max_length=4000)
@@ -288,7 +292,11 @@ class StatedReduction(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     amount: str
     reason_category: Literal[
-        "early_payment_discount", "agreed_deduction", "accepted_small_remainder", "bad_debt"
+        "early_payment_discount",
+        "agreed_deduction",
+        "accepted_small_remainder",
+        "bad_debt",
+        "payment_fee",
     ]
     reason: str = Field(min_length=1, max_length=4000)
     agreement: str = Field(default="", max_length=4000)

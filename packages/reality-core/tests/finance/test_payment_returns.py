@@ -458,3 +458,85 @@ def test_the_invoice_inspector_names_the_return(session, business):
 
     assert rows[0]["label"] == "Returned direct debit"
     assert rows[0]["link"]["id"] == receipt["source_record_id"]
+
+
+# --- T011: a fee the provider deducted from a payment --------------------------------------
+
+
+def _settle_with_fee(session, business, invoice, cash, fee, side="customer"):
+    tenant = business.tenant.id
+    proposal = create_change_proposal(
+        session,
+        tenant,
+        "finance.settlement.apply",
+        {
+            "mode": "payment",
+            "document_id": invoice.id,
+            "amount": cash,
+            "allocation_amount": cash,
+            "expected_revision": list_accounts(session, tenant)["revision"],
+            "reference": "Stripe payout po_1",
+            "effective_at": "2026-09-10T08:00:00Z",
+            "reduction": {
+                "amount": fee,
+                "reason_category": "payment_fee",
+                "reason": "Stripe fee",
+            },
+        },
+        actor_type="human",
+    )
+    return json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+
+
+def test_a_deducted_payment_fee_settles_the_invoice_and_is_an_expense(
+    session, business
+):
+    tenant = business.tenant.id
+    _fee_account(session, tenant)
+    invoice = core.create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        "RE-297-PSP",
+        business.customer.id,
+        "100",
+        document_date="2026-09-01",
+    )
+    core.post_sales_invoice(session, tenant, invoice.id)
+
+    _settle_with_fee(session, business, invoice, "97", "3")
+
+    assert core.open_invoice_amount(session, tenant, invoice.id) == 0
+    assert _balance(session, tenant, "payment_fee_expense") == Decimal(3)
+    assert _balance(session, tenant, "customer_reduction") == 0
+
+
+def test_a_payment_settled_with_a_payment_fee_cannot_be_returned_yet(session, business):
+    from reality.services.payment_returns import preview_return
+
+    tenant = business.tenant.id
+    _fee_account(session, tenant)
+    invoice = core.create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        "RE-297-PSP2",
+        business.customer.id,
+        "100",
+        document_date="2026-09-01",
+    )
+    core.post_sales_invoice(session, tenant, invoice.id)
+    receipt = _settle_with_fee(session, business, invoice, "97", "3")
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        preview_return(
+            session,
+            tenant,
+            {
+                "payment_document_id": receipt["payment"]["document_id"],
+                "kind": "chargeback",
+                "returned_on": "2026-10-02",
+                "reason": "Disputed",
+            },
+        )
+    assert refused.value.code == "payment_return_fee_adjusted"

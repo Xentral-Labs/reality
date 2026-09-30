@@ -7579,6 +7579,26 @@ def get_dunning_run_context(
         raise api_error(error) from error
 
 
+@router.get("/finance/payment-returns")
+def get_payment_returns(tenant_id: str, session: DatabaseSession):
+    from reality.services.payment_returns import returns
+
+    try:
+        return {"items": returns(session, tenant_id)}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/payment-returns/{return_id}")
+def get_payment_return(tenant_id: str, return_id: str, session: DatabaseSession):
+    from reality.services.payment_returns import return_detail
+
+    try:
+        return return_detail(session, tenant_id, return_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.get("/finance/dunning/collection-handovers")
 def get_collection_handovers(tenant_id: str, session: DatabaseSession):
     from reality.services.dunning_runs import handovers

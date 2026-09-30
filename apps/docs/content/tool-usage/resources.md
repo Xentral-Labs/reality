@@ -20,7 +20,7 @@ the technical key stands beside each one.
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 3                   |
 | [Ledger and accounts](#resource-accounting)                      | 2     | 15      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
-| [Return](#resource-return)                                       | 0     | 4       | 8                   |
+| [Return](#resource-return)                                       | 0     | 5       | 8                   |
 | [Document and source system](#resource-source)                   | 3     | 13      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
@@ -518,7 +518,6 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 [Customer returns](./processes#process-returns)
 
 **Underneath:** Tables: `settlement_allocation` · Events:
-[`payment.returned`](./events#event-payment-returned),
 [`payments.run`](./events#event-payments-run),
 [`settlement.allocated`](./events#event-settlement-allocated) · Agent tools without a command:
 [`finance_balances`](./commands#tool-finance_balances),
@@ -702,6 +701,7 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
   (`announce_customer_return`)
 - [Withdraw return announcement](./commands#command-withdraw_return_announcement)
   (`withdraw_return_announcement`)
+- [Record a returned payment](./commands#command-record_return) (`record_return`)
 - [Exchange returned goods for a replacement](./commands#command-record_customer_exchange)
   (`record_customer_exchange`)
 - [Resolve arrived customer-return goods](./commands#command-record_return_disposition)
@@ -710,6 +710,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 **Look up**
 
 - [Read announced returns](./commands#command-return_announcements) (`return_announcements`)
+- [List returned payments](./commands#command-returns) (`returns`)
+- [Read a returned payment](./commands#command-return_detail) (`return_detail`)
 
 **Exceptions to clear**
 
