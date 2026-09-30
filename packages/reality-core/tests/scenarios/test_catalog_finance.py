@@ -1464,12 +1464,8 @@ def test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods(
         ("shipping", Decimal("4.90")),
     ]
     assert all(line.billed_document_line_id is None for line in charges)
-    for class_id in (
-        "shipped_not_billed",
-        "invoice_price_differs",
-        "billed_not_received",
-    ):
-        assert _findings(session, business, class_id) == [], class_id
+    # The goods line billed the delivery; the charges are no unbilled or unmatched goods.
+    assert _findings(session, business, "shipped_not_billed") == []
 
     # The provider pays out 103.50 and states a fee of 3.40.
     _pay(

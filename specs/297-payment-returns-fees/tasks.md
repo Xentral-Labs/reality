@@ -40,4 +40,4 @@
 - [x] T017 [FR-005] [SC-002] Promote C15 and E08 with evidence and specific keywords; check neighbour questions; coverage and roadmap
 - [ ] T018 Full backend suite from a clean worktree and the Web checks
 - [ ] T019 Manual check per `quickstart.md` on an isolated stack
-- [ ] T020 Review of the diff; fix findings
+- [x] T020 Review of the diff; fix findings

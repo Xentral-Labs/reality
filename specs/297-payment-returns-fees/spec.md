@@ -111,6 +111,7 @@ As a clerk or an agent, I record a return or a payment fee through the same revi
 - Created as a short draft from the sales-gap roadmap; clarified with the owner on 2026-09-30.
 - Builds on the capabilities and limitations recorded in `docs/scenarios/coverage.md` for the journeys in scope.
 - Known gap inherited from spec 295: a fee charged on to the customer is a ledger receivable but not an open item, because `financial_open_items` reads invoices and opening debts only.
+- A payment settled together with a reduction (payment fee, discount, agreed deduction, small remainder) is returned only after that reduction is reversed, so the invoice never reopens short.
 
 ## Requirement Traceability
 

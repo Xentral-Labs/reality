@@ -4909,7 +4909,7 @@ capability_guidance:
     preconditions: [A recorded customer payment, not reversed or returned before, not settled together with a payment fee.]
     confirmation: required
     idempotency: {mode: supported, guidance: Reconcile the proposal identity; confirmed replay returns the same return.}
-    refusals: [{code: payment_return_already_returned, description: The payment was recorded as returned before.}, {code: payment_return_fee_adjusted, description: The payment was settled together with a payment fee.}, {code: finance_account_default_missing, description: A fee needs the payment-fee account.}]
+    refusals: [{code: payment_return_already_returned, description: The payment was recorded as returned before.}, {code: payment_return_reduction_active, description: The payment was settled together with a reduction that is still in force.}, {code: finance_account_default_missing, description: A fee needs the payment-fee account.}]
     events: [payment.returned, ledger.reversed, ledger.posted]
     verification_reads: [{name: finance.payment_return, proves: The return, its reversal and fee documents are retained.}]
     examples: {use: [{scenario: A direct debit came back with a bank fee of 3.50., reason: The invoice is open again and the customer owes the fee.}], do_not_use: [{scenario: A customer asks for a refund., reason: A refund is recorded from a credit note.}]}

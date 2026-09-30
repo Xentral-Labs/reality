@@ -11358,8 +11358,8 @@
             "description": "The payment was recorded as returned before."
           },
           {
-            "code": "payment_return_fee_adjusted",
-            "description": "The payment was settled together with a payment fee."
+            "code": "payment_return_reduction_active",
+            "description": "The payment was settled together with a reduction that is still in force."
           },
           {
             "code": "finance_account_default_missing",
@@ -21442,8 +21442,8 @@
             "description": "The payment was recorded as returned before."
           },
           {
-            "code": "payment_return_fee_adjusted",
-            "description": "The payment was settled together with a payment fee."
+            "code": "payment_return_reduction_active",
+            "description": "The payment was settled together with a reduction that is still in force."
           },
           {
             "code": "finance_account_default_missing",

@@ -1167,7 +1167,7 @@ entries:
   limitations:
   - A person records the return; bank return files and provider dispute feeds are not read yet.
   - A charged-on fee is a receivable in the ledger but not yet an open item.
-  - A payment settled with a deducted payment fee cannot be returned yet.
+  - A payment settled together with a fee, discount or other reduction is returned only after that reduction is reversed.
   keywords:
   - chargeback
   - returned direct debit

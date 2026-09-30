@@ -4705,7 +4705,8 @@ Record a returned direct debit or chargeback of a customer payment for owner con
 **Refused when**
 
 - `payment_return_already_returned` — The payment was recorded as returned before.
-- `payment_return_fee_adjusted` — The payment was settled together with a payment fee.
+- `payment_return_reduction_active` — The payment was settled together with a reduction that is
+  still in force.
 - `finance_account_default_missing` — A fee needs the payment-fee account.
 
 **Parameters**

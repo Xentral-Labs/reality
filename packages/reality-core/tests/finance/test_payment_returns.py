@@ -9,7 +9,13 @@ from conftest import record_by_id
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from reality.db.core import BusinessEvent, LedgerReversal, PaymentReturn, SourceRecord
+from reality.db.core import (
+    BusinessEvent,
+    LedgerEntry,
+    LedgerReversal,
+    PaymentReturn,
+    SourceRecord,
+)
 from reality.domain.finance import ACCOUNT_ROLES
 from reality.services import core
 from reality.services.exceptions import operational_exceptions
@@ -463,29 +469,59 @@ def test_the_invoice_inspector_names_the_return(session, business):
 # --- T011: a fee the provider deducted from a payment --------------------------------------
 
 
-def _settle_with_fee(session, business, invoice, cash, fee, side="customer"):
+def _settle_with_fee(
+    session, business, invoice, cash, fee, side="customer", category="payment_fee"
+):
     tenant = business.tenant.id
+    arguments = {
+        "mode": "payment",
+        "document_id": invoice.id,
+        "amount": cash,
+        "allocation_amount": cash,
+        "expected_revision": list_accounts(session, tenant)["revision"],
+        "reference": "Stripe payout po_1",
+        "effective_at": "2026-09-10T08:00:00Z",
+    }
+    if fee:
+        arguments["reduction"] = {
+            "amount": fee,
+            "reason_category": category,
+            "reason": "Stated by the provider",
+        }
     proposal = create_change_proposal(
-        session,
-        tenant,
-        "finance.settlement.apply",
-        {
-            "mode": "payment",
-            "document_id": invoice.id,
-            "amount": cash,
-            "allocation_amount": cash,
-            "expected_revision": list_accounts(session, tenant)["revision"],
-            "reference": "Stripe payout po_1",
-            "effective_at": "2026-09-10T08:00:00Z",
-            "reduction": {
-                "amount": fee,
-                "reason_category": "payment_fee",
-                "reason": "Stripe fee",
-            },
-        },
-        actor_type="human",
+        session, tenant, "finance.settlement.apply", arguments, actor_type="human"
     )
     return json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+
+
+def _posted_invoice(session, business, number, amount="100"):
+    invoice = core.create_document(
+        session,
+        business.tenant.id,
+        "sales_invoice",
+        number,
+        business.customer.id,
+        amount,
+        document_date="2026-09-01",
+    )
+    core.post_sales_invoice(session, business.tenant.id, invoice.id)
+    return invoice
+
+
+def _preview(session, tenant, payment_id, **values):
+    from reality.services.payment_returns import preview_return
+
+    return preview_return(
+        session,
+        tenant,
+        {
+            "payment_document_id": payment_id,
+            "kind": "chargeback",
+            "returned_on": "2026-10-02",
+            "reason": "Disputed",
+            **values,
+        },
+    )
 
 
 def test_a_deducted_payment_fee_settles_the_invoice_and_is_an_expense(
@@ -511,32 +547,168 @@ def test_a_deducted_payment_fee_settles_the_invoice_and_is_an_expense(
     assert _balance(session, tenant, "customer_reduction") == 0
 
 
-def test_a_payment_settled_with_a_payment_fee_cannot_be_returned_yet(session, business):
-    from reality.services.payment_returns import preview_return
+@pytest.mark.parametrize("category", ["payment_fee", "early_payment_discount"])
+def test_a_payment_settled_with_a_reduction_is_returned_only_after_it_is_reversed(
+    session, business, category
+):
+    from reality.db.core import Document as DocumentRow
 
     tenant = business.tenant.id
     _fee_account(session, tenant)
-    invoice = core.create_document(
-        session,
-        tenant,
-        "sales_invoice",
-        "RE-297-PSP2",
-        business.customer.id,
-        "100",
-        document_date="2026-09-01",
+    # Positive control: a settlement payment without a reduction, recorded under a
+    # confirmation the same way, can be returned.
+    plain = _settle_with_fee(
+        session, business, _posted_invoice(session, business, "RE-297-P0"), "100", None
     )
-    core.post_sales_invoice(session, tenant, invoice.id)
-    receipt = _settle_with_fee(session, business, invoice, "97", "3")
+    assert _preview(session, tenant, plain["payment"]["document_id"])["reopened"]
+
+    invoice = _posted_invoice(session, business, f"RE-297-{category}")
+    receipt = _settle_with_fee(session, business, invoice, "97", "3", category=category)
+    payment_id = receipt["payment"]["document_id"]
 
     with pytest.raises(core.InvalidOperation) as refused:
-        preview_return(
-            session,
-            tenant,
-            {
-                "payment_document_id": receipt["payment"]["document_id"],
-                "kind": "chargeback",
-                "returned_on": "2026-10-02",
-                "reason": "Disputed",
-            },
+        _preview(session, tenant, payment_id)
+    assert refused.value.code == "payment_return_reduction_active"
+
+    adjustment = session.scalar(
+        select(DocumentRow).where(
+            DocumentRow.tenant_id == tenant,
+            DocumentRow.type == "customer_settlement_adjustment",
         )
-    assert refused.value.code == "payment_return_fee_adjusted"
+    )
+    group = session.scalar(
+        select(LedgerEntry.posting_group_id).where(
+            LedgerEntry.tenant_id == tenant, LedgerEntry.document_id == adjustment.id
+        )
+    )
+    core.reverse_ledger_posting_group(session, tenant, group, reason="Fee disputed")
+
+    (reopened,) = _preview(session, tenant, payment_id)["reopened"]
+    assert (reopened["number"], reopened["open_after"]) == (
+        f"RE-297-{category}",
+        "100.0000",
+    )
+
+
+def test_a_refund_of_the_payment_is_open_again_but_not_reported_as_an_invoice(
+    session, business
+):
+    from reality.services.payment_returns import return_detail
+
+    tenant = business.tenant.id
+    invoice = _posted_invoice(session, business, "RE-297-RF")
+    proposal = create_change_proposal(
+        session,
+        tenant,
+        "finance.settlement.apply",
+        {
+            "mode": "payment",
+            "document_id": invoice.id,
+            "amount": "120",
+            "allocation_amount": "100",
+            "expected_revision": list_accounts(session, tenant)["revision"],
+            "reference": "Overpaid transfer",
+            "effective_at": "2026-09-10T08:00:00Z",
+        },
+        actor_type="human",
+    )
+    paid = json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)
+    payment_id = paid["payment"]["document_id"]
+    refund = create_change_proposal(
+        session,
+        tenant,
+        "finance.settlement.apply",
+        {
+            "mode": "refund_credit",
+            "document_id": payment_id,
+            "amount": "20",
+            "expected_revision": list_accounts(session, tenant)["revision"],
+            "reference": "Refund of the overpayment",
+            "effective_at": "2026-09-11T08:00:00Z",
+        },
+        actor_type="human",
+    )
+    approve_and_execute_proposal(session, tenant, refund.id)
+
+    _, receipt = _return(session, tenant, payment_id)
+
+    # The refund is owed back too, and the preview says so with its type ...
+    assert sorted(
+        row["type"] for row in return_detail(session, tenant, receipt["id"])["reopened"]
+    ) == [
+        "customer_refund",
+        "sales_invoice",
+    ]
+    # ... but only the invoice is reported as an invoice open again.
+    (finding,) = _findings(session, tenant)
+    assert finding.record_id == invoice.id
+
+
+def test_an_invoice_whose_payments_came_back_twice_is_reported_once(session, business):
+    tenant = business.tenant.id
+    invoice, entry = _paid_invoice(session, business)
+    _return(session, tenant, entry.document_id)
+    again = core.post_customer_payment(
+        session, tenant, invoice.id, "100", payment_number="PAY-AGAIN"
+    )
+    _return(session, tenant, again[0].document_id, reason="AM04 insufficient funds")
+
+    (finding,) = _findings(session, tenant)
+    assert finding.causal_values["reason"] == "AM04 insufficient funds"
+
+
+def test_the_fee_leaves_the_cash_account_the_payment_was_booked_on(session, business):
+    from reality.services.finance.accounts import set_default_account
+
+    tenant = business.tenant.id
+    _fee_account(session, tenant)
+    _, entry = _paid_invoice(session, business)
+    booked = session.scalar(
+        select(LedgerEntry.account_id).where(
+            LedgerEntry.tenant_id == tenant,
+            LedgerEntry.posting_group_id == entry.posting_group_id,
+            LedgerEntry.account == "cash",
+        )
+    )
+    second = create_account(
+        session,
+        tenant,
+        code="1210",
+        name="Second bank",
+        role="cash",
+        expected_revision=list_accounts(session, tenant)["revision"],
+    )
+    set_default_account(
+        session,
+        tenant,
+        role="cash",
+        account_id=second["id"],
+        expected_revision=list_accounts(session, tenant)["revision"],
+    )
+
+    _, receipt = _return(
+        session, tenant, entry.document_id, fee_amount="2.50", fee_bearer="company"
+    )
+
+    fee_cash = session.scalar(
+        select(LedgerEntry.account_id).where(
+            LedgerEntry.tenant_id == tenant,
+            LedgerEntry.document_id == receipt["fee_document_id"],
+            LedgerEntry.account == "cash",
+        )
+    )
+    assert (fee_cash, fee_cash != second["id"]) == (booked, True)
+
+
+@pytest.mark.parametrize("returned_on", ["", "02.10.2026", "2026-13-01"])
+def test_a_return_date_that_is_no_date_is_refused_as_such(
+    session, business, returned_on
+):
+    tenant = business.tenant.id
+    _, entry = _paid_invoice(session, business)
+    # Positive control: a calendar date is accepted.
+    assert _preview(session, tenant, entry.document_id, returned_on="2026-10-02")
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _preview(session, tenant, entry.document_id, returned_on=returned_on)
+    assert refused.value.code == "payment_return_date_invalid"

@@ -13,9 +13,9 @@ from decimal import Decimal
 from decimal import InvalidOperation as DecimalInvalid
 from typing import Any
 
-from sqlalchemy import cast, select
+from sqlalchemy import cast, func, select
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from reality.db.core import (
     Document,
@@ -34,6 +34,8 @@ SOURCE_SYSTEM = "internal_payment_return"
 KINDS = {"direct_debit_return": "Returned direct debit", "chargeback": "Chargeback"}
 BEARERS = {"customer", "company"}
 FEE_SCALE = Decimal("0.0001")
+#: What a customer owes as an invoice; only these are reported as open again.
+OWED_TYPES = {"sales_invoice", "opening_customer_debt"}
 
 
 def _payment_entry(session: Session, tenant_id: str, payment: Document) -> LedgerEntry:
@@ -79,11 +81,12 @@ def _paid_invoices(
     return [(document, amount) for document, amount in totals.values()]
 
 
-def _fee_adjusted(session: Session, tenant_id: str, payment: Document) -> bool:
-    """Whether the same confirmed settlement also booked a payment fee on the invoice.
+def _reduction_active(session: Session, tenant_id: str, payment: Document) -> bool:
+    """Whether a reduction booked with this payment is still in force.
 
-    The payment and its fee adjustment are recorded under one confirmation; their
-    source records both name it.
+    The payment and its adjustment are recorded under one confirmation; their
+    source records both name it. Returning the payment while a fee, discount or
+    deduction stays in force would reopen the invoice short.
     """
     if not payment.source_record_id:
         return False
@@ -98,6 +101,9 @@ def _fee_adjusted(session: Session, tenant_id: str, payment: Document) -> bool:
         SourceRecord.source_system == "internal_settlement_adjustment",
         cast(SourceRecord.payload, JSONB)["confirmation_id"].astext == confirmation,
     )
+    reversed_groups = select(LedgerReversal.original_posting_group_id).where(
+        LedgerReversal.tenant_id == tenant_id
+    )
     return (
         session.scalar(
             select(LedgerEntry.id)
@@ -110,10 +116,24 @@ def _fee_adjusted(session: Session, tenant_id: str, payment: Document) -> bool:
                 LedgerEntry.tenant_id == tenant_id,
                 Document.type == "customer_settlement_adjustment",
                 Document.source_record_id.in_(adjustments),
-                LedgerEntry.account == "payment_fee_expense",
+                LedgerEntry.posting_group_id.not_in(reversed_groups),
             )
+            .limit(1)
         )
         is not None
+    )
+
+
+def _payment_cash_account(
+    session: Session, tenant_id: str, entry: LedgerEntry
+) -> str | None:
+    """The cash account the payment was booked on; the fee leaves the same account."""
+    return session.scalar(
+        select(LedgerEntry.account_id).where(
+            LedgerEntry.tenant_id == tenant_id,
+            LedgerEntry.posting_group_id == entry.posting_group_id,
+            LedgerEntry.account == "cash",
+        )
     )
 
 
@@ -143,8 +163,8 @@ def preview_return(
     )
     if reversed_group:
         raise core.InvalidOperation(code="payment_return_already_reversed")
-    if _fee_adjusted(session, tenant_id, payment):
-        raise core.InvalidOperation(code="payment_return_fee_adjusted")
+    if _reduction_active(session, tenant_id, payment):
+        raise core.InvalidOperation(code="payment_return_reduction_active")
     kind = values.get("kind")
     if kind not in KINDS:
         raise core.InvalidOperation(code="payment_return_kind_invalid")
@@ -153,6 +173,9 @@ def preview_return(
         raise core.InvalidOperation(code="payment_return_reason_missing")
     try:
         returned_on = date.fromisoformat(str(values.get("returned_on")))
+    except ValueError as error:
+        raise core.InvalidOperation(code="payment_return_date_invalid") from error
+    try:
         fee = Decimal(str(values.get("fee_amount") or "0"))
     except (TypeError, ValueError, DecimalInvalid) as error:
         raise core.InvalidOperation(code="payment_return_fee_invalid") from error
@@ -166,12 +189,16 @@ def preview_return(
         accounts["payment_fee_expense"] = resolve_account(
             session, tenant_id, "payment_fee_expense"
         ).id
-        accounts["cash"] = resolve_account(session, tenant_id, "cash").id
+        accounts["cash"] = (
+            _payment_cash_account(session, tenant_id, entry)
+            or resolve_account(session, tenant_id, "cash").id
+        )
         accounts["accounts_receivable"] = entry.account_id
     reopened = [
         {
             "invoice_id": invoice.id,
             "number": invoice.number,
+            "type": invoice.type,
             "allocated": str(amount),
             "open_after": str(
                 core.open_invoice_amount(session, tenant_id, invoice.id) + amount
@@ -382,6 +409,7 @@ def return_detail(session: Session, tenant_id: str, return_id: str) -> dict[str,
             {
                 "invoice_id": invoice.id,
                 "number": invoice.number,
+                "type": invoice.type,
                 "allocated": str(amount),
                 "open": str(core.open_invoice_amount(session, tenant_id, invoice.id)),
             }
@@ -411,29 +439,74 @@ def returns(session: Session, tenant_id: str) -> list[dict[str, Any]]:
     ]
 
 
-def returned_invoices(session: Session, tenant_id: str) -> list[dict[str, Any]]:
-    """Invoices a returned payment had paid that are still open (the finding's reader)."""
-    rows = []
-    for row in session.scalars(
-        select(PaymentReturn).where(PaymentReturn.tenant_id == tenant_id)
-    ):
-        payment = core._tenant_record(
-            session, Document, tenant_id, row.payment_document_id
+def _returned_allocations(
+    session: Session, tenant_id: str, invoice_id: str | None = None
+) -> list[tuple[PaymentReturn, Document, Decimal]]:
+    """Each return with every owed document its payment had paid, in one query."""
+    payment_entry = aliased(LedgerEntry)
+    invoice_entry = aliased(LedgerEntry)
+    query = (
+        select(PaymentReturn, Document, func.sum(SettlementAllocation.amount))
+        .select_from(PaymentReturn)
+        .join(
+            payment_entry,
+            (payment_entry.tenant_id == tenant_id)
+            & (payment_entry.document_id == PaymentReturn.payment_document_id)
+            & (payment_entry.account == "accounts_receivable")
+            & (payment_entry.debit_credit == "credit"),
         )
-        entry = _payment_entry(session, tenant_id, payment)
-        for invoice, allocated in _paid_invoices(session, tenant_id, entry):
-            open_amount = core.open_invoice_amount(session, tenant_id, invoice.id)
-            if open_amount > 0:
-                rows.append(
-                    {
-                        "return": row,
-                        "payment": payment,
-                        "invoice": invoice,
-                        "allocated": allocated,
-                        "open": open_amount,
-                    }
-                )
-    return rows
+        .join(
+            SettlementAllocation,
+            (SettlementAllocation.tenant_id == tenant_id)
+            & (SettlementAllocation.payment_ledger_entry_id == payment_entry.id),
+        )
+        .join(
+            invoice_entry,
+            (invoice_entry.tenant_id == tenant_id)
+            & (invoice_entry.id == SettlementAllocation.invoice_ledger_entry_id),
+        )
+        .join(
+            Document,
+            (Document.tenant_id == tenant_id)
+            & (Document.id == invoice_entry.document_id),
+        )
+        .where(PaymentReturn.tenant_id == tenant_id, Document.type.in_(OWED_TYPES))
+        .group_by(
+            PaymentReturn.tenant_id, PaymentReturn.id, Document.tenant_id, Document.id
+        )
+        .order_by(
+            PaymentReturn.returned_on.desc(),
+            PaymentReturn.created_at.desc(),
+            PaymentReturn.id,
+        )
+    )
+    if invoice_id is not None:
+        query = query.where(Document.id == invoice_id)
+    return [tuple(row) for row in session.execute(query)]
+
+
+def returned_invoices(session: Session, tenant_id: str) -> list[dict[str, Any]]:
+    """Owed documents a returned payment had paid that are still open (the finding's reader).
+
+    One row per document, from its newest return: a second return of the same
+    invoice replaces the first rather than reporting it twice.
+    """
+    latest: dict[str, tuple[PaymentReturn, Document, Decimal]] = {}
+    for row in _returned_allocations(session, tenant_id):
+        latest.setdefault(row[1].id, row)
+    open_amounts = core.open_invoice_amounts(
+        session, tenant_id, [invoice for _, invoice, _ in latest.values()]
+    )
+    return [
+        {
+            "return": returned,
+            "invoice": invoice,
+            "allocated": allocated,
+            "open": open_amounts[invoice.id],
+        }
+        for returned, invoice, allocated in latest.values()
+        if open_amounts.get(invoice.id, Decimal(0)) > 0
+    ]
 
 
 def invoice_return_rows(
@@ -442,23 +515,14 @@ def invoice_return_rows(
     """What an invoice's explanation says about payments to it that came back."""
     if invoice.type != "sales_invoice":
         return []
-    rows = []
-    for row in session.scalars(
-        select(PaymentReturn).where(PaymentReturn.tenant_id == tenant_id)
-    ):
-        payment = session.get(Document, (tenant_id, row.payment_document_id))
-        entry = _payment_entry(session, tenant_id, payment)
-        if any(
-            paid.id == invoice.id
-            for paid, _ in _paid_invoices(session, tenant_id, entry)
-        ):
-            rows.append(
-                {
-                    "label": KINDS[row.kind],
-                    "value": f"{row.returned_on.isoformat()} · {row.reason}",
-                    "kind": "source_record",
-                    "record_id": row.source_record_id,
-                    "meta": row.reference or payment.number,
-                }
-            )
-    return rows
+    return [
+        {
+            "label": KINDS[row.kind],
+            "value": f"{row.returned_on.isoformat()} · {row.reason}",
+            "kind": "source_record",
+            "record_id": row.source_record_id,
+            "meta": row.reference
+            or session.get(Document, (tenant_id, row.payment_document_id)).number,
+        }
+        for row, _, _ in _returned_allocations(session, tenant_id, invoice.id)
+    ]

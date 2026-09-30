@@ -1302,8 +1302,8 @@
     "payment_return_already_reversed": {
       "message": "This payment's posting is already reversed."
     },
-    "payment_return_fee_adjusted": {
-      "message": "This payment was recorded with a payment fee; reverse that fee first."
+    "payment_return_date_invalid": {
+      "message": "Enter the return date as a calendar date."
     },
     "payment_return_fee_bearer_invalid": {
       "message": "Say who bears a fee, and only when there is one."
@@ -1319,6 +1319,9 @@
     },
     "payment_return_reason_missing": {
       "message": "State the reason the bank or provider gave."
+    },
+    "payment_return_reduction_active": {
+      "message": "This payment was settled together with a reduction; reverse that reduction first."
     },
     "payment_term_active_not_found": {
       "message": "Active payment term '{code}' not found.",

@@ -24521,12 +24521,13 @@ Object.assign(dictionaries.de, {
     "Diese Zahlung ist bereits als zurückgegangen erfasst.",
   "This payment's posting is already reversed.":
     "Die Buchung dieser Zahlung ist bereits storniert.",
-  "This payment was recorded with a payment fee; reverse that fee first.":
-    "Diese Zahlung wurde mit einer Zahlungsgebühr erfasst; storniere zuerst diese Gebühr.",
+  "This payment was settled together with a reduction; reverse that reduction first.":
+    "Diese Zahlung wurde zusammen mit einem Abzug ausgeglichen; storniere zuerst diesen Abzug.",
   "A return is a returned direct debit or a chargeback.":
     "Eine Rückgabe ist eine Rücklastschrift oder ein Chargeback.",
   "State the reason the bank or provider gave.":
     "Gib den Grund an, den die Bank oder der Zahlungsdienst genannt hat.",
+  "Enter the return date as a calendar date.": "Gib das Rückgabedatum als Kalenderdatum an.",
   "Enter the fee as stated: not negative, at most four decimals.":
     "Gib die Gebühr wie angegeben ein: nicht negativ, höchstens vier Nachkommastellen.",
   "Say who bears a fee, and only when there is one.":
@@ -24561,12 +24562,13 @@ Object.assign(dictionaries.nl, {
     "Deze betaling is al als teruggeboekt vastgelegd.",
   "This payment's posting is already reversed.":
     "De boeking van deze betaling is al teruggedraaid.",
-  "This payment was recorded with a payment fee; reverse that fee first.":
-    "Deze betaling is met betalingskosten vastgelegd; draai die kosten eerst terug.",
+  "This payment was settled together with a reduction; reverse that reduction first.":
+    "Deze betaling is samen met een korting verrekend; draai die korting eerst terug.",
   "A return is a returned direct debit or a chargeback.":
     "Een terugboeking is een gestorneerde incasso of een chargeback.",
   "State the reason the bank or provider gave.":
     "Geef de reden op die de bank of betaaldienst noemde.",
+  "Enter the return date as a calendar date.": "Geef de terugboekingsdatum als kalenderdatum op.",
   "Enter the fee as stated: not negative, at most four decimals.":
     "Voer de kosten in zoals opgegeven: niet negatief, hoogstens vier decimalen.",
   "Say who bears a fee, and only when there is one.":
@@ -24598,12 +24600,14 @@ Object.assign(dictionaries.es, {
     "Solo se puede devolver un cobro de cliente registrado.",
   "This payment has already been recorded as returned.": "Este cobro ya se registró como devuelto.",
   "This payment's posting is already reversed.": "El asiento de este cobro ya está anulado.",
-  "This payment was recorded with a payment fee; reverse that fee first.":
-    "Este cobro se registró con una comisión de pago; anula primero esa comisión.",
+  "This payment was settled together with a reduction; reverse that reduction first.":
+    "Este cobro se liquidó junto con una reducción; anula primero esa reducción.",
   "A return is a returned direct debit or a chargeback.":
     "Una devolución es un adeudo devuelto o un contracargo.",
   "State the reason the bank or provider gave.":
     "Indica el motivo que dio el banco o el proveedor de pagos.",
+  "Enter the return date as a calendar date.":
+    "Indica la fecha de devolución como fecha de calendario.",
   "Enter the fee as stated: not negative, at most four decimals.":
     "Introduce la comisión tal como se indicó: no negativa y con como máximo cuatro decimales.",
   "Say who bears a fee, and only when there is one.":

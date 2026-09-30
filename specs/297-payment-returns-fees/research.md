@@ -71,9 +71,13 @@ return.
 `accept_adjustment` against `payment_fee_expense` instead of `customer_reduction`. The clerk states
 the cash received (97) and the fee (3); the invoice is settled in full.
 
-**Returning such a payment** is refused (`payment_return_fee_adjusted`) in this specification. It is recognised by the confirmation both source records name (`confirmation_id`), because the payment and its fee adjustment have separate source records: the
-fee adjustment would stay in force and the invoice would reopen short. The clerk reverses the
-adjustment first. Recorded as a limitation.
+**Returning such a payment** is refused (`payment_return_reduction_active`) while any reduction
+booked with it is still in force: a payment fee, an early-payment discount, an agreed deduction or an
+accepted small remainder. It is recognised by the confirmation both source records name
+(`confirmation_id`), because the payment and its adjustment have separate source records. Otherwise
+the adjustment would stay in force and the invoice would reopen short. The clerk reverses the
+adjustment first; a reversed adjustment no longer blocks the return. Recorded as a limitation
+(review round, 2026-09-30).
 
 ## R6. Freight and surcharges (E08)
 
@@ -92,3 +96,15 @@ the delivery is reported as shipped and not billed).
 - Gates: migration `0103_payment_returns` (table and role check), data model, isolation catalog
   and counts, command catalog, discovery, resource labels, refusals in four languages, events
   (`payment.returned`), exception class lists, reference catalog, docs regeneration.
+
+## R9. Review round (2026-09-30)
+
+- A reduction of any category booked with the payment blocks the return until it is reversed (R5).
+- The finding reports only what the customer owes as an invoice (sales invoices and opening
+  customer debts), newest return per invoice; the preview still lists every document the payment
+  paid, with its type, because a refund allocated against the payment is open again too.
+- The fee is credited to the cash account the payment was booked on, not the current default.
+- A missing or malformed return date has its own refusal, `payment_return_date_invalid`.
+- The finding and the invoice inspector read returns with one joined query instead of one
+  query per historical return.
+

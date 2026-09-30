@@ -65,7 +65,7 @@ export function PaymentReturn({
     event.preventDefault();
     if (busy) return;
     const fields = new FormData(event.currentTarget);
-    const stated = String(fields.get("fee") || "0");
+    const stated = String(fields.get("fee") || "0").replace(",", ".");
     setBusy(true);
     setError("");
     try {
@@ -205,7 +205,7 @@ export function PaymentReturn({
               onChange={(event) => setFee(event.target.value)}
             />
           </label>
-          {Number(fee) > 0 && (
+          {Number(fee.replace(",", ".")) > 0 && (
             <label>
               {t("Who bears the fee")}
               <select className="br-control mt-1 w-full" name="bearer" defaultValue="customer">

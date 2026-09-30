@@ -15,8 +15,8 @@ The preview names the payment, the invoices it reopens with their open amount af
 the reversal and the fee postings. Receipt: the return detail.
 
 Refusals: `payment_return_not_customer_payment`, `payment_return_already_reversed`,
-`payment_return_already_returned`, `payment_return_fee_adjusted`, `payment_return_reason_missing`,
-`payment_return_kind_invalid`, `payment_return_fee_invalid` (negative or more than four decimals),
+`payment_return_already_returned`, `payment_return_reduction_active`, `payment_return_reason_missing`,
+`payment_return_kind_invalid`, `payment_return_fee_invalid` (negative or more than four decimals), `payment_return_date_invalid`,
 `payment_return_fee_bearer_invalid` (a bearer for a zero fee, or none for a positive one),
 `finance_account_default_missing` (no `payment_fee_expense` default).
 
