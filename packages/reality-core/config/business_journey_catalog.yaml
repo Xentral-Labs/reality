@@ -4483,9 +4483,9 @@ entries:
   question: Gap visible?
   status: supported
   evidence_level: executable
-  summary: 'Reality evaluates: Gap visible? A shop order whose line states no price is accepted: the line is kept without an invented price and reported until a later version states one. A line without a quantity fails its order with a code, and the rest of the batch goes on.'
+  summary: 'Reality evaluates: Gap visible? A shop order whose line states no price is accepted: the line is kept without an invented price and reported until an invoice states what is billed for it. A line without a quantity fails its order with a code, and the rest of the batch goes on.'
   limitations:
-  - A price stated in a later version waits for review as a price change.
+  - A price stated in a later shop version waits for review as a price change.
   keywords:
   - incomplete payload
   - order without price
@@ -4562,7 +4562,7 @@ entries:
   question: Opening balances traceable?
   status: supported
   evidence_level: executable
-  summary: 'Reality evaluates: Opening balances traceable? Opening stock and opening open items are traceable, and an open order partly delivered before go-live is imported with its original quantity as evidence and its open rest as the promise, both citing the legacy source record.'
+  summary: 'Reality evaluates: Opening balances traceable? Opening stock and opening open items are traceable, and an open order partly delivered before go-live is imported with its original quantity as evidence, and a person revises its promise to the open rest, citing the same legacy source record.'
   limitations:
   - The quantity delivered before go-live stays in the legacy payload; it is not a typed value.
   keywords:
@@ -4583,7 +4583,7 @@ entries:
   related_journeys: []
   internal_evidence:
   - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_an_open_order_partly_delivered_before_go_live_is_traceable
-    note: 'A legacy file row AB-4711 of 10 with 4 delivered is imported; a reviewed revision states the open 6 citing the same source; 6 are shipped and invoiced and nothing is reported for the 4.'
+    note: 'A legacy file row AB-4711 of 10 with 4 delivered is imported; a reviewed revision states the open 6 citing the same source; the overdue rest is reported until 6 are shipped, and after invoicing nothing is reported for the 4.'
   - reference: packages/reality-core/tests/test_unified_opening_stock.py::test_opening_review_adds_and_replay_is_inert; tests/finance/test_opening.py::test_four_directions_are_residual_positions_without_cash_or_turnover
     note: Opening stock and opening open items are traceable.
 - id: Q01

@@ -227,7 +227,10 @@ def assign_line_item(
             quantity,
             preview["due_at"],
             action_id=action_id,
-            amount=quantity * core.decimal(preview["unit_price"]),
+            # A line without a stated price promises nothing billable (spec 314).
+            amount=quantity * core.decimal(preview["unit_price"])
+            if preview["unit_price"] is not None
+            else core.ZERO,
             currency=preview["currency"],
             document_id=preview["order_id"],
             document_line_id=line.id,

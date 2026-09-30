@@ -4877,8 +4877,18 @@ def _projected_movement_quantity(
     return quantity
 
 
-#: Movements a stated reason can explain when no promise does (spec 314).
-MOVEMENT_REASON_TYPES = frozenset({"receipt", "shipment", "return"})
+def _stated_movement_reason(
+    session: OrmSession, tenant_id: str, movement_id: str
+) -> str | None:
+    from reality.services.movement_explanations import stated_movement_reasons
+
+    return stated_movement_reasons(session, tenant_id, {movement_id}).get(movement_id)
+
+
+#: Movements a stated reason can explain when no promise does (spec 314 FR-003).
+#: Only receipts: goods leaving or coming back without an order stay reported,
+#: because billing and crediting follow from the order, not from a sentence.
+MOVEMENT_REASON_TYPES = frozenset({"receipt"})
 MOVEMENT_REASON_RECORD = "movement_reason_stated"
 
 
@@ -5209,10 +5219,10 @@ def _append_movement(
         and reason
         and reason.strip()
     ):
-        # Spec 314: goods that arrived or left without a promise are explained by
-        # what the person recording them said — a sample, free goods, a
-        # misdelivery. The reason belongs to that decision, kept the way an
-        # adjustment's is, not to a field on the movement.
+        # Spec 314: goods that arrived without a purchase are explained by what
+        # the person recording them said — a sample, free goods, a misdelivery.
+        # The reason belongs to that decision, kept the way an adjustment's is,
+        # not to a field on the movement.
         session.add(
             ChangeProposal(
                 id=uid("act"),
@@ -5744,7 +5754,10 @@ def correct_movement(
                 lot_id=replacement_data.pop("lot_id", None),
                 serial_unit_id=replacement_data.pop("serial_unit_id", None),
                 occurred_at=utc_datetime(replacement_data.pop("occurred_at", None)),
-                reason=replacement_data.pop("reason", None),
+                # A corrected receipt keeps the reason it was received for
+                # unless the correction states another (spec 314).
+                reason=replacement_data.pop("reason", None)
+                or _stated_movement_reason(session, tenant_id, original.id),
                 shipment_package_id=replacement_data.pop(
                     "shipment_package_id", original.shipment_package_id
                 ),
@@ -7405,6 +7418,7 @@ def _preview_manual_document_input(
     lines: list[dict[str, Any]],
     gross_amount: Decimal | float | str,
     *,
+    _carry_unstated_price: bool = False,
     currency: str = "EUR",
     document_date: str = "",
     ordered_at: datetime | str | None = None,
@@ -7439,7 +7453,14 @@ def _preview_manual_document_input(
     normalized: list[dict[str, Any]] = []
     for index, raw in enumerate(lines, start=1):
         normalized.append(
-            _normalize_manual_line_input(session, tenant_id, document_type, raw, index)
+            _normalize_manual_line_input(
+                session,
+                tenant_id,
+                document_type,
+                raw,
+                index,
+                _carry_unstated_price=_carry_unstated_price,
+            )
         )
 
     selected_rows = [row for row in normalized if row["price_list_entry_id"]]
@@ -7499,6 +7520,7 @@ def create_manual_document_with_lines(
     payment_term_code: str = "",
     ship_to_party_id: str | None = None,
     source_record_id: str | None = None,
+    _carry_unstated_price: bool = False,
     _commit: bool = True,
 ) -> tuple[Document, list[DocumentLine]]:
     """Atomically record manual document evidence and its normalized lines.
@@ -7518,6 +7540,7 @@ def create_manual_document_with_lines(
         party_id,
         lines,
         gross_amount,
+        _carry_unstated_price=_carry_unstated_price,
         currency=currency,
         document_date=document_date,
         ordered_at=ordered_at,
@@ -7954,17 +7977,23 @@ def _normalize_manual_line_input(
     document_type: str,
     raw: dict[str, Any],
     index: int,
+    *,
+    _carry_unstated_price: bool = False,
 ) -> dict[str, Any]:
     item_id = str(raw.get("item_id") or "").strip() or None
     item = _tenant_record(session, Item, tenant_id, item_id) if item_id else None
     quantity = positive(raw.get("quantity", 0))
-    # Absent means the form stated none (0, as ever); an explicit null is
-    # carried over from a source line that stated no price (spec 314).
-    unit_price = (
-        None
-        if "unit_price" in raw and raw["unit_price"] is None
-        else decimal(raw.get("unit_price", 0))
-    )
+    # Absent means the form stated none (0, as ever). An explicit null is kept
+    # only when it is carried over from a source line that stated no price
+    # (spec 314); a person entering a line states a price, 0 for a free one.
+    if "unit_price" in raw and raw["unit_price"] is None:
+        if not _carry_unstated_price:
+            raise InvalidOperation(
+                code="manual_line_unit_price_missing", values={"index": index}
+            )
+        unit_price = None
+    else:
+        unit_price = decimal(raw.get("unit_price", 0))
     raw_total = raw.get("gross_amount")
     if raw_total is None or str(raw_total).strip() == "":
         # Never quantity times unit price: a rebate or the source's own rounding
@@ -8117,7 +8146,9 @@ def _line_wire_value(row: dict[str, Any]) -> dict[str, Any]:
     return {
         **row,
         "quantity": _line_decimal_text(row["quantity"]),
-        "unit_price": _line_decimal_text(row["unit_price"]),
+        "unit_price": _line_decimal_text(row["unit_price"])
+        if row["unit_price"] is not None
+        else None,
         "gross_amount": _line_decimal_text(row["gross_amount"]),
     }
 
@@ -9403,6 +9434,7 @@ def _preview_order_invoice(
                 for index, row in enumerate(previews, 1)
             ],
             amount,
+            _carry_unstated_price=True,
             currency=first["currency"],
             document_date=first["document"]["document_date"],
         )
@@ -9483,6 +9515,7 @@ def _preview_order_invoice(
             }
         ],
         amount,
+        _carry_unstated_price=True,
         currency=order.currency,
         document_date=effective.date().isoformat() if effective else "",
     )
@@ -9555,6 +9588,7 @@ def _record_multi_order_invoice(
             creation["party_id"],
             creation["lines"],
             creation["gross_amount"],
+            _carry_unstated_price=True,
             currency=creation["currency"],
             document_date=effective.date().isoformat(),
             source_record_id=source.id,
@@ -9754,6 +9788,7 @@ def _record_order_invoice(
                 }
             ],
             gross_amount,
+            _carry_unstated_price=True,
             currency=order.currency,
             document_date=effective_at.date().isoformat(),
             source_record_id=source.id,
@@ -12522,7 +12557,7 @@ def _shopify_interpretation(
         item = items_by_sku[stated_sku]
         # A line the shop says does not ship (a tip, a service) is kept, not promised.
         ships = raw_line.get("requires_shipping", True) is not False
-        if raw_line.get("quantity") is None:
+        if raw_line.get("quantity") is None or str(raw_line["quantity"]).strip() == "":
             # Without a quantity there is no promise to make; the order fails in
             # the reported path instead of stopping the batch (spec 314).
             raise InvalidOperation(
@@ -12533,7 +12568,11 @@ def _shopify_interpretation(
         # A price the shop did not state stays unstated, never a price of zero
         # (spec 314); nothing is billed from it until someone states one.
         stated_price = raw_line.get("price")
-        price = decimal(stated_price) if stated_price is not None else None
+        price = (
+            decimal(stated_price)
+            if stated_price is not None and str(stated_price).strip() != ""
+            else None
+        )
         line_amount = quantity * price if price is not None else ZERO
         raw_line_id = raw_line.get("id")
         line = DocumentLine(

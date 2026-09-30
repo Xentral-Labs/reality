@@ -26,10 +26,10 @@ def _link(kind: str, record_id: str | None, label: str) -> dict[str, str] | None
 def stated_movement_reasons(
     session: Session, tenant_id: str, movement_ids: set[str] | None = None
 ) -> dict[str, str]:
-    """Reasons people stated for movements no promise explains (spec 314), by movement.
+    """Reasons people stated for receipts no purchase explains (spec 314), by movement.
 
-    One read of the stated-reason records, which exist only for receipts,
-    shipments and returns recorded without a promise.
+    One read of the stated-reason records, which exist only for receipts
+    recorded without a promise.
     """
     from reality.services.core import MOVEMENT_REASON_RECORD
 

@@ -21913,6 +21913,8 @@ Object.assign(dictionaries.de, {
   "Ledger reversal reason is required.": "Ein Stornierungsgrund ist erforderlich.",
   LedgerEntry: "Buchung",
   "Line unit and type are required.": "Einheit und Typ der Position sind erforderlich.",
+  "Line {index} needs a unit price; enter 0 for a free line.":
+    "Position {index} braucht einen Stückpreis; gib 0 für eine kostenlose Position ein.",
   "Line {index} requires a stated amount; it is never calculated.":
     "Position {index} braucht einen angegebenen Betrag; er wird nie berechnet.",
   "Location does not allow physical stock.": "Der Lagerort erlaubt keinen physischen Bestand.",
@@ -22815,6 +22817,8 @@ Object.assign(dictionaries.nl, {
   "Ledger reversal reason is required.": "Een reden voor terugdraaiing is verplicht.",
   LedgerEntry: "Boeking",
   "Line unit and type are required.": "Eenheid en type van de regel zijn verplicht.",
+  "Line {index} needs a unit price; enter 0 for a free line.":
+    "Regel {index} heeft een stukprijs nodig; vul 0 in voor een gratis regel.",
   "Line {index} requires a stated amount; it is never calculated.":
     "Regel {index} vereist een opgegeven bedrag; dat wordt nooit berekend.",
   "Location does not allow physical stock.": "De locatie staat geen fysieke voorraad toe.",
@@ -23725,6 +23729,8 @@ Object.assign(dictionaries.es, {
   "Ledger reversal reason is required.": "El motivo de la reversión es obligatorio.",
   LedgerEntry: "Asiento",
   "Line unit and type are required.": "La unidad y el tipo de la línea son obligatorios.",
+  "Line {index} needs a unit price; enter 0 for a free line.":
+    "La línea {index} necesita un precio unitario; indica 0 para una línea gratuita.",
   "Line {index} requires a stated amount; it is never calculated.":
     "La línea {index} requiere un importe indicado; nunca se calcula.",
   "Location does not allow physical stock.": "La ubicación no admite existencias físicas.",

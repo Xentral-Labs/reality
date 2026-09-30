@@ -50,7 +50,7 @@ See [research.md](research.md) and [data-model.md](data-model.md).
 
 ### Receipt reason (FR-003, FR-004)
 
-- `_append_movement` adds a `movement_reason_stated` change record for a receipt, shipment or return without a commitment whose reason is not blank. The record holds the reason as input and the movement id as output, like `inventory_adjusted`.
+- `_append_movement` adds a `movement_reason_stated` change record for a receipt without a commitment whose reason is not blank. The record holds the reason as input and the movement id as output, like `inventory_adjusted`.
 - `movement_explanation` reads both record types as `explicit_reason`.
 - `_movement_exceptions` loads the stated-reason movement ids once and excludes them. A shipment package no longer excludes a receipt.
 - The reviewed `shipment_receive` path passes a line's `reason` through to the movement, if it is not already allowed.

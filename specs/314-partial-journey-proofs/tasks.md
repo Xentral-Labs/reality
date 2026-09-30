@@ -18,7 +18,7 @@
   - a blank reason counts as none;
   - a `shipment_receive` receipt without a commitment and without a reason is reported;
   - a correction onto a purchase clears it.
-- [x] T005 [FR-003] Keep a non-blank reason on a receipt, shipment or return without a commitment as a `movement_reason_stated` change record in `core/src/reality/services/core.py`; read it in `core/src/reality/services/movement_explanations.py`.
+- [x] T005 [FR-003] Keep a non-blank reason on a receipt without a commitment as a `movement_reason_stated` change record in `core/src/reality/services/core.py`; read it in `core/src/reality/services/movement_explanations.py`.
 - [x] T006 [FR-004] In `core/src/reality/services/exceptions.py`, exclude movements with a stated reason from `unexplained_movement` and stop a shipment package from explaining a receipt without a commitment. Pass a line's `reason` through `shipment_receive` if the review refuses it. Run the delivery-action, shipment, movement-correction and operational-exception suites, and update tests that pinned the old package rule.
 
 ## Phase 3: Defect — a unique stated reference is a candidate (FR-005)
@@ -77,4 +77,4 @@
 ## Phase 7: Verification
 
 - [ ] T024 Full backend suite from a clean worktree and the web checks
-- [ ] T025 Review of the diff; fix findings
+- [x] T025 Review of the diff; fix findings

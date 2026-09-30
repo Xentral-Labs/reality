@@ -208,3 +208,135 @@ def test_billing_offers_the_unpriced_position_without_a_price(session, business)
     # Deriving every class reads the unpriced pair without failing; the price
     # comparison has nothing to compare on either side.
     assert billed.id not in _findings(session, business, "invoice_price_differs")
+
+
+def test_a_billed_unpriced_line_is_no_longer_reported(session, business):
+    tenant = business.tenant.id
+    core.record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+    )
+    unpriced = {"id": 112, "sku": "BIKE-LIGHT", "quantity": 1}
+    _, interpreted = _intake(session, business, _payload(11001, unpriced))
+    line = interpreted[2][0]
+    core.record_movement(
+        session,
+        tenant,
+        "shipment",
+        business.item.id,
+        "1",
+        from_location_id=business.location.id,
+        commitment_id=interpreted[3][0].id,
+    )
+    # Positive control: shipped and still without a price, it is reported.
+    assert line.id in _findings(session, business, "order_line_price_missing")
+
+    core.record_sales_invoice(
+        session,
+        tenant,
+        lines=[{"order_line_id": line.id, "quantity": "1", "gross_amount": "11.00"}],
+        gross_amount="11.00",
+        number="RE-11001",
+    )
+
+    # The invoice states what is billed, which closes the gap.
+    assert line.id not in _findings(session, business, "order_line_price_missing")
+
+
+def test_an_unknown_item_without_a_price_can_still_be_assigned(session, business):
+    from reality.services.order_line_items import assign_line_item
+
+    tenant = business.tenant.id
+    helmet = core.create_item(session, tenant, "HELMET-M", "Helmet M")
+    _, interpreted = _intake(
+        session,
+        business,
+        _payload(12001, {"id": 122, "sku": "HELMET-M?", "quantity": 1}),
+    )
+    (line,) = interpreted[2]
+    assert (line.item_id, line.unit_price) == (None, None)
+
+    result = assign_line_item(
+        session, tenant, document_line_id=line.id, item_id=helmet.id
+    )
+
+    assert result is not None
+    (promise,) = session.scalars(
+        select(core.Commitment).where(
+            core.Commitment.tenant_id == tenant,
+            core.Commitment.document_line_id == line.id,
+        )
+    )
+    assert promise.amount == 0
+
+
+@pytest.mark.parametrize("stated", ["", "  "])
+def test_a_blank_price_is_no_price_and_a_blank_quantity_no_quantity(
+    session, business, stated
+):
+    tenant = business.tenant.id
+    _, interpreted = _intake(
+        session,
+        business,
+        _payload(
+            13001, {"id": 132, "sku": "BIKE-LIGHT", "quantity": 1, "price": stated}
+        ),
+    )
+    assert interpreted[2][0].unit_price is None
+
+    _, job = _enqueue(
+        session,
+        business,
+        _payload(13002, {"id": 133, "sku": "BIKE-LIGHT", "quantity": stated}),
+    )
+    with pytest.raises(core.InvalidOperation) as refused:
+        core.process_import_job(session, tenant, job.id)
+    assert refused.value.code == "source_line_quantity_missing"
+
+
+def test_a_person_entering_a_line_states_its_price(session, business):
+    from reality.tools.application import confirm_tool, propose_tool
+
+    arguments = {
+        "document_type": "sales_order",
+        "number": "SO-MAN-1",
+        "party_id": business.customer.id,
+        "gross_amount": "10.00",
+        "lines": [
+            {
+                "item_id": business.item.id,
+                "quantity": "1",
+                "unit": "pcs",
+                "unit_price": None,
+                "gross_amount": "10.00",
+            }
+        ],
+    }
+    proposal = propose_tool(session, business.tenant.id, "document_create", arguments)
+    with pytest.raises(core.InvalidOperation) as refused:
+        confirm_tool(session, business.tenant.id, proposal.id)
+    assert refused.value.code == "manual_line_unit_price_missing"
+
+    # Positive control: a stated 0 is a free line and is accepted.
+    arguments["lines"][0]["unit_price"] = "0"
+    arguments["number"] = "SO-MAN-2"
+    proposal = propose_tool(session, business.tenant.id, "document_create", arguments)
+    assert json.loads(confirm_tool(session, business.tenant.id, proposal.id).output)[
+        "document_id"
+    ]
+
+
+def test_a_file_row_stating_zero_is_a_free_line(session, business):
+    from decimal import Decimal
+
+    from reality.services.file_interpreters import _stated_price
+
+    assert _stated_price({"unit_price": 0}) == Decimal(0)
+    assert _stated_price({"unit_price": "0"}) == Decimal(0)
+    assert _stated_price({"price": 3}) == Decimal(3)
+    assert _stated_price({"unit_price": "", "price": None}) is None
+    assert _stated_price({}) is None

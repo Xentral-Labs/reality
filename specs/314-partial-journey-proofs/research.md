@@ -24,10 +24,12 @@ Read on 2026-09-30 against `origin/main` at 6fb71d2e. Paths are under `packages/
 1. `record_movement` accepts `reason`, but `_append_movement` keeps it only for `adjustment`, as an `inventory_adjusted` change record keyed by `movement_id` (`services/core.py` near 5191). A receipt's reason survives only in the delivery review's input; `movement_explanation` says `unexplained`, and `unexplained_movement` reports it.
 2. `_movement_exceptions` treats any `shipment_package_id` as explained. `shipment_receive` with `supplier_delivery` needs no commitment (`services/shipments.py` near 268), so a misdelivery recorded that way is never reported.
 
-**Decision**: a stated, non-blank reason on a receipt, shipment or return without a commitment is kept the way an adjustment's is: a change record `movement_reason_stated` with the reason as input and the movement as output. The reason belongs to the decision that recorded the movement, so no movement or document field is added (DR-003).
+**Decision**: a stated, non-blank reason on a receipt without a commitment is kept the way an adjustment's is: a change record `movement_reason_stated` with the reason as input and the movement as output. The reason belongs to the decision that recorded the movement, so no movement or document field is added (DR-003).
 - `movement_explanation` reads it as `explicit_reason`, like an adjustment.
 - `_movement_exceptions` excludes movements with such a record.
 - A package no longer explains a *receipt* without a commitment; shipments always have a commitment (customer delivery requires one), and returns keep today's rule to stay in scope.
+- Only receipts: goods leaving or coming back without an order stay reported whatever reason is typed, because billing and crediting follow from the order (review round).
+- A correction of a receipt keeps the original's stated reason unless it states another.
 
 **Alternatives rejected**: a `reason` column on `movement` (a second home for what the decision already holds); the review input (not every recording path is reviewed).
 
@@ -69,3 +71,14 @@ Read on 2026-09-30 against `origin/main` at 6fb71d2e. Paths are under `packages/
 ## R8. Migration order
 
 Spec 297 (PR #267) adds `0103_payment_returns`. The nullable price migration is numbered at implementation after rebasing onto `main`, so there is one Alembic head.
+
+## R9. Review round (2026-09-30)
+
+- A stated reason explains receipts only (FR-003); shipments and returns without an order stay reported.
+- An explicit null price is accepted only where it is carried over from a source line (invoice or credit from an order or invoice line). A person entering a line through a form, the web or chat is refused with `manual_line_unit_price_missing`; 0 states a free line.
+- Assigning an item to an unknown line without a price promises an amount of 0 instead of failing.
+- `order_line_price_missing` clears when an invoice bills the line, stating the amount, or the line's promise is cancelled; a later shop version stating the price is held for review under spec 296 and does not write the price.
+- The file import reads a stated 0 as a free line, not a missing price; a blank or whitespace quantity or price in a shop line counts as missing.
+- A correction of a receipt with a stated reason keeps the reason on its replacement.
+- Follow-ups: a later shop version that omits `quantity` is read as 0 by the spec 296 comparison (`shop_order_changes.stated_lines`), which reduces the promise; stated reasons are read with one query per call and filtered in Python, fine for single-record callers.
+

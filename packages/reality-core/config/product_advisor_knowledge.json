@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:b26495ee251b9f01b6e93dcfc146b67956fe54665e4cf52d2dcbe5b7d1d5fc90",
+  "knowledge_version": "advisor-v1:sha256:a17c9c8cae4a6b31d0aede2fa27a0f7f1928b2bd4c21bf683f74f9ed230d5b94",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1908,7 +1908,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#P05",
-      "fingerprint": "1853a04c3bce4a6f692592a5c63a89fe0fe1825502a27adcbcc969d622a1d17c"
+      "fingerprint": "0af7618aac809ce25eb41f4c76c044c27c6228aa573b9bcdade65acb58cafa4b"
     },
     {
       "id": "source_journey_p06",
@@ -1935,7 +1935,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#P08",
-      "fingerprint": "6909631ce8ca1ed5bc23b6d0cec77968c2c358b2c543991e49ff29a388629409"
+      "fingerprint": "9c96b3526d59c125921ae037fccee72db8c085165dc11d30addfaa2d5c8e9c2d"
     },
     {
       "id": "source_journey_q01",
@@ -5654,16 +5654,16 @@
       "subject": "Sources and integration",
       "title": "Incomplete payload accepted",
       "search_text": "P05 Sources and integration Incomplete payload accepted Gap visible? incomplete payload order without price missing field in order unvollständige Bestellung Bestellung ohne Preis Incomplete payload accepted Gap visible? A shop order came in without a price Eine Shop-Bestellung kam ohne Preis",
-      "claim_text": "Reality evaluates: Gap visible? A shop order whose line states no price is accepted: the line is kept without an invented price and reported until a later version states one. A line without a quantity fails its order with a code, and the rest of the batch goes on.",
+      "claim_text": "Reality evaluates: Gap visible? A shop order whose line states no price is accepted: the line is kept without an invented price and reported until an invoice states what is billed for it. A line without a quantity fails its order with a code, and the rest of the batch goes on.",
       "support": "proven",
       "limitations": [
-        "A price stated in a later version waits for review as a price change."
+        "A price stated in a later shop version waits for review as a price change."
       ],
       "references": [
         "P05"
       ],
       "language": "en",
-      "fingerprint": "5ca799cadc3a58f3510e745335c338c1da91634cdde6010847c231af94dc5533"
+      "fingerprint": "df1618b39bc4a9a95861cc179c5f28f480d363bd6b8085b8ab6a71d178cf6413"
     },
     {
       "id": "evidence_journey_p06",
@@ -5704,7 +5704,7 @@
       "subject": "Sources and integration",
       "title": "Legacy import at go-live (opening stock, open items, open orders)",
       "search_text": "P08 Sources and integration Legacy import at go-live (opening stock, open items, open orders) Opening balances traceable? go-live legacy import open orders at go-live Datenübernahme Altdaten offene Aufträge bei Go-live Legacy import at go-live (opening stock, open items, open orders) Opening balances traceable? How do we take over open orders that were partly delivered? Wie übernehmen wir teilgelieferte offene Aufträge beim Go-live?",
-      "claim_text": "Reality evaluates: Opening balances traceable? Opening stock and opening open items are traceable, and an open order partly delivered before go-live is imported with its original quantity as evidence and its open rest as the promise, both citing the legacy source record.",
+      "claim_text": "Reality evaluates: Opening balances traceable? Opening stock and opening open items are traceable, and an open order partly delivered before go-live is imported with its original quantity as evidence, and a person revises its promise to the open rest, citing the same legacy source record.",
       "support": "proven",
       "limitations": [
         "The quantity delivered before go-live stays in the legacy payload; it is not a typed value."
@@ -5713,7 +5713,7 @@
         "P08"
       ],
       "language": "en",
-      "fingerprint": "b0edc3eab542a6fabc367b0e08fd4ba58c7be940cbb105c8e7be295c2aca99ba"
+      "fingerprint": "105ada947b40f18ca36f4c097edb065bd74dd5d2f7ed00db5f96c044ae44bad4"
     },
     {
       "id": "evidence_journey_q01",

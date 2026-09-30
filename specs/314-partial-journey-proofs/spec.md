@@ -124,6 +124,7 @@ As an implementation consultant, I see P08 as supported.
 
 - A receipt reason that is only whitespace counts as no reason.
 - A correction of an explained receipt keeps its explanation on the replacement.
+- A shipment or return without an order is not explained by a typed reason; it stays reported.
 - A payment reference matching several invoices keeps today's ambiguous-candidate behaviour.
 - A later shop version that states the missing price is held for review as a price change (spec 296); it does not fail on the missing earlier price.
 - A story passes only with a direct database write or a test-only shortcut: it does not count.

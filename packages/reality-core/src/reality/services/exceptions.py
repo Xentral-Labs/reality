@@ -1568,9 +1568,12 @@ def _order_line_price_missing_exceptions(
     """A source order line states no price (spec 314).
 
     The line was kept without one rather than at a price of zero, so nothing is
-    billed from it; the gap is reported while it lasts. A cancelled line is no
-    longer anyone's work.
+    billed from it until a person states what is billed. It is reported until
+    an invoice bills the line, which states that amount, or its promise is
+    cancelled.
     """
+    billing_line = aliased(DocumentLine)
+    billing_document = aliased(Document)
     rows = session.execute(
         select(DocumentLine, Document)
         .join(
@@ -1588,6 +1591,19 @@ def _order_line_price_missing_exceptions(
                     Commitment.tenant_id == tenant_id,
                     Commitment.document_line_id.is_not(None),
                     Commitment.status == "cancelled",
+                )
+            ),
+            ~DocumentLine.id.in_(
+                select(billing_line.billed_document_line_id)
+                .join(
+                    billing_document,
+                    (billing_document.tenant_id == billing_line.tenant_id)
+                    & (billing_document.id == billing_line.document_id),
+                )
+                .where(
+                    billing_line.tenant_id == tenant_id,
+                    billing_line.billed_document_line_id.is_not(None),
+                    billing_document.type == "sales_invoice",
                 )
             ),
         )

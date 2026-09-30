@@ -790,6 +790,7 @@ def test_an_open_order_partly_delivered_before_go_live_is_traceable(
                 "unit_price",
                 "currency",
                 "location",
+                "requested_delivery_at",
                 "delivered_quantity",
             ]
         )
@@ -804,6 +805,7 @@ def test_an_open_order_partly_delivered_before_go_live_is_traceable(
                 "10.00",
                 "EUR",
                 business.location.name,
+                "2026-09-15T00:00:00Z",
                 "4",
             ]
         )
@@ -851,6 +853,10 @@ def test_an_open_order_partly_delivered_before_go_live_is_traceable(
     revision = core.commitment_revisions(session, tenant, commitment.id)[-1]
     assert revision.source_record_id == legacy_source.id
 
+    # Positive control: the open rest was due before today and is overdue.
+    assert commitment.id in _classes(
+        session, business, "overdue_outgoing_customer_commitment"
+    )
     core.reserve(session, tenant, commitment.id)
     _ship_line(session, business, commitment, "6")
     # Positive control: the six shipped since go-live are unbilled until invoiced.

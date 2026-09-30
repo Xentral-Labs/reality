@@ -208,3 +208,70 @@ def test_a_correction_onto_a_purchase_clears_an_unexplained_receipt(session, bus
     unexplained = _unexplained(session, business)
     assert receipt.id not in unexplained
     assert result.replacement_movement_id not in unexplained
+
+
+@pytest.mark.parametrize(
+    ("movement_type", "direction"),
+    [("shipment", "from_location_id"), ("return", "to_location_id")],
+)
+def test_a_reason_does_not_explain_goods_leaving_or_returning_without_an_order(
+    session, business, movement_type, direction
+):
+    tenant = business.tenant.id
+    core.record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+    )
+    movement = core.record_movement(
+        session,
+        tenant,
+        movement_type,
+        business.item.id,
+        "1",
+        reason="Given to a trade-fair visitor",
+        **{direction: business.location.id},
+    )
+
+    # Billing and crediting follow from the order, so these stay reported.
+    assert movement.id in _unexplained(session, business)
+
+
+def test_a_corrected_sample_receipt_keeps_its_reason(session, business):
+    sample = _receipt(session, business, "h09-corrected", reason="Free sample")
+    result = core.correct_movement(
+        session,
+        business.tenant.id,
+        sample.id,
+        reason="Three came, not two",
+        replacement={
+            "type": "receipt",
+            "item_id": business.item.id,
+            "quantity": "3",
+            "to_location_id": business.location.id,
+            "occurred_at": RECEIVED_AT,
+        },
+    )
+
+    unexplained = _unexplained(session, business)
+    assert sample.id not in unexplained
+    assert result.replacement_movement_id not in unexplained
+    # Positive control: a corrected receipt that never had a reason stays reported.
+    bare = _receipt(session, business, "h09-corrected-bare")
+    bare_result = core.correct_movement(
+        session,
+        business.tenant.id,
+        bare.id,
+        reason="Three came, not two",
+        replacement={
+            "type": "receipt",
+            "item_id": business.item.id,
+            "quantity": "3",
+            "to_location_id": business.location.id,
+            "occurred_at": RECEIVED_AT,
+        },
+    )
+    assert bare_result.replacement_movement_id in _unexplained(session, business)

@@ -1246,17 +1246,18 @@ date, so the receivable is followed up at once instead of waiting until it shows
 ## `order_line_price_missing` — Order line without a price {#exception-order_line_price_missing}
 
 A source order line states no price. The order was interpreted and the line promised, but the line
-was kept without a price instead of at a price of zero, so nothing is billed from it. Reporting it
-keeps a gap in what the source sent from passing as a free line.
+was kept without a price instead of at a price of zero, so nothing is billed from it until a person
+states what is billed. Reporting it keeps a gap in what the source sent from passing as a free line.
 
 - **Owner:** Sales operations
-- **Clears through:** A later source version that states the price, reviewed as a price change, or
-  cancelling the line.
+- **Clears through:** An invoice that bills the line, stating the amount charged, or cancelling the
+  line's promise.
 - **Severity:** `normal`
 - **Record type:** `document_line`
 - **Authority:** `314/FR-006`
 - **Evidence:**
-  `tests/test_shop_line_gaps.py::test_a_line_without_a_price_is_kept_without_one_and_reported`
+  `tests/test_shop_line_gaps.py::test_a_line_without_a_price_is_kept_without_one_and_reported`,
+  `tests/test_shop_line_gaps.py::test_a_billed_unpriced_line_is_no_longer_reported`
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool

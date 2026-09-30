@@ -226,7 +226,7 @@ def interpret_sales_invoice(
             {
                 "item_id": line.item_id or billed.item_id,
                 "quantity": str(line.quantity),
-                "unit_price": str(line.unit_price) if line.unit_price is not None else None,
+                "unit_price": str(line.unit_price),
                 "gross_amount": str(line.gross_amount),
                 "unit": line.unit,
                 "source_line_id": line.source_line_id,

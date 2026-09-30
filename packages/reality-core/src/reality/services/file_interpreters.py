@@ -129,9 +129,16 @@ MAX_MATERIALIZED_JSON_BYTES = 64 * 1024 * 1024
 
 
 def _stated_price(row: dict[str, Any]) -> Decimal | None:
-    """The row's stated unit price, or None when the file states none."""
-    value = row.get("unit_price") or row.get("price")
-    return decimal(value) if value not in (None, "") else None
+    """The row's stated unit price, or None when the file states none.
+
+    A stated 0 is a free line, not a missing price, so each column is read for
+    presence rather than truth.
+    """
+    for column in ("unit_price", "price"):
+        value = row.get(column)
+        if value is not None and str(value).strip() != "":
+            return decimal(value)
+    return None
 
 
 def _value(row: dict[str, Any], name: str, default: Any = "") -> Any:

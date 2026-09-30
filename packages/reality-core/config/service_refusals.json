@@ -899,6 +899,12 @@
         "index": "number"
       }
     },
+    "manual_line_unit_price_missing": {
+      "message": "Line {index} needs a unit price; enter 0 for a free line.",
+      "values": {
+        "index": "number"
+      }
+    },
     "manual_line_unit_type_required": {
       "message": "Line unit and type are required."
     },

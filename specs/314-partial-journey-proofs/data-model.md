@@ -16,17 +16,18 @@ Stored in the existing `action` table (`ChangeProposal`). It has the same shape 
 - `input`: `{"reason": "<stated reason>"}`
 - `output`: `{"movement_id": "<movement id>"}`
 
-It is written only for a receipt, shipment or return without a commitment whose stated reason is not blank. Relationship: movement ← change record, which is the decision that recorded it. No field is added to movements or documents.
+It is written only for a receipt without a commitment whose stated reason is not blank, and carried to a correction's replacement. Relationship: movement ← change record, which is the decision that recorded it. No field is added to movements or documents.
 
 ## New derived observation: `order_line_price_missing`
 
-- Read at derivation time from sales-order lines that have a null `unit_price` and belong to a document with a source record.
+- Read at derivation time from sales-order lines that have a null `unit_price`, belong to a document with a source record, are billed by no sales invoice line and have no cancelled promise.
 - Record type: `document_line`.
 - Causal values: the order number, the line's stated SKU and quantity, and the source record.
 - Nothing is stored.
 
-## New refusal code
+## New refusal codes
 
+- `manual_line_unit_price_missing`: a person entering a line gave an explicit null price; 0 states a free line.
 - `source_line_quantity_missing`: a source order line states no quantity. A zero or negative quantity keeps its existing code, `master_data_field_not_positive`.
 
 Billing needs no refusal: billable positions carry the order line's price through, so an unpriced position is offered with no price, and an invoice recorded from it states the gross amount the person gives and no unit price.
