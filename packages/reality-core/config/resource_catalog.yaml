@@ -704,6 +704,8 @@ labels:
       record_return_disposition: Retourenware entscheiden
       record_customer_exchange: Retournierte Ware umtauschen
       assign_line_item: Artikel für Auftragszeile zuordnen
+      release_credit_holds: Kreditsperre freigeben
+      credit_exposure: Kreditobligo anzeigen
     views:
       commitments: Verpflichtungen
       inventory: Bestand

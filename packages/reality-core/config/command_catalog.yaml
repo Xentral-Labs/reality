@@ -1086,6 +1086,22 @@ commands:
     reads: [party, party_hold]
     writes: [party_hold]
     effect: Blocks customer shipment execution while orders and reservations remain possible.
+  - name: Release a credit hold
+    service: release_credit_holds
+    related_services: [preview_credit_release]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [document, commitment, commitment_hold, party, ledger_entry, document_line]
+    writes: [commitment_hold, business_event]
+    effect: Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds stay.
+  - name: Read a credit exposure
+    service: credit_exposure
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [party, document, document_line, commitment, ledger_entry, settlement_allocation]
+    writes: []
+    effect: Derives a customer's exposure against its credit limit, open invoices plus open uninvoiced orders minus available credits, naming overdue invoices and payables.
   - name: Post customer payment
     service: post_customer_payment
     mode: mutation
@@ -4864,6 +4880,24 @@ capability_guidance:
     events: [dunning.schedule_set]
     verification_reads: [{name: finance.dunning.schedule, proves: The confirmed waiting days and fees are retained.}]
     examples: {use: [{scenario: Remind after 7 days, then every 14 days with fees of 5 and 10., reason: One schedule states all three levels.}], do_not_use: [{scenario: Change the fee of a notice already recorded., reason: Recorded notices keep their fee.}]}
+  credit_exposure:
+    kind: read
+    application_tool: credit_exposure
+    purpose: Explain a customer's credit exposure against its limit and why an order is held for credit.
+    use_when: [A new order was held for credit, or someone asks how much a customer may still order.]
+    do_not_use_when: [The question is one invoice's due date; use the aging read.]
+    required_context: [tenant, party_id]
+    data_basis: [party, document, document_line, commitment, ledger_entry, settlement_allocation]
+    limitations: [Only amounts in the customer's own currency count; payables are named, not netted.]
+    freshness: Derived at read time from open items, order lines and credits.
+    empty_result: A customer without open items, orders or credits has an exposure of zero.
+    refusal_behavior: A party of another company is not found.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [What the exposure consists of and how far it is past the limit.], does_not_prove: [That the customer will pay.]}
+    unknown_when: [An order or payment exists that was not recorded, or an amount is in another currency.]
+    next_steps: [Release a held order with credit_hold_release_propose after deciding.]
+    examples: {use: [{scenario: Explain why an order is held for credit., reason: The read names the open, overdue and ordered amounts and the credits.}], do_not_use: [{scenario: Release the hold., reason: Use credit_hold_release_propose; an owner confirms.}]}
   finance_payment_returns:
     kind: read
     application_tool: finance.payment_returns
@@ -4988,6 +5022,8 @@ agent_command_coverage:
   record_return_disposition: {classification: eligible, tools: [return_disposition_propose]}
   record_customer_exchange: {classification: eligible, tools: [customer_exchange_propose]}
   assign_line_item: {classification: eligible, tools: [order_line_item_assign_propose]}
+  release_credit_holds: {classification: eligible, tools: [credit_hold_release_propose]}
+  credit_exposure: {classification: eligible, tools: [credit_exposure]}
   list_targets:
     classification: eligible
     tools:

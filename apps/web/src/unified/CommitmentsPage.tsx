@@ -14,10 +14,12 @@ export function CommitmentsPage({
   selection,
   navigate,
   receive,
+  owner = false,
 }: {
   selection: Selection;
   navigate: (changes: Partial<Selection>) => void;
   receive: (id: string) => void;
+  owner?: boolean;
 }) {
   const { tenant, deliveryType, q, commitment } = selection;
   const [preview, setPreview] = useState("");
@@ -135,6 +137,7 @@ export function CommitmentsPage({
             id={commitment}
             navigate={navigate}
             receive={receive}
+            owner={owner}
           />
         </section>
       )}

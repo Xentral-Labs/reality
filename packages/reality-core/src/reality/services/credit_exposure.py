@@ -19,6 +19,7 @@ from reality.db.core import Commitment, Document, DocumentLine, Party
 from reality.services import core
 
 ZERO = Decimal(0)
+AMOUNT_SCALE = Decimal("0.0001")
 RECEIVABLE_TYPES = {"sales_invoice", "opening_customer_debt"}
 PAYABLE_TYPES = {"supplier_invoice", "opening_supplier_debt"}
 
@@ -107,7 +108,14 @@ def _order_rows(
         elif line.unit_price is None:
             unpriced.append({**row, "value": ZERO})
         else:
-            counted.append({**row, "value": uninvoiced * Decimal(line.unit_price)})
+            counted.append(
+                {
+                    **row,
+                    "value": (uninvoiced * Decimal(line.unit_price)).quantize(
+                        AMOUNT_SCALE
+                    ),
+                }
+            )
     return counted, unpriced, other
 
 

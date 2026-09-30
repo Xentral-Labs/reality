@@ -2105,6 +2105,15 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         ),
     ),
     (
+        "credit_hold_release_propose",
+        "Release a credit hold",
+        "credit_hold_release",
+        _object_schema(
+            {"document_id": STRING, "reason": STRING},
+            required=("document_id", "reason"),
+        ),
+    ),
+    (
         "return_disposition_propose",
         "Resolve returned goods",
         "return_disposition",
@@ -2830,6 +2839,17 @@ MCP_TOOL_CATALOG += (
         "finance",
         PaymentReturnRequest.model_json_schema(),
         _propose("finance.payment.return"),
+    ),
+    MCPToolDefinition(
+        "credit_exposure",
+        "Credit exposure",
+        "Read a customer's credit exposure against its limit: open invoices plus open uninvoiced orders minus available credits, with the overdue invoices and payables named.",
+        "read",
+        "finance",
+        _object_schema(
+            {"party_id": STRING, "as_of": OPTIONAL_STRING}, required=("party_id",)
+        ),
+        _read("credit_exposure"),
     ),
     MCPToolDefinition(
         "finance_payment_returns",

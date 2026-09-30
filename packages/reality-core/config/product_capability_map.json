@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:a17c9c8cae4a6b31d0aede2fa27a0f7f1928b2bd4c21bf683f74f9ed230d5b94",
+  "knowledge_version": "advisor-v1:sha256:267d4ea30b355797179e4c2a0b5a95d730fe05d5de87316702b354910cb3982e",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -688,6 +688,8 @@
         "evidence_command_resolve_price",
         "evidence_command_create_party_group",
         "evidence_command_hold_party_delivery",
+        "evidence_command_release_credit_holds",
+        "evidence_command_credit_exposure",
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
         "evidence_command_preview_stale_promise_closure",
@@ -751,6 +753,14 @@
         {
           "name": "hold_party_delivery",
           "mode": "mutation"
+        },
+        {
+          "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "credit_exposure",
+          "mode": "query"
         },
         {
           "name": "preview_payment_run",
@@ -1117,6 +1127,8 @@
         "evidence_command_hold_commitment",
         "evidence_command_hold_document_commitments",
         "evidence_command_hold_party_delivery",
+        "evidence_command_release_credit_holds",
+        "evidence_command_credit_exposure",
         "evidence_command_announce_customer_return",
         "evidence_command_return_announcements",
         "evidence_command_preview_stale_promise_closure",
@@ -1180,6 +1192,14 @@
         {
           "name": "hold_party_delivery",
           "mode": "mutation"
+        },
+        {
+          "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "credit_exposure",
+          "mode": "query"
         },
         {
           "name": "announce_customer_return",
@@ -1567,6 +1587,7 @@
       ],
       "evidence_ids": [
         "evidence_command_reverse_ledger_posting_group",
+        "evidence_command_credit_exposure",
         "evidence_command_post_customer_payment",
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
@@ -1593,6 +1614,10 @@
         {
           "name": "reverse_ledger_posting_group",
           "mode": "mutation"
+        },
+        {
+          "name": "credit_exposure",
+          "mode": "query"
         },
         {
           "name": "post_customer_payment",
@@ -1733,6 +1758,8 @@
         "evidence_command_list_accounts",
         "evidence_command_correct_manual_document",
         "evidence_command_reverse_ledger_posting_group",
+        "evidence_command_release_credit_holds",
+        "evidence_command_credit_exposure",
         "evidence_command_post_customer_payment",
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
@@ -1904,6 +1931,14 @@
         {
           "name": "reverse_ledger_posting_group",
           "mode": "mutation"
+        },
+        {
+          "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "credit_exposure",
+          "mode": "query"
         },
         {
           "name": "post_customer_payment",
@@ -2233,6 +2268,8 @@
         "evidence_command_record_corrected_document_source",
         "evidence_command_reverse_ledger_posting_group",
         "evidence_command_hold_document_commitments",
+        "evidence_command_release_credit_holds",
+        "evidence_command_credit_exposure",
         "evidence_command_post_customer_payment",
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
@@ -2395,6 +2432,14 @@
         {
           "name": "hold_document_commitments",
           "mode": "mutation"
+        },
+        {
+          "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "credit_exposure",
+          "mode": "query"
         },
         {
           "name": "post_customer_payment",

@@ -324,6 +324,21 @@ def _dunning_schedule(
     return schedule(session, tenant_id)
 
 
+def _credit_exposure(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.credit_exposure import _json_exposure, credit_exposure
+
+    return _json_exposure(
+        credit_exposure(
+            session,
+            tenant_id,
+            str(arguments.get("party_id") or ""),
+            as_of=arguments.get("as_of"),
+        )
+    )
+
+
 def _payment_returns(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2064,6 +2079,12 @@ TOOLS = {
         "Read the company dunning schedule: waiting days and fixed fee per level.",
         False,
         _dunning_schedule,
+    ),
+    "credit_exposure": Tool(
+        "credit_exposure",
+        "Read a customer's credit exposure: open invoices plus open uninvoiced orders minus available credits against the limit, with overdue invoices and payables named.",
+        False,
+        _credit_exposure,
     ),
     "finance.payment_returns": Tool(
         "finance.payment_returns",

@@ -13,7 +13,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 4        | 3         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 8      | 11       | 11        |
+| [Auftrag](#resource-order)                                     | 8      | 12       | 11        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 12       | 14        |
@@ -80,6 +80,10 @@ Preisgruppen hängen hier.
 - [Liefersperre setzen oder aufheben](./commands#command-hold_party_delivery)
   (`hold_party_delivery`)
 - [An Inkasso übergeben](./commands#command-record_handover) (`record_handover`)
+
+**Nachschlagen**
+
+- [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 
 **Klärfälle**
 
@@ -267,6 +271,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`hold_document_commitments`)
 - [Liefersperre setzen oder aufheben](./commands#command-hold_party_delivery)
   (`hold_party_delivery`)
+- [Kreditsperre freigeben](./commands#command-release_credit_holds) (`release_credit_holds`)
 - [Alte Verpflichtungen schließen](./commands#command-close_stale_promises) (`close_stale_promises`)
 - [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
@@ -274,6 +279,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 **Nachschlagen**
 
+- [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Schließen alter Verpflichtungen vorschauen](./commands#command-preview_stale_promise_closure)
   (`preview_stale_promise_closure`)
 
@@ -516,6 +522,7 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 
 **Nachschlagen**
 
+- [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Zahllauf vorschauen](./commands#command-preview_payment_run) (`preview_payment_run`)
 - [Mahnlauf vorbereiten](./commands#command-run_context) (`run_context`)
 - [Kontext für Abzug anzeigen](./commands#command-adjustment_context) (`adjustment_context`)
@@ -603,6 +610,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Verlauf der Finanzreferenz](./commands#command-reference_history) (`reference_history`)
 - [Buchungsmatrix anzeigen](./commands#command-transaction_matrix) (`transaction_matrix`)
 - [Operative Konten anzeigen](./commands#command-list_accounts) (`list_accounts`)
+- [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Mahnungen anzeigen](./commands#command-notices) (`notices`)
 - [Mahnung anzeigen](./commands#command-notice_detail) (`notice_detail`)
 - [Mahnlauf vorbereiten](./commands#command-run_context) (`run_context`)
@@ -802,6 +810,7 @@ Nachweis, Quelle
 - [Quellcode-Zuordnungen anzeigen](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Verlauf der Quellcode-Zuordnung](./commands#command-source_mapping_history)
   (`source_mapping_history`)
+- [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Mahnungen anzeigen](./commands#command-notices) (`notices`)
 - [Mahnung anzeigen](./commands#command-notice_detail) (`notice_detail`)
 - [Mahnlauf vorbereiten](./commands#command-run_context) (`run_context`)

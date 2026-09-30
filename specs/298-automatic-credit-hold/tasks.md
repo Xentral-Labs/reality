@@ -54,18 +54,18 @@
 
 ## Phase 6: Adapters and Web (FR-006)
 
-- [ ] T012 [FR-006] Failing adapter tests in `core/tests/test_credit_hold_adapters.py`:
+- [x] T012 [FR-006] Failing adapter tests in `core/tests/test_credit_hold_adapters.py`:
   - MCP `credit_hold_release_propose` (strict schema, propose then confirm) and `credit_exposure`;
   - Web: delivery-action pass-through, the exposure endpoint, a foreign company refused;
   - CLI: propose, confirm and exposure.
-- [ ] T013 [FR-006] MCP, Web API and CLI wiring. Catalog gates:
+- [x] T013 [FR-006] MCP, Web API and CLI wiring. Catalog gates:
   - command catalog, coverage and guidance;
   - action discovery and the web fixture;
   - resource labels (German);
   - tenant isolation catalog and counts;
   - MCP topic;
   - refusal ratchet.
-- [ ] T014 [FR-006] Web:
+- [x] T014 [FR-006] Web:
   - owner-only "Release credit hold" with a required reason on a held order;
   - hold note shown;
   - party exposure section;

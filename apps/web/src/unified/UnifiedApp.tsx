@@ -211,6 +211,7 @@ export default function UnifiedApp({
               ) : selection.route === "orders-deliveries" &&
                 selection.ordersView === "commitments" ? (
                 <CommitmentsPage
+                  owner={company.role === "owner"}
                   selection={selection}
                   navigate={navigate}
                   receive={(id) => {
@@ -220,6 +221,7 @@ export default function UnifiedApp({
                 />
               ) : selection.route === "orders-deliveries" ? (
                 <OrdersPage
+                  owner={company.role === "owner"}
                   prepareInvoice={(order) => {
                     setActionTarget({ order });
                     setAction("sales_invoice_record");

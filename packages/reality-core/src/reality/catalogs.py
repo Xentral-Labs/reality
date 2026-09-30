@@ -18,6 +18,8 @@ from reality.db.core import ROOT, Base
 from reality.services import artifacts as artifact_service_module
 from reality.services import core as service_module
 from reality.services import credit_actions as credit_action_service_module
+from reality.services import credit_exposure as credit_exposure_service_module
+from reality.services import credit_hold_actions as credit_hold_service_module
 from reality.services import customer_exchanges as customer_exchange_service_module
 from reality.services import demo_data as demo_data_service_module
 from reality.services import dunning as dunning_service_module
@@ -1085,6 +1087,10 @@ def _service(name: str) -> Any:
         return getattr(order_line_item_service_module, name)
     if hasattr(payment_return_service_module, name):
         return getattr(payment_return_service_module, name)
+    if hasattr(credit_hold_service_module, name):
+        return getattr(credit_hold_service_module, name)
+    if hasattr(credit_exposure_service_module, name):
+        return getattr(credit_exposure_service_module, name)
     if hasattr(invoice_action_service_module, name):
         return getattr(invoice_action_service_module, name)
     if hasattr(invoice_billing_service_module, name):

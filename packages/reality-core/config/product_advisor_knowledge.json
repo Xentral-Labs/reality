@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:a17c9c8cae4a6b31d0aede2fa27a0f7f1928b2bd4c21bf683f74f9ed230d5b94",
+  "knowledge_version": "advisor-v1:sha256:267d4ea30b355797179e4c2a0b5a95d730fe05d5de87316702b354910cb3982e",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "b6c3d3b8c4f924ac0979e74876188626524be13cc3645ec4703bd04b603cd999"
+      "fingerprint": "fa7bc952ea17e517971c7b0674a1bd95436e6aa7dfec1f41ce675f5b4fd08bb8"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7052,6 +7052,36 @@
       ],
       "language": "en",
       "fingerprint": "4500513d665b2d77cd3044014ee32bd3711256740c9cab6ddeef238b21e3c38f"
+    },
+    {
+      "id": "evidence_command_release_credit_holds",
+      "source_id": "source_executable_commands",
+      "subject": "Release a credit hold",
+      "title": "Release a credit hold",
+      "search_text": "release_credit_holds Release a credit hold Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds stay. mutation",
+      "claim_text": "release_credit_holds is a governed mutation command for Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds stay..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "release_credit_holds"
+      ],
+      "language": "en",
+      "fingerprint": "8c20c745c5e5b466b5777a8b0b6dece01577bb7d99504407b93874de54bffe52"
+    },
+    {
+      "id": "evidence_command_credit_exposure",
+      "source_id": "source_executable_commands",
+      "subject": "Read a credit exposure",
+      "title": "Read a credit exposure",
+      "search_text": "credit_exposure Read a credit exposure Derives a customer's exposure against its credit limit, open invoices plus open uninvoiced orders minus available credits, naming overdue invoices and payables. query",
+      "claim_text": "credit_exposure is a governed query command for Derives a customer's exposure against its credit limit, open invoices plus open uninvoiced orders minus available credits, naming overdue invoices and payables..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "credit_exposure"
+      ],
+      "language": "en",
+      "fingerprint": "493f554cb070a1e3a9c02f45dccdfb292e5fad0b16d9e80044f868d41ec9b5cc"
     },
     {
       "id": "evidence_command_post_customer_payment",

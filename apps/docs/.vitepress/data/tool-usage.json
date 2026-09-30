@@ -181,7 +181,7 @@
         "command:hold_party_delivery",
         "command:record_handover"
       ],
-      "reads": [],
+      "reads": ["command:credit_exposure"],
       "exceptions": ["exception:credit_limit_exceeded", "exception:party_hold_unreleased"],
       "tools": ["tool:finance_party_balances"],
       "events": [
@@ -392,11 +392,12 @@
         "command:hold_commitment",
         "command:hold_document_commitments",
         "command:hold_party_delivery",
+        "command:release_credit_holds",
         "command:close_stale_promises",
         "command:record_packaged_execution",
         "command:assign_line_item"
       ],
-      "reads": ["command:preview_stale_promise_closure"],
+      "reads": ["command:credit_exposure", "command:preview_stale_promise_closure"],
       "exceptions": [
         "exception:overdue_outgoing_customer_commitment",
         "exception:outgoing_commitment_at_risk",
@@ -668,6 +669,7 @@
         "command:apply_settlement"
       ],
       "reads": [
+        "command:credit_exposure",
         "command:preview_payment_run",
         "command:run_context",
         "command:adjustment_context",
@@ -820,6 +822,7 @@
         "command:reference_history",
         "command:transaction_matrix",
         "command:list_accounts",
+        "command:credit_exposure",
         "command:notices",
         "command:notice_detail",
         "command:run_context",
@@ -1008,6 +1011,7 @@
         "command:preview_document",
         "command:list_source_mappings",
         "command:source_mapping_history",
+        "command:credit_exposure",
         "command:notices",
         "command:notice_detail",
         "command:run_context"
@@ -8113,6 +8117,40 @@
       "resources": ["order", "source"]
     },
     {
+      "id": "tool:credit_hold_release_propose",
+      "kind": "tool",
+      "key": "credit_hold_release_propose",
+      "label": "Release a credit hold",
+      "area": "finance",
+      "summary": "Prepare this business mutation without changing state. Release a credit hold. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "credit_hold_release_propose document_id reason",
+      "parameters": [
+        {
+          "name": "document_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the evidence document to inspect or correct.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "release_credit_holds",
+      "projections": [],
+      "links": ["command:release_credit_holds"],
+      "label_de": "Release a credit hold",
+      "resources": ["order"]
+    },
+    {
       "id": "tool:return_disposition_propose",
       "kind": "tool",
       "key": "return_disposition_propose",
@@ -11389,6 +11427,59 @@
       "links": ["command:record_return"],
       "label_de": "Record a returned payment",
       "resources": ["return"]
+    },
+    {
+      "id": "tool:credit_exposure",
+      "kind": "tool",
+      "key": "credit_exposure",
+      "label": "Credit exposure",
+      "area": "finance",
+      "summary": "Read a customer's credit exposure against its limit: open invoices plus open uninvoiced orders minus available credits, with the overdue invoices and payables named.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "credit_exposure party_id [as_of]",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "as_of",
+          "type": "string",
+          "required": false,
+          "description": "UTC instant the derivation is evaluated at; the current instant when absent.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Explain a customer's credit exposure against its limit and why an order is held for credit.",
+        "use_when": [
+          "A new order was held for credit",
+          "or someone asks how much a customer may still order."
+        ],
+        "do_not_use_when": ["The question is one invoice's due date; use the aging read."],
+        "limitations": [
+          "Only amounts in the customer's own currency count; payables are named",
+          "not netted."
+        ],
+        "empty_result": "A customer without open items, orders or credits has an exposure of zero.",
+        "freshness": "Derived at read time from open items, order lines and credits."
+      },
+      "read_modes": [
+        {
+          "query": "MCP credit_exposure",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "credit_exposure",
+      "projections": [],
+      "links": ["command:credit_exposure"],
+      "label_de": "Credit exposure",
+      "resources": ["accounting", "order", "party", "payment", "source"]
     },
     {
       "id": "tool:finance_payment_returns",
@@ -20401,6 +20492,77 @@
       ],
       "label_de": "Liefersperre setzen oder aufheben",
       "resources": ["order", "party"]
+    },
+    {
+      "id": "command:release_credit_holds",
+      "kind": "command",
+      "key": "release_credit_holds",
+      "label": "Release a credit hold",
+      "area": "finance",
+      "summary": "Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds stay.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "document",
+        "commitment",
+        "commitment_hold",
+        "party",
+        "ledger_entry",
+        "document_line"
+      ],
+      "writes": ["commitment_hold", "business_event"],
+      "confirmation": "required",
+      "related_services": ["preview_credit_release"],
+      "tools": ["credit_hold_release_propose"],
+      "synopses": ["credit_hold_release_propose document_id reason"],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:credit_hold_release_propose"],
+      "label_de": "Kreditsperre freigeben",
+      "resources": ["order"]
+    },
+    {
+      "id": "command:credit_exposure",
+      "kind": "command",
+      "key": "credit_exposure",
+      "label": "Read a credit exposure",
+      "area": "finance",
+      "summary": "Derives a customer's exposure against its credit limit, open invoices plus open uninvoiced orders minus available credits, naming overdue invoices and payables.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "party",
+        "document",
+        "document_line",
+        "commitment",
+        "ledger_entry",
+        "settlement_allocation"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["credit_exposure"],
+      "synopses": ["credit_exposure party_id [as_of]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Explain a customer's credit exposure against its limit and why an order is held for credit.",
+        "use_when": [
+          "A new order was held for credit",
+          "or someone asks how much a customer may still order."
+        ],
+        "do_not_use_when": ["The question is one invoice's due date; use the aging read."],
+        "limitations": [
+          "Only amounts in the customer's own currency count; payables are named",
+          "not netted."
+        ],
+        "empty_result": "A customer without open items, orders or credits has an exposure of zero.",
+        "freshness": "Derived at read time from open items, order lines and credits."
+      },
+      "links": ["tool:credit_exposure"],
+      "label_de": "Kreditobligo anzeigen",
+      "resources": ["accounting", "order", "party", "payment", "source"]
     },
     {
       "id": "command:post_customer_payment",
@@ -78137,7 +78299,8 @@
       "actions": [
         "command:cancel_commitment",
         "command:hold_commitment",
-        "command:hold_document_commitments"
+        "command:hold_document_commitments",
+        "command:release_credit_holds"
       ]
     }
   ],
