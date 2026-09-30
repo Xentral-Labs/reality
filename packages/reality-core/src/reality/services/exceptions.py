@@ -3137,12 +3137,16 @@ def _payable_exceptions(
 def _credit_limit_exceeded_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
-    """A customer owing more than the company agreed to carry.
+    """A customer whose exposure is past what the company agreed to carry.
 
-    The limit is read as recorded and the outstanding amount comes from the one
-    open-item derivation every other money class consumes, so the figure here can
-    never disagree with the aging register.
+    The exposure is the one the order-entry credit check uses (spec 298): open
+    invoices from the shared open-item derivation, plus open orders not yet
+    invoiced, minus available credits, in the party's own currency. The finding
+    names the overdue invoices behind it, so the aging register, the hold and
+    this row never disagree.
     """
+    from reality.services.credit_exposure import credit_exposure
+
     # Zero is not a limit of nothing. The column defaults to zero, so reading it
     # that way would report every customer holding a single open invoice on the
     # day this class ships.
@@ -3153,29 +3157,20 @@ def _credit_limit_exceeded_exceptions(
             .order_by(Party.id)
         )
     )
-    if not parties:
-        return []
-    rows = _open_items(session, tenant_id)
     result: list[OperationalException] = []
     for party in parties:
-        # Only what is owed in the party's own currency. Converting would guess,
-        # which is the rule Spec 076 applied to units.
-        items = [
-            row
-            for row in rows
-            if row["document"].party_id == party.id
-            and row["document"].type == "sales_invoice"
-            and row["document"].currency == party.default_currency
-            and Decimal(row["open"]) > ZERO
-        ]
-        outstanding = sum((Decimal(row["open"]) for row in items), ZERO)
-        limit = Decimal(party.credit_limit)
-        # The agreed number is allowed; only past it is an excess.
-        if outstanding <= limit:
+        exposure = credit_exposure(session, tenant_id, party.id, as_of=as_of)
+        if not exposure["over_limit"]:
             continue
+        invoices = exposure["open_invoices"]["rows"]
+        overdue = exposure["overdue_invoices"]["rows"]
+        documents = {row["document_id"]: row["document_id"] for row in invoices}
         instants = [
             instant
-            for instant in (_document_instant(row["document"]) for row in items)
+            for instant in (
+                _document_instant(session.get(Document, (tenant_id, document_id)))
+                for document_id in documents
+            )
             if instant is not None
         ]
         result.append(
@@ -3185,19 +3180,25 @@ def _credit_limit_exceeded_exceptions(
                 (),
                 "high",
                 "Credit limit exceeded",
-                f"{outstanding - limit:g} {party.default_currency} above the agreed limit",
+                f"{exposure['excess']:g} {party.default_currency} above the agreed limit",
                 "party",
                 party.id,
                 {
-                    "credit_limit": limit,
-                    "outstanding_amount": outstanding,
-                    "excess_amount": outstanding - limit,
+                    "credit_limit": exposure["credit_limit"],
+                    "outstanding_amount": exposure["exposure"],
+                    "excess_amount": exposure["excess"],
                     "currency": party.default_currency,
-                    "open_invoice_count": len(items),
+                    "open_invoice_count": len(invoices),
+                    "open_invoices_amount": exposure["open_invoices"]["amount"],
+                    "open_orders_amount": exposure["open_orders"]["amount"],
+                    "available_credits_amount": exposure["available_credits"]["amount"],
+                    "overdue_amount": exposure["overdue_invoices"]["amount"],
+                    "overdue_document_ids": [row["document_id"] for row in overdue],
+                    "payables_amount": exposure["payables"]["amount"],
                 },
                 {
                     "party_id": party.id,
-                    "document_ids": [row["document"].id for row in items],
+                    "document_ids": list(documents),
                 },
                 min(instants) if instants else None,
             )

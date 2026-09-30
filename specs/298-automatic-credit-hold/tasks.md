@@ -49,8 +49,8 @@
 
 ## Phase 5: Finding (FR-005)
 
-- [ ] T010 [FR-005] Failing tests: the finding reports the exposure the hold used for the same instant (SC-003) and names the overdue invoices; update the tests that pinned open-invoices-only on purpose.
-- [ ] T011 [FR-005] `_credit_limit_exceeded_exceptions` on `credit_exposure`, and the catalog description.
+- [x] T010 [FR-005] Failing tests: the finding reports the exposure the hold used for the same instant (SC-003) and names the overdue invoices; update the tests that pinned open-invoices-only on purpose.
+- [x] T011 [FR-005] `_credit_limit_exceeded_exceptions` on `credit_exposure`, and the catalog description.
 
 ## Phase 6: Adapters and Web (FR-006)
 

@@ -482,3 +482,65 @@ def test_cancelling_the_order_still_releases_every_hold(session, business):
     )
 
     assert _holds(session, business, commitments) == []
+
+
+# --- One exposure everywhere (FR-005, SC-003) -------------------------------------
+
+
+def _finding(session, business, party):
+    from reality.services.exceptions import operational_exceptions
+
+    return next(
+        (
+            row
+            for row in operational_exceptions(session, business.tenant.id)
+            if row.class_id == "credit_limit_exceeded" and row.record_id == party.id
+        ),
+        None,
+    )
+
+
+def test_the_finding_reports_the_exposure_the_hold_used(session, business):
+    from reality.services.credit_exposure import credit_exposure
+
+    tenant = business.tenant.id
+    party = _customer(session, business)
+    overdue = _open_invoice(session, business, party, "700.00")
+    _open_invoice(
+        session,
+        business,
+        party,
+        "150.00",
+        day=core.now().date().isoformat(),
+        number="RE-C-2",
+    )
+    # Positive control: within the limit there is no finding.
+    assert _finding(session, business, party) is None
+
+    _, over = _order(session, business, party, "SO-C-FIND", "400.00")
+
+    finding = _finding(session, business, party)
+    exposure = credit_exposure(session, tenant, party.id)
+    assert finding.causal_values["outstanding_amount"] == exposure["exposure"]
+    assert finding.causal_values["excess_amount"] == exposure["excess"]
+    assert finding.causal_values["open_orders_amount"] == Decimal("400.00")
+    # The overdue invoice is named; the one due today is not.
+    assert finding.causal_values["overdue_document_ids"] == [overdue.id]
+    assert finding.causal_values["overdue_amount"] == Decimal("700.0000")
+    (hold,) = _holds(session, business, over)
+    assert f"exposure {Decimal(exposure['exposure']).quantize(Decimal('0.01'))}" in (
+        hold.note
+    )
+
+
+def test_an_available_credit_lowers_the_finding(session, business):
+    party = _customer(session, business)
+    _open_invoice(session, business, party, "1100.00")
+    assert _finding(session, business, party) is not None
+
+    note = core.create_document(
+        session, business.tenant.id, "credit_note", "GS-C-1", party.id, "200.00"
+    )
+    core.post_sales_credit_note(session, business.tenant.id, note.id)
+
+    assert _finding(session, business, party) is None
