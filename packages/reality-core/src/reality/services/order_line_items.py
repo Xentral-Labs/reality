@@ -178,7 +178,7 @@ def preview_item_assignment(
         "item_id": item.id,
         "item_sku": item.sku,
         "quantity": str(line.quantity),
-        "unit_price": str(line.unit_price),
+        "unit_price": str(line.unit_price) if line.unit_price is not None else None,
         "currency": order.currency,
         "from_party_id": from_party_id,
         "to_party_id": order.party_id,

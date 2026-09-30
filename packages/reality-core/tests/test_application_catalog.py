@@ -62,6 +62,7 @@ def test_split_catalog_is_complete_and_composed():
         "exchange_without_return",
         "order_line_item_unknown",
         "payment_returned",
+        "order_line_price_missing",
     ]
     assert {entry["materialized_as"] for entry in catalog["projections"]} == set(
         OPERATIONAL_PROJECTIONS

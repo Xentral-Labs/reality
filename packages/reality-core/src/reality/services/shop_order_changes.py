@@ -91,7 +91,9 @@ def stated_lines(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
         quantity = raw.get("current_quantity", raw.get("quantity"))
         lines[str(raw.get("id"))] = {
             "quantity": core.decimal(quantity if quantity is not None else 0),
-            "price": core.decimal(raw.get("price", 0)),
+            "price": core.decimal(raw["price"])
+            if raw.get("price") is not None
+            else None,
             "sku": str(raw.get("sku", "")),
         }
     return lines
@@ -291,11 +293,7 @@ def classify_order_version(
     for line in lines:
         line_id = line.source_line_id or ""
         target = stated.get(line_id, {"quantity": Decimal(0)})["quantity"]
-        prior_price = (
-            before[line_id]["price"]
-            if line_id in before
-            else core.decimal(line.unit_price)
-        )
+        prior_price = before[line_id]["price"] if line_id in before else line.unit_price
         if line_id in stated and stated[line_id]["price"] != prior_price:
             plan.held.append(("price_changed", line_id))
         commitment = promises.get(line.id)

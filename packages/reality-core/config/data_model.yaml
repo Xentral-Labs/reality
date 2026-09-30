@@ -714,7 +714,7 @@ tables:
       sku: {description: SKU captured on the evidence even when no item is resolved.}
       description: {description: Source-facing line description.}
       quantity: {description: Quantity stated by the evidence.}
-      unit_price: {description: Price per stated unit.}
+      unit_price: {nullable: true, description: Price per stated unit; null when the source stated none.}
       gross_amount: {description: Gross monetary amount of the line.}
       promised_at: {description: Original promised date text retained from the evidence.}
       payload: {}

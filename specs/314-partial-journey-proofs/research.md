@@ -47,8 +47,8 @@ Read on 2026-09-30 against `origin/main` at 6fb71d2e. Paths are under `packages/
 **Decision (owner)**:
 - A line without a stated price is kept with no price: `document_line.unit_price` becomes nullable, and null states "the source gave none". Its promise is created as for any line; line and promise amounts are 0 because nothing can be billed from a price nobody stated (they are derived, not stated, today as well).
 - A new exception class `order_line_price_missing` reports such a line while it has no stated price. Shop evidence cannot be corrected in place (`correct_manual_document_lines` refuses external evidence); a later shop version that states the price is a change of what the order states and is held for review as `price_changed` under spec 296, whose comparison must then read a missing price as "none" rather than fail.
-- A line with a missing, null or non-positive quantity refuses the order with the coded failure `source_line_quantity_missing`, recorded as the source's failed outcome and reported by `source_interpretation_failure`; the batch continues.
-- Every reader of `DocumentLine.unit_price` (28 references in 12 files) handles null: comparisons skip it, displays show no price, billing proposals refuse a position without a price with a code.
+- A line with a missing or null quantity refuses the order with the coded failure `source_line_quantity_missing` (a non-positive one keeps `master_data_field_not_positive`), recorded as the source's failed outcome and reported by `source_interpretation_failure`; the batch continues.
+- Every reader of `DocumentLine.unit_price` (28 references in 12 files) handles null: comparisons skip it, serialisers emit null, displays say no price was stated, and billing offers the position without a price. The file `sales_order` import keeps a row without a price the same way.
 
 **Alternatives rejected**: keeping 0 with a flag (a typed field would still state a price nobody stated); holding the whole order (the journey asks for acceptance).
 

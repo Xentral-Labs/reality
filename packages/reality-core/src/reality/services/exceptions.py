@@ -116,6 +116,7 @@ CLASS_ORDER = {
     "exchange_without_return": 39,
     "order_line_item_unknown": 40,
     "payment_returned": 41,
+    "order_line_price_missing": 42,
 }
 
 
@@ -1561,6 +1562,65 @@ def _order_line_item_unknown_exceptions(
     return result
 
 
+def _order_line_price_missing_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """A source order line states no price (spec 314).
+
+    The line was kept without one rather than at a price of zero, so nothing is
+    billed from it; the gap is reported while it lasts. A cancelled line is no
+    longer anyone's work.
+    """
+    rows = session.execute(
+        select(DocumentLine, Document)
+        .join(
+            Document,
+            (Document.tenant_id == DocumentLine.tenant_id)
+            & (Document.id == DocumentLine.document_id),
+        )
+        .where(
+            DocumentLine.tenant_id == tenant_id,
+            DocumentLine.unit_price.is_(None),
+            Document.type == "sales_order",
+            Document.source_record_id.is_not(None),
+            ~DocumentLine.id.in_(
+                select(Commitment.document_line_id).where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.document_line_id.is_not(None),
+                    Commitment.status == "cancelled",
+                )
+            ),
+        )
+        .order_by(Document.number, DocumentLine.id)
+    ).all()
+    return [
+        OperationalException(
+            _identity("order_line_price_missing", line.id),
+            "order_line_price_missing",
+            (),
+            "normal",
+            "Order line without a price",
+            f"{Decimal(line.quantity).normalize():f} of {line.sku or line.description} "
+            f"on order {order.number} states no price",
+            "document_line",
+            line.id,
+            {
+                "sku": line.sku,
+                "description": line.description,
+                "quantity": Decimal(line.quantity),
+                "order_number": order.number,
+            },
+            {
+                "document_line_id": line.id,
+                "document_id": order.id,
+                "source_record_id": order.source_record_id,
+            },
+            _document_instant(order),
+        )
+        for line, order in rows
+    ]
+
+
 def _exchange_without_return_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
@@ -2013,8 +2073,9 @@ def _sold_below_purchase_price_exceptions(
     ).all()
     books: dict[str, tuple[PriceList, dict[str, list[PriceListEntry]]] | None] = {}
     for line, document in rows:
-        # Freight and services have no purchase price of their own here.
-        if not line.item_id:
+        # Freight and services have no purchase price of their own here, and a
+        # line without a stated price has nothing to compare (spec 314).
+        if not line.item_id or line.unit_price is None:
             continue
         agreed = Decimal(line.unit_price)
         # A sample or a replacement is priced at nothing on purpose.
@@ -2551,6 +2612,9 @@ def _invoice_price_differs_exceptions(
         # A price per box and a price per piece are not the same figure, so a
         # pair recorded in different units is left alone rather than compared.
         if not _prices_comparable(line, agreed):
+            continue
+        # A price nobody stated is not a difference (spec 314).
+        if line.unit_price is None or agreed.unit_price is None:
             continue
         difference = Decimal(line.unit_price) - Decimal(agreed.unit_price)
         if difference == ZERO:
@@ -3661,6 +3725,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "exchange_without_return": _exchange_without_return_exceptions,
     "order_line_item_unknown": _order_line_item_unknown_exceptions,
     "payment_returned": _payment_returned_exceptions,
+    "order_line_price_missing": _order_line_price_missing_exceptions,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,

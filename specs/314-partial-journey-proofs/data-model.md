@@ -25,7 +25,8 @@ It is written only for a receipt, shipment or return without a commitment whose 
 - Causal values: the order number, the line's stated SKU and quantity, and the source record.
 - Nothing is stored.
 
-## New refusal codes
+## New refusal code
 
-- `source_line_quantity_missing`: a source order line states no positive quantity.
-- `billable_position_price_missing`: a billing proposal names a position without a stated price.
+- `source_line_quantity_missing`: a source order line states no quantity. A zero or negative quantity keeps its existing code, `master_data_field_not_positive`.
+
+Billing needs no refusal: billable positions carry the order line's price through, so an unpriced position is offered with no price, and an invoice recorded from it states the gross amount the person gives and no unit price.

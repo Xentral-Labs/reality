@@ -1001,3 +1001,17 @@ classes:
     authority: 297/FR-003
     evidence:
       - tests/finance/test_payment_returns.py::test_a_reopened_invoice_is_reported_until_it_is_paid_again
+  - id: order_line_price_missing
+    label: Order line without a price
+    description: >-
+      A source order line states no price. The order was interpreted and the line promised, but
+      the line was kept without a price instead of at a price of zero, so nothing is billed from
+      it. Reporting it keeps a gap in what the source sent from passing as a free line.
+    owner: Sales operations
+    clears_through: A later source version that states the price, reviewed as a price change, or cancelling the line.
+    severity: normal
+    derivation: order_line_price_missing
+    record_type: document_line
+    authority: 314/FR-006
+    evidence:
+      - tests/test_shop_line_gaps.py::test_a_line_without_a_price_is_kept_without_one_and_reported

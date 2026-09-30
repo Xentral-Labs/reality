@@ -1715,6 +1715,12 @@
     "shop_refund_order_missing": {
       "message": "The Shopify order of this refund has not been interpreted yet; the refund is retried."
     },
+    "source_line_quantity_missing": {
+      "message": "Source order line {line} states no quantity; the order is not interpreted until it does.",
+      "values": {
+        "line": "text"
+      }
+    },
     "source_artifact_not_found": {
       "message": "Source artifact not found."
     },

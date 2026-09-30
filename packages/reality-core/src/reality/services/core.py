@@ -7958,7 +7958,13 @@ def _normalize_manual_line_input(
     item_id = str(raw.get("item_id") or "").strip() or None
     item = _tenant_record(session, Item, tenant_id, item_id) if item_id else None
     quantity = positive(raw.get("quantity", 0))
-    unit_price = decimal(raw.get("unit_price", 0))
+    # Absent means the form stated none (0, as ever); an explicit null is
+    # carried over from a source line that stated no price (spec 314).
+    unit_price = (
+        None
+        if "unit_price" in raw and raw["unit_price"] is None
+        else decimal(raw.get("unit_price", 0))
+    )
     raw_total = raw.get("gross_amount")
     if raw_total is None or str(raw_total).strip() == "":
         # Never quantity times unit price: a rebate or the source's own rounding
@@ -9738,7 +9744,10 @@ def _record_order_invoice(
                     "item_id": line.item_id,
                     "quantity": str(quantity),
                     "unit": line.unit,
-                    "unit_price": str(line.unit_price),
+                    # An order line without a stated price bills without one too.
+                    "unit_price": str(line.unit_price)
+                    if line.unit_price is not None
+                    else None,
                     "gross_amount": str(gross_amount),
                     "billed_document_line_id": line.id,
                     **stated,
@@ -12513,8 +12522,19 @@ def _shopify_interpretation(
         item = items_by_sku[stated_sku]
         # A line the shop says does not ship (a tip, a service) is kept, not promised.
         ships = raw_line.get("requires_shipping", True) is not False
+        if raw_line.get("quantity") is None:
+            # Without a quantity there is no promise to make; the order fails in
+            # the reported path instead of stopping the batch (spec 314).
+            raise InvalidOperation(
+                code="source_line_quantity_missing",
+                values={"line": str(raw_line.get("id") or stated_sku or "?")},
+            )
         quantity = positive(raw_line["quantity"])
-        price = decimal(raw_line.get("price", 0))
+        # A price the shop did not state stays unstated, never a price of zero
+        # (spec 314); nothing is billed from it until someone states one.
+        stated_price = raw_line.get("price")
+        price = decimal(stated_price) if stated_price is not None else None
+        line_amount = quantity * price if price is not None else ZERO
         raw_line_id = raw_line.get("id")
         line = DocumentLine(
             id=uid("lin"),
@@ -12530,7 +12550,7 @@ def _shopify_interpretation(
             ),
             quantity=quantity,
             unit_price=price,
-            gross_amount=quantity * price,
+            gross_amount=line_amount,
             promised_at=promised_at,
             unit=item.unit if item else "pcs",
             requested_at=utc_datetime(promised_at),
@@ -12551,7 +12571,7 @@ def _shopify_interpretation(
             item_id=item.id,
             location_id=location_id,
             quantity=quantity,
-            amount=quantity * price,
+            amount=line_amount,
             currency=document.currency,
             due_at=utc_datetime(promised_at),
             status="open",

@@ -1305,7 +1305,8 @@ class DocumentLine(Base):
     sku: Mapped[str] = mapped_column(String)
     description: Mapped[str] = mapped_column(String, default="")
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
-    unit_price: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
+    # Null states that the source gave no price (spec 314); nothing is invented.
+    unit_price: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
     gross_amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
     promised_at: Mapped[str] = mapped_column(String, default="")
     payload: Mapped[str] = mapped_column(Text, default="{}")

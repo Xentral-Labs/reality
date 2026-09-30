@@ -773,6 +773,7 @@ labels:
       exchange_without_return: Umtausch ohne Rücksendung
       order_line_item_unknown: Auftragszeile mit unbekanntem Artikel
       payment_returned: Zahlung zurückgegangen
+      order_line_price_missing: Auftragszeile ohne Preis
       commitment_hold_unreleased: Sperre der Verpflichtung nicht aufgehoben
       party_hold_unreleased: Liefersperre nicht aufgehoben
       stock_expired: Abgelaufener Bestand

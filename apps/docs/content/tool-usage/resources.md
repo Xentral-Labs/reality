@@ -12,8 +12,8 @@ the technical key stands beside each one.
 | [Business partner](#resource-party)                              | 1     | 8       | 2                   |
 | [Item](#resource-item)                                           | 5     | 4       | 3                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
-| [Prices and payment terms](#resource-terms)                      | 2     | 6       | 2                   |
-| [Order](#resource-order)                                         | 8     | 11      | 10                  |
+| [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
+| [Order](#resource-order)                                         | 8     | 11      | 11                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 12      | 14                  |
@@ -208,6 +208,8 @@ Zahlungsziel
   (`invoice_price_differs`)
 - [Sold below the purchase price](./exceptions#exception-sold_below_purchase_price)
   (`sold_below_purchase_price`)
+- [Order line without a price](./exceptions#exception-order_line_price_missing)
+  (`order_line_price_missing`)
 
 **Appears in processes:** [Master data and sources](./processes#process-master_data)
 
@@ -285,6 +287,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Negative actual DB1](./exceptions#exception-negative_actual_db1) (`negative_actual_db1`)
 - [Order line with unknown item](./exceptions#exception-order_line_item_unknown)
   (`order_line_item_unknown`)
+- [Order line without a price](./exceptions#exception-order_line_price_missing)
+  (`order_line_price_missing`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay)

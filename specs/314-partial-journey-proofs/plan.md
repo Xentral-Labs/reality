@@ -65,13 +65,14 @@ In `payment_candidates`, a stated reference that resolves to exactly one invoice
 - Migration: `document_line.unit_price` becomes nullable. The model changes to `Mapped[Decimal | None]`. The default of 0 stays for callers that state no price on purpose (manual lines state one).
 - Shopify interpretation:
   - A missing or null `price` gives `unit_price = None`, and line and promise amounts of 0.
-  - A missing, null or non-positive `quantity` raises `InvalidOperation(code="source_line_quantity_missing")`, so the job fails with a code in the reported path.
+  - A missing or null `quantity` raises `InvalidOperation(code="source_line_quantity_missing")`, so the job fails with a code in the reported path; a non-positive one keeps its existing code.
+  - The file `sales_order` import keeps a row without a price the same way.
   - `process_pending_import_jobs` is checked to keep other orders going.
 - New class `order_line_price_missing` (severity normal, record `document_line`), derived from sales-order lines with a null `unit_price` and a source record. Class gates: CLASS_ORDER, DERIVATION_REGISTRY, catalogs order, `operational_exception_catalog.yaml`, the class lists in the catalog, coverage and clock tests, the reference-integrity count, and the German resource label.
 - Reader audit: each of the 28 `.unit_price` reads handles null.
   - Comparisons skip a null price: `sold_below_purchase_price` and `invoice_price_differs`.
   - Serialisers emit null.
-  - Billing proposals refuse a position without a price with `billable_position_price_missing`.
+  - Billing offers an unpriced position without a price; an invoice recorded from it carries no unit price.
   - `shop_order_changes` reads a missing earlier price as none, so a later stated price is held as `price_changed`.
 
 ### Stories
