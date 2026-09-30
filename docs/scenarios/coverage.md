@@ -8,15 +8,15 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 99 covered, 52 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 101 covered, 50 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 14 | 2 |  | 8 |  |
 | B Availability and reservation | 5 | 7 |  | 6 |  |
-| C Payment and release | 10 | 4 |  | 4 |  |
+| C Payment and release | 11 | 3 |  | 4 |  |
 | D Shipment, split and merge | 4 | 3 |  | 12 |  |
-| E Customer invoice and credit | 8 | 4 |  |  |  |
+| E Customer invoice and credit | 9 | 3 |  |  |  |
 | F Returns and complaints | 10 | 2 |  | 1 |  |
 | G Purchase demand and order | 6 | 6 |  | 5 |  |
 | H Receipt and supplier deviations | 10 | 2 |  | 7 |  |
@@ -65,7 +65,8 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
    supplier item numbers, or receivable/payable netting. L10, M10, M11, O02, O06 (M02 partial).
 10. **Spec 148 trade finance is specified, not built.** Authorization/capture, chargeback,
     marketplace payout, cash on delivery, vouchers and the accounting export package.
-    C09, C10, C13, C18, L03, N07, R04 (C15 partial).
+    C09, C10, C13, C18, L03, N07, R04. A person records chargebacks and returned direct
+    debits since spec 297 (C15 covered).
 11. **No kits or bills of material.** K01, K02, K03, K04, K06.
 12. **No period record (spec 184 is a stub).** Q02, Q04. There is also no sales-side
     "invoiced not shipped" class (E03, Q01 partial).
@@ -175,7 +176,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | C12 | covered | tests/operational_exceptions/test_derivation.py::test_a_discount_taken_explains_the_remainder | A discount deducted after the window gets no `early_payment_discount_taken` reason, so it stays a plain overdue receivable. |
 | C13 | gap | none | No cash-on-delivery payment path; payments cannot be tied to a shipment. |
 | C14 | partial | tests/scenarios/test_fulfillment_safety_parity.py (40 then 60 releases only at 100); tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice | Release only after the remainder is proven; a 30 % deposit before any invoice is not tied to the order (the FR-051 earmark is not built) and readiness reports `prepayment_invoice_missing`. |
-| C15 | partial | tests/test_ledger_reversals.py::test_payment_reversal_preserves_allocation_history_and_reopens_invoice | Reversing a payment reopens the receivable; there is no chargeback or returned-debit event, fee or provider dispute (spec 148 FR-050, not built). |
+| C15 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_returned_direct_debit_reopens_the_invoice_and_charges_the_fee | A returned direct debit or chargeback is recorded with its stated reason and fee; the invoice reopens and is reported until paid again, the fee is an expense or charged on (spec 297). Bank return files and provider disputes are not read. |
 | C16 | covered | tests/test_party_delivery_holds.py::test_customer_delivery_hold_blocks_only_shipment; tests/test_fulfillment_readiness.py::test_readiness_combines_stock_reservation_and_active_hold | A party hold with reason and note blocks only shipments; readiness names the hold. There is no dedicated dunning or insolvency reason code. |
 | C17 | covered | tests/test_commitment_holds.py::test_hold_blocks_reservation_and_movement_until_released; ::test_the_release_is_recorded_by_the_release_operation | Hold and release are both recorded generically (`compliance`/`manual_review`); there is no fraud reason and no hold driven by a source fraud signal. |
 | C18 | gap | services/finance/settlement.py REASONS (no voucher) | Vouchers and gift cards are not a settlement instrument; only cash, credit notes, deposits and the four adjustment reasons exist. |
@@ -215,7 +216,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | E05 | covered | tests/test_unified_invoice_credit.py::test_partial_multi_credit_without_return_and_exact_recovery; ::test_financial_credit_does_not_require_return_exception | The receivable drops with zero Movements and no `credited_not_returned`. |
 | E06 | covered | tests/operational_exceptions/test_derivation.py::test_returned_not_credited; ::test_invoice_linked_credit_clears_returned_not_credited_through_shortest_links | Return and credit meet on the order line through the shortest links, not through a direct link from the credit to the return movement. |
 | E07 | partial | tests/operational_exceptions/test_derivation.py::test_invoice_price_differs; ::test_shipped_not_billed | Price differences and under-billing are visible; billing more than was shipped on the sales side is not reported. |
-| E08 | partial | tests/operational_exceptions/test_derivation.py::test_a_restocking_fee_is_a_charge_not_a_smaller_credit; ::test_non_deliverable_lines_are_never_reported | Fee as a separate charge and freight lines are handled (the freight test is purchase-side); no sales-invoice freight or surcharge test, and PSP payment fees are not built. |
+| E08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods | Freight and surcharge lines on a sales invoice are no goods finding; a fee the provider deducts settles the invoice as payment-fee expense (spec 297). |
 | E09 | covered | tests/scenarios/test_catalog_finance.py::test_invoice_billed_to_the_orderer_keeps_a_different_ship_to_party | Invoice, AR and balance name the orderer; ship-to is reachable through the billed order line. The invoice document itself carries no ship-to. |
 | E10 | covered | tests/scenarios/test_catalog_finance.py::test_e_invoice_xml_is_stored_losslessly_as_traceable_source_evidence | XRechnung bytes (BOM, CRLF, umlauts) round-trip exactly with hash and size; the source stays unmapped, no interpreter exists. |
 | E11 | partial | tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice | Deposit clearing into the final invoice is proven; there is no down-payment invoice document, and the final invoice does not state the offset. |

@@ -116,7 +116,7 @@ As a clerk or an agent, I record a return or a payment fee through the same revi
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
-| FR-001–FR-003 | US1 1–3 | Return service tests and the C15 story (planned) |
-| FR-006, FR-007 | US1 4–5 | Payment fee tests and the E08 story (planned) |
+| FR-001–FR-003 | US1 1–3 | Return service tests and the C15 story |
+| FR-006, FR-007 | US1 4–5 | Payment fee tests and the E08 story |
 | FR-004, DR-001, DR-002 | All | Adapter tests and diff review (planned) |
-| FR-005, SC-001, SC-002 | US1 | Catalog tests and Guide questions (planned) |
+| FR-005, SC-001, SC-002 | US1 | Catalog tests and Guide questions |

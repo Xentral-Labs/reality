@@ -138,6 +138,8 @@ PROVEN_BY_STORY = {
     "F12",
     "L04",
     "L05",
+    "C15",
+    "E08",
 }
 #: Promoted from spec 294 on; each must be findable by an ordinary question.
 FINDABLE_BY_KEYWORD = {
@@ -159,6 +161,8 @@ FINDABLE_BY_KEYWORD = {
     "F12",
     "L04",
     "L05",
+    "C15",
+    "E08",
 }
 
 

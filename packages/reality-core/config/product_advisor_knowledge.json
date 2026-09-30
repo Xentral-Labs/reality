@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:79e068491351cb15b6f045c726d1f4f7b22c429b4eba40c6a570542447ca9ffc",
+  "knowledge_version": "advisor-v1:sha256:1fc6d9847bea4b9831b0ee3cedbc4aef321c121f3a353d6744af558c86fdab99",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -513,7 +513,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C15",
-      "fingerprint": "a746d260119b7e4c00a0b29f8497991cff6cdf7e8c17f4fd03aa73f352cd01eb"
+      "fingerprint": "2b86a2c0febf6076dff3d509b82e5499e22507691f8f85e1c12895a1374633e1"
     },
     {
       "id": "source_journey_c16",
@@ -783,7 +783,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E08",
-      "fingerprint": "753966848dc943e8fa257847b34df09c9f13b847c7ab064f236e2b4070e4ef7b"
+      "fingerprint": "7604bf4e2ea5a73ad8ba3a28515a2d36deb5cdf78999da4dc7dea29da3549925"
     },
     {
       "id": "source_journey_e09",
@@ -3050,18 +3050,21 @@
       "source_id": "source_journey_c15",
       "subject": "Payment and release",
       "title": "Chargeback / returned direct debit after shipment",
-      "search_text": "C15 Payment and release Chargeback / returned direct debit after shipment Does the receivable reopen? Chargeback / returned direct debit after shipment Does the receivable reopen?",
-      "claim_text": "Reality evaluates: Does the receivable reopen?",
-      "support": "limited",
+      "search_text": "C15 Payment and release Chargeback / returned direct debit after shipment Does the receivable reopen? chargeback returned direct debit direct debit return Rücklastschrift Rückbelastung Chargeback / returned direct debit after shipment Does the receivable reopen? The bank returned a direct debit with a fee Eine Lastschrift ist zurückgegangen, wer trägt die Gebühr? Der Kunde macht eine Rückbelastung, ist die Rechnung wieder offen?",
+      "claim_text": "Reality evaluates: Does the receivable reopen? A person records the returned direct debit or chargeback with its stated reason and fee; the payment is reversed, its invoices are open again and reported until they are paid, and the fee is an expense or charged on to the customer.",
+      "support": "proven",
       "limitations": [
-        "Reversing a payment reopens the receivable.",
-        "Chargebacks, returned direct debits, their fees and provider disputes are not recorded."
+        "A person records the return; bank return files and provider dispute feeds are not read yet.",
+        "A charged-on fee is a receivable in the ledger but not yet an open item.",
+        "A payment settled with a deducted payment fee cannot be returned yet."
       ],
       "references": [
-        "C15"
+        "C15",
+        "finance_payment_return_propose",
+        "finance_payment_returns"
       ],
       "language": "en",
-      "fingerprint": "7c2aa3e78046f19eef2e85578850447a6684d2e39e0e757e7bfb1e553b411696"
+      "fingerprint": "481d7c85a04661892148946b316f6ee5fb301504f17f4cec88f517dc1033145c"
     },
     {
       "id": "evidence_journey_c16",
@@ -3562,18 +3565,18 @@
       "source_id": "source_journey_e08",
       "subject": "Customer invoice and credit note",
       "title": "Shipping cost, small-quantity surcharge, payment fees",
-      "search_text": "E08 Customer invoice and credit note Shipping cost, small-quantity surcharge, payment fees Charges separate from goods? Shipping cost, small-quantity surcharge, payment fees Charges separate from goods?",
-      "claim_text": "Reality evaluates: Charges separate from goods?",
-      "support": "limited",
+      "search_text": "E08 Customer invoice and credit note Shipping cost, small-quantity surcharge, payment fees Charges separate from goods? freight on invoice small-quantity surcharge payment provider fee Mindermengenzuschlag Frachtkosten auf der Rechnung Zahlungsgebühr Shipping cost, small-quantity surcharge, payment fees Charges separate from goods? Stripe paid out less than the invoice because of its fee Wie buche ich Versandkosten und einen Mindermengenzuschlag auf der Rechnung? Mindermengenzuschlag berechnen",
+      "claim_text": "Reality evaluates: Charges separate from goods? Freight and a surcharge are their own invoice lines without an order line, so no goods finding reads them as goods; a fee the payment provider deducts settles the invoice as a payment-fee expense.",
+      "support": "proven",
       "limitations": [
-        "Fees can be separate charges, and freight lines work on purchases.",
-        "Freight and surcharges on sales invoices are not yet proven, and payment provider fees are not recorded."
+        "The provider fee is stated with the payment; payout reports are not read yet."
       ],
       "references": [
-        "E08"
+        "E08",
+        "finance_settlement_propose"
       ],
       "language": "en",
-      "fingerprint": "20a09f7b7df59554fce08d552742f733c2e8f8b2fb55c2210023170e2f89c5c4"
+      "fingerprint": "9fec14e75d6ec560d6a7f19e38ebf387a73adce6ef6855bccaa7f7e84a0543ba"
     },
     {
       "id": "evidence_journey_e09",

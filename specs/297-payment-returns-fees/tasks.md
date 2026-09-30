@@ -36,8 +36,8 @@
 
 ## Phase 6: Journeys and Verification
 
-- [ ] T016 [FR-005] [SC-001] Business stories C15 (returned direct debit with a fee charged on, paid again) and E08 (freight and surcharge lines on a sales invoice; a payment with a deducted provider fee) in `core/tests/scenarios/test_catalog_finance.py`
-- [ ] T017 [FR-005] [SC-002] Promote C15 and E08 with evidence and specific keywords; check neighbour questions; coverage and roadmap
+- [x] T016 [FR-005] [SC-001] Business stories C15 (returned direct debit with a fee charged on, paid again) and E08 (freight and surcharge lines on a sales invoice; a payment with a deducted provider fee) in `core/tests/scenarios/test_catalog_finance.py`
+- [x] T017 [FR-005] [SC-002] Promote C15 and E08 with evidence and specific keywords; check neighbour questions; coverage and roadmap
 - [ ] T018 Full backend suite from a clean worktree and the Web checks
 - [ ] T019 Manual check per `quickstart.md` on an isolated stack
 - [ ] T020 Review of the diff; fix findings

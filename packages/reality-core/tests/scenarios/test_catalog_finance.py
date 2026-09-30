@@ -1254,3 +1254,238 @@ def test_three_levels_of_dunning_then_collection(session, business):
     assert later.id in {
         item["invoice_id"] for notice in fifth["notices"] for item in notice["items"]
     }
+
+
+# --- C15, E08 (spec 297) -------------------------------------------------------------
+
+
+def _payment_fee_account(session, business):
+    from reality.services.finance.accounts import create_account, set_default_account
+
+    tenant = business.tenant.id
+    if "payment_fee_expense" in list_accounts(session, tenant)["defaults"]:
+        return
+    account = create_account(
+        session,
+        tenant,
+        code="6855",
+        name="Payment fees",
+        role="payment_fee_expense",
+        expected_revision=_revision(session, business),
+    )
+    set_default_account(
+        session,
+        tenant,
+        role="payment_fee_expense",
+        account_id=account["id"],
+        expected_revision=_revision(session, business),
+    )
+
+
+def _findings(session, business, class_id):
+    from reality.services.exceptions import operational_exceptions
+
+    return [
+        row
+        for row in operational_exceptions(
+            session, business.tenant.id, as_of=datetime(2026, 10, 31, tzinfo=UTC)
+        )
+        if row.class_id == class_id
+    ]
+
+
+def _pay(session, business, invoice_id, cash, reference, reduction=None):
+    arguments = {
+        "mode": "payment",
+        "document_id": invoice_id,
+        "amount": cash,
+        "allocation_amount": cash,
+        "expected_revision": _revision(session, business),
+        "reference": reference,
+        "effective_at": "2026-09-15T08:00:00Z",
+        **({"reduction": reduction} if reduction else {}),
+    }
+    return _finance(session, business, "finance.settlement.apply", arguments)[1]
+
+
+def test_a_returned_direct_debit_reopens_the_invoice_and_charges_the_fee(
+    session, business
+):
+    """C15: the debit comes back with a bank fee; the invoice is open until paid again."""
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    _payment_fee_account(session, business)
+    invoice = core.create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        "RE-C15",
+        business.customer.id,
+        "240.00",
+        document_date="2026-09-01",
+    )
+    core.post_sales_invoice(session, tenant, invoice.id)
+    paid = _pay(session, business, invoice.id, "240.00", "SEPA debit 0915")
+    assert core.open_invoice_amount(session, tenant, invoice.id) == 0
+    # Positive control for the absence: a paid invoice raises no return finding.
+    assert _findings(session, business, "payment_returned") == []
+
+    review, returned = _finance(
+        session,
+        business,
+        "finance.payment.return",
+        {
+            "payment_document_id": paid["payment"]["document_id"],
+            "kind": "direct_debit_return",
+            "returned_on": "2026-09-20",
+            "reason": "AC04 account closed",
+            "reference": "RTN-C15",
+            "fee_amount": "3.50",
+            "fee_bearer": "customer",
+        },
+    )
+
+    assert review["payment_return"]["reopened"][0]["number"] == "RE-C15"
+    assert core.open_invoice_amount(session, tenant, invoice.id) == Decimal("240.00")
+    assert core.open_invoice_amount(
+        session, tenant, returned["fee_charge_document_id"]
+    ) == Decimal("3.50")
+    (finding,) = _findings(session, business, "payment_returned")
+    assert (finding.record_id, finding.causal_values["reason"]) == (
+        invoice.id,
+        "AC04 account closed",
+    )
+
+    _pay(session, business, invoice.id, "240.00", "Bank transfer after the return")
+
+    assert core.open_invoice_amount(session, tenant, invoice.id) == 0
+    assert _findings(session, business, "payment_returned") == []
+    # The fee is the customer's own charge and stays owed.
+    assert core.open_invoice_amount(
+        session, tenant, returned["fee_charge_document_id"]
+    ) == Decimal("3.50")
+
+
+def test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods(
+    session, business
+):
+    """E08: freight and a small-quantity surcharge are their own lines; the PSP fee is a cost."""
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    _payment_fee_account(session, business)
+    core.record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+    )
+    _, _, lines, commitments = _sales_order(
+        session,
+        business,
+        "SO-E08",
+        [_order_line(business, "2", "50.00", "100.00")],
+        "100.00",
+        document_date="2026-09-01",
+    )
+    core.record_movement(
+        session,
+        tenant,
+        "shipment",
+        business.item.id,
+        "2",
+        from_location_id=business.location.id,
+        commitment_id=commitments[0].id,
+    )
+    # Positive control: before the invoice, the delivery is shipped and not billed.
+    assert {
+        row.record_id for row in _findings(session, business, "shipped_not_billed")
+    } == {lines[0].id}
+
+    recording = propose_tool(
+        session,
+        tenant,
+        "document_create",
+        {
+            "document_type": "sales_invoice",
+            "number": "RE-E08",
+            "party_id": business.customer.id,
+            "gross_amount": "106.90",
+            "document_date": "2026-09-05",
+            "lines": [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "2",
+                    "unit": "pcs",
+                    "unit_price": "50.00",
+                    "gross_amount": "100.00",
+                    "billed_document_line_id": lines[0].id,
+                },
+                {
+                    "line_type": "shipping",
+                    "description": "Freight",
+                    "quantity": "1",
+                    "unit": "pcs",
+                    "unit_price": "4.90",
+                    "gross_amount": "4.90",
+                },
+                {
+                    "line_type": "charge",
+                    "description": "Small-quantity surcharge",
+                    "quantity": "1",
+                    "unit": "pcs",
+                    "unit_price": "2.00",
+                    "gross_amount": "2.00",
+                },
+            ],
+        },
+    )
+    invoice_id = json.loads(confirm_tool(session, tenant, recording.id).output)[
+        "document_id"
+    ]
+    confirm_tool(
+        session,
+        tenant,
+        propose_tool(
+            session, tenant, "sales_invoice_post", {"document_id": invoice_id}
+        ).id,
+    )
+
+    charges = [
+        line
+        for line in session.scalars(
+            select(DocumentLine).where(DocumentLine.document_id == invoice_id)
+        )
+        if line.line_type in {"shipping", "charge"}
+    ]
+    assert sorted((line.line_type, line.gross_amount) for line in charges) == [
+        ("charge", Decimal("2.00")),
+        ("shipping", Decimal("4.90")),
+    ]
+    assert all(line.billed_document_line_id is None for line in charges)
+    for class_id in (
+        "shipped_not_billed",
+        "invoice_price_differs",
+        "billed_not_received",
+    ):
+        assert _findings(session, business, class_id) == [], class_id
+
+    # The provider pays out 103.50 and states a fee of 3.40.
+    _pay(
+        session,
+        business,
+        invoice_id,
+        "103.50",
+        "Stripe payout po_E08",
+        reduction={
+            "amount": "3.40",
+            "reason_category": "payment_fee",
+            "reason": "Stripe fee",
+        },
+    )
+
+    assert core.open_invoice_amount(session, tenant, invoice_id) == 0
+    assert core.account_balance(session, tenant, "payment_fee_expense") == Decimal(
+        "3.40"
+    )

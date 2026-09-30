@@ -1197,19 +1197,32 @@
       "section": "Payment and release",
       "title": "Chargeback / returned direct debit after shipment",
       "question": "Does the receivable reopen?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Does the receivable reopen?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Does the receivable reopen? A person records the returned direct debit or chargeback with its stated reason and fee; the payment is reversed, its invoices are open again and reported until they are paid, and the fee is an expense or charged on to the customer.",
       "limitations": [
-        "Reversing a payment reopens the receivable.",
-        "Chargebacks, returned direct debits, their fees and provider disputes are not recorded."
+        "A person records the return; bank return files and provider dispute feeds are not read yet.",
+        "A charged-on fee is a receivable in the ledger but not yet an open item.",
+        "A payment settled with a deducted payment fee cannot be returned yet."
       ],
-      "keywords": [],
+      "keywords": [
+        "chargeback",
+        "returned direct debit",
+        "direct debit return",
+        "Rücklastschrift",
+        "Rückbelastung"
+      ],
       "question_examples": [
         "Chargeback / returned direct debit after shipment",
-        "Does the receivable reopen?"
+        "Does the receivable reopen?",
+        "The bank returned a direct debit with a fee",
+        "Eine Lastschrift ist zurückgegangen, wer trägt die Gebühr?",
+        "Der Kunde macht eine Rückbelastung, ist die Rechnung wieder offen?"
       ],
-      "tools": [],
+      "tools": [
+        "finance_payment_return_propose",
+        "finance_payment_returns"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -1841,19 +1854,30 @@
       "section": "Customer invoice and credit note",
       "title": "Shipping cost, small-quantity surcharge, payment fees",
       "question": "Charges separate from goods?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Charges separate from goods?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Charges separate from goods? Freight and a surcharge are their own invoice lines without an order line, so no goods finding reads them as goods; a fee the payment provider deducts settles the invoice as a payment-fee expense.",
       "limitations": [
-        "Fees can be separate charges, and freight lines work on purchases.",
-        "Freight and surcharges on sales invoices are not yet proven, and payment provider fees are not recorded."
+        "The provider fee is stated with the payment; payout reports are not read yet."
       ],
-      "keywords": [],
+      "keywords": [
+        "freight on invoice",
+        "small-quantity surcharge",
+        "payment provider fee",
+        "Mindermengenzuschlag",
+        "Frachtkosten auf der Rechnung",
+        "Zahlungsgebühr"
+      ],
       "question_examples": [
         "Shipping cost, small-quantity surcharge, payment fees",
-        "Charges separate from goods?"
+        "Charges separate from goods?",
+        "Stripe paid out less than the invoice because of its fee",
+        "Wie buche ich Versandkosten und einen Mindermengenzuschlag auf der Rechnung?",
+        "Mindermengenzuschlag berechnen"
       ],
-      "tools": [],
+      "tools": [
+        "finance_settlement_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
