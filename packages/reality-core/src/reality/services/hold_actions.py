@@ -55,6 +55,7 @@ def review_hold(
     else:
         if not holds:
             raise InvalidOperation(code="delivery_hold_not_active")
+
         # Credit holds stay: an owner releases them with a reason (spec 298).
         def owner_released(hold: CommitmentHold) -> bool:
             return (
