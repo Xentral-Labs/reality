@@ -12,8 +12,8 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Geschäftspartner](#resource-party)                            | 1      | 8        | 2         |
 | [Artikel](#resource-item)                                      | 5      | 4        | 3         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
-| [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 2         |
-| [Auftrag](#resource-order)                                     | 8      | 11       | 10        |
+| [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
+| [Auftrag](#resource-order)                                     | 8      | 11       | 11        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 12       | 14        |
@@ -215,6 +215,8 @@ Skonto, Zahlungsziel
   (`invoice_price_differs`)
 - [Unter Einkaufspreis verkauft](./exceptions#exception-sold_below_purchase_price)
   (`sold_below_purchase_price`)
+- [Auftragszeile ohne Preis](./exceptions#exception-order_line_price_missing)
+  (`order_line_price_missing`)
 
 **Kommt vor in:** [Stammdaten und Quellen](./processes#process-master_data)
 
@@ -294,6 +296,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Tatsächlicher DB1 negativ](./exceptions#exception-negative_actual_db1) (`negative_actual_db1`)
 - [Auftragszeile mit unbekanntem Artikel](./exceptions#exception-order_line_item_unknown)
   (`order_line_item_unknown`)
+- [Auftragszeile ohne Preis](./exceptions#exception-order_line_price_missing)
+  (`order_line_price_missing`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay)

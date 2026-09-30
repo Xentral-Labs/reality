@@ -169,7 +169,7 @@ def _finance_state(session: Session, tenant_id: str, arguments: dict) -> dict:
             "billed_lines": billed,
             "item_id": line.item_id,
             "unit": line.unit,
-            "unit_price": str(line.unit_price),
+            "unit_price": str(line.unit_price) if line.unit_price is not None else None,
             "delivered_quantity": str(delivered),
             "uncredited_return_quantity": str(
                 uncredited_return_quantity(session, tenant_id, line.id)

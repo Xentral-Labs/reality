@@ -289,6 +289,7 @@ def _preview_credit(
             for row in selected
         ],
         amount,
+        _carry_unstated_price=True,
         currency=context["invoice"]["currency"],
         document_date=effective.date().isoformat() if effective else "",
     )
@@ -365,6 +366,7 @@ def _record_invoice_credit(
             context["invoice"]["party_id"],
             creation["lines"],
             creation["gross_amount"],
+            _carry_unstated_price=True,
             currency=context["invoice"]["currency"],
             document_date=effective.date().isoformat(),
             source_record_id=source.id,

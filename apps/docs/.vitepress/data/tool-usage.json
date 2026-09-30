@@ -325,7 +325,11 @@
         "command:create_party_group"
       ],
       "reads": ["command:resolve_price"],
-      "exceptions": ["exception:invoice_price_differs", "exception:sold_below_purchase_price"],
+      "exceptions": [
+        "exception:invoice_price_differs",
+        "exception:sold_below_purchase_price",
+        "exception:order_line_price_missing"
+      ],
       "tools": [],
       "events": [
         "event:master_data.lifecycle_changed",
@@ -403,7 +407,8 @@
         "exception:party_hold_unreleased",
         "exception:stale_cost_review",
         "exception:negative_actual_db1",
-        "exception:order_line_item_unknown"
+        "exception:order_line_item_unknown",
+        "exception:order_line_price_missing"
       ],
       "tools": [
         "tool:commitments_list",
@@ -23700,7 +23705,8 @@
         "exception:negative_actual_db1",
         "exception:exchange_without_return",
         "exception:order_line_item_unknown",
-        "exception:payment_returned"
+        "exception:payment_returned",
+        "exception:order_line_price_missing"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -25091,6 +25097,27 @@
       ],
       "label_de": "Zahlung zurückgegangen",
       "resources": ["payment", "return"]
+    },
+    {
+      "id": "exception:order_line_price_missing",
+      "kind": "exception",
+      "key": "order_line_price_missing",
+      "label": "Order line without a price",
+      "area": "master_data",
+      "summary": "A source order line states no price. The order was interpreted and the line promised, but the line was kept without a price instead of at a price of zero, so nothing is billed from it until a person states what is billed. Reporting it keeps a gap in what the source sent from passing as a free line.",
+      "owner": "Sales operations",
+      "clears_through": "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.",
+      "severity": "normal",
+      "record_type": "document_line",
+      "authority": "314/FR-006",
+      "evidence": [
+        "tests/test_shop_line_gaps.py::test_a_line_without_a_price_is_kept_without_one_and_reported",
+        "tests/test_shop_line_gaps.py::test_a_billed_unpriced_line_is_no_longer_reported"
+      ],
+      "causes": [],
+      "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
+      "label_de": "Auftragszeile ohne Preis",
+      "resources": ["order", "terms"]
     },
     {
       "id": "event:cost.attributed",
@@ -72842,10 +72869,10 @@
         {
           "name": "unit_price",
           "type": "NUMERIC(18, 4)",
-          "nullable": false,
+          "nullable": true,
           "default": {
-            "kind": "scalar",
-            "value": 0
+            "kind": "none",
+            "value": ""
           },
           "meaning": {
             "en": "Unit price received for this line; no price recalculation.",

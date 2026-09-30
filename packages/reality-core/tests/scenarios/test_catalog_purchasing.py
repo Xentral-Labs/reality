@@ -733,3 +733,158 @@ def test_variants_bought_together_each_hold_and_reserve_their_own_stock(
         "JERSEY-M": "0",
         "JERSEY-L": "2",
     }
+
+
+# --- Spec 314: receipts without a purchase (H09) and a partial receipt (B09) ---
+
+
+def _receipts(session, business):
+    return set(
+        session.scalars(
+            select(Movement.id).where(
+                Movement.tenant_id == business.tenant.id, Movement.type == "receipt"
+            )
+        )
+    )
+
+
+def _receive_unordered(session, business, tracking, **extra):
+    before = _receipts(session, business)
+    _execute_delivery(
+        session,
+        business.tenant.id,
+        "shipment_receive",
+        {
+            "purpose": "supplier_delivery",
+            "counterparty_id": business.supplier.id,
+            "tracking_number": tracking,
+            "movements": [
+                {
+                    "item_id": business.item.id,
+                    "to_location_id": business.location.id,
+                    "quantity": "2",
+                    **extra,
+                }
+            ],
+        },
+    )
+    (movement_id,) = _receipts(session, business) - before
+    return movement_id
+
+
+def test_a_receipt_without_a_purchase_order_says_why_it_arrived(session, business):
+    """H09: a sample explains itself; a misdelivery is reported until linked."""
+    tenant = business.tenant.id
+
+    # Free samples: the receiving clerk states why they came.
+    before = _receipts(session, business)
+    _reviewed(
+        session,
+        business,
+        "movement_create",
+        {
+            "movement_type": "receipt",
+            "item_id": business.item.id,
+            "quantity": "2",
+            "to_location_id": business.location.id,
+            "reason": "Free samples from the supplier's new range",
+        },
+        "h09-samples",
+    )
+    (samples,) = _receipts(session, business) - before
+    explanation = run_read_tool(
+        session, tenant, "movement_explanation", {"movement_id": samples}
+    )
+    assert (explanation["kind"], explanation["reason"]) == (
+        "explicit_reason",
+        "Free samples from the supplier's new range",
+    )
+
+    # A parcel nobody ordered, received at the dock without a word.
+    misdelivered = _receive_unordered(session, business, "TRK-H09-1")
+    unexplained = _records_of(session, tenant, "unexplained_movement")
+    assert misdelivered in unexplained
+    assert samples not in unexplained
+    assert core.stock_at(session, tenant, business.item.id, business.location.id) == 4
+
+    # It turns out to be an early delivery of a purchase ordered by phone.
+    _, _, purchase = _order(
+        session, business, "purchase", "PO-H09", business.supplier.id, "2", "10"
+    )
+    received = core.fulfilled_quantity(session, tenant, purchase.id)
+    assert received == 0
+    core.correct_movement(
+        session,
+        tenant,
+        misdelivered,
+        reason="Phone order PO-H09, recorded afterwards",
+        replacement={
+            "type": "receipt",
+            "item_id": business.item.id,
+            "quantity": "2",
+            "to_location_id": business.location.id,
+            "commitment_id": purchase.id,
+        },
+    )
+
+    assert _records_of(session, tenant, "unexplained_movement") == set()
+    assert core.fulfilled_quantity(session, tenant, purchase.id) == 2
+    assert core.stock_at(session, tenant, business.item.id, business.location.id) == 4
+
+
+def test_a_partial_receipt_leaves_the_assigned_backorders_as_they_were(
+    session, business
+):
+    """B09, pinned: which backorders stay uncovered is answered by reservations only.
+
+    A receipt does not consume supply assignments (spec 305 will): each customer
+    still counts its full assigned quantity as protecting supply after only part
+    of the purchase arrived.
+    """
+    tenant = business.tenant.id
+    customers = [
+        _order(
+            session, business, "sales", f"SO-B09-{n}", business.customer.id, "3", "20"
+        )[2]
+        for n in (1, 2, 3)
+    ]
+    _, _, purchase = _order(
+        session, business, "purchase", "PO-B09", business.supplier.id, "9", "10"
+    )
+    for n, customer in enumerate(customers, start=1):
+        _reviewed(
+            session,
+            business,
+            "supply_assign",
+            {
+                "supplier_commitment_id": purchase.id,
+                "purpose": "customer_demand",
+                "customer_commitment_id": customer.id,
+                "quantity": "3",
+            },
+            f"b09-assign-{n}",
+        )
+    # Positive control: without stock every backorder is at risk.
+    assert {c.id for c in customers} <= _records_of(
+        session, tenant, "outgoing_commitment_at_risk"
+    )
+
+    _receive_into(session, business, "TRK-B09", purchase, "4")
+    supplier = supply_coverage(session, tenant, supplier_commitment_id=purchase.id)[
+        "supplier"
+    ]
+    assert (supplier["received"], supplier["open"]) == (4, 5)
+    # The gap spec 305 closes: assigned supply is not split into arrived and to come.
+    assert [
+        supply_coverage(session, tenant, customer_commitment_id=c.id)["customer"][
+            "protecting_supply"
+        ]
+        for c in customers
+    ] == [3, 3, 3]
+
+    # Today a person answers it by reserving what arrived.
+    core.reserve(session, tenant, customers[0].id, "3")
+    core.reserve(session, tenant, customers[1].id, "1")
+    at_risk = _records_of(session, tenant, "outgoing_commitment_at_risk")
+    assert customers[0].id not in at_risk
+    assert {customers[1].id, customers[2].id} <= at_risk

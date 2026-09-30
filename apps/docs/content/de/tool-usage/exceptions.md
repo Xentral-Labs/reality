@@ -50,6 +50,7 @@ was sie auflöst und welche Agenten-Tools sie auflisten und erklären.
 | [`exchange_without_return`](#exception-exchange_without_return)                           | Exchange without return                  | Aufträge & Erfüllung    | `normal` | Customer service                                                                            |
 | [`order_line_item_unknown`](#exception-order_line_item_unknown)                           | Order line with unknown item             | Aufträge & Erfüllung    | `normal` | Sales operations                                                                            |
 | [`payment_returned`](#exception-payment_returned)                                         | Payment returned                         | Finanzen                | `high`   | Accounts receivable                                                                         |
+| [`order_line_price_missing`](#exception-order_line_price_missing)                         | Order line without a price               | Stammdaten & Preise     | `normal` | Sales operations                                                                            |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1257,3 +1258,23 @@ date, so the receivable is followed up at once instead of waiting until it shows
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
 [`exception_explain`](./commands#tool-exception_explain), Sicht
 [`documents`](./views#view-documents)
+
+## `order_line_price_missing` — Order line without a price {#exception-order_line_price_missing}
+
+A source order line states no price. The order was interpreted and the line promised, but the line
+was kept without a price instead of at a price of zero, so nothing is billed from it until a person
+states what is billed. Reporting it keeps a gap in what the source sent from passing as a free line.
+
+- **Verantwortlich:** Sales operations
+- **Aufgelöst durch:** An invoice that bills the line, stating the amount charged, or cancelling the
+  line's promise.
+- **Schwere:** `normal`
+- **Datensatztyp:** `document_line`
+- **Spezifikation:** `314/FR-006`
+- **Nachweis:**
+  `tests/test_shop_line_gaps.py::test_a_line_without_a_price_is_kept_without_one_and_reported`,
+  `tests/test_shop_line_gaps.py::test_a_billed_unpriced_line_is_no_longer_reported`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain)

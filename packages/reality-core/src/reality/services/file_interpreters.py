@@ -128,6 +128,19 @@ FILE_MAPPING_PROFILES = {
 MAX_MATERIALIZED_JSON_BYTES = 64 * 1024 * 1024
 
 
+def _stated_price(row: dict[str, Any]) -> Decimal | None:
+    """The row's stated unit price, or None when the file states none.
+
+    A stated 0 is a free line, not a missing price, so each column is read for
+    presence rather than truth.
+    """
+    for column in ("unit_price", "price"):
+        value = row.get(column)
+        if value is not None and str(value).strip() != "":
+            return decimal(value)
+    return None
+
+
 def _value(row: dict[str, Any], name: str, default: Any = "") -> Any:
     normalized = {str(key).strip().lower(): value for key, value in row.items()}
     for alias in ALIASES.get(name, (name,)):
@@ -431,8 +444,7 @@ def interpret_artifact(
             )
             total = sum(
                 (
-                    positive(_value(row, "quantity"))
-                    * decimal(row.get("unit_price") or row.get("price") or 0)
+                    positive(_value(row, "quantity")) * (_stated_price(row) or 0)
                     for row in order_rows
                 ),
                 Decimal(0),
@@ -478,7 +490,9 @@ def interpret_artifact(
             for row in order_rows:
                 item = _item(session, tenant_id, str(_value(row, "sku")).strip())
                 quantity = positive(_value(row, "quantity"))
-                price = decimal(row.get("unit_price") or row.get("price") or 0)
+                # A row without a price stays without one (spec 314).
+                price = _stated_price(row)
+                line_amount = quantity * price if price is not None else Decimal(0)
                 line = DocumentLine(
                     id=uid("lin"),
                     tenant_id=tenant_id,
@@ -489,7 +503,7 @@ def interpret_artifact(
                     description=str(_value(row, "name", item.name)),
                     quantity=quantity,
                     unit_price=price,
-                    gross_amount=quantity * price,
+                    gross_amount=line_amount,
                     unit=item.unit,
                     requested_at=utc_datetime(row.get("requested_delivery_at")),
                     line_type="item",
@@ -506,7 +520,7 @@ def interpret_artifact(
                     item_id=item.id,
                     location_id=location.id,
                     quantity=quantity,
-                    amount=quantity * price,
+                    amount=line_amount,
                     currency=document.currency,
                     due_at=utc_datetime(row.get("requested_delivery_at")),
                     status="open",

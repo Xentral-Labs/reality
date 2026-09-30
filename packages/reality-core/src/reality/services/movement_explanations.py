@@ -23,6 +23,29 @@ def _link(kind: str, record_id: str | None, label: str) -> dict[str, str] | None
     return {"kind": kind, "id": record_id, "label": label} if record_id else None
 
 
+def stated_movement_reasons(
+    session: Session, tenant_id: str, movement_ids: set[str] | None = None
+) -> dict[str, str]:
+    """Reasons people stated for receipts no purchase explains (spec 314), by movement.
+
+    One read of the stated-reason records, which exist only for receipts
+    recorded without a promise.
+    """
+    from reality.services.core import MOVEMENT_REASON_RECORD
+
+    reasons = {}
+    for row in session.scalars(
+        select(ChangeProposal).where(
+            ChangeProposal.tenant_id == tenant_id,
+            ChangeProposal.type == MOVEMENT_REASON_RECORD,
+        )
+    ):
+        movement_id = json.loads(row.output or "{}").get("movement_id")
+        if movement_id and (movement_ids is None or movement_id in movement_ids):
+            reasons[movement_id] = json.loads(row.input or "{}").get("reason") or ""
+    return reasons
+
+
 def movement_explanation(
     session: Session, tenant_id: str, movement_id: str
 ) -> dict[str, Any]:
@@ -223,6 +246,32 @@ def movement_explanation(
             kind = "explicit_reason"
             summary = "This movement is a manually stated inventory adjustment."
             reason = json.loads(proposal.input or "{}").get("reason")
+
+    from reality.services.core import MOVEMENT_REASON_TYPES
+
+    if (
+        kind in {"unexplained", "shipment"}
+        and movement.type in MOVEMENT_REASON_TYPES
+        and not movement.commitment_id
+    ):
+        stated = stated_movement_reasons(session, tenant_id, {movement.id}).get(
+            movement.id
+        )
+        if stated:
+            kind = "explicit_reason"
+            summary = "The person who recorded this movement stated why it happened."
+            reason = stated
+        elif (
+            kind == "shipment"
+            and movement.type == "receipt"
+            and not movement.source_record_id
+        ):
+            # A package says how goods arrived, not why (spec 314 FR-004).
+            kind = "unexplained"
+            summary = (
+                "Received in a recorded package, but no purchase, source or "
+                "stated reason explains why."
+            )
 
     # An exchange adds to what a return or a replacement shipment already is, so it
     # is appended rather than taking over the kind (spec 293 FR-012).

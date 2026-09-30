@@ -36,6 +36,7 @@ records:
         billed_not_received: requires_presence
         invoice_price_differs: requires_presence
         units_not_comparable: requires_presence
+        order_line_price_missing: reports_absence
     item_id:
       classification: trace_only
       meaning: The catalogued item a line concerns, absent for a freight or service line.
@@ -128,6 +129,7 @@ records:
         billed_not_received: requires_presence
         units_not_comparable: requires_presence
         order_line_item_unknown: reports_absence
+        order_line_price_missing: reports_absence
         overdue_outgoing_customer_commitment: traces_only
         outgoing_commitment_at_risk: traces_only
         order_stalled: traces_only

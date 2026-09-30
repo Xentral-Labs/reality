@@ -178,7 +178,7 @@ def preview_item_assignment(
         "item_id": item.id,
         "item_sku": item.sku,
         "quantity": str(line.quantity),
-        "unit_price": str(line.unit_price),
+        "unit_price": str(line.unit_price) if line.unit_price is not None else None,
         "currency": order.currency,
         "from_party_id": from_party_id,
         "to_party_id": order.party_id,
@@ -227,7 +227,10 @@ def assign_line_item(
             quantity,
             preview["due_at"],
             action_id=action_id,
-            amount=quantity * core.decimal(preview["unit_price"]),
+            # A line without a stated price promises nothing billable (spec 314).
+            amount=quantity * core.decimal(preview["unit_price"])
+            if preview["unit_price"] is not None
+            else core.ZERO,
             currency=preview["currency"],
             document_id=preview["order_id"],
             document_line_id=line.id,

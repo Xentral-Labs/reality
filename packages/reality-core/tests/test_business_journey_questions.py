@@ -175,7 +175,8 @@ def test_provider_cannot_upgrade_a_mixed_capability_answer() -> None:
         return {
             "text": "Reality supports some return flows, with documented limitations.",
             "status": "partial",
-            "citations": ["F02", "F08"],
+            # F02 is supported, J05 partial: the answer may not claim more.
+            "citations": ["F02", "J05"],
         }
 
     answer = answer_public_question(
@@ -184,13 +185,13 @@ def test_provider_cannot_upgrade_a_mixed_capability_answer() -> None:
 
     assert answer.outcome == "provider"
     assert answer.status == "partial"
-    assert answer.citations == ("F02", "F08")
+    assert answer.citations == ("F02", "J05")
 
 
 def test_published_ids_named_in_prose_are_added_to_citations() -> None:
     def provider(_envelope):
         return {
-            "text": "Partial returns use F02; goodwill refunds use F08.",
+            "text": "Partial returns use F02; expired lots are J05.",
             "status": "partial",
             "citations": ["F02"],
         }
@@ -201,7 +202,7 @@ def test_published_ids_named_in_prose_are_added_to_citations() -> None:
 
     assert answer.outcome == "provider"
     assert answer.status == "partial"
-    assert answer.citations == ("F02", "F08")
+    assert answer.citations == ("F02", "J05")
 
 
 @pytest.mark.parametrize(

@@ -2891,7 +2891,7 @@ def _explain_retained_order(
                 "unit_mismatch": quantity_unit(items.get(line.item_id), line)[
                     "unit_mismatch"
                 ],
-                "unit_price": str(line.unit_price),
+                "unit_price": str(line.unit_price) if line.unit_price is not None else None,
                 "gross_amount": str(line.gross_amount),
                 "billed_document_line_id": line.billed_document_line_id,
             }

@@ -123,6 +123,7 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "exchange_without_return",
     "order_line_item_unknown",
     "payment_returned",
+    "order_line_price_missing",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays

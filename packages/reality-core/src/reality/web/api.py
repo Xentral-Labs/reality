@@ -5307,6 +5307,9 @@ def _historical_pricing_summary(explanation: dict[str, Any]) -> str:
         comparison = display_text(comparison, f" · {state}")
     else:
         comparison = f"current unavailable · {current['unavailable_reason']}"
+    if agreed["unit_price"] is None:
+        # The source stated no price for this line (spec 314).
+        return display_text("agreed no price stated · ", comparison)
     return display_text(
         "agreed ",
         money(agreed["unit_price"], agreed["currency"], precision=4),

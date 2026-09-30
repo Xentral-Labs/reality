@@ -21913,6 +21913,8 @@ Object.assign(dictionaries.de, {
   "Ledger reversal reason is required.": "Ein Stornierungsgrund ist erforderlich.",
   LedgerEntry: "Buchung",
   "Line unit and type are required.": "Einheit und Typ der Position sind erforderlich.",
+  "Line {index} needs a unit price; enter 0 for a free line.":
+    "Position {index} braucht einen Stückpreis; gib 0 für eine kostenlose Position ein.",
   "Line {index} requires a stated amount; it is never calculated.":
     "Position {index} braucht einen angegebenen Betrag; er wird nie berechnet.",
   "Location does not allow physical stock.": "Der Lagerort erlaubt keinen physischen Bestand.",
@@ -22815,6 +22817,8 @@ Object.assign(dictionaries.nl, {
   "Ledger reversal reason is required.": "Een reden voor terugdraaiing is verplicht.",
   LedgerEntry: "Boeking",
   "Line unit and type are required.": "Eenheid en type van de regel zijn verplicht.",
+  "Line {index} needs a unit price; enter 0 for a free line.":
+    "Regel {index} heeft een stukprijs nodig; vul 0 in voor een gratis regel.",
   "Line {index} requires a stated amount; it is never calculated.":
     "Regel {index} vereist een opgegeven bedrag; dat wordt nooit berekend.",
   "Location does not allow physical stock.": "De locatie staat geen fysieke voorraad toe.",
@@ -23725,6 +23729,8 @@ Object.assign(dictionaries.es, {
   "Ledger reversal reason is required.": "El motivo de la reversión es obligatorio.",
   LedgerEntry: "Asiento",
   "Line unit and type are required.": "La unidad y el tipo de la línea son obligatorios.",
+  "Line {index} needs a unit price; enter 0 for a free line.":
+    "La línea {index} necesita un precio unitario; indica 0 para una línea gratuita.",
   "Line {index} requires a stated amount; it is never calculated.":
     "La línea {index} requiere un importe indicado; nunca se calcula.",
   "Location does not allow physical stock.": "La ubicación no admite existencias físicas.",
@@ -24408,6 +24414,9 @@ Object.assign(dictionaries.de, {
   "Stated SKU": "Angegebene SKU",
   "Why it waits": "Warum es wartet",
   "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
+  "Order line without a price": "Auftragszeile ohne Preis",
+  "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
+    "Eine Rechnung, die die Zeile abrechnet und den berechneten Betrag angibt, oder die Stornierung der Zusage der Zeile.",
   "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
     "Den gemeinten Artikel mit dem geprüften Werkzeug order_line_item_assign zuordnen, das die Lieferzusage anlegt, oder den Auftrag stornieren.",
   "Only a sales-order line can be given an item here.":
@@ -24425,6 +24434,8 @@ Object.assign(dictionaries.de, {
   "An assignment for this order line is still being recorded; reconcile it before trying again.":
     "Eine Zuordnung für diese Auftragszeile wird noch erfasst; gleiche sie ab, bevor du es erneut versuchst.",
   Refunds: "Erstattungen",
+  "Source order line {line} states no quantity; the order is not interpreted until it does.":
+    "Die Quell-Auftragszeile {line} nennt keine Menge; der Auftrag wird erst übernommen, wenn sie eine nennt.",
   "The Shopify order of this refund has not been interpreted yet; the refund is retried.":
     "Die Shopify-Bestellung dieser Erstattung ist noch nicht interpretiert; die Erstattung wird erneut versucht.",
 });
@@ -24442,6 +24453,9 @@ Object.assign(dictionaries.nl, {
   "Stated SKU": "Opgegeven SKU",
   "Why it waits": "Waarom het wacht",
   "Order line with unknown item": "Orderregel met onbekend artikel",
+  "Order line without a price": "Orderregel zonder prijs",
+  "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
+    "Een factuur die de regel factureert met het gefactureerde bedrag, of het annuleren van de toezegging van de regel.",
   "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
     "Het bedoelde artikel toewijzen met de gecontroleerde tool order_line_item_assign, die de leverbelofte aanmaakt, of de order annuleren.",
   "Only a sales-order line can be given an item here.":
@@ -24459,6 +24473,8 @@ Object.assign(dictionaries.nl, {
   "An assignment for this order line is still being recorded; reconcile it before trying again.":
     "Een toewijzing voor deze orderregel wordt nog vastgelegd; stem die af voordat je het opnieuw probeert.",
   Refunds: "Terugbetalingen",
+  "Source order line {line} states no quantity; the order is not interpreted until it does.":
+    "Bronorderregel {line} vermeldt geen hoeveelheid; de order wordt pas verwerkt als die er is.",
   "The Shopify order of this refund has not been interpreted yet; the refund is retried.":
     "De Shopify-bestelling van deze terugbetaling is nog niet geïnterpreteerd; de terugbetaling wordt opnieuw geprobeerd.",
 });
@@ -24476,6 +24492,9 @@ Object.assign(dictionaries.es, {
   "Stated SKU": "SKU indicada",
   "Why it waits": "Por qué espera",
   "Order line with unknown item": "Línea de pedido con artículo desconocido",
+  "Order line without a price": "Línea de pedido sin precio",
+  "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
+    "Una factura que facture la línea indicando el importe cobrado, o la cancelación del compromiso de la línea.",
   "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
     "Asignar el artículo que la tienda quería con la herramienta revisada order_line_item_assign, que crea el compromiso de entrega, o cancelar el pedido.",
   "Only a sales-order line can be given an item here.":
@@ -24493,6 +24512,8 @@ Object.assign(dictionaries.es, {
   "An assignment for this order line is still being recorded; reconcile it before trying again.":
     "Todavía se está registrando una asignación para esta línea; concílala antes de volver a intentarlo.",
   Refunds: "Reembolsos",
+  "Source order line {line} states no quantity; the order is not interpreted until it does.":
+    "La línea de pedido de origen {line} no indica cantidad; el pedido no se interpreta hasta que la indique.",
   "The Shopify order of this refund has not been interpreted yet; the refund is retried.":
     "El pedido de Shopify de este reembolso aún no se ha interpretado; el reembolso se reintentará.",
 });

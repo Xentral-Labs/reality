@@ -732,6 +732,11 @@ def payment_candidates(
             reasons.append("invoice number appears in the remittance text")
         if len(ambiguous) > 1 and invoice.id in ambiguous:
             reasons.append("stated reference names this invoice among others")
+        elif invoice.id in ambiguous:
+            # The reference named nothing when the money arrived; now it names
+            # exactly this invoice. It is offered, never allocated: the amount may
+            # differ and the person decides (spec 314 FR-005).
+            reasons.append("stated reference names this invoice")
         if reasons:
             candidates.append(
                 Candidate(

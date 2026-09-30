@@ -116,6 +116,7 @@ CLASS_ORDER = {
     "exchange_without_return": 39,
     "order_line_item_unknown": 40,
     "payment_returned": 41,
+    "order_line_price_missing": 42,
 }
 
 
@@ -1561,6 +1562,81 @@ def _order_line_item_unknown_exceptions(
     return result
 
 
+def _order_line_price_missing_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """A source order line states no price (spec 314).
+
+    The line was kept without one rather than at a price of zero, so nothing is
+    billed from it until a person states what is billed. It is reported until
+    an invoice bills the line, which states that amount, or its promise is
+    cancelled.
+    """
+    billing_line = aliased(DocumentLine)
+    billing_document = aliased(Document)
+    rows = session.execute(
+        select(DocumentLine, Document)
+        .join(
+            Document,
+            (Document.tenant_id == DocumentLine.tenant_id)
+            & (Document.id == DocumentLine.document_id),
+        )
+        .where(
+            DocumentLine.tenant_id == tenant_id,
+            DocumentLine.unit_price.is_(None),
+            Document.type == "sales_order",
+            Document.source_record_id.is_not(None),
+            ~DocumentLine.id.in_(
+                select(Commitment.document_line_id).where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.document_line_id.is_not(None),
+                    Commitment.status == "cancelled",
+                )
+            ),
+            ~DocumentLine.id.in_(
+                select(billing_line.billed_document_line_id)
+                .join(
+                    billing_document,
+                    (billing_document.tenant_id == billing_line.tenant_id)
+                    & (billing_document.id == billing_line.document_id),
+                )
+                .where(
+                    billing_line.tenant_id == tenant_id,
+                    billing_line.billed_document_line_id.is_not(None),
+                    billing_document.type == "sales_invoice",
+                )
+            ),
+        )
+        .order_by(Document.number, DocumentLine.id)
+    ).all()
+    return [
+        OperationalException(
+            _identity("order_line_price_missing", line.id),
+            "order_line_price_missing",
+            (),
+            "normal",
+            "Order line without a price",
+            f"{Decimal(line.quantity).normalize():f} of {line.sku or line.description} "
+            f"on order {order.number} states no price",
+            "document_line",
+            line.id,
+            {
+                "sku": line.sku,
+                "description": line.description,
+                "quantity": Decimal(line.quantity),
+                "order_number": order.number,
+            },
+            {
+                "document_line_id": line.id,
+                "document_id": order.id,
+                "source_record_id": order.source_record_id,
+            },
+            _document_instant(order),
+        )
+        for line, order in rows
+    ]
+
+
 def _exchange_without_return_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
@@ -2013,8 +2089,9 @@ def _sold_below_purchase_price_exceptions(
     ).all()
     books: dict[str, tuple[PriceList, dict[str, list[PriceListEntry]]] | None] = {}
     for line, document in rows:
-        # Freight and services have no purchase price of their own here.
-        if not line.item_id:
+        # Freight and services have no purchase price of their own here, and a
+        # line without a stated price has nothing to compare (spec 314).
+        if not line.item_id or line.unit_price is None:
             continue
         agreed = Decimal(line.unit_price)
         # A sample or a replacement is priced at nothing on purpose.
@@ -2552,6 +2629,9 @@ def _invoice_price_differs_exceptions(
         # pair recorded in different units is left alone rather than compared.
         if not _prices_comparable(line, agreed):
             continue
+        # A price nobody stated is not a difference (spec 314).
+        if line.unit_price is None or agreed.unit_price is None:
+            continue
         difference = Decimal(line.unit_price) - Decimal(agreed.unit_price)
         if difference == ZERO:
             continue
@@ -2708,7 +2788,9 @@ def _movement_exceptions(
             Movement.source_record_id.is_(None),
             Movement.return_announcement_id.is_(None),
             Movement.resolves_movement_id.is_(None),
-            Movement.shipment_package_id.is_(None),
+            # A package says how goods arrived, not why: a receipt without a
+            # purchase is unexplained even in a recorded package (spec 314).
+            or_(Movement.shipment_package_id.is_(None), Movement.type == "receipt"),
             ~Movement.id.in_(
                 select(MovementCorrection.original_movement_id).where(
                     MovementCorrection.tenant_id == tenant_id
@@ -2716,6 +2798,15 @@ def _movement_exceptions(
             ),
         )
     )
+    from reality.services.movement_explanations import stated_movement_reasons
+
+    rows = list(rows)
+    stated = (
+        stated_movement_reasons(session, tenant_id, {row.id for row in rows})
+        if rows
+        else {}
+    )
+    rows = [row for row in rows if row.id not in stated]
     return [
         OperationalException(
             _identity("unexplained_movement", row.id),
@@ -3650,6 +3741,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "exchange_without_return": _exchange_without_return_exceptions,
     "order_line_item_unknown": _order_line_item_unknown_exceptions,
     "payment_returned": _payment_returned_exceptions,
+    "order_line_price_missing": _order_line_price_missing_exceptions,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,
