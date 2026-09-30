@@ -675,7 +675,8 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`negative_actual_db1`](./exceptions#exception-negative_actual_db1), exception
 [`exchange_without_return`](./exceptions#exception-exchange_without_return), exception
 [`order_line_item_unknown`](./exceptions#exception-order_line_item_unknown), exception
-[`payment_returned`](./exceptions#exception-payment_returned)
+[`payment_returned`](./exceptions#exception-payment_returned), exception
+[`order_line_price_missing`](./exceptions#exception-order_line_price_missing)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

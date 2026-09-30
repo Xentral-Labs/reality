@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:9766157b0c10c595a7b62f0efd5235ee8742ee22146ec516bef5e5a4da594160",
+  "knowledge_version": "advisor-v1:sha256:b26495ee251b9f01b6e93dcfc146b67956fe54665e4cf52d2dcbe5b7d1d5fc90",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -297,7 +297,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#B09",
-      "fingerprint": "6395fa7e12ecea1aee788fa86441c0933f4f556d3cb3b8d3aa1c147eb9903629"
+      "fingerprint": "904670516588d1cfef34fe7cd715a601ab508d0f77555e010a6b51735927a041"
     },
     {
       "id": "source_journey_b10",
@@ -855,7 +855,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#F04",
-      "fingerprint": "9e308df406a67cfb61e7afac755e4b7457e57af81b2127febd0360bf301a2b72"
+      "fingerprint": "20262d578477ba41e3ec634e5a3b7620bd03175e58a2edb2621033244a0962f5"
     },
     {
       "id": "source_journey_f05",
@@ -891,7 +891,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#F08",
-      "fingerprint": "8aeefc2c8b8988a5f82db5af84a00ce84414331c0a0b00c48bd0adab53280a4a"
+      "fingerprint": "4aeffd7c88e56aaa473dee83c84312dcf4311654383257bcbd519ff7a4046511"
     },
     {
       "id": "source_journey_f09",
@@ -1170,7 +1170,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H09",
-      "fingerprint": "7cdb23c72f73764c4fb6ddc6bd9c0c5b2007a83c35078d8e92959bfe07eb2087"
+      "fingerprint": "39eb00273bc5fceda2e784be1b9f45903fef3046d1b6518a411ce8d193f2c2e3"
     },
     {
       "id": "source_journey_h10",
@@ -1881,7 +1881,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#P02",
-      "fingerprint": "df5af0f841093cab8a0703d6a799463784af59962caab9132b2522494961f617"
+      "fingerprint": "60c311812eef59bbe626fef87c1d4fc91b7bcfb6de8cd16cf4a35fa3c998b6fe"
     },
     {
       "id": "source_journey_p03",
@@ -1908,7 +1908,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#P05",
-      "fingerprint": "6db7274d3cddef21dc5c2f4253b71927ffe844309877988f7390cbc44d76e489"
+      "fingerprint": "1853a04c3bce4a6f692592a5c63a89fe0fe1825502a27adcbcc969d622a1d17c"
     },
     {
       "id": "source_journey_p06",
@@ -1935,7 +1935,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#P08",
-      "fingerprint": "737616e74a51484d9079863bafd8b4f97e4c9e15f0b0aecd602ad50793f09fc4"
+      "fingerprint": "6909631ce8ca1ed5bc23b6d0cec77968c2c358b2c543991e49ff29a388629409"
     },
     {
       "id": "source_journey_q01",
@@ -2653,17 +2653,17 @@
       "subject": "Availability, reservation and backorder",
       "title": "Receipt covers only part of the backorders",
       "search_text": "B09 Availability, reservation and backorder Receipt covers only part of the backorders Which remain uncovered? Receipt covers only part of the backorders Which remain uncovered?",
-      "claim_text": "Reality evaluates: Which remain uncovered?",
+      "claim_text": "Reality evaluates: Which remain uncovered? After a partial receipt, the promises a person has reserved are covered and the rest are reported at risk.",
       "support": "limited",
       "limitations": [
-        "A partial receipt is reconciled against the purchase.",
-        "Which customer promises stay uncovered afterwards is not yet proven."
+        "A receipt does not consume supply assignments, so each backorder still counts its full assigned supply after only part arrived.",
+        "Which backorders stay uncovered is answered by the reservations a person makes."
       ],
       "references": [
         "B09"
       ],
       "language": "en",
-      "fingerprint": "2f6a986773aac138e4f1d7159b26e98cb4382dff5b77b7e7cf5ec78d0cd037fb"
+      "fingerprint": "ef6a11b8fa633a070f06a341cb3d83646fd2262d9bb4ee9db0d430373d95eaf7"
     },
     {
       "id": "evidence_journey_b10",
@@ -3691,18 +3691,17 @@
       "source_id": "source_journey_f04",
       "subject": "Returns and complaints",
       "title": "Unannounced return",
-      "search_text": "F04 Returns and complaints Unannounced return Accepted and linked later? Unannounced return Accepted and linked later?",
-      "claim_text": "Reality evaluates: Accepted and linked later?",
-      "support": "limited",
+      "search_text": "F04 Returns and complaints Unannounced return Accepted and linked later? unannounced return return without announcement Retoure ohne Anmeldung unangemeldete Rücksendung Unannounced return Accepted and linked later? A parcel came back without any paperwork Eine Retoure kam ohne Anmeldung, wie ordne ich sie zu?",
+      "claim_text": "Reality evaluates: Accepted and linked later? A parcel without an announcement is taken into stock and reported as unexplained; when a person finds which delivery it belongs to, a reviewed correction links it, and what is owed back becomes visible until it is credited.",
+      "support": "proven",
       "limitations": [
-        "An unannounced return can be accepted.",
-        "Linking it to its order later is not yet proven."
+        "A correction links the return to its delivery, not to a return announcement."
       ],
       "references": [
         "F04"
       ],
       "language": "en",
-      "fingerprint": "550f6103cb05889d5201c66f8f63ebd3870b98111bee08cc3498ee4c624f47ce"
+      "fingerprint": "ece253408140dff3d8eefaee4394e33a61e82e9283a5a8042d9b98b38aaa8146"
     },
     {
       "id": "evidence_journey_f05",
@@ -3758,18 +3757,17 @@
       "source_id": "source_journey_f08",
       "subject": "Returns and complaints",
       "title": "Refund before the return arrives (goodwill)",
-      "search_text": "F08 Returns and complaints Refund before the return arrives (goodwill) Refund paid, return still expected? Refund before the return arrives (goodwill) Refund paid, return still expected?",
-      "claim_text": "Reality evaluates: Refund paid, return still expected?",
-      "support": "limited",
+      "search_text": "F08 Returns and complaints Refund before the return arrives (goodwill) Refund paid, return still expected? goodwill refund refund before return Kulanzerstattung Erstattung vor Rücksendung Refund before the return arrives (goodwill) Refund paid, return still expected? We refunded the customer before the goods came back Die Erstattung ist raus, aber die Retoure fehlt noch",
+      "claim_text": "Reality evaluates: Refund paid, return still expected? A credit note and its refund can be paid before the goods come back; the announced return stays expected, is reported once it is overdue, and is fulfilled when the goods arrive.",
+      "support": "proven",
       "limitations": [
-        "A credit note before the goods arrive works.",
-        "The refund payment and a 'return still expected' signal are not yet proven."
+        "A credit recorded through the invoice is not counted by credited-not-returned, which reads credits on the order line."
       ],
       "references": [
         "F08"
       ],
       "language": "en",
-      "fingerprint": "df1f14b7a4fa6b4f675cc8a545b955e253fd24c4e785741eb391b6c502dff35e"
+      "fingerprint": "b281dd17aa076ec12e7d2c7fea8ded654947e30af3dbd2139242ce800c9aa93d"
     },
     {
       "id": "evidence_journey_f09",
@@ -4279,18 +4277,17 @@
       "source_id": "source_journey_h09",
       "subject": "Goods receipt and supplier deviations",
       "title": "Receipt without purchase order (free, sample, misdelivery)",
-      "search_text": "H09 Goods receipt and supplier deviations Receipt without purchase order (free, sample, misdelivery) Why did stock arrive? Receipt without purchase order (free, sample, misdelivery) Why did stock arrive?",
-      "claim_text": "Reality evaluates: Why did stock arrive?",
-      "support": "limited",
+      "search_text": "H09 Goods receipt and supplier deviations Receipt without purchase order (free, sample, misdelivery) Why did stock arrive? receipt without purchase order free samples received misdelivery Wareneingang ohne Bestellung Muster erhalten Falschlieferung Receipt without purchase order (free, sample, misdelivery) Why did stock arrive? Goods arrived that nobody ordered Ware kam ohne Bestellung an, warum?",
+      "claim_text": "Reality evaluates: Why did stock arrive? A receipt without a purchase order keeps the reason the clerk states, such as free samples, and is explained by it; one without a reason is reported as unexplained, also when received through a shipment, until a reason, a purchase or a correction explains it.",
+      "support": "proven",
       "limitations": [
-        "A receipt without a purchase order is flagged.",
-        "A stated reason such as 'sample' or 'free of charge' is not yet proven."
+        "A package alone does not explain a receipt; the reason or the purchase does."
       ],
       "references": [
         "H09"
       ],
       "language": "en",
-      "fingerprint": "d23417030a44a79012c4b03b6a55fc661c82c8e37829fc0184b02a0a2443c1c2"
+      "fingerprint": "5f2ad5a66c31574998aa98c7149e5548637ab5721127523471daf0e94b6c00a0"
     },
     {
       "id": "evidence_journey_h10",
@@ -5607,18 +5604,17 @@
       "source_id": "source_journey_p02",
       "subject": "Sources and integration",
       "title": "Events out of order",
-      "search_text": "P02 Sources and integration Events out of order Linked correctly once complete? Events out of order Linked correctly once complete?",
-      "claim_text": "Reality evaluates: Linked correctly once complete?",
-      "support": "limited",
+      "search_text": "P02 Sources and integration Events out of order Linked correctly once complete? events out of order payment before the order refund before the order Zahlung vor dem Auftrag Reihenfolge der Ereignisse Events out of order Linked correctly once complete? The payment arrived before the order Die Zahlung kam vor der Bestellung an",
+      "claim_text": "Reality evaluates: Linked correctly once complete? A shop refund that arrives before its order fails visibly and links itself when its retry comes due after the order is in; a payment that arrives before its order is recorded as unallocated and, once the order is invoiced, is offered for that invoice by its stated reference, for a person to allocate.",
+      "support": "proven",
       "limitations": [
-        "An outdated update is stored but ignored, and an order is linked once its item exists.",
-        "A payment or invoice that arrives before its order and is linked later is not yet proven."
+        "A payment is offered, not allocated, when its order arrives later."
       ],
       "references": [
         "P02"
       ],
       "language": "en",
-      "fingerprint": "38cd4be1a3f14dc47bc344ddc26ad5c85fc6a8802a1dbc0edd52ff905c178b57"
+      "fingerprint": "dc3ff430c9aa4ad7721acc3eb2c18e4a263fc00526815ced4062d99ccd142dcf"
     },
     {
       "id": "evidence_journey_p03",
@@ -5657,18 +5653,17 @@
       "source_id": "source_journey_p05",
       "subject": "Sources and integration",
       "title": "Incomplete payload accepted",
-      "search_text": "P05 Sources and integration Incomplete payload accepted Gap visible? Incomplete payload accepted Gap visible?",
-      "claim_text": "Reality evaluates: Gap visible?",
-      "support": "limited",
+      "search_text": "P05 Sources and integration Incomplete payload accepted Gap visible? incomplete payload order without price missing field in order unvollständige Bestellung Bestellung ohne Preis Incomplete payload accepted Gap visible? A shop order came in without a price Eine Shop-Bestellung kam ohne Preis",
+      "claim_text": "Reality evaluates: Gap visible? A shop order whose line states no price is accepted: the line is kept without an invented price and reported until a later version states one. A line without a quantity fails its order with a code, and the rest of the batch goes on.",
+      "support": "proven",
       "limitations": [
-        "Unsupported and failed source records are visible.",
-        "Accepting a partly complete record and flagging the missing field is not yet proven."
+        "A price stated in a later version waits for review as a price change."
       ],
       "references": [
         "P05"
       ],
       "language": "en",
-      "fingerprint": "198b3545685350a5c6d01e5441700f592480aef6009df67d2493f8a2a4d7f60d"
+      "fingerprint": "5ca799cadc3a58f3510e745335c338c1da91634cdde6010847c231af94dc5533"
     },
     {
       "id": "evidence_journey_p06",
@@ -5708,18 +5703,17 @@
       "source_id": "source_journey_p08",
       "subject": "Sources and integration",
       "title": "Legacy import at go-live (opening stock, open items, open orders)",
-      "search_text": "P08 Sources and integration Legacy import at go-live (opening stock, open items, open orders) Opening balances traceable? Legacy import at go-live (opening stock, open items, open orders) Opening balances traceable?",
-      "claim_text": "Reality evaluates: Opening balances traceable?",
-      "support": "limited",
+      "search_text": "P08 Sources and integration Legacy import at go-live (opening stock, open items, open orders) Opening balances traceable? go-live legacy import open orders at go-live Datenübernahme Altdaten offene Aufträge bei Go-live Legacy import at go-live (opening stock, open items, open orders) Opening balances traceable? How do we take over open orders that were partly delivered? Wie übernehmen wir teilgelieferte offene Aufträge beim Go-live?",
+      "claim_text": "Reality evaluates: Opening balances traceable? Opening stock and opening open items are traceable, and an open order partly delivered before go-live is imported with its original quantity as evidence and its open rest as the promise, both citing the legacy source record.",
+      "support": "proven",
       "limitations": [
-        "Opening stock and opening open items are traceable.",
-        "Open orders that were already partly delivered at go-live are not yet proven."
+        "The quantity delivered before go-live stays in the legacy payload; it is not a typed value."
       ],
       "references": [
         "P08"
       ],
       "language": "en",
-      "fingerprint": "0b2e2d6bb9b084007e967e519a77fbff7b5e19022f616e203941e51e2da2b435"
+      "fingerprint": "b0edc3eab542a6fabc367b0e08fd4ba58c7be940cbb105c8e7be295c2aca99ba"
     },
     {
       "id": "evidence_journey_q01",
