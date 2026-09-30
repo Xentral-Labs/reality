@@ -74,3 +74,13 @@ Surfaces:
 - C07: an order over the limit is held at entry and released by an owner with a reason. The refusals for a member and for a blank reason are asserted.
 - C08: two overdue invoices are named separately from the invoice not yet due.
 - R08: a customer who is also a supplier has an overdue receivable, an open credit note and a payable; a new order over the limit is held, and its facts name all of them, the payable not subtracted.
+
+## R7. Review round (2026-09-30)
+
+- Every generic release path (document release, web, CLI, the chat tool) keeps credit holds: `release_commitment_hold` keeps `credit_check` by default, and only the closures that end a promise (cancellation, revision to fulfilled) release them.
+- The order value is the stated line amount prorated for the uninvoiced quantity, never quantity times unit price (Constitution VIII).
+- A line without a promise (a service or charge) stops counting once every promise of its order is cancelled.
+- A promise revised upwards runs the same credit check as a new order.
+- The exposure is read for many customers at once: invoiced quantities, open items, credits and orders in a bounded number of reads, whatever the number of lines or customers; the credit-limit finding reads all limited customers in one pass and links the open orders too.
+- Limitations kept: an invoice without links to its order lines counts next to the order; `as_of` moves the aging, not which postings count.
+

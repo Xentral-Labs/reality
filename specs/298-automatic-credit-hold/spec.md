@@ -92,6 +92,8 @@ As a credit manager, I see which overdue items and which offsets are behind a ho
 - An order in another currency than the customer's own is not converted: it is neither counted nor held, and the reason of any later hold names it as not counted.
 - A cancelled order, or the cancelled part of one, no longer counts.
 - Replaying an order intake does not place a second hold.
+- A promise revised upwards past the limit is held like a new order.
+- An invoice recorded without links to its order lines counts next to the order; the order value is the stated line amount, prorated for what is not yet invoiced.
 - Releasing a credit hold releases only that hold; other holds on the promise stay.
 - A source-stated value is recorded as stated and never recomputed (Constitution VIII); the exposure is derived at read time.
 

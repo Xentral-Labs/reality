@@ -101,6 +101,8 @@ MANUAL_OPERATIONAL_DOCUMENT_TYPES = (
     "credit_note",
     "supplier_credit_note",
 )
+#: Holds only an owner releases, with a reason (spec 298 FR-004).
+OWNER_RELEASED_HOLD_REASONS = frozenset({"credit_check"})
 HOLD_REASONS = {
     "credit_check",
     "customer_request",
@@ -3550,6 +3552,11 @@ def revise_commitment(
         raise InvalidOperation(code="revision_needs_date_or_quantity")
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
+    previous_quantity = (
+        commitment_quantity(session, tenant_id, commitment.id)
+        if stated_quantity is not None
+        else None
+    )
     active_allocations: list[Reservation] = []
     retained_quantity = ZERO
     retained_specs: list[tuple[Reservation, Decimal]] = []
@@ -3703,6 +3710,20 @@ def revise_commitment(
         correlation_id=action_id,
     )
     session.flush()
+    # More of a customer promise is an order entering on credit too (spec 298).
+    if (
+        stated_quantity is not None
+        and previous_quantity is not None
+        and stated_quantity > previous_quantity
+        and commitment.type == "customer_delivery"
+        and commitment.document_id
+    ):
+        from reality.services.credit_exposure import hold_if_over_credit_limit
+
+        order = _tenant_record(session, Document, tenant_id, commitment.document_id)
+        hold_if_over_credit_limit(
+            session, tenant_id, order, [commitment], action_id=action_id
+        )
     # A promise revised down to what has already arrived is finished, and it is
     # settled here rather than at the next movement, because there may not be a
     # next movement. This is the one stored thing a revision writes, and it is
@@ -3718,7 +3739,13 @@ def revise_commitment(
         # saying "only send what you already sent" would otherwise leave a hold
         # standing on a finished promise, refusing every return against it for
         # a reason that has nothing to do with returns.
-        release_commitment_hold(session, tenant_id, commitment.id, _commit=False)
+        release_commitment_hold(
+            session,
+            tenant_id,
+            commitment.id,
+            _keep_reason_codes=frozenset(),
+            _commit=False,
+        )
     if _commit:
         session.commit()
     return revision
@@ -5875,7 +5902,7 @@ def cancel_commitment(
     # reason, the note, who raised it and when all stay. That is what makes
     # doing this automatically safe.
     released_holds = release_commitment_hold(
-        session, tenant_id, commitment.id, _commit=False
+        session, tenant_id, commitment.id, _keep_reason_codes=frozenset(), _commit=False
     )
     emit_business_event(
         session,
@@ -6134,13 +6161,14 @@ def release_commitment_hold(
     commitment_id: str,
     *,
     action_id: str | None = None,
-    _keep_reason_codes: frozenset[str] = frozenset(),
+    _keep_reason_codes: frozenset[str] = OWNER_RELEASED_HOLD_REASONS,
     _commit: bool = True,
 ) -> list[CommitmentHold]:
     """Lift every hold on one promise, except holds with a kept reason.
 
-    A person's generic release keeps credit holds, which only an owner lifts with
-    a reason (spec 298); a closure that ends the promise lifts them all.
+    Every generic release — tool, document, web, CLI — keeps credit holds, which
+    only an owner lifts with a reason (spec 298). Only a closure that ends the
+    promise passes an empty set and lifts them all.
 
     `_commit=False` lets the release join the transaction that closed the
     promise, which is how a bulk closure releases forty sets of holds or none.

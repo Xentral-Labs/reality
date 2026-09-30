@@ -24,32 +24,88 @@ RECEIVABLE_TYPES = {"sales_invoice", "opening_customer_debt"}
 PAYABLE_TYPES = {"supplier_invoice", "opening_supplier_debt"}
 
 
-def _open_documents(
-    session: Session, tenant_id: str, party: Party, as_of: datetime
-) -> list[dict[str, Any]]:
-    rows = core.financial_open_items(session, tenant_id, party_ids={party.id})
-    return core.with_invoice_aging(
-        rows, core._payment_terms_by_id(session, tenant_id), as_of
+def _invoiced_quantities(
+    session: Session, tenant_id: str, line_ids: list[str]
+) -> dict[str, Decimal]:
+    """`_order_line_billing(...)["invoiced"]` for many sales-order lines at once.
+
+    Four reads instead of three per line: an invoice line bills its order line
+    unless every posting of its invoice was reversed.
+    """
+    from reality.db.core import LedgerEntry, LedgerReversal
+
+    if not line_ids:
+        return {}
+    rows = session.execute(
+        select(DocumentLine.billed_document_line_id, DocumentLine.quantity, Document.id)
+        .join(
+            Document,
+            (Document.tenant_id == DocumentLine.tenant_id)
+            & (Document.id == DocumentLine.document_id),
+        )
+        .where(
+            DocumentLine.tenant_id == tenant_id,
+            DocumentLine.billed_document_line_id.in_(line_ids),
+            Document.type == "sales_invoice",
+        )
+    ).all()
+    invoice_ids = {invoice_id for _, _, invoice_id in rows}
+    groups: dict[str, set[str]] = {}
+    if invoice_ids:
+        for document_id, group in session.execute(
+            select(LedgerEntry.document_id, LedgerEntry.posting_group_id).where(
+                LedgerEntry.tenant_id == tenant_id,
+                LedgerEntry.document_id.in_(invoice_ids),
+            )
+        ):
+            groups.setdefault(document_id, set()).add(group)
+    all_groups = {group for values in groups.values() for group in values}
+    reversed_groups = (
+        set(
+            session.scalars(
+                select(LedgerReversal.original_posting_group_id).where(
+                    LedgerReversal.tenant_id == tenant_id,
+                    LedgerReversal.original_posting_group_id.in_(all_groups),
+                )
+            )
+        )
+        if all_groups
+        else set()
     )
+    invoiced: dict[str, Decimal] = {}
+    for line_id, quantity, invoice_id in rows:
+        posted = groups.get(invoice_id, set())
+        if posted and posted <= reversed_groups:
+            continue
+        invoiced[line_id] = invoiced.get(line_id, ZERO) + Decimal(quantity)
+    return invoiced
 
 
 def _order_rows(
-    session: Session, tenant_id: str, party: Party
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
-    """Uninvoiced order lines in the party's currency, unpriced ones, and others."""
+    session: Session, tenant_id: str, parties: dict[str, Party]
+) -> dict[str, tuple[list, list, list]]:
+    """Per party: uninvoiced order lines in its currency, unpriced ones, and others.
+
+    The value of a line is its stated amount for the part not yet invoiced —
+    never quantity times unit price, which a rebate or the source's own
+    rounding makes wrong (Constitution VIII).
+    """
+    result: dict[str, tuple[list, list, list]] = {
+        party_id: ([], [], []) for party_id in parties
+    }
     orders = list(
         session.scalars(
             select(Document)
             .where(
                 Document.tenant_id == tenant_id,
-                Document.party_id == party.id,
+                Document.party_id.in_(list(parties)),
                 Document.type == "sales_order",
             )
             .order_by(Document.number, Document.id)
         )
     )
     if not orders:
-        return [], [], []
+        return result
     lines = list(
         session.scalars(
             select(DocumentLine)
@@ -61,36 +117,44 @@ def _order_rows(
         )
     )
     promises: dict[str, list[Commitment]] = {}
+    by_order: dict[str, list[Commitment]] = {}
     for commitment in session.scalars(
         select(Commitment).where(
             Commitment.tenant_id == tenant_id,
-            Commitment.document_line_id.in_([line.id for line in lines]),
+            Commitment.document_id.in_([order.id for order in orders]),
             Commitment.type == "customer_delivery",
         )
     ):
-        promises.setdefault(commitment.document_line_id, []).append(commitment)
+        by_order.setdefault(commitment.document_id, []).append(commitment)
+        if commitment.document_line_id:
+            promises.setdefault(commitment.document_line_id, []).append(commitment)
     live = [
         commitment
-        for rows in promises.values()
+        for rows in by_order.values()
         for commitment in rows
         if commitment.status != "cancelled"
     ]
     terms = core.commitment_terms(session, tenant_id, [c.id for c in live])
+    invoiced = _invoiced_quantities(session, tenant_id, [line.id for line in lines])
     by_id = {order.id: order for order in orders}
-    counted, unpriced, other = [], [], []
     for line in lines:
         order = by_id[line.document_id]
+        party = parties[order.party_id]
+        counted, unpriced, other = result[party.id]
         rows = promises.get(line.id)
-        # A promise says what is still agreed after revisions and cancellations;
-        # a line the company promised nothing for (an unknown item, a service)
-        # is agreed as the order states it.
-        base = (
-            sum((terms[c.id].quantity for c in rows if c.status != "cancelled"), ZERO)
-            if rows
-            else Decimal(line.quantity)
-        )
-        invoiced = core._order_line_billing(session, tenant_id, line.id)["invoiced"]
-        uninvoiced = max(base - Decimal(invoiced), ZERO)
+        order_promises = by_order.get(order.id, [])
+        if rows:
+            # A promise says what is still agreed after revisions and cancellations.
+            base = sum(
+                (terms[c.id].quantity for c in rows if c.status != "cancelled"), ZERO
+            )
+        elif order_promises and all(c.status == "cancelled" for c in order_promises):
+            # A line the company promised nothing for (a service, a charge, an
+            # unknown item) goes with its order: a cancelled order owes nothing.
+            base = ZERO
+        else:
+            base = Decimal(line.quantity)
+        uninvoiced = max(base - invoiced.get(line.id, ZERO), ZERO)
         if uninvoiced <= ZERO:
             continue
         row = {
@@ -108,33 +172,44 @@ def _order_rows(
         elif line.unit_price is None:
             unpriced.append({**row, "value": ZERO})
         else:
-            counted.append(
-                {
-                    **row,
-                    "value": (uninvoiced * Decimal(line.unit_price)).quantize(
-                        AMOUNT_SCALE
-                    ),
-                }
+            stated = Decimal(line.gross_amount)
+            value = (
+                (stated * uninvoiced / Decimal(line.quantity)).quantize(AMOUNT_SCALE)
+                if Decimal(line.quantity) > ZERO
+                else ZERO
             )
-    return counted, unpriced, other
+            counted.append({**row, "value": value})
+    return result
 
 
-def credit_exposure(
+def credit_exposures(
     session: Session,
     tenant_id: str,
-    party_id: str,
+    party_ids: list[str],
     *,
     as_of: datetime | None = None,
-) -> dict[str, Any]:
-    """What the company carries for this customer now, part by part."""
-    party = core._tenant_record(session, Party, tenant_id, party_id)
+) -> dict[str, dict[str, Any]]:
+    """What the company carries for each of these customers, part by part."""
+    parties = {
+        party_id: core._tenant_record(session, Party, tenant_id, party_id)
+        for party_id in dict.fromkeys(party_ids)
+    }
     as_of = core.utc_datetime(as_of) or core.now()
-    currency = party.default_currency
-    receivables, payables, not_counted = [], [], []
-    for row in _open_documents(session, tenant_id, party, as_of):
+    receivables: dict[str, list] = {pid: [] for pid in parties}
+    payables: dict[str, list] = {pid: [] for pid in parties}
+    not_counted: dict[str, list] = {pid: [] for pid in parties}
+    if not parties:
+        return {}
+    rows = core.financial_open_items(session, tenant_id, party_ids=set(parties))
+    for row in core.with_invoice_aging(
+        rows, core._payment_terms_by_id(session, tenant_id), as_of
+    ):
         document = row["document"]
+        party = parties.get(document.party_id)
         open_amount = Decimal(row["open"])
-        if open_amount <= ZERO:
+        if party is None or open_amount <= ZERO:
+            continue
+        if document.type not in RECEIVABLE_TYPES | PAYABLE_TYPES:
             continue
         entry = {
             "document_id": document.id,
@@ -145,25 +220,23 @@ def credit_exposure(
             "due_date": row.get("due_date"),
             "days_overdue": row.get("days_overdue") or 0,
         }
-        if document.type not in RECEIVABLE_TYPES | PAYABLE_TYPES:
-            continue
-        if document.currency != currency:
-            not_counted.append(entry)
+        if document.currency != party.default_currency:
+            not_counted[party.id].append(entry)
         elif document.type in RECEIVABLE_TYPES:
-            receivables.append(entry)
+            receivables[party.id].append(entry)
         else:
-            payables.append(entry)
-    overdue = [row for row in receivables if row["days_overdue"] > 0]
+            payables[party.id].append(entry)
 
     from reality.services.finance.credits import available_credit_rows
 
-    credits = []
+    credits: dict[str, list] = {pid: [] for pid in parties}
     items, _ = available_credit_rows(
-        session, tenant_id, side="customer", party_id=party.id
+        session, tenant_id, side="customer", party_ids=set(parties)
     )
     for item in items:
+        party = parties.get(item["party_id"])
         available = Decimal(item["open"])
-        if available <= ZERO:
+        if party is None or available <= ZERO:
             continue
         entry = {
             "document_id": item["document_id"],
@@ -172,43 +245,65 @@ def credit_exposure(
             "currency": item["currency"],
             "available": available,
         }
-        if item["currency"] != currency:
-            not_counted.append(entry)
+        if item["currency"] != party.default_currency:
+            not_counted[party.id].append(entry)
         else:
-            credits.append(entry)
+            credits[party.id].append(entry)
 
-    orders, unpriced, other_orders = _order_rows(session, tenant_id, party)
-    not_counted.extend(other_orders)
+    orders = _order_rows(session, tenant_id, parties)
+    result = {}
+    for party_id, party in parties.items():
+        counted, unpriced, other = orders[party_id]
+        not_counted[party_id].extend(other)
+        overdue = [row for row in receivables[party_id] if row["days_overdue"] > 0]
+        open_invoices = sum((row["open"] for row in receivables[party_id]), ZERO)
+        open_orders = sum((row["value"] for row in counted), ZERO)
+        available_credits = sum((row["available"] for row in credits[party_id]), ZERO)
+        exposure = open_invoices + open_orders - available_credits
+        limit = Decimal(party.credit_limit)
+        # Zero records no limit rather than a limit of nothing (spec 078).
+        over_limit = limit > ZERO and exposure > limit
+        result[party_id] = {
+            "party_id": party.id,
+            "party": party.name,
+            "currency": party.default_currency,
+            "as_of": as_of,
+            "credit_limit": limit,
+            "exposure": exposure,
+            "over_limit": over_limit,
+            "excess": exposure - limit if over_limit else ZERO,
+            "open_invoices": {"amount": open_invoices, "rows": receivables[party_id]},
+            "overdue_invoices": {
+                "amount": sum((row["open"] for row in overdue), ZERO),
+                "rows": overdue,
+            },
+            "open_orders": {
+                "amount": open_orders,
+                "rows": counted,
+                "unpriced": unpriced,
+            },
+            "available_credits": {
+                "amount": available_credits,
+                "rows": credits[party_id],
+            },
+            "payables": {
+                "amount": sum((row["open"] for row in payables[party_id]), ZERO),
+                "rows": payables[party_id],
+            },
+            "not_counted": not_counted[party_id],
+        }
+    return result
 
-    open_invoices = sum((row["open"] for row in receivables), ZERO)
-    open_orders = sum((row["value"] for row in orders), ZERO)
-    available_credits = sum((row["available"] for row in credits), ZERO)
-    exposure = open_invoices + open_orders - available_credits
-    limit = Decimal(party.credit_limit)
-    # Zero records no limit rather than a limit of nothing (spec 078).
-    over_limit = limit > ZERO and exposure > limit
-    return {
-        "party_id": party.id,
-        "party": party.name,
-        "currency": currency,
-        "as_of": as_of,
-        "credit_limit": limit,
-        "exposure": exposure,
-        "over_limit": over_limit,
-        "excess": exposure - limit if over_limit else ZERO,
-        "open_invoices": {"amount": open_invoices, "rows": receivables},
-        "overdue_invoices": {
-            "amount": sum((row["open"] for row in overdue), ZERO),
-            "rows": overdue,
-        },
-        "open_orders": {"amount": open_orders, "rows": orders, "unpriced": unpriced},
-        "available_credits": {"amount": available_credits, "rows": credits},
-        "payables": {
-            "amount": sum((row["open"] for row in payables), ZERO),
-            "rows": payables,
-        },
-        "not_counted": not_counted,
-    }
+
+def credit_exposure(
+    session: Session,
+    tenant_id: str,
+    party_id: str,
+    *,
+    as_of: datetime | None = None,
+) -> dict[str, Any]:
+    """What the company carries for this customer now, part by part."""
+    return credit_exposures(session, tenant_id, [party_id], as_of=as_of)[party_id]
 
 
 def _money(value: Decimal) -> str:

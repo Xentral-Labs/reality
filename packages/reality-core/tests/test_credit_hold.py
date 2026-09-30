@@ -544,3 +544,206 @@ def test_an_available_credit_lowers_the_finding(session, business):
     core.post_sales_credit_note(session, business.tenant.id, note.id)
 
     assert _finding(session, business, party) is None
+
+
+# --- Review round (spec 298) ----------------------------------------------------------
+
+
+def test_every_generic_release_path_keeps_the_credit_hold(session, business):
+    from reality.tools.application import confirm_tool, propose_tool
+
+    tenant = business.tenant.id
+    order, commitments = _held_order(session, business)
+    address = CommitmentHold(
+        id=core.uid("hld"),
+        tenant_id=tenant,
+        commitment_id=commitments[0].id,
+        reason_code="address_clarification",
+        note="Street unclear",
+    )
+    session.add(address)
+    session.flush()
+
+    # The document release through the chat tool lifts the address hold only.
+    proposal = propose_tool(
+        session, tenant, "document_hold_release", {"document_id": order.id}
+    )
+    confirm_tool(session, tenant, proposal.id)
+    assert address.released_at is not None
+    assert len(_holds(session, business, commitments)) == 1
+
+    # The service the web endpoint and the CLI call keeps it too.
+    core.release_commitment_hold(session, tenant, commitments[0].id)
+    core.release_document_holds(session, tenant, order.id)
+    assert len(_holds(session, business, commitments)) == 1
+
+
+def test_the_generic_release_is_verified_when_it_keeps_a_credit_hold(session, business):
+    from reality.services.delivery_actions import delivery_proposal_detail
+
+    tenant = business.tenant.id
+    _, commitments = _held_order(session, business)
+    session.add(
+        CommitmentHold(
+            id=core.uid("hld"),
+            tenant_id=tenant,
+            commitment_id=commitments[0].id,
+            reason_code="customer_request",
+            note="Wait for the customer",
+        )
+    )
+    session.flush()
+    proposal = prepare_delivery_action(
+        session,
+        tenant,
+        "commitment_hold_release",
+        {"commitment_id": commitments[0].id},
+        request_id="generic-verified",
+    )
+    _confirm(session, business, proposal)
+
+    detail = delivery_proposal_detail(session, tenant, proposal.id)
+    assert detail["verification"] == "verified"
+    assert json.loads(proposal.input)["_delivery_review"]["effect"] == {
+        "holds_released": "1",
+        "credit_holds_kept": "1",
+    }
+
+
+def test_the_order_value_is_its_stated_amount_not_quantity_times_price(
+    session, business
+):
+    party = _customer(session, business, limit="300")
+    # Four at a list price of 100 with a stated rebate to 200 in total.
+    _, _, _, commitments = core.create_manual_order(
+        session,
+        business.tenant.id,
+        "sales",
+        "SO-C-REBATE",
+        business.company.id,
+        party.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "4",
+                "unit_price": "100.00",
+                "gross_amount": "200.00",
+            }
+        ],
+        "200.00",
+    )
+    from reality.services.credit_exposure import credit_exposure
+
+    assert credit_exposure(session, business.tenant.id, party.id)["open_orders"][
+        "amount"
+    ] == Decimal("200.00")
+    assert _holds(session, business, commitments) == []
+    # Positive control: another 200 takes it past 300.
+    _, more = _order(session, business, party, "SO-C-MORE", "200.00")
+    assert len(_holds(session, business, more)) == 1
+
+
+def test_a_cancelled_order_stops_counting_its_service_line(session, business):
+    from reality.services.credit_exposure import credit_exposure
+
+    tenant = business.tenant.id
+    party = _customer(session, business, limit="10000")
+    _, job = core.enqueue_shopify_order(
+        session,
+        tenant,
+        {
+            "id": 9951,
+            "name": "#9951",
+            "currency": "EUR",
+            "total_price": "215.00",
+            "created_at": "2026-09-20T10:00:00Z",
+            "updated_at": "2026-09-20T10:00:00Z",
+            "line_items": [
+                {"id": 1, "sku": business.item.sku, "quantity": 2, "price": "100.00"},
+                {
+                    "id": 2,
+                    "sku": "",
+                    "quantity": 1,
+                    "price": "15.00",
+                    "requires_shipping": False,
+                    "title": "Gift wrap",
+                },
+            ],
+        },
+        business.company.id,
+        party.id,
+        business.location.id,
+    )
+    _, _, _, commitments = core.process_import_job(session, tenant, job.id)
+    # Positive control: while the order is open its service line counts.
+    assert credit_exposure(session, tenant, party.id)["open_orders"][
+        "amount"
+    ] == Decimal("215.00")
+
+    for commitment in commitments:
+        core.cancel_commitment(session, tenant, commitment.id, reason="Cancelled")
+
+    assert credit_exposure(session, tenant, party.id)["open_orders"]["amount"] == 0
+
+
+def test_an_order_revised_upwards_past_the_limit_is_held(session, business):
+    party = _customer(session, business, limit="500")
+    _, commitments = _order(session, business, party, "SO-C-UP", "400.00")
+    assert _holds(session, business, commitments) == []
+
+    core.revise_commitment(
+        session, business.tenant.id, commitments[0].id, quantity="8", note="More"
+    )
+
+    assert len(_holds(session, business, commitments)) == 1
+
+
+def test_the_exposure_read_does_not_grow_with_the_order_lines(session, business):
+    from sqlalchemy import event
+
+    from reality.services.credit_exposure import credit_exposure
+
+    tenant = business.tenant.id
+    party = _customer(session, business, limit="0")
+
+    def order_with(lines, number):
+        core.create_manual_order(
+            session,
+            tenant,
+            "sales",
+            number,
+            business.company.id,
+            party.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "1",
+                    "unit_price": "10.00",
+                    "gross_amount": "10.00",
+                }
+                for _ in range(lines)
+            ],
+            str(10 * lines),
+        )
+
+    def statements():
+        count = 0
+
+        def tick(*_):
+            nonlocal count
+            count += 1
+
+        event.listen(session.bind, "before_cursor_execute", tick)
+        try:
+            credit_exposure(session, tenant, party.id)
+        finally:
+            event.remove(session.bind, "before_cursor_execute", tick)
+        return count
+
+    order_with(2, "SO-C-Q1")
+    few = statements()
+    order_with(40, "SO-C-Q2")
+
+    assert statements() <= few + 2

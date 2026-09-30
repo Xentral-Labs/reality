@@ -3145,7 +3145,7 @@ def _credit_limit_exceeded_exceptions(
     names the overdue invoices behind it, so the aging register, the hold and
     this row never disagree.
     """
-    from reality.services.credit_exposure import credit_exposure
+    from reality.services.credit_exposure import credit_exposures
 
     # Zero is not a limit of nothing. The column defaults to zero, so reading it
     # that way would report every customer holding a single open invoice on the
@@ -3158,13 +3158,23 @@ def _credit_limit_exceeded_exceptions(
         )
     )
     result: list[OperationalException] = []
+    # One read for every limited customer, not one per customer.
+    exposures = credit_exposures(
+        session, tenant_id, [party.id for party in parties], as_of=as_of
+    )
     for party in parties:
-        exposure = credit_exposure(session, tenant_id, party.id, as_of=as_of)
+        exposure = exposures[party.id]
         if not exposure["over_limit"]:
             continue
         invoices = exposure["open_invoices"]["rows"]
         overdue = exposure["overdue_invoices"]["rows"]
-        documents = {row["document_id"]: row["document_id"] for row in invoices}
+        # The invoices and the orders behind the exposure, each once.
+        documents = list(
+            dict.fromkeys(
+                [row["document_id"] for row in invoices]
+                + [row["document_id"] for row in exposure["open_orders"]["rows"]]
+            )
+        )
         instants = [
             instant
             for instant in (
@@ -3198,7 +3208,7 @@ def _credit_limit_exceeded_exceptions(
                 },
                 {
                     "party_id": party.id,
-                    "document_ids": list(documents),
+                    "document_ids": documents,
                 },
                 min(instants) if instants else None,
             )

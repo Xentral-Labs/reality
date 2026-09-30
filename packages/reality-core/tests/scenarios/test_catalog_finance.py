@@ -1663,19 +1663,24 @@ def test_an_order_over_the_limit_is_held_and_released_by_an_owner(session, busin
 
 def test_the_credit_hold_names_the_overdue_items_behind_it(session, business):
     """C08: overdue invoices are named apart from the ones not yet due."""
+    from reality.services.credit_exposure import credit_exposure
     from reality.services.exceptions import operational_exceptions
 
     tenant = business.tenant.id
     core.create_payment_term(session, tenant, "NET30", "Net 30", 30)
     party = _limited_customer(session, business, "Velo Nord")
-    late = _posted(
-        session, business, "sales_invoice", "RE-C08-1", party, "600.00", "2026-07-01"
-    )
-    _posted(
+    late = [
+        _posted(session, business, "sales_invoice", number, party, amount, day)
+        for number, amount, day in (
+            ("RE-C08-1", "400.00", "2026-07-01"),
+            ("RE-C08-2", "200.00", "2026-07-15"),
+        )
+    ]
+    due_today = _posted(
         session,
         business,
         "sales_invoice",
-        "RE-C08-2",
+        "RE-C08-3",
         party,
         "300.00",
         core.now().date().isoformat(),
@@ -1684,14 +1689,21 @@ def test_the_credit_hold_names_the_overdue_items_behind_it(session, business):
     _, held = _order_through_the_tool(session, business, party, "SO-C08", "2", "100.00")
 
     (hold,) = _credit_holds(session, business, held)
-    assert "overdue RE-C08-1 600.00" in hold.note
-    assert "RE-C08-2" not in hold.note
+    assert "overdue RE-C08-1 400.00, RE-C08-2 200.00)" in hold.note
+    # The invoice not yet due counts in the exposure but is not named overdue.
+    exposure = credit_exposure(session, tenant, party.id)
+    assert due_today.id in {
+        row["document_id"] for row in exposure["open_invoices"]["rows"]
+    }
+    assert due_today.id not in {
+        row["document_id"] for row in exposure["overdue_invoices"]["rows"]
+    }
     finding = next(
         row
         for row in operational_exceptions(session, tenant)
         if row.class_id == "credit_limit_exceeded" and row.record_id == party.id
     )
-    assert finding.causal_values["overdue_document_ids"] == [late.id]
+    assert finding.causal_values["overdue_document_ids"] == [doc.id for doc in late]
     assert finding.causal_values["overdue_amount"] == Decimal("600.0000")
 
 

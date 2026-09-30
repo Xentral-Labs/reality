@@ -1004,9 +1004,10 @@ entries:
   question: Who released it, and why?
   status: supported
   evidence_level: executable
-  summary: 'Reality evaluates: Who released it, and why? A new order that would take the customer past the credit limit is held at entry, whatever path records it, with a hold that names the limit, the open, overdue and ordered amounts; a company owner releases it with a stated reason, recorded with the person.'
+  summary: 'Reality evaluates: Who released it, and why? A new order, or a promise revised upwards, that would take the customer past the credit limit is held at entry, whatever path records it, with a hold that names the limit, the open, overdue and ordered amounts; only a company owner releases it, with a stated reason recorded with the person.'
   limitations:
   - A limit lowered later does not hold orders already recorded; the credit-limit finding reports them.
+  - An invoice recorded without links to its order lines counts next to the order until the order is closed.
   keywords:
   - credit hold
   - order held for credit
@@ -1040,6 +1041,7 @@ entries:
   summary: 'Reality evaluates: Does the hold name the overdue items? The credit hold and the credit-limit finding name the overdue invoices with their amounts apart from the invoices not yet due, and count open orders and available credits in the exposure.'
   limitations:
   - Only amounts in the customer's own currency count; others are named, not converted.
+  - An invoice recorded without links to its order lines counts next to the order until the order is closed.
   keywords:
   - overdue invoices behind the credit hold
   - credit exposure
