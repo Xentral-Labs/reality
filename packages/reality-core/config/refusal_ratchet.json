@@ -36,12 +36,15 @@
     "reality/services/opening_cost.py",
     "reality/services/opening_stock_actions.py",
     "reality/services/order_actions.py",
+    "reality/services/order_line_items.py",
     "reality/services/payment_actions.py",
     "reality/services/reference_workspace.py",
     "reality/services/return_disposition_actions.py",
     "reality/services/return_dispositions.py",
     "reality/services/shipment_actions.py",
     "reality/services/shipments.py",
+    "reality/services/shop_order_changes.py",
+    "reality/services/shop_refunds.py",
     "reality/services/supply_assignment_actions.py",
     "reality/services/supply_assignments.py",
     "reality/services/tenant_policy.py",
@@ -774,12 +777,6 @@
       "path": "reality/services/core.py",
       "function": "create_source_capability",
       "message": "f\"Source capability already exists: {system.code}/{source_type}\"",
-      "scope": "later"
-    },
-    {
-      "path": "reality/services/core.py",
-      "function": "_shopify_interpretation",
-      "message": "f\"Unknown SKU: {sku}\"",
       "scope": "later"
     },
     {

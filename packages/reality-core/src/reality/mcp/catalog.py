@@ -2096,6 +2096,15 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         ),
     ),
     (
+        "order_line_item_assign_propose",
+        "Assign an item to an order line",
+        "order_line_item_assign",
+        _object_schema(
+            {"document_line_id": STRING, "item_id": STRING},
+            required=("document_line_id", "item_id"),
+        ),
+    ),
+    (
         "return_disposition_propose",
         "Resolve returned goods",
         "return_disposition",

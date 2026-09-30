@@ -13,6 +13,7 @@ import { WorkPreview } from "./InlinePreview";
 import { ProjectionFreshness } from "./ProjectionFreshness";
 import { useActionDiscovery } from "./ActionLauncher";
 import { ResolutionGuidance } from "./ResolutionGuidance";
+import { OrderLineItemCard } from "./OrderLineItemCard";
 const severities = [
   ["critical", "Critical"],
   ["high", "High"],
@@ -35,6 +36,7 @@ function OpenExceptions({
     [tenant, exception],
   );
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
+  const [assigning, setAssigning] = useState("");
   const selected = detail.data?.id === exception ? detail.data : null;
   // Spec 279 FR-012: the catalog title of the class, translated; the stored title
   // only stands in for a class the catalog does not know yet.
@@ -170,6 +172,14 @@ function OpenExceptions({
                           <ArrowRight size={16} aria-hidden="true" />
                         </button>
                       )}
+                      {selected.class_id === "order_line_item_unknown" && (
+                        <button
+                          className="br-btn br-btn-primary"
+                          onClick={() => setAssigning(selected.record_id)}
+                        >
+                          {t("Assign item")}
+                        </button>
+                      )}
                       <button
                         className="br-btn"
                         onClick={() => setTarget({ kind: "exception", id: selected.id })}
@@ -190,6 +200,17 @@ function OpenExceptions({
       </section>
 
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
+      {assigning && (
+        <OrderLineItemCard
+          tenant={tenant}
+          documentLineId={assigning}
+          close={() => setAssigning("")}
+          settled={() => {
+            detail.refresh();
+            read.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

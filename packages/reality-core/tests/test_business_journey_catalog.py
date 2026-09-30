@@ -132,6 +132,12 @@ PROVEN_BY_STORY = {
     "O01",
     "P04",
     "P07",
+    "A09",
+    "A16",
+    "A17",
+    "F12",
+    "L04",
+    "L05",
 }
 #: Promoted from spec 294 on; each must be findable by an ordinary question.
 FINDABLE_BY_KEYWORD = {
@@ -147,6 +153,12 @@ FINDABLE_BY_KEYWORD = {
     "O01",
     "P04",
     "P07",
+    "A09",
+    "A16",
+    "A17",
+    "F12",
+    "L04",
+    "L05",
 }
 
 

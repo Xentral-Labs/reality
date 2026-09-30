@@ -632,6 +632,9 @@ def delivery_evidence(
             )
         if outcome and outcome.reason_code:
             rows.append(value("Reason", outcome.reason_code))
+        if outcome and outcome.classification == "needs_review" and outcome.summary:
+            # Spec 296: a held change names every reason and the next step.
+            rows.append(value("Why it waits", outcome.summary))
         link = external_link(system, record)
         if link:
             rows.append(value("Open in source system", link))

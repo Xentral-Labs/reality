@@ -1245,6 +1245,20 @@ def _customer_exchange_record(
     }
 
 
+def _order_line_item_assign(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.order_line_items import assign_line_item
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    result = assign_line_item(session, tenant_id, **arguments)
+    return {
+        "document_line_id": result["document_line_id"],
+        "item_id": result["item_id"],
+        "commitment_id": result["commitment_id"],
+    }
+
+
 def _customer_exchange(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2303,6 +2317,12 @@ TOOLS = {
         "Settle part of a customer return with a free replacement instead of a credit.",
         True,
         _customer_exchange_record,
+    ),
+    "order_line_item_assign": Tool(
+        "order_line_item_assign",
+        "Give an order line whose stated SKU matched no item its item and create its delivery promise.",
+        True,
+        _order_line_item_assign,
     ),
     "customer_exchange": Tool(
         "customer_exchange",
@@ -3700,6 +3720,7 @@ def approve_and_execute_proposal(
         "supply_assign",
         "return_disposition",
         "customer_exchange_record",
+        "order_line_item_assign",
         "commitment_revise",
         "commitment_cancel",
         "sales_credit_record",

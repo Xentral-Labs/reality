@@ -303,13 +303,32 @@ class InterpretationNeedsReview(RealityError):
 
 
 class ShopifyUpdateNeedsReview(InterpretationNeedsReview):
-    """A changed source cannot safely amend existing operational Reality yet."""
+    """A changed source that is not applied automatically (spec 081, narrowed by 296).
+
+    Carries the reason codes of what was not applied; without them it is the
+    original guard for a version whose order was never interpreted.
+    """
 
     summary = (
         "Shopify order updates require review. The new source is retained; "
         "existing operational records remain unchanged. Automatic amendment "
         "is not supported."
     )
+    reason_code = "shopify_update_requires_review"
+
+    def __init__(
+        self,
+        *,
+        codes: list[str] | None = None,
+        reason_code: str | None = None,
+        summary: str | None = None,
+    ) -> None:
+        super().__init__(summary or type(self).summary)
+        self.codes = list(codes or [])
+        if reason_code:
+            self.reason_code = reason_code
+        if summary:
+            self.summary = summary
 
 
 class Conflict(InvalidOperation):
@@ -12071,6 +12090,12 @@ def enqueue_source(
                     {"source_system": source_system, "source_type": source_type},
                     source_record_id=source.id,
                 )
+    if created and (source_system, source_type) == ("shopify", "order"):
+        # Spec 296: refunds are their own sources, recorded even when this
+        # version's order changes wait for review.
+        from reality.services.shop_refunds import split_refunds
+
+        split_refunds(session, tenant_id, payload, context)
     if _commit:
         session.commit()
     else:
@@ -12398,7 +12423,15 @@ def _shopify_interpretation(
         return source, existing_document, lines, commitments_created
 
     if source.version > 1:
-        raise ShopifyUpdateNeedsReview()
+        from reality.services.shop_order_changes import (
+            apply_order_version,
+            order_for_source,
+        )
+
+        order = order_for_source(session, tenant_id, source)
+        if order is None:
+            raise ShopifyUpdateNeedsReview()
+        return apply_order_version(session, tenant_id, source, order)
 
     company_party_id = context["company_party_id"]
     customer_party_id = context["customer_party_id"]
@@ -12407,15 +12440,19 @@ def _shopify_interpretation(
     _tenant_record(session, Party, tenant_id, customer_party_id)
     _tenant_record(session, Location, tenant_id, location_id)
     payload = json.loads(source.payload)
-    items_by_sku = {}
+    # Spec 296: an unknown SKU no longer stops the order. Its line is kept
+    # without an item and without a promise, and reported until a person
+    # assigns one (`order_line_item_unknown`).
+    items_by_sku: dict[str, Item | None] = {}
     for raw_line in payload.get("line_items", []):
-        sku = str(raw_line.get("sku", ""))
-        item = session.scalar(
-            select(Item).where(Item.tenant_id == tenant_id, Item.sku == sku)
+        sku = str(raw_line.get("sku") or "")
+        items_by_sku[sku] = (
+            session.scalar(
+                select(Item).where(Item.tenant_id == tenant_id, Item.sku == sku)
+            )
+            if sku
+            else None
         )
-        if item is None:
-            raise InvalidOperation(f"Unknown SKU: {sku}")
-        items_by_sku[sku] = item
 
     promised_at = next(
         (
@@ -12447,7 +12484,10 @@ def _shopify_interpretation(
     lines: list[DocumentLine] = []
     commitments_created: list[Commitment] = []
     for raw_line in payload.get("line_items", []):
-        item = items_by_sku[str(raw_line.get("sku", ""))]
+        stated_sku = str(raw_line.get("sku") or "")
+        item = items_by_sku[stated_sku]
+        # A line the shop says does not ship (a tip, a service) is kept, not promised.
+        ships = raw_line.get("requires_shipping", True) is not False
         quantity = positive(raw_line["quantity"])
         price = decimal(raw_line.get("price", 0))
         raw_line_id = raw_line.get("id")
@@ -12456,20 +12496,27 @@ def _shopify_interpretation(
             tenant_id=tenant_id,
             document_id=document.id,
             source_line_id=str(raw_line_id) if raw_line_id is not None else None,
-            item_id=item.id,
-            sku=item.sku,
-            description=str(raw_line.get("name") or raw_line.get("title") or item.name),
+            item_id=item.id if item else None,
+            sku=item.sku if item else stated_sku,
+            description=str(
+                raw_line.get("name")
+                or raw_line.get("title")
+                or (item.name if item else stated_sku)
+            ),
             quantity=quantity,
             unit_price=price,
             gross_amount=quantity * price,
             promised_at=promised_at,
-            unit=item.unit,
+            unit=item.unit if item else "pcs",
             requested_at=utc_datetime(promised_at),
-            line_type="item",
+            line_type="item" if ships else "service",
             payload=json.dumps(raw_line, ensure_ascii=False, separators=(",", ":")),
         )
         session.add(line)
         session.flush()
+        lines.append(line)
+        if item is None or not ships:
+            continue
         commitment = Commitment(
             id=uid("com"),
             tenant_id=tenant_id,
@@ -12487,7 +12534,6 @@ def _shopify_interpretation(
             document_line_id=line.id,
         )
         session.add(commitment)
-        lines.append(line)
         commitments_created.append(commitment)
 
     session.add(
@@ -12556,8 +12602,17 @@ def _demo_payment_interpretation(session, tenant_id, source, context):
     return interpret_payment(session, tenant_id, source, context)
 
 
+def _shopify_refund_interpretation(
+    session: OrmSession, tenant_id: str, source: SourceRecord, context: dict[str, str]
+):
+    from reality.services.shop_refunds import interpret_shop_refund
+
+    return interpret_shop_refund(session, tenant_id, source, context)
+
+
 SOURCE_INTERPRETERS = {
     ("shopify", "order"): _shopify_interpretation,
+    ("shopify", "refund"): _shopify_refund_interpretation,
     ("demo_data", "order"): _demo_interpretation,
     ("demo_data", "invoice"): _demo_invoice_interpretation,
     ("demo_data", "payment"): _demo_payment_interpretation,
@@ -12778,17 +12833,17 @@ def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any 
         return result
     except InterpretationNeedsReview as error:
         session.rollback()
-        shopify_update = isinstance(error, ShopifyUpdateNeedsReview)
+        stated_summary = getattr(error, "summary", None)
         summary = (
-            ShopifyUpdateNeedsReview.summary
-            if shopify_update
+            stated_summary
+            if isinstance(stated_summary, str) and stated_summary
             else "The source requires human review before Reality can be created."
         )
         review_job = _tenant_record(session, ImportJob, tenant_id, job_id)
         review_job.status = "completed"
         review_job.attempts = attempt
         review_job.error = (
-            summary if shopify_update else "Business meaning requires review."
+            summary if stated_summary else "Business meaning requires review."
         )
         review_job.completed_at = now()
         review_job.next_attempt_at = None
@@ -12803,11 +12858,8 @@ def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any 
             attempt,
             "needs_review",
             interpreter_name=f"{review_source.source_system}.{review_source.source_type}",
-            reason_code=(
-                "shopify_update_requires_review"
-                if shopify_update
-                else "ambiguous_business_meaning"
-            ),
+            reason_code=getattr(error, "reason_code", None)
+            or "ambiguous_business_meaning",
             summary=summary,
         )
         session.commit()

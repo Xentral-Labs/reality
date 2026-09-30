@@ -389,7 +389,8 @@
         "command:hold_document_commitments",
         "command:hold_party_delivery",
         "command:close_stale_promises",
-        "command:record_packaged_execution"
+        "command:record_packaged_execution",
+        "command:assign_line_item"
       ],
       "reads": ["command:preview_stale_promise_closure"],
       "exceptions": [
@@ -401,7 +402,8 @@
         "exception:commitment_hold_unreleased",
         "exception:party_hold_unreleased",
         "exception:stale_cost_review",
-        "exception:negative_actual_db1"
+        "exception:negative_actual_db1",
+        "exception:order_line_item_unknown"
       ],
       "tools": [
         "tool:commitments_list",
@@ -417,6 +419,7 @@
         "event:commitment.cancelled",
         "event:commitment.revised",
         "event:promises.closed",
+        "event:document_line.item_assigned",
         "event:commitment.held",
         "event:commitment.hold_released",
         "event:reservation.created",
@@ -985,7 +988,8 @@
         "command:hold_document_commitments",
         "command:create_manual_document_with_lines",
         "command:record_notice",
-        "command:confirm_run"
+        "command:confirm_run",
+        "command:assign_line_item"
       ],
       "reads": [
         "command:commercial_match",
@@ -1008,7 +1012,8 @@
         "event:source_record.unmapped",
         "event:source_record.interpreted",
         "event:document.recorded",
-        "event:document.corrected"
+        "event:document.corrected",
+        "event:document_line.item_assigned"
       ],
       "workspace_actions": ["action:observe_fact", "action:hold_document_commitments"]
     },
@@ -8060,6 +8065,40 @@
       "links": ["command:record_customer_exchange"],
       "label_de": "Exchange returned goods",
       "resources": ["return"]
+    },
+    {
+      "id": "tool:order_line_item_assign_propose",
+      "kind": "tool",
+      "key": "order_line_item_assign_propose",
+      "label": "Assign an item to an order line",
+      "area": "orders",
+      "summary": "Prepare this business mutation without changing state. Assign an item to an order line. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "order_line_item_assign_propose document_line_id item_id",
+      "parameters": [
+        {
+          "name": "document_line_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant received document line identity; must belong to the selected document.",
+          "depth": 0
+        },
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "assign_line_item",
+      "projections": [],
+      "links": ["command:assign_line_item"],
+      "label_de": "Assign an item to an order line",
+      "resources": ["order", "source"]
     },
     {
       "id": "tool:return_disposition_propose",
@@ -21940,6 +21979,28 @@
       "resources": ["return"]
     },
     {
+      "id": "command:assign_line_item",
+      "kind": "command",
+      "key": "assign_line_item",
+      "label": "Assign an item to an order line",
+      "area": "cross_functional",
+      "summary": "Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its delivery promise from the order; no money moves.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["document_line", "document", "commitment", "item", "import_job"],
+      "writes": ["document_line", "commitment", "business_event"],
+      "confirmation": "required",
+      "related_services": ["preview_item_assignment"],
+      "tools": ["order_line_item_assign_propose"],
+      "synopses": ["order_line_item_assign_propose document_line_id item_id"],
+      "events": ["document_line.item_assigned"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:order_line_item_assign_propose", "event:document_line.item_assigned"],
+      "label_de": "Artikel für Auftragszeile zuordnen",
+      "resources": ["order", "source"]
+    },
+    {
       "id": "command:record_return_disposition",
       "kind": "command",
       "key": "record_return_disposition",
@@ -22856,6 +22917,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "document_line.item_assigned",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -23098,6 +23160,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "document_line.item_assigned",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -23252,6 +23315,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "document_line.item_assigned",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -23313,7 +23377,8 @@
         "exception:unassigned_cost_component",
         "exception:stale_cost_review",
         "exception:negative_actual_db1",
-        "exception:exchange_without_return"
+        "exception:exchange_without_return",
+        "exception:order_line_item_unknown"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -23350,6 +23415,7 @@
         "commitment.cancelled",
         "commitment.revised",
         "promises.closed",
+        "document_line.item_assigned",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -23411,7 +23477,8 @@
         "document.recorded",
         "document.corrected",
         "commitment.created",
-        "commitment.cancelled"
+        "commitment.cancelled",
+        "document_line.item_assigned"
       ],
       "clock_refresh_seconds": null,
       "service": "projection_rows",
@@ -23604,6 +23671,7 @@
         "payments.run",
         "return.announced",
         "return.announcement_withdrawn",
+        "document_line.item_assigned",
         "exchange.recorded",
         "commitment.held",
         "commitment.hold_released",
@@ -24653,6 +24721,27 @@
       "resources": ["return"]
     },
     {
+      "id": "exception:order_line_item_unknown",
+      "kind": "exception",
+      "key": "order_line_item_unknown",
+      "label": "Order line with unknown item",
+      "area": "orders",
+      "summary": "A shop order names an article whose SKU matches no item of the company. The order's other lines were interpreted and promised; this line was kept with its stated SKU, quantity and price but without an item, so nothing is promised or reserved for it and it never ships. Reporting it keeps one unknown article from silently dropping part of an order.",
+      "owner": "Sales operations",
+      "clears_through": "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.",
+      "severity": "normal",
+      "record_type": "document_line",
+      "authority": "296/FR-008",
+      "evidence": [
+        "tests/test_order_line_items.py::test_an_unknown_item_line_is_reported_until_an_item_is_assigned",
+        "tests/test_order_line_items.py::test_a_cancelled_order_no_longer_reports_its_unknown_line"
+      ],
+      "causes": [],
+      "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
+      "label_de": "Auftragszeile mit unbekanntem Artikel",
+      "resources": ["order"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -25544,6 +25633,27 @@
       "links": ["command:withdraw_return_announcement"],
       "label_de": "return.announcement_withdrawn",
       "resources": ["return"]
+    },
+    {
+      "id": "event:document_line.item_assigned",
+      "kind": "event",
+      "key": "document_line.item_assigned",
+      "label": "document_line.item_assigned",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "assign_line_item",
+      "subject": "document_line",
+      "invalidates": [
+        "Document register",
+        "Commitment register",
+        "Operational Exceptions",
+        "Fulfillment queue",
+        "Timeline",
+        "Tenant usage"
+      ],
+      "links": ["command:assign_line_item"],
+      "label_de": "document_line.item_assigned",
+      "resources": ["order", "source"]
     },
     {
       "id": "event:exchange.recorded",
@@ -72489,7 +72599,8 @@
         "command:record_sales_credit",
         "command:record_supplier_invoice",
         "command:record_free_supplier_invoice",
-        "command:record_sales_invoice"
+        "command:record_sales_invoice",
+        "command:assign_line_item"
       ]
     },
     {
@@ -72782,7 +72893,8 @@
         "command:revise_commitment",
         "command:cancel_commitment",
         "command:close_stale_promises",
-        "command:record_customer_exchange"
+        "command:record_customer_exchange",
+        "command:assign_line_item"
       ]
     },
     {

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:44b61da8bef94d0d3939b03550e970dc565e93066085a557ba0843df58e9f898",
+  "knowledge_version": "advisor-v1:sha256:67810a5893c37d4f876ae79cec8c5f6da71c7a8874eb2c6dffeb8dd57ad2b3a0",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -81,7 +81,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A09",
-      "fingerprint": "2f324b28cf04d43c17cbdf99825c871c15af10d8b2ecbff1bc9fa8e7c552dba6"
+      "fingerprint": "7d3cf46bd2c3f53dfdd9bb573730a75ffae220d1558fd3617973ccb3a97f6530"
     },
     {
       "id": "source_journey_a10",
@@ -90,7 +90,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A10",
-      "fingerprint": "cdc3949ee3569045f5c083e64e29a58bc396a09f7e8636caca662dec4c257017"
+      "fingerprint": "2019d1f250057aeabb83214c128db54c7750ea878ea44fe4706c881103ddb852"
     },
     {
       "id": "source_journey_a11",
@@ -144,7 +144,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A16",
-      "fingerprint": "f9bafc0d3310c3d88136d00f8fc5742812b272b59bdef622e698e4268e3a10bd"
+      "fingerprint": "4398420945647e6e6ca203fec122bc803cf8299a20e21e2bcdd7b27ce218d878"
     },
     {
       "id": "source_journey_a17",
@@ -153,7 +153,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A17",
-      "fingerprint": "6160678ecf308c23c339a6098a0dbf72b9288f2016588724a5f12c02e2d9caef"
+      "fingerprint": "82b29a95e8424f358c00c6e32fc811f30364bebd44d164dc9421ba77dada30c4"
     },
     {
       "id": "source_journey_a18",
@@ -927,7 +927,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#F12",
-      "fingerprint": "0a8157100a802298a02b9c7fae2932bb8ccaf25095125b8e44dde59222f794f1"
+      "fingerprint": "00b99e4ba3516f2c2b8bc5fc75db1e568a8935269deb41039e94dabe2aef2005"
     },
     {
       "id": "source_journey_f13",
@@ -1557,7 +1557,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L04",
-      "fingerprint": "84b95afbf52360b99a1eb6d595777d471af1f3f9059c7ac1744113cf0b5c3841"
+      "fingerprint": "aed39351d1c1d92fa9e9a9331992f608e35409485581d942eb803ca54a8a8038"
     },
     {
       "id": "source_journey_l05",
@@ -1566,7 +1566,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L05",
-      "fingerprint": "32b8d21d0c9d0f7f9ec55799003d346f273d01e694b2cd9d00553a6e7eb598ac"
+      "fingerprint": "11aaec08e161849d1e61819fd06360ed8ff17299d4599ae8cccdfa50ebcec6c1"
     },
     {
       "id": "source_journey_l06",
@@ -1899,7 +1899,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#P04",
-      "fingerprint": "34962334e97ec1ccf52b3548e40c9ae39ba18b26961f0a4a5e22c31cefedb863"
+      "fingerprint": "37931b2db33f0116db301b4c51e0207efc2ea86af183b152a95605b0f9b000a2"
     },
     {
       "id": "source_journey_p05",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "29e1ddf04455bbf0286a09610e1b6d84170801a5ce69985eea8af1c1bc4a167d"
+      "fingerprint": "197856a0ac31bdf02149091581e7f324197e8b37fb78c0525521330f9b1fbf35"
     },
     {
       "id": "source_document_product_evaluation",
@@ -2249,18 +2249,18 @@
       "source_id": "source_journey_a09",
       "subject": "Order intake and order changes",
       "title": "\"Cancelled\" after shipment",
-      "search_text": "A09 Order intake and order changes \"Cancelled\" after shipment Is it treated as a return or refusal, not a cancellation? \"Cancelled\" after shipment Is it treated as a return or refusal, not a cancellation?",
-      "claim_text": "Reality evaluates: Is it treated as a return or refusal, not a cancellation?",
-      "support": "limited",
+      "search_text": "A09 Order intake and order changes \"Cancelled\" after shipment Is it treated as a return or refusal, not a cancellation? cancelled after shipment Storno nach Versand storniert nach Versand \"Cancelled\" after shipment Is it treated as a return or refusal, not a cancellation? The shop cancels an order we already shipped Der Shop storniert eine Bestellung, die schon versandt ist",
+      "claim_text": "Reality evaluates: Is it treated as a return or refusal, not a cancellation? A cancellation arriving after shipment cancels nothing; it waits with cancelled_after_shipment and names the return announcement a person confirms.",
+      "support": "proven",
       "limitations": [
-        "A cancellation that arrives after full shipment is held for review without effect, and a delivered line cannot be cancelled.",
-        "It is not yet classified as a return or a refusal."
+        "The return is expected only once a person confirms the announcement; Reality does not announce it by itself."
       ],
       "references": [
-        "A09"
+        "A09",
+        "return_announce"
       ],
       "language": "en",
-      "fingerprint": "9edea3447bc885cd707c8780370bb11bfefc6bbec570962af79f12c48147437b"
+      "fingerprint": "8c0f5499d1ff0cae5336f4dd58b02ad212c18def95b4c4ad3a7869335f22d42f"
     },
     {
       "id": "evidence_journey_a10",
@@ -2271,14 +2271,14 @@
       "claim_text": "Reality evaluates: Old commitment closed, new one opened, history kept?",
       "support": "unavailable",
       "limitations": [
-        "Lines cannot be added to an order once it is in operation, and changed shop orders are held for review.",
+        "Lines cannot be added to an order once it is in operation, and a shop edit that adds a line or raises a quantity is held for review.",
         "Swapping a variant on the same order while keeping its history is therefore not possible."
       ],
       "references": [
         "A10"
       ],
       "language": "en",
-      "fingerprint": "e2a08f03db9397a40137006c48be8d722997419d1c2d75624ed6d570a8975ebc"
+      "fingerprint": "e350ae795f2b8a4e68349eb004162d2a7eb3651473fce2e3f4eb4e88fba63d3b"
     },
     {
       "id": "evidence_journey_a11",
@@ -2368,36 +2368,35 @@
       "source_id": "source_journey_a16",
       "subject": "Order intake and order changes",
       "title": "Shop sends a new version of the same order",
-      "search_text": "A16 Order intake and order changes Shop sends a new version of the same order New source version, revised commitment, no overwrite? Shop sends a new version of the same order New source version, revised commitment, no overwrite?",
-      "claim_text": "Reality evaluates: New source version, revised commitment, no overwrite?",
-      "support": "limited",
+      "search_text": "A16 Order intake and order changes Shop sends a new version of the same order New source version, revised commitment, no overwrite? new order version shop order version Bestellversion neue Version der Bestellung Shop sends a new version of the same order New source version, revised commitment, no overwrite? The shop sends the same order again with a lower quantity Der Shop schickt dieselbe Bestellung mit geänderter Menge erneut",
+      "claim_text": "Reality evaluates: New source version, revised commitment, no overwrite? A later Shopify version is stored next to the first and, where it only lowers unshipped quantity, revises the promise citing the version; anything else waits for a person with a named reason.",
+      "support": "proven",
       "limitations": [
-        "A new version of a shop order is stored next to the old one without overwriting it.",
-        "The order line is not revised automatically; the change is held for review."
+        "Only reductions of unshipped quantity apply by themselves; higher quantities, new lines and price, address or currency changes wait for review."
       ],
       "references": [
         "A16"
       ],
       "language": "en",
-      "fingerprint": "535c2a6fdd97a1e7583945e83ae5969f787d47c2c95695a4f567d2ff697ff4af"
+      "fingerprint": "d9b4fef5a988d8f6c2f1135211a12b1f54ecf504ed0cb9af751651fc506bf586"
     },
     {
       "id": "evidence_journey_a17",
       "source_id": "source_journey_a17",
       "subject": "Order intake and order changes",
       "title": "Shop order contains an unknown item",
-      "search_text": "A17 Order intake and order changes Shop order contains an unknown item Is the line kept and the gap visible? Shop order contains an unknown item Is the line kept and the gap visible?",
-      "claim_text": "Reality evaluates: Is the line kept and the gap visible?",
-      "support": "limited",
+      "search_text": "A17 Order intake and order changes Shop order contains an unknown item Is the line kept and the gap visible? unknown SKU unknown item in order unbekannte SKU unbekannter Artikel Shop order contains an unknown item Is the line kept and the gap visible? The shop order has a SKU we do not know Die Shop-Bestellung enthält eine unbekannte SKU",
+      "claim_text": "Reality evaluates: Is the line kept and the gap visible? The known lines become the order and its promises; the unknown line is kept without an item and reported until a person assigns the item, which creates its promise.",
+      "support": "proven",
       "limitations": [
-        "The shop order is kept and the failure is visible.",
-        "The order is not interpreted until the item is known, so its known lines are not kept alongside the gap."
+        "An item is never created from the SKU; a person assigns an existing one."
       ],
       "references": [
-        "A17"
+        "A17",
+        "order_line_item_assign"
       ],
       "language": "en",
-      "fingerprint": "d251e844982d8b3593bd16d4dfd35c8b760103a39af1d351b747853a6ca8fde1"
+      "fingerprint": "bd8b6e755210094f449400893f49e209d3ae3dc7f8cab85ed05a7c165380d415"
     },
     {
       "id": "evidence_journey_a18",
@@ -3821,18 +3820,18 @@
       "source_id": "source_journey_f12",
       "subject": "Returns and complaints",
       "title": "Marketplace refunds first, goods later or never",
-      "search_text": "F12 Returns and complaints Marketplace refunds first, goods later or never Refund and return independent? Marketplace refunds first, goods later or never Refund and return independent?",
-      "claim_text": "Reality evaluates: Refund and return independent?",
-      "support": "limited",
+      "search_text": "F12 Returns and complaints Marketplace refunds first, goods later or never Refund and return independent? refund before return refunded not returned Erstattung vor Rücksendung Marketplace refunds first, goods later or never Refund and return independent? The marketplace refunded the customer before the goods came back Der Marktplatz hat erstattet, bevor die Ware zurückkam",
+      "claim_text": "Reality evaluates: Refund and return independent? A refund of shipped goods the shop says come back announces the return; it stays expected until the goods arrive or a person withdraws it, and no credit finding is raised.",
+      "support": "proven",
       "limitations": [
-        "Credit and return are independent of each other.",
-        "Marketplace refunds are not yet read from the marketplace."
+        "Only Shopify refunds are read; other marketplaces are not connected."
       ],
       "references": [
-        "F12"
+        "F12",
+        "return_announcement_withdraw"
       ],
       "language": "en",
-      "fingerprint": "8842fe940612c602f4d4a59eca918669a7082f359b7197dcc0816dc52118a2dc"
+      "fingerprint": "12dd7b51b6a017bbf1e2718923567ec268e2a640884ba111a783d7bf781d95cc"
     },
     {
       "id": "evidence_journey_f13",
@@ -4988,36 +4987,34 @@
       "source_id": "source_journey_l04",
       "subject": "E-commerce and marketplaces",
       "title": "Shopify order partially refunded in the shop",
-      "search_text": "L04 E-commerce and marketplaces Shopify order partially refunded in the shop Refund recorded from the source? Shopify order partially refunded in the shop Refund recorded from the source?",
-      "claim_text": "Reality evaluates: Refund recorded from the source?",
-      "support": "limited",
+      "search_text": "L04 E-commerce and marketplaces Shopify order partially refunded in the shop Refund recorded from the source? Shopify refund partial refund Teilerstattung Shopify-Erstattung Shopify order partially refunded in the shop Refund recorded from the source? A Shopify order was partially refunded in the shop Eine Shopify-Bestellung wurde im Shop teilweise erstattet",
+      "claim_text": "Reality evaluates: Refund recorded from the source? A Shopify refund becomes its own source record and a sales_refund document on the order with the stated amount and positions, without a posting.",
+      "support": "proven",
       "limitations": [
-        "A refund can refer to its source record.",
-        "Refunds in Shopify orders are not interpreted yet; a refunded order is held for review."
+        "A refund is evidence only: Shopify orders are not invoiced in Reality, so no credit note or payment is booked."
       ],
       "references": [
         "L04"
       ],
       "language": "en",
-      "fingerprint": "1e6c185b448ad05ad5768534eb0183c59b144a419546416919e627beb1793636"
+      "fingerprint": "e1d8744023863d5d1be75d16b71b0d24fcd91b5ea881b3cae2632eee3ad362bb"
     },
     {
       "id": "evidence_journey_l05",
       "source_id": "source_journey_l05",
       "subject": "E-commerce and marketplaces",
       "title": "Shopify order edited after import",
-      "search_text": "L05 E-commerce and marketplaces Shopify order edited after import New version, revised commitment? Shopify order edited after import New version, revised commitment?",
-      "claim_text": "Reality evaluates: New version, revised commitment?",
-      "support": "limited",
+      "search_text": "L05 E-commerce and marketplaces Shopify order edited after import New version, revised commitment? Shopify order edited Shopify order edit Shopify-Bestellung bearbeitet Bestellung nachträglich geändert Shopify order edited after import New version, revised commitment? The customer's Shopify order was edited after we imported it Die Shopify-Bestellung wurde nach dem Import bearbeitet",
+      "claim_text": "Reality evaluates: New version, revised commitment? An edit that removes or lowers an open line is applied from the new version; an edit that adds or raises waits for a person with the reason named.",
+      "support": "proven",
       "limitations": [
-        "The edited order is stored as a new version.",
-        "The order line is deliberately not revised automatically; the change is held for review."
+        "Adding a line or raising a quantity in the shop waits for a person; it is not applied automatically."
       ],
       "references": [
         "L05"
       ],
       "language": "en",
-      "fingerprint": "65638cbc4fea1daa1cae3356b2beab2b0516e56cefc56a926302c5b01fdb8327"
+      "fingerprint": "25ca394a93089f3560fb2f32df605dc897e8aa7a8feaea7d4a3fd0a6b2b92d7f"
     },
     {
       "id": "evidence_journey_l06",
@@ -5644,13 +5641,13 @@
       "claim_text": "Reality evaluates: Commitment closed with source reason?",
       "support": "proven",
       "limitations": [
-        "The shop's cancellation is held for review; a person closes the line."
+        "A cancellation before anything shipped closes the line by itself; after shipment it waits, and a person closes the open rest."
       ],
       "references": [
         "P04"
       ],
       "language": "en",
-      "fingerprint": "90288ee94181a9c96f562f952aab087fc4ee7c1cfc6c870523f3be97ec22a610"
+      "fingerprint": "2e802c48d86dd17b61c2740d71ec9585853c38267c761b686aab238534d2728b"
     },
     {
       "id": "evidence_journey_p05",
@@ -7838,6 +7835,21 @@
       ],
       "language": "en",
       "fingerprint": "f4dcd7a9d5de42bf638b2504dee545f12faf4ad057d7de28edce73678644825c"
+    },
+    {
+      "id": "evidence_command_assign_line_item",
+      "source_id": "source_executable_commands",
+      "subject": "Assign an item to an order line",
+      "title": "Assign an item to an order line",
+      "search_text": "assign_line_item Assign an item to an order line Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its delivery promise from the order; no money moves. mutation",
+      "claim_text": "assign_line_item is a governed mutation command for Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its delivery promise from the order; no money moves..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "assign_line_item"
+      ],
+      "language": "en",
+      "fingerprint": "ba64c60d32295d4460f6566c76767512ba8d36c1aeef0f96e493cf9e377e4ad7"
     },
     {
       "id": "evidence_command_record_return_disposition",

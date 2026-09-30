@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:44b61da8bef94d0d3939b03550e970dc565e93066085a557ba0843df58e9f898",
+  "knowledge_version": "advisor-v1:sha256:67810a5893c37d4f876ae79cec8c5f6da71c7a8874eb2c6dffeb8dd57ad2b3a0",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -844,7 +844,8 @@
         "evidence_command_create_manual_document_with_lines",
         "evidence_command_record_free_supplier_invoice",
         "evidence_command_record_packaged_execution",
-        "evidence_command_assign_supply"
+        "evidence_command_assign_supply",
+        "evidence_command_assign_line_item"
       ],
       "tools": [
         {
@@ -925,6 +926,10 @@
         },
         {
           "name": "assign_supply",
+          "mode": "mutation"
+        },
+        {
+          "name": "assign_line_item",
           "mode": "mutation"
         }
       ]
@@ -1120,7 +1125,8 @@
         "evidence_command_billable_positions",
         "evidence_command_record_packaged_execution",
         "evidence_command_assign_supply",
-        "evidence_command_record_customer_exchange"
+        "evidence_command_record_customer_exchange",
+        "evidence_command_assign_line_item"
       ],
       "tools": [
         {
@@ -1209,6 +1215,10 @@
         },
         {
           "name": "record_customer_exchange",
+          "mode": "mutation"
+        },
+        {
+          "name": "assign_line_item",
           "mode": "mutation"
         }
       ]
@@ -2220,7 +2230,8 @@
         "evidence_command_settlement_context",
         "evidence_command_apply_settlement",
         "evidence_command_import_opening",
-        "evidence_command_record_customer_exchange"
+        "evidence_command_record_customer_exchange",
+        "evidence_command_assign_line_item"
       ],
       "tools": [
         {
@@ -2477,6 +2488,10 @@
         },
         {
           "name": "record_customer_exchange",
+          "mode": "mutation"
+        },
+        {
+          "name": "assign_line_item",
           "mode": "mutation"
         }
       ]

@@ -465,8 +465,8 @@ readiness from active reservations and execution holds.
 `source_record.interpreted`, `party.created`, `party.updated`, `party.delivery_hold_placed`,
 `party.delivery_hold_released`, `item.updated`, `document.recorded`, `document.corrected`,
 `commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
-`reservation.released`, `movement.recorded`, `movement.corrected`
+`document_line.item_assigned`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
+`reservation.created`, `reservation.released`, `movement.recorded`, `movement.corrected`
 
 **Siehe auch:** Sicht [`orders`](./views#view-orders), Sicht
 [`warehouse_queue`](./views#view-warehouse_queue), Agenten-Tool
@@ -569,10 +569,10 @@ Change Proposal, and chat activity without loading business rows or querying onc
 `party_group_member.added`, `party_group_price_list.assigned`, `document.recorded`,
 `document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
 `promises.closed`, `payments.run`, `return.announced`, `return.announcement_withdrawn`,
-`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
-`reservation.released`, `handling_unit.created`, `lot.created`, `lot.expiry_stated`,
-`lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`, `movement.corrected`,
-`ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`document_line.item_assigned`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
+`reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
+`lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
+`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 ### `inventory` — Inventory {#projection-inventory}
 
@@ -632,10 +632,10 @@ restrictions.
 `party.created`, `party.updated`, `party.delivery_hold_placed`, `party.delivery_hold_released`,
 `item.created`, `item.updated`, `location.updated`, `document.recorded`, `document.corrected`,
 `commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`payments.run`, `return.announced`, `return.announcement_withdrawn`, `exchange.recorded`,
-`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
-`lot.expiry_stated`, `lot.expiry_corrected`, `movement.recorded`, `movement.corrected`,
-`ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`payments.run`, `return.announced`, `return.announcement_withdrawn`, `document_line.item_assigned`,
+`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `lot.expiry_stated`, `lot.expiry_corrected`, `movement.recorded`,
+`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 Zusätzlich alle 60 Sekunden für eine Hintergrundaktualisierung vorgesehen, auch ohne neues Business
 Event.
@@ -680,7 +680,8 @@ Ausnahme [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), Ausn
 [`unassigned_cost_component`](./exceptions#exception-unassigned_cost_component), Ausnahme
 [`stale_cost_review`](./exceptions#exception-stale_cost_review), Ausnahme
 [`negative_actual_db1`](./exceptions#exception-negative_actual_db1), Ausnahme
-[`exchange_without_return`](./exceptions#exception-exchange_without_return)
+[`exchange_without_return`](./exceptions#exception-exchange_without_return), Ausnahme
+[`order_line_item_unknown`](./exceptions#exception-order_line_item_unknown)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 
@@ -705,8 +706,8 @@ status on documents.
 `reservation.consumed`, `fact.observed`, `party.created`, `party.updated`,
 `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.updated`, `location.updated`,
 `commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
-`reservation.released`, `movement.recorded`, `movement.corrected`
+`document_line.item_assigned`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
+`reservation.created`, `reservation.released`, `movement.recorded`, `movement.corrected`
 
 **Siehe auch:** Agenten-Tool [`commitments_list`](./commands#tool-commitments_list), Agenten-Tool
 [`reservation_propose`](./commands#tool-reservation_propose), Agenten-Tool
@@ -734,7 +735,8 @@ Presents evidence and counts its shortest links into operational Reality.
 
 **Hintergrundaktualisierung nach:** `order.recorded`, `commitment.fulfilled`,
 `source_record.interpreted`, `party.created`, `party.updated`, `payment_term.updated`,
-`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`
+`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
+`document_line.item_assigned`
 
 **Siehe auch:** Agenten-Tool [`order_create_propose`](./commands#tool-order_create_propose),
 Agenten-Tool [`sales_credit_record_propose`](./commands#tool-sales_credit_record_propose),
@@ -835,10 +837,11 @@ Normalizes important evidence and reality timestamps into one chronological oper
 `party.updated`, `item.created`, `item.updated`, `location.created`, `location.updated`,
 `document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
 `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
-`return.announcement_withdrawn`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
-`lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
-`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`return.announcement_withdrawn`, `document_line.item_assigned`, `exchange.recorded`,
+`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
+`handling_unit.created`, `lot.created`, `lot.expiry_stated`, `lot.expiry_corrected`,
+`serial_unit.created`, `movement.recorded`, `movement.corrected`, `ledger.posted`,
+`ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Agenten-Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose),
 Agenten-Tool [`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool

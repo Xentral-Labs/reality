@@ -67,6 +67,12 @@ from reality.services.opening_stock_actions import (
     opening_detail,
     review_opening,
 )
+from reality.services.order_line_items import (
+    ORDER_LINE_ITEM_TOOLS,
+    assert_no_unresolved_item_assignment,
+    item_assignment_detail,
+    review_item_assignment,
+)
 from reality.services.payment_actions import (
     PAYMENT_TOOLS,
     _assert_no_unresolved_payment,
@@ -130,6 +136,7 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
             *SUPPLY_ASSIGNMENT_TOOLS,
             *RETURN_DISPOSITION_TOOLS,
             *CUSTOMER_EXCHANGE_TOOLS,
+            *ORDER_LINE_ITEM_TOOLS,
             *COMMITMENT_ACTION_TOOLS,
         }
         or (
@@ -225,6 +232,8 @@ def review_delivery(
         return review_return_disposition(session, tenant_id, arguments)
     if tool in CUSTOMER_EXCHANGE_TOOLS:
         return review_customer_exchange(session, tenant_id, arguments)
+    if tool in ORDER_LINE_ITEM_TOOLS:
+        return review_item_assignment(session, tenant_id, arguments)
     if tool in COMMITMENT_ACTION_TOOLS:
         return review_commitment_action(session, tenant_id, tool, arguments)
     if tool == "order_create":
@@ -590,6 +599,8 @@ def delivery_proposal_detail(
         return return_disposition_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in CUSTOMER_EXCHANGE_TOOLS:
         return customer_exchange_proposal_detail(session, tenant_id, proposal)
+    if proposal.type.removeprefix("tool:") in ORDER_LINE_ITEM_TOOLS:
+        return item_assignment_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in COMMITMENT_ACTION_TOOLS:
         return commitment_action_detail(session, tenant_id, proposal)
     if proposal.type == "tool:order_create":
@@ -824,6 +835,10 @@ def assert_no_unresolved_action(
         return assert_no_unresolved_customer_exchange(
             session, tenant_id, arguments, exclude
         )
+    if tool in ORDER_LINE_ITEM_TOOLS:
+        return assert_no_unresolved_item_assignment(
+            session, tenant_id, arguments, exclude
+        )
     if tool in COMMITMENT_ACTION_TOOLS:
         return assert_no_unresolved_commitment_action(
             session, tenant_id, tool, arguments, exclude
@@ -952,6 +967,7 @@ def reconcile_delivery(
             *SUPPLY_ASSIGNMENT_TOOLS,
             *RETURN_DISPOSITION_TOOLS,
             *CUSTOMER_EXCHANGE_TOOLS,
+            *ORDER_LINE_ITEM_TOOLS,
             *COMMITMENT_ACTION_TOOLS,
         }:
             proposal.status = "executed"

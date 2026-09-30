@@ -175,6 +175,7 @@
     "assign_supply": "orders",
     "record_return_disposition": "returns",
     "record_customer_exchange": "returns",
+    "assign_line_item": "orders",
     "correct_movement": "movements",
     "reverse_ledger_posting_group": "journal",
     "revise_commitment": "orders",

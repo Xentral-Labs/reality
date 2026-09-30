@@ -3,6 +3,7 @@
 **Created**: 2026-09-05
 **Language**: English
 **Status**: Approved scope
+**Narrowed by**: [spec 296](../296-shop-order-changes/spec.md). A later version whose order was interpreted now applies reductions of unshipped quantity automatically; every other change is still held as this spec describes, now with a coded reason.
 **Input**: Preserve Shopify source updates without automatically replacing operational
 Reality; expose unsupported changes as requiring review until real connector work.
 
