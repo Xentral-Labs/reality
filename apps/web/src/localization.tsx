@@ -24414,6 +24414,9 @@ Object.assign(dictionaries.de, {
   "Stated SKU": "Angegebene SKU",
   "Why it waits": "Warum es wartet",
   "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
+  "Order line without a price": "Auftragszeile ohne Preis",
+  "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
+    "Eine Rechnung, die die Zeile abrechnet und den berechneten Betrag angibt, oder die Stornierung der Zusage der Zeile.",
   "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
     "Den gemeinten Artikel mit dem geprüften Werkzeug order_line_item_assign zuordnen, das die Lieferzusage anlegt, oder den Auftrag stornieren.",
   "Only a sales-order line can be given an item here.":
@@ -24450,6 +24453,9 @@ Object.assign(dictionaries.nl, {
   "Stated SKU": "Opgegeven SKU",
   "Why it waits": "Waarom het wacht",
   "Order line with unknown item": "Orderregel met onbekend artikel",
+  "Order line without a price": "Orderregel zonder prijs",
+  "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
+    "Een factuur die de regel factureert met het gefactureerde bedrag, of het annuleren van de toezegging van de regel.",
   "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
     "Het bedoelde artikel toewijzen met de gecontroleerde tool order_line_item_assign, die de leverbelofte aanmaakt, of de order annuleren.",
   "Only a sales-order line can be given an item here.":
@@ -24486,6 +24492,9 @@ Object.assign(dictionaries.es, {
   "Stated SKU": "SKU indicada",
   "Why it waits": "Por qué espera",
   "Order line with unknown item": "Línea de pedido con artículo desconocido",
+  "Order line without a price": "Línea de pedido sin precio",
+  "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
+    "Una factura que facture la línea indicando el importe cobrado, o la cancelación del compromiso de la línea.",
   "Assigning the item the shop meant with the reviewed order_line_item_assign tool, which creates the delivery promise, or cancelling the order.":
     "Asignar el artículo que la tienda quería con la herramienta revisada order_line_item_assign, que crea el compromiso de entrega, o cancelar el pedido.",
   "Only a sales-order line can be given an item here.":
