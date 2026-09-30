@@ -167,9 +167,7 @@ def _shop_order(order_id, customer_sku, price="100.00"):
     }
 
 
-def test_a_shop_order_past_the_limit_is_held_once_even_when_replayed(
-    session, business
-):
+def test_a_shop_order_past_the_limit_is_held_once_even_when_replayed(session, business):
     tenant = business.tenant.id
     party = _customer(session, business, limit="100")
 
@@ -257,7 +255,7 @@ def test_a_credit_hold_is_added_beside_another_hold(session, business):
         tenant,
         commitments,
         credit_exposure(session, tenant, party.id),
-        Decimal("400"),
+        Decimal(400),
     )
 
     assert len(placed) == 1

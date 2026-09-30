@@ -80,7 +80,9 @@ def test_open_invoices_orders_and_credits_make_the_exposure(session, business):
         payment_number="PAY-X-1",
         effective_at=AS_OF,
     )
-    _invoice(session, business, party, "ER-X-1", "400.00", "2026-09-01", "supplier_invoice")
+    _invoice(
+        session, business, party, "ER-X-1", "400.00", "2026-09-01", "supplier_invoice"
+    )
 
     exposure = credit_exposure(session, tenant, party.id, as_of=AS_OF)
 
@@ -90,9 +92,7 @@ def test_open_invoices_orders_and_credits_make_the_exposure(session, business):
     # The payable is named, not netted.
     assert exposure["payables"]["amount"] == Decimal("400.00")
     assert exposure["exposure"] == Decimal("520.00")
-    assert [row["number"] for row in exposure["overdue_invoices"]["rows"]] == [
-        "RE-X-1"
-    ]
+    assert [row["number"] for row in exposure["overdue_invoices"]["rows"]] == ["RE-X-1"]
     assert exposure["overdue_invoices"]["amount"] == Decimal("300.00")
     assert (exposure["credit_limit"], exposure["over_limit"]) == (
         Decimal("1000.0000"),
@@ -132,7 +132,7 @@ def test_an_order_counts_what_is_not_yet_invoiced_once(session, business):
     core.cancel_commitment(session, tenant, commitment.id, reason="Customer cancelled")
     assert credit_exposure(session, tenant, party.id, as_of=AS_OF)["open_orders"][
         "amount"
-    ] == Decimal("0")
+    ] == Decimal(0)
 
 
 def test_another_currency_is_named_not_counted(session, business):
@@ -181,7 +181,9 @@ def test_an_exposure_past_the_limit_is_over_it(session, business):
     party = _customer(session, business, limit="100")
     _invoice(session, business, party, "RE-Z-1", "100.00", "2026-09-25")
     # The agreed number is allowed; only past it is over.
-    assert credit_exposure(session, tenant, party.id, as_of=AS_OF)["over_limit"] is False
+    assert (
+        credit_exposure(session, tenant, party.id, as_of=AS_OF)["over_limit"] is False
+    )
 
     _order(session, business, party, "SO-Z-1", "1", "0.01")
 
