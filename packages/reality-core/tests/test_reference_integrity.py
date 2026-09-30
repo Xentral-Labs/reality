@@ -531,7 +531,7 @@ def test_the_production_reference_catalog_is_the_measured_one():
         if reading != "traces_only"
     }
     assert len(concluding) == 15
-    assert len(directions) == 32
-    assert directions.count("reports_absence") == 11
+    assert len(directions) == 33
+    assert directions.count("reports_absence") == 12
     assert directions.count("requires_presence") == 13
     assert directions.count("traces_only") == 8
