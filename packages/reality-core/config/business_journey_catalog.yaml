@@ -680,11 +680,11 @@ entries:
   title: Receipt covers only part of the backorders
   question: Which remain uncovered?
   status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Which remain uncovered?'
+  evidence_level: executable
+  summary: 'Reality evaluates: Which remain uncovered? After a partial receipt, the promises a person has reserved are covered and the rest are reported at risk.'
   limitations:
-  - A partial receipt is reconciled against the purchase.
-  - Which customer promises stay uncovered afterwards is not yet proven.
+  - A receipt does not consume supply assignments, so each backorder still counts its full assigned supply after only part arrived.
+  - Which backorders stay uncovered is answered by the reservations a person makes.
   keywords: []
   question_examples:
   - Receipt covers only part of the backorders
@@ -694,8 +694,10 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_partial_receipt_leaves_the_assigned_backorders_as_they_were
+    note: 'Pinned: a receipt of 4 against assignments of 3 + 3 + 3 leaves protecting_supply at 3 each; after reserving 3 and 1, only the unreserved promises stay at risk.'
   - reference: tests/test_supply_coverage.py::test_purchasing_sales_and_inventory_views_reconcile_without_double_counting
-    note: The partial receipt is reconciled on the supplier side, but no test asserts which customer promises stay uncovered afterwards.
+    note: The partial receipt is reconciled on the supplier side.
 - id: B10
   section: Availability, reservation and backorder
   title: Customer refuses partial delivery
@@ -1967,23 +1969,30 @@ entries:
   section: Returns and complaints
   title: Unannounced return
   question: Accepted and linked later?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Accepted and linked later?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Accepted and linked later? A parcel without an announcement is taken into stock and reported as unexplained; when a person finds which delivery it belongs to, a reviewed correction links it, and what is owed back becomes visible until it is credited.'
   limitations:
-  - An unannounced return can be accepted.
-  - Linking it to its order later is not yet proven.
-  keywords: []
+  - A correction links the return to its delivery, not to a return announcement.
+  keywords:
+  - unannounced return
+  - return without announcement
+  - Retoure ohne Anmeldung
+  - unangemeldete Rücksendung
   question_examples:
   - Unannounced return
   - Accepted and linked later?
+  - A parcel came back without any paperwork
+  - Eine Retoure kam ohne Anmeldung, wie ordne ich sie zu?
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_return_announcements.py::test_the_parcel_names_its_announcement; tests/scenarios/test_normal_month.py::test_the_month_ends_with_exactly_these_exceptions
-    note: Accepting an unannounced return is tested. Linking an orphan return later (e.g. via correct_movement) is not.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_unannounced_return_is_linked_to_its_delivery_later
+    note: 'Two units come back without an announcement: stock is back and the return is unexplained; a reviewed movement_correct links it to the delivery, returned_not_credited then reports 2, and a credit of 2 settles it.'
+  - reference: tests/test_return_announcements.py::test_the_parcel_names_its_announcement
+    note: An announced parcel names its announcement.
 - id: F05
   section: Returns and complaints
   title: Damaged return, partial refund
@@ -2063,23 +2072,30 @@ entries:
   section: Returns and complaints
   title: Refund before the return arrives (goodwill)
   question: Refund paid, return still expected?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Refund paid, return still expected?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Refund paid, return still expected? A credit note and its refund can be paid before the goods come back; the announced return stays expected, is reported once it is overdue, and is fulfilled when the goods arrive.'
   limitations:
-  - A credit note before the goods arrive works.
-  - The refund payment and a 'return still expected' signal are not yet proven.
-  keywords: []
+  - A credit recorded through the invoice is not counted by credited-not-returned, which reads credits on the order line.
+  keywords:
+  - goodwill refund
+  - refund before return
+  - Kulanzerstattung
+  - Erstattung vor Rücksendung
   question_examples:
   - Refund before the return arrives (goodwill)
   - Refund paid, return still expected?
+  - We refunded the customer before the goods came back
+  - Die Erstattung ist raus, aber die Retoure fehlt noch
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_goodwill_refund_is_paid_while_the_return_is_still_expected
+    note: 'A credit of 99.90 is posted and refunded while an announced return of 2 is due in five days: nothing is reported before the date, announced_return_not_arrived after it; one unit back reports credited_not_returned, the second fulfils the announcement and clears both.'
   - reference: tests/operational_exceptions/test_derivation.py::test_credited_not_returned
-    note: A credit before the goods arrive is covered. The refund payment and a "return still expected" signal are not asserted.
+    note: A credit exceeding what came back is reported.
 - id: F09
   section: Returns and complaints
   title: Return announced, never arrives
@@ -2712,23 +2728,32 @@ entries:
   section: Goods receipt and supplier deviations
   title: Receipt without purchase order (free, sample, misdelivery)
   question: Why did stock arrive?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Why did stock arrive?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Why did stock arrive? A receipt without a purchase order keeps the reason the clerk states, such as free samples, and is explained by it; one without a reason is reported as unexplained, also when received through a shipment, until a reason, a purchase or a correction explains it.'
   limitations:
-  - A receipt without a purchase order is flagged.
-  - A stated reason such as 'sample' or 'free of charge' is not yet proven.
-  keywords: []
+  - A package alone does not explain a receipt; the reason or the purchase does.
+  keywords:
+  - receipt without purchase order
+  - free samples received
+  - misdelivery
+  - Wareneingang ohne Bestellung
+  - Muster erhalten
+  - Falschlieferung
   question_examples:
   - Receipt without purchase order (free, sample, misdelivery)
   - Why did stock arrive?
+  - Goods arrived that nobody ordered
+  - Ware kam ohne Bestellung an, warum?
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/operational_exceptions/test_derivation.py::test_unexplained_movement_warning_does_not_suppress_exception
-    note: An unlinked receipt is flagged; a stated reason (sample/free) is not tested.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_receipt_without_a_purchase_order_says_why_it_arrived
+    note: 'Free samples recorded with their reason are explained by it; a parcel received through shipment_receive without a word is reported, and a correction onto the phone order PO-H09 clears it.'
+  - reference: packages/reality-core/tests/test_movement_reasons.py
+    note: Stated reasons, blank reasons, delivery-path receipts and corrections (spec 314).
 - id: H10
   section: Goods receipt and supplier deviations
   title: One delivery for several purchase orders
@@ -4380,23 +4405,31 @@ entries:
   section: Sources and integration
   title: Events out of order
   question: Linked correctly once complete?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Linked correctly once complete?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Linked correctly once complete? A shop refund that arrives before its order fails visibly and links itself when its retry comes due after the order is in; a payment that arrives before its order is recorded as unallocated and, once the order is invoiced, is offered for that invoice by its stated reference, for a person to allocate.'
   limitations:
-  - An outdated update is stored but ignored, and an order is linked once its item exists.
-  - A payment or invoice that arrives before its order and is linked later is not yet proven.
-  keywords: []
+  - A payment is offered, not allocated, when its order arrives later.
+  keywords:
+  - events out of order
+  - payment before the order
+  - refund before the order
+  - Zahlung vor dem Auftrag
+  - Reihenfolge der Ereignisse
   question_examples:
   - Events out of order
   - Linked correctly once complete?
+  - The payment arrived before the order
+  - Die Zahlung kam vor der Bestellung an
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/tests/test_shopify_and_explain.py::test_stale_and_conflicting_webhooks_are_stored_but_not_interpreted, ::test_first_version_failure_retries_but_changed_version_requires_review
-    note: A stale webhook is stored but ignored, and an order is linked once its item exists. No test covers cross-record ordering, such as a payment or invoice arriving before its order and linking later.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_records_arriving_before_their_order_are_linked_once_it_is_in
+    note: 'A refund of order 9701 fails until the order is in and its retry links it without a person; a payment of 18 naming #9702 is unallocated, then offered for RE-9702 by its reference and allocated by a person.'
+  - reference: packages/reality-core/tests/test_payment_candidates_reference.py
+    note: A unique stated reference is a candidate reason (spec 314).
 - id: P03
   section: Sources and integration
   title: Source corrects an earlier record
@@ -4448,23 +4481,31 @@ entries:
   section: Sources and integration
   title: Incomplete payload accepted
   question: Gap visible?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Gap visible?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Gap visible? A shop order whose line states no price is accepted: the line is kept without an invented price and reported until a later version states one. A line without a quantity fails its order with a code, and the rest of the batch goes on.'
   limitations:
-  - Unsupported and failed source records are visible.
-  - Accepting a partly complete record and flagging the missing field is not yet proven.
-  keywords: []
+  - A price stated in a later version waits for review as a price change.
+  keywords:
+  - incomplete payload
+  - order without price
+  - missing field in order
+  - unvollständige Bestellung
+  - Bestellung ohne Preis
   question_examples:
   - Incomplete payload accepted
   - Gap visible?
+  - A shop order came in without a price
+  - Eine Shop-Bestellung kam ohne Preis
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/tests/test_interpretation_coverage.py::test_unsupported_and_historical_sources_have_explicit_coverage; tests/test_unified_order_entry.py::test_missing_or_ambiguous_evidence_is_not_success
-    note: Unsupported and failed payloads are visible. No test accepts a partially complete payload and flags the missing field.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_an_incomplete_shop_order_is_accepted_and_its_gap_reported
+    note: 'Order 9801 keeps its unpriced line without a price and order_line_price_missing names it; order 9802 without a quantity fails with source_line_quantity_missing while 9803 is interpreted.'
+  - reference: packages/reality-core/tests/test_shop_line_gaps.py
+    note: Missing and null price and quantity, later versions and billing (spec 314).
 - id: P06
   section: Sources and integration
   title: Two systems contradict each other
@@ -4519,23 +4560,32 @@ entries:
   section: Sources and integration
   title: Legacy import at go-live (opening stock, open items, open orders)
   question: Opening balances traceable?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Opening balances traceable?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Opening balances traceable? Opening stock and opening open items are traceable, and an open order partly delivered before go-live is imported with its original quantity as evidence and its open rest as the promise, both citing the legacy source record.'
   limitations:
-  - Opening stock and opening open items are traceable.
-  - Open orders that were already partly delivered at go-live are not yet proven.
-  keywords: []
+  - The quantity delivered before go-live stays in the legacy payload; it is not a typed value.
+  keywords:
+  - go-live
+  - legacy import
+  - open orders at go-live
+  - Datenübernahme
+  - Altdaten
+  - offene Aufträge bei Go-live
   question_examples:
   - Legacy import at go-live (opening stock, open items, open orders)
   - Opening balances traceable?
+  - How do we take over open orders that were partly delivered?
+  - Wie übernehmen wir teilgelieferte offene Aufträge beim Go-live?
   tools: []
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_sources.py::test_an_open_order_partly_delivered_before_go_live_is_traceable
+    note: 'A legacy file row AB-4711 of 10 with 4 delivered is imported; a reviewed revision states the open 6 citing the same source; 6 are shipped and invoiced and nothing is reported for the 4.'
   - reference: packages/reality-core/tests/test_unified_opening_stock.py::test_opening_review_adds_and_replay_is_inert; tests/finance/test_opening.py::test_four_directions_are_residual_positions_without_cash_or_turnover
-    note: Opening stock and opening open items are traceable. Open orders already partly delivered at go-live are not proven.
+    note: Opening stock and opening open items are traceable.
 - id: Q01
   section: Time and period
   title: 'Month-end: shipped not invoiced, invoiced not shipped'

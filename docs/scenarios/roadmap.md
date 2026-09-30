@@ -6,8 +6,10 @@ planned; the Guide promotes a journey only when a business story proves it (spec
 
 Ordered on 2026-09-29 against the catalog on `main` (92 supported, 59 partial, 74 missing, 3 out of
 scope). The order is a judgment of how often a prospect from German trade or e-commerce asks, and
-whether the gap can lose a deal; it is not measured. Seven journeys whose feasibility is uncertain
-(F04, F08, H09, P02, P05, P08, B09) are left for a test round of their own.
+whether the gap can lose a deal; it is not measured. Seven journeys whose feasibility was uncertain
+(F04, F08, H09, P02, P05, P08, B09) had a test round of their own in
+[spec 314](../../specs/314-partial-journey-proofs/spec.md): six are supported, and B09 moved to
+spec 305.
 
 ## Tier 1: comes up in almost every demo
 
@@ -28,7 +30,7 @@ whether the gap can lose a deal; it is not measured. Seven journeys whose feasib
 
 | Rank | Tier | Specification | Journeys |
 |---|---|---|---|
-| 11 | 2 | [305 Serving Backorders on Receipt](../../specs/305-backorder-allocation/spec.md) | B08, H16, B07, R02, G13 |
+| 11 | 2 | [305 Serving Backorders on Receipt](../../specs/305-backorder-allocation/spec.md) | B08, H16, B07, R02, G13, B09 |
 | 12 | 2 | [306 Ship-Complete and No-Partial-Delivery Rules](../../specs/306-ship-complete/spec.md) | B10, M06 |
 | 13 | 2 | [307 Stock Count Sessions](../../specs/307-stock-count/spec.md) | J02, R07, J03 |
 | 14 | 2 | [308 Customer Item Numbers](../../specs/308-customer-item-numbers/spec.md) | M02 |

@@ -703,11 +703,11 @@
       "title": "Receipt covers only part of the backorders",
       "question": "Which remain uncovered?",
       "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Which remain uncovered?",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Which remain uncovered? After a partial receipt, the promises a person has reserved are covered and the rest are reported at risk.",
       "limitations": [
-        "A partial receipt is reconciled against the purchase.",
-        "Which customer promises stay uncovered afterwards is not yet proven."
+        "A receipt does not consume supply assignments, so each backorder still counts its full assigned supply after only part arrived.",
+        "Which backorders stay uncovered is answered by the reservations a person makes."
       ],
       "keywords": [],
       "question_examples": [
@@ -2023,17 +2023,23 @@
       "section": "Returns and complaints",
       "title": "Unannounced return",
       "question": "Accepted and linked later?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Accepted and linked later?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Accepted and linked later? A parcel without an announcement is taken into stock and reported as unexplained; when a person finds which delivery it belongs to, a reviewed correction links it, and what is owed back becomes visible until it is credited.",
       "limitations": [
-        "An unannounced return can be accepted.",
-        "Linking it to its order later is not yet proven."
+        "A correction links the return to its delivery, not to a return announcement."
       ],
-      "keywords": [],
+      "keywords": [
+        "unannounced return",
+        "return without announcement",
+        "Retoure ohne Anmeldung",
+        "unangemeldete Rücksendung"
+      ],
       "question_examples": [
         "Unannounced return",
-        "Accepted and linked later?"
+        "Accepted and linked later?",
+        "A parcel came back without any paperwork",
+        "Eine Retoure kam ohne Anmeldung, wie ordne ich sie zu?"
       ],
       "tools": [],
       "demo_references": [],
@@ -2119,17 +2125,23 @@
       "section": "Returns and complaints",
       "title": "Refund before the return arrives (goodwill)",
       "question": "Refund paid, return still expected?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Refund paid, return still expected?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Refund paid, return still expected? A credit note and its refund can be paid before the goods come back; the announced return stays expected, is reported once it is overdue, and is fulfilled when the goods arrive.",
       "limitations": [
-        "A credit note before the goods arrive works.",
-        "The refund payment and a 'return still expected' signal are not yet proven."
+        "A credit recorded through the invoice is not counted by credited-not-returned, which reads credits on the order line."
       ],
-      "keywords": [],
+      "keywords": [
+        "goodwill refund",
+        "refund before return",
+        "Kulanzerstattung",
+        "Erstattung vor Rücksendung"
+      ],
       "question_examples": [
         "Refund before the return arrives (goodwill)",
-        "Refund paid, return still expected?"
+        "Refund paid, return still expected?",
+        "We refunded the customer before the goods came back",
+        "Die Erstattung ist raus, aber die Retoure fehlt noch"
       ],
       "tools": [],
       "demo_references": [],
@@ -2789,17 +2801,25 @@
       "section": "Goods receipt and supplier deviations",
       "title": "Receipt without purchase order (free, sample, misdelivery)",
       "question": "Why did stock arrive?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Why did stock arrive?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Why did stock arrive? A receipt without a purchase order keeps the reason the clerk states, such as free samples, and is explained by it; one without a reason is reported as unexplained, also when received through a shipment, until a reason, a purchase or a correction explains it.",
       "limitations": [
-        "A receipt without a purchase order is flagged.",
-        "A stated reason such as 'sample' or 'free of charge' is not yet proven."
+        "A package alone does not explain a receipt; the reason or the purchase does."
       ],
-      "keywords": [],
+      "keywords": [
+        "receipt without purchase order",
+        "free samples received",
+        "misdelivery",
+        "Wareneingang ohne Bestellung",
+        "Muster erhalten",
+        "Falschlieferung"
+      ],
       "question_examples": [
         "Receipt without purchase order (free, sample, misdelivery)",
-        "Why did stock arrive?"
+        "Why did stock arrive?",
+        "Goods arrived that nobody ordered",
+        "Ware kam ohne Bestellung an, warum?"
       ],
       "tools": [],
       "demo_references": [],
@@ -4501,17 +4521,24 @@
       "section": "Sources and integration",
       "title": "Events out of order",
       "question": "Linked correctly once complete?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Linked correctly once complete?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Linked correctly once complete? A shop refund that arrives before its order fails visibly and links itself when its retry comes due after the order is in; a payment that arrives before its order is recorded as unallocated and, once the order is invoiced, is offered for that invoice by its stated reference, for a person to allocate.",
       "limitations": [
-        "An outdated update is stored but ignored, and an order is linked once its item exists.",
-        "A payment or invoice that arrives before its order and is linked later is not yet proven."
+        "A payment is offered, not allocated, when its order arrives later."
       ],
-      "keywords": [],
+      "keywords": [
+        "events out of order",
+        "payment before the order",
+        "refund before the order",
+        "Zahlung vor dem Auftrag",
+        "Reihenfolge der Ereignisse"
+      ],
       "question_examples": [
         "Events out of order",
-        "Linked correctly once complete?"
+        "Linked correctly once complete?",
+        "The payment arrived before the order",
+        "Die Zahlung kam vor der Bestellung an"
       ],
       "tools": [],
       "demo_references": [],
@@ -4570,17 +4597,24 @@
       "section": "Sources and integration",
       "title": "Incomplete payload accepted",
       "question": "Gap visible?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Gap visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Gap visible? A shop order whose line states no price is accepted: the line is kept without an invented price and reported until a later version states one. A line without a quantity fails its order with a code, and the rest of the batch goes on.",
       "limitations": [
-        "Unsupported and failed source records are visible.",
-        "Accepting a partly complete record and flagging the missing field is not yet proven."
+        "A price stated in a later version waits for review as a price change."
       ],
-      "keywords": [],
+      "keywords": [
+        "incomplete payload",
+        "order without price",
+        "missing field in order",
+        "unvollständige Bestellung",
+        "Bestellung ohne Preis"
+      ],
       "question_examples": [
         "Incomplete payload accepted",
-        "Gap visible?"
+        "Gap visible?",
+        "A shop order came in without a price",
+        "Eine Shop-Bestellung kam ohne Preis"
       ],
       "tools": [],
       "demo_references": [],
@@ -4642,17 +4676,25 @@
       "section": "Sources and integration",
       "title": "Legacy import at go-live (opening stock, open items, open orders)",
       "question": "Opening balances traceable?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Opening balances traceable?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Opening balances traceable? Opening stock and opening open items are traceable, and an open order partly delivered before go-live is imported with its original quantity as evidence and its open rest as the promise, both citing the legacy source record.",
       "limitations": [
-        "Opening stock and opening open items are traceable.",
-        "Open orders that were already partly delivered at go-live are not yet proven."
+        "The quantity delivered before go-live stays in the legacy payload; it is not a typed value."
       ],
-      "keywords": [],
+      "keywords": [
+        "go-live",
+        "legacy import",
+        "open orders at go-live",
+        "Datenübernahme",
+        "Altdaten",
+        "offene Aufträge bei Go-live"
+      ],
       "question_examples": [
         "Legacy import at go-live (opening stock, open items, open orders)",
-        "Opening balances traceable?"
+        "Opening balances traceable?",
+        "How do we take over open orders that were partly delivered?",
+        "Wie übernehmen wir teilgelieferte offene Aufträge beim Go-live?"
       ],
       "tools": [],
       "demo_references": [],

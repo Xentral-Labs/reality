@@ -8,7 +8,7 @@
 
 **Language**: English
 
-**Input**: Sales-gap roadmap (`docs/scenarios/roadmap.md`), tier 2, rank 11. Close the capability gap behind the partial journeys B08, H16, B07, R02, G13 so the Business Journey Guide can state them as supported.
+**Input**: Sales-gap roadmap (`docs/scenarios/roadmap.md`), tier 2, rank 11. Close the capability gap behind the partial journeys B08, H16, B07, R02, G13, B09 so the Business Journey Guide can state them as supported.
 
 ## Context and Intent
 
@@ -23,6 +23,7 @@ A receipt reserves nothing automatically, there is no rule for which backorder i
 | B07 | Stock only on order (open purchase) | partial |
 | R02 | Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels | partial |
 | G13 | Purchase reduced after the customer order was cancelled | partial |
+| B09 | Receipt covers only part of the backorders | partial (added by spec 314) |
 
 ### Scope
 
@@ -30,6 +31,7 @@ A receipt reserves nothing automatically, there is no rule for which backorder i
 - A stated serving order (assigned first, then due date).
 - End an assignment when its customer promise is cancelled.
 - A dated available-to-promise answer from open purchases.
+- Assigned supply split into what has arrived and what is still to come, so a partial receipt says which assigned backorders stay uncovered (B09). Spec 314 pinned today's behaviour in `tests/scenarios/test_catalog_purchasing.py::test_a_partial_receipt_leaves_the_assigned_backorders_as_they_were`: after a receipt of 4 against assignments of 3 + 3 + 3, each customer still counts 3 as protecting supply.
 
 ### Non-Goals
 

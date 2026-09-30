@@ -8,7 +8,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 101 covered, 50 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 107 covered, 44 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -17,9 +17,9 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | C Payment and release | 11 | 3 |  | 4 |  |
 | D Shipment, split and merge | 4 | 3 |  | 12 |  |
 | E Customer invoice and credit | 9 | 3 |  |  |  |
-| F Returns and complaints | 10 | 2 |  | 1 |  |
+| F Returns and complaints | 12 |  |  | 1 |  |
 | G Purchase demand and order | 6 | 6 |  | 5 |  |
-| H Receipt and supplier deviations | 10 | 2 |  | 7 |  |
+| H Receipt and supplier deviations | 11 | 1 |  | 7 |  |
 | I Supplier invoice and payment | 10 | 1 |  | 1 |  |
 | J Warehouse and stock | 3 | 3 |  | 5 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
@@ -27,7 +27,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | M B2B specifics | 1 | 3 |  | 8 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 2 | 1 |  | 2 | 1 |
-| P Sources and integration | 4 | 4 |  |  |  |
+| P Sources and integration | 7 | 1 |  |  |  |
 | Q Time and period | 1 | 2 |  | 2 |  |
 | R Combined stress stories |  | 6 |  | 2 |  |
 
@@ -147,7 +147,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | B06 | partial | tests/test_stock_at_location.py::test_quantities_stay_at_the_exact_location, ::test_scoped_reservations_hold_that_location_only; docs/features/reservations.md | Availability is judged at the exact location, but nothing proposes the transfer, and no test reserves against stock that sits elsewhere. |
 | B07 | partial | tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt | Open PO quantity can be assigned to protect a customer promise (`protecting_supply`); there is no dated available-to-promise calculation. |
 | B08 | partial | tests/test_supply_coverage.py::test_purchasing_sales_and_inventory_views_reconcile_without_double_counting | A receipt reserves nothing automatically (the test asserts 0 reservations); a supply assignment names the intended customer, but no serving order exists. |
-| B09 | partial | tests/test_supply_coverage.py::test_purchasing_sales_and_inventory_views_reconcile_without_double_counting | The partial receipt is reconciled on the supplier side, but no test asserts which customer promises stay uncovered afterwards. |
+| B09 | partial | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_partial_receipt_leaves_the_assigned_backorders_as_they_were | Pinned (spec 314): a receipt does not consume supply assignments, so each backorder keeps its full protecting supply; uncovered promises are answered only by reservations. Moved to spec 305. |
 | B10 | partial | tests/test_fulfillment_readiness.py::test_readiness_combines_stock_reservation_and_active_hold; tests/test_commitment_holds.py::test_a_held_promise_cannot_be_shipped | A reasoned commitment hold can explain "reserved but not shipped"; there is no ship-complete or no-partial-delivery rule. |
 | B11 | gap | services/fulfillment_readiness.py (blocker set) | No per-order or per-customer limit on partial deliveries or parcel count exists. |
 | B12 | gap | db/core.py `Reservation` (no deadline column); tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside | Prepayment only blocks shipment; a reservation has no lapse date and is never released automatically. |
@@ -229,11 +229,11 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | F01 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_b2c_withdrawal_brings_the_goods_back_and_refunds_in_full | Paid delivery, full return, reviewed credit citing the invoice line, reviewed refund: stock back, invoice, credit, receivable and cash at 0, no return or billing signal (positive control first). |
 | F02 | covered | tests/operational_exceptions/test_derivation.py::test_returned_goods_are_not_reported_as_unbilled, ::test_returned_not_credited | Returned 4 or 6 against kept quantity is asserted through shipped_not_billed and returned_not_credited. |
 | F03 | covered | tests/scenarios/test_catalog_stock_and_returns.py::test_a_different_item_returned_does_not_fulfil_the_announcement | A foreign item cannot fulfil the announcement; it stands unexplained, and the announcement stays outstanding until the announced item arrives. |
-| F04 | partial | tests/test_return_announcements.py::test_the_parcel_names_its_announcement; tests/scenarios/test_normal_month.py::test_the_month_ends_with_exactly_these_exceptions | Accepting an unannounced return is tested. Linking an orphan return later (e.g. via correct_movement) is not. |
+| F04 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_unannounced_return_is_linked_to_its_delivery_later | An unannounced return is reported, linked to its delivery by a reviewed correction and settled by a credit (spec 314). A correction cannot fulfil an announcement. |
 | F05 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_damaged_return_is_disposed_and_credited_independently | Two back, one restocked and one scrapped through reviewed dispositions; full-quantity credit with a damage charge line, refunded; dispositions and credit each reconcile with no signal (positive control first). |
 | F06 | covered | tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes; tests/scenarios/test_b2b_operational_chain.py::test_supply_and_return_reconciliations_are_exact | Arrived 5 = restock 2 + quarantine 1 + scrap 1 + back to supplier 1; over-disposition is refused. |
 | F07 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_exchange_returns_one_unit_and_sends_another_without_money | A paid delivery is returned and exchanged for a larger size through the reviewed exchange tool (spec 293): the free replacement ships and no credit, invoice, payment or refund exists, with no finding. |
-| F08 | partial | tests/operational_exceptions/test_derivation.py::test_credited_not_returned | A credit before the goods arrive is covered. The refund payment and a "return still expected" signal are not asserted. |
+| F08 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_goodwill_refund_is_paid_while_the_return_is_still_expected | Credit and refund paid ahead of the goods; the announced return stays expected, is reported when overdue and fulfilled on arrival (spec 314). A credit through the invoice is not counted by credited_not_returned. |
 | F09 | covered | tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived, ::test_an_announcement_with_no_stated_day_is_judged_by_the_learned_rhythm | A stale announcement is reported by the stated date or the learned rhythm, and clears on arrival. |
 | F10 | gap | packages/reality-core/src/reality/services/return_dispositions.py (return_to_supplier is terminal) | Goods cannot go out for repair and come back while staying owned. |
 | F11 | covered | tests/operational_exceptions/test_derivation.py::test_credited_not_returned (first assertion); tests/scenarios/test_international_demo.py price_only_credit | A credit with no return raises nothing ("a decision, not a discrepancy"); the price-only allowance reduces the invoice. |
@@ -274,7 +274,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | H06 | gap | services/core.py "Movement does not match the commitment" | Wrong item cannot be tied to the PO; it only appears as an unexplained receipt. |
 | H07 | gap | — | No substitute/successor item link on receipt. |
 | H08 | gap | services/return_dispositions.py (customer returns only) | Location has no availability status; inbound quarantine is not modelled. |
-| H09 | partial | tests/operational_exceptions/test_derivation.py::test_unexplained_movement_warning_does_not_suppress_exception | An unlinked receipt is flagged; a stated reason (sample/free) is not tested. |
+| H09 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_receipt_without_a_purchase_order_says_why_it_arrived | A receipt without a purchase keeps its stated reason and is explained by it; a delivery-path receipt without one is reported (spec 314). |
 | H10 | covered | tests/scenarios/test_catalog_purchasing.py::test_one_inbound_package_is_split_across_several_purchase_orders | One package receives 5 for PO-A and 4 for PO-B; shipment_explain reports 9. |
 | H11 | covered | tests/scenarios/test_catalog_purchasing.py::test_early_receipt_fulfils_the_purchase_and_keeps_its_due_date | Receipt before the due date fulfils the purchase and keeps the due date; no read names a receipt "early", it is derivable. |
 | H12 | covered | tests/scenarios/test_catalog_purchasing.py::test_receipt_before_purchase_order_is_linked_later_by_replacement | An unexplained receipt is linked to the later PO by correct_movement; stock unchanged, PO fulfilled, exception cleared. |
@@ -393,13 +393,13 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | P01 | covered | packages/reality-core/tests/test_shopify_and_explain.py::test_shopify_ingestion_is_lossless_idempotent_and_traceable; tests/test_source_ingestion.py::test_unknown_source_is_stored_idempotently_as_unmapped; tests/test_payment_intake.py::test_replay_of_the_same_source_records_no_second_cash_entry | Idempotency is proven for orders, unmapped sources and payments. |
-| P02 | partial | packages/reality-core/tests/test_shopify_and_explain.py::test_stale_and_conflicting_webhooks_are_stored_but_not_interpreted, ::test_first_version_failure_retries_but_changed_version_requires_review | A stale webhook is stored but ignored, and an order is linked once its item exists. No test covers cross-record ordering, such as a payment or invoice arriving before its order and linking later. |
+| P02 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_records_arriving_before_their_order_are_linked_once_it_is_in | A refund before its order links itself on retry; a payment before its order is offered for the invoice its reference names, and a person allocates it (spec 314). |
 | P03 | covered | packages/reality-core/tests/test_shopify_and_explain.py::test_changed_source_creates_version_without_replacing_interpretation; tests/test_document_corrections.py::test_external_document_correction_appends_immutable_source_version | A correction creates a new version with a supersedes link and keeps the original payload. |
 | P04 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_source_cancellation_closes_the_line_with_the_source_as_its_reason | A Shopify order is interpreted and reserved; its cancelled version is held for review; a reviewed commitment_cancel citing that source record closes the line, releases the reservation and the event carries the source and the reason. |
-| P05 | partial | packages/reality-core/tests/test_interpretation_coverage.py::test_unsupported_and_historical_sources_have_explicit_coverage; tests/test_unified_order_entry.py::test_missing_or_ambiguous_evidence_is_not_success | Unsupported and failed payloads are visible. No test accepts a partially complete payload and flags the missing field. |
+| P05 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_an_incomplete_shop_order_is_accepted_and_its_gap_reported | A line without a price is kept without one and reported by order_line_price_missing; a line without a quantity fails its order with a code while the batch goes on (spec 314). |
 | P06 | partial | packages/reality-core/tests/test_shipment_story.py::test_supplier_source_payload_and_carrier_warehouse_discrepancy_remain_distinct; tests/test_provenance.py::test_several_contributing_systems_are_disclosed | Only the carrier-versus-warehouse contradiction is surfaced. There is no general check when two systems state different values. |
 | P07 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_day_long_outage_is_reported_and_its_backlog_arrives_without_duplicates | Daily Shopify arrivals under a controlled clock; after four quiet days silent_source reports 96 hours; the backlog of new orders plus exact repeats creates ten records, ten orders and ten promises and the silence clears. |
-| P08 | partial | packages/reality-core/tests/test_unified_opening_stock.py::test_opening_review_adds_and_replay_is_inert; tests/finance/test_opening.py::test_four_directions_are_residual_positions_without_cash_or_turnover | Opening stock and opening open items are traceable. Open orders already partly delivered at go-live are not proven. |
+| P08 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_an_open_order_partly_delivered_before_go_live_is_traceable | An open order partly delivered before go-live is imported with its original quantity and a reviewed revision to the open rest, both citing the legacy source (spec 314). The delivered quantity stays in the payload. |
 
 ## Q. Time and period
 

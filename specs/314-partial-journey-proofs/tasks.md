@@ -35,7 +35,7 @@
   - an order whose second line has no price, or a null price, is interpreted; that line has `unit_price` null, its payload is kept, and `order_line_price_missing` names it, while a priced line raises nothing (control);
   - an order whose line has no quantity, or a null quantity, fails with `source_line_quantity_missing`, is reported by `source_interpretation_failure`, and a second order in the same batch is interpreted;
   - a later shop version stating the price is held as `price_changed`;
-  - a billing proposal for the unpriced position is refused with `billable_position_price_missing`.
+  - billing offers the unpriced position without a price.
 - [ ] T010 [FR-006] Migration making `document_line.unit_price` nullable, numbered after rebasing onto `main` (research R8), with a downgrade that refuses null prices; update the model in `core/src/reality/db/core.py` and `config/data_model.yaml`.
 - [ ] T011 [FR-006] Shopify line interpretation in `core/src/reality/services/core.py`: a missing or null price becomes null, and a missing, null or non-positive quantity is a coded failure. Confirm `process_pending_import_jobs` keeps other jobs going.
 - [ ] T012 [FR-006] New class `order_line_price_missing` with every class gate: CLASS_ORDER, DERIVATION_REGISTRY, catalogs order, `operational_exception_catalog.yaml`, test class lists, reference-integrity count, German label. Add the refusal codes to `service_refusals.json` with de/nl/es translations.
