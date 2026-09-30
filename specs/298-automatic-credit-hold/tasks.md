@@ -74,8 +74,8 @@
 
 ## Phase 7: Stories and Guide (FR-007)
 
-- [ ] T015 [US1] [US2] Business stories C07, C08 and R08 in `core/tests/scenarios/test_catalog_finance.py`.
-- [ ] T016 [FR-007] Promote C07, C08 and R08 with story-first evidence and English and German keywords; check neighbouring questions. Update coverage, the roadmap and the coverage matrix, then run `make docs-generate`.
+- [x] T015 [US1] [US2] Business stories C07, C08 and R08 in `core/tests/scenarios/test_catalog_finance.py`.
+- [x] T016 [FR-007] Promote C07, C08 and R08 with story-first evidence and English and German keywords; check neighbouring questions. Update coverage, the roadmap and the coverage matrix, then run `make docs-generate`.
 
 ## Phase 8: Verification
 

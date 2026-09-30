@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:267d4ea30b355797179e4c2a0b5a95d730fe05d5de87316702b354910cb3982e",
+  "knowledge_version": "advisor-v1:sha256:4588af3ad0d5d5c42b2d14d2ccd5a1a2a6f9ddc115fd91f51273ea9bd31a9fbd",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -106,7 +106,12 @@
         "evidence_journey_r07",
         "evidence_journey_r08"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "credit_exposure",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_customer_invoice_and_credit_note",
@@ -396,7 +401,12 @@
         "evidence_journey_c17",
         "evidence_journey_c18"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "credit_exposure",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_picking_shipment_split_and_merge",

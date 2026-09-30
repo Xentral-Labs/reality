@@ -1002,44 +1002,64 @@ entries:
   section: Payment and release
   title: 'Credit limit exceeded: order held, released by a person'
   question: Who released it, and why?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Who released it, and why?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Who released it, and why? A new order that would take the customer past the credit limit is held at entry, whatever path records it, with a hold that names the limit, the open, overdue and ordered amounts; a company owner releases it with a stated reason, recorded with the person.'
   limitations:
-  - The credit-limit exception and a hold released by a named person both work.
-  - They are not linked to each other, and there is no automatic credit hold.
-  keywords: []
+  - A limit lowered later does not hold orders already recorded; the credit-limit finding reports them.
+  keywords:
+  - credit hold
+  - order held for credit
+  - release credit hold
+  - Kreditsperre
+  - Kreditlimit überschritten
+  - Auftrag gesperrt Kreditlimit
   question_examples:
   - 'Credit limit exceeded: order held, released by a person'
   - Who released it, and why?
-  tools: []
+  - An order was blocked because the customer is over the credit limit
+  - Wer hat die Kreditsperre freigegeben und warum?
+  - Kreditsperre freigeben
+  tools:
+  - credit_hold_release_propose
+  - credit_exposure
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/operational_exceptions/test_derivation.py::test_credit_limit_exceeded; tests/test_unified_customer_holds.py::test_review_place_release_history_and_replay
-    note: The exception and a reviewed hold/release (with actor) are each tested; nothing links the exception to a hold, and there is no automatic credit hold.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_order_over_the_limit_is_held_and_released_by_an_owner
+    note: 'With 700 overdue against a limit of 1,000, an order of 200 is not held and one of 400 is; a member cannot release it, an owner does with a reason recorded in the event and the decision trail, and the order becomes ready to ship.'
+  - reference: packages/reality-core/tests/test_credit_hold.py
+    note: Every entry path, replay, other holds, the owner-only release and its refusals (spec 298).
 - id: C08
   section: Payment and release
   title: Limit exceeded by overdue items, not by order value
   question: Does the hold name the overdue items?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Does the hold name the overdue items?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Does the hold name the overdue items? The credit hold and the credit-limit finding name the overdue invoices with their amounts apart from the invoices not yet due, and count open orders and available credits in the exposure.'
   limitations:
-  - Credit exposure counts open invoices only; the order value never counts.
-  - The exception lists all open invoices, not specifically the overdue ones.
-  keywords: []
+  - Only amounts in the customer's own currency count; others are named, not converted.
+  keywords:
+  - overdue invoices behind the credit hold
+  - credit exposure
+  - Kreditobligo
+  - überfällige Rechnungen Kreditsperre
   question_examples:
   - Limit exceeded by overdue items, not by order value
   - Does the hold name the overdue items?
-  tools: []
+  - Which overdue invoices put the customer over the limit?
+  - Welche überfälligen Rechnungen führen zur Kreditsperre?
+  tools:
+  - credit_exposure
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: src/reality/services/exceptions.py::_credit_limit_exceeded_exceptions; tests/operational_exceptions/test_derivation.py::test_credit_exposure_uses_the_shared_open_items
-    note: Exposure comes from open invoices only (order value never counts) and names all open invoice ids, not the overdue ones; no test asserts the named items.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_credit_hold_names_the_overdue_items_behind_it
+    note: 'Of an invoice 600 overdue and one of 300 due today, only the overdue one is named in the hold of a new order and in the credit-limit finding.'
+  - reference: packages/reality-core/tests/test_credit_exposure.py
+    note: Open invoices, open orders, credits, payables, currencies and the limit (spec 298).
 - id: C09
   section: Payment and release
   title: 'Card/PayPal/Klarna: authorization ≠ capture'
@@ -4839,20 +4859,26 @@ entries:
   section: Combined stress stories
   title: Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit
   question: Hold reason names all facts.
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Hold reason names all facts.'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Hold reason names all facts. For a customer who is also a supplier, a new order past the limit is held with a reason that names the overdue receivable, the ordered value, the open credit subtracted and the payable to the same party, which is named but not netted.'
   limitations:
-  - The credit-limit check counts open invoices only.
-  - It ignores the new order, open credits and payables, and no hold reason combines these facts.
-  keywords: []
+  - Payables are not netted against receivables; that needs an agreement.
+  keywords:
+  - customer is also a supplier
+  - credit hold with payables
+  - Kunde ist auch Lieferant
+  - Verrechnung Kreditlimit
   question_examples:
   - Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit
   - Hold reason names all facts.
-  tools: []
+  - Our customer is also our supplier and is over the credit limit
+  - Kunde ist gleichzeitig Lieferant und über dem Kreditlimit
+  tools:
+  - credit_exposure
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/operational_exceptions/test_derivation.py::test_credit_limit_exceeded; tests/test_unified_customer_holds.py::test_customer_hold_http_actor_and_practice
-    note: credit_limit_exceeded sums open invoices only; it ignores the new order, available credit and payables, and no hold reason combines them.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_customer_who_is_also_a_supplier_is_held_with_every_fact
+    note: '800 overdue plus an order of 400 minus a credit note of 100 make an exposure of 1,100 against 1,000; the hold names each and the supplier invoice of 500 as not netted.'

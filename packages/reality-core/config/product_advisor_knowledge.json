@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:267d4ea30b355797179e4c2a0b5a95d730fe05d5de87316702b354910cb3982e",
+  "knowledge_version": "advisor-v1:sha256:4588af3ad0d5d5c42b2d14d2ccd5a1a2a6f9ddc115fd91f51273ea9bd31a9fbd",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -441,7 +441,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C07",
-      "fingerprint": "ba25cd857ddc387885e4facb9605c246ab25731935dbc93ec32364343722f352"
+      "fingerprint": "e4b2a5db35897ac8183c82f0039021d8166a911bd0bc758a94450f42e392e242"
     },
     {
       "id": "source_journey_c08",
@@ -450,7 +450,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C08",
-      "fingerprint": "7b1f7bce5ce998c0c634b4bae9fc12103337b58232d11adc808caef85a589d79"
+      "fingerprint": "8409b764da5e7d6d30cc0903bfc4ab2df47eca7aa476957a8d49c3d429736c81"
     },
     {
       "id": "source_journey_c09",
@@ -2052,7 +2052,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#R08",
-      "fingerprint": "295a9a1f36306474ca242fd41d06f29b07ddcaf62f5cf33e1191e344546f32eb"
+      "fingerprint": "13265ebeb02ba55bb47532b1a24a40a9950f99ccb0e123073e471e974d26ec8e"
     },
     {
       "id": "source_executable_commands",
@@ -2915,36 +2915,37 @@
       "source_id": "source_journey_c07",
       "subject": "Payment and release",
       "title": "Credit limit exceeded: order held, released by a person",
-      "search_text": "C07 Payment and release Credit limit exceeded: order held, released by a person Who released it, and why? Credit limit exceeded: order held, released by a person Who released it, and why?",
-      "claim_text": "Reality evaluates: Who released it, and why?",
-      "support": "limited",
+      "search_text": "C07 Payment and release Credit limit exceeded: order held, released by a person Who released it, and why? credit hold order held for credit release credit hold Kreditsperre Kreditlimit überschritten Auftrag gesperrt Kreditlimit Credit limit exceeded: order held, released by a person Who released it, and why? An order was blocked because the customer is over the credit limit Wer hat die Kreditsperre freigegeben und warum? Kreditsperre freigeben",
+      "claim_text": "Reality evaluates: Who released it, and why? A new order that would take the customer past the credit limit is held at entry, whatever path records it, with a hold that names the limit, the open, overdue and ordered amounts; a company owner releases it with a stated reason, recorded with the person.",
+      "support": "proven",
       "limitations": [
-        "The credit-limit exception and a hold released by a named person both work.",
-        "They are not linked to each other, and there is no automatic credit hold."
+        "A limit lowered later does not hold orders already recorded; the credit-limit finding reports them."
       ],
       "references": [
-        "C07"
+        "C07",
+        "credit_hold_release_propose",
+        "credit_exposure"
       ],
       "language": "en",
-      "fingerprint": "ecf1f19e5ad2f9e1aa036ebf2c4ed739509019afd9840ae0c42c8e7a5573a97b"
+      "fingerprint": "d46a8197616ef2487ecef0a8276f47aef12cf946b87112184d41bbf8832023e0"
     },
     {
       "id": "evidence_journey_c08",
       "source_id": "source_journey_c08",
       "subject": "Payment and release",
       "title": "Limit exceeded by overdue items, not by order value",
-      "search_text": "C08 Payment and release Limit exceeded by overdue items, not by order value Does the hold name the overdue items? Limit exceeded by overdue items, not by order value Does the hold name the overdue items?",
-      "claim_text": "Reality evaluates: Does the hold name the overdue items?",
-      "support": "limited",
+      "search_text": "C08 Payment and release Limit exceeded by overdue items, not by order value Does the hold name the overdue items? overdue invoices behind the credit hold credit exposure Kreditobligo überfällige Rechnungen Kreditsperre Limit exceeded by overdue items, not by order value Does the hold name the overdue items? Which overdue invoices put the customer over the limit? Welche überfälligen Rechnungen führen zur Kreditsperre?",
+      "claim_text": "Reality evaluates: Does the hold name the overdue items? The credit hold and the credit-limit finding name the overdue invoices with their amounts apart from the invoices not yet due, and count open orders and available credits in the exposure.",
+      "support": "proven",
       "limitations": [
-        "Credit exposure counts open invoices only; the order value never counts.",
-        "The exception lists all open invoices, not specifically the overdue ones."
+        "Only amounts in the customer's own currency count; others are named, not converted."
       ],
       "references": [
-        "C08"
+        "C08",
+        "credit_exposure"
       ],
       "language": "en",
-      "fingerprint": "9e95f20b674b9673d958c977277ae4cc53a84db041fec6083efb5083d258586e"
+      "fingerprint": "ec963f05be7995de61b8d5e121a79f838fa53bc270b804c3efba513299ce29ed"
     },
     {
       "id": "evidence_journey_c09",
@@ -5930,18 +5931,18 @@
       "source_id": "source_journey_r08",
       "subject": "Combined stress stories",
       "title": "Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit",
-      "search_text": "R08 Combined stress stories Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit Hold reason names all facts. Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit Hold reason names all facts.",
-      "claim_text": "Reality evaluates: Hold reason names all facts.",
-      "support": "limited",
+      "search_text": "R08 Combined stress stories Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit Hold reason names all facts. customer is also a supplier credit hold with payables Kunde ist auch Lieferant Verrechnung Kreditlimit Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit Hold reason names all facts. Our customer is also our supplier and is over the credit limit Kunde ist gleichzeitig Lieferant und über dem Kreditlimit",
+      "claim_text": "Reality evaluates: Hold reason names all facts. For a customer who is also a supplier, a new order past the limit is held with a reason that names the overdue receivable, the ordered value, the open credit subtracted and the payable to the same party, which is named but not netted.",
+      "support": "proven",
       "limitations": [
-        "The credit-limit check counts open invoices only.",
-        "It ignores the new order, open credits and payables, and no hold reason combines these facts."
+        "Payables are not netted against receivables; that needs an agreement."
       ],
       "references": [
-        "R08"
+        "R08",
+        "credit_exposure"
       ],
       "language": "en",
-      "fingerprint": "ba27beb053ad0de0fab36647f1a1572cd14917353e62f3ef6eec3d99378d2d1d"
+      "fingerprint": "b593b97aa5d9e126f7e804b459a90061e305a7e576733498d75ae539b145a583"
     },
     {
       "id": "evidence_command_business_journey_guide",
