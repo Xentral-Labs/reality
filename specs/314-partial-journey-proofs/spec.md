@@ -97,7 +97,7 @@ As a prospective customer's IT lead, I see P02 and P05 as supported.
 
 1. **Given** a shop refund whose order has not arrived, **When** it is taken in, **Then** it fails visibly; **When** the order arrives and the retry is due, **Then** the refund is linked to the order without a person and the failure clears.
 2. **Given** a payment stating a shop order that is not known yet, **When** it is taken in, **Then** the money is recorded as unallocated with a named reason; **When** the order is taken in and invoiced, **Then** that invoice is offered as a candidate with the stated reference as its reason, also when the amount differs; **When** a person allocates it, **Then** the invoice is settled and nothing unallocated remains.
-3. **Given** a shop order whose second line has no price, **When** it is taken in, **Then** the order and its first line are interpreted, the second line keeps what the source stated and no invented price, and the missing price is reported.
+3. **Given** a shop order whose second line has no price, **When** it is taken in, **Then** the order and its first line are interpreted, the second line keeps what the source stated and no invented price, and the missing price is reported while the line has none.
 4. **Given** a shop order whose line has a null price or no quantity, **When** it is taken in, **Then** the import job does not crash; the gap is reported as a failure or finding with a code, and other orders in the batch are unaffected.
 
 ---
@@ -125,7 +125,7 @@ As an implementation consultant, I see P08 as supported.
 - A receipt reason that is only whitespace counts as no reason.
 - A correction of an explained receipt keeps its explanation on the replacement.
 - A payment reference matching several invoices keeps today's ambiguous-candidate behaviour.
-- A later shop version that states the missing price clears the price gap.
+- A later shop version that states the missing price is held for review as a price change (spec 296); it does not fail on the missing earlier price.
 - A story passes only with a direct database write or a test-only shortcut: it does not count.
 
 ## Requirements *(mandatory)*
@@ -137,7 +137,7 @@ As an implementation consultant, I see P08 as supported.
 - **FR-003**: A stated reason on a receipt without a commitment MUST be kept, shown in the movement explanation, and MUST explain the receipt so it is not reported as unexplained.
 - **FR-004**: A receipt without a commitment recorded through the delivery path MUST be reported as unexplained unless a reason, a source record or a correction explains it.
 - **FR-005**: A payment whose stated reference matches exactly one open invoice MUST offer that invoice as a candidate with the reference as its reason, independent of the amount; allocation stays a person's decision.
-- **FR-006**: A source order line without a stated price or quantity MUST NOT make the import job fail outside the reported failure path; a line without a stated price MUST NOT be recorded as a stated price of zero, and the missing price MUST be reported until it is stated.
+- **FR-006**: A source order line without a stated price or quantity MUST NOT make the import job fail outside the reported failure path; a line without a stated price MUST NOT be recorded as a stated price of zero, and the missing price MUST be reported while the line has none.
 - **FR-007**: A journey MUST be promoted to `supported` with `executable` evidence only when its story passes, citing that story first, with English and German keywords or question examples and no "not yet proven" limitation.
 - **FR-008**: B09 MUST stay `partial` with a limitation naming the missing assignment-aware coverage, and spec 305 MUST list the finding.
 - **FR-009**: The Guide payload, coverage document and roadmap MUST be regenerated or updated.
