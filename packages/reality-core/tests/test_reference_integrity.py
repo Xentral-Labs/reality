@@ -522,16 +522,16 @@ def test_the_production_reference_catalog_is_the_measured_one():
 
     assert len(load_bearing) == 4
     assert len(exceptions.CLASS_ORDER) == 43
-    # Twenty-one classes read one of the four references; fourteen reason from one.
-    assert len(consumers) == 21
+    # Twenty-two classes read one of the four references; fifteen reason from one.
+    assert len(consumers) == 22
     concluding = {
         class_id
         for entry in load_bearing.values()
         for class_id, reading in entry["consumers"].items()
         if reading != "traces_only"
     }
-    assert len(concluding) == 14
-    assert len(directions) == 31
-    assert directions.count("reports_absence") == 10
+    assert len(concluding) == 15
+    assert len(directions) == 32
+    assert directions.count("reports_absence") == 11
     assert directions.count("requires_presence") == 13
     assert directions.count("traces_only") == 8
