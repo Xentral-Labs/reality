@@ -12,18 +12,18 @@
 
 ## Phase 2: Exposure (FR-001, DR-002)
 
-- [ ] T004 [FR-001] Failing tests in `core/tests/test_credit_exposure.py`:
+- [x] T004 [FR-001] Failing tests in `core/tests/test_credit_exposure.py`:
   - open invoices, open uninvoiced order lines (partly invoiced, cancelled, revised, unpriced) and available credits (credit note, unallocated payment) sum as specified;
   - overdue invoices are named apart from those not yet due;
   - payables of the same party are named, not subtracted;
   - another currency is named as not counted;
   - tenant scope;
   - an invoiced order counts once.
-- [ ] T005 [FR-001] `credit_exposure` in `core/src/reality/services/credit_exposure.py`.
+- [x] T005 [FR-001] `credit_exposure` in `core/src/reality/services/credit_exposure.py`.
 
 ## Phase 3: Hold at entry (FR-002, FR-003)
 
-- [ ] T006 [FR-002] [FR-003] Failing tests in `core/tests/test_credit_hold.py`:
+- [x] T006 [FR-002] [FR-003] Failing tests in `core/tests/test_credit_hold.py`:
   - an order over the limit is held with `credit_check` on each promise, with the note and a `commitment.held` event carrying the facts;
   - an order under the limit is not held (control);
   - no limit, no hold;
@@ -33,7 +33,7 @@
   - a credit hold is added beside an address hold;
   - an assigned line of a credit-held order is held;
   - a held promise cannot be reserved or shipped.
-- [ ] T007 [FR-002] `hold_if_over_credit_limit` and its calls in `create_manual_order`, the Shopify interpretation, the file `sales_order` import and `assign_line_item`.
+- [x] T007 [FR-002] `hold_if_over_credit_limit` and its calls in `create_manual_order`, the Shopify interpretation, the file `sales_order` import and `assign_line_item`.
 
 ## Phase 4: Release (FR-004)
 

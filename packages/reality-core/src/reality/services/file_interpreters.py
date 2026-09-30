@@ -487,6 +487,7 @@ def interpret_artifact(
                 customer_reference=str(first.get("customer_reference") or ""),
                 sales_channel=source.source_system,
             )
+            order_commitments: list[Commitment] = []
             for row in order_rows:
                 item = _item(session, tenant_id, str(_value(row, "sku")).strip())
                 quantity = positive(_value(row, "quantity"))
@@ -528,6 +529,7 @@ def interpret_artifact(
                     document_line_id=line.id,
                 )
                 session.add(commitment)
+                order_commitments.append(commitment)
                 created.append(commitment.id)
                 emit_business_event(
                     session,
@@ -542,6 +544,9 @@ def interpret_artifact(
                     },
                     source_record_id=order_source.id,
                 )
+            from reality.services.credit_exposure import hold_if_over_credit_limit
+
+            hold_if_over_credit_limit(session, tenant_id, document, order_commitments)
             session.commit()
             created.append(document.id)
             count += 1

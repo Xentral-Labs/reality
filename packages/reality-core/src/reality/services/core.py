@@ -7854,6 +7854,12 @@ def create_manual_order(
             action_id=action_id,
             correlation_id=action_id,
         )
+        if direction == "sales":
+            from reality.services.credit_exposure import hold_if_over_credit_limit
+
+            hold_if_over_credit_limit(
+                session, tenant_id, document, commitments, action_id=action_id
+            )
         session.commit()
         return source, document, document_lines, commitments
     except Exception:
@@ -12665,6 +12671,9 @@ def _shopify_interpretation(
             source_record_id=source.id,
             correlation_id=source.id,
         )
+    from reality.services.credit_exposure import hold_if_over_credit_limit
+
+    hold_if_over_credit_limit(session, tenant_id, document, commitments_created)
     return source, document, lines, commitments_created
 
 

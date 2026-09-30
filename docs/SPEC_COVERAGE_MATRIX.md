@@ -1866,3 +1866,8 @@ Table `payment_return`: a customer payment that came back as a returned direct d
 - `packages/reality-core/tests/scenarios/test_catalog_purchasing.py`: H09 a receipt without a purchase explained by its reason, a misdelivery reported until corrected; B09 pinned, a partial receipt leaves assigned supply unchanged.
 - `packages/reality-core/tests/scenarios/test_catalog_sources.py`: P02 a refund and a payment arriving before their orders; P05 an incomplete shop order accepted with its gap reported; P08 an open order partly delivered before go-live traced to its legacy source.
 - `packages/reality-core/tests/test_business_journey_catalog.py`: F04, F08, H09, P02, P05 and P08 cite their stories and carry keywords and question examples.
+
+## Automatic credit hold — Spec 298
+
+- `packages/reality-core/tests/test_credit_exposure.py`: the exposure as open invoices plus open uninvoiced order lines minus available credits (credit note, unallocated payment); overdue invoices named apart; payables named, not netted; partly invoiced, revised and cancelled lines; another currency named as not counted; an unpriced shop line counted 0 and named; the limit itself allowed and one cent past it over; tenant scope with the owning company as control.
+- `packages/reality-core/tests/test_credit_hold.py`: an order past the limit held with `credit_check` on each promise with the facts in its note and event, an order within the limit as control; a held promise not ready to ship; no limit or another currency holds nothing; the reviewed order tool, a replayed shop order (held once) and a file import hold too; a credit hold beside another hold; an assigned line of a credit-held order held.
