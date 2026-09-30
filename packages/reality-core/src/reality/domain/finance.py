@@ -15,6 +15,7 @@ ACCOUNT_ROLES.update(
         "supplier_reduction": "Accepted supplier settlement reduction",
         "bad_debt_expense": "Customer bad-debt expense",
         "dunning_fee_revenue": "Dunning fee revenue",
+        "payment_fee_expense": "Payment fees",
     }
 )
 CONTROL_ROLES = frozenset({"accounts_receivable", "accounts_payable"})
@@ -120,6 +121,22 @@ TRANSACTION_MATRIX = (
         "supplier_reduction",
         "Explicitly accepted reduction",
         "original_required",
+    ),
+    (
+        "payment_return_fee",
+        "Returned payment fee",
+        "payment_fee_expense",
+        "cash",
+        "Stated bank or provider fee",
+        "configured_default",
+    ),
+    (
+        "payment_return_fee_charge",
+        "Returned payment fee charged on",
+        "accounts_receivable",
+        "payment_fee_expense",
+        "Stated fee charged to the customer",
+        "configured_default",
     ),
     (
         "dunning_fee_charge",

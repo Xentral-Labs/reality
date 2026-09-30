@@ -107,8 +107,11 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 | [`create_manual_order`](#command-create_manual_order)                             | Create manual sales or purchase order      | Aufträge & Erfüllung    | `order_create_propose`                                                                                                                                                                       | Web · MCP · Chat                        |
 | [`hold_commitment`](#command-hold_commitment)                                     | Hold commitment                            | Aufträge & Erfüllung    | `commitment_hold_propose`, `commitment_hold_release_propose`                                                                                                                                 | CLI · Web · API · MCP · Chat            |
 | [`hold_document_commitments`](#command-hold_document_commitments)                 | Hold document commitments                  | Aufträge & Erfüllung    | `document_hold_propose`, `document_hold_release_propose`                                                                                                                                     | CLI · Web · API · MCP · Chat            |
+| [`returns`](#command-returns)                                                     | List returned payments                     | Aufträge & Erfüllung    | `finance_payment_returns`                                                                                                                                                                    | Web · MCP · Chat · CLI                  |
 | [`preview_stale_promise_closure`](#command-preview_stale_promise_closure)         | Preview stale promise closure              | Aufträge & Erfüllung    | `stale_closure_preview`                                                                                                                                                                      | Web · MCP · Chat                        |
+| [`return_detail`](#command-return_detail)                                         | Read a returned payment                    | Aufträge & Erfüllung    | `finance_payment_return`                                                                                                                                                                     | Web · MCP · Chat · CLI                  |
 | [`return_announcements`](#command-return_announcements)                           | Read announced returns                     | Aufträge & Erfüllung    | `return_announcements`                                                                                                                                                                       | Web · API · MCP · Chat                  |
+| [`record_return`](#command-record_return)                                         | Record a returned payment                  | Aufträge & Erfüllung    | `finance_payment_return_propose`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`release_reservation`](#command-release_reservation)                             | Release reservation                        | Aufträge & Erfüllung    | `reservation_release_propose`                                                                                                                                                                | CLI · Web · API · MCP · Chat            |
 | [`reserve`](#command-reserve)                                                     | Reserve stock                              | Aufträge & Erfüllung    | `reservation_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`record_return_disposition`](#command-record_return_disposition)                 | Resolve arrived customer-return goods      | Aufträge & Erfüllung    | `return_disposition_propose`                                                                                                                                                                 | CLI · Web · API · MCP · Chat            |
@@ -1243,16 +1246,16 @@ Prepare an explicit noncash customer or supplier settlement reduction.
 
 **Parameter**
 
-| Name                | Typ       | Pflicht | Beschreibung                                                                                                                                                   | Standard |
-| ------------------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `expected_revision` | `integer` | ja      | Canonical revision of the Evidence snapshot on which a correction is based.                                                                                    | —        |
-| `invoice_id`        | `string`  | ja      | Opaque identity of the invoice evidence associated with a payment or allocation.                                                                               | —        |
-| `amount`            | `string`  | ja      | Monetary amount of the payment or financial observation.                                                                                                       | —        |
-| `reason_category`   | `string`  | ja      | Explicit accepted discount, agreed deduction or small remainder category. `early_payment_discount`, `agreed_deduction`, `accepted_small_remainder`, `bad_debt` | —        |
-| `reason`            | `string`  | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                        | —        |
-| `agreement`         | `string`  | nein    | Stated supplier entitlement or agreement authorizing the reduction.                                                                                            | —        |
-| `source_record_id`  | `string`  | nein    | Opaque identity of the immutable source record supporting this typed record.                                                                                   | `None`   |
-| `source_effect_id`  | `string`  | nein    | Stable effect reference within the original evidence, consumed at most once.                                                                                   | `None`   |
+| Name                | Typ       | Pflicht | Beschreibung                                                                                                                                                                  | Standard |
+| ------------------- | --------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `expected_revision` | `integer` | ja      | Canonical revision of the Evidence snapshot on which a correction is based.                                                                                                   | —        |
+| `invoice_id`        | `string`  | ja      | Opaque identity of the invoice evidence associated with a payment or allocation.                                                                                              | —        |
+| `amount`            | `string`  | ja      | Monetary amount of the payment or financial observation.                                                                                                                      | —        |
+| `reason_category`   | `string`  | ja      | Explicit accepted discount, agreed deduction or small remainder category. `early_payment_discount`, `agreed_deduction`, `accepted_small_remainder`, `bad_debt`, `payment_fee` | —        |
+| `reason`            | `string`  | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                                       | —        |
+| `agreement`         | `string`  | nein    | Stated supplier entitlement or agreement authorizing the reduction.                                                                                                           | —        |
+| `source_record_id`  | `string`  | nein    | Opaque identity of the immutable source record supporting this typed record.                                                                                                  | `None`   |
+| `source_effect_id`  | `string`  | nein    | Stable effect reference within the original evidence, consumed at most once.                                                                                                  | `None`   |
 
 **Prüfen mit:** `finance.adjustment.context` — Remaining invoice claim.
 
@@ -1384,12 +1387,12 @@ Prepare an owner-confirmed operational account configuration change.
 
 **Parameter**
 
-| Name                | Typ       | Pflicht | Beschreibung                                                                                                                                                                                                                                                                     | Standard |
-| ------------------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `expected_revision` | `integer` | ja      | Canonical revision of the Evidence snapshot on which a correction is based.                                                                                                                                                                                                      | —        |
-| `code`              | `string`  | ja      | Short tenant-scoped business code used to find the record operationally.                                                                                                                                                                                                         | —        |
-| `name`              | `string`  | ja      | Human-readable display name; it is not used as internal identity.                                                                                                                                                                                                                | —        |
-| `role`              | `string`  | ja      | Repeatable operational role assigned to a party, for example customer or supplier. `accounts_receivable`, `accounts_payable`, `cash`, `sales_revenue`, `inventory`, `customer_reduction`, `supplier_reduction`, `bad_debt_expense`, `dunning_fee_revenue`, `opening_counterpart` | —        |
+| Name                | Typ       | Pflicht | Beschreibung                                                                                                                                                                                                                                                                                            | Standard |
+| ------------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `expected_revision` | `integer` | ja      | Canonical revision of the Evidence snapshot on which a correction is based.                                                                                                                                                                                                                             | —        |
+| `code`              | `string`  | ja      | Short tenant-scoped business code used to find the record operationally.                                                                                                                                                                                                                                | —        |
+| `name`              | `string`  | ja      | Human-readable display name; it is not used as internal identity.                                                                                                                                                                                                                                       | —        |
+| `role`              | `string`  | ja      | Repeatable operational role assigned to a party, for example customer or supplier. `accounts_receivable`, `accounts_payable`, `cash`, `sales_revenue`, `inventory`, `customer_reduction`, `supplier_reduction`, `bad_debt_expense`, `dunning_fee_revenue`, `payment_fee_expense`, `opening_counterpart` | —        |
 
 **Prüfen mit:** `timeline` — The account change event and identity.
 
@@ -3601,7 +3604,7 @@ Prepare actual payment with explicit allocation/reduction, or consume existing c
 | `allocation_amount`          | `string`  | nein    | Explicit stated amount to offset against the selected invoice; zero leaves the credit unsettled.                                                                                                                                                                                        | —        |
 | `reduction`                  | `object`  | nein    | —                                                                                                                                                                                                                                                                                       | `None`   |
 | `reduction.amount`           | `string`  | ja      | Monetary amount of the payment or financial observation.                                                                                                                                                                                                                                | —        |
-| `reduction.reason_category`  | `string`  | ja      | Explicit accepted discount, agreed deduction or small remainder category. `early_payment_discount`, `agreed_deduction`, `accepted_small_remainder`, `bad_debt`                                                                                                                          | —        |
+| `reduction.reason_category`  | `string`  | ja      | Explicit accepted discount, agreed deduction or small remainder category. `early_payment_discount`, `agreed_deduction`, `accepted_small_remainder`, `bad_debt`, `payment_fee`                                                                                                           | —        |
 | `reduction.reason`           | `string`  | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                                                                                                                                                 | —        |
 | `reduction.agreement`        | `string`  | nein    | Stated supplier entitlement or agreement authorizing the reduction.                                                                                                                                                                                                                     | —        |
 | `reduction.source_record_id` | `string`  | nein    | Opaque identity of the immutable source record supporting this typed record.                                                                                                                                                                                                            | `None`   |
@@ -4450,6 +4453,59 @@ document_hold_release_propose document_id
 **Siehe auch:** Geschäftsaktion
 [`hold_document_commitments`](./commands#command-hold_document_commitments)
 
+### `returns` — List returned payments {#command-returns}
+
+Lists returned direct debits and chargebacks with their reason, fee and reopened invoices.
+
+**Aufruf**
+
+```text
+finance_payment_returns
+```
+
+**Erreichbar über:** Web · MCP · Chat · CLI
+
+**Wirkung:** Liest: `payment_return`, `document`, `settlement_allocation` · Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`finance_payment_returns`](./commands#tool-finance_payment_returns)
+
+#### `finance_payment_returns` — Returned payments {#tool-finance_payment_returns}
+
+List returned customer payments (returned direct debits and chargebacks) with reason, fee and the
+invoices they reopened.
+
+**Aufruf**
+
+```text
+finance_payment_returns
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage              | Art                        | Standard |
+| ----------------------------- | -------------------------- | -------- |
+| `MCP finance_payment_returns` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+List returned customer payments with their reason, fee and reopened invoices.
+
+**Verwenden, wenn**
+
+- Returned direct debits or chargebacks must be reconciled or followed up.
+
+**Nicht verwenden, wenn**
+
+- A payment has not come back; use the payments read.
+
+**Parameter**
+
+Keine Parameter.
+
+**Siehe auch:** Geschäftsaktion [`returns`](./commands#command-returns)
+
 ### `preview_stale_promise_closure` — Preview stale promise closure {#command-preview_stale_promise_closure}
 
 Shows how many stale promises match, what would be released, and a bounded sample, without changing
@@ -4512,6 +4568,60 @@ changing anything.
 **Siehe auch:** Geschäftsaktion
 [`preview_stale_promise_closure`](./commands#command-preview_stale_promise_closure)
 
+### `return_detail` — Read a returned payment {#command-return_detail}
+
+Reads one returned payment with its reason, reference, fee and reopened invoices.
+
+**Aufruf**
+
+```text
+finance_payment_return return_id
+```
+
+**Erreichbar über:** Web · MCP · Chat · CLI
+
+**Wirkung:** Liest: `payment_return`, `document`, `settlement_allocation` · Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`finance_payment_return`](./commands#tool-finance_payment_return)
+
+#### `finance_payment_return` — Returned payment {#tool-finance_payment_return}
+
+Read one returned customer payment with its reason, reference, fee and the invoices it reopened.
+
+**Aufruf**
+
+```text
+finance_payment_return return_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage             | Art                        | Standard |
+| ---------------------------- | -------------------------- | -------- |
+| `MCP finance_payment_return` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read one returned customer payment with its reason, reference, fee and reopened invoices.
+
+**Verwenden, wenn**
+
+- One known return needs reconciliation.
+
+**Nicht verwenden, wenn**
+
+- The return is not known yet; list them first.
+
+**Parameter**
+
+| Name        | Typ      | Pflicht | Beschreibung                                       | Standard |
+| ----------- | -------- | ------- | -------------------------------------------------- | -------- |
+| `return_id` | `string` | ja      | Opaque same-tenant identity of a returned payment. | —        |
+
+**Siehe auch:** Geschäftsaktion [`return_detail`](./commands#command-return_detail)
+
 ### `return_announcements` — Read announced returns {#command-return_announcements}
 
 Lists the returns customers have announced, in the order they said so, with what is still expected.
@@ -4569,6 +4679,80 @@ waiting for.
 | `status`        | `string` | nein    | Lifecycle state to filter by, such as open, fulfilled, or withdrawn. `open`, `fulfilled`, `withdrawn` | —        |
 
 **Siehe auch:** Geschäftsaktion [`return_announcements`](./commands#command-return_announcements)
+
+### `record_return` — Record a returned payment {#command-record_return}
+
+Reverses a returned customer payment so its invoices are open again, keeps the stated kind, reason
+and reference, and books a stated fee as expense or charges it to the customer.
+
+**Aufruf**
+
+```text
+finance_payment_return_propose payment_document_id kind returned_on reason [reference] [fee_amount] [fee_bearer]
+```
+
+**Erreichbar über:** Web · MCP · Chat · CLI
+
+**Wirkung:** Liest: `document`, `ledger_entry`, `settlement_allocation`, `ledger_reversal`,
+`subledger_account` · Schreibt: `payment_return`, `ledger_reversal`, `ledger_entry`, `document`,
+`source_record`, `business_event` · Erzeugt: `payment.returned`
+
+**Siehe auch:** Agenten-Tool
+[`finance_payment_return_propose`](./commands#tool-finance_payment_return_propose), Event
+[`payment.returned`](./events#event-payment-returned)
+
+#### `finance_payment_return_propose` — Record a returned payment {#tool-finance_payment_return_propose}
+
+Prepare a returned direct debit or chargeback of a customer payment for owner confirmation: it
+reverses the payment so its invoices are open again, keeps the stated reason and reference, and
+books a stated fee as payment-fee expense or charges it to the customer.
+
+**Aufruf**
+
+```text
+finance_payment_return_propose payment_document_id kind returned_on reason [reference] [fee_amount] [fee_bearer]
+```
+
+**Zugriff:** `propose`
+
+Record a returned direct debit or chargeback of a customer payment for owner confirmation.
+
+**Verwenden, wenn**
+
+- The bank or provider says a customer payment came back.
+
+**Nicht verwenden, wenn**
+
+- A payment was entered by mistake; reverse its posting instead.
+
+**Voraussetzungen**
+
+- A recorded customer payment
+- not reversed or returned before
+- not settled together with a payment fee.
+
+**Abgelehnt, wenn**
+
+- `payment_return_already_returned` — The payment was recorded as returned before.
+- `payment_return_reduction_active` — The payment was settled together with a reduction that is
+  still in force.
+- `finance_account_default_missing` — A fee needs the payment-fee account.
+
+**Parameter**
+
+| Name                  | Typ                 | Pflicht | Beschreibung                                                                                                                                                 | Standard |
+| --------------------- | ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| `payment_document_id` | `string`            | ja      | Opaque same-tenant identity of the recorded customer payment that came back.                                                                                 | —        |
+| `kind`                | `string`            | ja      | Explicit internal or target reference kind; no inferred tax or country meaning. `direct_debit_return`, `chargeback`                                          | —        |
+| `returned_on`         | `string`            | ja      | Calendar date the bank or provider states for the return.                                                                                                    | —        |
+| `reason`              | `string`            | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                      | —        |
+| `reference`           | `string`            | nein    | The number the returning parcel will carry, as the customer or the company stated it; never generated.                                                       | —        |
+| `fee_amount`          | `string \| integer` | nein    | Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.                                                                 | `0`      |
+| `fee_bearer`          | `string`            | nein    | Who bears a stated fee - charged on to the customer, or kept by the company as payment-fee expense; none when there is no fee. `customer`, `company`, `none` | `None`   |
+
+**Prüfen mit:** `finance.payment_return` — The return
+
+**Siehe auch:** Geschäftsaktion [`record_return`](./commands#command-record_return)
 
 ### `release_reservation` — Release reservation {#command-release_reservation}
 

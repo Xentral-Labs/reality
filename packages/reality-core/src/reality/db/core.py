@@ -1455,6 +1455,68 @@ class CollectionHandoverInvoice(Base):
     invoice_id: Mapped[str] = mapped_column(String)
 
 
+class PaymentReturn(Base):
+    """A customer payment that came back: a returned direct debit or a chargeback.
+
+    Reality, append-only. The payment's posting is reversed through the ordinary
+    ledger reversal it names; which invoices reopened is read from the payment's
+    allocations, never stored here.
+    """
+
+    __tablename__ = "payment_return"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "payment_document_id"], ["document.tenant_id", "document.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "ledger_reversal_id"],
+            ["ledger_reversal.tenant_id", "ledger_reversal.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "fee_document_id"], ["document.tenant_id", "document.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "fee_charge_document_id"],
+            ["document.tenant_id", "document.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint(
+            "tenant_id", "payment_document_id", name="uq_payment_return_payment"
+        ),
+        UniqueConstraint(
+            "tenant_id", "ledger_reversal_id", name="uq_payment_return_reversal"
+        ),
+        CheckConstraint(
+            "kind IN ('direct_debit_return', 'chargeback')", name="ck_payment_return_kind"
+        ),
+        CheckConstraint("fee_amount >= 0", name="ck_payment_return_fee"),
+        CheckConstraint(
+            "(fee_amount = 0 AND fee_bearer = 'none') OR "
+            "(fee_amount > 0 AND fee_bearer IN ('customer', 'company'))",
+            name="ck_payment_return_fee_bearer",
+        ),
+        CheckConstraint("btrim(reason) <> ''", name="ck_payment_return_reason"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    payment_document_id: Mapped[str] = mapped_column(String)
+    kind: Mapped[str] = mapped_column(String)
+    reason: Mapped[str] = mapped_column(Text)
+    reference: Mapped[str] = mapped_column(String, default="")
+    returned_on: Mapped[date] = mapped_column(Date)
+    fee_amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
+    fee_bearer: Mapped[str] = mapped_column(String, default="none")
+    ledger_reversal_id: Mapped[str | None] = mapped_column(String, default=None)
+    fee_document_id: Mapped[str | None] = mapped_column(String, default=None)
+    fee_charge_document_id: Mapped[str | None] = mapped_column(String, default=None)
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class Commitment(Base):
     __tablename__ = "commitment"
     __table_args__ = (
@@ -2122,7 +2184,7 @@ class SubledgerAccount(Base):
         UniqueConstraint("tenant_id", "code"),
         CheckConstraint("state IN ('active', 'blocked')"),
         CheckConstraint(
-            "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','bad_debt_expense','dunning_fee_revenue','opening_counterpart')",
+            "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','bad_debt_expense','dunning_fee_revenue','payment_fee_expense','opening_counterpart')",
             name="ck_subledger_account_role",
         ),
     )

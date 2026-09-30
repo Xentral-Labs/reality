@@ -575,6 +575,7 @@ def seed_profile(
             ("supplier_reduction", "Supplier reductions"),
             ("bad_debt_expense", "Customer bad-debt expense"),
             ("dunning_fee_revenue", "Dunning fee revenue"),
+            ("payment_fee_expense", "Payment fees"),
         ):
             account = create_account(
                 session,

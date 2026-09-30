@@ -24496,3 +24496,126 @@ Object.assign(dictionaries.es, {
   "The Shopify order of this refund has not been interpreted yet; the refund is retried.":
     "El pedido de Shopify de este reembolso aún no se ha interpretado; el reembolso se reintentará.",
 });
+
+// Spec 297: returned payments and payment fees.
+Object.assign(dictionaries.de, {
+  Chargeback: "Rückbelastung (Chargeback)",
+  "Bank or provider reference": "Referenz der Bank oder des Zahlungsdienstes",
+  "Charge on to the customer": "An den Kunden weiterbelasten",
+  "charged on to the customer": "an den Kunden weiterbelastet",
+  Fee: "Gebühr",
+  "Keep as payment-fee expense": "Als Zahlungsgebühren-Aufwand behalten",
+  "kept as payment-fee expense": "als Zahlungsgebühren-Aufwand gebucht",
+  "Open again": "Wieder offen",
+  "Return date": "Rückgabedatum",
+  "Review return": "Rückgabe prüfen",
+  "The payment is recorded as returned; its invoices are open again.":
+    "Die Zahlung ist als zurückgegangen erfasst; ihre Rechnungen sind wieder offen.",
+  "Who bears the fee": "Wer trägt die Gebühr",
+  "A payment fee applies to customer payments only.":
+    "Eine Zahlungsgebühr gibt es nur bei Kundenzahlungen.",
+  "Payment fee deducted by the provider": "Vom Zahlungsdienst abgezogene Gebühr",
+  "Only a recorded customer payment can be returned.":
+    "Nur eine erfasste Kundenzahlung kann zurückgehen.",
+  "This payment has already been recorded as returned.":
+    "Diese Zahlung ist bereits als zurückgegangen erfasst.",
+  "This payment's posting is already reversed.":
+    "Die Buchung dieser Zahlung ist bereits storniert.",
+  "This payment was settled together with a reduction; reverse that reduction first.":
+    "Diese Zahlung wurde zusammen mit einem Abzug ausgeglichen; storniere zuerst diesen Abzug.",
+  "A return is a returned direct debit or a chargeback.":
+    "Eine Rückgabe ist eine Rücklastschrift oder ein Chargeback.",
+  "State the reason the bank or provider gave.":
+    "Gib den Grund an, den die Bank oder der Zahlungsdienst genannt hat.",
+  "Enter the return date as a calendar date.": "Gib das Rückgabedatum als Kalenderdatum an.",
+  "Enter the fee as stated: not negative, at most four decimals.":
+    "Gib die Gebühr wie angegeben ein: nicht negativ, höchstens vier Nachkommastellen.",
+  "Say who bears a fee, and only when there is one.":
+    "Gib an, wer eine Gebühr trägt, und nur wenn es eine gibt.",
+  "Payment returned": "Zahlung zurückgegangen",
+  "The invoice being settled again by a new payment, a credit or an accepted write-off.":
+    "Die Rechnung wird wieder ausgeglichen: durch eine neue Zahlung, eine Gutschrift oder eine akzeptierte Abschreibung.",
+  "Returned payments": "Zurückgegangene Zahlungen",
+  "Returned direct debit": "Rücklastschrift",
+});
+
+Object.assign(dictionaries.nl, {
+  Chargeback: "Terugboeking (chargeback)",
+  "Bank or provider reference": "Referentie van de bank of betaaldienst",
+  "Charge on to the customer": "Doorbelasten aan de klant",
+  "charged on to the customer": "doorbelast aan de klant",
+  Fee: "Kosten",
+  "Keep as payment-fee expense": "Houden als betalingskosten",
+  "kept as payment-fee expense": "geboekt als betalingskosten",
+  "Open again": "Weer open",
+  "Return date": "Datum van terugboeking",
+  "Review return": "Terugboeking controleren",
+  "The payment is recorded as returned; its invoices are open again.":
+    "De betaling is als teruggeboekt vastgelegd; de facturen staan weer open.",
+  "Who bears the fee": "Wie draagt de kosten",
+  "A payment fee applies to customer payments only.":
+    "Betalingskosten gelden alleen voor klantbetalingen.",
+  "Payment fee deducted by the provider": "Door de betaaldienst ingehouden kosten",
+  "Only a recorded customer payment can be returned.":
+    "Alleen een vastgelegde klantbetaling kan worden teruggeboekt.",
+  "This payment has already been recorded as returned.":
+    "Deze betaling is al als teruggeboekt vastgelegd.",
+  "This payment's posting is already reversed.":
+    "De boeking van deze betaling is al teruggedraaid.",
+  "This payment was settled together with a reduction; reverse that reduction first.":
+    "Deze betaling is samen met een korting verrekend; draai die korting eerst terug.",
+  "A return is a returned direct debit or a chargeback.":
+    "Een terugboeking is een gestorneerde incasso of een chargeback.",
+  "State the reason the bank or provider gave.":
+    "Geef de reden op die de bank of betaaldienst noemde.",
+  "Enter the return date as a calendar date.": "Geef de terugboekingsdatum als kalenderdatum op.",
+  "Enter the fee as stated: not negative, at most four decimals.":
+    "Voer de kosten in zoals opgegeven: niet negatief, hoogstens vier decimalen.",
+  "Say who bears a fee, and only when there is one.":
+    "Geef aan wie de kosten draagt, en alleen als die er zijn.",
+  "Payment returned": "Betaling teruggeboekt",
+  "The invoice being settled again by a new payment, a credit or an accepted write-off.":
+    "De factuur wordt opnieuw vereffend: door een nieuwe betaling, een creditnota of een geaccepteerde afboeking.",
+  "Returned payments": "Teruggeboekte betalingen",
+  "Returned direct debit": "Gestorneerde incasso",
+});
+
+Object.assign(dictionaries.es, {
+  "Bank or provider reference": "Referencia del banco o proveedor",
+  "Charge on to the customer": "Repercutir al cliente",
+  "charged on to the customer": "repercutida al cliente",
+  Fee: "Comisión",
+  "Keep as payment-fee expense": "Mantener como gasto de comisiones",
+  "kept as payment-fee expense": "registrada como gasto de comisiones",
+  "Open again": "De nuevo pendiente",
+  "Return date": "Fecha de devolución",
+  "Review return": "Revisar devolución",
+  "The payment is recorded as returned; its invoices are open again.":
+    "El cobro se registró como devuelto; sus facturas vuelven a estar pendientes.",
+  "Who bears the fee": "Quién asume la comisión",
+  "A payment fee applies to customer payments only.":
+    "Una comisión de pago solo se aplica a cobros de clientes.",
+  "Payment fee deducted by the provider": "Comisión descontada por el proveedor de pagos",
+  "Only a recorded customer payment can be returned.":
+    "Solo se puede devolver un cobro de cliente registrado.",
+  "This payment has already been recorded as returned.": "Este cobro ya se registró como devuelto.",
+  "This payment's posting is already reversed.": "El asiento de este cobro ya está anulado.",
+  "This payment was settled together with a reduction; reverse that reduction first.":
+    "Este cobro se liquidó junto con una reducción; anula primero esa reducción.",
+  "A return is a returned direct debit or a chargeback.":
+    "Una devolución es un adeudo devuelto o un contracargo.",
+  "State the reason the bank or provider gave.":
+    "Indica el motivo que dio el banco o el proveedor de pagos.",
+  "Enter the return date as a calendar date.":
+    "Indica la fecha de devolución como fecha de calendario.",
+  "Enter the fee as stated: not negative, at most four decimals.":
+    "Introduce la comisión tal como se indicó: no negativa y con como máximo cuatro decimales.",
+  "Say who bears a fee, and only when there is one.":
+    "Indica quién asume la comisión, y solo si la hay.",
+  "Payment returned": "Cobro devuelto",
+  "The invoice being settled again by a new payment, a credit or an accepted write-off.":
+    "La factura se vuelve a saldar con un nuevo cobro, un abono o una cancelación aceptada.",
+  "Returned payments": "Cobros devueltos",
+  "Returned direct debit": "Adeudo devuelto",
+  Chargeback: "Contracargo",
+});

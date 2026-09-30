@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:67810a5893c37d4f876ae79cec8c5f6da71c7a8874eb2c6dffeb8dd57ad2b3a0",
+  "knowledge_version": "advisor-v1:sha256:9766157b0c10c595a7b62f0efd5235ee8742ee22146ec516bef5e5a4da594160",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -1576,6 +1576,9 @@
         "evidence_command_record_notice",
         "evidence_command_run_context",
         "evidence_command_confirm_run",
+        "evidence_command_record_return",
+        "evidence_command_returns",
+        "evidence_command_return_detail",
         "evidence_command_allocate_credit_note",
         "evidence_command_post_customer_refund",
         "evidence_command_allocate_supplier_credit_note",
@@ -1626,6 +1629,18 @@
         {
           "name": "confirm_run",
           "mode": "mutation"
+        },
+        {
+          "name": "record_return",
+          "mode": "mutation"
+        },
+        {
+          "name": "returns",
+          "mode": "query"
+        },
+        {
+          "name": "return_detail",
+          "mode": "query"
         },
         {
           "name": "allocate_credit_note",
@@ -1737,6 +1752,7 @@
         "evidence_command_run_context",
         "evidence_command_confirm_run",
         "evidence_command_record_handover",
+        "evidence_command_record_return",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_sales_credit_note",
         "evidence_command_allocate_credit_note",
@@ -1966,6 +1982,10 @@
           "mode": "mutation"
         },
         {
+          "name": "record_return",
+          "mode": "mutation"
+        },
+        {
           "name": "record_sales_invoice",
           "mode": "mutation"
         },
@@ -2118,6 +2138,9 @@
         "evidence_command_announce_customer_return",
         "evidence_command_withdraw_return_announcement",
         "evidence_command_return_announcements",
+        "evidence_command_record_return",
+        "evidence_command_returns",
+        "evidence_command_return_detail",
         "evidence_command_record_packaged_execution",
         "evidence_command_record_customer_exchange",
         "evidence_command_record_return_disposition"
@@ -2133,6 +2156,18 @@
         },
         {
           "name": "return_announcements",
+          "mode": "query"
+        },
+        {
+          "name": "record_return",
+          "mode": "mutation"
+        },
+        {
+          "name": "returns",
+          "mode": "query"
+        },
+        {
+          "name": "return_detail",
           "mode": "query"
         },
         {
@@ -2217,6 +2252,9 @@
         "evidence_command_run_context",
         "evidence_command_confirm_run",
         "evidence_command_record_handover",
+        "evidence_command_record_return",
+        "evidence_command_returns",
+        "evidence_command_return_detail",
         "evidence_command_record_sales_invoice",
         "evidence_command_post_sales_credit_note",
         "evidence_command_allocate_credit_note",
@@ -2433,6 +2471,18 @@
         {
           "name": "record_handover",
           "mode": "mutation"
+        },
+        {
+          "name": "record_return",
+          "mode": "mutation"
+        },
+        {
+          "name": "returns",
+          "mode": "query"
+        },
+        {
+          "name": "return_detail",
+          "mode": "query"
         },
         {
           "name": "record_sales_invoice",

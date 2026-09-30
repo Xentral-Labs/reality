@@ -115,6 +115,7 @@ CLASS_ORDER = {
     "negative_actual_db1": 38,
     "exchange_without_return": 39,
     "order_line_item_unknown": 40,
+    "payment_returned": 41,
 }
 
 
@@ -1470,6 +1471,49 @@ def _announced_return_not_arrived_exceptions(
                     ],
                 },
                 announcement.expected_by or announcement.announced_at,
+            )
+        )
+    return result
+
+
+def _payment_returned_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """An invoice is open again because the payment that settled it came back (spec 297).
+
+    Reported until the invoice is settled again, so a returned direct debit or a
+    chargeback is followed up rather than waiting to become overdue.
+    """
+    from reality.services.payment_returns import KINDS, returned_invoices
+
+    result: list[OperationalException] = []
+    for row in returned_invoices(session, tenant_id):
+        returned, invoice = row["return"], row["invoice"]
+        result.append(
+            OperationalException(
+                _identity("payment_returned", f"{returned.id}__{invoice.id}"),
+                "payment_returned",
+                (),
+                "high",
+                "Payment returned",
+                f"{KINDS[returned.kind]} on {invoice.number}: "
+                f"{Decimal(row['open']).normalize():f} {invoice.currency} open again",
+                "document",
+                invoice.id,
+                {
+                    "kind": returned.kind,
+                    "reason": returned.reason,
+                    "reference": returned.reference,
+                    "returned_on": returned.returned_on.isoformat(),
+                    "open": Decimal(row["open"]),
+                },
+                {
+                    "payment_return_id": returned.id,
+                    "payment_document_id": returned.payment_document_id,
+                    "invoice_id": invoice.id,
+                    "source_record_id": returned.source_record_id,
+                },
+                datetime.combine(returned.returned_on, datetime.min.time(), tzinfo=UTC),
             )
         )
     return result
@@ -3498,10 +3542,12 @@ def _financial_exceptions(
     for control in controls:
         if control.posting_group_id not in cash_groups:
             continue
-        if (
-            roles.get(control.posting_group_id, (None, "normal"))[1]
-            == "reversed_original"
-        ):
+        # A reversed payment and the entry reversing it cancel out; neither is
+        # money waiting to be allocated (spec 297: a returned payment).
+        if roles.get(control.posting_group_id, (None, "normal"))[1] in {
+            "reversed_original",
+            "reversing",
+        }:
             continue
         allocated = allocated_by_payment.get(control.id, ZERO)
         remaining = Decimal(control.amount) - allocated
@@ -3603,6 +3649,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "announced_return_not_arrived": _announced_return_not_arrived_exceptions,
     "exchange_without_return": _exchange_without_return_exceptions,
     "order_line_item_unknown": _order_line_item_unknown_exceptions,
+    "payment_returned": _payment_returned_exceptions,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,

@@ -1161,23 +1161,36 @@ entries:
   section: Payment and release
   title: Chargeback / returned direct debit after shipment
   question: Does the receivable reopen?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Does the receivable reopen?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Does the receivable reopen? A person records the returned direct debit or chargeback with its stated reason and fee; the payment is reversed, its invoices are open again and reported until they are paid, and the fee is an expense or charged on to the customer.'
   limitations:
-  - Reversing a payment reopens the receivable.
-  - Chargebacks, returned direct debits, their fees and provider disputes are not recorded.
-  keywords: []
+  - A person records the return; bank return files and provider dispute feeds are not read yet.
+  - A charged-on fee is a receivable in the ledger but not yet an open item.
+  - A payment settled together with a fee, discount or other reduction is returned only after that reduction is reversed.
+  keywords:
+  - chargeback
+  - returned direct debit
+  - direct debit return
+  - Rücklastschrift
+  - Rückbelastung
   question_examples:
   - Chargeback / returned direct debit after shipment
   - Does the receivable reopen?
-  tools: []
+  - The bank returned a direct debit with a fee
+  - Eine Lastschrift ist zurückgegangen, wer trägt die Gebühr?
+  - Der Kunde macht eine Rückbelastung, ist die Rechnung wieder offen?
+  tools:
+  - finance_payment_return_propose
+  - finance_payment_returns
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_ledger_reversals.py::test_payment_reversal_preserves_allocation_history_and_reopens_invoice
-    note: Reversing a payment reopens the receivable; there is no chargeback or returned-debit event, fee or provider dispute (spec 148 FR-050, not built).
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_returned_direct_debit_reopens_the_invoice_and_charges_the_fee
+    note: 'A paid invoice of 240 comes back as a returned direct debit with a fee of 3.50 for the customer: the invoice is open again and reported with the stated reason, the fee is its own charge, and a new payment clears the finding.'
+  - reference: packages/reality-core/tests/finance/test_payment_returns.py
+    note: Kinds, fee bearers, refusals, replay, the finding, the inspector and the payment fee on a settlement (spec 297).
 - id: C16
   section: Payment and release
   title: Customer delivery block (dunning, insolvency)
@@ -1785,23 +1798,34 @@ entries:
   section: Customer invoice and credit note
   title: Shipping cost, small-quantity surcharge, payment fees
   question: Charges separate from goods?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Charges separate from goods?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Charges separate from goods? Freight and a surcharge are their own invoice lines without an order line, so no goods finding reads them as goods; a fee the payment provider deducts settles the invoice as a payment-fee expense.'
   limitations:
-  - Fees can be separate charges, and freight lines work on purchases.
-  - Freight and surcharges on sales invoices are not yet proven, and payment provider fees are not recorded.
-  keywords: []
+  - The provider fee is stated with the payment; payout reports are not read yet.
+  keywords:
+  - freight on invoice
+  - small-quantity surcharge
+  - payment provider fee
+  - Mindermengenzuschlag
+  - Frachtkosten auf der Rechnung
+  - Zahlungsgebühr
   question_examples:
   - Shipping cost, small-quantity surcharge, payment fees
   - Charges separate from goods?
-  tools: []
+  - Stripe paid out less than the invoice because of its fee
+  - Wie buche ich Versandkosten und einen Mindermengenzuschlag auf der Rechnung?
+  - Mindermengenzuschlag berechnen
+  tools:
+  - finance_settlement_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/operational_exceptions/test_derivation.py::test_a_restocking_fee_is_a_charge_not_a_smaller_credit; ::test_non_deliverable_lines_are_never_reported
-    note: Fee as a separate charge and freight lines are handled (the freight test is purchase-side); no sales-invoice freight or surcharge test, and PSP payment fees are not built.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods
+    note: 'An invoice bills two shipped items plus a freight and a surcharge line; no goods finding reports the charges, and a payout of 103.50 with a stated Stripe fee of 3.40 settles it as payment-fee expense.'
+  - reference: packages/reality-core/tests/operational_exceptions/test_derivation.py::test_a_restocking_fee_is_a_charge_not_a_smaller_credit
+    note: A fee is a separate charge, not a smaller credit.
 - id: E09
   section: Customer invoice and credit note
   title: Invoice addressed to another party than the recipient

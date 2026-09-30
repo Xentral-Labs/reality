@@ -675,6 +675,9 @@ labels:
       record_handover: An Inkasso übergeben
       handovers: Inkasso-Übergaben anzeigen
       handover_detail: Inkasso-Übergabe anzeigen
+      record_return: Zahlungsrückgabe erfassen
+      returns: Zahlungsrückgaben anzeigen
+      return_detail: Zahlungsrückgabe anzeigen
       record_sales_invoice: Ausgangsrechnung erfassen
       post_sales_credit_note: Gutschrift buchen
       allocate_credit_note: Gutschrift mit Rechnung verrechnen
@@ -769,6 +772,7 @@ labels:
       announced_return_not_arrived: Angekündigte Retoure nicht eingetroffen
       exchange_without_return: Umtausch ohne Rücksendung
       order_line_item_unknown: Auftragszeile mit unbekanntem Artikel
+      payment_returned: Zahlung zurückgegangen
       commitment_hold_unreleased: Sperre der Verpflichtung nicht aufgehoben
       party_hold_unreleased: Liefersperre nicht aufgehoben
       stock_expired: Abgelaufener Bestand

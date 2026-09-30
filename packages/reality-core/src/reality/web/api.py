@@ -5360,7 +5360,10 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
     from reality.services.dunning_runs import invoice_dunning_rows
 
     dunning_rows = invoice_dunning_rows(session, tenant_id, document)
+    from reality.services.payment_returns import invoice_return_rows
     from reality.services.shop_refunds import refunds_for_order
+
+    returns_rows = invoice_return_rows(session, tenant_id, document)
 
     refunds = (
         refunds_for_order(session, tenant_id, document)
@@ -5500,6 +5503,26 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
                     }
                 ]
                 if dunning_rows
+                else []
+            ),
+            *(
+                [
+                    {
+                        # Spec 297: payments to this invoice that came back.
+                        "title": "Returned payments",
+                        "rows": [
+                            inspector_row(
+                                row["label"],
+                                row["value"],
+                                kind=row["kind"],
+                                record_id=row["record_id"],
+                                meta=row["meta"],
+                            )
+                            for row in returns_rows
+                        ],
+                    }
+                ]
+                if returns_rows
                 else []
             ),
             *(
@@ -7552,6 +7575,26 @@ def get_dunning_run_context(
 
     try:
         return run_context(session, tenant_id, run_date=run_date, party_ids=party_ids)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/payment-returns")
+def get_payment_returns(tenant_id: str, session: DatabaseSession):
+    from reality.services.payment_returns import returns
+
+    try:
+        return {"items": returns(session, tenant_id)}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/payment-returns/{return_id}")
+def get_payment_return(tenant_id: str, return_id: str, session: DatabaseSession):
+    from reality.services.payment_returns import return_detail
+
+    try:
+        return return_detail(session, tenant_id, return_id)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

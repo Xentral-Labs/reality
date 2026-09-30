@@ -2034,6 +2034,23 @@ def finance_dunning_collection_propose(
     _finance_propose("finance.dunning.collection.handover", arguments, tenant_id)
 
 
+@app.command("finance-payment-return-propose")
+def finance_payment_return_propose(arguments: str, tenant_id: str | None = None) -> None:
+    """Prepare a returned direct debit or chargeback for owner confirmation."""
+    _finance_propose("finance.payment.return", arguments, tenant_id)
+
+
+@app.command("finance-payment-returns")
+def finance_payment_returns(
+    return_id: str | None = None, tenant_id: str | None = None
+) -> None:
+    """List returned customer payments, or read one by its identity."""
+    if return_id:
+        _finance_read("finance.payment_return", {"return_id": return_id}, tenant_id)
+    else:
+        _finance_read("finance.payment_returns", {}, tenant_id)
+
+
 @app.command("finance-dunning-collection")
 def finance_dunning_collection(
     handover_id: str | None = None, tenant_id: str | None = None

@@ -1287,11 +1287,41 @@
     "payment_execution_unresolved": {
       "message": "A financial execution for this record is unresolved. Check its outcome first."
     },
+    "payment_fee_customer_only": {
+      "message": "A payment fee applies to customer payments only."
+    },
     "payment_fields_invalid": {
       "message": "Payment fields are incomplete or unsupported."
     },
     "payment_reference_not_text": {
       "message": "Payment reference must be text."
+    },
+    "payment_return_already_returned": {
+      "message": "This payment has already been recorded as returned."
+    },
+    "payment_return_already_reversed": {
+      "message": "This payment's posting is already reversed."
+    },
+    "payment_return_date_invalid": {
+      "message": "Enter the return date as a calendar date."
+    },
+    "payment_return_fee_bearer_invalid": {
+      "message": "Say who bears a fee, and only when there is one."
+    },
+    "payment_return_fee_invalid": {
+      "message": "Enter the fee as stated: not negative, at most four decimals."
+    },
+    "payment_return_kind_invalid": {
+      "message": "A return is a returned direct debit or a chargeback."
+    },
+    "payment_return_not_customer_payment": {
+      "message": "Only a recorded customer payment can be returned."
+    },
+    "payment_return_reason_missing": {
+      "message": "State the reason the bank or provider gave."
+    },
+    "payment_return_reduction_active": {
+      "message": "This payment was settled together with a reduction; reverse that reduction first."
     },
     "payment_term_active_not_found": {
       "message": "Active payment term '{code}' not found.",

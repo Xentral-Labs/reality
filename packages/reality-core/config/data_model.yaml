@@ -158,6 +158,23 @@ tables:
       tenant_id: {}
       handover_id: {}
       invoice_id: {}
+  payment_return:
+    description: A customer payment that came back as a returned direct debit or a chargeback, with its stated reason, reference and fee.
+    columns:
+      id: {}
+      tenant_id: {}
+      payment_document_id: {}
+      kind: {}
+      reason: {}
+      reference: {}
+      returned_on: {}
+      fee_amount: {}
+      fee_bearer: {}
+      ledger_reversal_id: {}
+      fee_document_id: {}
+      fee_charge_document_id: {}
+      source_record_id: {}
+      created_at: {}
   accounting_target:
     description: Finance-only external configuration; no financial amount authority.
     columns:

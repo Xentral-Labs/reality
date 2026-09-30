@@ -29,6 +29,7 @@ from reality.services import memberships as membership_service_module
 from reality.services import notifications as notification_service_module
 from reality.services import order_line_items as order_line_item_service_module
 from reality.services import payment_intake as payment_intake_service_module
+from reality.services import payment_returns as payment_return_service_module
 from reality.services import playground as playground_service_module
 from reality.services import projection_jobs as projection_job_service_module
 from reality.services import projections as projection_service_module
@@ -121,6 +122,7 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "negative_actual_db1",
     "exchange_without_return",
     "order_line_item_unknown",
+    "payment_returned",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays
@@ -1080,6 +1082,8 @@ def _service(name: str) -> Any:
         return getattr(dunning_run_service_module, name)
     if hasattr(order_line_item_service_module, name):
         return getattr(order_line_item_service_module, name)
+    if hasattr(payment_return_service_module, name):
+        return getattr(payment_return_service_module, name)
     if hasattr(invoice_action_service_module, name):
         return getattr(invoice_action_service_module, name)
     if hasattr(invoice_billing_service_module, name):
@@ -1272,6 +1276,7 @@ def _literal_business_events() -> set[str]:
         dunning_service_module,
         dunning_run_service_module,
         order_line_item_service_module,
+        payment_return_service_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

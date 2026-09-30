@@ -22,6 +22,8 @@ REASONS = {
     "agreed_deduction",
     "accepted_small_remainder",
     "bad_debt",
+    # Spec 297: a fee the payment provider deducted before paying out.
+    "payment_fee",
 }
 SOURCE_SYSTEM = "internal_settlement_adjustment"
 
@@ -80,6 +82,8 @@ def preview_adjustment(session: Session, tenant_id: str, values: dict) -> dict:
         raise core.InvalidOperation("A supported reason and explanation are required.")
     if values["reason_category"] == "bad_debt" and context["side"] != "customer":
         raise core.InvalidOperation("Bad debt is supported for customer receivables only.")
+    if values["reason_category"] == "payment_fee" and context["side"] != "customer":
+        raise core.InvalidOperation(code="payment_fee_customer_only")
     if context["side"] == "supplier" and not values.get("agreement", "").strip():
         raise core.InvalidOperation("Document the supplier entitlement or agreement.")
     resolve_account(
@@ -88,11 +92,10 @@ def preview_adjustment(session: Session, tenant_id: str, values: dict) -> dict:
         "accounts_receivable" if context["side"] == "customer" else "accounts_payable",
         context["control_account_id"],
     )
-    counterpart_role = (
-        "bad_debt_expense"
-        if values["reason_category"] == "bad_debt"
-        else f"{context['side']}_reduction"
-    )
+    counterpart_role = {
+        "bad_debt": "bad_debt_expense",
+        "payment_fee": "payment_fee_expense",
+    }.get(values["reason_category"], f"{context['side']}_reduction")
     counterpart = resolve_account(session, tenant_id, counterpart_role)
     source_id, effect_id = (
         values.get("source_record_id"),

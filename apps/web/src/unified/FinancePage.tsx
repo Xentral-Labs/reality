@@ -11,6 +11,7 @@ import { SettlementFlow } from "../finance/SettlementFlow";
 import { SettlementReduction } from "../finance/SettlementReduction";
 import { DunningNotice } from "../finance/DunningNotice";
 import { DunningRun } from "../finance/DunningRun";
+import { PaymentReturn } from "../finance/PaymentReturn";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { Wallet, Search } from "lucide-react";
@@ -158,6 +159,7 @@ function FinanceRegister({
   const [reductionInvoice, setReductionInvoice] = useState("");
   const [dunningInvoice, setDunningInvoice] = useState("");
   const [dunningRun, setDunningRun] = useState(false);
+  const [returnedPayment, setReturnedPayment] = useState("");
   const creditBalance =
     view === "open-items" && ["customer-balance", "supplier-balance"].includes(flow);
   const table = useRegisterQuery();
@@ -763,6 +765,16 @@ function FinanceRegister({
                                           {t("Reverse posting")}
                                         </button>
                                       )}
+                                    {canAcceptReduction &&
+                                      row.document_type === "customer_payment" &&
+                                      (!row.reversal_role || row.reversal_role === "normal") && (
+                                        <button
+                                          className="br-btn"
+                                          onClick={() => setReturnedPayment(row.document_id)}
+                                        >
+                                          {t("Payment returned")}
+                                        </button>
+                                      )}
                                   </InlineInspector>
                                 </TablePreview>
                               </Fragment>
@@ -878,6 +890,17 @@ function FinanceRegister({
           tenant={tenant}
           invoice={reductionInvoice}
           close={() => setReductionInvoice("")}
+        />
+      )}
+      {returnedPayment && (
+        <PaymentReturn
+          key={`${tenant}:${returnedPayment}`}
+          tenant={tenant}
+          payment={returnedPayment}
+          close={() => {
+            setReturnedPayment("");
+            read.refresh();
+          }}
         />
       )}
       {dunningRun && (

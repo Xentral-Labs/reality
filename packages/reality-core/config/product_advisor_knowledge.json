@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:67810a5893c37d4f876ae79cec8c5f6da71c7a8874eb2c6dffeb8dd57ad2b3a0",
+  "knowledge_version": "advisor-v1:sha256:9766157b0c10c595a7b62f0efd5235ee8742ee22146ec516bef5e5a4da594160",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -513,7 +513,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C15",
-      "fingerprint": "a746d260119b7e4c00a0b29f8497991cff6cdf7e8c17f4fd03aa73f352cd01eb"
+      "fingerprint": "d0ec452500d55d90084fdcb927d487be96bf3657036007763924afad7ccafdb5"
     },
     {
       "id": "source_journey_c16",
@@ -783,7 +783,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E08",
-      "fingerprint": "753966848dc943e8fa257847b34df09c9f13b847c7ab064f236e2b4070e4ef7b"
+      "fingerprint": "7604bf4e2ea5a73ad8ba3a28515a2d36deb5cdf78999da4dc7dea29da3549925"
     },
     {
       "id": "source_journey_e09",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "197856a0ac31bdf02149091581e7f324197e8b37fb78c0525521330f9b1fbf35"
+      "fingerprint": "b6c3d3b8c4f924ac0979e74876188626524be13cc3645ec4703bd04b603cd999"
     },
     {
       "id": "source_document_product_evaluation",
@@ -3050,18 +3050,21 @@
       "source_id": "source_journey_c15",
       "subject": "Payment and release",
       "title": "Chargeback / returned direct debit after shipment",
-      "search_text": "C15 Payment and release Chargeback / returned direct debit after shipment Does the receivable reopen? Chargeback / returned direct debit after shipment Does the receivable reopen?",
-      "claim_text": "Reality evaluates: Does the receivable reopen?",
-      "support": "limited",
+      "search_text": "C15 Payment and release Chargeback / returned direct debit after shipment Does the receivable reopen? chargeback returned direct debit direct debit return Rücklastschrift Rückbelastung Chargeback / returned direct debit after shipment Does the receivable reopen? The bank returned a direct debit with a fee Eine Lastschrift ist zurückgegangen, wer trägt die Gebühr? Der Kunde macht eine Rückbelastung, ist die Rechnung wieder offen?",
+      "claim_text": "Reality evaluates: Does the receivable reopen? A person records the returned direct debit or chargeback with its stated reason and fee; the payment is reversed, its invoices are open again and reported until they are paid, and the fee is an expense or charged on to the customer.",
+      "support": "proven",
       "limitations": [
-        "Reversing a payment reopens the receivable.",
-        "Chargebacks, returned direct debits, their fees and provider disputes are not recorded."
+        "A person records the return; bank return files and provider dispute feeds are not read yet.",
+        "A charged-on fee is a receivable in the ledger but not yet an open item.",
+        "A payment settled together with a fee, discount or other reduction is returned only after that reduction is reversed."
       ],
       "references": [
-        "C15"
+        "C15",
+        "finance_payment_return_propose",
+        "finance_payment_returns"
       ],
       "language": "en",
-      "fingerprint": "7c2aa3e78046f19eef2e85578850447a6684d2e39e0e757e7bfb1e553b411696"
+      "fingerprint": "8827d9a08e80e44ed59ef3866eb1cf3af63d22c5f7e5892191cc6a4de41949ad"
     },
     {
       "id": "evidence_journey_c16",
@@ -3562,18 +3565,18 @@
       "source_id": "source_journey_e08",
       "subject": "Customer invoice and credit note",
       "title": "Shipping cost, small-quantity surcharge, payment fees",
-      "search_text": "E08 Customer invoice and credit note Shipping cost, small-quantity surcharge, payment fees Charges separate from goods? Shipping cost, small-quantity surcharge, payment fees Charges separate from goods?",
-      "claim_text": "Reality evaluates: Charges separate from goods?",
-      "support": "limited",
+      "search_text": "E08 Customer invoice and credit note Shipping cost, small-quantity surcharge, payment fees Charges separate from goods? freight on invoice small-quantity surcharge payment provider fee Mindermengenzuschlag Frachtkosten auf der Rechnung Zahlungsgebühr Shipping cost, small-quantity surcharge, payment fees Charges separate from goods? Stripe paid out less than the invoice because of its fee Wie buche ich Versandkosten und einen Mindermengenzuschlag auf der Rechnung? Mindermengenzuschlag berechnen",
+      "claim_text": "Reality evaluates: Charges separate from goods? Freight and a surcharge are their own invoice lines without an order line, so no goods finding reads them as goods; a fee the payment provider deducts settles the invoice as a payment-fee expense.",
+      "support": "proven",
       "limitations": [
-        "Fees can be separate charges, and freight lines work on purchases.",
-        "Freight and surcharges on sales invoices are not yet proven, and payment provider fees are not recorded."
+        "The provider fee is stated with the payment; payout reports are not read yet."
       ],
       "references": [
-        "E08"
+        "E08",
+        "finance_settlement_propose"
       ],
       "language": "en",
-      "fingerprint": "20a09f7b7df59554fce08d552742f733c2e8f8b2fb55c2210023170e2f89c5c4"
+      "fingerprint": "9fec14e75d6ec560d6a7f19e38ebf387a73adce6ef6855bccaa7f7e84a0543ba"
     },
     {
       "id": "evidence_journey_e09",
@@ -7445,6 +7448,51 @@
       ],
       "language": "en",
       "fingerprint": "c10207b01e16dc128b7b4093951513334632425b8fcd2c9dce031ecdf806126f"
+    },
+    {
+      "id": "evidence_command_record_return",
+      "source_id": "source_executable_commands",
+      "subject": "Record a returned payment",
+      "title": "Record a returned payment",
+      "search_text": "record_return Record a returned payment Reverses a returned customer payment so its invoices are open again, keeps the stated kind, reason and reference, and books a stated fee as expense or charges it to the customer. mutation",
+      "claim_text": "record_return is a governed mutation command for Reverses a returned customer payment so its invoices are open again, keeps the stated kind, reason and reference, and books a stated fee as expense or charges it to the customer..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "record_return"
+      ],
+      "language": "en",
+      "fingerprint": "7249b7101ff0e22764ea633255cac1f7e2a76b91610fdcf3fd77f5febc19c94a"
+    },
+    {
+      "id": "evidence_command_returns",
+      "source_id": "source_executable_commands",
+      "subject": "List returned payments",
+      "title": "List returned payments",
+      "search_text": "returns List returned payments Lists returned direct debits and chargebacks with their reason, fee and reopened invoices. query",
+      "claim_text": "returns is a governed query command for Lists returned direct debits and chargebacks with their reason, fee and reopened invoices..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "returns"
+      ],
+      "language": "en",
+      "fingerprint": "6a3326beaa5f6e587416b43978055d872c392819613f83c019675b05d4a5cdd9"
+    },
+    {
+      "id": "evidence_command_return_detail",
+      "source_id": "source_executable_commands",
+      "subject": "Read a returned payment",
+      "title": "Read a returned payment",
+      "search_text": "return_detail Read a returned payment Reads one returned payment with its reason, reference, fee and reopened invoices. query",
+      "claim_text": "return_detail is a governed query command for Reads one returned payment with its reason, reference, fee and reopened invoices..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "return_detail"
+      ],
+      "language": "en",
+      "fingerprint": "513933754f7a9815013a2638442b246c68fc843b0e9ab834c3be7b6c42d493d8"
     },
     {
       "id": "evidence_command_handovers",

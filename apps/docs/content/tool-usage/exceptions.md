@@ -48,6 +48,7 @@ it, and which agent tools list and explain it.
 | [`negative_actual_db1`](#exception-negative_actual_db1)                                   | Negative actual DB1                      | Cross-functional           | `normal` | Sales management                                                                            |
 | [`exchange_without_return`](#exception-exchange_without_return)                           | Exchange without return                  | Orders & fulfilment        | `normal` | Customer service                                                                            |
 | [`order_line_item_unknown`](#exception-order_line_item_unknown)                           | Order line with unknown item             | Orders & fulfilment        | `normal` | Sales operations                                                                            |
+| [`payment_returned`](#exception-payment_returned)                                         | Payment returned                         | Finance                    | `high`   | Accounts receivable                                                                         |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1221,3 +1222,22 @@ article from silently dropping part of an order.
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
 [`exception_explain`](./commands#tool-exception_explain)
+
+## `payment_returned` — Payment returned {#exception-payment_returned}
+
+A customer payment came back as a returned direct debit or a chargeback, so the invoice it settled
+is open again. The entry names the kind, the stated reason, the bank or provider reference and the
+date, so the receivable is followed up at once instead of waiting until it shows up as overdue.
+
+- **Owner:** Accounts receivable
+- **Clears through:** The invoice being settled again by a new payment, a credit or an accepted
+  write-off.
+- **Severity:** `high`
+- **Record type:** `document`
+- **Authority:** `297/FR-003`
+- **Evidence:**
+  `tests/finance/test_payment_returns.py::test_a_reopened_invoice_is_reported_until_it_is_paid_again`
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)

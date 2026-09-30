@@ -2819,6 +2819,38 @@ MCP_TOOL_CATALOG += (
     ),
 )
 
+from reality.tools.finance import PaymentReturnRequest
+
+MCP_TOOL_CATALOG += (
+    MCPToolDefinition(
+        "finance_payment_return_propose",
+        "Record a returned payment",
+        "Prepare a returned direct debit or chargeback of a customer payment for owner confirmation: it reverses the payment so its invoices are open again, keeps the stated reason and reference, and books a stated fee as payment-fee expense or charges it to the customer.",
+        "propose",
+        "finance",
+        PaymentReturnRequest.model_json_schema(),
+        _propose("finance.payment.return"),
+    ),
+    MCPToolDefinition(
+        "finance_payment_returns",
+        "Returned payments",
+        "List returned customer payments (returned direct debits and chargebacks) with reason, fee and the invoices they reopened.",
+        "read",
+        "finance",
+        _object_schema(),
+        _read("finance.payment_returns"),
+    ),
+    MCPToolDefinition(
+        "finance_payment_return",
+        "Returned payment",
+        "Read one returned customer payment with its reason, reference, fee and the invoices it reopened.",
+        "read",
+        "finance",
+        _object_schema({"return_id": STRING}, required=("return_id",)),
+        _read("finance.payment_return"),
+    ),
+)
+
 from reality.tools.finance import OpeningRequest
 
 MCP_TOOL_CATALOG += (

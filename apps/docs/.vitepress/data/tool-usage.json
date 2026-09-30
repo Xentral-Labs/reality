@@ -668,7 +668,11 @@
         "command:adjustment_context",
         "command:settlement_context"
       ],
-      "exceptions": ["exception:credit_note_unsettled", "exception:unmatched_financial_event"],
+      "exceptions": [
+        "exception:credit_note_unsettled",
+        "exception:unmatched_financial_event",
+        "exception:payment_returned"
+      ],
       "tools": ["tool:finance_balances", "tool:finance_party_balances", "tool:finance_payments"],
       "events": ["event:payments.run", "event:settlement.allocated"],
       "workspace_actions": ["action:post_customer_payment", "action:post_supplier_payment"]
@@ -926,10 +930,11 @@
       "actions": [
         "command:announce_customer_return",
         "command:withdraw_return_announcement",
+        "command:record_return",
         "command:record_customer_exchange",
         "command:record_return_disposition"
       ],
-      "reads": ["command:return_announcements"],
+      "reads": ["command:return_announcements", "command:returns", "command:return_detail"],
       "exceptions": [
         "exception:returned_not_credited",
         "exception:credited_not_returned",
@@ -937,10 +942,12 @@
         "exception:supplier_credit_not_returned",
         "exception:return_unresolved",
         "exception:announced_return_not_arrived",
-        "exception:exchange_without_return"
+        "exception:exchange_without_return",
+        "exception:payment_returned"
       ],
       "tools": ["tool:customer_exchange", "tool:return_disposition_summary"],
       "events": [
+        "event:payment.returned",
         "event:return.announced",
         "event:return.announcement_withdrawn",
         "event:exchange.recorded"
@@ -9648,6 +9655,7 @@
             "supplier_reduction",
             "bad_debt_expense",
             "dunning_fee_revenue",
+            "payment_fee_expense",
             "opening_counterpart"
           ]
         }
@@ -9905,7 +9913,8 @@
             "early_payment_discount",
             "agreed_deduction",
             "accepted_small_remainder",
-            "bad_debt"
+            "bad_debt",
+            "payment_fee"
           ]
         },
         {
@@ -10447,7 +10456,8 @@
             "early_payment_discount",
             "agreed_deduction",
             "accepted_small_remainder",
-            "bad_debt"
+            "bad_debt",
+            "payment_fee"
           ]
         },
         {
@@ -11266,6 +11276,186 @@
       "links": ["command:handover_detail"],
       "label_de": "Collection handover",
       "resources": ["invoice"]
+    },
+    {
+      "id": "tool:finance_payment_return_propose",
+      "kind": "tool",
+      "key": "finance_payment_return_propose",
+      "label": "Record a returned payment",
+      "area": "finance",
+      "summary": "Prepare a returned direct debit or chargeback of a customer payment for owner confirmation: it reverses the payment so its invoices are open again, keeps the stated reason and reference, and books a stated fee as payment-fee expense or charges it to the customer.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "finance_payment_return_propose payment_document_id kind returned_on reason [reference] [fee_amount] [fee_bearer]",
+      "parameters": [
+        {
+          "name": "payment_document_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the recorded customer payment that came back.",
+          "depth": 0
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 0,
+          "enum": ["direct_debit_return", "chargeback"]
+        },
+        {
+          "name": "returned_on",
+          "type": "string",
+          "required": true,
+          "description": "Calendar date the bank or provider states for the return.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        },
+        {
+          "name": "reference",
+          "type": "string",
+          "required": false,
+          "description": "The number the returning parcel will carry, as the customer or the company stated it; never generated.",
+          "depth": 0,
+          "default": ""
+        },
+        {
+          "name": "fee_amount",
+          "type": "string | integer",
+          "required": false,
+          "description": "Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.",
+          "depth": 0,
+          "default": "0"
+        },
+        {
+          "name": "fee_bearer",
+          "type": "string",
+          "required": false,
+          "description": "Who bears a stated fee - charged on to the customer, or kept by the company as payment-fee expense; none when there is no fee.",
+          "depth": 0,
+          "default": null,
+          "enum": ["customer", "company", "none"]
+        }
+      ],
+      "guidance": {
+        "purpose": "Record a returned direct debit or chargeback of a customer payment for owner confirmation.",
+        "use_when": ["The bank or provider says a customer payment came back."],
+        "do_not_use_when": ["A payment was entered by mistake; reverse its posting instead."],
+        "preconditions": [
+          "A recorded customer payment",
+          "not reversed or returned before",
+          "not settled together with a payment fee."
+        ],
+        "refusals": [
+          {
+            "code": "payment_return_already_returned",
+            "description": "The payment was recorded as returned before."
+          },
+          {
+            "code": "payment_return_reduction_active",
+            "description": "The payment was settled together with a reduction that is still in force."
+          },
+          {
+            "code": "finance_account_default_missing",
+            "description": "A fee needs the payment-fee account."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.payment_return",
+            "proves": "The return",
+            "its reversal and fee documents are retained.": null
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the same return."
+        }
+      },
+      "read_modes": [],
+      "command": "record_return",
+      "projections": [],
+      "links": ["command:record_return"],
+      "label_de": "Record a returned payment",
+      "resources": ["return"]
+    },
+    {
+      "id": "tool:finance_payment_returns",
+      "kind": "tool",
+      "key": "finance_payment_returns",
+      "label": "Returned payments",
+      "area": "finance",
+      "summary": "List returned customer payments (returned direct debits and chargebacks) with reason, fee and the invoices they reopened.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_payment_returns",
+      "parameters": [],
+      "guidance": {
+        "purpose": "List returned customer payments with their reason, fee and reopened invoices.",
+        "use_when": ["Returned direct debits or chargebacks must be reconciled or followed up."],
+        "do_not_use_when": ["A payment has not come back; use the payments read."],
+        "limitations": ["Returns are recorded by a person; bank and provider files are not read."],
+        "empty_result": "No customer payment has been recorded as returned.",
+        "freshness": "Read from committed returns and current open amounts."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_payment_returns",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "returns",
+      "projections": [],
+      "links": ["command:returns"],
+      "label_de": "Returned payments",
+      "resources": ["return"]
+    },
+    {
+      "id": "tool:finance_payment_return",
+      "kind": "tool",
+      "key": "finance_payment_return",
+      "label": "Returned payment",
+      "area": "finance",
+      "summary": "Read one returned customer payment with its reason, reference, fee and the invoices it reopened.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_payment_return return_id",
+      "parameters": [
+        {
+          "name": "return_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of a returned payment.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read one returned customer payment with its reason, reference, fee and reopened invoices.",
+        "use_when": ["One known return needs reconciliation."],
+        "do_not_use_when": ["The return is not known yet; list them first."],
+        "limitations": ["A fee charged on is a ledger receivable but not an open item."],
+        "empty_result": "Unknown and foreign identities are refused as not found.",
+        "freshness": "Read from the selected return and current open amounts."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_payment_return",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "return_detail",
+      "projections": [],
+      "links": ["command:return_detail"],
+      "label_de": "Returned payment",
+      "resources": ["return"]
     },
     {
       "id": "tool:finance_opening_context",
@@ -21206,6 +21396,135 @@
       "resources": ["invoice", "party"]
     },
     {
+      "id": "command:record_return",
+      "kind": "command",
+      "key": "record_return",
+      "label": "Record a returned payment",
+      "area": "orders",
+      "summary": "Reverses a returned customer payment so its invoices are open again, keeps the stated kind, reason and reference, and books a stated fee as expense or charges it to the customer.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "reads": [
+        "document",
+        "ledger_entry",
+        "settlement_allocation",
+        "ledger_reversal",
+        "subledger_account"
+      ],
+      "writes": [
+        "payment_return",
+        "ledger_reversal",
+        "ledger_entry",
+        "document",
+        "source_record",
+        "business_event"
+      ],
+      "confirmation": null,
+      "related_services": ["preview_return"],
+      "tools": ["finance_payment_return_propose"],
+      "synopses": [
+        "finance_payment_return_propose payment_document_id kind returned_on reason [reference] [fee_amount] [fee_bearer]"
+      ],
+      "events": ["payment.returned"],
+      "actions": [],
+      "guidance": {
+        "purpose": "Record a returned direct debit or chargeback of a customer payment for owner confirmation.",
+        "use_when": ["The bank or provider says a customer payment came back."],
+        "do_not_use_when": ["A payment was entered by mistake; reverse its posting instead."],
+        "preconditions": [
+          "A recorded customer payment",
+          "not reversed or returned before",
+          "not settled together with a payment fee."
+        ],
+        "refusals": [
+          {
+            "code": "payment_return_already_returned",
+            "description": "The payment was recorded as returned before."
+          },
+          {
+            "code": "payment_return_reduction_active",
+            "description": "The payment was settled together with a reduction that is still in force."
+          },
+          {
+            "code": "finance_account_default_missing",
+            "description": "A fee needs the payment-fee account."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.payment_return",
+            "proves": "The return",
+            "its reversal and fee documents are retained.": null
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the same return."
+        }
+      },
+      "links": ["tool:finance_payment_return_propose", "event:payment.returned"],
+      "label_de": "Zahlungsrückgabe erfassen",
+      "resources": ["return"]
+    },
+    {
+      "id": "command:returns",
+      "kind": "command",
+      "key": "returns",
+      "label": "List returned payments",
+      "area": "orders",
+      "summary": "Lists returned direct debits and chargebacks with their reason, fee and reopened invoices.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "reads": ["payment_return", "document", "settlement_allocation"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_payment_returns"],
+      "synopses": ["finance_payment_returns"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "List returned customer payments with their reason, fee and reopened invoices.",
+        "use_when": ["Returned direct debits or chargebacks must be reconciled or followed up."],
+        "do_not_use_when": ["A payment has not come back; use the payments read."],
+        "limitations": ["Returns are recorded by a person; bank and provider files are not read."],
+        "empty_result": "No customer payment has been recorded as returned.",
+        "freshness": "Read from committed returns and current open amounts."
+      },
+      "links": ["tool:finance_payment_returns"],
+      "label_de": "Zahlungsrückgaben anzeigen",
+      "resources": ["return"]
+    },
+    {
+      "id": "command:return_detail",
+      "kind": "command",
+      "key": "return_detail",
+      "label": "Read a returned payment",
+      "area": "orders",
+      "summary": "Reads one returned payment with its reason, reference, fee and reopened invoices.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat", "CLI"],
+      "reads": ["payment_return", "document", "settlement_allocation"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_payment_return"],
+      "synopses": ["finance_payment_return return_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read one returned customer payment with its reason, reference, fee and reopened invoices.",
+        "use_when": ["One known return needs reconciliation."],
+        "do_not_use_when": ["The return is not known yet; list them first."],
+        "limitations": ["A fee charged on is a ledger receivable but not an open item."],
+        "empty_result": "Unknown and foreign identities are refused as not found.",
+        "freshness": "Read from the selected return and current open amounts."
+      },
+      "links": ["tool:finance_payment_return"],
+      "label_de": "Zahlungsrückgabe anzeigen",
+      "resources": ["return"]
+    },
+    {
       "id": "command:handovers",
       "kind": "command",
       "key": "handovers",
@@ -23121,6 +23440,7 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "payment.returned",
         "dunning.schedule_set",
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
@@ -23292,6 +23612,7 @@
         "shipment.notice_recorded",
         "shipment.event_recorded",
         "shipment.event_superseded",
+        "payment.returned",
         "source_record.stored",
         "commitment.fulfilled",
         "reservation.consumed",
@@ -23378,7 +23699,8 @@
         "exception:stale_cost_review",
         "exception:negative_actual_db1",
         "exception:exchange_without_return",
-        "exception:order_line_item_unknown"
+        "exception:order_line_item_unknown",
+        "exception:payment_returned"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -23522,6 +23844,7 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "payment.returned",
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
         "party.updated",
@@ -23563,6 +23886,7 @@
         }
       ],
       "refresh_events": [
+        "payment.returned",
         "party.created",
         "party.updated",
         "document.corrected",
@@ -23602,6 +23926,7 @@
       ],
       "refresh_events": [
         "finance.account_changed",
+        "payment.returned",
         "payments.run",
         "ledger.posted",
         "ledger.reversed"
@@ -23646,6 +23971,7 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "payment.returned",
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
         "order.recorded",
@@ -24742,6 +25068,31 @@
       "resources": ["order"]
     },
     {
+      "id": "exception:payment_returned",
+      "kind": "exception",
+      "key": "payment_returned",
+      "label": "Payment returned",
+      "area": "finance",
+      "summary": "A customer payment came back as a returned direct debit or a chargeback, so the invoice it settled is open again. The entry names the kind, the stated reason, the bank or provider reference and the date, so the receivable is followed up at once instead of waiting until it shows up as overdue.",
+      "owner": "Accounts receivable",
+      "clears_through": "The invoice being settled again by a new payment, a credit or an accepted write-off.",
+      "severity": "high",
+      "record_type": "document",
+      "authority": "297/FR-003",
+      "evidence": [
+        "tests/finance/test_payment_returns.py::test_a_reopened_invoice_is_reported_until_it_is_paid_again"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:documents"
+      ],
+      "label_de": "Zahlung zurückgegangen",
+      "resources": ["payment", "return"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -24936,6 +25287,27 @@
       "links": ["command:reverse_notice"],
       "label_de": "dunning.notice_reversed",
       "resources": ["accounting"]
+    },
+    {
+      "id": "event:payment.returned",
+      "kind": "event",
+      "key": "payment.returned",
+      "label": "payment.returned",
+      "area": "orders",
+      "summary": "",
+      "producer": "record_return",
+      "subject": "payment_return",
+      "invalidates": [
+        "Open financial items",
+        "Payments",
+        "Journal",
+        "Timeline",
+        "Operational Exceptions",
+        "Tenant usage"
+      ],
+      "links": ["command:record_return"],
+      "label_de": "payment.returned",
+      "resources": ["return"]
     },
     {
       "id": "event:dunning.schedule_set",
@@ -72029,6 +72401,7 @@
         "command:set_schedule",
         "command:confirm_run",
         "command:record_handover",
+        "command:record_return",
         "command:record_sales_invoice",
         "command:post_customer_refund",
         "command:post_supplier_refund",
@@ -72310,6 +72683,7 @@
         "command:record_free_supplier_invoice",
         "command:record_notice",
         "command:confirm_run",
+        "command:record_return",
         "command:record_sales_invoice",
         "command:post_customer_refund",
         "command:post_supplier_refund",
@@ -73743,6 +74117,7 @@
         "command:record_notice",
         "command:reverse_notice",
         "command:confirm_run",
+        "command:record_return",
         "command:record_sales_invoice",
         "command:post_sales_credit_note",
         "command:post_customer_refund",
@@ -77446,7 +77821,11 @@
           "references": []
         }
       ],
-      "actions": ["command:reverse_ledger_posting_group", "command:reverse_notice"]
+      "actions": [
+        "command:reverse_ledger_posting_group",
+        "command:reverse_notice",
+        "command:record_return"
+      ]
     },
     {
       "key": "settlement_allocation",

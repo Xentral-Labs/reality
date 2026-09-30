@@ -17,10 +17,10 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 12       | 14        |
-| [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
+| [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 3         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 15       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
-| [Retoure](#resource-return)                                    | 0      | 4        | 7         |
+| [Retoure](#resource-return)                                    | 0      | 5        | 8         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 13       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
@@ -524,6 +524,7 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
   (`credit_note_unsettled`)
 - [Nicht zugeordneter Finanzvorgang](./exceptions#exception-unmatched_financial_event)
   (`unmatched_financial_event`)
+- [Zahlung zurückgegangen](./exceptions#exception-payment_returned) (`payment_returned`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay), [Kundenretouren](./processes#process-returns)
@@ -711,6 +712,7 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 - [Retoure ankündigen](./commands#command-announce_customer_return) (`announce_customer_return`)
 - [Retourenankündigung zurückziehen](./commands#command-withdraw_return_announcement)
   (`withdraw_return_announcement`)
+- [Zahlungsrückgabe erfassen](./commands#command-record_return) (`record_return`)
 - [Retournierte Ware umtauschen](./commands#command-record_customer_exchange)
   (`record_customer_exchange`)
 - [Retourenware entscheiden](./commands#command-record_return_disposition)
@@ -719,6 +721,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 **Nachschlagen**
 
 - [Angekündigte Retouren anzeigen](./commands#command-return_announcements) (`return_announcements`)
+- [Zahlungsrückgaben anzeigen](./commands#command-returns) (`returns`)
+- [Zahlungsrückgabe anzeigen](./commands#command-return_detail) (`return_detail`)
 
 **Klärfälle**
 
@@ -735,11 +739,13 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
   (`announced_return_not_arrived`)
 - [Umtausch ohne Rücksendung](./exceptions#exception-exchange_without_return)
   (`exchange_without_return`)
+- [Zahlung zurückgegangen](./exceptions#exception-payment_returned) (`payment_returned`)
 
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Kundenretouren](./processes#process-returns)
 
 **Darunter:** Tabellen: `return_announcement`, `customer_exchange` · Events:
+[`payment.returned`](./events#event-payment-returned),
 [`return.announced`](./events#event-return-announced),
 [`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn),
 [`exchange.recorded`](./events#event-exchange-recorded) · Agenten-Tools ohne Geschäftsaktion:

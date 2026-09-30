@@ -324,6 +324,22 @@ def _dunning_schedule(
     return schedule(session, tenant_id)
 
 
+def _payment_returns(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.payment_returns import returns
+
+    return returns(session, tenant_id)
+
+
+def _payment_return(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.payment_returns import return_detail
+
+    return return_detail(session, tenant_id, str(arguments.get("return_id") or ""))
+
+
 def _dunning_run_context(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2034,6 +2050,18 @@ TOOLS = {
         False,
         _dunning_schedule,
     ),
+    "finance.payment_returns": Tool(
+        "finance.payment_returns",
+        "List returned customer payments (returned direct debits and chargebacks) with their reason, fee and reopened invoices.",
+        False,
+        _payment_returns,
+    ),
+    "finance.payment_return": Tool(
+        "finance.payment_return",
+        "Read one returned customer payment with its reason, reference, fee and reopened invoices.",
+        False,
+        _payment_return,
+    ),
     "finance.dunning.run_context": Tool(
         "finance.dunning.run_context",
         "Preview a dunning run: overdue items per customer, currency and level, items ready for collection and items left out with their reason.",
@@ -2676,6 +2704,7 @@ from reality.tools.finance import (
     DUNNING_SCHEDULE_COMMAND,
     FINANCE_COMMANDS,
     OPENING_COMMAND,
+    PAYMENT_RETURN_COMMAND,
     REFERENCE_COMMANDS,
     SETTLEMENT_COMMAND,
     SOURCE_MAPPING_COMMAND,
@@ -3185,6 +3214,12 @@ def create_change_proposal(
                 - set(chosen)
             ),
         }
+    if tool_name == PAYMENT_RETURN_COMMAND:
+        from reality.services.payment_returns import preview_return
+
+        preview["payment_return"] = preview_return(
+            session, tenant_id, normalized_arguments
+        )
     if tool_name == COLLECTION_HANDOVER_COMMAND:
         from reality.services.dunning_runs import preview_handover
 

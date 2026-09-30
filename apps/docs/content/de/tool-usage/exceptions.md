@@ -49,6 +49,7 @@ was sie auflöst und welche Agenten-Tools sie auflisten und erklären.
 | [`negative_actual_db1`](#exception-negative_actual_db1)                                   | Negative actual DB1                      | Bereichsübergreifend    | `normal` | Sales management                                                                            |
 | [`exchange_without_return`](#exception-exchange_without_return)                           | Exchange without return                  | Aufträge & Erfüllung    | `normal` | Customer service                                                                            |
 | [`order_line_item_unknown`](#exception-order_line_item_unknown)                           | Order line with unknown item             | Aufträge & Erfüllung    | `normal` | Sales operations                                                                            |
+| [`payment_returned`](#exception-payment_returned)                                         | Payment returned                         | Finanzen                | `high`   | Accounts receivable                                                                         |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1236,3 +1237,23 @@ article from silently dropping part of an order.
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
 [`exception_explain`](./commands#tool-exception_explain)
+
+## `payment_returned` — Payment returned {#exception-payment_returned}
+
+A customer payment came back as a returned direct debit or a chargeback, so the invoice it settled
+is open again. The entry names the kind, the stated reason, the bank or provider reference and the
+date, so the receivable is followed up at once instead of waiting until it shows up as overdue.
+
+- **Verantwortlich:** Accounts receivable
+- **Aufgelöst durch:** The invoice being settled again by a new payment, a credit or an accepted
+  write-off.
+- **Schwere:** `high`
+- **Datensatztyp:** `document`
+- **Spezifikation:** `297/FR-003`
+- **Nachweis:**
+  `tests/finance/test_payment_returns.py::test_a_reopened_invoice_is_reported_until_it_is_paid_again`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain), Sicht
+[`documents`](./views#view-documents)

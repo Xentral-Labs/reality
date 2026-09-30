@@ -26,6 +26,7 @@ class CreateAccount(AccountRequest):
         "supplier_reduction",
         "bad_debt_expense",
         "dunning_fee_revenue",
+        "payment_fee_expense",
         "opening_counterpart",
     ]
 
@@ -73,7 +74,11 @@ class AdjustmentRequest(AccountRequest):
     invoice_id: str = Field(min_length=1)
     amount: str
     reason_category: Literal[
-        "early_payment_discount", "agreed_deduction", "accepted_small_remainder", "bad_debt"
+        "early_payment_discount",
+        "agreed_deduction",
+        "accepted_small_remainder",
+        "bad_debt",
+        "payment_fee",
     ]
     reason: str = Field(min_length=1, max_length=4000)
     agreement: str = Field(default="", max_length=4000)
@@ -88,6 +93,7 @@ DUNNING_COMMAND = "finance.dunning.record"
 DUNNING_REVERSE_COMMAND = "finance.dunning.reverse"
 DUNNING_SCHEDULE_COMMAND = "finance.dunning.schedule.set"
 DUNNING_RUN_COMMAND = "finance.dunning.run"
+PAYMENT_RETURN_COMMAND = "finance.payment.return"
 COLLECTION_HANDOVER_COMMAND = "finance.dunning.collection.handover"
 DEPOSIT_RECORD_COMMAND = "finance.deposit.record"
 DEPOSIT_CLEAR_COMMAND = "finance.deposit.clear"
@@ -139,6 +145,19 @@ class DunningRunRequest(BaseModel):
     items: list[DunningRunItemRequest] = Field(min_length=1, max_length=500)
 
 
+class PaymentReturnRequest(BaseModel):
+    # No finance revision: every posting raises it; the return re-checks the
+    # payment under the finance lock instead.
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    payment_document_id: str = Field(min_length=1)
+    kind: Literal["direct_debit_return", "chargeback"]
+    returned_on: str
+    reason: str = Field(max_length=4000)
+    reference: str = Field(default="", max_length=200)
+    fee_amount: StrictStr | StrictInt = "0"
+    fee_bearer: Literal["customer", "company", "none"] | None = None
+
+
 class CollectionHandoverRequest(AccountRequest):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     invoice_ids: list[str] = Field(min_length=1, max_length=100)
@@ -169,6 +188,7 @@ EDGE_COMMANDS = {
     DUNNING_SCHEDULE_COMMAND: DunningScheduleRequest,
     DUNNING_RUN_COMMAND: DunningRunRequest,
     COLLECTION_HANDOVER_COMMAND: CollectionHandoverRequest,
+    PAYMENT_RETURN_COMMAND: PaymentReturnRequest,
     DEPOSIT_RECORD_COMMAND: DepositRecordRequest,
     DEPOSIT_CLEAR_COMMAND: DepositClearRequest,
 }
@@ -272,7 +292,11 @@ class StatedReduction(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     amount: str
     reason_category: Literal[
-        "early_payment_discount", "agreed_deduction", "accepted_small_remainder", "bad_debt"
+        "early_payment_discount",
+        "agreed_deduction",
+        "accepted_small_remainder",
+        "bad_debt",
+        "payment_fee",
     ]
     reason: str = Field(min_length=1, max_length=4000)
     agreement: str = Field(default="", max_length=4000)
@@ -464,6 +488,16 @@ def execute_finance_command(
         from reality.services.dunning_runs import confirm_run
 
         return confirm_run(
+            session,
+            tenant_id,
+            **validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
+    if name == PAYMENT_RETURN_COMMAND:
+        from reality.services.payment_returns import record_return
+
+        return record_return(
             session,
             tenant_id,
             **validate_finance_request(name, arguments),
