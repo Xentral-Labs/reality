@@ -37,7 +37,7 @@
 
 ## Phase 4: Release (FR-004)
 
-- [ ] T008 [FR-004] Failing tests in `core/tests/test_credit_hold.py`:
+- [x] T008 [FR-004] Failing tests in `core/tests/test_credit_hold.py`:
   - an owner releases with a reason and the event names it and the decision names the person;
   - the order then reserves and ships;
   - a blank reason is refused (`credit_hold_release_reason_missing`);
@@ -45,7 +45,7 @@
   - no credit hold is refused (`credit_hold_not_found`);
   - the generic release leaves credit holds and refuses with `credit_hold_owner_release_required` when only they are active;
   - a cancellation still releases every hold.
-- [ ] T009 [FR-004] The reviewed tool `credit_hold_release` in `core/src/reality/services/hold_actions.py`, `tools/application.py` and `services/credit_exposure.py`; `release_commitment_hold` reason codes; refusal codes with de/nl/es translations.
+- [x] T009 [FR-004] The reviewed tool `credit_hold_release` in `core/src/reality/services/hold_actions.py`, `tools/application.py` and `services/credit_exposure.py`; `release_commitment_hold` reason codes; refusal codes with de/nl/es translations.
 
 ## Phase 5: Finding (FR-005)
 

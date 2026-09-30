@@ -295,3 +295,190 @@ def test_an_assigned_line_of_a_credit_held_order_is_held(session, business):
         )
     ).one()
     assert len(_holds(session, business, [assigned])) == 1
+
+
+# --- Release (FR-004) ----------------------------------------------------------------
+
+
+def _person(session, business, role):
+    from reality.db.core import AppUser, TenantMembership, uid
+    from reality.services.memberships import Principal
+
+    user = AppUser(
+        id=uid("usr"),
+        email=f"{uid('mail')}@example.test",
+        password_hash="x",
+        display_name=f"{role.title()} Person",
+        status="active",
+        email_verified_at=core.now(),
+    )
+    session.add(user)
+    session.flush()
+    session.add(
+        TenantMembership(
+            id=uid("mem"),
+            tenant_id=business.tenant.id,
+            user_id=user.id,
+            role=role,
+            status="active",
+        )
+    )
+    session.flush()
+    return Principal(user.id)
+
+
+def _prepare_release(session, business, order, reason, request_id="credit-release"):
+    return prepare_delivery_action(
+        session,
+        business.tenant.id,
+        "credit_hold_release",
+        {"document_id": order.id, "reason": reason},
+        request_id=request_id,
+    )
+
+
+def _confirm(session, business, proposal, principal=None):
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    return approve_and_execute_proposal(
+        session,
+        business.tenant.id,
+        proposal.id,
+        review_token=token,
+        confirmed=True,
+        confirming_principal=principal,
+    )
+
+
+def _held_order(session, business):
+    party = _customer(session, business, limit="100")
+    order, commitments = _order(session, business, party, "SO-C-REL", "400.00")
+    assert len(_holds(session, business, commitments)) == 1
+    return order, commitments
+
+
+def test_an_owner_releases_a_credit_hold_with_a_reason(session, business):
+    from reality.services.decision_attribution import record_decisions
+
+    tenant = business.tenant.id
+    order, commitments = _held_order(session, business)
+    owner = _person(session, business, "owner")
+    reason = "Paid by bank transfer today, confirmed by phone"
+
+    proposal = _prepare_release(session, business, order, reason)
+    review = json.loads(proposal.input)["_delivery_review"]
+    assert (
+        review["effect"]["holds_released"],
+        review["state"]["exposure"]["excess"],
+    ) == (
+        "1",
+        "300.0000",
+    )
+    executed = _confirm(session, business, proposal, owner)
+
+    assert executed.status == "executed"
+    assert _holds(session, business, commitments) == []
+    event = session.scalars(
+        select(BusinessEvent).where(
+            BusinessEvent.tenant_id == tenant,
+            BusinessEvent.event_type == "commitment.hold_released",
+            BusinessEvent.action_id == proposal.id,
+        )
+    ).one()
+    assert json.loads(event.payload)["reason"] == reason
+    decisions = record_decisions(session, tenant, "commitment", commitments[0].id)
+    assert (proposal.id, "credit_hold_release") in {
+        (row["id"], row["tool"]) for row in decisions
+    }
+    # Released, the order is ready once stock is reserved.
+    core.record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "10",
+        to_location_id=business.location.id,
+    )
+    core.reserve(session, tenant, commitments[0].id)
+    assert fulfillment_readiness(session, tenant, commitments[0].id).ship_ready
+
+
+@pytest.mark.parametrize("reason", ["", "   "])
+def test_a_credit_hold_is_released_only_with_a_reason(session, business, reason):
+    order, _ = _held_order(session, business)
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _prepare_release(session, business, order, reason)
+    assert refused.value.code == "credit_hold_release_reason_missing"
+
+
+def test_a_member_who_is_not_an_owner_cannot_release_it(session, business):
+    order, commitments = _held_order(session, business)
+    member = _person(session, business, "member")
+    proposal = _prepare_release(session, business, order, "Customer is fine")
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _confirm(session, business, proposal, member)
+
+    assert refused.value.code == "company_owner_access_required"
+    assert len(_holds(session, business, commitments)) == 1
+
+
+def test_an_order_without_a_credit_hold_has_nothing_to_release(session, business):
+    party = _customer(session, business, limit="0")
+    order, _ = _order(session, business, party, "SO-C-FREE", "400.00")
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _prepare_release(session, business, order, "Nothing to release")
+    assert refused.value.code == "credit_hold_not_found"
+
+
+def test_the_generic_release_leaves_the_credit_hold(session, business):
+    tenant = business.tenant.id
+    _, commitments = _held_order(session, business)
+
+    # With only the credit hold active, the generic release refuses.
+    with pytest.raises(core.InvalidOperation) as refused:
+        prepare_delivery_action(
+            session,
+            tenant,
+            "commitment_hold_release",
+            {"commitment_id": commitments[0].id},
+            request_id="generic-release",
+        )
+    assert refused.value.code == "credit_hold_owner_release_required"
+
+    # Beside another hold, it lifts that one and keeps the credit hold.
+    address = CommitmentHold(
+        id=core.uid("hld"),
+        tenant_id=tenant,
+        commitment_id=commitments[0].id,
+        reason_code="address_clarification",
+        note="Street unclear",
+    )
+    session.add(address)
+    session.flush()
+    proposal = prepare_delivery_action(
+        session,
+        tenant,
+        "commitment_hold_release",
+        {"commitment_id": commitments[0].id},
+        request_id="generic-release-2",
+    )
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    approve_and_execute_proposal(
+        session, tenant, proposal.id, review_token=token, confirmed=True
+    )
+
+    assert address.released_at is not None
+    assert len(_holds(session, business, commitments)) == 1
+
+
+def test_cancelling_the_order_still_releases_every_hold(session, business):
+    tenant = business.tenant.id
+    _, commitments = _held_order(session, business)
+
+    core.cancel_commitment(
+        session, tenant, commitments[0].id, reason="Customer cancelled"
+    )
+
+    assert _holds(session, business, commitments) == []

@@ -1060,7 +1060,13 @@ def _commitment_hold_release(
     if "_action_id" in arguments:
         arguments["action_id"] = arguments.pop("_action_id")
     return _entity_result(
-        "commitment_hold", release_commitment_hold(session, tenant_id, **arguments)
+        "commitment_hold",
+        release_commitment_hold(
+            session,
+            tenant_id,
+            **arguments,
+            _keep_reason_codes=frozenset({"credit_check"}),
+        ),
     )
 
 
@@ -1259,6 +1265,15 @@ def _customer_exchange_record(
         "replacement_commitment_id": exchange.replacement_commitment_id,
         "source_record_id": exchange.source_record_id,
     }
+
+
+def _credit_hold_release(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.credit_hold_actions import release_credit_holds
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    return release_credit_holds(session, tenant_id, **arguments)
 
 
 def _order_line_item_assign(
@@ -2345,6 +2360,12 @@ TOOLS = {
         "Settle part of a customer return with a free replacement instead of a credit.",
         True,
         _customer_exchange_record,
+    ),
+    "credit_hold_release": Tool(
+        "credit_hold_release",
+        "Release an order's credit holds with a stated reason; an owner confirms.",
+        True,
+        _credit_hold_release,
     ),
     "order_line_item_assign": Tool(
         "order_line_item_assign",
@@ -3533,6 +3554,16 @@ def approve_and_execute_proposal(
         if not confirmed:
             raise InvalidOperation(code="cost_decision_confirmation_required")
         _owner(session, tenant_id, confirming_principal)
+    if candidate.type == "tool:credit_hold_release":
+        import os
+
+        from reality.services.memberships import require_owner
+
+        # Spec 298 FR-004: only an owner releases a credit decision.
+        if confirming_principal is not None:
+            require_owner(session, tenant_id, confirming_principal)
+        elif os.environ.get("REALITY_AUTH_MODE") != "disabled":
+            raise InvalidOperation(code="company_owner_access_required")
     if candidate.type == "tool:graph.reports.change":
         from reality.services.analytics.proposals import reveal
 
@@ -3756,6 +3787,7 @@ def approve_and_execute_proposal(
         "return_disposition",
         "customer_exchange_record",
         "order_line_item_assign",
+        "credit_hold_release",
         "commitment_revise",
         "commitment_cancel",
         "sales_credit_record",

@@ -31,6 +31,12 @@ from reality.services.credit_actions import (
     _credit_detail,
     _review_credit,
 )
+from reality.services.credit_hold_actions import (
+    CREDIT_HOLD_TOOLS,
+    assert_no_unresolved_credit_release,
+    credit_release_detail,
+    review_credit_release,
+)
 from reality.services.customer_exchange_actions import (
     CUSTOMER_EXCHANGE_TOOLS,
     assert_no_unresolved_customer_exchange,
@@ -137,6 +143,7 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
             *RETURN_DISPOSITION_TOOLS,
             *CUSTOMER_EXCHANGE_TOOLS,
             *ORDER_LINE_ITEM_TOOLS,
+            *CREDIT_HOLD_TOOLS,
             *COMMITMENT_ACTION_TOOLS,
         }
         or (
@@ -234,6 +241,8 @@ def review_delivery(
         return review_customer_exchange(session, tenant_id, arguments)
     if tool in ORDER_LINE_ITEM_TOOLS:
         return review_item_assignment(session, tenant_id, arguments)
+    if tool in CREDIT_HOLD_TOOLS:
+        return review_credit_release(session, tenant_id, arguments)
     if tool in COMMITMENT_ACTION_TOOLS:
         return review_commitment_action(session, tenant_id, tool, arguments)
     if tool == "order_create":
@@ -601,6 +610,8 @@ def delivery_proposal_detail(
         return customer_exchange_proposal_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in ORDER_LINE_ITEM_TOOLS:
         return item_assignment_detail(session, tenant_id, proposal)
+    if proposal.type.removeprefix("tool:") in CREDIT_HOLD_TOOLS:
+        return credit_release_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in COMMITMENT_ACTION_TOOLS:
         return commitment_action_detail(session, tenant_id, proposal)
     if proposal.type == "tool:order_create":
@@ -839,6 +850,10 @@ def assert_no_unresolved_action(
         return assert_no_unresolved_item_assignment(
             session, tenant_id, arguments, exclude
         )
+    if tool in CREDIT_HOLD_TOOLS:
+        return assert_no_unresolved_credit_release(
+            session, tenant_id, arguments, exclude
+        )
     if tool in COMMITMENT_ACTION_TOOLS:
         return assert_no_unresolved_commitment_action(
             session, tenant_id, tool, arguments, exclude
@@ -968,6 +983,7 @@ def reconcile_delivery(
             *RETURN_DISPOSITION_TOOLS,
             *CUSTOMER_EXCHANGE_TOOLS,
             *ORDER_LINE_ITEM_TOOLS,
+            *CREDIT_HOLD_TOOLS,
             *COMMITMENT_ACTION_TOOLS,
         }:
             proposal.status = "executed"

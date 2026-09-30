@@ -6134,9 +6134,13 @@ def release_commitment_hold(
     commitment_id: str,
     *,
     action_id: str | None = None,
+    _keep_reason_codes: frozenset[str] = frozenset(),
     _commit: bool = True,
 ) -> list[CommitmentHold]:
-    """Lift every hold on one promise.
+    """Lift every hold on one promise, except holds with a kept reason.
+
+    A person's generic release keeps credit holds, which only an owner lifts with
+    a reason (spec 298); a closure that ends the promise lifts them all.
 
     `_commit=False` lets the release join the transaction that closed the
     promise, which is how a bulk closure releases forty sets of holds or none.
@@ -6153,6 +6157,7 @@ def release_commitment_hold(
                 CommitmentHold.tenant_id == tenant_id,
                 CommitmentHold.commitment_id == commitment_id,
                 CommitmentHold.released_at.is_(None),
+                CommitmentHold.reason_code.not_in(_keep_reason_codes),
             )
         )
     )

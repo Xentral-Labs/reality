@@ -304,6 +304,21 @@
     "credit_fields_invalid": {
       "message": "Credit fields are incomplete or unsupported."
     },
+    "credit_hold_not_found": {
+      "message": "This order has no active credit hold."
+    },
+    "credit_hold_owner_release_required": {
+      "message": "Only a company owner releases a credit hold, with a reason."
+    },
+    "credit_hold_release_fields_invalid": {
+      "message": "A credit release names the order and a reason, nothing else."
+    },
+    "credit_hold_release_reason_missing": {
+      "message": "State why the credit hold is released."
+    },
+    "credit_hold_release_unresolved": {
+      "message": "A release of this order's credit hold is still being settled."
+    },
     "credit_invoice_not_posted": {
       "message": "Credit requires a posted invoice without reversed posting groups."
     },
