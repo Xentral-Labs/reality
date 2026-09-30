@@ -3542,10 +3542,12 @@ def _financial_exceptions(
     for control in controls:
         if control.posting_group_id not in cash_groups:
             continue
-        if (
-            roles.get(control.posting_group_id, (None, "normal"))[1]
-            == "reversed_original"
-        ):
+        # A reversed payment and the entry reversing it cancel out; neither is
+        # money waiting to be allocated (spec 297: a returned payment).
+        if roles.get(control.posting_group_id, (None, "normal"))[1] in {
+            "reversed_original",
+            "reversing",
+        }:
             continue
         allocated = allocated_by_payment.get(control.id, ZERO)
         remaining = Decimal(control.amount) - allocated

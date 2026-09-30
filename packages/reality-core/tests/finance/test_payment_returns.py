@@ -449,6 +449,43 @@ def test_a_reopened_invoice_is_reported_until_it_is_paid_again(session, business
     assert _findings(session, tenant) == []
 
 
+def test_a_returned_payment_leaves_no_unallocated_money_behind(session, business):
+    tenant = business.tenant.id
+    _, entry = _paid_invoice(session, business)
+    # Positive control: money not allocated to an invoice is reported.
+    over = create_change_proposal(
+        session,
+        tenant,
+        "finance.settlement.apply",
+        {
+            "mode": "payment",
+            "document_id": _posted_invoice(session, business, "RE-297-OV").id,
+            "amount": "101",
+            "allocation_amount": "100",
+            "expected_revision": list_accounts(session, tenant)["revision"],
+            "reference": "Overpaid transfer",
+            "effective_at": "2026-09-10T08:00:00Z",
+        },
+        actor_type="human",
+    )
+    approve_and_execute_proposal(session, tenant, over.id)
+
+    def unmatched():
+        return {
+            row.record_id
+            for row in operational_exceptions(session, tenant)
+            if row.class_id == "unmatched_financial_event"
+        }
+
+    before = unmatched()
+    assert before
+
+    _return(session, tenant, entry.document_id)
+
+    # The reversal's own receivable entry is no new unallocated money.
+    assert unmatched() == before
+
+
 def test_the_invoice_inspector_names_the_return(session, business):
     from reality.web.api import document_inspector
 

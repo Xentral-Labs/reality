@@ -107,4 +107,10 @@ the delivery is reported as shipped and not billed).
 - A missing or malformed return date has its own refusal, `payment_return_date_invalid`.
 - The finding and the invoice inspector read returns with one joined query instead of one
   query per historical return.
+- Manual check: the entry reversing a payment was reported as `unmatched_financial_event`
+  (money waiting to be allocated). It cancels the reversed payment, so both are now skipped; this
+  applied to every payment reversal, not only returns.
+- Manual check, not fixed: the payments list counts cash entries it then leaves out (the reversing
+  entry has no document, the return fee has no receivable), so its record count is higher than
+  its rows. Recorded as a follow-up.
 
