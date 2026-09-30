@@ -10498,6 +10498,7 @@ SETTLEMENT_CONTROL = {
     "customer_deposit": ("accounts_receivable", "credit"),
     "supplier_deposit": ("accounts_payable", "debit"),
     "dunning_fee_charge": ("accounts_receivable", "debit"),
+    "payment_return_fee_charge": ("accounts_receivable", "debit"),
 }
 
 

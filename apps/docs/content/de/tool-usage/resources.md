@@ -17,10 +17,10 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 12       | 14        |
-| [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
+| [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 3         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 15       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
-| [Retoure](#resource-return)                                    | 0      | 4        | 7         |
+| [Retoure](#resource-return)                                    | 0      | 4        | 8         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 13       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
@@ -524,11 +524,13 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
   (`credit_note_unsettled`)
 - [Nicht zugeordneter Finanzvorgang](./exceptions#exception-unmatched_financial_event)
   (`unmatched_financial_event`)
+- [Zahlung zurückgegangen](./exceptions#exception-payment_returned) (`payment_returned`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay), [Kundenretouren](./processes#process-returns)
 
 **Darunter:** Tabellen: `settlement_allocation` · Events:
+[`payment.returned`](./events#event-payment-returned),
 [`payments.run`](./events#event-payments-run),
 [`settlement.allocated`](./events#event-settlement-allocated) · Agenten-Tools ohne Geschäftsaktion:
 [`finance_balances`](./commands#tool-finance_balances),
@@ -735,11 +737,13 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
   (`announced_return_not_arrived`)
 - [Umtausch ohne Rücksendung](./exceptions#exception-exchange_without_return)
   (`exchange_without_return`)
+- [Zahlung zurückgegangen](./exceptions#exception-payment_returned) (`payment_returned`)
 
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Kundenretouren](./processes#process-returns)
 
 **Darunter:** Tabellen: `return_announcement`, `customer_exchange` · Events:
+[`payment.returned`](./events#event-payment-returned),
 [`return.announced`](./events#event-return-announced),
 [`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn),
 [`exchange.recorded`](./events#event-exchange-recorded) · Agenten-Tools ohne Geschäftsaktion:

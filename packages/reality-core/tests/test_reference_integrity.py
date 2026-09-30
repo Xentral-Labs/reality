@@ -521,7 +521,7 @@ def test_the_production_reference_catalog_is_the_measured_one():
     ]
 
     assert len(load_bearing) == 4
-    assert len(exceptions.CLASS_ORDER) == 41
+    assert len(exceptions.CLASS_ORDER) == 42
     # Twenty-one classes read one of the four references; fourteen reason from one.
     assert len(consumers) == 21
     concluding = {

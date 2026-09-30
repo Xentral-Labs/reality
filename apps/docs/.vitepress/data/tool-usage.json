@@ -668,9 +668,13 @@
         "command:adjustment_context",
         "command:settlement_context"
       ],
-      "exceptions": ["exception:credit_note_unsettled", "exception:unmatched_financial_event"],
+      "exceptions": [
+        "exception:credit_note_unsettled",
+        "exception:unmatched_financial_event",
+        "exception:payment_returned"
+      ],
       "tools": ["tool:finance_balances", "tool:finance_party_balances", "tool:finance_payments"],
-      "events": ["event:payments.run", "event:settlement.allocated"],
+      "events": ["event:payment.returned", "event:payments.run", "event:settlement.allocated"],
       "workspace_actions": ["action:post_customer_payment", "action:post_supplier_payment"]
     },
     {
@@ -937,10 +941,12 @@
         "exception:supplier_credit_not_returned",
         "exception:return_unresolved",
         "exception:announced_return_not_arrived",
-        "exception:exchange_without_return"
+        "exception:exchange_without_return",
+        "exception:payment_returned"
       ],
       "tools": ["tool:customer_exchange", "tool:return_disposition_summary"],
       "events": [
+        "event:payment.returned",
         "event:return.announced",
         "event:return.announcement_withdrawn",
         "event:exchange.recorded"
@@ -9648,6 +9654,7 @@
             "supplier_reduction",
             "bad_debt_expense",
             "dunning_fee_revenue",
+            "payment_fee_expense",
             "opening_counterpart"
           ]
         }
@@ -23121,6 +23128,7 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "payment.returned",
         "dunning.schedule_set",
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
@@ -23292,6 +23300,7 @@
         "shipment.notice_recorded",
         "shipment.event_recorded",
         "shipment.event_superseded",
+        "payment.returned",
         "source_record.stored",
         "commitment.fulfilled",
         "reservation.consumed",
@@ -23378,7 +23387,8 @@
         "exception:stale_cost_review",
         "exception:negative_actual_db1",
         "exception:exchange_without_return",
-        "exception:order_line_item_unknown"
+        "exception:order_line_item_unknown",
+        "exception:payment_returned"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -23522,6 +23532,7 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "payment.returned",
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
         "party.updated",
@@ -23563,6 +23574,7 @@
         }
       ],
       "refresh_events": [
+        "payment.returned",
         "party.created",
         "party.updated",
         "document.corrected",
@@ -23602,6 +23614,7 @@
       ],
       "refresh_events": [
         "finance.account_changed",
+        "payment.returned",
         "payments.run",
         "ledger.posted",
         "ledger.reversed"
@@ -23646,6 +23659,7 @@
         "invoice.recorded",
         "dunning.notice_recorded",
         "dunning.notice_reversed",
+        "payment.returned",
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
         "order.recorded",
@@ -24742,6 +24756,31 @@
       "resources": ["order"]
     },
     {
+      "id": "exception:payment_returned",
+      "kind": "exception",
+      "key": "payment_returned",
+      "label": "Payment returned",
+      "area": "finance",
+      "summary": "A customer payment came back as a returned direct debit or a chargeback, so the invoice it settled is open again. The entry names the kind, the stated reason, the bank or provider reference and the date, so the receivable is followed up at once instead of waiting until it shows up as overdue.",
+      "owner": "Accounts receivable",
+      "clears_through": "The invoice being settled again by a new payment, a credit or an accepted write-off.",
+      "severity": "high",
+      "record_type": "document",
+      "authority": "297/FR-003",
+      "evidence": [
+        "tests/finance/test_payment_returns.py::test_a_reopened_invoice_is_reported_until_it_is_paid_again"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:documents"
+      ],
+      "label_de": "Zahlung zurückgegangen",
+      "resources": ["payment", "return"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -24936,6 +24975,27 @@
       "links": ["command:reverse_notice"],
       "label_de": "dunning.notice_reversed",
       "resources": ["accounting"]
+    },
+    {
+      "id": "event:payment.returned",
+      "kind": "event",
+      "key": "payment.returned",
+      "label": "payment.returned",
+      "area": "orders",
+      "summary": "",
+      "producer": "record_return",
+      "subject": "payment_return",
+      "invalidates": [
+        "Open financial items",
+        "Payments",
+        "Journal",
+        "Timeline",
+        "Operational Exceptions",
+        "Tenant usage"
+      ],
+      "links": [],
+      "label_de": "payment.returned",
+      "resources": ["payment", "return"]
     },
     {
       "id": "event:dunning.schedule_set",

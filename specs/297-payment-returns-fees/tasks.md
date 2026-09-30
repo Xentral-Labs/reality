@@ -13,15 +13,15 @@
 
 ## Phase 2: Foundational
 
-- [ ] T005 [FR-001] [DR-001] Failing migration and model tests for `payment_return` (kind and bearer checks, one return per payment, FK indexes) and the `payment_fee_expense` role in `core/tests/finance/test_payment_returns.py`
-- [ ] T006 [DR-001] Model, migration `core/migrations/versions/0103_payment_returns.py`, the role in `core/src/reality/domain/finance.py`, the `CreateAccount` literal, `SETTLEMENT_CONTROL` and the transaction matrix; data model catalog, reporting-graph deferral, schema-index later tables, isolation catalog
+- [x] T005 [FR-001] [DR-001] Failing migration and model tests for `payment_return` (kind and bearer checks, one return per payment, FK indexes) and the `payment_fee_expense` role in `core/tests/finance/test_payment_returns.py`
+- [x] T006 [DR-001] Model, migration `core/migrations/versions/0103_payment_returns.py`, the role in `core/src/reality/domain/finance.py`, the `CreateAccount` literal, `SETTLEMENT_CONTROL` and the transaction matrix; data model catalog, reporting-graph deferral, schema-index later tables, isolation catalog
 
 ## Phase 3: User Story 1 — Record a returned payment (C15)
 
-- [ ] T007 [P] [FR-001] [FR-002] Failing service tests: a returned direct debit reverses the payment and reopens its invoice; a chargeback keeps kind, reason and reference; a fee charged on is the customer's own charge and the company's cost is recovered; a fee as expense books payment-fee expense; zero fee posts nothing; a payment paying two invoices reopens both; each refusal code; replay; tenant isolation, in `core/tests/finance/test_payment_returns.py`
-- [ ] T008 [FR-001] [FR-002] Implement `core/src/reality/services/payment_returns.py` and the `finance.payment.return` command and reads in `core/src/reality/tools/finance.py` and `core/src/reality/tools/application.py`
-- [ ] T009 [P] [FR-003] Failing tests: `payment_returned` reports the reopened invoice (positive control) and clears when it is paid again or credited; the invoice inspector names the return, in `core/tests/finance/test_payment_returns.py`
-- [ ] T010 [FR-003] Implement the class in `core/src/reality/services/exceptions.py` with every pinned list, and the invoice inspector section in `core/src/reality/web/api.py`
+- [x] T007 [P] [FR-001] [FR-002] Failing service tests: a returned direct debit reverses the payment and reopens its invoice; a chargeback keeps kind, reason and reference; a fee charged on is the customer's own charge and the company's cost is recovered; a fee as expense books payment-fee expense; zero fee posts nothing; a payment paying two invoices reopens both; each refusal code; replay; tenant isolation, in `core/tests/finance/test_payment_returns.py`
+- [x] T008 [FR-001] [FR-002] Implement `core/src/reality/services/payment_returns.py` and the `finance.payment.return` command and reads in `core/src/reality/tools/finance.py` and `core/src/reality/tools/application.py`
+- [x] T009 [P] [FR-003] Failing tests: `payment_returned` reports the reopened invoice (positive control) and clears when it is paid again or credited; the invoice inspector names the return, in `core/tests/finance/test_payment_returns.py`
+- [x] T010 [FR-003] Implement the class in `core/src/reality/services/exceptions.py` with every pinned list, and the invoice inspector section in `core/src/reality/web/api.py`
 
 ## Phase 4: Payment fees and charges (E08)
 

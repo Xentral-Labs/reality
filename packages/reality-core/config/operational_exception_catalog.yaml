@@ -986,3 +986,18 @@ classes:
     evidence:
       - tests/test_order_line_items.py::test_an_unknown_item_line_is_reported_until_an_item_is_assigned
       - tests/test_order_line_items.py::test_a_cancelled_order_no_longer_reports_its_unknown_line
+  - id: payment_returned
+    label: Payment returned
+    description: >-
+      A customer payment came back as a returned direct debit or a chargeback, so the invoice it
+      settled is open again. The entry names the kind, the stated reason, the bank or provider
+      reference and the date, so the receivable is followed up at once instead of waiting until it
+      shows up as overdue.
+    owner: Accounts receivable
+    clears_through: The invoice being settled again by a new payment, a credit or an accepted write-off.
+    severity: high
+    derivation: payment_returned
+    record_type: document
+    authority: 297/FR-003
+    evidence:
+      - tests/finance/test_payment_returns.py::test_a_reopened_invoice_is_reported_until_it_is_paid_again

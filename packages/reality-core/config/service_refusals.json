@@ -1293,6 +1293,30 @@
     "payment_reference_not_text": {
       "message": "Payment reference must be text."
     },
+    "payment_return_already_returned": {
+      "message": "This payment has already been recorded as returned."
+    },
+    "payment_return_already_reversed": {
+      "message": "This payment's posting is already reversed."
+    },
+    "payment_return_fee_adjusted": {
+      "message": "This payment was recorded with a payment fee; reverse that fee first."
+    },
+    "payment_return_fee_bearer_invalid": {
+      "message": "Say who bears a fee, and only when there is one."
+    },
+    "payment_return_fee_invalid": {
+      "message": "Enter the fee as stated: not negative, at most four decimals."
+    },
+    "payment_return_kind_invalid": {
+      "message": "A return is a returned direct debit or a chargeback."
+    },
+    "payment_return_not_customer_payment": {
+      "message": "Only a recorded customer payment can be returned."
+    },
+    "payment_return_reason_missing": {
+      "message": "State the reason the bank or provider gave."
+    },
     "payment_term_active_not_found": {
       "message": "Active payment term '{code}' not found.",
       "values": {

@@ -2,10 +2,11 @@
 
 ## Command `finance.payment.return` (finance change proposal, owner confirmation)
 
-Input:
+Input (no finance revision: every posting raises it, so the return re-checks the payment under
+the finance lock instead):
 
 ```json
-{"expected_revision": 12, "payment_document_id": "doc_...", "kind": "direct_debit_return",
+{"payment_document_id": "doc_...", "kind": "direct_debit_return",
  "returned_on": "2026-10-02", "reason": "MD06 – refund on customer request",
  "reference": "RTN-4711", "fee_amount": "3.50", "fee_bearer": "customer"}
 ```
@@ -17,8 +18,7 @@ Refusals: `payment_return_not_customer_payment`, `payment_return_already_reverse
 `payment_return_already_returned`, `payment_return_fee_adjusted`, `payment_return_reason_missing`,
 `payment_return_kind_invalid`, `payment_return_fee_invalid` (negative or more than four decimals),
 `payment_return_fee_bearer_invalid` (a bearer for a zero fee, or none for a positive one),
-`finance_account_default_missing` (no `payment_fee_expense` default), `dunning_preview_stale`-style
-`finance_preview_stale` on a stale revision.
+`finance_account_default_missing` (no `payment_fee_expense` default).
 
 ## Reads `finance.payment_returns` / `finance.payment_return`
 

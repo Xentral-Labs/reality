@@ -78,6 +78,7 @@ WITHOUT_A_SCENARIO = {
     "announced_return_not_arrived",
     "exchange_without_return",
     "order_line_item_unknown",
+    "payment_returned",
     "commitment_hold_unreleased",
     "party_hold_unreleased",
     "stock_expired",

@@ -94,7 +94,7 @@ DEFERRED = {
         set(),
     ),
     "operational_edge_workflows": (
-        "Dunning evidence, the dunning schedule, collection handovers, explicit supply allocations and customer exchanges are operational workflow records. Their reporting measures and graph grain require a separate reviewed analytics design; the operational services and UI remain available independently.",
+        "Dunning evidence, the dunning schedule, collection handovers, payment returns, explicit supply allocations and customer exchanges are operational workflow records. Their reporting measures and graph grain require a separate reviewed analytics design; the operational services and UI remain available independently.",
         {
             "collection_handover",
             "collection_handover_invoice",
@@ -102,6 +102,7 @@ DEFERRED = {
             "dunning_notice",
             "dunning_notice_invoice",
             "dunning_schedule_level",
+            "payment_return",
             "supply_assignment",
         },
         set(),

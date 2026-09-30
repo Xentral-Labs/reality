@@ -38,6 +38,7 @@
     "reality/services/order_actions.py",
     "reality/services/order_line_items.py",
     "reality/services/payment_actions.py",
+    "reality/services/payment_returns.py",
     "reality/services/reference_workspace.py",
     "reality/services/return_disposition_actions.py",
     "reality/services/return_dispositions.py",

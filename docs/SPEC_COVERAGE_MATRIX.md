@@ -1847,3 +1847,9 @@ Tables `dunning_schedule_level` (the company's waiting days and fixed fee per le
 - `packages/reality-core/tests/test_order_line_items.py`: an order with an unknown SKU keeps its known lines and the unknown line without an item or promise; `order_line_item_unknown` reports it (with a positive control) and clears after assignment or cancellation; the assignment creates the promise from the order and confirms through the delivery review; each refusal code; tenant scope.
 - `packages/reality-core/tests/test_shop_order_change_adapters.py`: the reviewed item assignment through MCP (strict schema, propose then confirm), Web (prepare, confirm, foreign company refused) and CLI (propose, confirm, help).
 - `packages/reality-core/tests/test_shopify_update_guard.py`: the spec 081 guard, narrowed: every held change leaves every record untouched and names its code.
+
+## Returned payments and payment fees — Spec 297
+
+Table `payment_return`: a customer payment that came back as a returned direct debit or a chargeback, with its stated reason, reference and fee.
+
+- `packages/reality-core/tests/finance/test_payment_returns.py`: the record's kind, bearer, fee and reason checks and one return per payment; the `payment_fee_expense` role; a returned direct debit reversing the payment and reopening its invoice; a fee charged on as the customer's own charge recovering the company's cost; a chargeback fee as expense; a zero fee; a payment of two invoices; each refusal code; replay and tenant scope; the `payment_returned` finding with a positive control until the invoice is paid again; the invoice inspector's returned payments.

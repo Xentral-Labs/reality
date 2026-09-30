@@ -444,6 +444,9 @@ families:
       - tool:finance.dunning.schedule
       - tool:finance.dunning.schedule.set
       - tool:finance.dunning.run
+      - tool:finance.payment.return
+      - tool:finance.payment_returns
+      - tool:finance.payment_return
       - tool:finance.dunning.run_context
       - tool:finance.dunning.collection.handover
       - tool:finance.dunning.collection_handover
