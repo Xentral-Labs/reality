@@ -9,6 +9,7 @@ from sqlalchemy import select
 
 from reality.db.core import (
     Commitment,
+    Document,
     DocumentLine,
     Item,
     Movement,
@@ -827,3 +828,270 @@ def test_a_renamed_item_number_keeps_every_record_on_the_same_item(session, busi
     # And the rest ships under the new number, against the same promise.
     _ship(session, business, "OUT-O01-2", commitment_id, "2")
     assert open_quantity(session, tenant, commitment_id) == Decimal(0)
+
+
+# --- B14, L02, L07 (spec 300) ---------------------------------------------------
+
+
+def _shop_order(session, business, number, quantity):
+    """A Shopify order as the webhook delivers it, worked through its import job."""
+    _, job = core.enqueue_shopify_order(
+        session,
+        business.tenant.id,
+        {
+            "id": number,
+            "name": f"#{number}",
+            "currency": "EUR",
+            "total_price": str(Decimal(quantity) * 10),
+            "created_at": "2026-11-27T18:00:00Z",
+            "updated_at": "2026-11-27T18:00:00Z",
+            "line_items": [
+                {"id": 1, "sku": business.item.sku, "quantity": quantity, "price": "10"}
+            ],
+        },
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+    )
+    _, order, _, commitments = core.process_import_job(
+        session, business.tenant.id, job.id
+    )
+    return order, commitments[0]
+
+
+def _marketplace_order(session, business, tmp_path, number, quantity, due_at):
+    """A marketplace order from its order report, through the reviewed file import."""
+    import csv
+
+    from reality.services.artifacts import stage_artifact
+    from reality.services.file_interpreters import suggested_mapping
+
+    tenant = business.tenant.id
+    report = tmp_path / f"{number}.csv"
+    columns = [
+        "order_id",
+        "order_number",
+        "line_id",
+        "party_name",
+        "sku",
+        "quantity",
+        "unit_price",
+        "currency",
+        "location",
+        "requested_delivery_at",
+    ]
+    with report.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(columns)
+        writer.writerow(
+            [
+                number,
+                number,
+                "1",
+                business.customer.name,
+                business.item.sku,
+                quantity,
+                "10.00",
+                "EUR",
+                business.location.name,
+                due_at.isoformat(),
+            ]
+        )
+    with report.open("rb") as handle:
+        artifact, _ = stage_artifact(
+            session, tenant, handle, filename=report.name, content_type="text/csv"
+        )
+    proposal = propose_tool(
+        session,
+        tenant,
+        "source_ingest",
+        {
+            "artifact_id": artifact.id,
+            "source_system": "amazon_marketplace",
+            "source_type": "order",
+            "expected_target": "sales_order",
+            "column_mapping": suggested_mapping(columns, "sales_order"),
+        },
+    )
+    job_id = json.loads(confirm_tool(session, tenant, proposal.id).output)[
+        "import_job_id"
+    ]
+    core.process_import_job(session, tenant, job_id)
+    order = session.scalars(
+        select(Document).where(Document.tenant_id == tenant, Document.number == number)
+    ).one()
+    commitment = session.scalars(
+        select(Commitment).where(
+            Commitment.tenant_id == tenant, Commitment.document_id == order.id
+        )
+    ).one()
+    return order, commitment
+
+
+def _findings(session, business, class_id, *, as_of=None):
+    return {
+        row.record_id: row
+        for row in operational_exceptions(session, business.tenant.id, as_of=as_of)
+        if row.class_id == class_id
+    }
+
+
+def test_an_item_oversold_in_the_shop_and_on_a_marketplace_names_both(
+    session, business, tmp_path, monkeypatch
+):
+    """B14: shop and marketplace together sell more than stock and supply."""
+    monkeypatch.setenv("REALITY_ARTIFACT_DIR", str(tmp_path / "artifacts"))
+    tenant = business.tenant.id
+    record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "4",
+        to_location_id=business.location.id,
+    )
+    shop, _ = _shop_order(session, business, 3001, "3")
+    # Positive control: the shop alone is within stock.
+    assert business.item.id not in _findings(session, business, "item_oversold")
+
+    market, _ = _marketplace_order(
+        session, business, tmp_path, "AMZ-3001", "3", core.now()
+    )
+    row = _findings(session, business, "item_oversold")[business.item.id]
+    assert row.causal_values["shortfall_quantity"] == 2
+    assert {
+        channel: values["orders"]
+        for channel, values in row.causal_values["channels"].items()
+    } == {"amazon_marketplace": [market.id], "shopify": [shop.id]}
+
+    # A purchase order for the two missing units is supply on its way: covered.
+    core.create_manual_order(
+        session,
+        tenant,
+        "purchase",
+        "PO-B14",
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "2",
+                "unit_price": "5.00",
+                "gross_amount": "10.00",
+            }
+        ],
+        "10.00",
+    )
+    assert business.item.id not in _findings(session, business, "item_oversold")
+
+
+def test_a_marketplace_order_due_tomorrow_is_at_risk_until_it_ships(
+    session, business, tmp_path, monkeypatch
+):
+    """L02: a fully reserved marketplace order a day before its deadline."""
+    from datetime import timedelta
+
+    monkeypatch.setenv("REALITY_ARTIFACT_DIR", str(tmp_path / "artifacts"))
+    tenant = business.tenant.id
+    now = core.now()
+    record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "10",
+        to_location_id=business.location.id,
+    )
+    _, urgent = _marketplace_order(
+        session, business, tmp_path, "AMZ-L02-1", "2", now + timedelta(hours=20)
+    )
+    _, relaxed = _marketplace_order(
+        session, business, tmp_path, "AMZ-L02-2", "2", now + timedelta(days=3)
+    )
+    _, late = _marketplace_order(
+        session, business, tmp_path, "AMZ-L02-3", "2", now + timedelta(hours=2)
+    )
+    for promise in (urgent, relaxed, late):
+        core.reserve(session, tenant, promise.id)
+
+    due_soon = _findings(session, business, "outgoing_commitment_due_soon", as_of=now)
+    assert set(due_soon) == {urgent.id, late.id}
+    # Fully reserved, so nothing else would have spoken.
+    assert due_soon[urgent.id].cause_ids == ()
+    assert relaxed.id not in due_soon
+
+    _ship(session, business, "L02-DHL", urgent.id, "2")
+    assert urgent.id not in _findings(
+        session, business, "outgoing_commitment_due_soon", as_of=now
+    )
+    # Once its date passes, the unshipped one is overdue, and only that.
+    later = now + timedelta(hours=3)
+    assert late.id in _findings(
+        session, business, "overdue_outgoing_customer_commitment", as_of=later
+    )
+    assert late.id not in _findings(
+        session, business, "outgoing_commitment_due_soon", as_of=later
+    )
+
+
+def test_a_black_friday_burst_is_interpreted_once_and_never_over_reserved(
+    session, business
+):
+    """L07: a burst of shop orders, then reservations; the measured run is in
+    specs/300-multichannel-oversell/results.md (10,000 orders in 404 s)."""
+    from benchmarks.peak_intake.company import Company, payloads
+
+    tenant = business.tenant.id
+    record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "60",
+        to_location_id=business.location.id,
+    )
+    company = Company(
+        tenant,
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+        (business.item.sku,),
+    )
+    for payload in payloads(company, orders=40, seed=7):
+        core.enqueue_shopify_order(
+            session,
+            tenant,
+            payload,
+            business.company.id,
+            business.customer.id,
+            business.location.id,
+        )
+    while sum(core.process_pending_import_jobs(session, tenant, limit=25)):
+        pass
+
+    orders = session.scalars(
+        select(Document).where(
+            Document.tenant_id == tenant, Document.type == "sales_order"
+        )
+    ).all()
+    assert len(orders) == 40
+    assert len({order.source_record_id for order in orders}) == 40
+    promises = session.scalars(
+        select(Commitment).where(
+            Commitment.tenant_id == tenant, Commitment.type == "customer_delivery"
+        )
+    ).all()
+    for promise in promises:
+        core.reserve(session, tenant, promise.id)
+    reserved = core.active_reserved(session, tenant, business.item.id)
+    stock = core.stock_at(session, tenant, business.item.id)
+    assert reserved == stock == 60
+    demand = sum(core.open_quantity(session, tenant, row.id) for row in promises)
+    assert demand > stock
+    assert (
+        _findings(session, business, "item_oversold")[business.item.id].causal_values[
+            "shortfall_quantity"
+        ]
+        == demand - stock
+    )

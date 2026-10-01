@@ -2,18 +2,18 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 114 covered, 37 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 117 covered, 34 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 14 | 2 |  | 8 |  |
-| B Availability and reservation | 5 | 7 |  | 6 |  |
+| B Availability and reservation | 6 | 6 |  | 6 |  |
 | C Payment and release | 14 |  |  | 4 |  |
 | D Shipment, split and merge | 4 | 3 |  | 12 |  |
 | E Customer invoice and credit | 11 | 1 |  |  |  |
@@ -23,7 +23,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | I Supplier invoice and payment | 10 | 1 |  | 1 |  |
 | J Warehouse and stock | 3 | 3 |  | 5 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
-| L E-commerce and marketplaces | 5 | 2 |  | 5 |  |
+| L E-commerce and marketplaces | 7 |  |  | 5 |  |
 | M B2B specifics | 1 | 3 |  | 8 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 2 | 1 |  | 2 | 1 |
@@ -152,7 +152,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | B11 | gap | services/fulfillment_readiness.py (blocker set) | No per-order or per-customer limit on partial deliveries or parcel count exists. |
 | B12 | gap | db/core.py `Reservation` (no deadline column); tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside | Prepayment only blocks shipment; a reservation has no lapse date and is never released automatically. |
 | B13 | covered | tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock, ::test_reservation_exceeds_stock_references_are_opaque | A stocktake loss raises `reservation_exceeds_stock` naming the reservations; it is judged per item across locations and blames no single promise. |
-| B14 | partial | tests/operational_exceptions/test_derivation.py::test_outgoing_commitment_at_risk | Each unreserved promise is flagged, but there is no channel dimension and no aggregate "demand exceeds stock" view. |
+| B14 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_item_oversold_in_the_shop_and_on_a_marketplace_names_both | An item sold in the shop and on a marketplace beyond stock and supply is reported with both channels; a purchase order covers it (spec 300). |
 | B15 | gap | docs/features/inventory.md (Available = physical − reserved) | Availability is one number per item and location; there is no safety stock and no per-channel or per-party availability. |
 | B16 | gap | db/core.py `Reservation`/`Location` | There is no earmark or quota concept for a channel. |
 | B17 | gap | docs/features/inventory.md ("choosing which lot ships is an allocation policy this product has never had") | A lot may be reserved explicitly, but no minimum-remaining-shelf-life eligibility check exists. |
@@ -335,12 +335,12 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | L01 | covered | tests/scenarios/test_catalog_stock_and_returns.py::test_stock_at_an_external_fulfilment_location_is_sold_from_there | Stock at an external fulfilment location is reserved and shipped from there. No marketplace report interpreter exists. |
-| L02 | partial | tests/operational_exceptions/test_derivation.py::test_overdue_outgoing_customer_commitment, ::test_at_risk_unchanged_before_due_date | Generic due_at classes only. A fully reserved order near its deadline is not flagged until overdue. No marketplace source. |
+| L02 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_marketplace_order_due_tomorrow_is_at_risk_until_it_ships | A reserved marketplace order a day before its deadline is reported until it ships, and overdue once the date passes (spec 300). |
 | L03 | gap | specs/148-accounting-journal-cost-centers/spec.md FR-050; docs/features/payment_matching.md Non-goals | Payout and fee matching is specified but not implemented: no payout or provider-clearing code exists. |
 | L04 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_partial_shopify_refund_is_recorded_from_its_source | A partial refund becomes its own shopify/refund source and a sales_refund document on the order without a posting (spec 296). |
 | L05 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_an_edited_shopify_order_applies_a_removed_line_and_holds_an_added_one | A removed line is cancelled citing the version; an added line waits with line_added (spec 296). |
 | L06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_pre_order_shows_its_shortage_and_the_supply_that_protects_it | Dated customer order without stock; an incoming purchase is assigned through supply_assign; readiness names insufficient_stock and supply_coverage shows 5 protecting (0 before, as control). |
-| L07 | partial | specs/033-large-tenant-register-benchmark; tests/test_unified_delivery_actions.py::test_two_connections_cannot_overallocate_or_execute_two_stale_reviews; specs/181-scale-foundations (Draft) | Concurrent reservation safety and the 10k read baseline are proven. Ingest throughput is not. |
+| L07 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_black_friday_burst_is_interpreted_once_and_never_over_reserved; specs/300-multichannel-oversell/results.md | 10,000 shop orders interpreted in 404 s by one process, each once, never over-reserved (spec 300). |
 | L08 | gap | db/core.py Commitment (no recurrence) | No recurring or subscription commitment; holds exist only per single commitment. |
 | L09 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_shopify_free_promotion_item_is_its_own_zero_price_line_and_commitment | A Shopify gift line at 0.00 becomes its own line and commitment; the raw line payload is kept. |
 | L10 | gap | services/ (no party merge or duplicate-of service) | Duplicate parties cannot be merged with history kept. |

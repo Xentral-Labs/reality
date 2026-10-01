@@ -100,8 +100,8 @@ None. See Clarifications.
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
-| FR-001 | US1 1 | `tests/test_item_oversold.py`, story B14 (planned) |
-| FR-002 | US1 2 | `tests/test_deadline_due_soon.py`, story L02 (planned) |
-| FR-003 | US1 | `tests/test_peak_intake_benchmark.py`, `results.md` (planned) |
+| FR-001 | US1 1 | `tests/test_item_oversold.py`, story B14 |
+| FR-002 | US1 2 | `tests/test_deadline_due_soon.py`, story L02 |
+| FR-003 | US1 | `tests/test_peak_intake_benchmark.py`, `results.md`, story L07 |
 | FR-004, DR-001, DR-002 | All | Adapter tests and diff review (planned) |
-| FR-005, SC-001, SC-002 | US1 | Catalog tests and Guide questions (planned) |
+| FR-005, SC-001, SC-002 | US1 | `tests/scenarios/test_catalog_orders_and_shipments.py` (B14, L02, L07); `tests/test_business_journey_catalog.py` |

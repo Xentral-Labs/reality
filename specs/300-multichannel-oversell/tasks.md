@@ -48,9 +48,9 @@
 
 ## Phase 5: Stories and Guide (FR-005)
 
-- [ ] T010 Business stories B14 and L02, and L07 if T009 met the target, in `core/tests/scenarios/test_catalog_orders_and_shipments.py`.
-  - Confirm the reviewed path that states a second sales channel; use the manual order or the file import.
-- [ ] T011 Promote the proven journeys with story-first evidence and English and German keywords, and check that neighbouring questions keep their journeys. If L07 missed the target, its limitation states the measured figure. Then update coverage, the roadmap and the coverage matrix, and run `make docs-generate`.
+- [x] T010 Business stories B14 and L02, and L07 if T009 met the target, in `core/tests/scenarios/test_catalog_orders_and_shipments.py`.
+  - The second channel is the reviewed file import (`source_ingest`), whose source system `amazon_marketplace` becomes the order's sales channel.
+- [x] T011 Promote the proven journeys with story-first evidence and English and German keywords, and check that neighbouring questions keep their journeys. If L07 missed the target, its limitation states the measured figure. Then update coverage, the roadmap and the coverage matrix, and run `make docs-generate`.
 
 ## Phase 6: Verification
 
