@@ -24637,6 +24637,18 @@ Object.assign(dictionaries.de, {
   "Stock in another warehouse": "Bestand in anderem Lager",
   "Reserving the rest at another warehouse, transferring the stock to the order's warehouse, receiving it there, or the promise being reserved, shipped or cancelled.":
     "Den Rest in einem anderen Lager reservieren, den Bestand ins Auftragslager umlagern, ihn dort einbuchen, oder die Zusage wird reserviert, versendet oder storniert.",
+  "Done.": "Erledigt.",
+  "Prepare transfer": "Umlagerung vorbereiten",
+  "Reserve at": "Reservieren in",
+  "Reserve the rest where the stock is, and that warehouse ships it as its own package, or transfer the stock to the order's warehouse first. Nothing changes before you confirm.":
+    "Reserviere den Rest dort, wo der Bestand liegt; dieses Lager versendet ihn als eigenes Paket. Oder lagere den Bestand zuerst ins Auftragslager um. Vor deiner Bestätigung ändert sich nichts.",
+  "Reserve there": "Dort reservieren",
+  "Reserved after confirming": "Reserviert nach der Bestätigung",
+  "Reserved by warehouse": "Reserviert je Lager",
+  "Serve from another warehouse": "Aus anderem Lager beliefern",
+  "Still missing": "Fehlt noch",
+  "The order's warehouse": "Lager des Auftrags",
+  "Transferred after confirming": "Umgelagert nach der Bestätigung",
   "Reorder point reached": "Meldebestand erreicht",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
@@ -24725,6 +24737,18 @@ Object.assign(dictionaries.nl, {
   "Stock in another warehouse": "Voorraad in een ander magazijn",
   "Reserving the rest at another warehouse, transferring the stock to the order's warehouse, receiving it there, or the promise being reserved, shipped or cancelled.":
     "Het restant in een ander magazijn reserveren, de voorraad naar het magazijn van de order verplaatsen, daar ontvangen, of de toezegging wordt gereserveerd, verzonden of geannuleerd.",
+  "Done.": "Klaar.",
+  "Prepare transfer": "Verplaatsing voorbereiden",
+  "Reserve at": "Reserveren in",
+  "Reserve the rest where the stock is, and that warehouse ships it as its own package, or transfer the stock to the order's warehouse first. Nothing changes before you confirm.":
+    "Reserveer het restant waar de voorraad ligt; dat magazijn verzendt het als eigen pakket. Of verplaats de voorraad eerst naar het magazijn van de order. Voor je bevestiging verandert er niets.",
+  "Reserve there": "Daar reserveren",
+  "Reserved after confirming": "Gereserveerd na bevestiging",
+  "Reserved by warehouse": "Gereserveerd per magazijn",
+  "Serve from another warehouse": "Uit een ander magazijn leveren",
+  "Still missing": "Ontbreekt nog",
+  "The order's warehouse": "Magazijn van de order",
+  "Transferred after confirming": "Verplaatst na bevestiging",
   "Reorder point reached": "Bestelpunt bereikt",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
@@ -24814,6 +24838,18 @@ Object.assign(dictionaries.es, {
   "Stock in another warehouse": "Stock en otro almacén",
   "Reserving the rest at another warehouse, transferring the stock to the order's warehouse, receiving it there, or the promise being reserved, shipped or cancelled.":
     "Reservar el resto en otro almacén, trasladar el stock al almacén del pedido, recibirlo allí, o que el compromiso se reserve, se envíe o se cancele.",
+  "Done.": "Hecho.",
+  "Prepare transfer": "Preparar traslado",
+  "Reserve at": "Reservar en",
+  "Reserve the rest where the stock is, and that warehouse ships it as its own package, or transfer the stock to the order's warehouse first. Nothing changes before you confirm.":
+    "Reserva el resto donde está el stock y ese almacén lo envía como su propio paquete, o traslada antes el stock al almacén del pedido. Nada cambia antes de que confirmes.",
+  "Reserve there": "Reservar allí",
+  "Reserved after confirming": "Reservado tras confirmar",
+  "Reserved by warehouse": "Reservado por almacén",
+  "Serve from another warehouse": "Servir desde otro almacén",
+  "Still missing": "Aún falta",
+  "The order's warehouse": "Almacén del pedido",
+  "Transferred after confirming": "Trasladado tras confirmar",
   "Reorder point reached": "Punto de pedido alcanzado",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",

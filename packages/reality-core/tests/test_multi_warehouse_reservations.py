@@ -415,3 +415,15 @@ def test_a_warehouse_ships_only_what_is_reserved_there(session, business):
         ).status
         == "executed"
     )
+
+
+def test_the_delivery_case_lists_reservations_by_warehouse(session, business):
+    from reality.services.delivery_reads import delivery_case
+
+    munich, promise = _split(session, business)
+
+    case = delivery_case(session, business.tenant.id, promise.id)["case"]
+    assert sorted(
+        (row["location_id"], Decimal(row["reserved"]))
+        for row in case["reservations_by_location"]
+    ) == sorted([(business.location.id, 6), (munich.id, 4)])

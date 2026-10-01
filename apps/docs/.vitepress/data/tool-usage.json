@@ -3680,10 +3680,10 @@
       "key": "reservation_propose",
       "label": "Propose reservation",
       "area": "orders",
-      "summary": "Prepare a stock reservation without allocating before confirmation.",
+      "summary": "Prepare a stock reservation without allocating before confirmation. Without location_id it reserves at the promise's own warehouse; with it, the rest at that active warehouse holding stock (spec 303), for example one the stock_in_another_location finding names.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id]",
+      "synopsis": "reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id] [location_id]",
       "parameters": [
         {
           "name": "commitment_id",
@@ -3718,6 +3718,13 @@
           "type": "string",
           "required": false,
           "description": "Exact serial-unit identity to reserve or move; serialized quantities are always one.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational or physical location.",
           "depth": 0
         }
       ],
@@ -20496,7 +20503,7 @@
       "related_services": [],
       "tools": ["reservation_propose"],
       "synopses": [
-        "reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id]"
+        "reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id] [location_id]"
       ],
       "events": ["reservation.created"],
       "actions": ["reserve_stock"],

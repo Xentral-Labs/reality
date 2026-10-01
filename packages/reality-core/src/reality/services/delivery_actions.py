@@ -155,7 +155,8 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
         }
         or (
             tool == "movement_create"
-            and arguments.get("movement_type") in {"shipment", "receipt", "return"}
+            and arguments.get("movement_type")
+            in {"shipment", "receipt", "return", "transfer"}
         )
     )
 
@@ -343,6 +344,9 @@ def review_delivery(
         effect = {
             "received"
             if intent["movement_type"] == "receipt"
+            # Spec 303: a transfer moves stock between warehouses only.
+            else "transferred"
+            if intent["movement_type"] == "transfer"
             else "shipped": _quantity(result["quantity"])
         }
         if "stated_quantity" in result:
@@ -355,7 +359,12 @@ def review_delivery(
     if tool == "movement_create" and not intent.get("commitment_id"):
         from reality.services.core import active_reserved, stock_at
 
-        location_id = intent.get("to_location_id") or intent.get("from_location_id")
+        # A transfer is judged where it takes stock from.
+        location_id = (
+            intent.get("from_location_id")
+            if intent.get("movement_type") == "transfer"
+            else intent.get("to_location_id") or intent.get("from_location_id")
+        )
         physical = stock_at(session, tenant_id, intent["item_id"], location_id)
         reserved = active_reserved(session, tenant_id, intent["item_id"], location_id)
         detail = {
@@ -701,7 +710,12 @@ def delivery_proposal_detail(
             payload = json.loads(event.payload)
             expected = review["effect"].get(
                 "applied",
-                review["effect"].get("shipped", review["effect"].get("received")),
+                review["effect"].get(
+                    "shipped",
+                    review["effect"].get(
+                        "received", review["effect"].get("transferred")
+                    ),
+                ),
             )
             identity = all(
                 payload.get(key) == arguments.get(key)

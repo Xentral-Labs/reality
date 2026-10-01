@@ -217,7 +217,11 @@ def test_a_transfer_through_the_review_clears_it(session, business):
             "to_location_id": business.location.id,
         },
     )
-    approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
+    # A transfer is reviewed like any delivery action (spec 303).
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    approve_and_execute_proposal(
+        session, tenant, proposal.id, review_token=token, confirmed=True
+    )
 
     # Home now holds the four; reserving is the usual next step.
     assert promise.id not in _found(session, tenant)

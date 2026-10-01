@@ -2500,6 +2500,8 @@ export type DeliveryRow = {
   fulfilled: string;
   open: string;
   status: string;
+  /** Spec 303: where the promise's stock is reserved, warehouse by warehouse. */
+  reservations_by_location?: Array<{ location_id: string; location: string; reserved: string }>;
   /** Spec 301: a purchase ordered in the purchase unit, read in that unit too. */
   purchase_unit?: {
     unit: string;

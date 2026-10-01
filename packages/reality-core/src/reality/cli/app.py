@@ -600,6 +600,9 @@ def commitment_reserve(
     handling_unit_id: str | None = None,
     lot_id: str | None = None,
     serial_unit_id: str | None = None,
+    location_id: str | None = typer.Option(
+        None, help="Reserve the rest at this warehouse instead of the promise's own."
+    ),
 ):
     with Session() as s:
         try:
@@ -612,6 +615,7 @@ def commitment_reserve(
                 handling_unit_id=handling_unit_id,
                 lot_id=lot_id,
                 serial_unit_id=serial_unit_id,
+                location_id=location_id,
             )
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error

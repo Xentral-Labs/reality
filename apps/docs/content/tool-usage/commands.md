@@ -5081,7 +5081,7 @@ reports any shortage.
 **Synopsis**
 
 ```text
-reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id]
+reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id] [location_id]
 ```
 
 **Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required for Chat`
@@ -5095,12 +5095,14 @@ reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial
 
 #### `reservation_propose` — Propose reservation {#tool-reservation_propose}
 
-Prepare a stock reservation without allocating before confirmation.
+Prepare a stock reservation without allocating before confirmation. Without location_id it reserves
+at the promise's own warehouse; with it, the rest at that active warehouse holding stock (spec 303),
+for example one the stock_in_another_location finding names.
 
 **Synopsis**
 
 ```text
-reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id]
+reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id] [location_id]
 ```
 
 **Access:** `propose`
@@ -5134,6 +5136,7 @@ Allocate currently available stock to an existing outgoing Commitment.
 | `handling_unit_id` | `string` | no       | Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.  | —       |
 | `lot_id`           | `string` | no       | Exact batch or lot identity to reserve or move.                                      | —       |
 | `serial_unit_id`   | `string` | no       | Exact serial-unit identity to reserve or move; serialized quantities are always one. | —       |
+| `location_id`      | `string` | no       | Opaque identity of the operational or physical location.                             | —       |
 
 **Verify with:** `inventory` — Reserved quantity increases and available quantity decreases.;
 `commitment_register` — Allocation links to the intended Commitment.

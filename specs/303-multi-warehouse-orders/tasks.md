@@ -47,13 +47,14 @@
 
 ## Phase 5: Adapters and Web (FR-004)
 
-- [ ] T010 Failing adapter tests in `core/tests/test_multi_warehouse_adapters.py`:
+- [x] T010 Failing adapter tests in `core/tests/test_multi_warehouse_adapters.py`:
   - the MCP `reservation_propose` carries `location_id` and stays strict;
   - propose then confirm a reservation elsewhere;
   - a transfer proposed from the finding's trace;
   - Web pass-through, with a foreign tenant refused;
   - CLI.
-- [ ] T011 MCP, Web and CLI wiring and catalogs.
+- [x] T011 MCP, Web and CLI wiring and catalogs.
+  - A transfer through `movement_create` is now a reviewed delivery action, reviewed where it takes stock from, like shipments and receipts.
 - [ ] T012 Web:
   - the location choice in the reserve form;
   - "Reserve there" and "Prepare transfer" on the finding;
@@ -62,8 +63,8 @@
 
 ## Phase 6: Stories and Guide (FR-005)
 
-- [ ] T013 Business stories D02, B06 and A02 in `core/tests/scenarios/test_catalog_orders_and_shipments.py`.
-- [ ] T014 Promote D02, B06 and A02 with story-first evidence and English and German keywords, and check that neighbouring questions keep their journeys. Update coverage, the roadmap and the coverage matrix, then run `make docs-generate`.
+- [x] T013 Business stories D02, B06 and A02 in `core/tests/scenarios/test_catalog_orders_and_shipments.py`.
+- [x] T014 Promote D02, B06 and A02 with story-first evidence and English and German keywords, and check that neighbouring questions keep their journeys. Update coverage, the roadmap and the coverage matrix, then run `make docs-generate`.
 
 ## Phase 7: Verification
 
