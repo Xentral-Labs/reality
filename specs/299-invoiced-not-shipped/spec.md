@@ -130,9 +130,9 @@ None. The owner decided the scope on 2026-10-01.
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
-| FR-001 | US2 | Finding and month-end list tests (planned) |
-| FR-002 | US1 1–2 | Down-payment invoice and readiness tests (planned) |
-| FR-003 | US1 3–4 | Final invoice offset tests (planned) |
-| FR-004 | US3 | Pro-forma tests (planned) |
-| FR-005, DR-001, DR-002 | All | Adapter tests and diff review (planned) |
-| FR-006, SC-001–SC-003 | All | Business stories, catalog tests and Guide questions (planned) |
+| FR-001 | US2 | `tests/test_billed_not_shipped.py` |
+| FR-002 | US1 1–2 | `tests/test_down_payments.py` (T004–T007) |
+| FR-003 | US1 3–4 | `tests/test_down_payments.py` (T008–T009) |
+| FR-004 | US3 | `tests/test_proforma_invoices.py` |
+| FR-005, DR-001, DR-002 | All | `tests/test_billing_document_adapters.py`; diff review (T021) |
+| FR-006, SC-001–SC-003 | All | `tests/scenarios/test_catalog_finance.py` (E03, Q01, E11, C14); `tests/test_business_journey_catalog.py` |

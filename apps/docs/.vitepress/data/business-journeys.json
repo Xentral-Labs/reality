@@ -1197,22 +1197,35 @@
       "section": "Payment and release",
       "title": "30 % down payment, rest before shipment",
       "question": "Is the hold released only after the remainder?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Is the hold released only after the remainder?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the hold released only after the remainder? A down-payment invoice for the order is paid and counts towards the prepayment; the order stays blocked for the rest, the final invoice deducts the paid down payment, and only once the rest is paid does it ship.",
       "limitations": [
-        "Shipment is released only after the remainder is paid.",
-        "A down payment made before any invoice is not tied to the order, so readiness reports a missing prepayment invoice."
+        "A payment received before any invoice is not tied to the order; record a down-payment invoice first."
       ],
-      "keywords": [],
+      "keywords": [
+        "down payment before shipment",
+        "deposit then rest before shipping",
+        "prepayment with down payment",
+        "Anzahlung vor Versand",
+        "Anzahlung und Restzahlung",
+        "Restzahlung vor Lieferung"
+      ],
       "question_examples": [
         "30 % down payment, rest before shipment",
-        "Is the hold released only after the remainder?"
+        "Is the hold released only after the remainder?",
+        "The customer paid a 30 % deposit; can we ship before the rest arrives?",
+        "Wird erst nach der Restzahlung versendet?"
       ],
-      "tools": [],
+      "tools": [
+        "down_payment_invoice_record_propose",
+        "sales_invoice_record_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": []
+      "related_journeys": [
+        "E11"
+      ]
     },
     {
       "id": "C15",
@@ -1772,22 +1785,36 @@
       "section": "Customer invoice and credit note",
       "title": "Invoice before delivery (prepayment, pro forma)",
       "question": "Invoiced but not shipped visible?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Invoiced but not shipped visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Invoiced but not shipped visible? A pro-forma for the order is recorded as evidence only, posting nothing; an invoice before delivery is reported as invoiced and not shipped per order line until the goods ship.",
       "limitations": [
-        "Invoicing before shipment works.",
-        "There is no sales-side 'invoiced but not shipped' signal and no pro-forma document."
+        "A pro-forma is evidence only; it is never an open item and never proves a prepayment."
       ],
-      "keywords": [],
+      "keywords": [
+        "pro forma invoice",
+        "proforma",
+        "invoiced but not shipped",
+        "invoice before delivery",
+        "Proforma-Rechnung",
+        "fakturiert nicht versandt",
+        "Rechnung vor Lieferung"
+      ],
       "question_examples": [
         "Invoice before delivery (prepayment, pro forma)",
-        "Invoiced but not shipped visible?"
+        "Invoiced but not shipped visible?",
+        "Which customers were invoiced for goods we have not shipped yet?",
+        "Proforma-Rechnung erstellen, bevor die Ware geht"
       ],
-      "tools": [],
+      "tools": [
+        "proforma_invoice_record_propose",
+        "month_end_billing"
+      ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": []
+      "related_journeys": [
+        "Q01"
+      ]
     },
     {
       "id": "E04",
@@ -1947,22 +1974,36 @@
       "section": "Customer invoice and credit note",
       "title": "Down-payment invoice and final invoice",
       "question": "Down payment offset in the final invoice?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Down payment offset in the final invoice?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Down payment offset in the final invoice? A down-payment invoice for the order is posted against received down payments and settled by an ordinary payment; the final invoice offers what was paid, a person states the offset, and the final invoice is open only for the rest, each naming the other.",
       "limitations": [
-        "A deposit can be cleared against the final invoice.",
-        "There is no down-payment invoice document, and the final invoice does not state the offset."
+        "An offset is stated by a person; the final invoice does not deduct a down payment on its own."
       ],
-      "keywords": [],
+      "keywords": [
+        "down-payment invoice",
+        "down payment invoice",
+        "final invoice deducts the down payment",
+        "deposit invoice",
+        "Anzahlungsrechnung",
+        "Schlussrechnung Anzahlung verrechnen",
+        "Abschlagsrechnung"
+      ],
       "question_examples": [
         "Down-payment invoice and final invoice",
-        "Down payment offset in the final invoice?"
+        "Down payment offset in the final invoice?",
+        "How do I deduct the paid down payment in the final invoice?",
+        "Anzahlung in der Schlussrechnung verrechnen"
       ],
-      "tools": [],
+      "tools": [
+        "down_payment_invoice_record_propose",
+        "sales_invoice_record_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": []
+      "related_journeys": [
+        "C14"
+      ]
     },
     {
       "id": "E12",
@@ -4728,22 +4769,35 @@
       "section": "Time and period",
       "title": "Month-end: shipped not invoiced, invoiced not shipped",
       "question": "Both lists correct?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Both lists correct?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Both lists correct? The month-end billing lists the order lines shipped and not invoiced, and invoiced and not shipped, from the same findings the exception queue reports at that instant.",
       "limitations": [
-        "The 'shipped but not invoiced' list is proven.",
-        "Sales have no 'invoiced but not shipped' list."
+        "Down-payment and pro-forma invoices bill no order line, so they appear in neither list."
       ],
-      "keywords": [],
+      "keywords": [
+        "month-end billing",
+        "shipped not invoiced",
+        "invoiced not shipped",
+        "month end accrual",
+        "Monatsabschluss Fakturierung",
+        "geliefert nicht fakturiert",
+        "fakturiert nicht geliefert"
+      ],
       "question_examples": [
         "Month-end: shipped not invoiced, invoiced not shipped",
-        "Both lists correct?"
+        "Both lists correct?",
+        "What must we invoice or accrue at the end of the month?",
+        "Was ist zum Monatsende geliefert, aber nicht fakturiert?"
       ],
-      "tools": [],
+      "tools": [
+        "month_end_billing"
+      ],
       "demo_references": [],
       "product_paths": [],
-      "related_journeys": []
+      "related_journeys": [
+        "E03"
+      ]
     },
     {
       "id": "Q02",

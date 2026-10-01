@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:b2fb2e858fea282de923f8a6ffec362a9080c5db4ccadf98d7fe1ee37be2fdbf",
+  "knowledge_version": "advisor-v1:sha256:95fc24535d9640d724840238af12f4fbb0a23cc9466c17845a8b93e109bf44d5",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -504,7 +504,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C14",
-      "fingerprint": "a3ac44eeedf062c80ac77370ef133ec230d73edf8b60c05265a3aec403629c1f"
+      "fingerprint": "1998540f771c00bc96e1377502e988cc42af2497b000a6eb6d94bfbca10f4064"
     },
     {
       "id": "source_journey_c15",
@@ -738,7 +738,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E03",
-      "fingerprint": "2d9566860feef8865a9ddb7995a03ccc297a7c703850c1214ccbbe73944fbf8d"
+      "fingerprint": "98df2fb9d38840c8e9e2057903cd0fe4842a8092a146d6899837abbf80b429bd"
     },
     {
       "id": "source_journey_e04",
@@ -810,7 +810,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E11",
-      "fingerprint": "f4857dfbe2ee2049cd4d668ff2f38b1021dd9b373e6659c40d4c36c6e722f1f8"
+      "fingerprint": "b3b05dee42e0cd6fe96eb636445f77eeca41a290db654f14c660a08c89b4685f"
     },
     {
       "id": "source_journey_e12",
@@ -1944,7 +1944,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#Q01",
-      "fingerprint": "2c9b093beb4a486905558568a2e0d504bafd5019a121049bb9f7d4a6e69ca8e3"
+      "fingerprint": "07e66f950eb283708beb2500ea6f8156720c2c5566040657143a75626eaafa18"
     },
     {
       "id": "source_journey_q02",
@@ -3035,18 +3035,19 @@
       "source_id": "source_journey_c14",
       "subject": "Payment and release",
       "title": "30 % down payment, rest before shipment",
-      "search_text": "C14 Payment and release 30 % down payment, rest before shipment Is the hold released only after the remainder? 30 % down payment, rest before shipment Is the hold released only after the remainder?",
-      "claim_text": "Reality evaluates: Is the hold released only after the remainder?",
-      "support": "limited",
+      "search_text": "C14 Payment and release 30 % down payment, rest before shipment Is the hold released only after the remainder? down payment before shipment deposit then rest before shipping prepayment with down payment Anzahlung vor Versand Anzahlung und Restzahlung Restzahlung vor Lieferung 30 % down payment, rest before shipment Is the hold released only after the remainder? The customer paid a 30 % deposit; can we ship before the rest arrives? Wird erst nach der Restzahlung versendet?",
+      "claim_text": "Reality evaluates: Is the hold released only after the remainder? A down-payment invoice for the order is paid and counts towards the prepayment; the order stays blocked for the rest, the final invoice deducts the paid down payment, and only once the rest is paid does it ship.",
+      "support": "proven",
       "limitations": [
-        "Shipment is released only after the remainder is paid.",
-        "A down payment made before any invoice is not tied to the order, so readiness reports a missing prepayment invoice."
+        "A payment received before any invoice is not tied to the order; record a down-payment invoice first."
       ],
       "references": [
-        "C14"
+        "C14",
+        "down_payment_invoice_record_propose",
+        "sales_invoice_record_propose"
       ],
       "language": "en",
-      "fingerprint": "e4a9bb5817332e395a75de87995e2bedc87f6a96d1a7eebc08264b15816f6253"
+      "fingerprint": "9644f3f12e4785d15e7947361b772ed1aa47cc3a0b849fb875469dd32050b25a"
     },
     {
       "id": "evidence_journey_c15",
@@ -3484,18 +3485,19 @@
       "source_id": "source_journey_e03",
       "subject": "Customer invoice and credit note",
       "title": "Invoice before delivery (prepayment, pro forma)",
-      "search_text": "E03 Customer invoice and credit note Invoice before delivery (prepayment, pro forma) Invoiced but not shipped visible? Invoice before delivery (prepayment, pro forma) Invoiced but not shipped visible?",
-      "claim_text": "Reality evaluates: Invoiced but not shipped visible?",
-      "support": "limited",
+      "search_text": "E03 Customer invoice and credit note Invoice before delivery (prepayment, pro forma) Invoiced but not shipped visible? pro forma invoice proforma invoiced but not shipped invoice before delivery Proforma-Rechnung fakturiert nicht versandt Rechnung vor Lieferung Invoice before delivery (prepayment, pro forma) Invoiced but not shipped visible? Which customers were invoiced for goods we have not shipped yet? Proforma-Rechnung erstellen, bevor die Ware geht",
+      "claim_text": "Reality evaluates: Invoiced but not shipped visible? A pro-forma for the order is recorded as evidence only, posting nothing; an invoice before delivery is reported as invoiced and not shipped per order line until the goods ship.",
+      "support": "proven",
       "limitations": [
-        "Invoicing before shipment works.",
-        "There is no sales-side 'invoiced but not shipped' signal and no pro-forma document."
+        "A pro-forma is evidence only; it is never an open item and never proves a prepayment."
       ],
       "references": [
-        "E03"
+        "E03",
+        "proforma_invoice_record_propose",
+        "month_end_billing"
       ],
       "language": "en",
-      "fingerprint": "7eb35995b36f2305ff6ef8bdb2f9f1eb671f65b1c32f136b73f73f3ba599a36e"
+      "fingerprint": "21da5449fdad5a62010e592b0496cda7c1d5019fb4df9baab1039c6831589ec1"
     },
     {
       "id": "evidence_journey_e04",
@@ -3616,18 +3618,19 @@
       "source_id": "source_journey_e11",
       "subject": "Customer invoice and credit note",
       "title": "Down-payment invoice and final invoice",
-      "search_text": "E11 Customer invoice and credit note Down-payment invoice and final invoice Down payment offset in the final invoice? Down-payment invoice and final invoice Down payment offset in the final invoice?",
-      "claim_text": "Reality evaluates: Down payment offset in the final invoice?",
-      "support": "limited",
+      "search_text": "E11 Customer invoice and credit note Down-payment invoice and final invoice Down payment offset in the final invoice? down-payment invoice down payment invoice final invoice deducts the down payment deposit invoice Anzahlungsrechnung Schlussrechnung Anzahlung verrechnen Abschlagsrechnung Down-payment invoice and final invoice Down payment offset in the final invoice? How do I deduct the paid down payment in the final invoice? Anzahlung in der Schlussrechnung verrechnen",
+      "claim_text": "Reality evaluates: Down payment offset in the final invoice? A down-payment invoice for the order is posted against received down payments and settled by an ordinary payment; the final invoice offers what was paid, a person states the offset, and the final invoice is open only for the rest, each naming the other.",
+      "support": "proven",
       "limitations": [
-        "A deposit can be cleared against the final invoice.",
-        "There is no down-payment invoice document, and the final invoice does not state the offset."
+        "An offset is stated by a person; the final invoice does not deduct a down payment on its own."
       ],
       "references": [
-        "E11"
+        "E11",
+        "down_payment_invoice_record_propose",
+        "sales_invoice_record_propose"
       ],
       "language": "en",
-      "fingerprint": "dd7208022453cf6b307690ef99f248330aae0e97eee961a94ee9750740a67779"
+      "fingerprint": "8098a322d679348d16d9dea606f46fda54247c95330089906b565bca8700dd0f"
     },
     {
       "id": "evidence_journey_e12",
@@ -5723,18 +5726,18 @@
       "source_id": "source_journey_q01",
       "subject": "Time and period",
       "title": "Month-end: shipped not invoiced, invoiced not shipped",
-      "search_text": "Q01 Time and period Month-end: shipped not invoiced, invoiced not shipped Both lists correct? Month-end: shipped not invoiced, invoiced not shipped Both lists correct?",
-      "claim_text": "Reality evaluates: Both lists correct?",
-      "support": "limited",
+      "search_text": "Q01 Time and period Month-end: shipped not invoiced, invoiced not shipped Both lists correct? month-end billing shipped not invoiced invoiced not shipped month end accrual Monatsabschluss Fakturierung geliefert nicht fakturiert fakturiert nicht geliefert Month-end: shipped not invoiced, invoiced not shipped Both lists correct? What must we invoice or accrue at the end of the month? Was ist zum Monatsende geliefert, aber nicht fakturiert?",
+      "claim_text": "Reality evaluates: Both lists correct? The month-end billing lists the order lines shipped and not invoiced, and invoiced and not shipped, from the same findings the exception queue reports at that instant.",
+      "support": "proven",
       "limitations": [
-        "The 'shipped but not invoiced' list is proven.",
-        "Sales have no 'invoiced but not shipped' list."
+        "Down-payment and pro-forma invoices bill no order line, so they appear in neither list."
       ],
       "references": [
-        "Q01"
+        "Q01",
+        "month_end_billing"
       ],
       "language": "en",
-      "fingerprint": "2aab34eb4f1da66dee17fc3de4b2d9d30c5ba68ab98972ca083a9ca912a892f4"
+      "fingerprint": "3f32432b19b09917516508c8d3cd8ffd006e7a4b556449084d0b20f68b201a14"
     },
     {
       "id": "evidence_journey_q02",

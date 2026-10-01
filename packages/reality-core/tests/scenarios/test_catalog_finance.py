@@ -1738,3 +1738,246 @@ def test_a_customer_who_is_also_a_supplier_is_held_with_every_fact(session, busi
     assert [row["number"] for row in exposure["available_credits"]["rows"]] == [
         "GS-R08-1"
     ]
+
+
+# --- E03, Q01, E11, C14 (spec 299) ----------------------------------------------
+
+
+def _stocked_order(session, business, number, *, prepay=False, quantity="10"):
+    tenant = business.tenant.id
+    if prepay:
+        core.create_payment_term(
+            session, tenant, f"PRE-{number}", "Prepayment", 0, requires_prepayment=True
+        )
+    core.record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        quantity,
+        to_location_id=business.location.id,
+    )
+    _, order, lines, commitments = _sales_order(
+        session,
+        business,
+        number,
+        [_order_line(business, quantity, "100.00", f"{quantity}00.00")],
+        f"{quantity}00.00",
+        **({"payment_term_code": f"PRE-{number}"} if prepay else {}),
+    )
+    core.reserve(session, tenant, commitments[0].id)
+    return order, lines[0], commitments[0]
+
+
+def _dispatch(business, commitment, quantity):
+    return (
+        "shipment_dispatch",
+        {
+            "purpose": "customer_delivery",
+            "counterparty_id": business.customer.id,
+            "movements": [
+                {
+                    "commitment_id": commitment.id,
+                    "item_id": business.item.id,
+                    "from_location_id": business.location.id,
+                    "quantity": quantity,
+                }
+            ],
+        },
+    )
+
+
+def _down_payment_invoice(session, business, order, amount, number):
+    receipt = _reviewed(
+        session,
+        business,
+        "down_payment_invoice_record",
+        {
+            "order_id": order.id,
+            "number": number,
+            "gross_amount": amount,
+            "effective_at": "2026-09-01T10:00:00Z",
+        },
+        number,
+    )
+    return receipt["document_id"]
+
+
+def _classes(session, business):
+    from reality.services.exceptions import operational_exceptions
+
+    return {
+        (row.class_id, row.record_id)
+        for row in operational_exceptions(session, business.tenant.id)
+    }
+
+
+def test_a_proforma_and_an_early_invoice_are_visible_until_the_goods_ship(
+    session, business
+):
+    """E03: a pro-forma, then the invoice before delivery; invoiced but not
+    shipped is reported until the goods leave."""
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, commitment = _stocked_order(session, business, "SO-E03")
+
+    proforma = _reviewed(
+        session,
+        business,
+        "proforma_invoice_record",
+        {"order_id": order.id, "number": "PF-E03", "gross_amount": "1000.00"},
+        "PF-E03",
+    )
+    # The pro-forma is evidence for the order only: no open item, nothing billed.
+    assert proforma["document_id"] not in {
+        row["document_id"] for row in core.financial_open_items(session, tenant)
+    }
+    assert ("billed_not_shipped", line.id) not in _classes(session, business)
+
+    invoice_id, _ = _invoice_line(session, business, line.id, "10", "1000.00", "RE-E03")
+    assert ("billed_not_shipped", line.id) in _classes(session, business)
+    assert core.open_invoice_amount(session, tenant, invoice_id) == Decimal("1000.00")
+
+    _reviewed(session, business, *_dispatch(business, commitment, "10"), "E03-ship")
+    assert ("billed_not_shipped", line.id) not in _classes(session, business)
+    assert ("shipped_not_billed", line.id) not in _classes(session, business)
+
+
+def test_the_month_end_lists_both_directions_from_the_same_findings(session, business):
+    """Q01: shipped and not invoiced, invoiced and not shipped, at one instant."""
+    from reality.services.month_end_billing import month_end_billing
+
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    _, shipped_line, shipped = _stocked_order(session, business, "SO-Q01-A")
+    _, billed_line, billed = _stocked_order(session, business, "SO-Q01-B")
+    _reviewed(session, business, *_dispatch(business, shipped, "4"), "Q01-ship-a")
+    _invoice_line(session, business, billed_line.id, "5", "500.00", "RE-Q01-B")
+
+    lists = month_end_billing(session, tenant)
+    assert [
+        (row["order_number"], row["quantity"]) for row in lists["shipped_not_billed"]
+    ] == [("SO-Q01-A", "4.0000")]
+    assert [
+        (row["order_number"], row["quantity"]) for row in lists["billed_not_shipped"]
+    ] == [("SO-Q01-B", "5.0000")]
+    # The lists are the findings: the same order lines, under the same identities.
+    findings = _classes(session, business)
+    assert ("shipped_not_billed", shipped_line.id) in findings
+    assert ("billed_not_shipped", billed_line.id) in findings
+
+    # Next month the four are invoiced and the five shipped: both lists are empty.
+    _invoice_line(session, business, shipped_line.id, "4", "400.00", "RE-Q01-A")
+    _reviewed(session, business, *_dispatch(business, billed, "5"), "Q01-ship-b")
+    lists = month_end_billing(session, tenant)
+    assert (lists["shipped_not_billed"], lists["billed_not_shipped"]) == ([], [])
+
+
+def test_the_final_invoice_states_the_down_payment_it_deducts(session, business):
+    """E11: a 30 % down-payment invoice, paid, offset in the final invoice."""
+    from reality.web.api import document_inspector
+
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, _ = _stocked_order(session, business, "SO-E11")
+    down_payment = _down_payment_invoice(session, business, order, "300.00", "AR-E11")
+    core.post_customer_payment(
+        session, tenant, down_payment, "300.00", payment_number="PAY-E11"
+    )
+
+    proposal = prepare_delivery_action(
+        session,
+        tenant,
+        "sales_invoice_record",
+        {
+            "order_line_id": line.id,
+            "quantity": "10",
+            "gross_amount": "1000.00",
+            "number": "RE-E11",
+            "down_payment_offsets": [
+                {"down_payment_document_id": down_payment, "amount": "300.00"}
+            ],
+        },
+        request_id="RE-E11",
+    )
+    review = json.loads(proposal.input)["_delivery_review"]
+    # The person sees what was paid and what the invoice leaves open.
+    (offer,) = review["state"]["down_payment_offers"]
+    assert (offer["number"], offer["paid"], offer["offsettable"]) == (
+        "AR-E11",
+        "300.0000",
+        "300.0000",
+    )
+    assert review["state"]["open_after_offsets"] == "700.00"
+    executed = approve_and_execute_proposal(
+        session, tenant, proposal.id, review_token=review["token"], confirmed=True
+    )
+    final = _document_id(json.loads(executed.output))
+
+    assert core.open_invoice_amount(session, tenant, final) == Decimal("700.00")
+    assert core.account_balance(session, tenant, "customer_down_payments") == 0
+    # The final invoice names the down payment it deducts, and the down payment
+    # names the final invoice, each with the stated amount.
+    for document, other in ((final, "AR-E11"), (down_payment, "RE-E11")):
+        sections = {
+            section["title"]: section["rows"]
+            for section in document_inspector(session, tenant, document)["sections"]
+        }
+        (row,) = sections["Down-payment offsets"]
+        assert row["label"] == other
+    order_rows = {
+        section["title"]: section["rows"]
+        for section in document_inspector(session, tenant, order.id)["sections"]
+    }["Down-payment and pro-forma invoices"]
+    assert [row.get("meta") for row in order_rows] == ["Paid 300.00 · offset 300.00"]
+
+
+def test_a_30_percent_down_payment_holds_the_shipment_until_the_rest_is_paid(
+    session, business
+):
+    """C14: the down payment counts, the rest is required, then it ships."""
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, commitment = _stocked_order(session, business, "SO-C14", prepay=True)
+    readiness = fulfillment_readiness(session, tenant, commitment.id)
+    assert "prepayment_invoice_missing" in readiness.blocker_codes
+
+    down_payment = _down_payment_invoice(session, business, order, "300.00", "AR-C14")
+    core.post_customer_payment(
+        session, tenant, down_payment, "300.00", payment_number="PAY-C14-1"
+    )
+    readiness = fulfillment_readiness(session, tenant, commitment.id)
+    assert (readiness.received_amount, readiness.remaining_amount) == (
+        Decimal("300.00"),
+        Decimal("700.0000"),
+    )
+    assert readiness.blocker_codes == ("prepayment_required",)
+    with pytest.raises(core.InvalidOperation) as refused:
+        prepare_delivery_action(
+            session, tenant, *_dispatch(business, commitment, "10"), request_id="c14-1"
+        )
+    assert refused.value.code == "shipment_blocked_readiness"
+
+    final, _ = _invoice_line(
+        session,
+        business,
+        line.id,
+        "10",
+        "1000.00",
+        "RE-C14",
+        down_payment_offsets=[
+            {"down_payment_document_id": down_payment, "amount": "300.00"}
+        ],
+    )
+    # Still 700 to pay: the offset is not a second payment.
+    assert fulfillment_readiness(session, tenant, commitment.id).remaining_amount == (
+        Decimal("700.0000")
+    )
+    core.post_customer_payment(
+        session, tenant, final, "700.00", payment_number="PAY-C14-2"
+    )
+
+    readiness = fulfillment_readiness(session, tenant, commitment.id)
+    assert readiness.ship_ready and readiness.received_amount == Decimal("1000.00")
+    _reviewed(session, business, *_dispatch(business, commitment, "10"), "C14-ship")
+    assert core.fulfilled_quantity(session, tenant, commitment.id) == 10

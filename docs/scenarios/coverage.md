@@ -2,21 +2,21 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 110 covered, 41 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 114 covered, 37 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 14 | 2 |  | 8 |  |
 | B Availability and reservation | 5 | 7 |  | 6 |  |
-| C Payment and release | 13 | 1 |  | 4 |  |
+| C Payment and release | 14 |  |  | 4 |  |
 | D Shipment, split and merge | 4 | 3 |  | 12 |  |
-| E Customer invoice and credit | 9 | 3 |  |  |  |
+| E Customer invoice and credit | 11 | 1 |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
 | G Purchase demand and order | 6 | 6 |  | 5 |  |
 | H Receipt and supplier deviations | 11 | 1 |  | 7 |  |
@@ -28,7 +28,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 2 | 1 |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
-| Q Time and period | 1 | 2 |  | 2 |  |
+| Q Time and period | 2 | 1 |  | 2 |  |
 | R Combined stress stories | 1 | 5 |  | 2 |  |
 
 Strongest where an operational exception class exists (at-risk, reservation_exceeds_stock,
@@ -175,7 +175,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | C11 | covered | tests/test_payment_terms.py::test_the_discount_deadline_is_one_shared_rule; tests/test_ledger.py::test_invoice_due_date_rule | Due date and discount date come from one shared rule in the aging register; the fixture is a supplier invoice, and sales invoices use the same rule. |
 | C12 | covered | tests/operational_exceptions/test_derivation.py::test_a_discount_taken_explains_the_remainder | A discount deducted after the window gets no `early_payment_discount_taken` reason, so it stays a plain overdue receivable. |
 | C13 | gap | none | No cash-on-delivery payment path; payments cannot be tied to a shipment. |
-| C14 | partial | tests/scenarios/test_fulfillment_safety_parity.py (40 then 60 releases only at 100); tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice | Release only after the remainder is proven; a 30 % deposit before any invoice is not tied to the order (the FR-051 earmark is not built) and readiness reports `prepayment_invoice_missing`. |
+| C14 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_30_percent_down_payment_holds_the_shipment_until_the_rest_is_paid | A paid 30 % down-payment invoice counts towards the prepayment, the shipment waits for the rest, and the final invoice offsets the down payment (spec 299). |
 | C15 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_returned_direct_debit_reopens_the_invoice_and_charges_the_fee | A returned direct debit or chargeback is recorded with its stated reason and fee; the invoice reopens and is reported until paid again, the fee is an expense or charged on (spec 297). Bank return files and provider disputes are not read. |
 | C16 | covered | tests/test_party_delivery_holds.py::test_customer_delivery_hold_blocks_only_shipment; tests/test_fulfillment_readiness.py::test_readiness_combines_stock_reservation_and_active_hold | A party hold with reason and note blocks only shipments; readiness names the hold. There is no dedicated dunning or insolvency reason code. |
 | C17 | covered | tests/test_commitment_holds.py::test_hold_blocks_reservation_and_movement_until_released; ::test_the_release_is_recorded_by_the_release_operation | Hold and release are both recorded generically (`compliance`/`manual_review`); there is no fraud reason and no hold driven by a source fraud signal. |
@@ -211,7 +211,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 |---|---|---|---|
 | E01 | covered | tests/operational_exceptions/test_derivation.py::test_shipped_not_billed; ::test_billing_sums_across_invoices | Unbilled quantity per order line falls to zero as partial invoices arrive. |
 | E02 | covered | tests/scenarios/test_catalog_finance.py::test_one_monthly_invoice_bills_the_deliveries_of_three_orders | The month's deliveries of three orders are read from `invoice_billable_positions` and billed on one guided invoice; `shipped_not_billed` clears and nothing remains billable (spec 283). |
-| E03 | partial | tests/test_fulfillment_readiness.py::test_prepayment_readiness_uses_stated_order_and_active_allocation | Invoicing before shipment works; there is no sales-side "billed not shipped" observation (only purchase-side `billed_not_received`) and no pro-forma document type. |
+| E03 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_proforma_and_an_early_invoice_are_visible_until_the_goods_ship | A pro-forma is evidence only; an invoice before shipment is reported as invoiced and not shipped until the goods ship (spec 299). |
 | E04 | covered | tests/test_partial_invoicing_rebilling.py::test_partial_reversal_rebilling_and_historical_proof; tests/test_ledger_reversals.py::test_reversal_appends_exact_inverse_and_preserves_original | The exact inverse is appended and the original stays; billing becomes available again for the new invoice. |
 | E05 | covered | tests/test_unified_invoice_credit.py::test_partial_multi_credit_without_return_and_exact_recovery; ::test_financial_credit_does_not_require_return_exception | The receivable drops with zero Movements and no `credited_not_returned`. |
 | E06 | covered | tests/operational_exceptions/test_derivation.py::test_returned_not_credited; ::test_invoice_linked_credit_clears_returned_not_credited_through_shortest_links | Return and credit meet on the order line through the shortest links, not through a direct link from the credit to the return movement. |
@@ -219,7 +219,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | E08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods | Freight and surcharge lines on a sales invoice are no goods finding; a fee the provider deducts settles the invoice as payment-fee expense (spec 297). |
 | E09 | covered | tests/scenarios/test_catalog_finance.py::test_invoice_billed_to_the_orderer_keeps_a_different_ship_to_party | Invoice, AR and balance name the orderer; ship-to is reachable through the billed order line. The invoice document itself carries no ship-to. |
 | E10 | covered | tests/scenarios/test_catalog_finance.py::test_e_invoice_xml_is_stored_losslessly_as_traceable_source_evidence | XRechnung bytes (BOM, CRLF, umlauts) round-trip exactly with hash and size; the source stays unmapped, no interpreter exists. |
-| E11 | partial | tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice | Deposit clearing into the final invoice is proven; there is no down-payment invoice document, and the final invoice does not state the offset. |
+| E11 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_final_invoice_states_the_down_payment_it_deducts | A down-payment invoice is paid and offset in the final invoice by a stated amount; both name each other (spec 299). |
 | E12 | covered | tests/test_multi_position_invoices.py::test_stated_values_and_recovery; tests/test_credit_notes.py::test_the_stated_total_is_what_posts; tests/test_documents.py::test_recording_requires_a_stated_total | The header total (209.1234) is kept and posted independently of the line amounts. |
 
 ## F. Returns and complaints
@@ -405,7 +405,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 
 | ID | Status | Evidence | Note |
 |---|---|---|---|
-| Q01 | partial | tests/scenarios/test_normal_month.py::test_the_month_ends_with_exactly_these_exceptions | Shipped-not-invoiced is proven; the sales side has no invoiced-not-shipped class (billed_not_received is purchase side only). |
+| Q01 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_month_end_lists_both_directions_from_the_same_findings | The month-end billing lists shipped-not-invoiced and invoiced-not-shipped lines from the same findings (spec 299). |
 | Q02 | gap | specs/184-period-close/spec.md (stub, "no period record") | There's no period or close record, so a backdated posting is neither refused nor flagged. |
 | Q03 | covered | tests/test_analysis_positions_history.py::test_detail_inventory_conserves_locations_and_unknown_tracking, ::test_later_stock_compensation_does_not_rewrite_earlier_snapshot, ::test_cutoff_excludes_next_midnight_and_late_allocation_endpoint | Point-in-time stock with an explicit cutoff is asserted, including that later corrections don't rewrite it. |
 | Q04 | gap | specs/184-period-close/spec.md | With no period concept there is no carry-over; open promises simply stay open, and no test crosses a year boundary. |
