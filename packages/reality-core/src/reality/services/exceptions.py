@@ -3282,7 +3282,16 @@ def _reorder_point_reached_exceptions(
             (Location.tenant_id == ItemReorderPoint.tenant_id)
             & (Location.id == ItemReorderPoint.location_id),
         )
-        .where(ItemReorderPoint.tenant_id == tenant_id)
+        .where(
+            ItemReorderPoint.tenant_id == tenant_id,
+            # What a point may be set on is what it is judged on: an item that
+            # became a service or inactive, or a place that no longer holds
+            # stock, proposes no purchase until it qualifies again.
+            Item.is_active.is_(True),
+            Item.item_type == "stocked",
+            Location.is_active.is_(True),
+            Location.allows_stock.is_(True),
+        )
         .order_by(ItemReorderPoint.id)
     ).all()
     if not points:
@@ -3323,6 +3332,7 @@ def _reorder_point_reached_exceptions(
     _, fulfilled, _ = fulfillment_expressions()
     items = {row.Item.id: row.Item for row in points}
     incoming: dict[tuple[str, str], Decimal] = {}
+    unconverted: dict[tuple[str, str], int] = {}
     for row in session.execute(
         select(
             Commitment.item_id,
@@ -3361,8 +3371,11 @@ def _reorder_point_reached_exceptions(
             if held == item.unit
             else _in_unit(item, open_quantity, held, item.unit)
         )
-        if quantity:
-            key = (row.item_id, row.location_id)
+        key = (row.item_id, row.location_id)
+        if quantity is None and open_quantity:
+            # Named in the entry rather than silently missing from incoming.
+            unconverted[key] = unconverted.get(key, 0) + 1
+        elif quantity:
             incoming[key] = incoming.get(key, ZERO) + quantity
 
     def valid(*records: Any) -> bool:
@@ -3396,7 +3409,7 @@ def _reorder_point_reached_exceptions(
             entry.item_id,
             party_id,
             name,
-            link.priority,
+            (0, link.priority),
             price_list.currency,
             valid(link, price_list, entry),
         )
@@ -3407,16 +3420,25 @@ def _reorder_point_reached_exceptions(
                 (PartyPriceList.tenant_id == Party.tenant_id)
                 & (PartyPriceList.party_id == Party.id),
             )
-            .join(PriceList, PriceList.id == PartyPriceList.price_list_id)
+            .join(
+                PriceList,
+                (PriceList.tenant_id == PartyPriceList.tenant_id)
+                & (PriceList.id == PartyPriceList.price_list_id),
+            )
             .join(PriceListEntry, priced)
-            .where(Party.tenant_id == tenant_id, listed, supplier)
+            .where(
+                Party.tenant_id == tenant_id,
+                Party.is_active.is_(True),
+                listed,
+                supplier,
+            )
         )
     ] + [
         (
             entry.item_id,
             party_id,
             name,
-            link.priority,
+            (1, link.priority),
             price_list.currency,
             valid(link, member, price_list, entry),
         )
@@ -3445,12 +3467,23 @@ def _reorder_point_reached_exceptions(
                 (PartyGroupPriceList.tenant_id == PartyGroup.tenant_id)
                 & (PartyGroupPriceList.party_group_id == PartyGroup.id),
             )
-            .join(PriceList, PriceList.id == PartyGroupPriceList.price_list_id)
+            .join(
+                PriceList,
+                (PriceList.tenant_id == PartyGroupPriceList.tenant_id)
+                & (PriceList.id == PartyGroupPriceList.price_list_id),
+            )
             .join(PriceListEntry, priced)
-            .where(Party.tenant_id == tenant_id, listed, supplier)
+            .where(
+                Party.tenant_id == tenant_id,
+                Party.is_active.is_(True),
+                listed,
+                supplier,
+            )
         )
     ]
-    candidates: dict[str, dict[str, tuple[str, int, str]]] = {}
+    # The currency asked for is the one of the list the price rule tries
+    # first: a supplier's own lists by priority, then its groups' lists.
+    candidates: dict[str, dict[str, tuple[str, tuple[int, int], str]]] = {}
     for item_id, party_id, name, priority, currency, current in offers:
         if not current:
             continue
@@ -3483,6 +3516,9 @@ def _reorder_point_reached_exceptions(
             "supplier": "",
             "supplier_choice": choice,
         }
+        if unconverted.get(key):
+            # Units not comparable names each of these promises.
+            values["incoming_not_comparable"] = unconverted[key]
         trace: dict[str, Any] = {
             "reorder_point_id": point.id,
             "item_id": item.id,

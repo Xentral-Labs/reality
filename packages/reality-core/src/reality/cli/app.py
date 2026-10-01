@@ -983,7 +983,7 @@ def reorder_point_list(
 
 
 def _reorder_point_change(tool: str, arguments: dict, tenant: str | None, yes: bool):
-    from reality.tools.application import create_change_proposal
+    from reality.tools.application import create_change_proposal, reject_proposal
 
     with Session() as s:
         try:
@@ -993,6 +993,8 @@ def _reorder_point_change(tool: str, arguments: dict, tenant: str | None, yes: b
             )
             con.print_json(data=json.loads(proposal.output)["reorder_point"])
             if not yes and not typer.confirm("Confirm this reorder point change?"):
+                # A declined review leaves no decision waiting for anyone.
+                reject_proposal(s, selected.id, proposal.id)
                 con.print("Stopped; the reorder point is unchanged.")
                 raise typer.Exit()
             approve_and_execute_proposal(s, selected.id, proposal.id, confirmed=True)

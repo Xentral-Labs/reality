@@ -379,3 +379,37 @@ def test_an_agent_orders_from_the_entry_and_the_entry_clears(session, business):
         row.class_id == "reorder_point_reached"
         for row in operational_exceptions(session, tenant)
     )
+
+
+def test_declining_in_the_cli_withdraws_the_review(session, business, monkeypatch):
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    monkeypatch.setattr(cli_module, "Session", factory)
+    monkeypatch.setattr(cli_module, "init_db", lambda: None)
+    tenant = business.tenant.id
+
+    declined = CliRunner().invoke(
+        cli_module.app,
+        [
+            "reorder-point",
+            "set",
+            business.item.id,
+            business.location.id,
+            "--point",
+            "20",
+            "--quantity",
+            "48",
+            "--tenant",
+            tenant,
+        ],
+        input="n\n",
+    )
+    assert declined.exit_code == 0, declined.output
+    session.expire_all()
+    (proposal,) = session.scalars(
+        select(ChangeProposal).where(
+            ChangeProposal.tenant_id == tenant,
+            ChangeProposal.type == "tool:reorder_point_set",
+        )
+    ).all()
+    assert proposal.status == "rejected"
+    assert _points(session, tenant) == []

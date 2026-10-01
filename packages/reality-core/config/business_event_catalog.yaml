@@ -37,7 +37,7 @@ events:
   - {type: reorder_point.removed, producer: remove_reorder_point, subject: reorder_point, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
   - {type: location.created, producer: create_location, subject: location, invalidates: [Inventory, Timeline, Item supply and demand, Tenant usage]}
   - {type: location.updated, producer: update_location, subject: location, invalidates: [Inventory, Commitment register, Timeline, Item supply and demand, Operational Exceptions, Tenant usage]}
-  - {type: master_data.lifecycle_changed, producer: set_master_data_active, subject: master_data, invalidates: [Inventory, Price resolution, Tenant usage]}
+  - {type: master_data.lifecycle_changed, producer: set_master_data_active, subject: master_data, invalidates: [Inventory, Price resolution, Operational Exceptions, Tenant usage]}
   - {type: payment_term.updated, producer: update_payment_term, subject: payment_term, invalidates: [Open financial items, Document register, Tenant usage]}
   - {type: payment_term.created, producer: create_payment_term, subject: payment_term, invalidates: [Tenant usage]}
   - {type: price_list.updated, producer: update_price_list, subject: price_list, invalidates: [Price resolution, Operational Exceptions, Tenant usage]}

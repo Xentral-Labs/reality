@@ -65,6 +65,16 @@
 
 ## Phase 7: Verification
 
-- [ ] T014 Full backend suite and the web checks (run alone)
+- [x] T014 Full backend suite and the web checks (run alone)
+  - 5224 passed, 10 skipped. One pinned event count in `test_http_boundary.py` was missed and is updated.
 - [ ] T015 Manual check per `quickstart.md` on an isolated stack
 - [ ] T016 Review of the diff; fix findings
+  - Points on items or locations that no longer qualify propose nothing, and a deactivation invalidates the exception projection.
+  - Inactive suppliers are not named.
+  - A supplier's own list is priced before its group list, matching the price rule.
+  - Price list joins carry the tenant.
+  - Unconvertible purchases are counted in the entry.
+  - Values with a fifth decimal or beyond the column are refused.
+  - The web and CLI withdraw a review the person walks away from.
+  - The location choice offers stock locations only.
+  - Pricing costs a fixed seven statements per priced entry, pinned by a test.

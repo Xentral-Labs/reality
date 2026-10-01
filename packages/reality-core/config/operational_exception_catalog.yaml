@@ -1123,8 +1123,10 @@ classes:
       rules resolve; when several or none do, it names none and the buyer chooses. Nothing is
       ordered by the entry itself: the buyer prepares the purchase order from it and confirms it
       through the reviewed order, and its open promise then counts as incoming. A supplier
-      promise in a unit the item relates no conversion for is left out, and Units not comparable
-      names it. Item oversold is the company-wide view of demand; this is one location's own
+      promise in a unit the item relates no conversion for is left out of incoming, counted in the
+      entry, and named by Units not comparable. A point on an item that is inactive or no longer
+      stocked, or at a location that is inactive or holds no stock, proposes nothing until it
+      qualifies again; an inactive supplier is never named. Item oversold is the company-wide view of demand; this is one location's own
       level, whatever customers have ordered.
     owner: Purchasing
     clears_through: Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.

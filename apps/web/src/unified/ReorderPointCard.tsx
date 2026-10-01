@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  api,
   reorderPoints,
   workspaceApi,
   type ReorderPoint,
@@ -80,6 +81,20 @@ export function ReorderPointCard({
       });
       if (alive.current) setProposal(value);
     });
+  // A review the person walks away from is withdrawn, so no decision waits
+  // for anyone; the server refuses to withdraw one that was confirmed.
+  const withdraw = async () => {
+    if (proposal && !done) await api.rejectProposal(tenant, proposal.id, null);
+  };
+  const edit = () =>
+    run(async () => {
+      await withdraw();
+      if (alive.current) setProposal(null);
+    });
+  const leave = () => {
+    void withdraw().catch(() => undefined);
+    close();
+  };
   const confirm = () =>
     run(async () => {
       if (!proposal) return;
@@ -105,7 +120,7 @@ export function ReorderPointCard({
       aria-labelledby="reorder-point-title"
       onCancel={(e) => {
         if (busy) e.preventDefault();
-        else close();
+        else leave();
       }}
       className="m-auto max-h-[90vh] w-[min(560px,94vw)] overflow-auto rounded-xl border border-border-default bg-surface p-6 text-fg-default backdrop:bg-black/30"
       data-reorder-point-card
@@ -114,7 +129,7 @@ export function ReorderPointCard({
         <h2 id="reorder-point-title" className="text-xl font-semibold text-fg-strong">
           {t(title)}
         </h2>
-        <button className="br-btn" disabled={busy} onClick={close}>
+        <button className="br-btn" disabled={busy} onClick={leave}>
           {t("Close")}
         </button>
       </header>
@@ -149,11 +164,13 @@ export function ReorderPointCard({
                 onChange={(e) => setLocation(e.target.value)}
               >
                 <option value="">{t("Choose a location")}</option>
-                {(locations.data?.items || []).map((row) => (
-                  <option key={row.id} value={row.id}>
-                    {String(row.name)}
-                  </option>
-                ))}
+                {(locations.data?.items || [])
+                  .filter((row) => row.allows_stock !== false)
+                  .map((row) => (
+                    <option key={row.id} value={row.id}>
+                      {String(row.name)}
+                    </option>
+                  ))}
               </select>
               {locations.loading && <ReadLine />}
             </label>
@@ -204,7 +221,7 @@ export function ReorderPointCard({
             </div>
           ) : (
             <div className="flex justify-end gap-2">
-              <button className="br-btn" disabled={busy} onClick={() => setProposal(null)}>
+              <button className="br-btn" disabled={busy} onClick={edit}>
                 {t("Edit")}
               </button>
               <button className="br-btn br-btn-primary" disabled={busy} onClick={confirm}>

@@ -246,3 +246,18 @@ def test_another_company_sees_and_changes_nothing(session, business):
     with pytest.raises(core.NotFound):
         remove_reorder_point(session, other.id, business.item.id, business.location.id)
     assert len(reorder_points(session, tenant)) == 1
+
+
+def test_a_value_the_column_would_round_or_cannot_hold_is_refused(session, business):
+    tenant = business.tenant.id
+    for point, quantity in (("1.23456", "48"), ("20", "0.00001"), ("1e15", "48")):
+        with pytest.raises(core.InvalidOperation) as error:
+            set_reorder_point(
+                session, tenant, business.item.id, business.location.id, point, quantity
+            )
+        assert error.value.code == "reorder_point_values_invalid"
+    # Positive control: four places are kept exactly as stated.
+    point = set_reorder_point(
+        session, tenant, business.item.id, business.location.id, "1.2345", "48"
+    )
+    assert point.reorder_point == Decimal("1.2345")

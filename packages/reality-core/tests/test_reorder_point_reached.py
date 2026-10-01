@@ -432,3 +432,165 @@ def test_the_stored_inbox_follows_a_purchase_and_a_price_list(session, business)
     _order(session, business, "purchase", "PO-STORED", "48")
     projections.refresh_operational_projections(session, tenant)
     assert stored() == []
+
+
+# --- review round (T016) ---------------------------------------------------------------
+
+
+def test_a_point_that_no_longer_qualifies_proposes_nothing(session, business):
+    """An item made inactive or a service, or a place without stock, is not judged."""
+    from reality.db.core import Item, Location
+    from reality.services import projections
+    from reality.services.attention_reads import stored_exceptions
+
+    tenant = business.tenant.id
+    _point(session, business)
+    projections.refresh_operational_projections(session, tenant, force=True)
+    key = (business.item.id, business.location.id)
+    # Positive control: the qualifying point is reported, live and stored.
+    assert key in _reached(session, tenant)
+
+    core.set_master_data_active(session, tenant, Item, business.item.id, False)
+    assert _reached(session, tenant) == {}
+    # The deactivation is a change the stored inbox follows.
+    projections.refresh_operational_projections(session, tenant)
+    rows, _ = stored_exceptions(session, tenant)
+    assert not [row for row in rows if row["class_id"] == "reorder_point_reached"]
+
+    core.set_master_data_active(session, tenant, Item, business.item.id, True)
+    assert key in _reached(session, tenant)
+    core.set_master_data_active(session, tenant, Location, business.location.id, False)
+    assert _reached(session, tenant) == {}
+    core.set_master_data_active(session, tenant, Location, business.location.id, True)
+    business.location.allows_stock = False
+    session.commit()
+    assert _reached(session, tenant) == {}
+    business.location.allows_stock = True
+    business.item.item_type = "service"
+    session.commit()
+    assert _reached(session, tenant) == {}
+
+
+def test_an_inactive_supplier_is_not_named(session, business):
+    from reality.db.core import Party
+
+    tenant = business.tenant.id
+    _point(session, business)
+    _purchase_list(session, business, business.supplier)
+    key = (business.item.id, business.location.id)
+    assert _reached(session, tenant)[key].causal_values["supplier_choice"] == "single"
+
+    core.set_master_data_active(session, tenant, Party, business.supplier.id, False)
+    assert _reached(session, tenant)[key].causal_values["supplier_choice"] == "none"
+
+
+def test_the_supplier_own_list_is_priced_before_its_group_list(session, business):
+    """The price rule tries a supplier's own lists first; so does the currency asked."""
+    tenant = business.tenant.id
+    _point(session, business)
+    own = core.create_price_list(session, tenant, "OWN", "Own", "purchase", "EUR")
+    core.create_price_list_entry(
+        session, tenant, own.id, business.item.id, "1", "4.50", "pcs"
+    )
+    core.assign_party_price_list(
+        session, tenant, business.supplier.id, own.id, priority=5
+    )
+    shared = core.create_price_list(session, tenant, "GRP", "Group", "purchase", "USD")
+    core.create_price_list_entry(
+        session, tenant, shared.id, business.item.id, "1", "3.90", "pcs"
+    )
+    group = core.create_party_group(session, tenant, "SUP", "Suppliers")
+    core.add_party_group_member(session, tenant, group.id, business.supplier.id)
+    core.assign_group_price_list(session, tenant, group.id, shared.id, priority=1)
+
+    row = _reached(session, tenant)[(business.item.id, business.location.id)]
+    assert (row.causal_values["currency"], row.causal_values["unit_price"]) == (
+        "EUR",
+        Decimal("4.5000"),
+    )
+
+
+def test_a_purchase_the_item_cannot_convert_is_named_not_dropped(session, business):
+    tenant = business.tenant.id
+    _stock(session, business, "12")
+    _point(session, business, point="20")
+    document, lines = core.create_manual_document_with_lines(
+        session,
+        tenant,
+        "purchase_order",
+        "PO-PALLET",
+        business.supplier.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "1",
+                "unit": "pallet",
+                "unit_price": "500",
+                "gross_amount": "500",
+            }
+        ],
+        "500",
+    )
+    core.create_commitment(
+        session,
+        tenant,
+        "supplier_delivery",
+        business.supplier.id,
+        business.company.id,
+        business.item.id,
+        business.location.id,
+        "1",
+        None,
+        document_id=document.id,
+        document_line_id=lines[0].id,
+    )
+    row = _reached(session, tenant)[(business.item.id, business.location.id)]
+    assert row.causal_values["incoming_quantity"] == Decimal(0)
+    assert row.causal_values["incoming_not_comparable"] == 1
+
+
+def test_each_priced_entry_costs_the_same_fixed_price_lookup(session, business):
+    """One supplier per item is priced by the shared rule: a fixed cost per entry.
+
+    The rule reads each list assigned to the supplier, so the cost per entry is
+    that of one supplier's lists; here the supplier has the usual one list.
+    """
+    from reality.services.exceptions import _reorder_point_reached_exceptions
+
+    tenant = business.tenant.id
+    price_list = core.create_price_list(session, tenant, "PL-P", "P", "purchase", "EUR")
+    core.assign_party_price_list(session, tenant, business.supplier.id, price_list.id)
+    made = 0
+
+    def statements(points):
+        nonlocal made
+        for _ in range(points - made):
+            item = core.create_item(session, tenant, f"SKU-P-{made}", "P")
+            _stock(session, business, "1", item=item)
+            _point(session, business, point="5", quantity="10", item=item)
+            core.create_price_list_entry(
+                session, tenant, price_list.id, item.id, "1", "1", "pcs"
+            )
+            made += 1
+        count = 0
+
+        def counter(*_):
+            nonlocal count
+            count += 1
+
+        engine = session.get_bind()
+        event.listen(engine, "before_cursor_execute", counter)
+        try:
+            found = _reorder_point_reached_exceptions(session, tenant, core.now())
+        finally:
+            event.remove(engine, "before_cursor_execute", counter)
+        assert all(row.causal_values["supplier_choice"] == "single" for row in found)
+        assert len(found) == points
+        return count
+
+    two, three, twenty = statements(2), statements(3), statements(20)
+    per_entry = three - two
+    # Linear in the priced entries and nothing more; the grouped reads stay fixed.
+    assert twenty - two == 18 * per_entry
+    # resolve_price: party, item, own links, group links, defaults, list, entries.
+    assert per_entry == 7

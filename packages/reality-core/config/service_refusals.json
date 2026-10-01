@@ -1601,7 +1601,7 @@
       "message": "This item has no reorder point at this location."
     },
     "reorder_point_values_invalid": {
-      "message": "Enter a reorder point of zero or more and a reorder quantity above zero."
+      "message": "Enter a reorder point of zero or more and a reorder quantity above zero, each with at most four decimal places."
     },
     "reservation_commitment_not_reservable": {
       "message": "Only open customer delivery commitments can be reserved."

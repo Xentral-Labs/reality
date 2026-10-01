@@ -30,6 +30,7 @@ from reality.services.core import (
 )
 
 ZERO = Decimal(0)
+LIMIT = Decimal(10) ** 14
 # A review that saw no point, distinct from a call that checks nothing.
 UNCHECKED: Any = object()
 
@@ -133,9 +134,18 @@ def validate_reorder_point(
         point, quantity = decimal(reorder_point), decimal(reorder_quantity)
     except (ArithmeticError, ValueError, InvalidOperation) as error:
         raise InvalidOperation(code="reorder_point_values_invalid") from error
-    if point < ZERO or quantity <= ZERO:
+    if point < ZERO or quantity <= ZERO or not all(map(_storable, (point, quantity))):
         raise InvalidOperation(code="reorder_point_values_invalid")
     return item, location, point, quantity
+
+
+def _storable(value: Decimal) -> bool:
+    """Whether the column keeps the value exactly as stated: four places, 18 digits.
+
+    A fifth decimal would be rounded on the way in, and the record would then
+    disagree with the review and the event that stated it.
+    """
+    return value < LIMIT and value.normalize().as_tuple().exponent >= -4
 
 
 def _check_expected(point: ItemReorderPoint | None, expected: Any) -> None:

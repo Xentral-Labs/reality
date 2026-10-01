@@ -24608,8 +24608,8 @@ Object.assign(dictionaries.de, {
     "Ein Meldebestand braucht einen aktiven Lagerort, der Bestand führt.",
   "This item has no reorder point at this location.":
     "Dieser Artikel hat an diesem Lagerort keinen Meldebestand.",
-  "Enter a reorder point of zero or more and a reorder quantity above zero.":
-    "Gib einen Meldebestand von null oder mehr und eine Bestellmenge über null an.",
+  "Enter a reorder point of zero or more and a reorder quantity above zero, each with at most four decimal places.":
+    "Gib einen Meldebestand von null oder mehr und eine Bestellmenge über null an, jeweils mit höchstens vier Nachkommastellen.",
   "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
     "Diese Bestellung wurde erfasst, bevor Einkäufe in der Lagereinheit geführt wurden; buche den Wareneingang in der Einheit ihrer Bestellzeile.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
@@ -24692,8 +24692,8 @@ Object.assign(dictionaries.nl, {
     "Een bestelpunt heeft een actieve locatie met voorraad nodig.",
   "This item has no reorder point at this location.":
     "Dit artikel heeft op deze locatie geen bestelpunt.",
-  "Enter a reorder point of zero or more and a reorder quantity above zero.":
-    "Geef een bestelpunt van nul of meer en een bestelhoeveelheid boven nul op.",
+  "Enter a reorder point of zero or more and a reorder quantity above zero, each with at most four decimal places.":
+    "Geef een bestelpunt van nul of meer en een bestelhoeveelheid boven nul op, elk met hoogstens vier decimalen.",
   "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
     "Deze bestelling is vastgelegd voordat inkopen in de voorraadeenheid werden bijgehouden; boek de ontvangst in de eenheid van de orderregel.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
@@ -24775,8 +24775,8 @@ Object.assign(dictionaries.es, {
     "Un punto de pedido necesita una ubicación activa que tenga stock.",
   "This item has no reorder point at this location.":
     "Este artículo no tiene punto de pedido en esta ubicación.",
-  "Enter a reorder point of zero or more and a reorder quantity above zero.":
-    "Indica un punto de pedido de cero o más y una cantidad de pedido mayor que cero.",
+  "Enter a reorder point of zero or more and a reorder quantity above zero, each with at most four decimal places.":
+    "Indica un punto de pedido de cero o más y una cantidad de pedido mayor que cero, cada uno con cuatro decimales como máximo.",
   "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
     "Este pedido se registró antes de que las compras se llevaran en la unidad de stock; registra la recepción en la unidad de su línea de pedido.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":

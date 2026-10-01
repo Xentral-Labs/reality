@@ -32,7 +32,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/re
 
 **Project Type**: New typed setting, one derived class, adapters
 
-**Performance Goals**: The class reads every reorder point and its stock, reservations, incoming and price candidates in grouped queries. The statement count does not grow with the number of points, and a test pins this bound. The one exception is the shared price rule: `resolve_price` runs once for each reported entry with exactly one supplier, rather than re-implementing the rule here.
+**Performance Goals**: The class reads every reorder point and its stock, reservations, incoming and price candidates in grouped queries. The statement count does not grow with the number of points, and a test pins this bound. The one exception is the shared price rule: `resolve_price` runs once for each reported entry with exactly one supplier, rather than re-implementing the rule here. That costs seven statements per priced entry for a supplier with one price list, more for a supplier with several lists. A test pins the cost.
 
 **Constraints**:
 - derived at read time;
