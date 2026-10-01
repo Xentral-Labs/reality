@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -167,12 +168,39 @@ def _blocker_links(code: str, result: FulfillmentReadiness) -> list[dict[str, st
     return [{"kind": "commitment", "id": result.commitment_id}]
 
 
+def stock_cover(
+    own_location_id: str | None,
+    reserved_by_location: dict[str, Decimal],
+    physical_at: Callable[[str], Decimal],
+) -> tuple[Decimal, Decimal]:
+    """What stock stands behind a promise, and how much of it is ready (spec 303).
+
+    The promise's own location counts with all it holds, as it always has; a
+    reservation at another location counts only with what that location still
+    holds of it. The second figure is what could ship now: at every location,
+    the reserved quantity that is physically there. With every reservation at
+    home both are what they were before: the own location's stock, and the
+    smaller of reserved and stock.
+    """
+    own = physical_at(own_location_id) if own_location_id else ZERO
+    basis = own
+    ready = min(reserved_by_location.get(own_location_id or "", ZERO), own)
+    for location_id, reserved in reserved_by_location.items():
+        if location_id == own_location_id:
+            continue
+        here = min(reserved, physical_at(location_id))
+        basis += here
+        ready += here
+    return basis, ready
+
+
 def fulfillment_readiness(
     session: Session,
     tenant_id: str,
     commitment_id: str,
     *,
     proposed_quantity: Decimal | None = None,
+    from_location_id: str | None = None,
 ) -> FulfillmentReadiness:
     """Derive payment readiness for one customer-delivery commitment.
 
@@ -201,21 +229,37 @@ def fulfillment_readiness(
         checked_quantity <= ZERO or checked_quantity > open_quantity
     ):
         raise InvalidOperation(code="fulfillment_shipment_quantity_invalid")
-    reserved_quantity = Decimal(
-        session.scalar(
-            select(func.coalesce(func.sum(Reservation.quantity), 0)).where(
+    reserved_by_location = {
+        location_id: Decimal(quantity)
+        for location_id, quantity in session.execute(
+            select(Reservation.location_id, func.sum(Reservation.quantity))
+            .where(
                 Reservation.tenant_id == tenant_id,
                 Reservation.commitment_id == commitment.id,
                 Reservation.status == "active",
             )
+            .group_by(Reservation.location_id)
         )
-        or ZERO
-    )
-    physical_quantity = (
-        stock_at(session, tenant_id, commitment.item_id, commitment.location_id)
-        if commitment.item_id
-        else ZERO
-    )
+    }
+
+    def physical_at(location_id: str) -> Decimal:
+        return (
+            stock_at(session, tenant_id, commitment.item_id, location_id)
+            if commitment.item_id
+            else ZERO
+        )
+
+    if from_location_id:
+        # A shipment leaves from one place, and only what is reserved and on
+        # hand there can go with it (spec 303).
+        reserved_quantity = reserved_by_location.get(from_location_id, ZERO)
+        physical_quantity = physical_at(from_location_id)
+        ready_quantity = min(reserved_quantity, physical_quantity)
+    else:
+        reserved_quantity = sum(reserved_by_location.values(), ZERO)
+        physical_quantity, ready_quantity = stock_cover(
+            commitment.location_id, reserved_by_location, physical_at
+        )
     commitment_hold_ids = tuple(
         session.scalars(
             select(CommitmentHold.id)
@@ -240,7 +284,9 @@ def fulfillment_readiness(
         operational_blockers.append("party_delivery_hold")
     if reserved_quantity < checked_quantity:
         operational_blockers.append("insufficient_reservation")
-    if physical_quantity < checked_quantity:
+    if physical_quantity < checked_quantity or (
+        reserved_quantity >= checked_quantity > ready_quantity
+    ):
         operational_blockers.append("insufficient_stock")
     if not commitment.document_id:
         return FulfillmentReadiness(

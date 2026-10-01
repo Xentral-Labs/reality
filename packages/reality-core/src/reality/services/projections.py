@@ -526,7 +526,10 @@ def _open_work_rows(
     customer promise; a narrowed refresh hands it the promises of the orders that
     changed (FR-002). Neither reads a company's finished history (FR-003).
     """
-    from reality.services.fulfillment_readiness import fulfillment_readiness
+    from reality.services.fulfillment_readiness import (
+        fulfillment_readiness,
+        stock_cover,
+    )
 
     document_ids = {row.document_id for row in commitments} - {None}
     documents = (
@@ -591,7 +594,25 @@ def _open_work_rows(
         else {}
     )
     item_ids = {row.item_id for row in commitments} - {None}
-    location_ids = {row.location_id for row in commitments} - {None}
+    # Spec 303: a reservation at another location counts with that location's
+    # stock, so the stock read covers every location a reservation holds.
+    reservation_rows = (
+        list(
+            session.scalars(
+                select(Reservation).where(
+                    Reservation.tenant_id == tenant_id,
+                    Reservation.status == "active",
+                    Reservation.commitment_id.in_([row.id for row in commitments]),
+                )
+            )
+        )
+        if commitments
+        else []
+    )
+    location_ids = (
+        {row.location_id for row in commitments}
+        | {row.location_id for row in reservation_rows}
+    ) - {None}
     physical_by_item_location: dict[tuple[str, str], Decimal] = defaultdict(Decimal)
     if item_ids and location_ids:
         for item_id, from_location_id, to_location_id, quantity in session.execute(
@@ -638,17 +659,17 @@ def _open_work_rows(
     )
     commitment_ids = [row.id for row in commitments]
     active_reservations: dict[str, Decimal] = defaultdict(Decimal)
+    reserved_by_location: dict[str, dict[str, Decimal]] = defaultdict(
+        lambda: defaultdict(Decimal)
+    )
     commitment_holds: dict[str, Any] = {}
     party_holds: dict[str, Any] = {}
     if commitment_ids:
-        for reservation in session.scalars(
-            select(Reservation).where(
-                Reservation.tenant_id == tenant_id,
-                Reservation.status == "active",
-                Reservation.commitment_id.in_(commitment_ids),
-            )
-        ):
+        for reservation in reservation_rows:
             active_reservations[reservation.commitment_id] += reservation.quantity
+            reserved_by_location[reservation.commitment_id][
+                reservation.location_id
+            ] += reservation.quantity
         commitment_holds = {
             hold.commitment_id: hold
             for hold in session.scalars(
@@ -695,10 +716,14 @@ def _open_work_rows(
             reasons = _open_delivery_reasons(
                 commitment, shortage, commitment_holds, party_holds
             )
-            physical = physical_by_item_location[
-                (commitment.item_id, commitment.location_id or "")
-            ]
-            if physical < open_value:
+            physical, ready = stock_cover(
+                commitment.location_id,
+                reserved_by_location[commitment.id],
+                lambda location, item=commitment.item_id: physical_by_item_location[
+                    (item, location)
+                ],
+            )
+            if physical < open_value or reserved >= open_value > ready:
                 reasons.append(("insufficient_stock", "physical stock is insufficient"))
             payment_readiness = (
                 fulfillment_readiness(session, tenant_id, commitment.id)
@@ -724,7 +749,7 @@ def _open_work_rows(
                 )
             if shortage > 0:
                 uncovered_by_item[commitment.item_id] += shortage
-            shippable = min(open_value, reserved, physical)
+            shippable = min(open_value, ready)
             if any(
                 reason not in {"insufficient_reservation", "insufficient_stock"}
                 for reason, _detail in reasons

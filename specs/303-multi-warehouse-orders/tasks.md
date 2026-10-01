@@ -23,14 +23,15 @@
 
 ## Phase 3: Readiness and shipping per location (FR-002, D02)
 
-- [ ] T006 Failing tests:
+- [x] T006 Failing tests:
   - 6 reserved at home and 4 in Munich make 10 ready;
   - 4 in Munich with Munich's stock moved away counts only what is there;
   - the queue agrees with the readiness read;
   - shipping 6 from home and 4 from Munich in two packaged dispatches consumes each warehouse's reservations and fulfils the promise;
   - shipping from a warehouse where nothing is reserved for the promise is refused;
   - every existing readiness, queue and shipment test stays green.
-- [ ] T007 The shared per-location readiness rule in `fulfillment_readiness`, the queue and blockers projection, the packaged dispatch gate and the shipment preview.
+- [x] T007 The shared per-location readiness rule in `fulfillment_readiness`, the queue and blockers projection, the packaged dispatch gate and the shipment preview.
+  - `stock_cover` is the one rule. A plain movement shipment, which never checked reservations, is unchanged; that is recorded as a limitation.
 
 ## Phase 4: Stock in another warehouse (FR-003)
 

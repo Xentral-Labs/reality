@@ -298,6 +298,7 @@ def record_packaged_execution(
                 tenant_id,
                 commitment_id,
                 proposed_quantity=proposed_quantity,
+                from_location_id=movement_arguments.get("from_location_id"),
             )
             if not readiness.ship_ready:
                 raise InvalidOperation(

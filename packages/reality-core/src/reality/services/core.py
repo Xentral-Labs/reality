@@ -3970,9 +3970,7 @@ def _preview_reservation(
     aggregate_available = max(
         ZERO,
         stock_at(session, tenant_id, commitment.item_id, reserved_at)
-        - active_reserved(
-            session, tenant_id, commitment.item_id, reserved_at
-        ),
+        - active_reserved(session, tenant_id, commitment.item_id, reserved_at),
     )
     if handling_unit_id or lot_id or serial_unit_id:
         identity_available = max(

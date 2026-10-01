@@ -240,3 +240,178 @@ def test_the_review_refuses_a_location_that_cannot_serve(session, business):
             request_id="r303-transit",
         )
     assert refused.value.code == "reservation_location_not_stock"
+
+
+# --- T006: readiness and shipping per location -----------------------------------------
+
+
+def _split(session, business):
+    """6 at home and 4 in Munich reserved for one promise of 10."""
+    tenant = business.tenant.id
+    munich = _munich(session, business)
+    _stock(session, business, "6", business.location)
+    _stock(session, business, "40", munich)
+    promise = _promise(session, business, "10")
+    core.reserve(session, tenant, promise.id)
+    core.reserve(session, tenant, promise.id, location_id=munich.id)
+    return munich, promise
+
+
+def _readiness(session, business, promise, **kwargs):
+    from reality.services.fulfillment_readiness import fulfillment_readiness
+
+    return fulfillment_readiness(session, business.tenant.id, promise.id, **kwargs)
+
+
+def _queue_line(session, business, promise):
+    from reality.services import projections
+
+    projections.refresh_operational_projections(session, business.tenant.id, force=True)
+    rows = projections.projection_rows(
+        session, business.tenant.id, projections.FULFILLMENT_QUEUE
+    )
+    return next(
+        line
+        for row in rows
+        for line in row["lines"]
+        if line["commitment_id"] == promise.id
+    )
+
+
+def test_reservations_in_two_warehouses_make_the_promise_ready(session, business):
+    _, promise = _split(session, business)
+
+    readiness = _readiness(session, business, promise)
+    assert readiness.ship_ready, readiness.blocker_codes
+    assert (readiness.reserved_quantity, readiness.physical_quantity) == (
+        Decimal("10"),
+        Decimal("10"),
+    )
+    line = _queue_line(session, business, promise)
+    assert Decimal(line["shippable_quantity"]) == 10
+    assert "insufficient_stock" not in line["blocking_reasons"]
+
+
+def test_a_reservation_counts_only_with_what_its_warehouse_still_holds(
+    session, business
+):
+    tenant = business.tenant.id
+    munich, promise = _split(session, business)
+    # Munich's stock is moved away; its reservation is no longer covered.
+    core.record_movement(
+        session,
+        tenant,
+        "adjustment",
+        business.item.id,
+        "38",
+        from_location_id=munich.id,
+        reason="count",
+    )
+
+    readiness = _readiness(session, business, promise)
+    assert not readiness.ship_ready
+    assert "insufficient_stock" in readiness.blocker_codes
+    assert Decimal(_queue_line(session, business, promise)["shippable_quantity"]) == 8
+
+
+def test_without_reservations_elsewhere_readiness_is_unchanged(session, business):
+    tenant = business.tenant.id
+    munich = _munich(session, business)
+    _stock(session, business, "40", munich)
+    promise = _promise(session, business, "10")
+
+    # Munich's stock alone never made a promise at home ready.
+    assert set(_readiness(session, business, promise).blocker_codes) == {
+        "insufficient_reservation",
+        "insufficient_stock",
+    }
+    # Stock at home and no reservation: only the reservation is missing, as before.
+    _stock(session, business, "10", business.location)
+    readiness = _readiness(session, business, promise)
+    assert readiness.blocker_codes == ("insufficient_reservation",)
+    core.reserve(session, tenant, promise.id)
+    assert _readiness(session, business, promise).ship_ready
+
+
+def _dispatch(session, business, movements, tracking):
+    from reality.tools.application import create_change_proposal
+
+    proposal = create_change_proposal(
+        session,
+        business.tenant.id,
+        "shipment_dispatch",
+        {
+            "purpose": "customer_delivery",
+            "counterparty_id": business.customer.id,
+            "carrier": "DHL",
+            "tracking_number": tracking,
+            "movements": movements,
+        },
+    )
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    return approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, review_token=token, confirmed=True
+    )
+
+
+def _movement(business, promise, location, quantity):
+    return {
+        "commitment_id": promise.id,
+        "item_id": business.item.id,
+        "from_location_id": location.id,
+        "quantity": quantity,
+    }
+
+
+def test_each_warehouse_ships_its_part_as_its_own_package(session, business):
+    tenant = business.tenant.id
+    munich, promise = _split(session, business)
+
+    first = _dispatch(
+        session, business, [_movement(business, promise, business.location, "6")], "T1"
+    )
+    second = _dispatch(
+        session, business, [_movement(business, promise, munich, "4")], "T2"
+    )
+
+    assert (first.status, second.status) == ("executed", "executed")
+    assert core.open_quantity(session, tenant, promise.id) == 0
+    assert _reservations(session, business, promise) == sorted(
+        [
+            (business.location.id, Decimal("6.0000"), "consumed"),
+            (munich.id, Decimal("4.0000"), "consumed"),
+        ]
+    )
+    assert core.stock_at(session, tenant, business.item.id, munich.id) == 36
+
+
+def test_a_warehouse_ships_only_what_is_reserved_there(session, business):
+    munich, promise = _split(session, business)
+    # Home holds enough on its shelves; what it lacks is the reservation.
+    _stock(session, business, "14", business.location)
+
+    # Ten from home would take Munich's four from stock nobody reserved there.
+    with pytest.raises(core.InvalidOperation) as refused:
+        _dispatch(
+            session,
+            business,
+            [_movement(business, promise, business.location, "10")],
+            "T-ALL",
+        )
+    assert refused.value.code == "shipment_blocked_readiness"
+    # Munich reserved four; five cannot leave from there.
+    with pytest.raises(core.InvalidOperation) as refused:
+        _dispatch(
+            session, business, [_movement(business, promise, munich, "5")], "T-MUC"
+        )
+    assert refused.value.code == "shipment_blocked_readiness"
+    # Positive control: what is reserved at home ships from home.
+    assert (
+        _dispatch(
+            session,
+            business,
+            [_movement(business, promise, business.location, "6")],
+            "T-HOME",
+        ).status
+        == "executed"
+    )
