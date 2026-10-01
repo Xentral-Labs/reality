@@ -161,6 +161,8 @@ await page.route("**/api/**", async (route) => {
       page: pager(proposals.size),
     });
   if (path.includes("/suggestions/")) return reply({ items: [], allow_custom: true });
+  // Spec 302: an item's reorder points, none stated in this fixture.
+  if (path.endsWith("/reorder-points")) return reply({ rows: [] });
   return reply({ detail: "Fixture endpoint unavailable" }, 404);
 });
 const base = process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177";
