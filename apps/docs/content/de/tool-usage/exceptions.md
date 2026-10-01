@@ -55,6 +55,7 @@ was sie auflöst und welche Agenten-Tools sie auflisten und erklären.
 | [`billed_not_shipped`](#exception-billed_not_shipped)                                     | Invoiced and not shipped                 | Finanzen                | `normal` | Billing, with order fulfilment when the goods are late                                      |
 | [`item_oversold`](#exception-item_oversold)                                               | Item oversold                            | Bereichsübergreifend    | `high`   | Order fulfilment, with purchasing for the supply                                            |
 | [`reorder_point_reached`](#exception-reorder_point_reached)                               | Reorder point reached                    | Aufträge & Erfüllung    | `normal` | Purchasing                                                                                  |
+| [`stock_in_another_location`](#exception-stock_in_another_location)                       | Stock in another warehouse               | Lager & Logistik        | `normal` | Warehouse                                                                                   |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1413,3 +1414,33 @@ whatever customers have ordered.
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
 [`exception_explain`](./commands#tool-exception_explain)
+
+## `stock_in_another_location` — Stock in another warehouse {#exception-stock_in_another_location}
+
+An open customer promise whose own warehouse cannot cover what is still unreserved, while another
+warehouse has stock available. Reality takes the open quantity not reserved anywhere, compares it
+with what the promise's warehouse holds less what is reserved there, and when that falls short looks
+at every other active location that holds stock. The entry names those warehouses with their
+available quantity, most first, and what each could cover of the gap. It allocates nothing: two
+promises may be shown the same stock, and the warehouse lead decides by reserving the rest there,
+which ships it from that warehouse as its own package, or by transferring the stock to the order's
+warehouse. Both are reviewed actions. A promise or customer on hold is left out, and so is a promise
+held in a unit other than the item's stock unit, which Units not comparable names. Customer
+commitment at risk is the promise's view of its missing reservation; this is where the stock for it
+is.
+
+- **Verantwortlich:** Warehouse
+- **Aufgelöst durch:** Reserving the rest at another warehouse, transferring the stock to the
+  order's warehouse, receiving it there, or the promise being reserved, shipped or cancelled.
+- **Schwere:** `normal`
+- **Datensatztyp:** `commitment`
+- **Spezifikation:** `303/FR-003`
+- **Nachweis:**
+  `tests/test_stock_in_another_location.py::test_stock_elsewhere_is_named_when_home_cannot_cover_the_rest`,
+  `tests/test_stock_in_another_location.py::test_reserving_there_through_the_review_clears_it`,
+  `tests/test_stock_in_another_location.py::test_a_transfer_through_the_review_clears_it`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain), Sicht
+[`commitments`](./views#view-commitments)

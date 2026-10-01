@@ -24634,6 +24634,9 @@ Object.assign(dictionaries.de, {
     "Sinkt der verfügbare Bestand plus Zulauf am Lagerort auf den Meldebestand, schlägt Ausnahmen die Bestellmenge vor. Ohne deine Bestätigung wird nichts bestellt.",
   "A reservation needs an active location that holds stock.":
     "Eine Reservierung braucht einen aktiven Lagerort, der Bestand führt.",
+  "Stock in another warehouse": "Bestand in anderem Lager",
+  "Reserving the rest at another warehouse, transferring the stock to the order's warehouse, receiving it there, or the promise being reserved, shipped or cancelled.":
+    "Den Rest in einem anderen Lager reservieren, den Bestand ins Auftragslager umlagern, ihn dort einbuchen, oder die Zusage wird reserviert, versendet oder storniert.",
   "Reorder point reached": "Meldebestand erreicht",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
@@ -24719,6 +24722,9 @@ Object.assign(dictionaries.nl, {
     "Als de beschikbare plus inkomende voorraad op de locatie tot het bestelpunt daalt, stelt Uitzonderingen de bestelhoeveelheid voor. Zonder jouw bevestiging wordt niets besteld.",
   "A reservation needs an active location that holds stock.":
     "Een reservering heeft een actieve locatie met voorraad nodig.",
+  "Stock in another warehouse": "Voorraad in een ander magazijn",
+  "Reserving the rest at another warehouse, transferring the stock to the order's warehouse, receiving it there, or the promise being reserved, shipped or cancelled.":
+    "Het restant in een ander magazijn reserveren, de voorraad naar het magazijn van de order verplaatsen, daar ontvangen, of de toezegging wordt gereserveerd, verzonden of geannuleerd.",
   "Reorder point reached": "Bestelpunt bereikt",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
@@ -24805,6 +24811,9 @@ Object.assign(dictionaries.es, {
     "Cuando el stock disponible más el entrante en la ubicación baja al punto de pedido, Incidencias propone la cantidad de pedido. Nada se pide sin tu confirmación.",
   "A reservation needs an active location that holds stock.":
     "Una reserva necesita una ubicación activa que tenga stock.",
+  "Stock in another warehouse": "Stock en otro almacén",
+  "Reserving the rest at another warehouse, transferring the stock to the order's warehouse, receiving it there, or the promise being reserved, shipped or cancelled.":
+    "Reservar el resto en otro almacén, trasladar el stock al almacén del pedido, recibirlo allí, o que el compromiso se reserve, se envíe o se cancele.",
   "Reorder point reached": "Punto de pedido alcanzado",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",

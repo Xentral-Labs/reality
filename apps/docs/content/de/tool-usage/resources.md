@@ -10,7 +10,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 8        | 2         |
-| [Artikel](#resource-item)                                      | 5      | 6        | 5         |
+| [Artikel](#resource-item)                                      | 5      | 6        | 6         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
 | [Auftrag](#resource-order)                                     | 8      | 14       | 12        |
@@ -150,6 +150,8 @@ hier.
   (`missing_acquisition_cost`)
 - [Artikel überverkauft](./exceptions#exception-item_oversold) (`item_oversold`)
 - [Meldebestand erreicht](./exceptions#exception-reorder_point_reached) (`reorder_point_reached`)
+- [Bestand in anderem Lager](./exceptions#exception-stock_in_another_location)
+  (`stock_in_another_location`)
 
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Stammdaten und Quellen](./processes#process-master_data)

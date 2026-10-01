@@ -133,6 +133,7 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "billed_not_shipped",
     "item_oversold",
     "reorder_point_reached",
+    "stock_in_another_location",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays

@@ -35,7 +35,7 @@
 
 ## Phase 4: Stock in another warehouse (FR-003)
 
-- [ ] T008 Failing tests in `core/tests/test_stock_in_another_location.py`:
+- [x] T008 Failing tests in `core/tests/test_stock_in_another_location.py`:
   - reported when the own location cannot cover the rest and others can, with locations most-available first;
   - not reported when home covers it, when nothing elsewhere is available, when fully reserved, or when held, cancelled or shipped (each with a positive control);
   - inactive and non-stock locations are ignored;
@@ -43,7 +43,7 @@
   - a reviewed transfer clears it;
   - the statement count does not grow with promises;
   - ids are unique, and tenants are isolated.
-- [ ] T009 The class with all its registrations, catalog entry, labels and translations.
+- [x] T009 The class with all its registrations, catalog entry, labels and translations.
 
 ## Phase 5: Adapters and Web (FR-004)
 

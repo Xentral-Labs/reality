@@ -10,7 +10,7 @@ the technical key stands beside each one.
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 8       | 2                   |
-| [Item](#resource-item)                                           | 5     | 6       | 5                   |
+| [Item](#resource-item)                                           | 5     | 6       | 6                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
 | [Order](#resource-order)                                         | 8     | 14      | 12                  |
@@ -144,6 +144,8 @@ derived from movements and reservations at read time, which is why the stock lis
   (`missing_acquisition_cost`)
 - [Item oversold](./exceptions#exception-item_oversold) (`item_oversold`)
 - [Reorder point reached](./exceptions#exception-reorder_point_reached) (`reorder_point_reached`)
+- [Stock in another warehouse](./exceptions#exception-stock_in_another_location)
+  (`stock_in_another_location`)
 
 **Appears in processes:** [Procure to pay](./processes#process-procure_to_pay),
 [Master data and sources](./processes#process-master_data)
