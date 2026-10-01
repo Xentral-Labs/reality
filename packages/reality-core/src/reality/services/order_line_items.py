@@ -187,6 +187,34 @@ def preview_item_assignment(
     }
 
 
+def _hold_like_its_order(session, tenant_id, order_id, commitment) -> None:
+    """An assigned line of an order held for credit is held too (spec 298).
+
+    Otherwise assigning the item would release part of the order past a
+    decision nobody has taken yet.
+    """
+    from reality.services.credit_exposure import (
+        active_credit_holds,
+        credit_exposure,
+        place_credit_holds,
+    )
+
+    siblings = list(
+        session.scalars(
+            select(Commitment.id).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.document_id == order_id,
+                Commitment.id != commitment.id,
+            )
+        )
+    )
+    if not active_credit_holds(session, tenant_id, siblings):
+        return
+    session.flush()
+    exposure = credit_exposure(session, tenant_id, commitment.to_party_id)
+    place_credit_holds(session, tenant_id, [commitment], exposure, core.ZERO)
+
+
 def assign_line_item(
     session: Session,
     tenant_id: str,
@@ -236,6 +264,7 @@ def assign_line_item(
             document_line_id=line.id,
             _commit=False,
         )
+        _hold_like_its_order(session, tenant_id, preview["order_id"], commitment)
         emit_business_event(
             session,
             tenant_id,

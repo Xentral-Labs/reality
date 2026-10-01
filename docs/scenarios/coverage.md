@@ -8,13 +8,13 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 107 covered, 44 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 110 covered, 41 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 14 | 2 |  | 8 |  |
 | B Availability and reservation | 5 | 7 |  | 6 |  |
-| C Payment and release | 11 | 3 |  | 4 |  |
+| C Payment and release | 13 | 1 |  | 4 |  |
 | D Shipment, split and merge | 4 | 3 |  | 12 |  |
 | E Customer invoice and credit | 9 | 3 |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
@@ -29,7 +29,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | O Master data and identity | 2 | 1 |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
 | Q Time and period | 1 | 2 |  | 2 |  |
-| R Combined stress stories |  | 6 |  | 2 |  |
+| R Combined stress stories | 1 | 5 |  | 2 |  |
 
 Strongest where an operational exception class exists (at-risk, reservation_exceeds_stock,
 shipped_not_billed, returned_not_credited, billed_not_received, duplicate supplier invoice) and in
@@ -168,8 +168,8 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | C04 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_one_payment_releases_two_prepaid_orders | One confirmed settlement payment of 200 is booked on the first prepayment invoice and allocated to the second; both invoices close and both orders become ship-ready. |
 | C05 | covered | tests/test_payment_intake.py::test_candidates_have_reasons_and_write_nothing; ::test_ambiguous_reference_produces_candidates_and_allocation_ends_them | Money is recorded unallocated, tier-3 candidates carry reasons and write nothing, and an explicit allocate_settlement ends them. |
 | C06 | covered | tests/scenarios/test_catalog_finance.py::test_payment_after_a_cancelled_prepayment_order_stays_credit_and_is_refunded | Payment after cancellation stays unallocated as customer credit (119) and is refunded through the confirmed settlement proposal. |
-| C07 | partial | tests/operational_exceptions/test_derivation.py::test_credit_limit_exceeded; tests/test_unified_customer_holds.py::test_review_place_release_history_and_replay | The exception and a reviewed hold/release (with actor) are each tested; nothing links the exception to a hold, and there is no automatic credit hold. |
-| C08 | partial | src/reality/services/exceptions.py::_credit_limit_exceeded_exceptions; tests/operational_exceptions/test_derivation.py::test_credit_exposure_uses_the_shared_open_items | Exposure comes from open invoices only (order value never counts) and names all open invoice ids, not the overdue ones; no test asserts the named items. |
+| C07 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_order_over_the_limit_is_held_and_released_by_an_owner | An order past the credit limit is held at entry with the facts; an owner releases it with a reason recorded with the person (spec 298). |
+| C08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_credit_hold_names_the_overdue_items_behind_it | The hold and the credit-limit finding name the overdue invoices apart from those not yet due, on an exposure that counts open orders and credits (spec 298). |
 | C09 | gap | specs/148-accounting-journal-cost-centers/spec.md FR-049/FR-050 (specified, not implemented) | No authorization or capture record; payment intake has only an unused `money_path` string. |
 | C10 | gap | specs/148-accounting-journal-cost-centers/trade-finance-controls.md | Authorizations are not modeled, so an expired authorization and the uncovered remainder cannot be shown. |
 | C11 | covered | tests/test_payment_terms.py::test_the_discount_deadline_is_one_shared_rule; tests/test_ledger.py::test_invoice_due_date_rule | Due date and discount date come from one shared rule in the aging register; the fixture is a supplier invoice, and sales invoices use the same rule. |
@@ -422,4 +422,4 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | R05 | partial | tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived, ::test_shrinking_to_what_arrived_finishes_the_promise | Revising after a partial fulfilment is proven on commitments; there's no EDI ORDCHG or advice source. |
 | R06 | partial | docs/features/receipt-costing.md (freight/duty categories; FX excluded); tests/test_cost_allocation_services.py::test_weighted_preview_and_confirmation_retain_exact_existing_parts; tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt | Freight/duty landed cost and customer assignment exist; USD rate conversion is out of the costing slice, and there's no combined container test. |
 | R07 | partial | tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock, ::test_reservation_exceeds_stock_impact, ::test_reservation_exceeds_stock_references_are_opaque | A stocktake loss surfaces the competing reservations (2, not 3), and by design no promise is named as postponed. |
-| R08 | partial | tests/operational_exceptions/test_derivation.py::test_credit_limit_exceeded; tests/test_unified_customer_holds.py::test_customer_hold_http_actor_and_practice | credit_limit_exceeded sums open invoices only; it ignores the new order, available credit and payables, and no hold reason combines them. |
+| R08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_customer_who_is_also_a_supplier_is_held_with_every_fact | Overdue receivable, ordered value and open credit make the exposure; the payable to the same party is named, not netted (spec 298). |

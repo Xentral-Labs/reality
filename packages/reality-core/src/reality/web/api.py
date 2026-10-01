@@ -1155,6 +1155,7 @@ class DeliveryActionPrepare(ApiModel):
         "return_disposition",
         "customer_exchange_record",
         "order_line_item_assign",
+        "credit_hold_release",
     ]
     arguments: dict[str, Any]
     session_id: str | None = None
@@ -5612,6 +5613,44 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
     }
 
 
+def _credit_exposure_section(session: OrmSession, tenant_id: str, party):
+    """Spec 298: what the company carries for a customer with a credit limit."""
+    from reality.services.credit_exposure import credit_exposure
+
+    if not party.credit_limit or party.credit_limit <= 0:
+        return []
+    exposure = credit_exposure(session, tenant_id, party.id)
+    currency = exposure["currency"]
+
+    def amount(label, value):
+        return inspector_row(label, value, presentation=money(value, currency))
+
+    rows = [
+        amount("Open invoices", exposure["open_invoices"]["amount"]),
+        amount("Open orders not yet invoiced", exposure["open_orders"]["amount"]),
+        amount("Available credits", exposure["available_credits"]["amount"]),
+        amount("Exposure", exposure["exposure"]),
+        amount("Credit limit", exposure["credit_limit"]),
+    ]
+    if exposure["over_limit"]:
+        rows.append(amount("Above the limit", exposure["excess"]))
+    rows += [
+        inspector_row(
+            "Overdue",
+            row["number"],
+            kind="document",
+            record_id=row["document_id"],
+            meta=f"{row['open']} {currency}",
+        )
+        for row in exposure["overdue_invoices"]["rows"]
+    ]
+    if exposure["payables"]["rows"]:
+        rows.append(
+            amount("Payables to this party, not netted", exposure["payables"]["amount"])
+        )
+    return [{"title": "Credit exposure", "rows": rows}]
+
+
 def party_inspector(session: OrmSession, tenant_id: str, record_id: str):
     detail = party_detail(session, tenant_id, record_id)
     party = detail["party"]
@@ -5661,6 +5700,7 @@ def party_inspector(session: OrmSession, tenant_id: str, record_id: str):
                     inspector_row("Tax identifier", party.tax_identifier),
                 ],
             },
+            *_credit_exposure_section(session, tenant_id, party),
             {
                 "title": "Commitments",
                 "rows": [
@@ -7578,6 +7618,21 @@ def get_dunning_run_context(
 
     try:
         return run_context(session, tenant_id, run_date=run_date, party_ids=party_ids)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/parties/{party_id}/credit-exposure")
+def tenant_party_credit_exposure(
+    tenant_id: str, party_id: str, session: DatabaseSession
+):
+    """Spec 298: the customer's exposure against its credit limit, part by part."""
+    from reality.tools.application import run_read_tool
+
+    try:
+        return run_read_tool(
+            session, tenant_id, "credit_exposure", {"party_id": party_id}
+        )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

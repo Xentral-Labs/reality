@@ -6790,6 +6790,21 @@ Object.assign(dictionaries.de, {
   "Operational defaults": "Operative Standardwerte",
   "Accounting code": "Buchhaltungskonto",
   "Credit limit": "Kreditlimit",
+  "Release credit hold": "Kreditsperre freigeben",
+  "The credit hold is released; the order can be reserved and shipped.":
+    "Die Kreditsperre ist freigegeben; der Auftrag kann reserviert und versendet werden.",
+  Exposure: "Kreditobligo",
+  "Only a company owner can confirm this release.":
+    "Nur ein Unternehmensinhaber kann diese Freigabe bestätigen.",
+  "Why is the credit hold released?": "Warum wird die Kreditsperre freigegeben?",
+  "Review release": "Freigabe prüfen",
+  "Credit exposure": "Kreditobligo",
+  "Open invoices": "Offene Rechnungen",
+  "Open orders not yet invoiced": "Offene, noch nicht berechnete Aufträge",
+  "Available credits": "Verfügbare Guthaben",
+  "Above the limit": "Über dem Limit",
+  Overdue: "Überfällig",
+  "Payables to this party, not netted": "Verbindlichkeiten an diesen Partner, nicht verrechnet",
   "Tax identifier": "Steuer-ID",
   "External identity": "Externe Identität",
   "Optional origin reference; the complete upstream record remains in its immutable payload.":
@@ -7795,6 +7810,21 @@ Object.assign(dictionaries.nl, {
   "Creating account…": "Account aanmaken…",
   "Creating…": "Aanmaken…",
   "Credit limit": "Kredietlimiet",
+  "Release credit hold": "Kredietblokkade vrijgeven",
+  "The credit hold is released; the order can be reserved and shipped.":
+    "De kredietblokkade is vrijgegeven; de order kan worden gereserveerd en verzonden.",
+  Exposure: "Kredietblootstelling",
+  "Only a company owner can confirm this release.":
+    "Alleen een bedrijfseigenaar kan deze vrijgave bevestigen.",
+  "Why is the credit hold released?": "Waarom wordt de kredietblokkade vrijgegeven?",
+  "Review release": "Vrijgave controleren",
+  "Credit exposure": "Kredietblootstelling",
+  "Open invoices": "Openstaande facturen",
+  "Open orders not yet invoiced": "Openstaande, nog niet gefactureerde orders",
+  "Available credits": "Beschikbaar tegoed",
+  "Above the limit": "Boven de limiet",
+  Overdue: "Achterstallig",
+  "Payables to this party, not netted": "Schulden aan deze partner, niet verrekend",
   "Credit note": "Kredietnota",
   "Cross-domain signals connect causes directly to their business impact.":
     "Cross-domein signalen verbinden oorzaken direct met hun zakelijke impact.",
@@ -8728,6 +8758,21 @@ Object.assign(dictionaries.es, {
   "Creating account…": "Creando cuenta…",
   "Creating…": "Creando…",
   "Credit limit": "Límite de crédito",
+  "Release credit hold": "Liberar bloqueo de crédito",
+  "The credit hold is released; the order can be reserved and shipped.":
+    "El bloqueo de crédito está liberado; el pedido puede reservarse y enviarse.",
+  Exposure: "Riesgo de crédito",
+  "Only a company owner can confirm this release.":
+    "Solo un propietario de la empresa puede confirmar esta liberación.",
+  "Why is the credit hold released?": "¿Por qué se libera el bloqueo de crédito?",
+  "Review release": "Revisar liberación",
+  "Credit exposure": "Riesgo de crédito",
+  "Open invoices": "Facturas abiertas",
+  "Open orders not yet invoiced": "Pedidos abiertos aún no facturados",
+  "Available credits": "Créditos disponibles",
+  "Above the limit": "Por encima del límite",
+  Overdue: "Vencida",
+  "Payables to this party, not netted": "Deudas con este socio, no compensadas",
   "Credit note": "Nota de crédito",
   "Cross-domain signals connect causes directly to their business impact.":
     "Señales entre dominios conectan directamente las causas con su impacto empresarial.",
@@ -22328,6 +22373,14 @@ Object.assign(dictionaries.de, {
     "Dieser Playground-Durchlauf ist schreibgeschützt oder nicht bereit.",
   "This action is not supported by the delivery review.":
     "Diese Aktion wird von der Lieferprüfung nicht unterstützt.",
+  "This order has no active credit hold.": "Dieser Auftrag hat keine aktive Kreditsperre.",
+  "Only a company owner releases a credit hold, with a reason.":
+    "Nur ein Unternehmensinhaber gibt eine Kreditsperre frei, mit Grund.",
+  "A credit release names the order and a reason, nothing else.":
+    "Eine Kreditfreigabe nennt den Auftrag und einen Grund, sonst nichts.",
+  "State why the credit hold is released.": "Gib an, warum die Kreditsperre freigegeben wird.",
+  "A release of this order's credit hold is still being settled.":
+    "Eine Freigabe der Kreditsperre dieses Auftrags wird noch abgeschlossen.",
   "This delivery has no active own hold. Prepare a fresh review.":
     "Diese Lieferung hat keine aktive eigene Sperre. Bereite eine neue Prüfung vor.",
   "This delivery is already on hold. Prepare a fresh review.":
@@ -23229,6 +23282,14 @@ Object.assign(dictionaries.nl, {
     "Deze Playground-run is alleen-lezen of niet gereed.",
   "This action is not supported by the delivery review.":
     "Deze actie wordt niet ondersteund door de leveringscontrole.",
+  "This order has no active credit hold.": "Deze order heeft geen actieve kredietblokkade.",
+  "Only a company owner releases a credit hold, with a reason.":
+    "Alleen een bedrijfseigenaar geeft een kredietblokkade vrij, met een reden.",
+  "A credit release names the order and a reason, nothing else.":
+    "Een kredietvrijgave noemt de order en een reden, verder niets.",
+  "State why the credit hold is released.": "Geef aan waarom de kredietblokkade wordt vrijgegeven.",
+  "A release of this order's credit hold is still being settled.":
+    "Een vrijgave van de kredietblokkade van deze order wordt nog afgerond.",
   "This delivery has no active own hold. Prepare a fresh review.":
     "Deze levering heeft geen actieve eigen blokkade. Bereid een nieuwe controle voor.",
   "This delivery is already on hold. Prepare a fresh review.":
@@ -24141,6 +24202,14 @@ Object.assign(dictionaries.es, {
     "Esta ejecución del Playground es de solo lectura o no está lista.",
   "This action is not supported by the delivery review.":
     "La revisión de entregas no admite esta acción.",
+  "This order has no active credit hold.": "Este pedido no tiene un bloqueo de crédito activo.",
+  "Only a company owner releases a credit hold, with a reason.":
+    "Solo un propietario de la empresa libera un bloqueo de crédito, con un motivo.",
+  "A credit release names the order and a reason, nothing else.":
+    "Una liberación de crédito indica el pedido y un motivo, nada más.",
+  "State why the credit hold is released.": "Indica por qué se libera el bloqueo de crédito.",
+  "A release of this order's credit hold is still being settled.":
+    "Una liberación del bloqueo de crédito de este pedido aún se está cerrando.",
   "This delivery has no active own hold. Prepare a fresh review.":
     "Esta entrega no tiene un bloqueo propio activo. Prepara una nueva revisión.",
   "This delivery is already on hold. Prepare a fresh review.":

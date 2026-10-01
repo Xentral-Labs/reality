@@ -176,6 +176,8 @@
     "record_return_disposition": "returns",
     "record_customer_exchange": "returns",
     "assign_line_item": "orders",
+    "release_credit_holds": "holds",
+    "credit_exposure": "holds",
     "correct_movement": "movements",
     "reverse_ledger_posting_group": "journal",
     "revise_commitment": "orders",

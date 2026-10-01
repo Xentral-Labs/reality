@@ -384,6 +384,10 @@ def delivery_case(
             "note": hold.note,
             "scope": scope,
             "created_at": hold.created_at,
+            # Only an owner lifts a hold the credit check placed (spec 298).
+            "owner_release": scope == "commitment"
+            and hold.reason_code == "credit_check"
+            and getattr(hold, "created_by", "") == "credit_limit",
         }
         for hold, scope in holds
     ]

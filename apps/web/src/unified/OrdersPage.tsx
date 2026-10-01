@@ -229,7 +229,9 @@ export function OrdersPage({
   create,
   prepareInvoice,
   prepareShipment,
+  owner = false,
 }: {
+  owner?: boolean;
   receive?: (id: string) => void;
   create?: (direction: string) => void;
   prepareInvoice?: (order: string) => void;
@@ -770,6 +772,7 @@ export function OrdersPage({
           id={selection.commitment}
           navigate={navigate}
           receive={receive}
+          owner={owner}
         />
       )}
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}

@@ -10,23 +10,27 @@ import { ReadState } from "./ReadState";
 import { Inspector } from "./Inspector";
 import type { Selection } from "./routing";
 import { SupplyAssignmentCard } from "./SupplyAssignmentCard";
+import { CreditHoldRelease } from "./CreditHoldRelease";
 
 export function DeliveryCase({
   tenant,
   id,
   navigate,
   receive,
+  owner = false,
 }: {
   tenant: string;
   id: string;
   navigate: (changes: Partial<Selection>) => void;
   receive?: (id: string) => void;
+  owner?: boolean;
 }) {
   const { data, loading, error, refresh } = useRead(
     () => deliveryApi.detail(tenant, id),
     [tenant, id],
   );
   const [action, setAction] = useState<DeliveryAction | null>(null);
+  const [releasingCredit, setReleasingCredit] = useState(false);
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const [cursor, setCursor] = useState("");
   const historyRead = useRead(() => deliveryApi.detail(tenant, id, cursor), [tenant, id, cursor]);
@@ -117,9 +121,15 @@ export function DeliveryCase({
                 context="commitment.customer"
                 onOpen={setAction}
                 exclude={[
-                  detail.blockers.some((row) => row.scope === "commitment")
-                    ? "commitment_hold"
-                    : "commitment_hold_release",
+                  ...(detail.blockers.some((row) => row.scope === "commitment")
+                    ? detail.blockers
+                        .filter((row) => row.scope === "commitment")
+                        .every((row) => row.owner_release)
+                      ? // Only a credit hold: neither a second hold nor a generic
+                        // release applies; an owner releases it with a reason.
+                        ["commitment_hold", "commitment_hold_release"]
+                      : ["commitment_hold"]
+                    : ["commitment_hold_release"]),
                   detail.blockers.some((row) => row.scope === "party")
                     ? "party_delivery_hold"
                     : "party_delivery_hold_release",
@@ -129,6 +139,11 @@ export function DeliveryCase({
             {detail.type === "supplier_delivery" && detail.status === "open" && receive && (
               <ContextActions context="commitment.supplier" onOpen={() => receive(id)} />
             )}
+            {owner && detail.document_id && detail.blockers.some((row) => row.owner_release) && (
+              <button className="br-btn" onClick={() => setReleasingCredit(true)}>
+                {t("Release credit hold")}
+              </button>
+            )}
             <button
               className="br-btn"
               onClick={() => window.dispatchEvent(new Event("reality:open-chat"))}
@@ -136,6 +151,14 @@ export function DeliveryCase({
               {t("Discuss with Reality")}
             </button>
           </div>
+          {releasingCredit && detail.document_id && (
+            <CreditHoldRelease
+              tenant={tenant}
+              order={detail.document_id}
+              close={() => setReleasingCredit(false)}
+              settled={refresh}
+            />
+          )}
           {!!detail.blockers.length && (
             <div className="mt-5 rounded-lg bg-caution-bg p-4 text-caution-text">
               {detail.blockers.map((row) => (

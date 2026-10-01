@@ -811,13 +811,15 @@ really is open — what is missing is the credit note recording the discount, no
 
 ## `credit_limit_exceeded` — Credit limit exceeded {#exception-credit_limit_exceeded}
 
-A customer owes more than the company agreed to let it owe. Reality reads the credit limit recorded
-on the Party and compares it with what that customer still owes on open sales invoices, taken from
-the same settlement derivation the aging register and the overdue classes use, so the figure here
-can never disagree with theirs. Only invoices in the customer's own currency count: a limit is one
-number, and converting a foreign balance into it would be a guess. An amount exactly equal to the
-limit is allowed, because that is the number that was agreed. A limit of zero means no limit has
-been recorded, not a customer allowed to owe nothing — the field defaults to zero, so reading it the
+A customer's exposure is past what the company agreed to carry. Reality reads the credit limit
+recorded on the Party and compares it with the exposure the order-entry credit check uses: what the
+customer still owes on open sales invoices, taken from the same settlement derivation the aging
+register and the overdue classes use, plus open orders not yet invoiced, minus the credits the
+customer can still use. The overdue invoices behind it are named, and payables to the same party are
+named but not subtracted. Only amounts in the customer's own currency count: a limit is one number,
+and converting a foreign balance into it would be a guess. An amount exactly equal to the limit is
+allowed, because that is the number that was agreed. A limit of zero means no limit has been
+recorded, not a customer allowed to owe nothing — the field defaults to zero, so reading it the
 other way would report every customer on the day this class ships. A customer meant to be cash-only
 is therefore silent here, and belongs behind a delivery hold rather than a limit of zero. This is
 about the total carried; a single invoice past its payment date is Overdue receivable, and a
@@ -829,7 +831,8 @@ customer can be in either without being in the other.
 - **Schwere:** `high`
 - **Datensatztyp:** `party`
 - **Spezifikation:** `078/FR-001`
-- **Nachweis:** `tests/operational_exceptions/test_derivation.py::test_credit_limit_exceeded`
+- **Nachweis:** `tests/operational_exceptions/test_derivation.py::test_credit_limit_exceeded`,
+  `tests/test_credit_hold.py::test_the_finding_reports_the_exposure_the_hold_used`
 
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool

@@ -65,6 +65,7 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 | [`post_supplier_payment`](#command-post_supplier_payment)                         | Post supplier payment                      | Finanzen                | `supplier_payment_post_propose`                                                                                                                                                              | CLI · Web · MCP · Chat                  |
 | [`post_supplier_refund`](#command-post_supplier_refund)                           | Post supplier refund                       | Finanzen                | `supplier_refund_post_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`preview_payment_run`](#command-preview_payment_run)                             | Preview payment run                        | Finanzen                | `payment_run_preview`                                                                                                                                                                        | Web · MCP · Chat                        |
+| [`credit_exposure`](#command-credit_exposure)                                     | Read a credit exposure                     | Finanzen                | `credit_exposure`                                                                                                                                                                            | CLI · Web · API · MCP · Chat            |
 | [`billable_positions`](#command-billable_positions)                               | Read billable invoice positions            | Finanzen                | `invoice_billable_positions`                                                                                                                                                                 | Web · API · MCP · Chat                  |
 | [`component_history`](#command-component_history)                                 | Read component assignment history          | Finanzen                | `finance_component_history`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`list_references`](#command-list_references)                                     | Read finance references                    | Finanzen                | `finance_references`                                                                                                                                                                         | CLI · Web · MCP · Chat                  |
@@ -83,6 +84,7 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 | [`record_sales_credit`](#command-record_sales_credit)                             | Record return credit                       | Finanzen                | `sales_credit_record_propose`                                                                                                                                                                | Web · API · MCP · Chat                  |
 | [`record_sales_invoice`](#command-record_sales_invoice)                           | Record sales invoice                       | Finanzen                | `sales_invoice_record_propose`                                                                                                                                                               | Web · API · MCP · Chat                  |
 | [`record_supplier_invoice`](#command-record_supplier_invoice)                     | Record supplier invoice                    | Finanzen                | `supplier_invoice_record_propose`                                                                                                                                                            | Web · API · MCP · Chat                  |
+| [`release_credit_holds`](#command-release_credit_holds)                           | Release a credit hold                      | Finanzen                | `credit_hold_release_propose`                                                                                                                                                                | CLI · Web · API · MCP · Chat            |
 | [`reverse_ledger_posting_group`](#command-reverse_ledger_posting_group)           | Reverse ledger posting group               | Finanzen                | `ledger_reversal_propose`                                                                                                                                                                    | CLI · Web · API · Chat · MCP            |
 | [`set_default_account`](#command-set_default_account)                             | Set operational account default            | Finanzen                | `finance_set_default_account_propose`                                                                                                                                                        | CLI · Web · MCP · Chat                  |
 | [`set_source_mapping`](#command-set_source_mapping)                               | Set source code mapping                    | Finanzen                | `finance_source_mapping_propose`                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -2706,6 +2708,65 @@ per currency, and what was withheld.
 
 **Siehe auch:** Geschäftsaktion [`preview_payment_run`](./commands#command-preview_payment_run)
 
+### `credit_exposure` — Read a credit exposure {#command-credit_exposure}
+
+Derives a customer's exposure against its credit limit, open invoices plus open uninvoiced orders
+minus available credits, naming overdue invoices and payables.
+
+**Aufruf**
+
+```text
+credit_exposure party_id [as_of]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `party`, `document`, `document_line`, `commitment`, `ledger_entry`,
+`settlement_allocation` · Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`credit_exposure`](./commands#tool-credit_exposure)
+
+#### `credit_exposure` — Credit exposure {#tool-credit_exposure}
+
+Read a customer's credit exposure against its limit: open invoices plus open uninvoiced orders minus
+available credits, with the overdue invoices and payables named.
+
+**Aufruf**
+
+```text
+credit_exposure party_id [as_of]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage      | Art                        | Standard |
+| --------------------- | -------------------------- | -------- |
+| `MCP credit_exposure` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Explain a customer's credit exposure against its limit and why an order is held for credit.
+
+**Verwenden, wenn**
+
+- A new order was held for credit
+- or someone asks how much a customer may still order.
+
+**Nicht verwenden, wenn**
+
+- The question is one invoice's due date; use the aging read.
+
+**Parameter**
+
+| Name       | Typ      | Pflicht | Beschreibung                                                                 | Standard |
+| ---------- | -------- | ------- | ---------------------------------------------------------------------------- | -------- |
+| `party_id` | `string` | ja      | Opaque identity of the customer, supplier, or other operational party.       | —        |
+| `as_of`    | `string` | nein    | UTC instant the derivation is evaluated at; the current instant when absent. | —        |
+
+**Siehe auch:** Geschäftsaktion [`credit_exposure`](./commands#command-credit_exposure)
+
 ### `billable_positions` — Read billable invoice positions {#command-billable_positions}
 
 Lists one party's delivered or received order positions not yet fully billed, grouped by order,
@@ -3825,6 +3886,47 @@ supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount 
 
 **Siehe auch:** Geschäftsaktion
 [`record_supplier_invoice`](./commands#command-record_supplier_invoice)
+
+### `release_credit_holds` — Release a credit hold {#command-release_credit_holds}
+
+Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds
+stay.
+
+**Aufruf**
+
+```text
+credit_hold_release_propose document_id reason
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `document`, `commitment`, `commitment_hold`, `party`, `ledger_entry`,
+`document_line` · Schreibt: `commitment_hold`, `business_event`
+
+**Siehe auch:** Agenten-Tool
+[`credit_hold_release_propose`](./commands#tool-credit_hold_release_propose)
+
+#### `credit_hold_release_propose` — Release a credit hold {#tool-credit_hold_release_propose}
+
+Prepare this business mutation without changing state. Release a credit hold. Human confirmation is
+required.
+
+**Aufruf**
+
+```text
+credit_hold_release_propose document_id reason
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                            | Standard |
+| ------------- | -------- | ------- | ----------------------------------------------------------------------- | -------- |
+| `document_id` | `string` | ja      | Opaque identity of the evidence document to inspect or correct.         | —        |
+| `reason`      | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change. | —        |
+
+**Siehe auch:** Geschäftsaktion [`release_credit_holds`](./commands#command-release_credit_holds)
 
 ### `reverse_ledger_posting_group` — Reverse ledger posting group {#command-reverse_ledger_posting_group}
 

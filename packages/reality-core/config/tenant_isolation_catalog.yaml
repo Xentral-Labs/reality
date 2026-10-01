@@ -430,6 +430,8 @@ families:
       - tool:return_disposition_summary
       - tool:customer_exchange_record
       - tool:order_line_item_assign
+      - tool:credit_hold_release
+      - tool:credit_exposure
       - tool:customer_exchange
       - tool:movement_explanation
       - tool:exceptions

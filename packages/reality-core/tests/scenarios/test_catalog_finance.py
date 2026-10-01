@@ -1485,3 +1485,256 @@ def test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods(
     assert core.account_balance(session, tenant, "payment_fee_expense") == Decimal(
         "3.40"
     )
+
+
+# --- Automatic credit hold: C07, C08, R08 (spec 298) ------------------------------
+
+
+def _limited_customer(session, business, name, limit="1000", roles=None):
+    return core.create_party(
+        session,
+        business.tenant.id,
+        name,
+        "customer",
+        credit_limit=limit,
+        default_currency="EUR",
+        payment_term_code="NET30",
+        roles=roles or ["customer"],
+    )
+
+
+def _posted(session, business, kind, number, party, amount, day):
+    document = core.create_document(
+        session, business.tenant.id, kind, number, party.id, amount, document_date=day
+    )
+    post = {
+        "sales_invoice": core.post_sales_invoice,
+        "credit_note": core.post_sales_credit_note,
+        "supplier_invoice": core.post_supplier_invoice,
+    }[kind]
+    post(session, business.tenant.id, document.id)
+    return document
+
+
+def _order_through_the_tool(session, business, party, number, quantity, price):
+    gross = str(Decimal(quantity) * Decimal(price))
+    receipt = _reviewed(
+        session,
+        business,
+        "order_create",
+        {
+            "direction": "sales",
+            "number": number,
+            "company_party_id": business.company.id,
+            "counterparty_id": party.id,
+            "location_id": business.location.id,
+            "currency": "EUR",
+            "gross_amount": gross,
+            "lines": [
+                {
+                    "item_id": business.item.id,
+                    "quantity": quantity,
+                    "unit_price": price,
+                    "gross_amount": gross,
+                }
+            ],
+        },
+        number,
+    )
+    return receipt["document_id"], receipt["commitment_ids"]
+
+
+def _credit_holds(session, business, commitment_ids):
+    from reality.services.credit_exposure import active_credit_holds
+
+    return active_credit_holds(session, business.tenant.id, list(commitment_ids))
+
+
+def test_an_order_over_the_limit_is_held_and_released_by_an_owner(session, business):
+    """C07: the order is held at entry; an owner releases it and says why."""
+    from reality.db.core import AppUser, BusinessEvent, TenantMembership, uid
+    from reality.services.decision_attribution import record_decisions
+    from reality.services.memberships import Principal
+
+    tenant = business.tenant.id
+    core.create_payment_term(session, tenant, "NET30", "Net 30", 30)
+    core.record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "20",
+        to_location_id=business.location.id,
+    )
+    party = _limited_customer(session, business, "Radhaus Weber")
+    _posted(
+        session, business, "sales_invoice", "RE-C07-1", party, "700.00", "2026-07-01"
+    )
+
+    # Positive control: an order that stays within the limit is not held.
+    _, within = _order_through_the_tool(
+        session, business, party, "SO-C07-OK", "2", "100.00"
+    )
+    assert _credit_holds(session, business, within) == []
+    core.cancel_commitment(
+        session, tenant, within[0], reason="Superseded by the next order"
+    )
+
+    order_id, held = _order_through_the_tool(
+        session, business, party, "SO-C07", "4", "100.00"
+    )
+    (hold,) = _credit_holds(session, business, held)
+    assert hold.note.startswith("Credit limit 1000.00 EUR exceeded by 100.00")
+    assert "overdue RE-C07-1 700.00" in hold.note
+    assert (
+        "commitment_hold"
+        in fulfillment_readiness(session, tenant, held[0]).blocker_codes
+    )
+
+    def person(role):
+        user = AppUser(
+            id=uid("usr"),
+            email=f"{uid('m')}@example.test",
+            password_hash="x",
+            display_name=role,
+            status="active",
+            email_verified_at=core.now(),
+        )
+        session.add(user)
+        session.flush()
+        session.add(
+            TenantMembership(
+                id=uid("mem"),
+                tenant_id=tenant,
+                user_id=user.id,
+                role=role,
+                status="active",
+            )
+        )
+        session.flush()
+        return Principal(user.id)
+
+    reason = "Paid by bank transfer this morning, confirmed with the bank"
+    proposal = prepare_delivery_action(
+        session,
+        tenant,
+        "credit_hold_release",
+        {"document_id": order_id, "reason": reason},
+        request_id="c07-release",
+    )
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    # A member who is not an owner cannot release it.
+    with pytest.raises(core.InvalidOperation) as refused:
+        approve_and_execute_proposal(
+            session,
+            tenant,
+            proposal.id,
+            review_token=token,
+            confirmed=True,
+            confirming_principal=person("member"),
+        )
+    assert refused.value.code == "company_owner_access_required"
+
+    approve_and_execute_proposal(
+        session,
+        tenant,
+        proposal.id,
+        review_token=token,
+        confirmed=True,
+        confirming_principal=person("owner"),
+    )
+
+    assert _credit_holds(session, business, held) == []
+    released = session.scalars(
+        select(BusinessEvent).where(
+            BusinessEvent.tenant_id == tenant,
+            BusinessEvent.event_type == "commitment.hold_released",
+            BusinessEvent.action_id == proposal.id,
+        )
+    ).one()
+    assert json.loads(released.payload)["reason"] == reason
+    assert (proposal.id, "credit_hold_release") in {
+        (row["id"], row["tool"])
+        for row in record_decisions(session, tenant, "commitment", held[0])
+    }
+    core.reserve(session, tenant, held[0])
+    assert fulfillment_readiness(session, tenant, held[0]).ship_ready
+
+
+def test_the_credit_hold_names_the_overdue_items_behind_it(session, business):
+    """C08: overdue invoices are named apart from the ones not yet due."""
+    from reality.services.credit_exposure import credit_exposure
+    from reality.services.exceptions import operational_exceptions
+
+    tenant = business.tenant.id
+    core.create_payment_term(session, tenant, "NET30", "Net 30", 30)
+    party = _limited_customer(session, business, "Velo Nord")
+    late = [
+        _posted(session, business, "sales_invoice", number, party, amount, day)
+        for number, amount, day in (
+            ("RE-C08-1", "400.00", "2026-07-01"),
+            ("RE-C08-2", "200.00", "2026-07-15"),
+        )
+    ]
+    due_today = _posted(
+        session,
+        business,
+        "sales_invoice",
+        "RE-C08-3",
+        party,
+        "300.00",
+        core.now().date().isoformat(),
+    )
+
+    _, held = _order_through_the_tool(session, business, party, "SO-C08", "2", "100.00")
+
+    (hold,) = _credit_holds(session, business, held)
+    assert "overdue RE-C08-1 400.00, RE-C08-2 200.00)" in hold.note
+    # The invoice not yet due counts in the exposure but is not named overdue.
+    exposure = credit_exposure(session, tenant, party.id)
+    assert due_today.id in {
+        row["document_id"] for row in exposure["open_invoices"]["rows"]
+    }
+    assert due_today.id not in {
+        row["document_id"] for row in exposure["overdue_invoices"]["rows"]
+    }
+    finding = next(
+        row
+        for row in operational_exceptions(session, tenant)
+        if row.class_id == "credit_limit_exceeded" and row.record_id == party.id
+    )
+    assert finding.causal_values["overdue_document_ids"] == [doc.id for doc in late]
+    assert finding.causal_values["overdue_amount"] == Decimal("600.0000")
+
+
+def test_a_customer_who_is_also_a_supplier_is_held_with_every_fact(session, business):
+    """R08: overdue receivable, open credit, payable and a new order, all named."""
+    from reality.services.credit_exposure import credit_exposure
+
+    tenant = business.tenant.id
+    core.create_payment_term(session, tenant, "NET30", "Net 30", 30)
+    party = _limited_customer(
+        session, business, "Kurbelwerk GmbH", roles=["customer", "supplier"]
+    )
+    _posted(
+        session, business, "sales_invoice", "RE-R08-1", party, "800.00", "2026-07-01"
+    )
+    _posted(session, business, "credit_note", "GS-R08-1", party, "100.00", "2026-08-15")
+    _posted(
+        session, business, "supplier_invoice", "ER-R08-1", party, "500.00", "2026-09-01"
+    )
+
+    _, held = _order_through_the_tool(session, business, party, "SO-R08", "4", "100.00")
+
+    (hold,) = _credit_holds(session, business, held)
+    # 800 overdue + 400 ordered - 100 credit = 1,100; the payable is not netted.
+    assert hold.note.startswith("Credit limit 1000.00 EUR exceeded by 100.00")
+    assert "exposure 1100.00" in hold.note
+    assert "overdue RE-R08-1 800.00" in hold.note
+    assert "credits 100.00" in hold.note
+    assert "payables 500.00 EUR named, not netted" in hold.note
+    exposure = credit_exposure(session, tenant, party.id)
+    assert [row["number"] for row in exposure["payables"]["rows"]] == ["ER-R08-1"]
+    assert [row["number"] for row in exposure["available_credits"]["rows"]] == [
+        "GS-R08-1"
+    ]

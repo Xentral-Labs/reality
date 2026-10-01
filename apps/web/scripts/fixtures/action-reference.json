@@ -542,6 +542,21 @@
       "effect": "Blocks customer shipment execution while orders and reservations remain possible."
     },
     {
+      "name": "Release a credit hold",
+      "service": "release_credit_holds",
+      "related_services": ["preview_credit_release"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds stay."
+    },
+    {
+      "name": "Read a credit exposure",
+      "service": "credit_exposure",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Derives a customer's exposure against its credit limit, open invoices plus open uninvoiced orders minus available credits, naming overdue invoices and payables."
+    },
+    {
       "name": "Post customer payment",
       "service": "post_customer_payment",
       "mode": "mutation",

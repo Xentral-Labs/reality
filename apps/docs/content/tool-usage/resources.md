@@ -13,7 +13,7 @@ the technical key stands beside each one.
 | [Item](#resource-item)                                           | 5     | 4       | 3                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
-| [Order](#resource-order)                                         | 8     | 11      | 11                  |
+| [Order](#resource-order)                                         | 8     | 12      | 11                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 12      | 14                  |
@@ -78,6 +78,10 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 - [Create and assign pricing group](./commands#command-create_party_group) (`create_party_group`)
 - [Set party delivery hold](./commands#command-hold_party_delivery) (`hold_party_delivery`)
 - [Hand over to collection](./commands#command-record_handover) (`record_handover`)
+
+**Look up**
+
+- [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 
 **Exceptions to clear**
 
@@ -259,6 +263,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Hold document commitments](./commands#command-hold_document_commitments)
   (`hold_document_commitments`)
 - [Set party delivery hold](./commands#command-hold_party_delivery) (`hold_party_delivery`)
+- [Release a credit hold](./commands#command-release_credit_holds) (`release_credit_holds`)
 - [Close stale promises](./commands#command-close_stale_promises) (`close_stale_promises`)
 - [Dispatch or receive shipment package](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
@@ -266,6 +271,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 **Look up**
 
+- [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 - [Preview stale promise closure](./commands#command-preview_stale_promise_closure)
   (`preview_stale_promise_closure`)
 
@@ -504,6 +510,7 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 
 **Look up**
 
+- [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 - [Preview payment run](./commands#command-preview_payment_run) (`preview_payment_run`)
 - [Preview dunning run](./commands#command-run_context) (`run_context`)
 - [Read settlement reduction context](./commands#command-adjustment_context) (`adjustment_context`)
@@ -592,6 +599,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Read operational transaction matrix](./commands#command-transaction_matrix)
   (`transaction_matrix`)
 - [Read operational accounts](./commands#command-list_accounts) (`list_accounts`)
+- [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 - [List dunning notices](./commands#command-notices) (`notices`)
 - [Read dunning notice](./commands#command-notice_detail) (`notice_detail`)
 - [Preview dunning run](./commands#command-run_context) (`run_context`)
@@ -791,6 +799,7 @@ Nachweis, Quelle
 - [Read source code mappings](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Read source mapping history](./commands#command-source_mapping_history)
   (`source_mapping_history`)
+- [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 - [List dunning notices](./commands#command-notices) (`notices`)
 - [Read dunning notice](./commands#command-notice_detail) (`notice_detail`)
 - [Preview dunning run](./commands#command-run_context) (`run_context`)

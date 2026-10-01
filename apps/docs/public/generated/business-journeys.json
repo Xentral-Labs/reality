@@ -1030,19 +1030,32 @@
       "section": "Payment and release",
       "title": "Credit limit exceeded: order held, released by a person",
       "question": "Who released it, and why?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Who released it, and why?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Who released it, and why? A new order, or a promise revised upwards, that would take the customer past the credit limit is held at entry, whatever path records it, with a hold that names the limit, the open, overdue and ordered amounts; only a company owner releases it, with a stated reason recorded with the person.",
       "limitations": [
-        "The credit-limit exception and a hold released by a named person both work.",
-        "They are not linked to each other, and there is no automatic credit hold."
+        "A limit lowered later does not hold orders already recorded; the credit-limit finding reports them.",
+        "An invoice recorded without links to its order lines counts next to the order until the order is closed."
       ],
-      "keywords": [],
+      "keywords": [
+        "credit hold",
+        "order held for credit",
+        "release credit hold",
+        "Kreditsperre",
+        "Kreditlimit überschritten",
+        "Auftrag gesperrt Kreditlimit"
+      ],
       "question_examples": [
         "Credit limit exceeded: order held, released by a person",
-        "Who released it, and why?"
+        "Who released it, and why?",
+        "An order was blocked because the customer is over the credit limit",
+        "Wer hat die Kreditsperre freigegeben und warum?",
+        "Kreditsperre freigeben"
       ],
-      "tools": [],
+      "tools": [
+        "credit_hold_release_propose",
+        "credit_exposure"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -1052,19 +1065,28 @@
       "section": "Payment and release",
       "title": "Limit exceeded by overdue items, not by order value",
       "question": "Does the hold name the overdue items?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Does the hold name the overdue items?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Does the hold name the overdue items? The credit hold and the credit-limit finding name the overdue invoices with their amounts apart from the invoices not yet due, and count open orders and available credits in the exposure.",
       "limitations": [
-        "Credit exposure counts open invoices only; the order value never counts.",
-        "The exception lists all open invoices, not specifically the overdue ones."
+        "Only amounts in the customer's own currency count; others are named, not converted.",
+        "An invoice recorded without links to its order lines counts next to the order until the order is closed."
       ],
-      "keywords": [],
+      "keywords": [
+        "overdue invoices behind the credit hold",
+        "credit exposure",
+        "Kreditobligo",
+        "überfällige Rechnungen Kreditsperre"
+      ],
       "question_examples": [
         "Limit exceeded by overdue items, not by order value",
-        "Does the hold name the overdue items?"
+        "Does the hold name the overdue items?",
+        "Which overdue invoices put the customer over the limit?",
+        "Welche überfälligen Rechnungen führen zur Kreditsperre?"
       ],
-      "tools": [],
+      "tools": [
+        "credit_exposure"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -4964,19 +4986,27 @@
       "section": "Combined stress stories",
       "title": "Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit",
       "question": "Hold reason names all facts.",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Hold reason names all facts.",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Hold reason names all facts. For a customer who is also a supplier, a new order past the limit is held with a reason that names the overdue receivable, the ordered value, the open credit subtracted and the payable to the same party, which is named but not netted.",
       "limitations": [
-        "The credit-limit check counts open invoices only.",
-        "It ignores the new order, open credits and payables, and no hold reason combines these facts."
+        "Payables are not netted against receivables; that needs an agreement."
       ],
-      "keywords": [],
+      "keywords": [
+        "customer is also a supplier",
+        "credit hold with payables",
+        "Kunde ist auch Lieferant",
+        "Verrechnung Kreditlimit"
+      ],
       "question_examples": [
         "Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit",
-        "Hold reason names all facts."
+        "Hold reason names all facts.",
+        "Our customer is also our supplier and is over the credit limit",
+        "Kunde ist gleichzeitig Lieferant und über dem Kreditlimit"
       ],
-      "tools": [],
+      "tools": [
+        "credit_exposure"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

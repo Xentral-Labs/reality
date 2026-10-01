@@ -1909,6 +1909,57 @@ def order_line_item_assign_propose(
     con.print_json(data=result, default=str)
 
 
+@app.command("credit-hold-release-propose")
+def credit_hold_release_propose(
+    arguments: str,
+    request_id: str,
+    tenant_id: str | None = None,
+) -> None:
+    """Prepare releasing an order's credit hold with a reason; an owner confirms."""
+    from reality.services.delivery_actions import (
+        delivery_proposal_detail,
+        prepare_delivery_action,
+    )
+
+    try:
+        values = json.loads(arguments)
+        if not isinstance(values, dict):
+            raise TypeError
+    except (json.JSONDecodeError, TypeError) as error:
+        raise typer.BadParameter("Arguments must be a JSON object.") from error
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            proposal = prepare_delivery_action(
+                session,
+                tenant.id,
+                "credit_hold_release",
+                values,
+                request_id=request_id,
+                actor_id="cli",
+            )
+            result = delivery_proposal_detail(session, tenant.id, proposal.id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@app.command("credit-exposure")
+def credit_exposure_read(party_id: str, tenant_id: str | None = None) -> None:
+    """Read a customer's credit exposure against its limit."""
+    from reality.tools.application import run_read_tool
+
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            result = run_read_tool(
+                session, tenant.id, "credit_exposure", {"party_id": party_id}
+            )
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
 @app.command("order-line-item-assign-confirm")
 def order_line_item_assign_confirm(
     proposal_id: str,
