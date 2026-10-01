@@ -40,14 +40,14 @@ events:
   - {type: master_data.lifecycle_changed, producer: set_master_data_active, subject: master_data, invalidates: [Inventory, Price resolution, Tenant usage]}
   - {type: payment_term.updated, producer: update_payment_term, subject: payment_term, invalidates: [Open financial items, Document register, Tenant usage]}
   - {type: payment_term.created, producer: create_payment_term, subject: payment_term, invalidates: [Tenant usage]}
-  - {type: price_list.updated, producer: update_price_list, subject: price_list, invalidates: [Price resolution, Tenant usage]}
-  - {type: price_list.created, producer: create_price_list, subject: price_list, invalidates: [Price resolution, Tenant usage]}
-  - {type: price_list_entry.created, producer: create_price_list_entry, subject: price_list_entry, invalidates: [Price resolution, Tenant usage]}
-  - {type: party_price_list.assigned, producer: assign_party_price_list, subject: party_price_list, invalidates: [Price resolution, Tenant usage]}
-  - {type: party_group.updated, producer: update_party_group, subject: party_group, invalidates: [Price resolution, Tenant usage]}
-  - {type: party_group.created, producer: create_party_group, subject: party_group, invalidates: [Price resolution, Tenant usage]}
-  - {type: party_group_member.added, producer: add_party_group_member, subject: party_group_member, invalidates: [Price resolution, Tenant usage]}
-  - {type: party_group_price_list.assigned, producer: assign_group_price_list, subject: party_group_price_list, invalidates: [Price resolution, Tenant usage]}
+  - {type: price_list.updated, producer: update_price_list, subject: price_list, invalidates: [Price resolution, Operational Exceptions, Tenant usage]}
+  - {type: price_list.created, producer: create_price_list, subject: price_list, invalidates: [Price resolution, Operational Exceptions, Tenant usage]}
+  - {type: price_list_entry.created, producer: create_price_list_entry, subject: price_list_entry, invalidates: [Price resolution, Operational Exceptions, Tenant usage]}
+  - {type: party_price_list.assigned, producer: assign_party_price_list, subject: party_price_list, invalidates: [Price resolution, Operational Exceptions, Tenant usage]}
+  - {type: party_group.updated, producer: update_party_group, subject: party_group, invalidates: [Price resolution, Operational Exceptions, Tenant usage]}
+  - {type: party_group.created, producer: create_party_group, subject: party_group, invalidates: [Price resolution, Operational Exceptions, Tenant usage]}
+  - {type: party_group_member.added, producer: add_party_group_member, subject: party_group_member, invalidates: [Price resolution, Operational Exceptions, Tenant usage]}
+  - {type: party_group_price_list.assigned, producer: assign_group_price_list, subject: party_group_price_list, invalidates: [Price resolution, Operational Exceptions, Tenant usage]}
   - {type: document.recorded, producer: create_document, subject: document, invalidates: [Document register, Timeline, Open financial items, Operational Exceptions, Fulfillment queue, Fulfillment blockers, Tenant usage]}
   - {type: document.corrected, producer: correct_manual_document, subject: document, invalidates: [Document register, Timeline, Open financial items, Payments, Operational Exceptions, Fulfillment queue, Fulfillment blockers, Tenant usage]}
   - {type: commitment.created, producer: create_commitment, subject: commitment, invalidates: [Inventory, Operational Exceptions, Commitment register, Document register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}

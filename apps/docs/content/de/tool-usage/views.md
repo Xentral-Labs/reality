@@ -634,12 +634,15 @@ restrictions.
 `reservation.consumed`, `fact.observed`, `source_record.received`, `source_record.unmapped`,
 `source_record.interpreted`, `party.created`, `party.updated`, `party.delivery_hold_placed`,
 `party.delivery_hold_released`, `item.created`, `item.updated`, `reorder_point.set`,
-`reorder_point.removed`, `location.updated`, `document.recorded`, `document.corrected`,
-`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`payments.run`, `return.announced`, `return.announcement_withdrawn`, `document_line.item_assigned`,
-`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
-`reservation.released`, `lot.expiry_stated`, `lot.expiry_corrected`, `movement.recorded`,
-`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`reorder_point.removed`, `location.updated`, `price_list.updated`, `price_list.created`,
+`price_list_entry.created`, `party_price_list.assigned`, `party_group.updated`,
+`party_group.created`, `party_group_member.added`, `party_group_price_list.assigned`,
+`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
+`commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
+`return.announcement_withdrawn`, `document_line.item_assigned`, `exchange.recorded`,
+`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
+`lot.expiry_stated`, `lot.expiry_corrected`, `movement.recorded`, `movement.corrected`,
+`ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 Zusätzlich alle 60 Sekunden für eine Hintergrundaktualisierung vorgesehen, auch ohne neues Business
 Event.
@@ -690,7 +693,8 @@ Ausnahme [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), Ausn
 [`payment_returned`](./exceptions#exception-payment_returned), Ausnahme
 [`order_line_price_missing`](./exceptions#exception-order_line_price_missing), Ausnahme
 [`billed_not_shipped`](./exceptions#exception-billed_not_shipped), Ausnahme
-[`item_oversold`](./exceptions#exception-item_oversold)
+[`item_oversold`](./exceptions#exception-item_oversold), Ausnahme
+[`reorder_point_reached`](./exceptions#exception-reorder_point_reached)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

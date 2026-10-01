@@ -32,7 +32,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/re
 
 **Project Type**: New typed setting, one derived class, adapters
 
-**Performance Goals**: The class reads every reorder point and its stock, reservations, incoming and price candidates in grouped queries. The statement count does not grow with the number of points, and a test pins this bound.
+**Performance Goals**: The class reads every reorder point and its stock, reservations, incoming and price candidates in grouped queries. The statement count does not grow with the number of points, and a test pins this bound. The one exception is the shared price rule: `resolve_price` runs once for each reported entry with exactly one supplier, rather than re-implementing the rule here.
 
 **Constraints**:
 - derived at read time;
@@ -88,7 +88,7 @@ Migration `0107_item_reorder_point` creates the table described in `data-model.m
 - The catalogs tuple, the YAML entry and the test lists.
 - The reference catalog: `traces_only` on `ItemReorderPoint`.
 - `resource_catalog.yaml`: item and location resources, with the German label "Meldebestand erreicht".
-- The narrowed refresh dependencies, if the class takes part in them: reorder point, movement, reservation, commitment and price list events.
+- Narrowed refresh: the class is not in `CLASS_DEPENDENCIES`, so every change re-evaluates it. Price list, entry, assignment and group events now invalidate Operational Exceptions too.
 - `next_clock_moment`: none, beyond the price-validity boundaries if the shared rule offers them. Otherwise this is recorded as a limitation.
 
 ### Tools and adapters

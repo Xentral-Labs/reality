@@ -66,6 +66,7 @@ def test_production_operational_exception_catalog_has_closed_registry():
         "order_line_price_missing",
         "billed_not_shipped",
         "item_oversold",
+        "reorder_point_reached",
     ]
     assert catalog.classes[0]["causes"][0]["id"] == "insufficient_reservation"
     assert {entry["derivation"] for entry in catalog.classes} == set(

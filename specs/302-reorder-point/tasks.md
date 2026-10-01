@@ -22,7 +22,7 @@
 
 ## Phase 3: The derived proposal (FR-002, FR-003)
 
-- [ ] T006 [US1] Failing tests in `core/tests/test_reorder_point_reached.py`:
+- [x] T006 [US1] Failing tests in `core/tests/test_reorder_point_reached.py`:
   - at or below the point is reported (boundary: equal is reported; one above is not, as control);
   - only the location below is reported;
   - active reservations reduce available stock, and released ones do not;
@@ -36,7 +36,7 @@
   - an item without a point is never reported, whatever its stock;
   - the statement count does not grow with the number of points;
   - ids are unique, and tenants are isolated.
-- [ ] T007 [US1] `_reorder_point_reached_exceptions`, registered in every place the class gates name. Also the catalog entry, the narrowed-refresh dependencies, and the explanation with scalar causal values and structures in the trace.
+- [x] T007 [US1] `_reorder_point_reached_exceptions`, registered in every place the class gates name. Also the catalog entry, the narrowed-refresh dependencies, and the explanation with scalar causal values and structures in the trace.
 
 ## Phase 4: Adapters (FR-004)
 

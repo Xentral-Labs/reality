@@ -241,7 +241,8 @@
         "exception:units_not_comparable",
         "exception:reservation_exceeds_stock",
         "exception:missing_acquisition_cost",
-        "exception:item_oversold"
+        "exception:item_oversold",
+        "exception:reorder_point_reached"
       ],
       "tools": [
         "tool:inventory_read",
@@ -24163,6 +24164,14 @@
         "reorder_point.set",
         "reorder_point.removed",
         "location.updated",
+        "price_list.updated",
+        "price_list.created",
+        "price_list_entry.created",
+        "party_price_list.assigned",
+        "party_group.updated",
+        "party_group.created",
+        "party_group_member.added",
+        "party_group_price_list.assigned",
         "document.recorded",
         "document.corrected",
         "commitment.created",
@@ -24240,7 +24249,8 @@
         "exception:payment_returned",
         "exception:order_line_price_missing",
         "exception:billed_not_shipped",
-        "exception:item_oversold"
+        "exception:item_oversold",
+        "exception:reorder_point_reached"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -25745,6 +25755,28 @@
       "resources": ["item"]
     },
     {
+      "id": "exception:reorder_point_reached",
+      "kind": "exception",
+      "key": "reorder_point_reached",
+      "label": "Reorder point reached",
+      "area": "orders",
+      "summary": "Stock of an item at a location has fallen to the level at which the company said it reorders. Reality takes what the location holds, less what is reserved there, adds what open supplier promises still bring to it, and compares the sum with the stated reorder point; at or below it, the entry appears. It proposes the stated reorder quantity, in the item's purchase unit when it is a whole number of them and in the stock unit otherwise, never rounded. When exactly one supplier's purchase price list prices the item, directly or through the supplier's group, the entry names that supplier and the price the price rules resolve; when several or none do, it names none and the buyer chooses. Nothing is ordered by the entry itself: the buyer prepares the purchase order from it and confirms it through the reviewed order, and its open promise then counts as incoming. A supplier promise in a unit the item relates no conversion for is left out, and Units not comparable names it. Item oversold is the company-wide view of demand; this is one location's own level, whatever customers have ordered.",
+      "owner": "Purchasing",
+      "clears_through": "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.",
+      "severity": "normal",
+      "record_type": "reorder_point",
+      "authority": "302/FR-002",
+      "evidence": [
+        "tests/test_reorder_point_reached.py::test_at_or_below_the_point_is_reported_and_above_is_not",
+        "tests/test_reorder_point_reached.py::test_an_open_purchase_to_the_location_counts_as_incoming",
+        "tests/test_reorder_point_reached.py::test_one_supplier_on_a_purchase_list_is_named_with_its_price"
+      ],
+      "causes": [],
+      "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
+      "label_de": "Meldebestand erreicht",
+      "resources": ["item"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -26397,7 +26429,7 @@
       "summary": "",
       "producer": "update_price_list",
       "subject": "price_list",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": [],
       "label_de": "price_list.updated",
       "resources": ["terms"]
@@ -26411,7 +26443,7 @@
       "summary": "",
       "producer": "create_price_list",
       "subject": "price_list",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": ["command:create_price_list"],
       "label_de": "price_list.created",
       "resources": ["terms"]
@@ -26425,7 +26457,7 @@
       "summary": "",
       "producer": "create_price_list_entry",
       "subject": "price_list_entry",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": ["command:create_price_list_entry"],
       "label_de": "price_list_entry.created",
       "resources": ["terms"]
@@ -26439,7 +26471,7 @@
       "summary": "",
       "producer": "assign_party_price_list",
       "subject": "party_price_list",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": ["command:assign_party_price_list"],
       "label_de": "party_price_list.assigned",
       "resources": ["party", "terms"]
@@ -26453,7 +26485,7 @@
       "summary": "",
       "producer": "update_party_group",
       "subject": "party_group",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": [],
       "label_de": "party_group.updated",
       "resources": ["party"]
@@ -26467,7 +26499,7 @@
       "summary": "",
       "producer": "create_party_group",
       "subject": "party_group",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": ["command:create_party_group"],
       "label_de": "party_group.created",
       "resources": ["party", "terms"]
@@ -26481,7 +26513,7 @@
       "summary": "",
       "producer": "add_party_group_member",
       "subject": "party_group_member",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": [],
       "label_de": "party_group_member.added",
       "resources": ["party"]
@@ -26495,7 +26527,7 @@
       "summary": "",
       "producer": "assign_group_price_list",
       "subject": "party_group_price_list",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": [],
       "label_de": "party_group_price_list.assigned",
       "resources": ["terms"]

@@ -24616,6 +24616,9 @@ Object.assign(dictionaries.de, {
     "Nur ein Wareneingang kann in der Einkaufseinheit des Artikels angegeben werden, und nur in dieser; alles andere wird in der Lagereinheit erfasst.",
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
     "Eine Bestellzeile steht in der Lagereinheit des Artikels oder in seiner Einkaufseinheit mit angegebenem Umrechnungsfaktor.",
+  "Reorder point reached": "Meldebestand erreicht",
+  "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
+    "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
   "Item oversold": "Artikel überverkauft",
   "As stated": "Wie angegeben",
   "Customer deadline at risk": "Liefertermin gefährdet",
@@ -24681,6 +24684,9 @@ Object.assign(dictionaries.nl, {
     "Alleen een ontvangst kan in de inkoopeenheid van het artikel worden opgegeven, en alleen in die eenheid; al het andere wordt in de voorraadeenheid vastgelegd.",
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
     "Een inkoopregel staat in de voorraadeenheid van het artikel of in de inkoopeenheid met een opgegeven omrekenfactor.",
+  "Reorder point reached": "Bestelpunt bereikt",
+  "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
+    "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
   "Item oversold": "Artikel oververkocht",
   "As stated": "Zoals opgegeven",
   "Customer deadline at risk": "Leverdatum in gevaar",
@@ -24746,6 +24752,9 @@ Object.assign(dictionaries.es, {
     "Solo una recepción puede indicarse en la unidad de compra del artículo, y solo en esa; todo lo demás se registra en la unidad de existencias.",
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
     "Una línea de compra está en la unidad de existencias del artículo o en su unidad de compra con un factor de conversión indicado.",
+  "Reorder point reached": "Punto de pedido alcanzado",
+  "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
+    "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",
   "Item oversold": "Artículo sobrevendido",
   "As stated": "Según lo indicado",
   "Customer deadline at risk": "Plazo de entrega en riesgo",

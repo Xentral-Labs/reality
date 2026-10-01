@@ -54,6 +54,7 @@ was sie auflöst und welche Agenten-Tools sie auflisten und erklären.
 | [`order_line_price_missing`](#exception-order_line_price_missing)                         | Order line without a price               | Stammdaten & Preise     | `normal` | Sales operations                                                                            |
 | [`billed_not_shipped`](#exception-billed_not_shipped)                                     | Invoiced and not shipped                 | Finanzen                | `normal` | Billing, with order fulfilment when the goods are late                                      |
 | [`item_oversold`](#exception-item_oversold)                                               | Item oversold                            | Bereichsübergreifend    | `high`   | Order fulfilment, with purchasing for the supply                                            |
+| [`reorder_point_reached`](#exception-reorder_point_reached)                               | Reorder point reached                    | Aufträge & Erfüllung    | `normal` | Purchasing                                                                                  |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1380,3 +1381,33 @@ across locations; whether the right location holds it is a question for the rese
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
 [`exception_explain`](./commands#tool-exception_explain), Sicht [`items`](./views#view-items)
+
+## `reorder_point_reached` — Reorder point reached {#exception-reorder_point_reached}
+
+Stock of an item at a location has fallen to the level at which the company said it reorders.
+Reality takes what the location holds, less what is reserved there, adds what open supplier promises
+still bring to it, and compares the sum with the stated reorder point; at or below it, the entry
+appears. It proposes the stated reorder quantity, in the item's purchase unit when it is a whole
+number of them and in the stock unit otherwise, never rounded. When exactly one supplier's purchase
+price list prices the item, directly or through the supplier's group, the entry names that supplier
+and the price the price rules resolve; when several or none do, it names none and the buyer chooses.
+Nothing is ordered by the entry itself: the buyer prepares the purchase order from it and confirms
+it through the reviewed order, and its open promise then counts as incoming. A supplier promise in a
+unit the item relates no conversion for is left out, and Units not comparable names it. Item
+oversold is the company-wide view of demand; this is one location's own level, whatever customers
+have ordered.
+
+- **Verantwortlich:** Purchasing
+- **Aufgelöst durch:** Ordering, receiving or releasing reservations until the location is above its
+  reorder point, or changing or removing the reorder point.
+- **Schwere:** `normal`
+- **Datensatztyp:** `reorder_point`
+- **Spezifikation:** `302/FR-002`
+- **Nachweis:**
+  `tests/test_reorder_point_reached.py::test_at_or_below_the_point_is_reported_and_above_is_not`,
+  `tests/test_reorder_point_reached.py::test_an_open_purchase_to_the_location_counts_as_incoming`,
+  `tests/test_reorder_point_reached.py::test_one_supplier_on_a_purchase_list_is_named_with_its_price`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain)
