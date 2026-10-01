@@ -51,6 +51,7 @@ was sie auflöst und welche Agenten-Tools sie auflisten und erklären.
 | [`order_line_item_unknown`](#exception-order_line_item_unknown)                           | Order line with unknown item             | Aufträge & Erfüllung    | `normal` | Sales operations                                                                            |
 | [`payment_returned`](#exception-payment_returned)                                         | Payment returned                         | Finanzen                | `high`   | Accounts receivable                                                                         |
 | [`order_line_price_missing`](#exception-order_line_price_missing)                         | Order line without a price               | Stammdaten & Preise     | `normal` | Sales operations                                                                            |
+| [`billed_not_shipped`](#exception-billed_not_shipped)                                     | Invoiced and not shipped                 | Finanzen                | `normal` | Billing, with order fulfilment when the goods are late                                      |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1277,6 +1278,34 @@ states what is billed. Reporting it keeps a gap in what the source sent from pas
 - **Nachweis:**
   `tests/test_shop_line_gaps.py::test_a_line_without_a_price_is_kept_without_one_and_reported`,
   `tests/test_shop_line_gaps.py::test_a_billed_unpriced_line_is_no_longer_reported`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain)
+
+## `billed_not_shipped` — Invoiced and not shipped {#exception-billed_not_shipped}
+
+A customer has been invoiced for more of a sales order line than has shipped. Reality sums what
+every invoice line bills against that order line, subtracts what has shipped against its promise,
+and reports the rest. It is the sales mirror of Billed and not received, and the opposite of Shipped
+and not billed: invoicing ahead of the goods is allowed, so this is a normal finding, not a defect,
+and it is what the month-end close lists beside the goods shipped and not yet invoiced. Down-payment
+and pro-forma invoices are for the order, not for any of its lines, so they bill nothing and never
+appear here. Goods that left and came back still count as shipped; what the customer is owed for
+them is Returned and not credited. A line whose promise was cancelled after it was invoiced stays
+reported, because the customer was asked to pay for goods that will not come, until the invoice is
+reversed. Quantities are compared across the item's own stated units where it says how they relate,
+and a pair that cannot be reconciled is reported as Units not comparable.
+
+- **Verantwortlich:** Billing, with order fulfilment when the goods are late
+- **Aufgelöst durch:** Shipping the invoiced quantity, or reversing the invoice.
+- **Schwere:** `normal`
+- **Datensatztyp:** `document_line`
+- **Spezifikation:** `299/FR-001`
+- **Nachweis:**
+  `tests/test_billed_not_shipped.py::test_an_invoice_ahead_of_the_goods_is_reported_until_they_ship`,
+  `tests/test_billed_not_shipped.py::test_a_down_payment_invoice_reports_nothing`,
+  `tests/test_billed_not_shipped.py::test_a_cancelled_line_stays_reported_until_its_invoice_is_reversed`
 
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool

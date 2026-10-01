@@ -19,7 +19,7 @@ spec 305.
 | 2 | 1 | [296 Shop Order Changes and Refunds](../../specs/296-shop-order-changes/spec.md) | L04, L05, A16, A09, F12, A17 (implemented; supported) |
 | 3 | 1 | [297 Chargebacks, Returned Direct Debits and Payment Fees](../../specs/297-payment-returns-fees/spec.md) | C15, E08 (implemented; supported) |
 | 4 | 1 | [298 Automatic Credit Hold](../../specs/298-automatic-credit-hold/spec.md) | C07, C08, R08 (implemented; supported) |
-| 5 | 1 | [299 Invoiced Not Shipped, Down-Payment and Pro-Forma Invoices](../../specs/299-invoiced-not-shipped/spec.md) | E03, Q01, E11, C14 |
+| 5 | 1 | [299 Invoiced Not Shipped, Down-Payment and Pro-Forma Invoices](../../specs/299-invoiced-not-shipped/spec.md) | E03, Q01, E11, C14 (implemented; supported) |
 | 6 | 1 | [300 Multichannel Oversell, Deadlines and Peak Intake](../../specs/300-multichannel-oversell/spec.md) | B14, L02, L07 |
 | 7 | 1 | [301 Unit Conversion Between Purchase and Sales Units](../../specs/301-unit-conversion/spec.md) | O05 |
 | 8 | 1 | [302 Reorder Point and Replenishment Proposal](../../specs/302-reorder-point/spec.md) | G02 |

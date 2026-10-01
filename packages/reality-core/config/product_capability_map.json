@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:c368960ea5b0a95fa50588a6cbf0e1bd5a53bd7c861283f4de909ed32412ed80",
+  "knowledge_version": "advisor-v1:sha256:95fc24535d9640d724840238af12f4fbb0a23cc9466c17845a8b93e109bf44d5",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -145,7 +145,12 @@
         "evidence_journey_e11",
         "evidence_journey_e12"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "month_end_billing",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_e_commerce_and_marketplaces",
@@ -614,7 +619,12 @@
         "evidence_journey_q04",
         "evidence_journey_q05"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "month_end_billing",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_warehouse_and_stock",
@@ -1139,6 +1149,7 @@
         "evidence_command_hold_party_delivery",
         "evidence_command_release_credit_holds",
         "evidence_command_credit_exposure",
+        "evidence_command_month_end_billing",
         "evidence_command_announce_customer_return",
         "evidence_command_return_announcements",
         "evidence_command_preview_stale_promise_closure",
@@ -1209,6 +1220,10 @@
         },
         {
           "name": "credit_exposure",
+          "mode": "query"
+        },
+        {
+          "name": "month_end_billing",
           "mode": "query"
         },
         {
@@ -1283,6 +1298,7 @@
         "evidence_command_reserve",
         "evidence_command_record_movement",
         "evidence_command_correct_movement",
+        "evidence_command_month_end_billing",
         "evidence_command_announce_customer_return",
         "evidence_command_return_announcements",
         "evidence_command_preview_stale_promise_closure",
@@ -1336,6 +1352,10 @@
         {
           "name": "correct_movement",
           "mode": "mutation"
+        },
+        {
+          "name": "month_end_billing",
+          "mode": "query"
         },
         {
           "name": "announce_customer_return",
@@ -1471,6 +1491,8 @@
         "Gutschrift"
       ],
       "evidence_ids": [
+        "evidence_command_record_down_payment_invoice",
+        "evidence_command_record_proforma_invoice",
         "evidence_command_post_sales_invoice",
         "evidence_command_post_supplier_invoice",
         "evidence_command_record_sales_credit",
@@ -1493,6 +1515,14 @@
         "evidence_command_allocate_supplier_credit_note"
       ],
       "tools": [
+        {
+          "name": "record_down_payment_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_proforma_invoice",
+          "mode": "mutation"
+        },
         {
           "name": "post_sales_invoice",
           "mode": "mutation"
@@ -1598,6 +1628,7 @@
       "evidence_ids": [
         "evidence_command_reverse_ledger_posting_group",
         "evidence_command_credit_exposure",
+        "evidence_command_record_down_payment_invoice",
         "evidence_command_post_customer_payment",
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
@@ -1628,6 +1659,10 @@
         {
           "name": "credit_exposure",
           "mode": "query"
+        },
+        {
+          "name": "record_down_payment_invoice",
+          "mode": "mutation"
         },
         {
           "name": "post_customer_payment",
@@ -1770,6 +1805,7 @@
         "evidence_command_reverse_ledger_posting_group",
         "evidence_command_release_credit_holds",
         "evidence_command_credit_exposure",
+        "evidence_command_record_down_payment_invoice",
         "evidence_command_post_customer_payment",
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
@@ -1949,6 +1985,10 @@
         {
           "name": "credit_exposure",
           "mode": "query"
+        },
+        {
+          "name": "record_down_payment_invoice",
+          "mode": "mutation"
         },
         {
           "name": "post_customer_payment",
@@ -2280,6 +2320,9 @@
         "evidence_command_hold_document_commitments",
         "evidence_command_release_credit_holds",
         "evidence_command_credit_exposure",
+        "evidence_command_record_down_payment_invoice",
+        "evidence_command_record_proforma_invoice",
+        "evidence_command_month_end_billing",
         "evidence_command_post_customer_payment",
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
@@ -2449,6 +2492,18 @@
         },
         {
           "name": "credit_exposure",
+          "mode": "query"
+        },
+        {
+          "name": "record_down_payment_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_proforma_invoice",
+          "mode": "mutation"
+        },
+        {
+          "name": "month_end_billing",
           "mode": "query"
         },
         {

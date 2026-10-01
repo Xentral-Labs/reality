@@ -175,6 +175,16 @@ tables:
       fee_charge_document_id: {}
       source_record_id: {}
       created_at: {}
+  down_payment_offset:
+    description: A down payment a final invoice states it deducts, bounded by what the down-payment invoice was paid and not yet offset.
+    columns:
+      id: {}
+      tenant_id: {}
+      final_invoice_document_id: {}
+      down_payment_document_id: {}
+      amount: {}
+      source_record_id: {}
+      created_at: {}
   accounting_target:
     description: Finance-only external configuration; no financial amount authority.
     columns:
@@ -703,6 +713,7 @@ tables:
       sales_channel: {description: Channel through which the order or document originated.}
       payment_term_id: {description: Payment term agreed for this transaction.}
       ship_to_party_id: {description: Party identity representing the delivery recipient.}
+      order_document_id: {nullable: true, description: The sales order a down-payment or pro-forma invoice is for.}
   document_line:
     description: Normalized line-level evidence linked to its parent document.
     columns:

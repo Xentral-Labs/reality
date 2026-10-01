@@ -153,7 +153,14 @@ def _capture(
         headers = budget.read(
             session,
             select(
-                *document.c,
+                # Capture version 1 keeps its reviewed columns: the order link of
+                # spec 299 is empty on every invoice and credit note read here, and
+                # carrying it would change every fingerprint for nothing.
+                *(
+                    column
+                    for column in document.c
+                    if column.name != "order_document_id"
+                ),
                 events.c.event_count,
                 events.c.event_id,
                 events.c.event_sequence,

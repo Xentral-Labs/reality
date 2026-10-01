@@ -99,7 +99,8 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 **Danach prüfen:** [Offene Posten](./views#view-open_items) (`open_items`)
 
 **Kann hinterlassen:** [Geliefert, nicht fakturiert](./exceptions#exception-shipped_not_billed)
-(`shipped_not_billed`),
+(`shipped_not_billed`), [Fakturiert, nicht versandt](./exceptions#exception-billed_not_shipped)
+(`billed_not_shipped`),
 [Ausgangsrechnung nicht gebucht](./exceptions#exception-sales_invoice_unposted)
 (`sales_invoice_unposted`)
 

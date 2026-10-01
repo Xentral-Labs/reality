@@ -260,16 +260,36 @@ def _review_invoice(
                 )
             )
         )
+    # Spec 299: what the order's paid down payments let this invoice offset. An
+    # order without down payments keeps the former review, and so its token.
+    if direction == "sales":
+        from reality.services.down_payments import down_payment_offers
+
+        offers = down_payment_offers(session, tenant_id, order_ids)
+        if offers:
+            state["down_payment_offers"] = offers
+    effect = {
+        "debit": "accounts_receivable" if direction == "sales" else "inventory",
+        "credit": "sales_revenue" if direction == "sales" else "accounts_payable",
+    }
+    if creation.get("down_payment_offsets"):
+        offset = sum(
+            (Decimal(row["amount"]) for row in creation["down_payment_offsets"]),
+            Decimal(0),
+        )
+        state["open_after_offsets"] = str(Decimal(creation["gross_amount"]) - offset)
+        effect["down_payment_offset"] = {
+            "debit": "customer_down_payments",
+            "credit": "accounts_receivable",
+            "amount": str(offset),
+        }
     intent = json.loads(_json(arguments))
     return {
         "version": 1,
         "tool": tool,
         "intent": intent,
         "state": state,
-        "effect": {
-            "debit": "accounts_receivable" if direction == "sales" else "inventory",
-            "credit": "sales_revenue" if direction == "sales" else "accounts_payable",
-        },
+        "effect": effect,
         "token": hashlib.sha256(
             _json([tenant_id, tool, intent, state]).encode()
         ).hexdigest(),
@@ -341,20 +361,33 @@ def _invoice_evidence(
         return None
     selections = creation.get("selections", [creation])
     count = len(selections)
+    offsets = creation.get("down_payment_offsets") or []
+    # Spec 299: stated offsets add one posting of two entries and a row each.
+    extra = (2 + len(offsets)) if offsets else 0
     records = payload.get("receipt", {}).get("records", [])
     if (
         not isinstance(records, list)
-        or len(records) != count + 4
+        or len(records) != count + 4 + extra
         or any(not isinstance(r, dict) for r in records)
     ):
         return None
     ids = {
         family: [r.get("id") for r in records if r.get("family") == family]
-        for family in ("source_record", "document", "document_line", "ledger_entry")
+        for family in (
+            "source_record",
+            "document",
+            "document_line",
+            "ledger_entry",
+            "down_payment_offset",
+        )
     }
-    if [len(ids[k]) for k in ids] != [1, 1, count, 2] or len(
-        {r.get("id") for r in records}
-    ) != count + 4:
+    if [len(ids[k]) for k in ids] != [
+        1,
+        1,
+        count,
+        4 if offsets else 2,
+        len(offsets),
+    ] or len({r.get("id") for r in records}) != count + 4 + extra:
         return None
     source = session.scalar(
         select(SourceRecord).where(
@@ -418,22 +451,31 @@ def _invoice_evidence(
         len(docs) != 1
         or docs[0].subject_id != doc.id
         or json.loads(docs[0].payload).get("document_line_ids") != ids["document_line"]
-        or len(posted) != 1
+        or len(posted) != (2 if offsets else 1)
+    ):
+        return None
+    if offsets and not _offset_evidence(
+        session, tenant_id, doc, source, payload, ids, offsets, posted, canonical
     ):
         return None
     entries = list(
         session.scalars(
             select(LedgerEntry).where(
                 LedgerEntry.tenant_id == tenant_id,
-                LedgerEntry.id.in_(ids["ledger_entry"]),
+                LedgerEntry.id.in_(ids["ledger_entry"][:2]),
             )
         )
     )
+    posted = [
+        e for e in posted if entries and e.subject_id == entries[0].posting_group_id
+    ]
+    if len(posted) != 1:
+        return None
     if len(entries) != 2 or len({e.posting_group_id for e in entries}) != 1:
         return None
     snapshots = payload.get("entries", [])
     if len(snapshots) != 2 or {e.get("id") for e in snapshots} != set(
-        ids["ledger_entry"]
+        ids["ledger_entry"][:2]
     ):
         return None
     for entry in entries:
@@ -486,6 +528,82 @@ def _invoice_evidence(
     return payload["receipt"], [
         {"kind": r["family"], "id": r["id"]} for r in records
     ] + [{"kind": "business_event", "id": event.id}]
+
+
+def _offset_evidence(
+    session: Session,
+    tenant_id: str,
+    doc: Document,
+    source: SourceRecord,
+    payload: dict[str, Any],
+    ids: dict[str, list[Any]],
+    offsets: list[dict[str, Any]],
+    posted: list[BusinessEvent],
+    canonical: Any,
+) -> bool:
+    """The stated offsets were posted on the invoice and recorded, exactly (spec 299)."""
+    from reality.db.core import DownPaymentOffset
+
+    total = sum((Decimal(str(row["amount"])) for row in offsets), Decimal(0))
+    entries = list(
+        session.scalars(
+            select(LedgerEntry).where(
+                LedgerEntry.tenant_id == tenant_id,
+                LedgerEntry.id.in_(ids["ledger_entry"][2:]),
+            )
+        )
+    )
+    if (
+        len(entries) != 2
+        or len({e.posting_group_id for e in entries}) != 1
+        or {(e.account, e.debit_credit) for e in entries}
+        != {("customer_down_payments", "debit"), ("accounts_receivable", "credit")}
+        or any(
+            e.document_id != doc.id
+            or e.source_record_id != source.id
+            or e.party_id != doc.party_id
+            or e.amount != total
+            for e in entries
+        )
+        or not any(e.subject_id == entries[0].posting_group_id for e in posted)
+    ):
+        return False
+    snapshots = payload.get("offset_entries", [])
+    if {e.get("id") for e in snapshots} != {e.id for e in entries} or any(
+        canonical(snapshot)
+        != canonical(
+            json.loads(
+                _json(
+                    {
+                        key: getattr(
+                            next(e for e in entries if e.id == snapshot["id"]), key
+                        )
+                        for key in snapshot
+                    }
+                )
+            )
+        )
+        for snapshot in snapshots
+    ):
+        return False
+    rows = list(
+        session.scalars(
+            select(DownPaymentOffset).where(
+                DownPaymentOffset.tenant_id == tenant_id,
+                DownPaymentOffset.id.in_(ids["down_payment_offset"]),
+            )
+        )
+    )
+    by_id = {row.id: row for row in rows}
+    stated = [by_id.get(row_id) for row_id in ids["down_payment_offset"]]
+    return all(
+        row is not None
+        and row.final_invoice_document_id == doc.id
+        and row.source_record_id == source.id
+        and row.down_payment_document_id == expected["down_payment_document_id"]
+        and row.amount == Decimal(str(expected["amount"]))
+        for row, expected in zip(stated, offsets, strict=True)
+    )
 
 
 def _invoice_detail(

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
+from typing import Any, ClassVar
 
 from alembic import command
 from alembic.config import Config
@@ -18,6 +19,7 @@ from sqlalchemy import (
     CheckConstraint,
     Date,
     DateTime,
+    FetchedValue,
     ForeignKey,
     ForeignKeyConstraint,
     Index,
@@ -1211,6 +1213,8 @@ class PartyGroupPriceList(Base):
 
 class Document(Base):
     __tablename__ = "document"
+    # The order link's server default is not fetched back (see order_document_id).
+    __mapper_args__: ClassVar[dict[str, Any]] = {"eager_defaults": False}
     __table_args__ = (
         PrimaryKeyConstraint("tenant_id", "id"),
         ForeignKeyConstraint(
@@ -1229,6 +1233,12 @@ class Document(Base):
             ["tenant_id", "payment_term_id"],
             ["payment_term.tenant_id", "payment_term.id"],
         ),
+        ForeignKeyConstraint(
+            ["tenant_id", "order_document_id"],
+            ["document.tenant_id", "document.id"],
+            name="fk_document_order_document",
+        ),
+        Index("ix_document_order_document_id", "tenant_id", "order_document_id"),
         UniqueConstraint("tenant_id", "id", name="uq_document_tenant_id"),
         UniqueConstraint(
             "tenant_id",
@@ -1263,6 +1273,56 @@ class Document(Base):
     sales_channel: Mapped[str] = mapped_column(String, default="")
     payment_term_id: Mapped[str | None] = mapped_column(default=None)
     ship_to_party_id: Mapped[str | None] = mapped_column(default=None)
+    # The sales order a down-payment or pro-forma invoice is for (spec 299): the
+    # document is for the order, not for any of its lines, so no line bills one.
+    # Deferred, and left out of an INSERT that does not set it, so documents on
+    # a schema from before 0105 (the historical migration tests) still load and
+    # insert; readers that need the link select the column itself.
+    order_document_id: Mapped[str | None] = mapped_column(
+        server_default=FetchedValue(), deferred=True
+    )
+
+
+class DownPaymentOffset(Base):
+    """A down payment a final invoice states it deducts (spec 299)."""
+
+    __tablename__ = "down_payment_offset"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "final_invoice_document_id"],
+            ["document.tenant_id", "document.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "down_payment_document_id"],
+            ["document.tenant_id", "document.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        CheckConstraint("amount > 0", name="ck_down_payment_offset_amount"),
+        Index(
+            "ix_down_payment_offset_final_invoice_document_id",
+            "tenant_id",
+            "final_invoice_document_id",
+        ),
+        Index(
+            "ix_down_payment_offset_down_payment_document_id",
+            "tenant_id",
+            "down_payment_document_id",
+        ),
+        Index(
+            "ix_down_payment_offset_source_record_id", "tenant_id", "source_record_id"
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    final_invoice_document_id: Mapped[str] = mapped_column()
+    down_payment_document_id: Mapped[str] = mapped_column()
+    amount: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    source_record_id: Mapped[str] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class DocumentLine(Base):
@@ -2185,7 +2245,7 @@ class SubledgerAccount(Base):
         UniqueConstraint("tenant_id", "code"),
         CheckConstraint("state IN ('active', 'blocked')"),
         CheckConstraint(
-            "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','bad_debt_expense','dunning_fee_revenue','payment_fee_expense','opening_counterpart')",
+            "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','bad_debt_expense','dunning_fee_revenue','payment_fee_expense','customer_down_payments','opening_counterpart')",
             name="ck_subledger_account_role",
         ),
     )

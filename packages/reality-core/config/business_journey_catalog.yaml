@@ -1164,23 +1164,34 @@ entries:
   section: Payment and release
   title: 30 % down payment, rest before shipment
   question: Is the hold released only after the remainder?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Is the hold released only after the remainder?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the hold released only after the remainder? A down-payment invoice for the order is paid and counts towards the prepayment; the order stays blocked for the rest, the final invoice deducts the paid down payment, and only once the rest is paid does it ship.'
   limitations:
-  - Shipment is released only after the remainder is paid.
-  - A down payment made before any invoice is not tied to the order, so readiness reports a missing prepayment invoice.
-  keywords: []
+  - A payment received before any invoice is not tied to the order; record a down-payment invoice first.
+  keywords:
+  - down payment before shipment
+  - deposit then rest before shipping
+  - prepayment with down payment
+  - Anzahlung vor Versand
+  - Anzahlung und Restzahlung
+  - Restzahlung vor Lieferung
   question_examples:
   - 30 % down payment, rest before shipment
   - Is the hold released only after the remainder?
-  tools: []
+  - The customer paid a 30 % deposit; can we ship before the rest arrives?
+  - Wird erst nach der Restzahlung versendet?
+  tools:
+  - down_payment_invoice_record_propose
+  - sales_invoice_record_propose
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [E11]
   internal_evidence:
-  - reference: tests/scenarios/test_fulfillment_safety_parity.py (40 then 60 releases only at 100); tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice
-    note: Release only after the remainder is proven; a 30 % deposit before any invoice is not tied to the order (the FR-051 earmark is not built) and readiness reports `prepayment_invoice_missing`.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_30_percent_down_payment_holds_the_shipment_until_the_rest_is_paid
+    note: 'A prepayment order of 1,000 with a paid down-payment invoice of 300 shows 300 received and 700 required, and its shipment is refused; the final invoice offsets the 300 and is open for 700; once that is paid the order is ready and ships.'
+  - reference: packages/reality-core/tests/test_down_payments.py
+    note: Down-payment invoices, readiness, offsets and their refusals (spec 299).
 - id: C15
   section: Payment and release
   title: Chargeback / returned direct debit after shipment
@@ -1721,23 +1732,35 @@ entries:
   section: Customer invoice and credit note
   title: Invoice before delivery (prepayment, pro forma)
   question: Invoiced but not shipped visible?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Invoiced but not shipped visible?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Invoiced but not shipped visible? A pro-forma for the order is recorded as evidence only, posting nothing; an invoice before delivery is reported as invoiced and not shipped per order line until the goods ship.'
   limitations:
-  - Invoicing before shipment works.
-  - There is no sales-side 'invoiced but not shipped' signal and no pro-forma document.
-  keywords: []
+  - A pro-forma is evidence only; it is never an open item and never proves a prepayment.
+  keywords:
+  - pro forma invoice
+  - proforma
+  - invoiced but not shipped
+  - invoice before delivery
+  - Proforma-Rechnung
+  - fakturiert nicht versandt
+  - Rechnung vor Lieferung
   question_examples:
   - Invoice before delivery (prepayment, pro forma)
   - Invoiced but not shipped visible?
-  tools: []
+  - Which customers were invoiced for goods we have not shipped yet?
+  - Proforma-Rechnung erstellen, bevor die Ware geht
+  tools:
+  - proforma_invoice_record_propose
+  - month_end_billing
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [Q01]
   internal_evidence:
-  - reference: tests/test_fulfillment_readiness.py::test_prepayment_readiness_uses_stated_order_and_active_allocation
-    note: Invoicing before shipment works; there is no sales-side "billed not shipped" observation (only purchase-side `billed_not_received`) and no pro-forma document type.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_proforma_and_an_early_invoice_are_visible_until_the_goods_ship
+    note: A pro-forma is recorded for the order without an open item or a finding; the invoice before shipment is reported as invoiced and not shipped and clears when the ten units ship.
+  - reference: packages/reality-core/tests/test_billed_not_shipped.py
+    note: The finding, partial shipments, down-payment control, cancelled lines and the month-end read (spec 299).
 - id: E04
   section: Customer invoice and credit note
   title: 'Invoice corrected: reversal plus new invoice'
@@ -1892,23 +1915,35 @@ entries:
   section: Customer invoice and credit note
   title: Down-payment invoice and final invoice
   question: Down payment offset in the final invoice?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Down payment offset in the final invoice?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Down payment offset in the final invoice? A down-payment invoice for the order is posted against received down payments and settled by an ordinary payment; the final invoice offers what was paid, a person states the offset, and the final invoice is open only for the rest, each naming the other.'
   limitations:
-  - A deposit can be cleared against the final invoice.
-  - There is no down-payment invoice document, and the final invoice does not state the offset.
-  keywords: []
+  - An offset is stated by a person; the final invoice does not deduct a down payment on its own.
+  keywords:
+  - down-payment invoice
+  - down payment invoice
+  - final invoice deducts the down payment
+  - deposit invoice
+  - Anzahlungsrechnung
+  - Schlussrechnung Anzahlung verrechnen
+  - Abschlagsrechnung
   question_examples:
   - Down-payment invoice and final invoice
   - Down payment offset in the final invoice?
-  tools: []
+  - How do I deduct the paid down payment in the final invoice?
+  - Anzahlung in der Schlussrechnung verrechnen
+  tools:
+  - down_payment_invoice_record_propose
+  - sales_invoice_record_propose
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [C14]
   internal_evidence:
-  - reference: tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice
-    note: Deposit clearing into the final invoice is proven; there is no down-payment invoice document, and the final invoice does not state the offset.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_final_invoice_states_the_down_payment_it_deducts
+    note: 'A paid down-payment invoice of 300 is offered on the final invoice of 1,000; the stated offset leaves 700 open, empties received down payments, and the final invoice, the down payment and the order each show the offset.'
+  - reference: packages/reality-core/tests/test_down_payments.py
+    note: Offers, offsets, second final invoices and every refusal (spec 299).
 - id: E12
   section: Customer invoice and credit note
   title: Rounding difference between lines and total
@@ -4612,23 +4647,34 @@ entries:
   section: Time and period
   title: 'Month-end: shipped not invoiced, invoiced not shipped'
   question: Both lists correct?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Both lists correct?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Both lists correct? The month-end billing lists the order lines shipped and not invoiced, and invoiced and not shipped, from the same findings the exception queue reports at that instant.'
   limitations:
-  - The 'shipped but not invoiced' list is proven.
-  - Sales have no 'invoiced but not shipped' list.
-  keywords: []
+  - Down-payment and pro-forma invoices bill no order line, so they appear in neither list.
+  keywords:
+  - month-end billing
+  - shipped not invoiced
+  - invoiced not shipped
+  - month end accrual
+  - Monatsabschluss Fakturierung
+  - geliefert nicht fakturiert
+  - fakturiert nicht geliefert
   question_examples:
   - 'Month-end: shipped not invoiced, invoiced not shipped'
   - Both lists correct?
-  tools: []
+  - What must we invoice or accrue at the end of the month?
+  - Was ist zum Monatsende geliefert, aber nicht fakturiert?
+  tools:
+  - month_end_billing
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [E03]
   internal_evidence:
-  - reference: tests/scenarios/test_normal_month.py::test_the_month_ends_with_exactly_these_exceptions
-    note: Shipped-not-invoiced is proven; the sales side has no invoiced-not-shipped class (billed_not_received is purchase side only).
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_month_end_lists_both_directions_from_the_same_findings
+    note: Four shipped and not invoiced on one order and five invoiced and not shipped on another are listed from the findings; once invoiced and shipped the next month both lists are empty.
+  - reference: packages/reality-core/tests/test_billed_not_shipped.py::test_the_month_end_lists_are_the_findings
+    note: The lists carry the identities of the findings at the same instant (SC-003).
 - id: Q02
   section: Time and period
   title: Backdated posting into a closed period

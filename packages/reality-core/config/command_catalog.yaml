@@ -9,6 +9,10 @@ parameter_descriptions:
   reality_finance_v1: Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.
   answers: What a person decided for a cost review draft's open inputs; only the valuation method and the owner party are accepted.
   delivery_guard: Optional single-line sales-invoice precondition binding the unit and unbilled quantity read for the invoiced order line; rechecked under the delivery lock before recording.
+  down_payment_offsets: Optional down payments a final sales invoice states it deducts (spec 299), each a paid down-payment invoice of an order it bills and the stated amount; never more than was paid and not yet offset.
+  order_id: Opaque same-tenant identity of the sales order a down-payment or pro-forma invoice is for.
+  net_amount: Net amount the document states; recorded as stated and never derived from the gross.
+  tax_amount: Tax amount the document states; recorded as stated and never derived from the gross.
   supplier_id: Opaque same-tenant identity of the supplier Party stated on the invoice.
   invoice_ids: Opaque same-tenant customer-invoice identities explicitly selected for one reminder.
   notice_id: Opaque same-tenant identity of the retained manual reminder.
@@ -1102,6 +1106,31 @@ commands:
     reads: [party, document, document_line, commitment, ledger_entry, settlement_allocation]
     writes: []
     effect: Derives a customer's exposure against its credit limit, open invoices plus open uninvoiced orders minus available credits, naming overdue invoices and payables.
+  - name: Record a down-payment invoice
+    service: record_down_payment_invoice
+    related_services: [preview_down_payment_invoice]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [document, document_line, ledger_entry, settlement_allocation, down_payment_offset]
+    writes: [source_record, document, document_line, ledger_entry, business_event]
+    effect: Records and posts a down-payment invoice for a sales order, a receivable against received down payments that bills no quantity and counts towards prepayment once paid.
+  - name: Record a pro-forma invoice
+    service: record_proforma_invoice
+    related_services: [preview_proforma_invoice]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [document]
+    writes: [source_record, document, document_line, business_event]
+    effect: Records a pro-forma invoice for a sales order as evidence only; it posts nothing, is no open item and bills no quantity.
+  - name: Read the month-end billing lists
+    service: month_end_billing
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [document, document_line, commitment, movement]
+    writes: []
+    effect: Lists order lines shipped and not invoiced, and invoiced and not shipped, from the findings at one instant.
   - name: Post customer payment
     service: post_customer_payment
     mode: mutation
@@ -4880,6 +4909,24 @@ capability_guidance:
     events: [dunning.schedule_set]
     verification_reads: [{name: finance.dunning.schedule, proves: The confirmed waiting days and fees are retained.}]
     examples: {use: [{scenario: Remind after 7 days, then every 14 days with fees of 5 and 10., reason: One schedule states all three levels.}], do_not_use: [{scenario: Change the fee of a notice already recorded., reason: Recorded notices keep their fee.}]}
+  month_end_billing:
+    kind: read
+    application_tool: month_end_billing
+    purpose: List what the month-end close must invoice or accrue, from the same findings the exception queue reports.
+    use_when: [Someone closes a month and asks what was shipped and not invoiced, or invoiced and not shipped.]
+    do_not_use_when: [The question is which invoices are unpaid; use the open items read.]
+    required_context: [tenant]
+    data_basis: [document, document_line, commitment, movement]
+    limitations: [Down-payment and pro-forma invoices bill no order line and appear in neither list.]
+    freshness: Derived at read time from the findings at the stated instant.
+    empty_result: Every shipped line is invoiced and every invoiced line has shipped.
+    refusal_behavior: Another company's lines are never listed.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which order lines differ between shipped and invoiced quantity at the instant.], does_not_prove: [That an invoice was sent to the customer.]}
+    unknown_when: [A shipment or an invoice exists that was not recorded.]
+    next_steps: [Invoice a shipped line with sales_invoice_record_propose, or ship what was invoiced.]
+    examples: {use: [{scenario: Prepare the month-end billing accrual., reason: Both lists come from the same findings at one instant.}], do_not_use: [{scenario: Record the missing invoice., reason: Use sales_invoice_record_propose; a person confirms.}]}
   credit_exposure:
     kind: read
     application_tool: credit_exposure
@@ -5024,6 +5071,9 @@ agent_command_coverage:
   assign_line_item: {classification: eligible, tools: [order_line_item_assign_propose]}
   release_credit_holds: {classification: eligible, tools: [credit_hold_release_propose]}
   credit_exposure: {classification: eligible, tools: [credit_exposure]}
+  record_down_payment_invoice: {classification: eligible, tools: [down_payment_invoice_record_propose]}
+  record_proforma_invoice: {classification: eligible, tools: [proforma_invoice_record_propose]}
+  month_end_billing: {classification: eligible, tools: [month_end_billing]}
   list_targets:
     classification: eligible
     tools:

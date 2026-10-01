@@ -117,6 +117,7 @@ CLASS_ORDER = {
     "order_line_item_unknown": 40,
     "payment_returned": 41,
     "order_line_price_missing": 42,
+    "billed_not_shipped": 43,
 }
 
 
@@ -2421,6 +2422,62 @@ def _billing_document(
     )
 
 
+def _billed_not_shipped_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Spec 299: the sales mirror of Billed and not received.
+
+    Invoicing ahead of the goods is allowed, so this is a normal finding, not a
+    defect: it says what the month-end close must accrue and what is still owed
+    to the customer. Down-payment and pro-forma invoices bill no order line, so
+    they never appear here.
+    """
+    result: list[OperationalException] = []
+    for commitment, line, document in _order_line_promises(
+        session, tenant_id, "customer_delivery"
+    ):
+        billing = _invoice_lines(session, tenant_id, line.id)
+        if not billing:
+            continue
+        billed = _quantity_in_agreed_unit(session, tenant_id, line, billing)
+        if billed is None or billed <= ZERO:
+            continue
+        # The raw shipments: goods that left and came back were still shipped, and
+        # what the customer is owed for them is Returned and not credited.
+        shipped = _fulfilled_quantity(session, tenant_id, commitment.id, "shipment")
+        unshipped = billed - shipped
+        if unshipped <= ZERO:
+            continue
+        instants = [
+            instant
+            for billed_line in billing
+            if (billing_document := _billing_document(session, tenant_id, billed_line))
+            is not None
+            and (instant := _document_instant(billing_document)) is not None
+        ]
+        result.append(
+            OperationalException(
+                _identity("billed_not_shipped", line.id),
+                "billed_not_shipped",
+                (),
+                "normal",
+                "Invoiced and not shipped",
+                f"{unshipped.normalize():f} invoiced before shipping",
+                "document_line",
+                line.id,
+                {
+                    "billed_quantity": billed,
+                    "shipped_quantity": shipped,
+                    "unshipped_quantity": unshipped,
+                    "unit": line.unit,
+                },
+                _order_line_trace(commitment, line, document),
+                min(instants) if instants else commitment.due_at,
+            )
+        )
+    return result
+
+
 def _billed_not_received_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
@@ -3753,6 +3810,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "order_line_item_unknown": _order_line_item_unknown_exceptions,
     "payment_returned": _payment_returned_exceptions,
     "order_line_price_missing": _order_line_price_missing_exceptions,
+    "billed_not_shipped": _billed_not_shipped_exceptions,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,

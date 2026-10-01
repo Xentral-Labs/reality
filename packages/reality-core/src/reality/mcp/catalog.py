@@ -2021,6 +2021,18 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                     },
                     required=("unbilled_quantity", "unit"),
                 ),
+                # Spec 299: paid down payments this final invoice deducts.
+                "down_payment_offsets": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": _object_schema(
+                        {
+                            "down_payment_document_id": STRING,
+                            "amount": DECIMAL_STRING,
+                        },
+                        required=("down_payment_document_id", "amount"),
+                    ),
+                },
             },
             required=("gross_amount", "number"),
         ),
@@ -2102,6 +2114,52 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         _object_schema(
             {"document_line_id": STRING, "item_id": STRING},
             required=("document_line_id", "item_id"),
+        ),
+    ),
+    (
+        "down_payment_invoice_record_propose",
+        "Record a down-payment invoice",
+        "down_payment_invoice_record",
+        _object_schema(
+            {
+                "order_id": STRING,
+                "number": STRING,
+                "gross_amount": DECIMAL_STRING,
+                "currency": OPTIONAL_STRING,
+                "effective_at": OPTIONAL_STRING,
+                "net_amount": DECIMAL_STRING,
+                "tax_amount": DECIMAL_STRING,
+            },
+            required=("order_id", "number", "gross_amount"),
+        ),
+    ),
+    (
+        "proforma_invoice_record_propose",
+        "Record a pro-forma invoice",
+        "proforma_invoice_record",
+        _object_schema(
+            {
+                "order_id": STRING,
+                "number": STRING,
+                "gross_amount": DECIMAL_STRING,
+                "currency": OPTIONAL_STRING,
+                "document_date": OPTIONAL_STRING,
+                "lines": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": _object_schema(
+                        {
+                            "description": STRING,
+                            "quantity": DECIMAL_STRING,
+                            "gross_amount": DECIMAL_STRING,
+                            "net_amount": DECIMAL_STRING,
+                            "tax_amount": DECIMAL_STRING,
+                        },
+                        required=("description", "quantity", "gross_amount"),
+                    ),
+                },
+            },
+            required=("order_id", "number", "gross_amount"),
         ),
     ),
     (
@@ -2839,6 +2897,15 @@ MCP_TOOL_CATALOG += (
         "finance",
         PaymentReturnRequest.model_json_schema(),
         _propose("finance.payment.return"),
+    ),
+    MCPToolDefinition(
+        "month_end_billing",
+        "Month-end billing",
+        "Read the month-end billing lists at one instant: order lines shipped and not invoiced, and order lines invoiced and not shipped, taken from the findings.",
+        "read",
+        "finance",
+        _object_schema({"as_of": OPTIONAL_STRING}, required=()),
+        _read("month_end_billing"),
     ),
     MCPToolDefinition(
         "credit_exposure",

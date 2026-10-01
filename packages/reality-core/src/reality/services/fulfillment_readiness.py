@@ -328,6 +328,15 @@ def fulfillment_readiness(
         )
     )
     candidate_invoice_ids = {row.document_id for row in invoice_rows}
+    # A down-payment invoice is for the order, not for a line (spec 299), and its
+    # payments count towards the prepayment like an invoice's.
+    from reality.services.down_payments import (
+        live_offsets,
+        order_down_payment_invoice_ids,
+    )
+
+    down_payment_ids = order_down_payment_invoice_ids(session, tenant_id, order.id)
+    candidate_invoice_ids |= down_payment_ids
     # An invoice that also bills other orders of this party in this currency is a
     # consolidated invoice (spec 283), not ambiguous: it counts for this order only
     # once it is settled in full, by what its own lines state for this order. A
@@ -424,6 +433,20 @@ def fulfillment_readiness(
                             DocumentLine.document_id == invoice.id,
                             DocumentLine.billed_document_line_id.in_(order_line_ids),
                         )
+                    )
+                ),
+                ZERO,
+            )
+            # Spec 299: what this settled invoice deducted of the order's own
+            # down payments was counted when they were paid, not settled again.
+            received -= sum(
+                (
+                    Decimal(row.amount)
+                    for row in live_offsets(
+                        session,
+                        tenant_id,
+                        down_payment_ids=down_payment_ids,
+                        final_invoice_ids={invoice.id},
                     )
                 ),
                 ZERO,

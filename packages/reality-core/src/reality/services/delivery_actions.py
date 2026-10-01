@@ -50,6 +50,12 @@ from reality.services.customer_hold_actions import (
     review_customer_hold,
 )
 from reality.services.delivery_reads import delivery_case
+from reality.services.down_payment_actions import (
+    BILLING_DOCUMENT_TOOLS,
+    assert_no_unresolved_billing_document,
+    billing_document_detail,
+    review_billing_document,
+)
 from reality.services.financial_reversal_actions import (
     _assert_financial_overlap,
     _reversal_detail,
@@ -144,6 +150,7 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
             *CUSTOMER_EXCHANGE_TOOLS,
             *ORDER_LINE_ITEM_TOOLS,
             *CREDIT_HOLD_TOOLS,
+            *BILLING_DOCUMENT_TOOLS,
             *COMMITMENT_ACTION_TOOLS,
         }
         or (
@@ -243,6 +250,8 @@ def review_delivery(
         return review_item_assignment(session, tenant_id, arguments)
     if tool in CREDIT_HOLD_TOOLS:
         return review_credit_release(session, tenant_id, arguments)
+    if tool in BILLING_DOCUMENT_TOOLS:
+        return review_billing_document(session, tenant_id, tool, arguments)
     if tool in COMMITMENT_ACTION_TOOLS:
         return review_commitment_action(session, tenant_id, tool, arguments)
     if tool == "order_create":
@@ -612,6 +621,8 @@ def delivery_proposal_detail(
         return item_assignment_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in CREDIT_HOLD_TOOLS:
         return credit_release_detail(session, tenant_id, proposal)
+    if proposal.type.removeprefix("tool:") in BILLING_DOCUMENT_TOOLS:
+        return billing_document_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in COMMITMENT_ACTION_TOOLS:
         return commitment_action_detail(session, tenant_id, proposal)
     if proposal.type == "tool:order_create":
@@ -854,6 +865,10 @@ def assert_no_unresolved_action(
         return assert_no_unresolved_credit_release(
             session, tenant_id, arguments, exclude
         )
+    if tool in BILLING_DOCUMENT_TOOLS:
+        return assert_no_unresolved_billing_document(
+            session, tenant_id, tool, arguments, exclude
+        )
     if tool in COMMITMENT_ACTION_TOOLS:
         return assert_no_unresolved_commitment_action(
             session, tenant_id, tool, arguments, exclude
@@ -984,6 +999,7 @@ def reconcile_delivery(
             *CUSTOMER_EXCHANGE_TOOLS,
             *ORDER_LINE_ITEM_TOOLS,
             *CREDIT_HOLD_TOOLS,
+            *BILLING_DOCUMENT_TOOLS,
             *COMMITMENT_ACTION_TOOLS,
         }:
             proposal.status = "executed"

@@ -97,7 +97,8 @@ From a customer order through reservation, dispatch and invoice to the settled p
 **Check afterwards:** [Open items](./views#view-open_items) (`open_items`)
 
 **Can leave behind:** [Shipped and not billed](./exceptions#exception-shipped_not_billed)
-(`shipped_not_billed`), [Sales invoice not booked](./exceptions#exception-sales_invoice_unposted)
+(`shipped_not_billed`), [Invoiced and not shipped](./exceptions#exception-billed_not_shipped)
+(`billed_not_shipped`), [Sales invoice not booked](./exceptions#exception-sales_invoice_unposted)
 (`sales_invoice_unposted`)
 
 ### 6. Record the payment and allocate it

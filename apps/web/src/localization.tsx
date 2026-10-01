@@ -51,7 +51,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Dismiss: "Ausblenden",
     "Confirmed action recorded. Readiness was reloaded; review the current blockers and projection freshness.":
       "Bestätigte Aktion erfasst. Die Versandbereitschaft wurde neu gelesen; prüfen Sie die aktuellen Blockaden und die Projektionsfrische.",
-    "Prepare prepayment invoice": "Anzahlungsrechnung vorbereiten",
+    "Prepare prepayment invoice": "Vorkasserechnung vorbereiten",
     "Prepare available shipment": "Verfügbare Teilmenge vorbereiten",
     Readiness: "Versandbereitschaft",
     Blockers: "Blockaden",
@@ -22381,6 +22381,45 @@ Object.assign(dictionaries.de, {
   "State why the credit hold is released.": "Gib an, warum die Kreditsperre freigegeben wird.",
   "A release of this order's credit hold is still being settled.":
     "Eine Freigabe der Kreditsperre dieses Auftrags wird noch abgeschlossen.",
+  "State a positive down-payment amount with at most four decimals.":
+    "Gib einen positiven Anzahlungsbetrag mit höchstens vier Nachkommastellen an.",
+  "A final invoice offsets no more down payment than it bills.":
+    "Eine Schlussrechnung verrechnet nicht mehr Anzahlung, als sie berechnet.",
+  "A down payment is offset only up to what was paid on it and not yet offset.":
+    "Eine Anzahlung wird nur bis zu dem Betrag verrechnet, der darauf bezahlt und noch nicht verrechnet ist.",
+  "State each offset as a down-payment invoice of the order and a positive amount, each invoice once.":
+    "Gib jede Verrechnung als Anzahlungsrechnung des Auftrags mit positivem Betrag an, jede Rechnung einmal.",
+  "Only a down-payment invoice of an order this invoice bills can be offset.":
+    "Verrechnet werden kann nur eine Anzahlungsrechnung eines Auftrags, den diese Rechnung berechnet.",
+  "A down payment that a final invoice still offsets cannot be reversed; reverse the final invoice's offset first.":
+    "Eine Anzahlung, die eine Schlussrechnung noch verrechnet, kann nicht storniert werden; storniere zuerst die Verrechnung der Schlussrechnung.",
+  "This final invoice still offsets a down payment; reverse its offset first.":
+    "Diese Schlussrechnung verrechnet noch eine Anzahlung; storniere zuerst die Verrechnung.",
+  "A reversed down-payment invoice cannot be offset.":
+    "Eine stornierte Anzahlungsrechnung kann nicht verrechnet werden.",
+  "State a positive pro-forma amount with at most four decimals.":
+    "Gib einen positiven Proforma-Betrag mit höchstens vier Nachkommastellen an.",
+  "A pro-forma invoice is in its order's currency.":
+    "Eine Proforma-Rechnung ist in der Währung ihres Auftrags.",
+  "State the pro-forma date as a calendar date.": "Gib das Proforma-Datum als Kalenderdatum an.",
+  "A pro-forma invoice names its order, number and amount, and optionally the currency, date and lines.":
+    "Eine Proforma-Rechnung nennt Auftrag, Nummer und Betrag, optional Währung, Datum und Positionen.",
+  "Each pro-forma line states a description, a positive quantity and amount, and optionally net and tax.":
+    "Jede Proforma-Position nennt Beschreibung, positive Menge und Betrag, optional Netto und Steuer.",
+  "State the pro-forma invoice number.": "Gib die Nummer der Proforma-Rechnung an.",
+  "A pro-forma invoice is for a sales order.":
+    "Eine Proforma-Rechnung gehört zu einem Kundenauftrag.",
+  "A recording of this pro-forma invoice is still being settled.":
+    "Eine Erfassung dieser Proforma-Rechnung wird noch abgeschlossen.",
+  "A down-payment invoice is in its order's currency.":
+    "Eine Anzahlungsrechnung ist in der Währung ihres Auftrags.",
+  "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
+    "Eine Anzahlungsrechnung nennt Auftrag, Nummer und Betrag, optional Währung, Datum, Netto und Steuer.",
+  "State the down-payment invoice number.": "Gib die Nummer der Anzahlungsrechnung an.",
+  "A down-payment invoice is for a sales order.":
+    "Eine Anzahlungsrechnung gehört zu einem Kundenauftrag.",
+  "A recording of this down-payment invoice is still being settled.":
+    "Eine Erfassung dieser Anzahlungsrechnung wird noch abgeschlossen.",
   "This delivery has no active own hold. Prepare a fresh review.":
     "Diese Lieferung hat keine aktive eigene Sperre. Bereite eine neue Prüfung vor.",
   "This delivery is already on hold. Prepare a fresh review.":
@@ -23290,6 +23329,44 @@ Object.assign(dictionaries.nl, {
   "State why the credit hold is released.": "Geef aan waarom de kredietblokkade wordt vrijgegeven.",
   "A release of this order's credit hold is still being settled.":
     "Een vrijgave van de kredietblokkade van deze order wordt nog afgerond.",
+  "State a positive down-payment amount with at most four decimals.":
+    "Geef een positief aanbetalingsbedrag met hoogstens vier decimalen op.",
+  "A final invoice offsets no more down payment than it bills.":
+    "Een eindfactuur verrekent niet meer aanbetaling dan ze factureert.",
+  "A down payment is offset only up to what was paid on it and not yet offset.":
+    "Een aanbetaling wordt alleen verrekend tot het bedrag dat erop betaald en nog niet verrekend is.",
+  "State each offset as a down-payment invoice of the order and a positive amount, each invoice once.":
+    "Geef elke verrekening op als aanbetalingsfactuur van de order met een positief bedrag, elke factuur één keer.",
+  "Only a down-payment invoice of an order this invoice bills can be offset.":
+    "Alleen een aanbetalingsfactuur van een order die deze factuur factureert kan worden verrekend.",
+  "A down payment that a final invoice still offsets cannot be reversed; reverse the final invoice's offset first.":
+    "Een aanbetaling die een eindfactuur nog verrekent kan niet worden tegengeboekt; boek eerst de verrekening van de eindfactuur tegen.",
+  "This final invoice still offsets a down payment; reverse its offset first.":
+    "Deze eindfactuur verrekent nog een aanbetaling; boek eerst de verrekening tegen.",
+  "A reversed down-payment invoice cannot be offset.":
+    "Een tegengeboekte aanbetalingsfactuur kan niet worden verrekend.",
+  "State a positive pro-forma amount with at most four decimals.":
+    "Geef een positief proformabedrag met hoogstens vier decimalen op.",
+  "A pro-forma invoice is in its order's currency.":
+    "Een proformafactuur is in de valuta van haar order.",
+  "State the pro-forma date as a calendar date.": "Geef de proformadatum op als kalenderdatum.",
+  "A pro-forma invoice names its order, number and amount, and optionally the currency, date and lines.":
+    "Een proformafactuur noemt order, nummer en bedrag, en optioneel valuta, datum en regels.",
+  "Each pro-forma line states a description, a positive quantity and amount, and optionally net and tax.":
+    "Elke proformaregel noemt een omschrijving, een positieve hoeveelheid en bedrag, en optioneel netto en btw.",
+  "State the pro-forma invoice number.": "Geef het nummer van de proformafactuur op.",
+  "A pro-forma invoice is for a sales order.": "Een proformafactuur hoort bij een verkooporder.",
+  "A recording of this pro-forma invoice is still being settled.":
+    "Een vastlegging van deze proformafactuur wordt nog afgerond.",
+  "A down-payment invoice is in its order's currency.":
+    "Een aanbetalingsfactuur is in de valuta van haar order.",
+  "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
+    "Een aanbetalingsfactuur noemt order, nummer en bedrag, en optioneel valuta, datum, netto en btw.",
+  "State the down-payment invoice number.": "Geef het nummer van de aanbetalingsfactuur op.",
+  "A down-payment invoice is for a sales order.":
+    "Een aanbetalingsfactuur hoort bij een verkooporder.",
+  "A recording of this down-payment invoice is still being settled.":
+    "Een registratie van deze aanbetalingsfactuur wordt nog afgerond.",
   "This delivery has no active own hold. Prepare a fresh review.":
     "Deze levering heeft geen actieve eigen blokkade. Bereid een nieuwe controle voor.",
   "This delivery is already on hold. Prepare a fresh review.":
@@ -24210,6 +24287,45 @@ Object.assign(dictionaries.es, {
   "State why the credit hold is released.": "Indica por qué se libera el bloqueo de crédito.",
   "A release of this order's credit hold is still being settled.":
     "Una liberación del bloqueo de crédito de este pedido aún se está cerrando.",
+  "State a positive down-payment amount with at most four decimals.":
+    "Indica un importe de anticipo positivo con como máximo cuatro decimales.",
+  "A final invoice offsets no more down payment than it bills.":
+    "Una factura final no descuenta más anticipo del que factura.",
+  "A down payment is offset only up to what was paid on it and not yet offset.":
+    "Un anticipo solo se descuenta hasta lo pagado sobre él y aún no descontado.",
+  "State each offset as a down-payment invoice of the order and a positive amount, each invoice once.":
+    "Indica cada descuento como una factura de anticipo del pedido con un importe positivo, cada factura una vez.",
+  "Only a down-payment invoice of an order this invoice bills can be offset.":
+    "Solo se puede descontar una factura de anticipo de un pedido que esta factura factura.",
+  "A down payment that a final invoice still offsets cannot be reversed; reverse the final invoice's offset first.":
+    "Un anticipo que una factura final aún descuenta no se puede anular; anula primero el descuento de la factura final.",
+  "This final invoice still offsets a down payment; reverse its offset first.":
+    "Esta factura final aún descuenta un anticipo; anula primero el descuento.",
+  "A reversed down-payment invoice cannot be offset.":
+    "Una factura de anticipo anulada no se puede descontar.",
+  "State a positive pro-forma amount with at most four decimals.":
+    "Indica un importe proforma positivo con como máximo cuatro decimales.",
+  "A pro-forma invoice is in its order's currency.":
+    "Una factura proforma está en la moneda de su pedido.",
+  "State the pro-forma date as a calendar date.":
+    "Indica la fecha de la proforma como fecha de calendario.",
+  "A pro-forma invoice names its order, number and amount, and optionally the currency, date and lines.":
+    "Una factura proforma indica el pedido, el número y el importe, y opcionalmente la moneda, la fecha y las líneas.",
+  "Each pro-forma line states a description, a positive quantity and amount, and optionally net and tax.":
+    "Cada línea de la proforma indica una descripción, una cantidad y un importe positivos, y opcionalmente el neto y el impuesto.",
+  "State the pro-forma invoice number.": "Indica el número de la factura proforma.",
+  "A pro-forma invoice is for a sales order.": "Una factura proforma es para un pedido de venta.",
+  "A recording of this pro-forma invoice is still being settled.":
+    "Un registro de esta factura proforma aún se está completando.",
+  "A down-payment invoice is in its order's currency.":
+    "Una factura de anticipo está en la moneda de su pedido.",
+  "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
+    "Una factura de anticipo indica el pedido, el número y el importe, y opcionalmente la moneda, la fecha, el neto y el impuesto.",
+  "State the down-payment invoice number.": "Indica el número de la factura de anticipo.",
+  "A down-payment invoice is for a sales order.":
+    "Una factura de anticipo es para un pedido de venta.",
+  "A recording of this down-payment invoice is still being settled.":
+    "Un registro de esta factura de anticipo aún se está cerrando.",
   "This delivery has no active own hold. Prepare a fresh review.":
     "Esta entrega no tiene un bloqueo propio activo. Prepara una nueva revisión.",
   "This delivery is already on hold. Prepare a fresh review.":
@@ -24483,6 +24599,9 @@ Object.assign(dictionaries.de, {
   "Stated SKU": "Angegebene SKU",
   "Why it waits": "Warum es wartet",
   "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
+  "Invoiced and not shipped": "Fakturiert, nicht versandt",
+  "Shipping the invoiced quantity, or reversing the invoice.":
+    "Versand der fakturierten Menge oder Storno der Rechnung.",
   "Order line without a price": "Auftragszeile ohne Preis",
   "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
     "Eine Rechnung, die die Zeile abrechnet und den berechneten Betrag angibt, oder die Stornierung der Zusage der Zeile.",
@@ -24522,6 +24641,9 @@ Object.assign(dictionaries.nl, {
   "Stated SKU": "Opgegeven SKU",
   "Why it waits": "Waarom het wacht",
   "Order line with unknown item": "Orderregel met onbekend artikel",
+  "Invoiced and not shipped": "Gefactureerd, niet verzonden",
+  "Shipping the invoiced quantity, or reversing the invoice.":
+    "De gefactureerde hoeveelheid verzenden of de factuur tegenboeken.",
   "Order line without a price": "Orderregel zonder prijs",
   "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
     "Een factuur die de regel factureert met het gefactureerde bedrag, of het annuleren van de toezegging van de regel.",
@@ -24561,6 +24683,9 @@ Object.assign(dictionaries.es, {
   "Stated SKU": "SKU indicada",
   "Why it waits": "Por qué espera",
   "Order line with unknown item": "Línea de pedido con artículo desconocido",
+  "Invoiced and not shipped": "Facturado y no enviado",
+  "Shipping the invoiced quantity, or reversing the invoice.":
+    "Enviar la cantidad facturada o anular la factura.",
   "Order line without a price": "Línea de pedido sin precio",
   "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
     "Una factura que facture la línea indicando el importe cobrado, o la cancelación del compromiso de la línea.",
@@ -24626,6 +24751,44 @@ Object.assign(dictionaries.de, {
   "The invoice being settled again by a new payment, a credit or an accepted write-off.":
     "Die Rechnung wird wieder ausgeglichen: durch eine neue Zahlung, eine Gutschrift oder eine akzeptierte Abschreibung.",
   "Returned payments": "Zurückgegangene Zahlungen",
+  "Down-payment and pro-forma invoices": "Anzahlungs- und Proforma-Rechnungen",
+  Paid: "Bezahlt",
+  "Already offset": "Bereits verrechnet",
+  "Left to offset": "Noch zu verrechnen",
+  "A pro-forma posts nothing, is no open item and bills no quantity.":
+    "Eine Proforma-Rechnung bucht nichts, ist kein offener Posten und berechnet keine Menge.",
+  "As of": "Stichtag",
+  "Change offsets": "Verrechnung ändern",
+  "Down payments": "Anzahlungen",
+  "Down-payment invoice": "Anzahlungsrechnung",
+  "Earlier down payment": "Frühere Anzahlung",
+  "Findings at": "Befunde zum",
+  "for order": "zum Auftrag",
+  "Goods that left against a customer order line and that no invoice line bills yet.":
+    "Ware, die zu einer Auftragszeile versandt wurde und die noch keine Rechnungszeile berechnet.",
+  "Inspect order line": "Auftragszeile prüfen",
+  "Invoice lines that bill more of a customer order line than has shipped. Down-payment and pro-forma invoices bill no line and never appear here.":
+    "Rechnungszeilen, die mehr von einer Auftragszeile berechnen, als versandt ist. Anzahlungs- und Proforma-Rechnungen berechnen keine Zeile und erscheinen hier nie.",
+  "It bills no quantity of the order; once paid it counts towards prepayment and can be offset in the final invoice.":
+    "Sie berechnet keine Menge des Auftrags; bezahlt zählt sie zur Vorkasse und kann in der Schlussrechnung verrechnet werden.",
+  "Month-end billing": "Monatsabschluss Fakturierung",
+  "Nothing to report.": "Nichts zu melden.",
+  "Offset down payments": "Anzahlungen verrechnen",
+  "Offset now": "Jetzt verrechnen",
+  "Open after the offsets": "Offen nach Verrechnung",
+  "Order value": "Auftragswert",
+  "Pro-forma invoice": "Proforma-Rechnung",
+  "Remove offsets": "Verrechnung entfernen",
+  "Shipped and not invoiced": "Versandt, nicht fakturiert",
+  "The down-payment invoice is recorded and open for payment.":
+    "Die Anzahlungsrechnung ist erfasst und zur Zahlung offen.",
+  "The pro-forma invoice is recorded; it posts nothing.":
+    "Die Proforma-Rechnung ist erfasst; sie bucht nichts.",
+  "Close the month: goods shipped and not yet invoiced, and invoices ahead of the goods.":
+    "Monat abschließen: versandte, noch nicht fakturierte Ware und Rechnungen vor der Ware.",
+  "Down-payment offsets": "Verrechnete Anzahlungen",
+  "For order": "Zum Auftrag",
+  "Posts nothing": "Bucht nichts",
   "Returned direct debit": "Rücklastschrift",
 });
 
@@ -24667,6 +24830,44 @@ Object.assign(dictionaries.nl, {
   "The invoice being settled again by a new payment, a credit or an accepted write-off.":
     "De factuur wordt opnieuw vereffend: door een nieuwe betaling, een creditnota of een geaccepteerde afboeking.",
   "Returned payments": "Teruggeboekte betalingen",
+  "Down-payment and pro-forma invoices": "Aanbetalings- en proformafacturen",
+  Paid: "Betaald",
+  "Already offset": "Al verrekend",
+  "Left to offset": "Nog te verrekenen",
+  "A pro-forma posts nothing, is no open item and bills no quantity.":
+    "Een proformafactuur boekt niets, is geen openstaande post en factureert geen hoeveelheid.",
+  "As of": "Peildatum",
+  "Change offsets": "Verrekening wijzigen",
+  "Down payments": "Aanbetalingen",
+  "Down-payment invoice": "Aanbetalingsfactuur",
+  "Earlier down payment": "Eerdere aanbetaling",
+  "Findings at": "Bevindingen op",
+  "for order": "bij order",
+  "Goods that left against a customer order line and that no invoice line bills yet.":
+    "Goederen die voor een orderregel zijn verzonden en die nog geen factuurregel factureert.",
+  "Inspect order line": "Orderregel bekijken",
+  "Invoice lines that bill more of a customer order line than has shipped. Down-payment and pro-forma invoices bill no line and never appear here.":
+    "Factuurregels die meer van een orderregel factureren dan is verzonden. Aanbetalings- en proformafacturen factureren geen regel en verschijnen hier nooit.",
+  "It bills no quantity of the order; once paid it counts towards prepayment and can be offset in the final invoice.":
+    "Ze factureert geen hoeveelheid van de order; betaald telt ze mee voor de vooruitbetaling en kan ze in de eindfactuur worden verrekend.",
+  "Month-end billing": "Maandafsluiting facturering",
+  "Nothing to report.": "Niets te melden.",
+  "Offset down payments": "Aanbetalingen verrekenen",
+  "Offset now": "Nu verrekenen",
+  "Open after the offsets": "Open na verrekening",
+  "Order value": "Orderwaarde",
+  "Pro-forma invoice": "Proformafactuur",
+  "Remove offsets": "Verrekening verwijderen",
+  "Shipped and not invoiced": "Verzonden, niet gefactureerd",
+  "The down-payment invoice is recorded and open for payment.":
+    "De aanbetalingsfactuur is vastgelegd en staat open voor betaling.",
+  "The pro-forma invoice is recorded; it posts nothing.":
+    "De proformafactuur is vastgelegd; ze boekt niets.",
+  "Close the month: goods shipped and not yet invoiced, and invoices ahead of the goods.":
+    "De maand afsluiten: verzonden, nog niet gefactureerde goederen en facturen vóór de goederen.",
+  "Down-payment offsets": "Verrekende aanbetalingen",
+  "For order": "Bij order",
+  "Posts nothing": "Boekt niets",
   "Returned direct debit": "Gestorneerde incasso",
 });
 
@@ -24706,6 +24907,44 @@ Object.assign(dictionaries.es, {
   "The invoice being settled again by a new payment, a credit or an accepted write-off.":
     "La factura se vuelve a saldar con un nuevo cobro, un abono o una cancelación aceptada.",
   "Returned payments": "Cobros devueltos",
+  "Down-payment and pro-forma invoices": "Facturas de anticipo y proforma",
+  Paid: "Pagado",
+  "Already offset": "Ya descontado",
+  "Left to offset": "Pendiente de descontar",
+  "A pro-forma posts nothing, is no open item and bills no quantity.":
+    "Una proforma no contabiliza nada, no es una partida abierta y no factura ninguna cantidad.",
+  "As of": "Fecha de corte",
+  "Change offsets": "Cambiar descuentos",
+  "Down payments": "Anticipos",
+  "Down-payment invoice": "Factura de anticipo",
+  "Earlier down payment": "Anticipo anterior",
+  "Findings at": "Hallazgos a",
+  "for order": "del pedido",
+  "Goods that left against a customer order line and that no invoice line bills yet.":
+    "Mercancía enviada para una línea de pedido que todavía ninguna línea de factura factura.",
+  "Inspect order line": "Revisar línea de pedido",
+  "Invoice lines that bill more of a customer order line than has shipped. Down-payment and pro-forma invoices bill no line and never appear here.":
+    "Líneas de factura que facturan más de una línea de pedido de lo enviado. Las facturas de anticipo y proforma no facturan ninguna línea y nunca aparecen aquí.",
+  "It bills no quantity of the order; once paid it counts towards prepayment and can be offset in the final invoice.":
+    "No factura ninguna cantidad del pedido; una vez pagada cuenta para el pago anticipado y se puede descontar en la factura final.",
+  "Month-end billing": "Cierre mensual de facturación",
+  "Nothing to report.": "Nada que informar.",
+  "Offset down payments": "Descontar anticipos",
+  "Offset now": "Descontar ahora",
+  "Open after the offsets": "Pendiente tras los descuentos",
+  "Order value": "Valor del pedido",
+  "Pro-forma invoice": "Factura proforma",
+  "Remove offsets": "Quitar descuentos",
+  "Shipped and not invoiced": "Enviado y no facturado",
+  "The down-payment invoice is recorded and open for payment.":
+    "La factura de anticipo está registrada y pendiente de pago.",
+  "The pro-forma invoice is recorded; it posts nothing.":
+    "La factura proforma está registrada; no contabiliza nada.",
+  "Close the month: goods shipped and not yet invoiced, and invoices ahead of the goods.":
+    "Cerrar el mes: mercancía enviada y aún no facturada, y facturas anteriores a la mercancía.",
+  "Down-payment offsets": "Anticipos descontados",
+  "For order": "Del pedido",
+  "Posts nothing": "No contabiliza nada",
   "Returned direct debit": "Adeudo devuelto",
   Chargeback: "Contracargo",
 });

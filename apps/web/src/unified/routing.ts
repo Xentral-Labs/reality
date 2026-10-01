@@ -67,7 +67,7 @@ export type Selection = {
   sourceRecord: string;
   evidenceType: string;
   financeSettings: "accounts" | "cost-centers" | "classifications" | "source-mappings";
-  financeView: "open-items" | "payments" | "journal" | "balances" | "settings";
+  financeView: "open-items" | "payments" | "journal" | "balances" | "month-end" | "settings";
   balanceSide: "customer" | "supplier";
   creditOnly: boolean;
   partyId: string;
@@ -205,9 +205,14 @@ export function readSelection(url: URL): Selection {
     )
       ? (url.searchParams.get("finance_settings") as Selection["financeSettings"])
       : "accounts",
-    financeView: ["open-items", "payments", "journal", "balances", "settings"].includes(
-      url.searchParams.get("finance_view") || "",
-    )
+    financeView: [
+      "open-items",
+      "payments",
+      "journal",
+      "balances",
+      "month-end",
+      "settings",
+    ].includes(url.searchParams.get("finance_view") || "")
       ? (url.searchParams.get("finance_view") as Selection["financeView"])
       : "open-items",
     flow: ["customer-credit", "customer-balance", "supplier-balance"].includes(

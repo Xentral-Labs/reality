@@ -3042,7 +3042,36 @@ export type InvoiceInput = {
   reality_finance_v1?: StatedInvoiceAmounts;
   number: string;
   effective_at?: string;
+  /** Spec 299: paid down payments this final invoice deducts. */
+  down_payment_offsets?: DownPaymentOffset[];
   [key: string]: unknown;
+};
+export type DownPaymentOffset = { down_payment_document_id: string; amount: string };
+/** A down-payment invoice of the order, as the final-invoice review offers it (spec 299). */
+export type DownPaymentOffer = {
+  document_id: string;
+  number: string;
+  currency: string;
+  gross: string;
+  paid: string;
+  offset: string;
+  offsettable: string;
+};
+/** One order line of the month-end billing lists (spec 299). */
+export type MonthEndBillingRow = {
+  exception_id: string;
+  order_id: string;
+  order_number: string | null;
+  order_line_id: string;
+  item_id: string | null;
+  sku: string | null;
+  quantity: string;
+  unit: string | null;
+};
+export type MonthEndBilling = {
+  as_of: string;
+  shipped_not_billed: MonthEndBillingRow[];
+  billed_not_shipped: MonthEndBillingRow[];
 };
 export type InvoiceProposal = Omit<DeliveryProposal, "review" | "observation"> & {
   review: null | {
@@ -3059,7 +3088,10 @@ export type InvoiceProposal = Omit<DeliveryProposal, "review" | "observation"> &
         unit: string;
         effective_at?: string;
         reality_finance_v1?: StatedInvoiceAmounts;
+        down_payment_offsets?: DownPaymentOffset[];
       };
+      down_payment_offers?: DownPaymentOffer[];
+      open_after_offsets?: string;
       billing?: (BillingAvailability & { requested: string; remaining_after: string })[];
       positions?: {
         order_line_id: string;
@@ -3117,6 +3149,14 @@ export const invoiceActions = {
   billable: (tenant: string, direction: "sales" | "purchase", party: string, currency: string) =>
     request<BillablePositions>(
       `/api/tenants/${encodeURIComponent(tenant)}/invoice-billable-positions?${new URLSearchParams({ direction, party_id: party, currency })}`,
+    ),
+};
+
+/** Spec 299: shipped-not-invoiced and invoiced-not-shipped lines from the findings. */
+export const monthEndBillingApi = {
+  read: (tenant: string, asOf = "") =>
+    request<MonthEndBilling>(
+      `/api/tenants/${encodeURIComponent(tenant)}/finance/month-end-billing${asOf ? `?${new URLSearchParams({ as_of: asOf })}` : ""}`,
     ),
 };
 

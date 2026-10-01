@@ -188,6 +188,7 @@ export function Shell({
                 payments: "Payments",
                 journal: "Journal",
                 balances: "Balances",
+                "month-end": "Month-end billing",
                 settings: "Finance settings",
               } as const
             )[selection.financeView]

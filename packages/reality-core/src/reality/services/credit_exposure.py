@@ -250,6 +250,22 @@ def credit_exposures(
         else:
             credits[party.id].append(entry)
 
+    from reality.services.down_payments import held_down_payments
+
+    for row in held_down_payments(session, tenant_id, set(parties)):
+        party = parties[row["party_id"]]
+        entry = {
+            "document_id": row["document_id"],
+            "number": row["number"],
+            "origin": "down_payment",
+            "currency": row["currency"],
+            "available": row["offsettable"],
+        }
+        if row["currency"] != party.default_currency:
+            not_counted[party.id].append(entry)
+        else:
+            credits[party.id].append(entry)
+
     orders = _order_rows(session, tenant_id, parties)
     result = {}
     for party_id, party in parties.items():

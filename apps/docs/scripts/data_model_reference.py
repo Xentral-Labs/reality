@@ -41,6 +41,7 @@ customer_reference|Customer reference stated on the document; not identity.|Kund
 sales_channel|Sales channel stated for the document.|Für den Beleg genannter Vertriebskanal.
 payment_term_id|Reference to the agreed payment terms.|Verweis auf die vereinbarten Zahlungsbedingungen.
 ship_to_party_id|Business partner at the delivery address.|Geschäftspartner der Lieferadresse.
+order_document_id|Sales order a down-payment or pro-forma invoice is for.|Auftrag, für den eine Anzahlungs- oder Proforma-Rechnung ausgestellt ist.
 document_id|Related evidence document.|Zugehöriger Beleg als Nachweis.
 source_line_id|Line identity supplied by the source within its document.|Von der Quelle gelieferte Positionskennung innerhalb des Belegs.
 item_id|Reference to the item master record.|Verweis auf den Artikelstammsatz.
@@ -827,7 +828,9 @@ def build_data_models(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
         fields = []
         for column in table.columns:
             default = {"kind": "none", "value": ""}
-            if column.server_default is not None:
+            # A bare FetchedValue marks a column the ORM leaves out of an INSERT
+            # that does not set it; it states no default.
+            if getattr(column.server_default, "arg", None) is not None:
                 default = {"kind": "server", "value": str(column.server_default.arg)}
             elif column.default is not None:
                 if column.default.is_callable:

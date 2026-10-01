@@ -466,6 +466,45 @@
     "document_date_format_invalid": {
       "message": "Document date must use YYYY-MM-DD."
     },
+    "down_payment_amount_invalid": {
+      "message": "State a positive down-payment amount with at most four decimals."
+    },
+    "down_payment_currency_mismatch": {
+      "message": "A down-payment invoice is in its order's currency."
+    },
+    "down_payment_offset_active": {
+      "message": "A down payment that a final invoice still offsets cannot be reversed; reverse the final invoice's offset first."
+    },
+    "down_payment_offset_exceeds_invoice": {
+      "message": "A final invoice offsets no more down payment than it bills."
+    },
+    "down_payment_offset_exceeds_paid": {
+      "message": "A down payment is offset only up to what was paid on it and not yet offset."
+    },
+    "down_payment_offset_fields_invalid": {
+      "message": "State each offset as a down-payment invoice of the order and a positive amount, each invoice once."
+    },
+    "down_payment_offset_other_order": {
+      "message": "Only a down-payment invoice of an order this invoice bills can be offset."
+    },
+    "down_payment_offset_reversed": {
+      "message": "A reversed down-payment invoice cannot be offset."
+    },
+    "down_payment_offset_reverse_first": {
+      "message": "This final invoice still offsets a down payment; reverse its offset first."
+    },
+    "down_payment_fields_invalid": {
+      "message": "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax."
+    },
+    "down_payment_number_missing": {
+      "message": "State the down-payment invoice number."
+    },
+    "down_payment_order_required": {
+      "message": "A down-payment invoice is for a sales order."
+    },
+    "down_payment_record_unresolved": {
+      "message": "A recording of this down-payment invoice is still being settled."
+    },
     "dunning_preview_stale": {
       "message": "Dunning preview is stale; reload and confirm again."
     },
@@ -1413,6 +1452,30 @@
     },
     "practice_company_requires_reviewed_actions": {
       "message": "Use the reviewed practice actions for this company."
+    },
+    "proforma_amount_invalid": {
+      "message": "State a positive pro-forma amount with at most four decimals."
+    },
+    "proforma_currency_mismatch": {
+      "message": "A pro-forma invoice is in its order's currency."
+    },
+    "proforma_date_invalid": {
+      "message": "State the pro-forma date as a calendar date."
+    },
+    "proforma_fields_invalid": {
+      "message": "A pro-forma invoice names its order, number and amount, and optionally the currency, date and lines."
+    },
+    "proforma_line_fields_invalid": {
+      "message": "Each pro-forma line states a description, a positive quantity and amount, and optionally net and tax."
+    },
+    "proforma_number_missing": {
+      "message": "State the pro-forma invoice number."
+    },
+    "proforma_order_required": {
+      "message": "A pro-forma invoice is for a sales order."
+    },
+    "proforma_record_unresolved": {
+      "message": "A recording of this pro-forma invoice is still being settled."
     },
     "proposal_active_not_found": {
       "message": "Active tool proposal not found."

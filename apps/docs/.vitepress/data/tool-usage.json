@@ -397,7 +397,11 @@
         "command:record_packaged_execution",
         "command:assign_line_item"
       ],
-      "reads": ["command:credit_exposure", "command:preview_stale_promise_closure"],
+      "reads": [
+        "command:credit_exposure",
+        "command:month_end_billing",
+        "command:preview_stale_promise_closure"
+      ],
       "exceptions": [
         "exception:overdue_outgoing_customer_commitment",
         "exception:outgoing_commitment_at_risk",
@@ -485,7 +489,7 @@
         "command:record_shipment_event",
         "command:supersede_shipment_event"
       ],
-      "reads": [],
+      "reads": ["command:month_end_billing"],
       "exceptions": ["exception:return_unresolved", "exception:unexplained_movement"],
       "tools": ["tool:shipments_list", "tool:shipment_explain", "tool:movement_explanation"],
       "events": [
@@ -580,6 +584,8 @@
       "tables": ["dunning_schedule_level", "collection_handover", "collection_handover_invoice"],
       "lists": ["view:open_items", "view:documents", "projection:open_financial_items"],
       "actions": [
+        "command:record_down_payment_invoice",
+        "command:record_proforma_invoice",
         "command:post_sales_invoice",
         "command:post_supplier_invoice",
         "command:record_sales_credit",
@@ -616,7 +622,8 @@
         "exception:overdue_receivable",
         "exception:overdue_payable",
         "exception:purchase_discount_available",
-        "exception:duplicate_supplier_invoice"
+        "exception:duplicate_supplier_invoice",
+        "exception:billed_not_shipped"
       ],
       "tools": ["tool:finance_credits", "tool:finance_party_balances"],
       "events": [
@@ -660,6 +667,7 @@
       "tables": ["settlement_allocation"],
       "lists": ["view:payments", "projection:payments"],
       "actions": [
+        "command:record_down_payment_invoice",
         "command:post_customer_payment",
         "command:execute_payment_run",
         "command:post_customer_refund",
@@ -1012,6 +1020,7 @@
         "command:list_source_mappings",
         "command:source_mapping_history",
         "command:credit_exposure",
+        "command:month_end_billing",
         "command:notices",
         "command:notice_detail",
         "command:run_context"
@@ -1211,7 +1220,11 @@
           "actions": ["command:record_sales_invoice", "command:post_sales_invoice"],
           "tools": [],
           "lists": ["view:open_items"],
-          "exceptions": ["exception:shipped_not_billed", "exception:sales_invoice_unposted"]
+          "exceptions": [
+            "exception:shipped_not_billed",
+            "exception:billed_not_shipped",
+            "exception:sales_invoice_unposted"
+          ]
         },
         {
           "title": {
@@ -7551,7 +7564,7 @@
       "summary": "Prepare this business mutation without changing state. Record sales invoice. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [delivery_guard]",
+      "synopsis": "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [delivery_guard] [down_payment_offsets]",
       "parameters": [
         {
           "name": "order_line_id",
@@ -7749,6 +7762,27 @@
           "type": "string",
           "required": true,
           "description": "Unit of measure in which the quantity is expressed.",
+          "depth": 1
+        },
+        {
+          "name": "down_payment_offsets",
+          "type": "array",
+          "required": false,
+          "description": "Optional down payments a final sales invoice states it deducts (spec 299), each a paid down-payment invoice of an order it bills and the stated amount; never more than was paid and not yet offset.",
+          "depth": 0
+        },
+        {
+          "name": "down_payment_offsets[].down_payment_document_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "down_payment_offsets[].amount",
+          "type": "string",
+          "required": true,
+          "description": "Monetary amount of the payment or financial observation.",
           "depth": 1
         }
       ],
@@ -8115,6 +8149,172 @@
       "links": ["command:assign_line_item"],
       "label_de": "Assign an item to an order line",
       "resources": ["order", "source"]
+    },
+    {
+      "id": "tool:down_payment_invoice_record_propose",
+      "kind": "tool",
+      "key": "down_payment_invoice_record_propose",
+      "label": "Record a down-payment invoice",
+      "area": "finance",
+      "summary": "Prepare this business mutation without changing state. Record a down-payment invoice. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "down_payment_invoice_record_propose order_id number gross_amount [currency] [effective_at] [net_amount] [tax_amount]",
+      "parameters": [
+        {
+          "name": "order_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the sales order a down-payment or pro-forma invoice is for.",
+          "depth": 0
+        },
+        {
+          "name": "number",
+          "type": "string",
+          "required": true,
+          "description": "Human-facing document or transaction number; it is not internal identity.",
+          "depth": 0
+        },
+        {
+          "name": "gross_amount",
+          "type": "string",
+          "required": true,
+          "description": "Total the source states for the document; recorded as received and never calculated.",
+          "depth": 0
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 0
+        },
+        {
+          "name": "effective_at",
+          "type": "string",
+          "required": false,
+          "description": "UTC instant from which the observation or rule takes effect.",
+          "depth": 0
+        },
+        {
+          "name": "net_amount",
+          "type": "string",
+          "required": false,
+          "description": "Net amount the document states; recorded as stated and never derived from the gross.",
+          "depth": 0
+        },
+        {
+          "name": "tax_amount",
+          "type": "string",
+          "required": false,
+          "description": "Tax amount the document states; recorded as stated and never derived from the gross.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "record_down_payment_invoice",
+      "projections": [],
+      "links": ["command:record_down_payment_invoice"],
+      "label_de": "Record a down-payment invoice",
+      "resources": ["invoice", "payment"]
+    },
+    {
+      "id": "tool:proforma_invoice_record_propose",
+      "kind": "tool",
+      "key": "proforma_invoice_record_propose",
+      "label": "Record a pro-forma invoice",
+      "area": "finance",
+      "summary": "Prepare this business mutation without changing state. Record a pro-forma invoice. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "proforma_invoice_record_propose order_id number gross_amount [currency] [document_date] [lines]",
+      "parameters": [
+        {
+          "name": "order_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the sales order a down-payment or pro-forma invoice is for.",
+          "depth": 0
+        },
+        {
+          "name": "number",
+          "type": "string",
+          "required": true,
+          "description": "Human-facing document or transaction number; it is not internal identity.",
+          "depth": 0
+        },
+        {
+          "name": "gross_amount",
+          "type": "string",
+          "required": true,
+          "description": "Total the source states for the document; recorded as received and never calculated.",
+          "depth": 0
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 0
+        },
+        {
+          "name": "document_date",
+          "type": "string",
+          "required": false,
+          "description": "Business date printed on or asserted by the evidence document.",
+          "depth": 0
+        },
+        {
+          "name": "lines",
+          "type": "array",
+          "required": false,
+          "description": "Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.",
+          "depth": 0
+        },
+        {
+          "name": "lines[].description",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation of the record or rule.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].gross_amount",
+          "type": "string",
+          "required": true,
+          "description": "Total the source states for the document; recorded as received and never calculated.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].net_amount",
+          "type": "string",
+          "required": false,
+          "description": "Net amount the document states; recorded as stated and never derived from the gross.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].tax_amount",
+          "type": "string",
+          "required": false,
+          "description": "Tax amount the document states; recorded as stated and never derived from the gross.",
+          "depth": 1
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "record_proforma_invoice",
+      "projections": [],
+      "links": ["command:record_proforma_invoice"],
+      "label_de": "Record a pro-forma invoice",
+      "resources": ["invoice"]
     },
     {
       "id": "tool:credit_hold_release_propose",
@@ -11427,6 +11627,51 @@
       "links": ["command:record_return"],
       "label_de": "Record a returned payment",
       "resources": ["return"]
+    },
+    {
+      "id": "tool:month_end_billing",
+      "kind": "tool",
+      "key": "month_end_billing",
+      "label": "Month-end billing",
+      "area": "cross_functional",
+      "summary": "Read the month-end billing lists at one instant: order lines shipped and not invoiced, and order lines invoiced and not shipped, taken from the findings.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "month_end_billing [as_of]",
+      "parameters": [
+        {
+          "name": "as_of",
+          "type": "string",
+          "required": false,
+          "description": "UTC instant the derivation is evaluated at; the current instant when absent.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "List what the month-end close must invoice or accrue, from the same findings the exception queue reports.",
+        "use_when": [
+          "Someone closes a month and asks what was shipped and not invoiced",
+          "or invoiced and not shipped."
+        ],
+        "do_not_use_when": ["The question is which invoices are unpaid; use the open items read."],
+        "limitations": [
+          "Down-payment and pro-forma invoices bill no order line and appear in neither list."
+        ],
+        "empty_result": "Every shipped line is invoiced and every invoiced line has shipped.",
+        "freshness": "Derived at read time from the findings at the stated instant."
+      },
+      "read_modes": [
+        {
+          "query": "MCP month_end_billing",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "month_end_billing",
+      "projections": [],
+      "links": ["command:month_end_billing"],
+      "label_de": "Month-end billing",
+      "resources": ["delivery", "order", "source"]
     },
     {
       "id": "tool:credit_exposure",
@@ -20565,6 +20810,94 @@
       "resources": ["accounting", "order", "party", "payment", "source"]
     },
     {
+      "id": "command:record_down_payment_invoice",
+      "kind": "command",
+      "key": "record_down_payment_invoice",
+      "label": "Record a down-payment invoice",
+      "area": "finance",
+      "summary": "Records and posts a down-payment invoice for a sales order, a receivable against received down payments that bills no quantity and counts towards prepayment once paid.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "document",
+        "document_line",
+        "ledger_entry",
+        "settlement_allocation",
+        "down_payment_offset"
+      ],
+      "writes": ["source_record", "document", "document_line", "ledger_entry", "business_event"],
+      "confirmation": "required",
+      "related_services": ["preview_down_payment_invoice"],
+      "tools": ["down_payment_invoice_record_propose"],
+      "synopses": [
+        "down_payment_invoice_record_propose order_id number gross_amount [currency] [effective_at] [net_amount] [tax_amount]"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:down_payment_invoice_record_propose"],
+      "label_de": "Anzahlungsrechnung erfassen",
+      "resources": ["invoice", "payment"]
+    },
+    {
+      "id": "command:record_proforma_invoice",
+      "kind": "command",
+      "key": "record_proforma_invoice",
+      "label": "Record a pro-forma invoice",
+      "area": "finance",
+      "summary": "Records a pro-forma invoice for a sales order as evidence only; it posts nothing, is no open item and bills no quantity.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["document"],
+      "writes": ["source_record", "document", "document_line", "business_event"],
+      "confirmation": "required",
+      "related_services": ["preview_proforma_invoice"],
+      "tools": ["proforma_invoice_record_propose"],
+      "synopses": [
+        "proforma_invoice_record_propose order_id number gross_amount [currency] [document_date] [lines]"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:proforma_invoice_record_propose"],
+      "label_de": "Proforma-Rechnung erfassen",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "command:month_end_billing",
+      "kind": "command",
+      "key": "month_end_billing",
+      "label": "Read the month-end billing lists",
+      "area": "cross_functional",
+      "summary": "Lists order lines shipped and not invoiced, and invoiced and not shipped, from the findings at one instant.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["document", "document_line", "commitment", "movement"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["month_end_billing"],
+      "synopses": ["month_end_billing [as_of]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "List what the month-end close must invoice or accrue, from the same findings the exception queue reports.",
+        "use_when": [
+          "Someone closes a month and asks what was shipped and not invoiced",
+          "or invoiced and not shipped."
+        ],
+        "do_not_use_when": ["The question is which invoices are unpaid; use the open items read."],
+        "limitations": [
+          "Down-payment and pro-forma invoices bill no order line and appear in neither list."
+        ],
+        "empty_result": "Every shipped line is invoiced and every invoiced line has shipped.",
+        "freshness": "Derived at read time from the findings at the stated instant."
+      },
+      "links": ["tool:month_end_billing"],
+      "label_de": "Monatsabschluss Fakturierung anzeigen",
+      "resources": ["delivery", "order", "source"]
+    },
+    {
       "id": "command:post_customer_payment",
       "kind": "command",
       "key": "post_customer_payment",
@@ -21768,7 +22101,7 @@
       "related_services": [],
       "tools": ["sales_invoice_record_propose"],
       "synopses": [
-        "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [delivery_guard]"
+        "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [delivery_guard] [down_payment_offsets]"
       ],
       "events": ["invoice.recorded"],
       "actions": [],
@@ -23388,6 +23721,7 @@
         }
       ],
       "refresh_events": [
+        "payment.returned",
         "commitment.fulfilled",
         "reservation.consumed",
         "fact.observed",
@@ -23410,7 +23744,9 @@
         "reservation.created",
         "reservation.released",
         "movement.recorded",
-        "movement.corrected"
+        "movement.corrected",
+        "ledger.reversed",
+        "settlement.allocated"
       ],
       "clock_refresh_seconds": null,
       "service": "projection_rows",
@@ -23463,6 +23799,7 @@
         }
       ],
       "refresh_events": [
+        "payment.returned",
         "commitment.fulfilled",
         "reservation.consumed",
         "fact.observed",
@@ -23482,7 +23819,9 @@
         "reservation.created",
         "reservation.released",
         "movement.recorded",
-        "movement.corrected"
+        "movement.corrected",
+        "ledger.reversed",
+        "settlement.allocated"
       ],
       "clock_refresh_seconds": null,
       "service": "projection_rows",
@@ -23868,7 +24207,8 @@
         "exception:exchange_without_return",
         "exception:order_line_item_unknown",
         "exception:payment_returned",
-        "exception:order_line_price_missing"
+        "exception:order_line_price_missing",
+        "exception:billed_not_shipped"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -25285,6 +25625,28 @@
       "resources": ["order", "terms"]
     },
     {
+      "id": "exception:billed_not_shipped",
+      "kind": "exception",
+      "key": "billed_not_shipped",
+      "label": "Invoiced and not shipped",
+      "area": "finance",
+      "summary": "A customer has been invoiced for more of a sales order line than has shipped. Reality sums what every invoice line bills against that order line, subtracts what has shipped against its promise, and reports the rest. It is the sales mirror of Billed and not received, and the opposite of Shipped and not billed: invoicing ahead of the goods is allowed, so this is a normal finding, not a defect, and it is what the month-end close lists beside the goods shipped and not yet invoiced. Down-payment and pro-forma invoices are for the order, not for any of its lines, so they bill nothing and never appear here. Goods that left and came back still count as shipped; what the customer is owed for them is Returned and not credited. A line whose promise was cancelled after it was invoiced stays reported, because the customer was asked to pay for goods that will not come, until the invoice is reversed. Quantities are compared across the item's own stated units where it says how they relate, and a pair that cannot be reconciled is reported as Units not comparable.",
+      "owner": "Billing, with order fulfilment when the goods are late",
+      "clears_through": "Shipping the invoiced quantity, or reversing the invoice.",
+      "severity": "normal",
+      "record_type": "document_line",
+      "authority": "299/FR-001",
+      "evidence": [
+        "tests/test_billed_not_shipped.py::test_an_invoice_ahead_of_the_goods_is_reported_until_they_ship",
+        "tests/test_billed_not_shipped.py::test_a_down_payment_invoice_reports_nothing",
+        "tests/test_billed_not_shipped.py::test_a_cancelled_line_stays_reported_until_its_invoice_is_reversed"
+      ],
+      "causes": [],
+      "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
+      "label_de": "Fakturiert, nicht versandt",
+      "resources": ["invoice"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -25495,6 +25857,8 @@
         "Journal",
         "Timeline",
         "Operational Exceptions",
+        "Fulfillment queue",
+        "Fulfillment blockers",
         "Tenant usage"
       ],
       "links": ["command:record_return"],
@@ -26483,6 +26847,8 @@
         "Journal",
         "Operational Exceptions",
         "Timeline",
+        "Fulfillment queue",
+        "Fulfillment blockers",
         "Tenant usage"
       ],
       "links": ["command:reverse_ledger_posting_group"],
@@ -26503,6 +26869,8 @@
         "Payments",
         "Timeline",
         "Operational Exceptions",
+        "Fulfillment queue",
+        "Fulfillment blockers",
         "Tenant usage"
       ],
       "links": [],
@@ -72584,6 +72952,8 @@
         "command:update_location",
         "command:create_payment_term",
         "command:create_price_list",
+        "command:record_down_payment_invoice",
+        "command:record_proforma_invoice",
         "command:post_customer_payment",
         "command:execute_payment_run",
         "command:record_sales_credit",
@@ -72661,6 +73031,7 @@
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
           "references": [
+            "document.tenant_id",
             "party.tenant_id",
             "payment_term.tenant_id",
             "source_record.tenant_id",
@@ -72862,11 +73233,27 @@
             "de": "Geschäftspartner der Lieferadresse."
           },
           "references": ["party.id"]
+        },
+        {
+          "name": "order_document_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Sales order a down-payment or pro-forma invoice is for.",
+            "de": "Auftrag, für den eine Anzahlungs- oder Proforma-Rechnung ausgestellt ist."
+          },
+          "references": ["document.id"]
         }
       ],
       "actions": [
         "command:create_manual_order",
         "command:correct_manual_document",
+        "command:record_down_payment_invoice",
+        "command:record_proforma_invoice",
         "command:post_customer_payment",
         "command:execute_payment_run",
         "command:create_manual_document_with_lines",
@@ -73161,6 +73548,8 @@
       "actions": [
         "command:create_manual_order",
         "command:correct_manual_document",
+        "command:record_down_payment_invoice",
+        "command:record_proforma_invoice",
         "command:create_manual_document_with_lines",
         "command:record_sales_credit",
         "command:record_supplier_invoice",
@@ -74299,6 +74688,7 @@
       ],
       "actions": [
         "command:reverse_ledger_posting_group",
+        "command:record_down_payment_invoice",
         "command:post_customer_payment",
         "command:execute_payment_run",
         "command:post_sales_invoice",

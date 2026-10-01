@@ -8,6 +8,8 @@ import {
   type BillingAvailability,
   type BillablePositions,
   type InvoiceProposal,
+  type DownPaymentOffer,
+  type DownPaymentOffset,
   type ReferenceRow,
   type Page,
 } from "../api";
@@ -183,6 +185,25 @@ export function InvoiceCard({
       if (alive.current) {
         setProposal(result);
         setEditing(false);
+        prepared?.(result.id);
+      }
+    });
+  // Spec 299: state which paid down payments this final invoice deducts and review
+  // again. The reviewed intent is the basis, as Edit does, since the draft is empty
+  // once a proposal is reopened; the superseded proposal is rejected first.
+  const applyOffsets = (offsets: DownPaymentOffset[]) =>
+    run(async () => {
+      if (!proposal?.review) return;
+      await api.rejectProposal(tenant, proposal.id, null);
+      const intent = structuredClone(proposal.review.intent);
+      delete intent.down_payment_offsets;
+      request.current = crypto.randomUUID();
+      const result = await invoiceActions.prepare(tenant, request.current, activeTool, {
+        ...intent,
+        ...(offsets.length ? { down_payment_offsets: offsets } : {}),
+      });
+      if (alive.current) {
+        setProposal(result);
         prepared?.(result.id);
       }
     });
@@ -618,6 +639,18 @@ export function InvoiceCard({
                   )}
                 </strong>
               </div>
+              {review.state.down_payment_offers && proposal.status === "proposed" && (
+                <DownPaymentOffsets
+                  key={proposal.id}
+                  offers={review.state.down_payment_offers}
+                  stated={review.state.creation.down_payment_offsets ?? []}
+                  currency={review.state.creation.currency}
+                  openAfter={review.state.open_after_offsets}
+                  busy={busy}
+                  apply={applyOffsets}
+                  inspect={inspect}
+                />
+              )}
               <p className="text-sm">
                 {t("Effective time")}:{" "}
                 {review.state.creation.effective_at
@@ -1004,5 +1037,97 @@ function StatedAmountFields({
         </label>
       ))}
     </div>
+  );
+}
+
+/** A stated decimal above zero, read as text: nothing here is calculated. */
+const statedPositive = (value: string) => /^\d+(\.\d+)?$/.test(value.trim()) && /[1-9]/.test(value);
+
+/** Spec 299: the order's paid down payments, prefilled with what is left to offset. */
+function DownPaymentOffsets({
+  offers,
+  stated,
+  currency,
+  openAfter,
+  busy,
+  apply,
+  inspect,
+}: {
+  offers: DownPaymentOffer[];
+  stated: DownPaymentOffset[];
+  currency: string;
+  openAfter?: string;
+  busy: boolean;
+  apply: (offsets: DownPaymentOffset[]) => void;
+  inspect: (target: { kind: string; id: string }) => void;
+}) {
+  const statedBy = Object.fromEntries(
+    stated.map((row) => [row.down_payment_document_id, row.amount]),
+  );
+  const [amounts, setAmounts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      offers.map((offer) => [
+        offer.document_id,
+        statedBy[offer.document_id] ?? (statedPositive(offer.offsettable) ? offer.offsettable : ""),
+      ]),
+    ),
+  );
+  const offsets = offers
+    .filter((offer) => statedPositive(amounts[offer.document_id] || ""))
+    .map((offer) => ({
+      down_payment_document_id: offer.document_id,
+      amount: amounts[offer.document_id].trim(),
+    }));
+  return (
+    <section
+      aria-label={t("Down payments")}
+      className="rounded-lg border border-border-default p-4 text-sm"
+    >
+      <h4 className="mb-2 font-semibold">{t("Down payments")}</h4>
+      <div className="divide-y divide-border-default">
+        {offers.map((offer) => (
+          <div key={offer.document_id} className="flex flex-wrap items-center gap-3 py-2">
+            <button
+              className="text-accent underline"
+              onClick={() => inspect({ kind: "document", id: offer.document_id })}
+            >
+              {offer.number}
+            </button>
+            <span className="text-fg-muted">
+              {t("Paid")} {formatMoney(offer.paid, currency)} · {t("Already offset")}{" "}
+              {formatMoney(offer.offset, currency)} · {t("Left to offset")}{" "}
+              {formatMoney(offer.offsettable, currency)}
+            </span>
+            <label className="ml-auto flex items-center gap-2">
+              {t("Offset now")}
+              <input
+                className="br-control w-28"
+                inputMode="decimal"
+                aria-label={`${t("Offset now")} ${offer.number}`}
+                value={amounts[offer.document_id] ?? ""}
+                onChange={(event) =>
+                  setAmounts((old) => ({ ...old, [offer.document_id]: event.target.value }))
+                }
+              />
+            </label>
+          </div>
+        ))}
+      </div>
+      {stated.length > 0 && openAfter && (
+        <div className="mt-3">
+          {t("Open after the offsets")}: <strong>{formatMoney(openAfter, currency, 4)}</strong>
+        </div>
+      )}
+      <div className="mt-3 flex gap-2">
+        <button className="br-btn" disabled={busy} onClick={() => apply(offsets)}>
+          {stated.length ? t("Change offsets") : t("Offset down payments")}
+        </button>
+        {stated.length > 0 && (
+          <button className="br-btn" disabled={busy} onClick={() => apply([])}>
+            {t("Remove offsets")}
+          </button>
+        )}
+      </div>
+    </section>
   );
 }

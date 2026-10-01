@@ -454,12 +454,13 @@ readiness from active reservations and execution holds.
 
 [How this query runs](./views#read-execution)
 
-**Background refresh after:** `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
-`source_record.interpreted`, `party.created`, `party.updated`, `party.delivery_hold_placed`,
-`party.delivery_hold_released`, `item.updated`, `document.recorded`, `document.corrected`,
-`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`document_line.item_assigned`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `movement.recorded`, `movement.corrected`
+**Background refresh after:** `payment.returned`, `commitment.fulfilled`, `reservation.consumed`,
+`fact.observed`, `source_record.interpreted`, `party.created`, `party.updated`,
+`party.delivery_hold_placed`, `party.delivery_hold_released`, `item.updated`, `document.recorded`,
+`document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
+`promises.closed`, `document_line.item_assigned`, `exchange.recorded`, `commitment.held`,
+`commitment.hold_released`, `reservation.created`, `reservation.released`, `movement.recorded`,
+`movement.corrected`, `ledger.reversed`, `settlement.allocated`
 
 **See also:** view [`orders`](./views#view-orders), view
 [`warehouse_queue`](./views#view-warehouse_queue), agent tool
@@ -485,12 +486,13 @@ and active order or party delivery holds.
 
 [How this query runs](./views#read-execution)
 
-**Background refresh after:** `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
-`source_record.interpreted`, `party.delivery_hold_placed`, `party.delivery_hold_released`,
-`item.updated`, `document.recorded`, `document.corrected`, `commitment.created`,
-`commitment.cancelled`, `commitment.revised`, `promises.closed`, `exchange.recorded`,
-`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
-`movement.recorded`, `movement.corrected`
+**Background refresh after:** `payment.returned`, `commitment.fulfilled`, `reservation.consumed`,
+`fact.observed`, `source_record.interpreted`, `party.delivery_hold_placed`,
+`party.delivery_hold_released`, `item.updated`, `document.recorded`, `document.corrected`,
+`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
+`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `movement.recorded`, `movement.corrected`, `ledger.reversed`,
+`settlement.allocated`
 
 **See also:** view [`fulfillment_blockers`](./views#view-fulfillment_blockers), agent tool
 [`fulfillment_blockers`](./commands#tool-fulfillment_blockers)
@@ -676,7 +678,8 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`exchange_without_return`](./exceptions#exception-exchange_without_return), exception
 [`order_line_item_unknown`](./exceptions#exception-order_line_item_unknown), exception
 [`payment_returned`](./exceptions#exception-payment_returned), exception
-[`order_line_price_missing`](./exceptions#exception-order_line_price_missing)
+[`order_line_price_missing`](./exceptions#exception-order_line_price_missing), exception
+[`billed_not_shipped`](./exceptions#exception-billed_not_shipped)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

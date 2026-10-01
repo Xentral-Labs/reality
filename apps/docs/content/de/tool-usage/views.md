@@ -461,12 +461,13 @@ readiness from active reservations and execution holds.
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-**Hintergrundaktualisierung nach:** `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
-`source_record.interpreted`, `party.created`, `party.updated`, `party.delivery_hold_placed`,
-`party.delivery_hold_released`, `item.updated`, `document.recorded`, `document.corrected`,
-`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`document_line.item_assigned`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `movement.recorded`, `movement.corrected`
+**Hintergrundaktualisierung nach:** `payment.returned`, `commitment.fulfilled`,
+`reservation.consumed`, `fact.observed`, `source_record.interpreted`, `party.created`,
+`party.updated`, `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.updated`,
+`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
+`commitment.revised`, `promises.closed`, `document_line.item_assigned`, `exchange.recorded`,
+`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
+`movement.recorded`, `movement.corrected`, `ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Sicht [`orders`](./views#view-orders), Sicht
 [`warehouse_queue`](./views#view-warehouse_queue), Agenten-Tool
@@ -492,12 +493,13 @@ and active order or party delivery holds.
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-**Hintergrundaktualisierung nach:** `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
-`source_record.interpreted`, `party.delivery_hold_placed`, `party.delivery_hold_released`,
-`item.updated`, `document.recorded`, `document.corrected`, `commitment.created`,
-`commitment.cancelled`, `commitment.revised`, `promises.closed`, `exchange.recorded`,
-`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
-`movement.recorded`, `movement.corrected`
+**Hintergrundaktualisierung nach:** `payment.returned`, `commitment.fulfilled`,
+`reservation.consumed`, `fact.observed`, `source_record.interpreted`, `party.delivery_hold_placed`,
+`party.delivery_hold_released`, `item.updated`, `document.recorded`, `document.corrected`,
+`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
+`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `movement.recorded`, `movement.corrected`, `ledger.reversed`,
+`settlement.allocated`
 
 **Siehe auch:** Sicht [`fulfillment_blockers`](./views#view-fulfillment_blockers), Agenten-Tool
 [`fulfillment_blockers`](./commands#tool-fulfillment_blockers)
@@ -684,7 +686,8 @@ Ausnahme [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), Ausn
 [`exchange_without_return`](./exceptions#exception-exchange_without_return), Ausnahme
 [`order_line_item_unknown`](./exceptions#exception-order_line_item_unknown), Ausnahme
 [`payment_returned`](./exceptions#exception-payment_returned), Ausnahme
-[`order_line_price_missing`](./exceptions#exception-order_line_price_missing)
+[`order_line_price_missing`](./exceptions#exception-order_line_price_missing), Ausnahme
+[`billed_not_shipped`](./exceptions#exception-billed_not_shipped)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

@@ -12,6 +12,7 @@ import { SettlementReduction } from "../finance/SettlementReduction";
 import { DunningNotice } from "../finance/DunningNotice";
 import { DunningRun } from "../finance/DunningRun";
 import { PaymentReturn } from "../finance/PaymentReturn";
+import { MonthEndBilling } from "../finance/MonthEndBilling";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { Wallet, Search } from "lucide-react";
@@ -79,6 +80,7 @@ export function FinancePage(
               ["payments", "Payments"],
               ["journal", "Journal"],
               ["balances", "Balances"],
+              ["month-end", "Month-end billing"],
               ["settings", "Settings"],
             ] as const
           ).flatMap(([value, label]) =>
@@ -109,6 +111,8 @@ export function FinancePage(
           area={selection.financeSettings}
           selectArea={(financeSettings) => navigate({ financeSettings })}
         />
+      ) : selection.financeView === "month-end" ? (
+        <MonthEndBilling key={selection.tenant} tenant={selection.tenant} />
       ) : (
         <FinanceRegister key={selection.tenant} {...props} />
       )}

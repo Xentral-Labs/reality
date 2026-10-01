@@ -28,6 +28,8 @@ from reality.services.finance.settlement import (
 SOURCE_SYSTEM = "internal_settlement_cash"
 INVOICES = {
     "sales_invoice": "customer",
+    # Paid like an invoice, for its order (spec 299).
+    "down_payment_invoice": "customer",
     "supplier_invoice": "supplier",
     **OPENING_DEBTS,
 }

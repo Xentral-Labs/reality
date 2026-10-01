@@ -1156,6 +1156,8 @@ class DeliveryActionPrepare(ApiModel):
         "customer_exchange_record",
         "order_line_item_assign",
         "credit_hold_release",
+        "down_payment_invoice_record",
+        "proforma_invoice_record",
     ]
     arguments: dict[str, Any]
     session_id: str | None = None
@@ -5368,6 +5370,9 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
     from reality.services.shop_refunds import refunds_for_order
 
     returns_rows = invoice_return_rows(session, tenant_id, document)
+    from reality.services.down_payments import order_billing_rows
+
+    billing_documents = order_billing_rows(session, tenant_id, document)
 
     refunds = (
         refunds_for_order(session, tenant_id, document)
@@ -5528,6 +5533,24 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 ]
                 if returns_rows
                 else []
+            ),
+            *(
+                {
+                    # Spec 299: down-payment and pro-forma invoices are for the
+                    # order itself; offsets join a final invoice and a down payment.
+                    "title": title,
+                    "rows": [
+                        inspector_row(
+                            row["label"],
+                            row["value"],
+                            kind=row["kind"],
+                            record_id=row["record_id"],
+                            meta=row["meta"],
+                        )
+                        for row in rows
+                    ],
+                }
+                for title, rows in billing_documents.items()
             ),
             *(
                 [
@@ -7618,6 +7641,24 @@ def get_dunning_run_context(
 
     try:
         return run_context(session, tenant_id, run_date=run_date, party_ids=party_ids)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/finance/month-end-billing")
+def tenant_month_end_billing(
+    tenant_id: str, session: DatabaseSession, as_of: str | None = None
+):
+    """Spec 299: shipped-not-billed and billed-not-shipped lines from the findings."""
+    from reality.tools.application import run_read_tool
+
+    try:
+        return run_read_tool(
+            session,
+            tenant_id,
+            "month_end_billing",
+            {"as_of": as_of} if as_of else {},
+        )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
