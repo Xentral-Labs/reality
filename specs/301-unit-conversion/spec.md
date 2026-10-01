@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: Approved
 
 **Language**: English
 
@@ -30,7 +30,19 @@ Purchase units and conversion factors are compared in exception checks, but rece
 
 - Variable conversions (catch weight).
 - Unit conversion in pricing.
+- A purchase unit per supplier.
+- Sales lines in another unit (selling in cartons).
+- Converting purchase orders recorded before this feature.
 - Anything that requires a document status field (Constitution II).
+
+## Clarifications
+
+### Session 2026-10-01
+
+- Q: Where does the conversion from carton to piece happen? → A: The supplier promise and every receipt are held in the item's stock unit. The purchase order line keeps the quantity and unit as stated, for example 5 cartons; its promise is 60 pieces. A receipt stated in cartons is converted when it is recorded, and the movement keeps the stated quantity and unit beside the converted one. Every reader of open, received, stock, valuation and matching then works in one unit.
+- Q: Is one purchase unit per item enough, or one per supplier? → A: One per item: the existing `Item.purchase_unit` and `Item.conversion_factor`. A supplier-specific pack size is a later specification.
+- Q: What happens to purchase orders already recorded in a purchase unit? → A: Conversion applies to purchase orders recorded from now on. Recorded promises are not changed; open supplier promises stated in a purchase unit before the change are named, not converted.
+- Q: Does the conversion apply to sales too? → A: No, purchasing only. Sales lines keep today's behaviour; selling in cartons is its own specification.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -56,9 +68,9 @@ As a wholesaler, I receive 5 cartons and see 60 pieces in stock.
 
 ### Functional Requirements
 
-- **FR-001**: Receipts in a purchase unit MUST convert to the item's base unit by the stated factor.
-- **FR-002**: Stated quantities MUST be kept as stated alongside the converted quantity.
-- **FR-003**: A unit without a conversion MUST be refused.
+- **FR-001**: A purchase order line stated in the item's purchase unit MUST create a supplier promise in the item's stock unit by the item's stated factor. A receipt stated in the purchase unit MUST be recorded in the stock unit by the same factor, so that stock, open quantity, valuation and invoice matching agree.
+- **FR-002**: The quantity and unit as stated MUST be kept: on the purchase order line, and on the receipt beside its converted quantity. Reads of a purchase show both.
+- **FR-003**: A purchase order line or a receipt in a unit the item states no conversion for MUST be refused with a coded reason. A conversion that leaves a remainder MUST be refused too.
 - **FR-004**: Every mutation this feature adds MUST use the reviewed, tenant-scoped application tools shared by Web, Chat/MCP and CLI.
 - **FR-005**: When the journeys in scope are proven by a business story, the Business Journey Guide MUST promote them with executable evidence, as specs 292 to 294 did.
 
@@ -81,8 +93,7 @@ As a wholesaler, I receive 5 cartons and see 60 pieces in stock.
 
 ## Open Questions
 
-- [NEEDS CLARIFICATION: Is one purchase unit per item enough, or per supplier?]
-- [NEEDS CLARIFICATION: Must existing stock be migrated, or does conversion apply to new receipts only?]
+None. See Clarifications.
 
 ## Requirement Traceability
 
