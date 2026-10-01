@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Clarified
+**Status**: Approved
 
 **Language**: English
 
@@ -110,6 +110,7 @@ None. See Clarifications.
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
-| FR-001–FR-003 | US1 | Business stories and service tests (planned) |
-| FR-004, DR-001, DR-002 | All | Adapter tests and diff review (planned) |
-| FR-005, SC-001, SC-002 | US1 | Catalog tests and Guide questions (planned) |
+| FR-001, FR-003 | US1 1–5 | `tests/test_stock_blocks.py`, `tests/test_stock_block_adapters.py` |
+| FR-002 | US1 1, 4 | `tests/test_stock_block_readers.py` |
+| FR-004, DR-001, DR-002 | All | `tests/test_stock_block_adapters.py`; diff review (T016) |
+| FR-005, SC-001, SC-002 | US1 | stories B05, H08, H15, J05; `tests/test_business_journey_catalog.py` |
