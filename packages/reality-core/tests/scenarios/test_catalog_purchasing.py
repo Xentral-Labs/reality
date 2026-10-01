@@ -1109,9 +1109,9 @@ def test_reorder_for_stock_at_the_reorder_point(session, business):
         values["supplier"],
         values["unit_price"],
     ) == (
-        Decimal("12"),
-        Decimal("0"),
-        Decimal("4"),
+        Decimal(12),
+        Decimal(0),
+        Decimal(4),
         "box",
         business.supplier.name,
         Decimal("54.0000"),
@@ -1184,4 +1184,4 @@ def test_reorder_for_stock_at_the_reorder_point(session, business):
     assert (
         entry.causal_values["available_quantity"],
         entry.causal_values["incoming_quantity"],
-    ) == (Decimal("0"), Decimal("48"))
+    ) == (Decimal(0), Decimal(48))
