@@ -24600,6 +24600,12 @@ Object.assign(dictionaries.de, {
   "Why it waits": "Warum es wartet",
   "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
   "Invoiced and not shipped": "Fakturiert, nicht versandt",
+  "Item oversold": "Artikel überverkauft",
+  "Customer deadline at risk": "Liefertermin gefährdet",
+  "Shipping the outstanding quantity, cancelling the commitment, or agreeing a later date.":
+    "Versand der offenen Menge, Storno der Verpflichtung oder ein später vereinbarter Termin.",
+  "Receiving or ordering more, or shipping, reducing or cancelling the demand until it is covered.":
+    "Mehr erhalten oder bestellen, oder die Nachfrage versenden, verringern oder stornieren, bis sie gedeckt ist.",
   "Shipping the invoiced quantity, or reversing the invoice.":
     "Versand der fakturierten Menge oder Storno der Rechnung.",
   "Order line without a price": "Auftragszeile ohne Preis",
@@ -24642,6 +24648,12 @@ Object.assign(dictionaries.nl, {
   "Why it waits": "Waarom het wacht",
   "Order line with unknown item": "Orderregel met onbekend artikel",
   "Invoiced and not shipped": "Gefactureerd, niet verzonden",
+  "Item oversold": "Artikel oververkocht",
+  "Customer deadline at risk": "Leverdatum in gevaar",
+  "Shipping the outstanding quantity, cancelling the commitment, or agreeing a later date.":
+    "De openstaande hoeveelheid verzenden, de verplichting annuleren of een latere datum afspreken.",
+  "Receiving or ordering more, or shipping, reducing or cancelling the demand until it is covered.":
+    "Meer ontvangen of bestellen, of de vraag verzenden, verminderen of annuleren tot ze gedekt is.",
   "Shipping the invoiced quantity, or reversing the invoice.":
     "De gefactureerde hoeveelheid verzenden of de factuur tegenboeken.",
   "Order line without a price": "Orderregel zonder prijs",
@@ -24684,6 +24696,12 @@ Object.assign(dictionaries.es, {
   "Why it waits": "Por qué espera",
   "Order line with unknown item": "Línea de pedido con artículo desconocido",
   "Invoiced and not shipped": "Facturado y no enviado",
+  "Item oversold": "Artículo sobrevendido",
+  "Customer deadline at risk": "Plazo de entrega en riesgo",
+  "Shipping the outstanding quantity, cancelling the commitment, or agreeing a later date.":
+    "Enviar la cantidad pendiente, cancelar el compromiso o acordar una fecha posterior.",
+  "Receiving or ordering more, or shipping, reducing or cancelling the demand until it is covered.":
+    "Recibir o pedir más, o enviar, reducir o cancelar la demanda hasta que esté cubierta.",
   "Shipping the invoiced quantity, or reversing the invoice.":
     "Enviar la cantidad facturada o anular la factura.",
   "Order line without a price": "Línea de pedido sin precio",

@@ -45,8 +45,11 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 **Kann hinterlassen:**
 [Lieferverpflichtung gefährdet](./exceptions#exception-outgoing_commitment_at_risk)
 (`outgoing_commitment_at_risk`),
+[Liefertermin gefährdet](./exceptions#exception-outgoing_commitment_due_soon)
+(`outgoing_commitment_due_soon`),
 [Reservierung übersteigt Bestand](./exceptions#exception-reservation_exceeds_stock)
-(`reservation_exceeds_stock`)
+(`reservation_exceeds_stock`), [Artikel überverkauft](./exceptions#exception-item_oversold)
+(`item_oversold`)
 
 ### 3. Sperren oder ändern
 
@@ -162,7 +165,8 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 
 **Kann hinterlassen:**
 [Lieferverpflichtung gefährdet](./exceptions#exception-outgoing_commitment_at_risk)
-(`outgoing_commitment_at_risk`)
+(`outgoing_commitment_at_risk`), [Artikel überverkauft](./exceptions#exception-item_oversold)
+(`item_oversold`)
 
 ### 2. Bestellung anlegen
 

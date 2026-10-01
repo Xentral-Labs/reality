@@ -86,6 +86,7 @@ OPERATIONAL_EXCEPTION_CATALOG_FILE = "operational_exception_catalog.yaml"
 RESOURCE_CATALOG_FILE = "resource_catalog.yaml"
 OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "overdue_outgoing_customer_commitment",
+    "outgoing_commitment_due_soon",
     "outgoing_commitment_at_risk",
     "order_stalled",
     "overdue_incoming_supplier_commitment",
@@ -129,6 +130,7 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "payment_returned",
     "order_line_price_missing",
     "billed_not_shipped",
+    "item_oversold",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays

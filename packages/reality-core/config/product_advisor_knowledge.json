@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:95fc24535d9640d724840238af12f4fbb0a23cc9466c17845a8b93e109bf44d5",
+  "knowledge_version": "advisor-v1:sha256:ef4d61310549088b39754897a596cb322de44638dffe708a362c05f346e651d2",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -342,7 +342,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#B14",
-      "fingerprint": "a72a3ad4bf1b9e665f231aef4437b6e15d691f24fd10049b092cfa6dcee5f681"
+      "fingerprint": "65f3c25b16d4ff63103e7216897d4235c31ef8b001c5a97c60ce251d1cac1fca"
     },
     {
       "id": "source_journey_b15",
@@ -1539,7 +1539,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L02",
-      "fingerprint": "72fda837c25d18d47f637aa47b0bc4b38f905773f7b1af3a69b75b94498b79ee"
+      "fingerprint": "fb2e95bfadfae582b679d2763aff76434c94f011262a6bb62f7e7718e1ac83bb"
     },
     {
       "id": "source_journey_l03",
@@ -1584,7 +1584,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L07",
-      "fingerprint": "0f8420df78e320af16eb08f4533705815d906fc8e7d3a0537d81f200b2fa7841"
+      "fingerprint": "df3b031acccbbbf22fb74243d170d8cc45435ab9155870b149cb2eb6c7822de1"
     },
     {
       "id": "source_journey_l08",
@@ -2737,18 +2737,21 @@
       "source_id": "source_journey_b14",
       "subject": "Availability, reservation and backorder",
       "title": "Oversold across channels (shop and marketplace)",
-      "search_text": "B14 Availability, reservation and backorder Oversold across channels (shop and marketplace) Is the overcommitment visible? Oversold across channels (shop and marketplace) Is the overcommitment visible?",
-      "claim_text": "Reality evaluates: Is the overcommitment visible?",
-      "support": "limited",
+      "search_text": "B14 Availability, reservation and backorder Oversold across channels (shop and marketplace) Is the overcommitment visible? oversold overselling across channels demand exceeds stock sold more than in stock überverkauft Überverkauf mehr verkauft als auf Lager Kanäle Shop Marktplatz Bestand Oversold across channels (shop and marketplace) Is the overcommitment visible? Which items did we sell more often than we have, across shop and Amazon? Welche Artikel haben Shop und Marktplatz zusammen überverkauft?",
+      "claim_text": "Reality evaluates: Is the overcommitment visible? An item sold more often than it is in stock and on order is reported, whatever channel the orders came through, with the shortfall and the orders grouped by shop, marketplace or other channel; supply on its way covers it.",
+      "support": "proven",
       "limitations": [
-        "Every promise without a reservation is flagged.",
-        "There is no channel dimension and no overall view of demand exceeding stock."
+        "Stock is counted across all locations; which location must ship is decided when reserving.",
+        "No channel quota is kept; every channel sells from the same stock."
       ],
       "references": [
-        "B14"
+        "B14",
+        "exceptions_list",
+        "exception_explain",
+        "item_supply_demand"
       ],
       "language": "en",
-      "fingerprint": "e0c4e13107d0da6c8a2232d096a7bafd37455c7b74c04c79e0b31fb4cf1f7c5c"
+      "fingerprint": "f9a3d45b61a6572dcdd828f6d054046d8cb1c9cacfd634bf2b07f684687b55b4"
     },
     {
       "id": "evidence_journey_b15",
@@ -4957,18 +4960,21 @@
       "source_id": "source_journey_l02",
       "subject": "E-commerce and marketplaces",
       "title": "Marketplace order shipped by us with a deadline",
-      "search_text": "L02 E-commerce and marketplaces Marketplace order shipped by us with a deadline Deadline at risk visible? Marketplace order shipped by us with a deadline Deadline at risk visible?",
-      "claim_text": "Reality evaluates: Deadline at risk visible?",
-      "support": "limited",
+      "search_text": "L02 E-commerce and marketplaces Marketplace order shipped by us with a deadline Deadline at risk visible? marketplace deadline ship by date deadline at risk latest ship date Liefertermin gefährdet Marktplatz Frist Versandfrist Amazon Versanddatum Marketplace order shipped by us with a deadline Deadline at risk visible? Which marketplace orders must ship today so we do not miss the deadline? Welche Marktplatz-Aufträge stehen kurz vor der Versandfrist?",
+      "claim_text": "Reality evaluates: Deadline at risk visible? A marketplace order arrives from its order report with its deadline; a day before the date, any order not yet shipped is reported as deadline at risk, even when it is fully reserved, and once the date passes it is overdue.",
+      "support": "proven",
       "limitations": [
-        "Deadlines are watched with the general overdue signals.",
-        "A fully reserved order close to its deadline is not flagged before it is overdue, and marketplace orders are not yet read."
+        "The margin is one day for every company.",
+        "Marketplace orders arrive by file import or manually; no marketplace connector reads them."
       ],
       "references": [
-        "L02"
+        "L02",
+        "exceptions_list",
+        "exception_explain",
+        "source_ingest_propose"
       ],
       "language": "en",
-      "fingerprint": "81b622fd531b52ce108167218bf2271e1c70ade75fc39cff36e05bda29a6e445"
+      "fingerprint": "1b590da65daaaeb77fe2f19a730d824576be4b944c233d9cddce9f35062de4c2"
     },
     {
       "id": "evidence_journey_l03",
@@ -5044,18 +5050,19 @@
       "source_id": "source_journey_l07",
       "subject": "E-commerce and marketplaces",
       "title": "Black Friday: 10,000 orders in two hours",
-      "search_text": "L07 E-commerce and marketplaces Black Friday: 10,000 orders in two hours Throughput and correct reservations? Black Friday: 10,000 orders in two hours Throughput and correct reservations?",
-      "claim_text": "Reality evaluates: Throughput and correct reservations?",
-      "support": "limited",
+      "search_text": "L07 E-commerce and marketplaces Black Friday: 10,000 orders in two hours Throughput and correct reservations? Black Friday peak orders order volume throughput 10000 orders Spitzenlast Bestellungen viele Bestellungen auf einmal Durchsatz Auftragseingang Black Friday: 10,000 orders in two hours Throughput and correct reservations? Can Reality take 10,000 shop orders in two hours without overselling? Schafft Reality 10.000 Shop-Bestellungen in zwei Stunden?",
+      "claim_text": "Reality evaluates: Throughput and correct reservations? 10,000 shop orders were interpreted in under seven minutes by one process, each exactly once, and reserving all their promises never reserved more than was in stock, with the uncovered demand reported per item.",
+      "support": "proven",
       "limitations": [
-        "Safe concurrent reservations and reading 10,000 orders are proven.",
-        "Intake throughput at that volume is not."
+        "Measured on one machine and a local database; a production run depends on its database and workers.",
+        "Several workers repeat each other's batches, so a second worker adds less than double."
       ],
       "references": [
-        "L07"
+        "L07",
+        "exceptions_list"
       ],
       "language": "en",
-      "fingerprint": "2994c8724ddaeedf36db0494c9df3167ee9c3e7918848a4e234920f7960d3db2"
+      "fingerprint": "b18b966027df666d3acf8568eeadcbad331cc9c85c13326371c3daa3fa68ff28"
     },
     {
       "id": "evidence_journey_l08",

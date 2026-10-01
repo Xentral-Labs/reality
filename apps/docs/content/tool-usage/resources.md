@@ -10,10 +10,10 @@ the technical key stands beside each one.
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 8       | 2                   |
-| [Item](#resource-item)                                           | 5     | 4       | 3                   |
+| [Item](#resource-item)                                           | 5     | 4       | 4                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
-| [Order](#resource-order)                                         | 8     | 12      | 11                  |
+| [Order](#resource-order)                                         | 8     | 12      | 12                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
@@ -139,6 +139,7 @@ derived from movements and reservations at read time, which is why the stock lis
   (`reservation_exceeds_stock`)
 - [Missing acquisition cost](./exceptions#exception-missing_acquisition_cost)
   (`missing_acquisition_cost`)
+- [Item oversold](./exceptions#exception-item_oversold) (`item_oversold`)
 
 **Appears in processes:** [Procure to pay](./processes#process-procure_to_pay),
 [Master data and sources](./processes#process-master_data)
@@ -280,6 +281,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Overdue outgoing customer commitment](./exceptions#exception-overdue_outgoing_customer_commitment)
   (`overdue_outgoing_customer_commitment`)
+- [Customer deadline at risk](./exceptions#exception-outgoing_commitment_due_soon)
+  (`outgoing_commitment_due_soon`)
 - [Customer commitment at risk](./exceptions#exception-outgoing_commitment_at_risk)
   (`outgoing_commitment_at_risk`)
 - [Order stalled](./exceptions#exception-order_stalled) (`order_stalled`)

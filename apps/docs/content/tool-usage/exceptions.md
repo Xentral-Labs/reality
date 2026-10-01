@@ -8,6 +8,7 @@ it, and which agent tools list and explain it.
 | Key                                                                                       | Label                                    | Area                       | Severity | Owner                                                                                       |
 | ----------------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------- | -------- | ------------------------------------------------------------------------------------------- |
 | [`overdue_outgoing_customer_commitment`](#exception-overdue_outgoing_customer_commitment) | Overdue outgoing customer commitment     | Orders & fulfilment        | `high`   | Order fulfilment or warehouse operations                                                    |
+| [`outgoing_commitment_due_soon`](#exception-outgoing_commitment_due_soon)                 | Customer deadline at risk                | Orders & fulfilment        | `high`   | Order fulfilment or warehouse operations                                                    |
 | [`outgoing_commitment_at_risk`](#exception-outgoing_commitment_at_risk)                   | Customer commitment at risk              | Orders & fulfilment        | `high`   | Order fulfilment or warehouse operations                                                    |
 | [`order_stalled`](#exception-order_stalled)                                               | Order stalled                            | Orders & fulfilment        | `high`   | Order fulfilment                                                                            |
 | [`overdue_incoming_supplier_commitment`](#exception-overdue_incoming_supplier_commitment) | Overdue incoming supplier commitment     | Orders & fulfilment        | `high`   | Purchasing or inbound operations                                                            |
@@ -51,6 +52,7 @@ it, and which agent tools list and explain it.
 | [`payment_returned`](#exception-payment_returned)                                         | Payment returned                         | Finance                    | `high`   | Accounts receivable                                                                         |
 | [`order_line_price_missing`](#exception-order_line_price_missing)                         | Order line without a price               | Master data & pricing      | `normal` | Sales operations                                                                            |
 | [`billed_not_shipped`](#exception-billed_not_shipped)                                     | Invoiced and not shipped                 | Finance                    | `normal` | Billing, with order fulfilment when the goods are late                                      |
+| [`item_oversold`](#exception-item_oversold)                                               | Item oversold                            | Cross-functional           | `high`   | Order fulfilment, with purchasing for the supply                                            |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -87,6 +89,42 @@ kept is a promise kept.
 | -------------------------- | ------------------------ | ------------ |
 | `insufficient_reservation` | Insufficient reservation | `068/FR-003` |
 | `promise_was_revised`      | Promise was revised      | `093/FR-006` |
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain), view
+[`commitments`](./views#view-commitments)
+
+## `outgoing_commitment_due_soon` — Customer deadline at risk {#exception-outgoing_commitment_due_soon}
+
+A delivery promised to a customer is due within a day and part of it has not shipped yet. Reality
+takes every open customer-delivery commitment with a promised date in force and reports it while the
+date is less than one day away and quantity remains, whether or not the quantity is reserved: a
+fully reserved order that nobody packs is the deadline a marketplace counts. It is the step between
+Customer commitment at risk, which is about a reservation that is short, and Overdue outgoing
+customer commitment, which is about a date that has passed: a promise close to its date is reported
+here instead of at risk, with a short reservation as its cause, and once the date passes it is
+reported as overdue, so one order is never listed twice. The margin is one day for every company.
+The date judged is the last one anybody stated, and a revised date says so. A promise with no date
+never appears.
+
+- **Owner:** Order fulfilment or warehouse operations
+- **Clears through:** Shipping the outstanding quantity, cancelling the commitment, or agreeing a
+  later date.
+- **Severity:** `high`
+- **Record type:** `commitment`
+- **Authority:** `300/FR-002`
+- **Evidence:**
+  `tests/test_deadline_due_soon.py::test_a_fully_reserved_promise_due_within_a_day_is_reported`,
+  `tests/test_deadline_due_soon.py::test_an_unreserved_promise_due_soon_is_one_row_with_its_cause`,
+  `tests/test_deadline_due_soon.py::test_past_its_date_it_is_overdue_only`
+
+**Causes**
+
+| ID                         | Label                    | Authority    |
+| -------------------------- | ------------------------ | ------------ |
+| `insufficient_reservation` | Insufficient reservation | `300/FR-002` |
+| `promise_was_revised`      | Promise was revised      | `300/FR-002` |
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
@@ -1294,3 +1332,33 @@ and a pair that cannot be reconciled is reported as Units not comparable.
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
 [`exception_explain`](./commands#tool-exception_explain)
+
+## `item_oversold` — Item oversold {#exception-item_oversold}
+
+More of an item has been promised to customers than the company holds and has on order. Reality adds
+up the open quantity of every open customer promise for the item, whatever channel the order came
+through, and compares it with the stock on hand across all locations plus the open quantity of every
+open supplier promise. The entry appears while the demand is larger, and names the orders grouped by
+the sales channel they state, so an item sold in the shop and on a marketplace at once shows both.
+It does not ask which order should go without: that is a decision, and every order is named and none
+is blamed. It is the item-wide view behind Customer commitment at risk, which looks at one promise's
+reservation; a company can be oversold with nothing reserved at all. Reservation exceeds stock is
+the other direction, reservations that lost their stock. Quantities are counted in the item's own
+unit, using the purchase unit and factor the item states; a promise in a unit the item says nothing
+about is named in the entry and left out, and Units not comparable reports the pair that cannot be
+reconciled. Only stocked items are judged; a service or a charge is never oversold. Stock is counted
+across locations; whether the right location holds it is a question for the reservation.
+
+- **Owner:** Order fulfilment, with purchasing for the supply
+- **Clears through:** Receiving or ordering more, or shipping, reducing or cancelling the demand
+  until it is covered.
+- **Severity:** `high`
+- **Record type:** `item`
+- **Authority:** `300/FR-001`
+- **Evidence:**
+  `tests/test_item_oversold.py::test_orders_from_two_channels_above_stock_are_reported_by_channel`,
+  `tests/test_item_oversold.py::test_an_open_purchase_order_covering_the_shortfall_clears_it`
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain), view [`items`](./views#view-items)

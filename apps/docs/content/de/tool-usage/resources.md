@@ -10,10 +10,10 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 8        | 2         |
-| [Artikel](#resource-item)                                      | 5      | 4        | 3         |
+| [Artikel](#resource-item)                                      | 5      | 4        | 4         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 8      | 12       | 11        |
+| [Auftrag](#resource-order)                                     | 8      | 12       | 12        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
@@ -145,6 +145,7 @@ hier.
   (`reservation_exceeds_stock`)
 - [Anschaffungskosten fehlen](./exceptions#exception-missing_acquisition_cost)
   (`missing_acquisition_cost`)
+- [Artikel überverkauft](./exceptions#exception-item_oversold) (`item_oversold`)
 
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Stammdaten und Quellen](./processes#process-master_data)
@@ -289,6 +290,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Lieferverzug an Kunden](./exceptions#exception-overdue_outgoing_customer_commitment)
   (`overdue_outgoing_customer_commitment`)
+- [Liefertermin gefährdet](./exceptions#exception-outgoing_commitment_due_soon)
+  (`outgoing_commitment_due_soon`)
 - [Lieferverpflichtung gefährdet](./exceptions#exception-outgoing_commitment_at_risk)
   (`outgoing_commitment_at_risk`)
 - [Auftrag hängt](./exceptions#exception-order_stalled) (`order_stalled`)

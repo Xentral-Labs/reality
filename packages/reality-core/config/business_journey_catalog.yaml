@@ -782,23 +782,38 @@ entries:
   section: Availability, reservation and backorder
   title: Oversold across channels (shop and marketplace)
   question: Is the overcommitment visible?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Is the overcommitment visible?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Is the overcommitment visible? An item sold more often than it is in stock and on order is reported, whatever channel the orders came through, with the shortfall and the orders grouped by shop, marketplace or other channel; supply on its way covers it.'
   limitations:
-  - Every promise without a reservation is flagged.
-  - There is no channel dimension and no overall view of demand exceeding stock.
-  keywords: []
+  - Stock is counted across all locations; which location must ship is decided when reserving.
+  - No channel quota is kept; every channel sells from the same stock.
+  keywords:
+  - oversold
+  - overselling across channels
+  - demand exceeds stock
+  - sold more than in stock
+  - überverkauft
+  - Überverkauf
+  - mehr verkauft als auf Lager
+  - Kanäle Shop Marktplatz Bestand
   question_examples:
   - Oversold across channels (shop and marketplace)
   - Is the overcommitment visible?
-  tools: []
+  - Which items did we sell more often than we have, across shop and Amazon?
+  - Welche Artikel haben Shop und Marktplatz zusammen überverkauft?
+  tools:
+  - exceptions_list
+  - exception_explain
+  - item_supply_demand
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [L02]
   internal_evidence:
-  - reference: tests/operational_exceptions/test_derivation.py::test_outgoing_commitment_at_risk
-    note: Each unreserved promise is flagged, but there is no channel dimension and no aggregate "demand exceeds stock" view.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_item_oversold_in_the_shop_and_on_a_marketplace_names_both
+    note: 'With 4 in stock, a Shopify order of 3 is covered; a marketplace order of 3 from its order report makes the item oversold by 2, naming both channels and orders; a purchase order for 2 covers it.'
+  - reference: packages/reality-core/tests/test_item_oversold.py
+    note: The finding, supply, shipped and cancelled demand, units, tenant scope, the statement bound and agreement with the supply and demand view (spec 300).
 - id: B15
   section: Availability, reservation and backorder
   title: Safety stock withheld from B2C, given to key accounts
@@ -3638,23 +3653,38 @@ entries:
   section: E-commerce and marketplaces
   title: Marketplace order shipped by us with a deadline
   question: Deadline at risk visible?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Deadline at risk visible?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Deadline at risk visible? A marketplace order arrives from its order report with its deadline; a day before the date, any order not yet shipped is reported as deadline at risk, even when it is fully reserved, and once the date passes it is overdue.'
   limitations:
-  - Deadlines are watched with the general overdue signals.
-  - A fully reserved order close to its deadline is not flagged before it is overdue, and marketplace orders are not yet read.
-  keywords: []
+  - The margin is one day for every company.
+  - Marketplace orders arrive by file import or manually; no marketplace connector reads them.
+  keywords:
+  - marketplace deadline
+  - ship by date
+  - deadline at risk
+  - latest ship date
+  - Liefertermin gefährdet
+  - Marktplatz Frist
+  - Versandfrist
+  - Amazon Versanddatum
   question_examples:
   - Marketplace order shipped by us with a deadline
   - Deadline at risk visible?
-  tools: []
+  - Which marketplace orders must ship today so we do not miss the deadline?
+  - Welche Marktplatz-Aufträge stehen kurz vor der Versandfrist?
+  tools:
+  - exceptions_list
+  - exception_explain
+  - source_ingest_propose
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [B14]
   internal_evidence:
-  - reference: tests/operational_exceptions/test_derivation.py::test_overdue_outgoing_customer_commitment, ::test_at_risk_unchanged_before_due_date
-    note: Generic due_at classes only. A fully reserved order near its deadline is not flagged until overdue. No marketplace source.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_marketplace_order_due_tomorrow_is_at_risk_until_it_ships
+    note: Three marketplace orders from order reports, all reserved; the ones due in 20 and 2 hours are at risk, the one due in three days is not; shipping clears the first, and the second is overdue only once its date passes.
+  - reference: packages/reality-core/tests/test_deadline_due_soon.py
+    note: The finding, its causes, precedence over at risk and overdue, clearing and the clock (spec 300).
 - id: L03
   section: E-commerce and marketplaces
   title: 'Marketplace payout: one payment for hundreds of orders minus fees and refunds'
@@ -3763,23 +3793,35 @@ entries:
   section: E-commerce and marketplaces
   title: 'Black Friday: 10,000 orders in two hours'
   question: Throughput and correct reservations?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Throughput and correct reservations?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Throughput and correct reservations? 10,000 shop orders were interpreted in under seven minutes by one process, each exactly once, and reserving all their promises never reserved more than was in stock, with the uncovered demand reported per item.'
   limitations:
-  - Safe concurrent reservations and reading 10,000 orders are proven.
-  - Intake throughput at that volume is not.
-  keywords: []
+  - Measured on one machine and a local database; a production run depends on its database and workers.
+  - Several workers repeat each other's batches, so a second worker adds less than double.
+  keywords:
+  - Black Friday
+  - peak orders
+  - order volume throughput
+  - 10000 orders
+  - Spitzenlast Bestellungen
+  - viele Bestellungen auf einmal
+  - Durchsatz Auftragseingang
   question_examples:
   - 'Black Friday: 10,000 orders in two hours'
   - Throughput and correct reservations?
-  tools: []
+  - Can Reality take 10,000 shop orders in two hours without overselling?
+  - Schafft Reality 10.000 Shop-Bestellungen in zwei Stunden?
+  tools:
+  - exceptions_list
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [B14]
   internal_evidence:
-  - reference: specs/033-large-tenant-register-benchmark; tests/test_unified_delivery_actions.py::test_two_connections_cannot_overallocate_or_execute_two_stale_reviews; specs/181-scale-foundations (Draft)
-    note: Concurrent reservation safety and the 10k read baseline are proven. Ingest throughput is not.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_black_friday_burst_is_interpreted_once_and_never_over_reserved
+    note: 'A burst of 40 Shopify orders through the import jobs is interpreted once each; reserving every promise holds exactly the 60 in stock, and the oversold finding states the rest.'
+  - reference: specs/300-multichannel-oversell/results.md
+    note: '10,000 Shopify orders: 404 s with one process, 226 s with four, against a target of 7,200 s; invariants held (benchmarks/peak_intake).'
 - id: L08
   section: E-commerce and marketplaces
   title: Subscription order, payment fails

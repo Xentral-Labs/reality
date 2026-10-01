@@ -72,52 +72,57 @@ UNARRIVED_ANNOUNCEMENT_FLOOR = timedelta(days=14)
 # Matched to the stalled-order floor for the same reason.
 UNLIFTED_HOLD_FLOOR = timedelta(days=7)
 CREDIT_POSTING_FLOOR = timedelta(days=14)  # a fortnight to book one's own paperwork
+# Spec 300 FR-002: a promise less than a day before its date is at risk, reserved
+# or not. Fixed by the owner, so that "at risk" means the same in every company.
+DUE_SOON_MARGIN = timedelta(days=1)
 SEVERITY_ORDER = {"critical": 0, "high": 1, "normal": 2, "low": 3}
 CLASS_ORDER = {
     "overdue_outgoing_customer_commitment": 0,
-    "outgoing_commitment_at_risk": 1,
-    "order_stalled": 2,
-    "overdue_incoming_supplier_commitment": 3,
-    "shipped_not_billed": 4,
-    "billed_not_received": 5,
-    "invoice_price_differs": 6,
-    "sold_below_purchase_price": 7,
-    "returned_not_credited": 8,
-    "credited_not_returned": 9,
-    "supplier_return_not_credited": 10,
-    "supplier_credit_not_returned": 11,
-    "return_unresolved": 12,
-    "receipt_unbilled": 13,
-    "units_not_comparable": 14,
-    "reservation_exceeds_stock": 15,
-    "silent_source": 16,
-    "source_interpretation_failure": 17,
-    "unexplained_movement": 18,
-    "sales_invoice_unposted": 19,
-    "supplier_invoice_unposted": 20,
-    "credit_note_unposted": 21,
-    "credit_note_unsettled": 22,
-    "supplier_credit_unposted": 23,
-    "supplier_credit_unclaimed": 24,
-    "overdue_receivable": 25,
-    "credit_limit_exceeded": 26,
-    "overdue_payable": 27,
-    "purchase_discount_available": 28,
-    "duplicate_supplier_invoice": 29,
-    "unmatched_financial_event": 30,
-    "announced_return_not_arrived": 31,
-    "commitment_hold_unreleased": 32,
-    "party_hold_unreleased": 33,
-    "stock_expired": 34,
-    "missing_acquisition_cost": 35,
-    "unassigned_cost_component": 36,
-    "stale_cost_review": 37,
-    "negative_actual_db1": 38,
-    "exchange_without_return": 39,
-    "order_line_item_unknown": 40,
-    "payment_returned": 41,
-    "order_line_price_missing": 42,
-    "billed_not_shipped": 43,
+    "outgoing_commitment_due_soon": 1,
+    "outgoing_commitment_at_risk": 2,
+    "order_stalled": 3,
+    "overdue_incoming_supplier_commitment": 4,
+    "shipped_not_billed": 5,
+    "billed_not_received": 6,
+    "invoice_price_differs": 7,
+    "sold_below_purchase_price": 8,
+    "returned_not_credited": 9,
+    "credited_not_returned": 10,
+    "supplier_return_not_credited": 11,
+    "supplier_credit_not_returned": 12,
+    "return_unresolved": 13,
+    "receipt_unbilled": 14,
+    "units_not_comparable": 15,
+    "reservation_exceeds_stock": 16,
+    "silent_source": 17,
+    "source_interpretation_failure": 18,
+    "unexplained_movement": 19,
+    "sales_invoice_unposted": 20,
+    "supplier_invoice_unposted": 21,
+    "credit_note_unposted": 22,
+    "credit_note_unsettled": 23,
+    "supplier_credit_unposted": 24,
+    "supplier_credit_unclaimed": 25,
+    "overdue_receivable": 26,
+    "credit_limit_exceeded": 27,
+    "overdue_payable": 28,
+    "purchase_discount_available": 29,
+    "duplicate_supplier_invoice": 30,
+    "unmatched_financial_event": 31,
+    "announced_return_not_arrived": 32,
+    "commitment_hold_unreleased": 33,
+    "party_hold_unreleased": 34,
+    "stock_expired": 35,
+    "missing_acquisition_cost": 36,
+    "unassigned_cost_component": 37,
+    "stale_cost_review": 38,
+    "negative_actual_db1": 39,
+    "exchange_without_return": 40,
+    "order_line_item_unknown": 41,
+    "payment_returned": 42,
+    "order_line_price_missing": 43,
+    "billed_not_shipped": 44,
+    "item_oversold": 45,
 }
 
 
@@ -626,6 +631,48 @@ def _commitment_exceptions(
                         due_at,
                     )
                 )
+            elif (
+                remaining > ZERO
+                and due_at is not None
+                and due_at - as_of < DUE_SOON_MARGIN
+            ):
+                # Spec 300: close to the date, the time is what is at risk, so this
+                # supersedes the at-risk class and carries a short reservation as
+                # its cause; one promise is still listed once.
+                hours_left = (due_at - as_of).total_seconds() / 3600
+                window = (
+                    f"within {hours_left:.0f} h"
+                    if hours_left >= 1
+                    else "within the hour"
+                )
+                impact = f"{remaining.normalize():f} to ship {window}"
+                if unreserved > ZERO:
+                    impact = f"{impact}, {unreserved.normalize():f} of them unreserved"
+                result.append(
+                    OperationalException(
+                        _identity("outgoing_commitment_due_soon", row.id),
+                        "outgoing_commitment_due_soon",
+                        _overdue_causes(unreserved, moves),
+                        "high",
+                        "Customer deadline at risk",
+                        impact,
+                        "commitment",
+                        row.id,
+                        {
+                            "due_at": due_at,
+                            "as_of": as_of,
+                            "hours_left": round(hours_left, 2),
+                            **_revision_values(row, moves),
+                            "committed_quantity": promised,
+                            "fulfilled_quantity": fulfilled,
+                            "remaining_quantity": remaining,
+                            "reserved_quantity": reserved,
+                            "unreserved_quantity": unreserved,
+                        },
+                        _commitment_trace(session, tenant_id, row),
+                        due_at,
+                    )
+                )
             elif remaining > ZERO and unreserved > ZERO:
                 result.append(
                     OperationalException(
@@ -696,6 +743,16 @@ def _outgoing_commitment_at_risk(
         row
         for row in _commitment_exceptions(session, tenant_id, as_of)
         if row.class_id == "outgoing_commitment_at_risk"
+    ]
+
+
+def _outgoing_commitment_due_soon(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    return [
+        row
+        for row in _commitment_exceptions(session, tenant_id, as_of)
+        if row.class_id == "outgoing_commitment_due_soon"
     ]
 
 
@@ -2954,6 +3011,185 @@ def _stock_coverage_exceptions(
     return result
 
 
+def _item_oversold_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Open customer demand above stock on hand plus open supply (spec 300 FR-001).
+
+    Every unreserved promise is already at risk on its own; what no promise can
+    see is that the item as a whole has been sold more often than it exists or is
+    on order, across every channel the orders came through.
+
+    Each open promise is read once, with its quantity in force and what has
+    moved against it, and its open quantity is expressed in the item's unit by
+    the one shared rule; a promise the rule cannot express is named, not added.
+    Only stocked items are judged: a service or a charge never has stock and is
+    never oversold.
+    """
+    from reality.db.core import Commitment, Document, DocumentLine, Item, Movement
+    from reality.services.delivery_reads import effective_value, fulfillment_expressions
+
+    _, fulfilled, _ = fulfillment_expressions()
+    promised = effective_value("quantity")
+    unit = func.coalesce(DocumentLine.unit, Item.unit)
+
+    def open_promises(commitment_type: str, item_ids=None):
+        query = (
+            select(
+                Commitment.id,
+                Commitment.item_id,
+                Commitment.document_id,
+                Commitment.created_at,
+                Document.sales_channel,
+                unit.label("unit"),
+                promised.label("promised"),
+                fulfilled.label("fulfilled"),
+                Item,
+            )
+            .join(
+                Item,
+                (Item.tenant_id == Commitment.tenant_id)
+                & (Item.id == Commitment.item_id),
+            )
+            .outerjoin(
+                DocumentLine,
+                (DocumentLine.tenant_id == Commitment.tenant_id)
+                & (DocumentLine.id == Commitment.document_line_id),
+            )
+            .outerjoin(
+                Document,
+                (Document.tenant_id == Commitment.tenant_id)
+                & (Document.id == Commitment.document_id),
+            )
+            .where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.type == commitment_type,
+                Commitment.status == "open",
+                Item.item_type == "stocked",
+            )
+            .order_by(Commitment.created_at, Commitment.id)
+        )
+        if item_ids is not None:
+            query = query.where(Commitment.item_id.in_(item_ids))
+        return session.execute(query).all()
+
+    def remaining(row) -> Decimal | None:
+        """What is still open, in the item's unit, or None if it cannot be said.
+
+        A movement against a promise is stated in the promise's own unit (the
+        movement service compares the two directly), so the open quantity is
+        taken there and only then expressed in the item's unit.
+        """
+        open_quantity = max(ZERO, Decimal(row.promised) - Decimal(row.fulfilled or 0))
+        return _in_unit(row.Item, open_quantity, row.unit, row.Item.unit)
+
+    demand: dict[str, Decimal] = {}
+    open_rows: dict[str, list[tuple[Any, Decimal | None]]] = {}
+    for row in open_promises("customer_delivery"):
+        quantity = remaining(row)
+        if quantity == ZERO:
+            continue
+        open_rows.setdefault(row.item_id, []).append((row, quantity))
+        if quantity is not None:
+            demand[row.item_id] = demand.get(row.item_id, ZERO) + quantity
+    if not demand:
+        return []
+    supply: dict[str, Decimal] = {}
+    for row in open_promises("supplier_delivery", set(demand)):
+        quantity = remaining(row)
+        if quantity:
+            supply[row.item_id] = supply.get(row.item_id, ZERO) + quantity
+    signed = case(
+        (Movement.to_location_id.is_not(None), Movement.quantity), else_=0
+    ) - case((Movement.from_location_id.is_not(None), Movement.quantity), else_=0)
+    on_hand = {
+        item_id: Decimal(quantity)
+        for item_id, quantity in session.execute(
+            select(Movement.item_id, func.sum(signed))
+            .where(Movement.tenant_id == tenant_id, Movement.item_id.in_(set(demand)))
+            .group_by(Movement.item_id)
+        ).all()
+    }
+    result = []
+    for item_id in sorted(demand):
+        stock = on_hand.get(item_id, ZERO)
+        incoming = supply.get(item_id, ZERO)
+        shortfall = demand[item_id] - stock - incoming
+        if shortfall <= ZERO:
+            continue
+        rows = open_rows[item_id]
+        channels: dict[str, dict[str, Any]] = {}
+        not_comparable = []
+        for row, quantity in rows:
+            if quantity is None:
+                not_comparable.append(
+                    {
+                        "document_id": row.document_id,
+                        "unit": row.unit,
+                        "quantity": max(
+                            ZERO, Decimal(row.promised) - Decimal(row.fulfilled or 0)
+                        ),
+                    }
+                )
+                continue
+            channel = channels.setdefault(
+                row.sales_channel or "", {"quantity": ZERO, "orders": []}
+            )
+            channel["quantity"] += quantity
+            if row.document_id and row.document_id not in channel["orders"]:
+                channel["orders"].append(row.document_id)
+        for channel in channels.values():
+            channel["orders"].sort()
+        channels = dict(sorted(channels.items()))
+        # The explanation shows values as they are, so the breakdown a person
+        # reads is one line; the structure behind it travels in the trace.
+        readable = " · ".join(
+            f"{name or 'unstated'} {values['quantity'].normalize():f} "
+            f"({len(values['orders'])} "
+            + ("order" if len(values["orders"]) == 1 else "orders")
+            + ")"
+            for name, values in channels.items()
+        )
+        values = {
+            "demand_quantity": demand[item_id],
+            "on_hand_quantity": stock,
+            "incoming_quantity": incoming,
+            "shortfall_quantity": shortfall,
+            "channels": readable,
+        }
+        if not_comparable:
+            values["not_comparable"] = " · ".join(
+                f"{row['quantity'].normalize():f} {row['unit']}"
+                for row in not_comparable
+            )
+        result.append(
+            OperationalException(
+                _identity("item_oversold", item_id),
+                "item_oversold",
+                (),
+                "high",
+                "Item oversold",
+                f"{shortfall.normalize():f} ordered beyond stock and supply "
+                f"across {len(channels)} "
+                + ("channel" if len(channels) == 1 else "channels"),
+                "item",
+                item_id,
+                values,
+                {
+                    "item_id": item_id,
+                    "channels": channels,
+                    "not_comparable": not_comparable,
+                    "commitment_ids": [row.id for row, _ in rows],
+                    "document_ids": sorted(
+                        {row.document_id for row, _ in rows if row.document_id}
+                    ),
+                },
+                rows[0][0].created_at if rows else None,
+            )
+        )
+    return result
+
+
 def _open_item_exceptions(
     session: Session,
     tenant_id: str,
@@ -3811,6 +4047,8 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "payment_returned": _payment_returned_exceptions,
     "order_line_price_missing": _order_line_price_missing_exceptions,
     "billed_not_shipped": _billed_not_shipped_exceptions,
+    "item_oversold": _item_oversold_exceptions,
+    "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,
@@ -3876,6 +4114,24 @@ def next_clock_moment(
             )
         )
     )
+    # Spec 300: a customer promise turns due soon a day before its date in force,
+    # so the instant the margin opens is a candidate too.
+    for model in (Commitment, CommitmentRevision):
+        conditions = [
+            model.tenant_id == tenant_id,
+            model.due_at.is_not(None),
+            model.due_at > instant + DUE_SOON_MARGIN,
+            model.due_at <= latest + DUE_SOON_MARGIN,
+        ]
+        if model is Commitment:
+            conditions += [
+                Commitment.status == "open",
+                Commitment.type == "customer_delivery",
+            ]
+        candidates.extend(
+            due_at - DUE_SOON_MARGIN
+            for due_at in session.scalars(select(model.due_at).where(*conditions))
+        )
     for expires_at in session.scalars(
         select(Lot.expires_at).where(
             Lot.tenant_id == tenant_id,
@@ -3967,6 +4223,7 @@ def operational_exceptions(
         instant = instant.replace(tzinfo=UTC)
     commitment_classes = {
         "overdue_outgoing_customer_commitment",
+        "outgoing_commitment_due_soon",
         "outgoing_commitment_at_risk",
         "overdue_incoming_supplier_commitment",
     }

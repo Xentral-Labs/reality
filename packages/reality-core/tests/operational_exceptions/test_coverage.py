@@ -21,6 +21,7 @@ def test_production_operational_exception_catalog_has_closed_registry():
 
     assert [entry["id"] for entry in catalog.classes] == [
         "overdue_outgoing_customer_commitment",
+        "outgoing_commitment_due_soon",
         "outgoing_commitment_at_risk",
         "order_stalled",
         "overdue_incoming_supplier_commitment",
@@ -64,6 +65,7 @@ def test_production_operational_exception_catalog_has_closed_registry():
         "payment_returned",
         "order_line_price_missing",
         "billed_not_shipped",
+        "item_oversold",
     ]
     assert catalog.classes[0]["causes"][0]["id"] == "insufficient_reservation"
     assert {entry["derivation"] for entry in catalog.classes} == set(
@@ -164,10 +166,11 @@ def test_shared_cause_is_declared_on_both_classes():
         if cause["id"] == "insufficient_reservation"
     }
 
-    # The same business reason appears on the overdue and the at-risk class, and
-    # each declaration carries its own executable evidence.
+    # The same business reason appears on the overdue, the due-soon (spec 300) and
+    # the at-risk class, and each declaration carries its own executable evidence.
     assert declaring == {
         "overdue_outgoing_customer_commitment",
+        "outgoing_commitment_due_soon",
         "outgoing_commitment_at_risk",
     }
     for entry in catalog.classes:

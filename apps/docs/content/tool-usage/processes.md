@@ -45,8 +45,11 @@ From a customer order through reservation, dispatch and invoice to the settled p
 **Can leave behind:**
 [Customer commitment at risk](./exceptions#exception-outgoing_commitment_at_risk)
 (`outgoing_commitment_at_risk`),
+[Customer deadline at risk](./exceptions#exception-outgoing_commitment_due_soon)
+(`outgoing_commitment_due_soon`),
 [Reservation exceeds stock](./exceptions#exception-reservation_exceeds_stock)
-(`reservation_exceeds_stock`)
+(`reservation_exceeds_stock`), [Item oversold](./exceptions#exception-item_oversold)
+(`item_oversold`)
 
 ### 3. Hold or revise when the customer or credit requires it
 
@@ -159,7 +162,8 @@ run.
 
 **Can leave behind:**
 [Customer commitment at risk](./exceptions#exception-outgoing_commitment_at_risk)
-(`outgoing_commitment_at_risk`)
+(`outgoing_commitment_at_risk`), [Item oversold](./exceptions#exception-item_oversold)
+(`item_oversold`)
 
 ### 2. Place the purchase order
 

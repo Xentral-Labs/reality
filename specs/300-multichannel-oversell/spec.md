@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: Implemented
 
 **Language**: English
 
@@ -33,6 +33,17 @@ Every unreserved promise is flagged, but there is no channel dimension and no ov
 - Channel quotas (missing journey B16).
 - Automatic stock sync back to shops.
 - Anything that requires a document status field (Constitution II).
+- A marketplace connector; marketplace orders arrive by file import or manually.
+- Making intake faster than measured; a shortfall becomes a follow-up specification.
+
+## Clarifications
+
+### Session 2026-10-01
+
+- Q: How does demand above stock across channels become visible (B14)? → A: As a finding per item. A new class reports an item whose open customer demand exceeds stock on hand plus confirmed incoming supply, and names the orders involved grouped by sales channel. The channel is the existing `document.sales_channel`; no new field.
+- Q: When is an order with a deadline at risk before it is overdue (L02)? → A: At a fixed margin of one day. An open customer promise with a promised date less than 24 hours ahead and quantity not yet shipped is reported, even when it is fully reserved. No setting and no schema.
+- Q: What must hold for 10,000 orders in two hours (L07)? → A: Measure it reproducibly in the repository (`benchmarks/ingest_cost`): 10,000 shop orders through the worker, with correct reservations. L07 is promoted only if the target is met; otherwise it stays partial with the measured figure and a follow-up.
+- Q: Does this need a marketplace source (L02)? → A: No. Marketplace orders arrive by file import or manually with their channel and date; the business story proves the deadline and the channel. A marketplace connector is its own specification.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -58,9 +69,9 @@ As an e-commerce operator, I see before a sale runs out which items are oversold
 
 ### Functional Requirements
 
-- **FR-001**: Reality MUST show per item where open demand exceeds available and incoming stock.
-- **FR-002**: An order MUST be flagged at risk ahead of its promised date by a stated margin.
-- **FR-003**: Intake throughput MUST be measured and documented at the stated peak volume.
+- **FR-001**: Reality MUST report, per item, where open customer demand exceeds stock on hand plus confirmed incoming supply. The finding names the orders involved grouped by their stated sales channel, and clears when stock, supply or demand changes so that demand is covered.
+- **FR-002**: Reality MUST report an open customer promise whose promised date is less than one day ahead and whose quantity has not fully shipped, whether or not it is reserved. The finding clears when the quantity ships, the promise is cancelled or its date is moved. Once the date passes, the order is reported as overdue instead and never in both classes.
+- **FR-003**: Intake throughput MUST be measured reproducibly at 10,000 shop orders processed through the worker, with reservations checked for correctness. The figure and how it was measured MUST be recorded. L07 is promoted only if the orders are processed within two hours.
 - **FR-004**: Every mutation this feature adds MUST use the reviewed, tenant-scoped application tools shared by Web, Chat/MCP and CLI.
 - **FR-005**: When the journeys in scope are proven by a business story, the Business Journey Guide MUST promote them with executable evidence, as specs 292 to 294 did.
 
@@ -83,13 +94,14 @@ As an e-commerce operator, I see before a sale runs out which items are oversold
 
 ## Open Questions
 
-- [NEEDS CLARIFICATION: Is the source (channel) of an order already a typed attribute or does it need one?]
-- [NEEDS CLARIFICATION: What lead margin counts as 'at risk' for a deadline?]
+None. See Clarifications.
 
 ## Requirement Traceability
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
-| FR-001–FR-003 | US1 | Business stories and service tests (planned) |
+| FR-001 | US1 1 | `tests/test_item_oversold.py`, story B14 |
+| FR-002 | US1 2 | `tests/test_deadline_due_soon.py`, story L02 |
+| FR-003 | US1 | `tests/test_peak_intake_benchmark.py`, `results.md`, story L07 |
 | FR-004, DR-001, DR-002 | All | Adapter tests and diff review (planned) |
-| FR-005, SC-001, SC-002 | US1 | Catalog tests and Guide questions (planned) |
+| FR-005, SC-001, SC-002 | US1 | `tests/scenarios/test_catalog_orders_and_shipments.py` (B14, L02, L07); `tests/test_business_journey_catalog.py` |
