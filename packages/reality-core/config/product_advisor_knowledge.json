@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:f8c9ded8d98ac1881c8f24d75568794c49f174d26b6e5b5396b50ae8078d6823",
+  "knowledge_version": "advisor-v1:sha256:f904a47edeb56236b7ee403f92635df61a70fb51e94dbb88ee896aa311079d45",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "71bbd0e354d792e86582fda54712805f23712b2a907feb69c0689c1e96f1e728"
+      "fingerprint": "80bec8da5cf03073e7e40b54fa662521f9065dc9be504193376c553ca84c2546"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7086,6 +7086,51 @@
       ],
       "language": "en",
       "fingerprint": "8c20c745c5e5b466b5777a8b0b6dece01577bb7d99504407b93874de54bffe52"
+    },
+    {
+      "id": "evidence_command_set_reorder_point",
+      "source_id": "source_executable_commands",
+      "subject": "Set a reorder point",
+      "title": "Set a reorder point",
+      "search_text": "set_reorder_point Set a reorder point States or restates the stock level at which an item is reordered at a location and the quantity then ordered, refusing a change since the review. mutation",
+      "claim_text": "set_reorder_point is a governed mutation command for States or restates the stock level at which an item is reordered at a location and the quantity then ordered, refusing a change since the review..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "set_reorder_point"
+      ],
+      "language": "en",
+      "fingerprint": "34cca204228f92379a704f1c579a40753df4aa5a68675d505a0c24c0bfe38725"
+    },
+    {
+      "id": "evidence_command_remove_reorder_point",
+      "source_id": "source_executable_commands",
+      "subject": "Remove a reorder point",
+      "title": "Remove a reorder point",
+      "search_text": "remove_reorder_point Remove a reorder point Withdraws an item's reorder point at a location; the event keeps the values it had. mutation",
+      "claim_text": "remove_reorder_point is a governed mutation command for Withdraws an item's reorder point at a location; the event keeps the values it had..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "remove_reorder_point"
+      ],
+      "language": "en",
+      "fingerprint": "8a32f68023035c65fd9e3a95fe2ef663b1f4dcf0427d36195730d6a0fb96bee2"
+    },
+    {
+      "id": "evidence_command_reorder_points",
+      "source_id": "source_executable_commands",
+      "subject": "Read reorder points",
+      "title": "Read reorder points",
+      "search_text": "reorder_points Read reorder points Lists the reorder points the company stated, per item and location, in the item's stock unit. query",
+      "claim_text": "reorder_points is a governed query command for Lists the reorder points the company stated, per item and location, in the item's stock unit..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "reorder_points"
+      ],
+      "language": "en",
+      "fingerprint": "a69003659c7b4f511d014c85e4daa6f0856b894c4a64a0b64ad8c42655fcf32a"
     },
     {
       "id": "evidence_command_credit_exposure",

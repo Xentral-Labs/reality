@@ -550,6 +550,28 @@
       "effect": "Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds stay."
     },
     {
+      "name": "Set a reorder point",
+      "service": "set_reorder_point",
+      "related_services": ["review_reorder_point"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "States or restates the stock level at which an item is reordered at a location and the quantity then ordered, refusing a change since the review."
+    },
+    {
+      "name": "Remove a reorder point",
+      "service": "remove_reorder_point",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Withdraws an item's reorder point at a location; the event keeps the values it had."
+    },
+    {
+      "name": "Read reorder points",
+      "service": "reorder_points",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lists the reorder points the company stated, per item and location, in the item's stock unit."
+    },
+    {
       "name": "Read a credit exposure",
       "service": "credit_exposure",
       "mode": "query",

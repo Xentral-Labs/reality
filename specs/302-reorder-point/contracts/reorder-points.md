@@ -19,14 +19,14 @@ The review of each mutating tool states the current values, or none, and the new
 
 ## MCP
 
-- `reorder_points`: a read in topic `inventory`.
+- `reorder_points`: a read in MCP topic `orders` (group Purchasing), next to `supply_coverage`.
 - `reorder_point_set_propose` and `reorder_point_remove_propose`: strict schemas (`additionalProperties: false`).
 - `order_create_propose` is unchanged. An agent reading a `reorder_point_reached` entry fills it from the causal values.
 
 ## Web
 
 - `GET /api/tenants/{tenant}/reorder-points?item_id=&location_id=`
-- `POST /api/tenants/{tenant}/reorder-points/proposals` with `{operation: "set" | "remove", request_id, item_id, location_id, reorder_point?, reorder_quantity?}` returns the proposal with its review.
+- `POST /api/tenants/{tenant}/reorder-points/proposals` with `{operation: "set" | "remove", item_id, location_id, reorder_point?, reorder_quantity?}` returns the proposal with its review (`preview.reorder_point`: current and proposed values).
 - `POST /api/tenants/{tenant}/change-proposals/{id}/approve` is unchanged.
 - UI:
   - The master-data item detail gets a "Reorder points" section: one row per location with set, change and remove, through the review.
@@ -35,8 +35,9 @@ The review of each mutating tool states the current values, or none, and the new
 ## CLI
 
 - `reality reorder-point list [--item-id] [--location-id]`
-- `reality reorder-point set ITEM_ID LOCATION_ID --point N --quantity N`
-- `reality reorder-point remove ITEM_ID LOCATION_ID`
+- `reality reorder-point set ITEM_ID LOCATION_ID --point N --quantity N [--yes]`
+- `reality reorder-point remove ITEM_ID LOCATION_ID [--yes]`
+- Both print the review and ask before confirming, unless `--yes` is given.
 
 ## Exception class `reorder_point_reached`
 

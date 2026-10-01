@@ -2576,6 +2576,44 @@ MCP_TOOL_CATALOG += (
         ),
         _read("supply_coverage"),
     ),
+    MCPToolDefinition(
+        "reorder_points",
+        "Reorder points",
+        "Read the reorder points the company stated: per item and location, the stock level it reorders at and the quantity it then orders, in the item's stock unit. Which are reached is the exception class reorder_point_reached.",
+        "read",
+        "Purchasing",
+        _object_schema({"item_id": OPTIONAL_STRING, "location_id": OPTIONAL_STRING}),
+        _read("reorder_points"),
+    ),
+    MCPToolDefinition(
+        "reorder_point_set_propose",
+        "Set reorder point",
+        "Prepare the reorder point and reorder quantity of an item at a location, in the item's stock unit, for confirmation. The review shows the current values beside the new ones; confirming refuses if the point changed meanwhile.",
+        "propose",
+        "Purchasing",
+        _object_schema(
+            {
+                "item_id": STRING,
+                "location_id": STRING,
+                "reorder_point": DECIMAL_STRING,
+                "reorder_quantity": DECIMAL_STRING,
+            },
+            required=("item_id", "location_id", "reorder_point", "reorder_quantity"),
+        ),
+        _propose("reorder_point_set"),
+    ),
+    MCPToolDefinition(
+        "reorder_point_remove_propose",
+        "Remove reorder point",
+        "Prepare removing the reorder point of an item at a location for confirmation. The review shows the values being removed.",
+        "propose",
+        "Purchasing",
+        _object_schema(
+            {"item_id": STRING, "location_id": STRING},
+            required=("item_id", "location_id"),
+        ),
+        _propose("reorder_point_remove"),
+    ),
 )
 
 MCP_TOOL_CATALOG += (

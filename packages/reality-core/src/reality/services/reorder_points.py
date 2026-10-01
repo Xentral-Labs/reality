@@ -239,3 +239,59 @@ def remove_reorder_point(
     if _commit:
         session.commit()
     return removed
+
+
+REORDER_POINT_TOOLS = {"reorder_point_set", "reorder_point_remove"}
+
+
+def review_reorder_point(
+    session: Session, tenant_id: str, tool_name: str, arguments: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """The arguments a confirmation executes and what the person is shown.
+
+    The review states the point as it is now, or none, beside what it becomes,
+    and carries the current values into the arguments: executing them later
+    refuses if the point has changed in between.
+    """
+    if tool_name not in REORDER_POINT_TOOLS:
+        raise InvalidOperation(code="proposal_tool_not_found")
+    item_id = str(arguments.get("item_id") or "")
+    location_id = str(arguments.get("location_id") or "")
+    if tool_name == "reorder_point_set":
+        item, location, point, quantity = validate_reorder_point(
+            session,
+            tenant_id,
+            item_id,
+            location_id,
+            arguments.get("reorder_point", ""),
+            arguments.get("reorder_quantity", ""),
+        )
+        proposed: dict[str, str] | None = {
+            "reorder_point": _plain(point),
+            "reorder_quantity": _plain(quantity),
+        }
+    else:
+        item, location = _subjects(session, tenant_id, item_id, location_id)
+        proposed = None
+    current = reorder_point_values(
+        current_reorder_point(session, tenant_id, item.id, location.id)
+    )
+    if tool_name == "reorder_point_remove" and current is None:
+        raise NotFound(code="reorder_point_not_found")
+    normalized = {
+        "item_id": item.id,
+        "location_id": location.id,
+        **(proposed or {}),
+        "reviewed": current,
+    }
+    preview = {
+        "item_id": item.id,
+        "item": item.name,
+        "sku": item.sku,
+        "unit": item.unit,
+        "location_id": location.id,
+        "location": location.name,
+        "current": current,
+        "proposed": proposed,
+    }
+    return normalized, preview

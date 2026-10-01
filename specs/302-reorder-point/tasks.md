@@ -40,14 +40,14 @@
 
 ## Phase 4: Adapters (FR-004)
 
-- [ ] T008 Failing adapter tests in `core/tests/test_reorder_point_adapters.py`:
+- [x] T008 Failing adapter tests in `core/tests/test_reorder_point_adapters.py`:
   - the MCP schemas are strict;
   - propose then confirm set and remove;
   - the review shows the current and the new values;
   - Web read and proposal, with a foreign tenant refused;
   - CLI list, set and remove;
   - an MCP `order_create_propose` filled from an entry's causal values creates the order on confirmation and clears the entry.
-- [ ] T009 Application tools, MCP tools, topic and guidance, Web endpoints and the CLI group. Also the command catalog descriptions and `make docs-generate`.
+- [x] T009 Application tools, MCP tools, topic and guidance, Web endpoints and the CLI group. Also the command catalog descriptions and `make docs-generate`.
 
 ## Phase 5: Web (FR-004)
 

@@ -1070,6 +1070,65 @@ def post_reference_prepare(
         raise api_error(error) from error
 
 
+class ReorderPointProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    operation: Literal["set", "remove"]
+    item_id: str = Field(min_length=1, max_length=200)
+    location_id: str = Field(min_length=1, max_length=200)
+    reorder_point: str | None = Field(default=None, max_length=40)
+    reorder_quantity: str | None = Field(default=None, max_length=40)
+
+
+@router.get("/reorder-points")
+def get_reorder_points(
+    tenant_id: str,
+    session: DatabaseSession,
+    item_id: str | None = Query(default=None, max_length=200),
+    location_id: str | None = Query(default=None, max_length=200),
+):
+    from reality.services.reorder_points import reorder_points
+
+    try:
+        return {
+            "rows": reorder_points(
+                session, tenant_id, item_id=item_id, location_id=location_id
+            )
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/reorder-points/proposals")
+def post_reorder_point_proposal(
+    tenant_id: str, body: ReorderPointProposal, session: DatabaseSession
+):
+    """Spec 302: prepare a reorder point change; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    arguments: dict[str, Any] = {
+        "item_id": body.item_id,
+        "location_id": body.location_id,
+    }
+    if body.operation == "set":
+        arguments["reorder_point"] = body.reorder_point or ""
+        arguments["reorder_quantity"] = body.reorder_quantity or ""
+    try:
+        proposal = create_change_proposal(
+            session,
+            tenant_id,
+            f"reorder_point_{body.operation}",
+            arguments,
+            actor_type="human",
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.get("/master-data/proposals/{proposal_id}")
 def get_reference_proposal(tenant_id: str, proposal_id: str, session: DatabaseSession):
     from reality.services.reference_workspace import reference_proposal

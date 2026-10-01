@@ -435,6 +435,9 @@ families:
       - tool:down_payment_invoice_record
       - tool:proforma_invoice_record
       - tool:month_end_billing
+      - tool:reorder_points
+      - tool:reorder_point_set
+      - tool:reorder_point_remove
       - tool:customer_exchange
       - tool:movement_explanation
       - tool:exceptions

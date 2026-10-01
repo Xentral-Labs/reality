@@ -1317,6 +1317,52 @@ def _credit_hold_release(
     return release_credit_holds(session, tenant_id, **arguments)
 
 
+def _reorder_points(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.reorder_points import reorder_points
+
+    return reorder_points(
+        session,
+        tenant_id,
+        item_id=arguments.get("item_id") or None,
+        location_id=arguments.get("location_id") or None,
+    )
+
+
+def _reorder_point_set(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.reorder_points import UNCHECKED, set_reorder_point
+
+    point = set_reorder_point(
+        session,
+        tenant_id,
+        arguments["item_id"],
+        arguments["location_id"],
+        arguments["reorder_point"],
+        arguments["reorder_quantity"],
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+    return _entity_result("reorder_point", point)
+
+
+def _reorder_point_remove(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.reorder_points import UNCHECKED, remove_reorder_point
+
+    return remove_reorder_point(
+        session,
+        tenant_id,
+        arguments["item_id"],
+        arguments["location_id"],
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+
+
 def _order_line_item_assign(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2426,6 +2472,24 @@ TOOLS = {
         False,
         _month_end_billing,
     ),
+    "reorder_points": Tool(
+        "reorder_points",
+        "Read the reorder points of the company, of one item or of one location.",
+        False,
+        _reorder_points,
+    ),
+    "reorder_point_set": Tool(
+        "reorder_point_set",
+        "Set or change the reorder point and reorder quantity of an item at a location.",
+        True,
+        _reorder_point_set,
+    ),
+    "reorder_point_remove": Tool(
+        "reorder_point_remove",
+        "Remove the reorder point of an item at a location.",
+        True,
+        _reorder_point_remove,
+    ),
     "credit_hold_release": Tool(
         "credit_hold_release",
         "Release an order's credit holds with a stated reason; an owner confirms.",
@@ -3191,6 +3255,13 @@ def create_change_proposal(
         normalized_arguments = proposal_arguments(session, tenant_id, arguments)
     if tool_name in FINANCE_COMMANDS:
         normalized_arguments = validate_finance_request(tool_name, arguments)
+    reorder_review = None
+    if tool_name in {"reorder_point_set", "reorder_point_remove"}:
+        from reality.services.reorder_points import review_reorder_point
+
+        normalized_arguments, reorder_review = review_reorder_point(
+            session, tenant_id, tool_name, arguments
+        )
     if delivery_review:
         normalized_arguments = {
             **delivery_review["intent"],
@@ -3255,6 +3326,8 @@ def create_change_proposal(
         from reality.services.dunning import preview_notice
 
         preview["dunning"] = preview_notice(session, tenant_id, normalized_arguments)
+    if reorder_review is not None:
+        preview["reorder_point"] = reorder_review
     if tool_name == DUNNING_SCHEDULE_COMMAND:
         from reality.services.dunning_runs import _stated_levels, schedule
 
@@ -3853,6 +3926,8 @@ def approve_and_execute_proposal(
         "customer_exchange_record",
         "order_line_item_assign",
         "credit_hold_release",
+        "reorder_point_set",
+        "reorder_point_remove",
         "down_payment_invoice_record",
         "proforma_invoice_record",
         "commitment_revise",
