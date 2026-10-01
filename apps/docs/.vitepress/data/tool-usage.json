@@ -244,7 +244,8 @@
         "exception:reservation_exceeds_stock",
         "exception:missing_acquisition_cost",
         "exception:item_oversold",
-        "exception:reorder_point_reached"
+        "exception:reorder_point_reached",
+        "exception:stock_in_another_location"
       ],
       "tools": [
         "tool:inventory_read",
@@ -3679,10 +3680,10 @@
       "key": "reservation_propose",
       "label": "Propose reservation",
       "area": "orders",
-      "summary": "Prepare a stock reservation without allocating before confirmation.",
+      "summary": "Prepare a stock reservation without allocating before confirmation. Without location_id it reserves at the promise's own warehouse; with it, the rest at that active warehouse holding stock (spec 303), for example one the stock_in_another_location finding names.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id]",
+      "synopsis": "reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id] [location_id]",
       "parameters": [
         {
           "name": "commitment_id",
@@ -3717,6 +3718,13 @@
           "type": "string",
           "required": false,
           "description": "Exact serial-unit identity to reserve or move; serialized quantities are always one.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational or physical location.",
           "depth": 0
         }
       ],
@@ -20495,7 +20503,7 @@
       "related_services": [],
       "tools": ["reservation_propose"],
       "synopses": [
-        "reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id]"
+        "reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial_unit_id] [location_id]"
       ],
       "events": ["reservation.created"],
       "actions": ["reserve_stock"],
@@ -24474,7 +24482,8 @@
         "exception:order_line_price_missing",
         "exception:billed_not_shipped",
         "exception:item_oversold",
-        "exception:reorder_point_reached"
+        "exception:reorder_point_reached",
+        "exception:stock_in_another_location"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -25998,6 +26007,33 @@
       "causes": [],
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Meldebestand erreicht",
+      "resources": ["item"]
+    },
+    {
+      "id": "exception:stock_in_another_location",
+      "kind": "exception",
+      "key": "stock_in_another_location",
+      "label": "Stock in another warehouse",
+      "area": "warehouse",
+      "summary": "An open customer promise whose own warehouse cannot cover what is still unreserved, while another warehouse has stock available. Reality takes the open quantity not reserved anywhere, compares it with what the promise's warehouse holds less what is reserved there, and when that falls short looks at every other active location that holds stock. The entry names those warehouses with their available quantity, most first, and what each could cover of the gap. It allocates nothing: two promises may be shown the same stock, and the warehouse lead decides by reserving the rest there, which ships it from that warehouse as its own package, or by transferring the stock to the order's warehouse. Both are reviewed actions. A promise or customer on hold is left out, and so is a promise held in a unit other than the item's stock unit, which Units not comparable names. Customer commitment at risk is the promise's view of its missing reservation; this is where the stock for it is.",
+      "owner": "Warehouse",
+      "clears_through": "Reserving the rest at another warehouse, transferring the stock to the order's warehouse, receiving it there, or the promise being reserved, shipped or cancelled.",
+      "severity": "normal",
+      "record_type": "commitment",
+      "authority": "303/FR-003",
+      "evidence": [
+        "tests/test_stock_in_another_location.py::test_stock_elsewhere_is_named_when_home_cannot_cover_the_rest",
+        "tests/test_stock_in_another_location.py::test_reserving_there_through_the_review_clears_it",
+        "tests/test_stock_in_another_location.py::test_a_transfer_through_the_review_clears_it"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:commitments"
+      ],
+      "label_de": "Bestand in anderem Lager",
       "resources": ["item"]
     },
     {

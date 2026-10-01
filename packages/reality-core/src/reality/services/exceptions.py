@@ -128,6 +128,7 @@ CLASS_ORDER = {
     "billed_not_shipped": 44,
     "item_oversold": 45,
     "reorder_point_reached": 46,
+    "stock_in_another_location": 47,
 }
 
 
@@ -3591,6 +3592,202 @@ def _reorder_point_reached_exceptions(
     return result
 
 
+def _stock_in_another_location_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """An open customer promise its own warehouse cannot cover, while others can.
+
+    Spec 303 FR-003. The rest of the promise is what is still open and not
+    reserved anywhere; the own warehouse has what it holds less what is
+    reserved there. When that falls short and another active warehouse
+    holding stock has some available, the entry names those warehouses, most
+    first, with what each could cover of the gap. Nothing is allocated: two
+    promises may both be shown the same stock, and reserving or transferring
+    it stays a reviewed decision. A held promise or customer is left alone,
+    because nothing can ship to it anyway.
+    """
+    from reality.db.core import (
+        Commitment,
+        CommitmentHold,
+        DocumentLine,
+        Item,
+        Location,
+        Movement,
+        PartyHold,
+        Reservation,
+    )
+    from reality.services.delivery_reads import effective_value, fulfillment_expressions
+
+    reserved_total, fulfilled, _ = fulfillment_expressions()
+    held = (
+        select(CommitmentHold.id)
+        .where(
+            CommitmentHold.tenant_id == Commitment.tenant_id,
+            CommitmentHold.commitment_id == Commitment.id,
+            CommitmentHold.released_at.is_(None),
+        )
+        .exists()
+    )
+    customer_held = (
+        select(PartyHold.id)
+        .where(
+            PartyHold.tenant_id == Commitment.tenant_id,
+            PartyHold.party_id == Commitment.to_party_id,
+            PartyHold.hold_type == "delivery",
+            PartyHold.released_at.is_(None),
+        )
+        .exists()
+    )
+    promises = session.execute(
+        select(
+            Commitment.id,
+            Commitment.item_id,
+            Commitment.location_id,
+            Commitment.document_id,
+            Commitment.due_at,
+            Commitment.created_at,
+            Commitment.unit.label("held_unit"),
+            DocumentLine.unit.label("line_unit"),
+            Item.unit.label("item_unit"),
+            effective_value("quantity").label("promised"),
+            fulfilled.label("fulfilled"),
+            reserved_total.label("reserved"),
+        )
+        .join(
+            Item,
+            (Item.tenant_id == Commitment.tenant_id) & (Item.id == Commitment.item_id),
+        )
+        .outerjoin(
+            DocumentLine,
+            (DocumentLine.tenant_id == Commitment.tenant_id)
+            & (DocumentLine.id == Commitment.document_line_id),
+        )
+        .where(
+            Commitment.tenant_id == tenant_id,
+            Commitment.type == "customer_delivery",
+            Commitment.status == "open",
+            Commitment.location_id.is_not(None),
+            Item.item_type == "stocked",
+            ~held,
+            ~customer_held,
+        )
+        .order_by(Commitment.created_at, Commitment.id)
+    ).all()
+    gaps = []
+    for row in promises:
+        line = SimpleNamespace(unit=row.line_unit) if row.line_unit else None
+        # A promise in a unit other than the stock unit is not compared with
+        # stock here; Units not comparable is where such a promise is named.
+        if promise_held_unit(row.held_unit, line, row.item_unit) != row.item_unit:
+            continue
+        rest = (
+            Decimal(row.promised) - Decimal(row.fulfilled or 0) - Decimal(row.reserved)
+        )
+        if rest > ZERO:
+            gaps.append((row, rest))
+    if not gaps:
+        return []
+    item_ids = {row.item_id for row, _ in gaps}
+    serving = {
+        location.id: location.name
+        for location in session.scalars(
+            select(Location).where(
+                Location.tenant_id == tenant_id,
+                Location.is_active.is_(True),
+                Location.allows_stock.is_(True),
+            )
+        )
+    }
+    available: dict[tuple[str, str], Decimal] = {}
+    for column, sign in (
+        (Movement.to_location_id, Decimal(1)),
+        (Movement.from_location_id, Decimal(-1)),
+    ):
+        for item_id, location_id, quantity in session.execute(
+            select(Movement.item_id, column, func.sum(Movement.quantity))
+            .where(
+                Movement.tenant_id == tenant_id,
+                Movement.item_id.in_(item_ids),
+                column.is_not(None),
+            )
+            .group_by(Movement.item_id, column)
+        ):
+            key = (item_id, location_id)
+            available[key] = available.get(key, ZERO) + sign * Decimal(quantity)
+    for item_id, location_id, quantity in session.execute(
+        select(
+            Reservation.item_id, Reservation.location_id, func.sum(Reservation.quantity)
+        )
+        .where(
+            Reservation.tenant_id == tenant_id,
+            Reservation.item_id.in_(item_ids),
+            Reservation.status == "active",
+        )
+        .group_by(Reservation.item_id, Reservation.location_id)
+    ):
+        key = (item_id, location_id)
+        available[key] = available.get(key, ZERO) - Decimal(quantity)
+
+    result = []
+    for row, rest in gaps:
+        own = max(ZERO, available.get((row.item_id, row.location_id), ZERO))
+        if own >= rest:
+            continue
+        gap = rest - own
+        elsewhere = sorted(
+            (
+                (quantity, location_id)
+                for (item_id, location_id), quantity in available.items()
+                if item_id == row.item_id
+                and location_id != row.location_id
+                and location_id in serving
+                and quantity > ZERO
+            ),
+            key=lambda entry: (-entry[0], serving[entry[1]], entry[1]),
+        )
+        if not elsewhere:
+            continue
+        locations = [
+            {
+                "location_id": location_id,
+                "name": serving[location_id],
+                "available": f"{quantity.normalize():f}",
+                "proposed": f"{min(gap, quantity).normalize():f}",
+            }
+            for quantity, location_id in elsewhere
+        ]
+        readable = " · ".join(
+            f"{entry['name']} {entry['available']}" for entry in locations
+        )
+        result.append(
+            OperationalException(
+                _identity("stock_in_another_location", row.id),
+                "stock_in_another_location",
+                (),
+                "normal",
+                "Stock in another warehouse",
+                f"{gap.normalize():f} of the {rest.normalize():f} not reserved are "
+                f"not at the order's warehouse; available elsewhere: {readable}",
+                "commitment",
+                row.id,
+                {
+                    "unreserved_quantity": rest.normalize(),
+                    "own_available_quantity": own.normalize(),
+                    "elsewhere": readable,
+                },
+                {
+                    "commitment_id": row.id,
+                    "item_id": row.item_id,
+                    "location_id": row.location_id,
+                    "document_id": row.document_id,
+                    "locations": locations,
+                },
+                row.due_at or row.created_at,
+            )
+        )
+    return result
+
+
 def _open_item_exceptions(
     session: Session,
     tenant_id: str,
@@ -4450,6 +4647,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "billed_not_shipped": _billed_not_shipped_exceptions,
     "item_oversold": _item_oversold_exceptions,
     "reorder_point_reached": _reorder_point_reached_exceptions,
+    "stock_in_another_location": _stock_in_another_location_exceptions,
     "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,

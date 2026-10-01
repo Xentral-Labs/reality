@@ -417,6 +417,25 @@ def delivery_case(
     detail = _row(row)
     if purchase := _purchase_unit_view(session, tenant_id, commitment, detail):
         detail["purchase_unit"] = purchase
+    # Spec 303: where the promise's stock is reserved, warehouse by warehouse.
+    detail["reservations_by_location"] = [
+        {"location_id": location_id, "location": name, "reserved": str(quantity)}
+        for location_id, name, quantity in session.execute(
+            select(Location.id, Location.name, func.sum(Reservation.quantity))
+            .join(
+                Reservation,
+                (Reservation.tenant_id == Location.tenant_id)
+                & (Reservation.location_id == Location.id),
+            )
+            .where(
+                Reservation.tenant_id == tenant_id,
+                Reservation.commitment_id == commitment.id,
+                Reservation.status == "active",
+            )
+            .group_by(Location.id, Location.name)
+            .order_by(Location.name, Location.id)
+        )
+    ]
     detail["blockers"] = [
         {
             "id": hold.id,

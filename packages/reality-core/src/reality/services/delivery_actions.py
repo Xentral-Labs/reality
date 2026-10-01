@@ -155,7 +155,8 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
         }
         or (
             tool == "movement_create"
-            and arguments.get("movement_type") in {"shipment", "receipt", "return"}
+            and arguments.get("movement_type")
+            in {"shipment", "receipt", "return", "transfer"}
         )
     )
 
@@ -286,6 +287,9 @@ def review_delivery(
             "return_announcement_id",
             "unit",
         }
+    if tool == "reserve":
+        # Spec 303: the location the rest is reserved at, if not the promise's.
+        allowed |= {"location_id"}
     if tool == "reservation_release":
         allowed = {"reservation_id"}
     if tool in HOLD_TOOLS:
@@ -340,6 +344,9 @@ def review_delivery(
         effect = {
             "received"
             if intent["movement_type"] == "receipt"
+            # Spec 303: a transfer moves stock between warehouses only.
+            else "transferred"
+            if intent["movement_type"] == "transfer"
             else "shipped": _quantity(result["quantity"])
         }
         if "stated_quantity" in result:
@@ -352,7 +359,12 @@ def review_delivery(
     if tool == "movement_create" and not intent.get("commitment_id"):
         from reality.services.core import active_reserved, stock_at
 
-        location_id = intent.get("to_location_id") or intent.get("from_location_id")
+        # A transfer is judged where it takes stock from.
+        location_id = (
+            intent.get("from_location_id")
+            if intent.get("movement_type") == "transfer"
+            else intent.get("to_location_id") or intent.get("from_location_id")
+        )
         physical = stock_at(session, tenant_id, intent["item_id"], location_id)
         reserved = active_reserved(session, tenant_id, intent["item_id"], location_id)
         detail = {
@@ -378,30 +390,40 @@ def review_delivery(
             session, tenant_id, action_commitment(session, tenant_id, tool, intent)
         )
     location_key = (
-        "to_location_id"
+        "location_id"
+        if tool == "reserve"
+        else "to_location_id"
         if intent.get("movement_type") in {"receipt", "return"}
         else "from_location_id"
     )
     if (
-        tool == "movement_create"
+        tool in {"movement_create", "reserve"}
+        and intent.get(location_key)
         and intent.get(location_key) != detail["case"]["location_id"]
     ):
         from reality.services.core import active_reserved, stock_at
 
         location_id = intent[location_key]
-        physical = stock_at(session, tenant_id, intent["item_id"], location_id)
-        reserved = active_reserved(session, tenant_id, intent["item_id"], location_id)
+        item_id = intent.get("item_id") or detail["case"]["item_id"]
+        physical = stock_at(session, tenant_id, item_id, location_id)
+        reserved = active_reserved(session, tenant_id, item_id, location_id)
         detail["inventory"].update(
             location_id=location_id,
             physical=str(physical),
             reserved=str(reserved),
             available=str(physical - reserved),
         )
-        detail["case"]["location"] = session.scalar(
+        named = session.scalar(
             select(Location.name).where(
                 Location.tenant_id == tenant_id, Location.id == location_id
             )
         )
+        if tool == "reserve":
+            # The promise keeps its own warehouse; what is shown is where its
+            # rest is reserved.
+            detail["inventory"]["location"] = named
+        else:
+            detail["case"]["location"] = named
     state = {"case": detail["case"], "inventory": detail["inventory"], "effect": effect}
     warnings = []
     if (
@@ -424,6 +446,22 @@ def review_delivery(
                 "message": (
                     "No commitment, return, shipment or source explains this movement. "
                     "Confirming it will create an unexplained-movement exception."
+                ),
+            }
+        )
+    if (
+        tool == "movement_create"
+        and intent.get("movement_type") == "transfer"
+        and Decimal(str(result["quantity"])) > Decimal(detail["inventory"]["available"])
+    ):
+        # Spec 303: the stock reserved there for other orders goes with it,
+        # and those reservations are left without stock.
+        warnings.append(
+            {
+                "code": "transfer_takes_reserved_stock",
+                "message": (
+                    "This transfer takes stock that is reserved at its warehouse; "
+                    "the orders reserved there lose their stock."
                 ),
             }
         )
@@ -688,7 +726,12 @@ def delivery_proposal_detail(
             payload = json.loads(event.payload)
             expected = review["effect"].get(
                 "applied",
-                review["effect"].get("shipped", review["effect"].get("received")),
+                review["effect"].get(
+                    "shipped",
+                    review["effect"].get(
+                        "received", review["effect"].get("transferred")
+                    ),
+                ),
             )
             identity = all(
                 payload.get(key) == arguments.get(key)
@@ -717,7 +760,7 @@ def delivery_proposal_detail(
                 else "from_location_id"
             )
             expected_location = (
-                review["state"]["case"]["location_id"]
+                arguments.get("location_id") or review["state"]["case"]["location_id"]
                 if result["tool"] == "reserve"
                 else arguments.get(location_key)
             )

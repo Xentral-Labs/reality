@@ -37,19 +37,33 @@
       "section": "Order intake and order changes",
       "title": "Order with 30 lines from several warehouses",
       "question": "What is open per line and per location?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: What is open per line and per location?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: What is open per line and per location? Each line reserves at the order's warehouse, and the rest of a line at a warehouse a person names; readiness and shipping count every reservation with the stock at its own warehouse, and Stock in another warehouse names the lines whose stock is elsewhere.",
       "limitations": [
-        "An order is entered for one warehouse, so open quantities per line across several warehouses are not proven.",
-        "Multi-line orders are proven with a few lines, not with thirty."
+        "A person names the second warehouse; Reality does not spread a reservation across warehouses by itself.",
+        "Proven with twelve lines; the rule does not depend on the number of lines."
       ],
-      "keywords": [],
+      "keywords": [
+        "several warehouses",
+        "multi-warehouse order",
+        "lines from different warehouses",
+        "mehrere Lager",
+        "Auftrag aus mehreren Lagern",
+        "Positionen aus verschiedenen Lagern"
+      ],
       "question_examples": [
         "Order with 30 lines from several warehouses",
-        "What is open per line and per location?"
+        "What is open per line and per location?",
+        "Can one order be served from two warehouses, line by line?",
+        "Kann ein Auftrag Position für Position aus zwei Lagern beliefert werden?"
       ],
-      "tools": [],
+      "tools": [
+        "order_create_propose",
+        "reservation_propose",
+        "exceptions",
+        "shipment_dispatch_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -636,19 +650,34 @@
       "section": "Availability, reservation and backorder",
       "title": "Stock exists in the wrong warehouse",
       "question": "Is a transfer needed, and is availability per location?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Is a transfer needed, and is availability per location?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is a transfer needed, and is availability per location? When an order's warehouse cannot cover a line but another warehouse can, Stock in another warehouse names where the stock is and what it could cover, and offers to reserve it there or to transfer it to the order's warehouse, both through the review.",
       "limitations": [
-        "Availability is judged per location.",
-        "Reality does not propose a transfer, and reserving against stock held elsewhere is not yet proven."
+        "The finding allocates nothing; two orders may be shown the same stock until one reserves it.",
+        "Stock in transit between warehouses is not modelled; a transfer moves stock at once."
       ],
-      "keywords": [],
+      "keywords": [
+        "wrong warehouse",
+        "stock in another warehouse",
+        "stock transfer",
+        "transfer proposal",
+        "falsches Lager",
+        "Bestand in anderem Lager",
+        "Umlagerung",
+        "Umlagerungsvorschlag"
+      ],
       "question_examples": [
         "Stock exists in the wrong warehouse",
-        "Is a transfer needed, and is availability per location?"
+        "Is a transfer needed, and is availability per location?",
+        "The stock for this order is in another warehouse; should we transfer it?",
+        "Der Bestand für diesen Auftrag liegt in einem anderen Lager, müssen wir umlagern?"
       ],
-      "tools": [],
+      "tools": [
+        "exceptions",
+        "reservation_propose",
+        "movement_create_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -1367,19 +1396,29 @@
       "section": "Picking, shipment, split and merge",
       "title": "Two warehouses, two parcels, one order",
       "question": "Movements per location, one commitment?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Movements per location, one commitment?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Movements per location, one commitment? A line reserved partly at home and partly in a second warehouse is ready to ship, and each warehouse ships its part as its own parcel against the one promise, consuming its own reservation.",
       "limitations": [
-        "A reservation and the readiness to ship are bound to the order's own warehouse.",
-        "Stock in a second warehouse therefore cannot serve the same order line."
+        "Each warehouse dispatches its own parcel; one parcel leaving from two warehouses is not modelled."
       ],
-      "keywords": [],
+      "keywords": [
+        "two warehouses two parcels",
+        "split shipment by warehouse",
+        "ship from two warehouses",
+        "zwei Lager zwei Pakete",
+        "Teillieferung aus zwei Lagern"
+      ],
       "question_examples": [
         "Two warehouses, two parcels, one order",
-        "Movements per location, one commitment?"
+        "Movements per location, one commitment?",
+        "Can each warehouse ship its part of one order line as its own parcel?",
+        "Kann jedes Lager seinen Teil einer Auftragsposition als eigenes Paket versenden?"
       ],
-      "tools": [],
+      "tools": [
+        "reservation_propose",
+        "shipment_dispatch_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

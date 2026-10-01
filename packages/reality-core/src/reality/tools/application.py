@@ -475,6 +475,7 @@ def _reserve(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any
         handling_unit_id=arguments.get("handling_unit_id"),
         lot_id=arguments.get("lot_id"),
         serial_unit_id=arguments.get("serial_unit_id"),
+        location_id=arguments.get("location_id"),
         action_id=arguments.get("_action_id"),
     )
     effect = (

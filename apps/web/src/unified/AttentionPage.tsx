@@ -15,6 +15,7 @@ import { useActionDiscovery } from "./ActionLauncher";
 import { ResolutionGuidance } from "./ResolutionGuidance";
 import { OrderLineItemCard } from "./OrderLineItemCard";
 import { OrderCard } from "./OrderCard";
+import { StockElsewhereCard } from "./StockElsewhereCard";
 const severities = [
   ["critical", "Critical"],
   ["high", "High"],
@@ -74,6 +75,7 @@ function OpenExceptions({
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const [assigning, setAssigning] = useState("");
   const [ordering, setOrdering] = useState<AttentionRow | null>(null);
+  const [serving, setServing] = useState<AttentionRow | null>(null);
   const selected = detail.data?.id === exception ? detail.data : null;
   // Spec 279 FR-012: the catalog title of the class, translated; the stored title
   // only stands in for a class the catalog does not know yet.
@@ -217,6 +219,14 @@ function OpenExceptions({
                           {t("Assign item")}
                         </button>
                       )}
+                      {selected.class_id === "stock_in_another_location" && (
+                        <button
+                          className="br-btn br-btn-primary"
+                          onClick={() => setServing(selected)}
+                        >
+                          {t("Serve from another warehouse")}
+                        </button>
+                      )}
                       {selected.class_id === "reorder_point_reached" && (
                         <button
                           className="br-btn br-btn-primary"
@@ -245,6 +255,17 @@ function OpenExceptions({
       </section>
 
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
+      {serving && (
+        <StockElsewhereCard
+          tenant={tenant}
+          finding={serving}
+          close={() => setServing(null)}
+          settled={() => {
+            detail.refresh();
+            read.refresh();
+          }}
+        />
+      )}
       {ordering && (
         <OrderCard
           tenant={tenant}

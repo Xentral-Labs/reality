@@ -686,7 +686,8 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`order_line_price_missing`](./exceptions#exception-order_line_price_missing), exception
 [`billed_not_shipped`](./exceptions#exception-billed_not_shipped), exception
 [`item_oversold`](./exceptions#exception-item_oversold), exception
-[`reorder_point_reached`](./exceptions#exception-reorder_point_reached)
+[`reorder_point_reached`](./exceptions#exception-reorder_point_reached), exception
+[`stock_in_another_location`](./exceptions#exception-stock_in_another_location)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

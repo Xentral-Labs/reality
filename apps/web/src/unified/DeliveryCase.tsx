@@ -188,6 +188,23 @@ export function DeliveryCase({
         {detail.type === "supplier_delivery" && detail.status === "open" && (
           <SupplyAssignmentCard tenant={tenant} supplier={detail} settled={refresh} />
         )}
+        {(detail.reservations_by_location || []).some(
+          (row) => row.location_id !== detail.location_id,
+        ) && (
+          <article
+            className="rounded-xl border border-border-default bg-surface p-6"
+            data-reservations-by-location
+          >
+            <h3 className="font-semibold text-fg-strong">{t("Reserved by warehouse")}</h3>
+            <ul className="mt-3 space-y-1 text-sm">
+              {detail.reservations_by_location!.map((row) => (
+                <li key={row.location_id}>
+                  {row.location} · {formatQuantity(row.reserved)} {detail.unit}
+                </li>
+              ))}
+            </ul>
+          </article>
+        )}
         <article className="rounded-xl border border-border-default bg-surface p-6">
           <h3 className="font-semibold text-fg-strong">{t("Inventory at this location")}</h3>
           <a

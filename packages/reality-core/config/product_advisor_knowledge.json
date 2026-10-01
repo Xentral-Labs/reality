@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:7b520088c6d93293029b099c47e03a4cda71fcd525d701173265e266605a70a7",
+  "knowledge_version": "advisor-v1:sha256:28a4d27f3e5373ed99f5b201f6023550d4adf9a87958939cd24f02404e64866d",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -18,7 +18,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A02",
-      "fingerprint": "19cbac26e325ba6c0719757eaae5c1072990227afbb770347053043615b52c0e"
+      "fingerprint": "53a4e62a4d61ae857706d56891835204211ed6e4cd2eca628e805c3ded69fb43"
     },
     {
       "id": "source_journey_a03",
@@ -270,7 +270,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#B06",
-      "fingerprint": "4ee5e8e8002b356dcb6ea653609186e9c88704325f4f1b4b63f42a07ccf0c29d"
+      "fingerprint": "6e42a81acbd44d31be7e8a63f94c11e9903ff2ce2c5e298569d97fcea64265e2"
     },
     {
       "id": "source_journey_b07",
@@ -558,7 +558,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D02",
-      "fingerprint": "61492de482b2c80ae2bed9ca5688d723713b35d9ec7485a3bfc019f18f500c1d"
+      "fingerprint": "9a5b5df52e4a67ec5fbe4b22ccd5ef7e72435154b5431e9139057d64de74291c"
     },
     {
       "id": "source_journey_d03",
@@ -2133,18 +2133,22 @@
       "source_id": "source_journey_a02",
       "subject": "Order intake and order changes",
       "title": "Order with 30 lines from several warehouses",
-      "search_text": "A02 Order intake and order changes Order with 30 lines from several warehouses What is open per line and per location? Order with 30 lines from several warehouses What is open per line and per location?",
-      "claim_text": "Reality evaluates: What is open per line and per location?",
-      "support": "limited",
+      "search_text": "A02 Order intake and order changes Order with 30 lines from several warehouses What is open per line and per location? several warehouses multi-warehouse order lines from different warehouses mehrere Lager Auftrag aus mehreren Lagern Positionen aus verschiedenen Lagern Order with 30 lines from several warehouses What is open per line and per location? Can one order be served from two warehouses, line by line? Kann ein Auftrag Position für Position aus zwei Lagern beliefert werden?",
+      "claim_text": "Reality evaluates: What is open per line and per location? Each line reserves at the order's warehouse, and the rest of a line at a warehouse a person names; readiness and shipping count every reservation with the stock at its own warehouse, and Stock in another warehouse names the lines whose stock is elsewhere.",
+      "support": "proven",
       "limitations": [
-        "An order is entered for one warehouse, so open quantities per line across several warehouses are not proven.",
-        "Multi-line orders are proven with a few lines, not with thirty."
+        "A person names the second warehouse; Reality does not spread a reservation across warehouses by itself.",
+        "Proven with twelve lines; the rule does not depend on the number of lines."
       ],
       "references": [
-        "A02"
+        "A02",
+        "order_create_propose",
+        "reservation_propose",
+        "exceptions",
+        "shipment_dispatch_propose"
       ],
       "language": "en",
-      "fingerprint": "522171ffc5a2a9275f81373e914c88982be87e0e17fda588f2012f93ac5aa79a"
+      "fingerprint": "cd4f6946e49fe420e2b7025bc459ebf52372a5506e92e076c07812fb045e0cba"
     },
     {
       "id": "evidence_journey_a03",
@@ -2598,18 +2602,21 @@
       "source_id": "source_journey_b06",
       "subject": "Availability, reservation and backorder",
       "title": "Stock exists in the wrong warehouse",
-      "search_text": "B06 Availability, reservation and backorder Stock exists in the wrong warehouse Is a transfer needed, and is availability per location? Stock exists in the wrong warehouse Is a transfer needed, and is availability per location?",
-      "claim_text": "Reality evaluates: Is a transfer needed, and is availability per location?",
-      "support": "limited",
+      "search_text": "B06 Availability, reservation and backorder Stock exists in the wrong warehouse Is a transfer needed, and is availability per location? wrong warehouse stock in another warehouse stock transfer transfer proposal falsches Lager Bestand in anderem Lager Umlagerung Umlagerungsvorschlag Stock exists in the wrong warehouse Is a transfer needed, and is availability per location? The stock for this order is in another warehouse; should we transfer it? Der Bestand für diesen Auftrag liegt in einem anderen Lager, müssen wir umlagern?",
+      "claim_text": "Reality evaluates: Is a transfer needed, and is availability per location? When an order's warehouse cannot cover a line but another warehouse can, Stock in another warehouse names where the stock is and what it could cover, and offers to reserve it there or to transfer it to the order's warehouse, both through the review.",
+      "support": "proven",
       "limitations": [
-        "Availability is judged per location.",
-        "Reality does not propose a transfer, and reserving against stock held elsewhere is not yet proven."
+        "The finding allocates nothing; two orders may be shown the same stock until one reserves it.",
+        "Stock in transit between warehouses is not modelled; a transfer moves stock at once."
       ],
       "references": [
-        "B06"
+        "B06",
+        "exceptions",
+        "reservation_propose",
+        "movement_create_propose"
       ],
       "language": "en",
-      "fingerprint": "58dd798a344c5293cdab66e7cfca1f598f4486b5acac891e1211a383c4c0cbfe"
+      "fingerprint": "a83eea0924c5262f058cc17fdbe6d8ee43d0faa084ced62b4fd74a9ef107d3ae"
     },
     {
       "id": "evidence_journey_b07",
@@ -3144,18 +3151,19 @@
       "source_id": "source_journey_d02",
       "subject": "Picking, shipment, split and merge",
       "title": "Two warehouses, two parcels, one order",
-      "search_text": "D02 Picking, shipment, split and merge Two warehouses, two parcels, one order Movements per location, one commitment? Two warehouses, two parcels, one order Movements per location, one commitment?",
-      "claim_text": "Reality evaluates: Movements per location, one commitment?",
-      "support": "unavailable",
+      "search_text": "D02 Picking, shipment, split and merge Two warehouses, two parcels, one order Movements per location, one commitment? two warehouses two parcels split shipment by warehouse ship from two warehouses zwei Lager zwei Pakete Teillieferung aus zwei Lagern Two warehouses, two parcels, one order Movements per location, one commitment? Can each warehouse ship its part of one order line as its own parcel? Kann jedes Lager seinen Teil einer Auftragsposition als eigenes Paket versenden?",
+      "claim_text": "Reality evaluates: Movements per location, one commitment? A line reserved partly at home and partly in a second warehouse is ready to ship, and each warehouse ships its part as its own parcel against the one promise, consuming its own reservation.",
+      "support": "proven",
       "limitations": [
-        "A reservation and the readiness to ship are bound to the order's own warehouse.",
-        "Stock in a second warehouse therefore cannot serve the same order line."
+        "Each warehouse dispatches its own parcel; one parcel leaving from two warehouses is not modelled."
       ],
       "references": [
-        "D02"
+        "D02",
+        "reservation_propose",
+        "shipment_dispatch_propose"
       ],
       "language": "en",
-      "fingerprint": "80645306a7592f7389135f84070b9932aa3f57b934f5a4264bddbfcf5e3ec8e8"
+      "fingerprint": "4c7a6bbb0829ba46a4aa4426be5469a344f73bc05ac9f6b6ff4864fc608d0dad"
     },
     {
       "id": "evidence_journey_d03",

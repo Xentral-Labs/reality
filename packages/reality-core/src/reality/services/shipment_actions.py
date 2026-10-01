@@ -189,6 +189,7 @@ def review_shipment_action(
                         tenant_id,
                         preview["commitment_id"],
                         proposed_quantity=Decimal(preview["quantity"]),
+                        from_location_id=preview.get("from_location_id"),
                     )
                     if not readiness.ship_ready:
                         raise InvalidOperation(

@@ -694,7 +694,8 @@ Ausnahme [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), Ausn
 [`order_line_price_missing`](./exceptions#exception-order_line_price_missing), Ausnahme
 [`billed_not_shipped`](./exceptions#exception-billed_not_shipped), Ausnahme
 [`item_oversold`](./exceptions#exception-item_oversold), Ausnahme
-[`reorder_point_reached`](./exceptions#exception-reorder_point_reached)
+[`reorder_point_reached`](./exceptions#exception-reorder_point_reached), Ausnahme
+[`stock_in_another_location`](./exceptions#exception-stock_in_another_location)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

@@ -1043,7 +1043,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "reservation_propose",
         "Propose reservation",
-        "Prepare a stock reservation without allocating before confirmation.",
+        "Prepare a stock reservation without allocating before confirmation. Without location_id it reserves at the promise's own warehouse; with it, the rest at that active warehouse holding stock (spec 303), for example one the stock_in_another_location finding names.",
         "propose",
         "Mutations",
         _object_schema(
@@ -1053,6 +1053,7 @@ MCP_TOOL_CATALOG = (
                 "handling_unit_id": OPTIONAL_STRING,
                 "lot_id": OPTIONAL_STRING,
                 "serial_unit_id": OPTIONAL_STRING,
+                "location_id": OPTIONAL_STRING,
             },
             required=("commitment_id",),
         ),

@@ -2,20 +2,20 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 119 covered, 32 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 122 covered, 30 partial, 0 missing, 73 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
-| A Order intake and changes | 14 | 2 |  | 8 |  |
-| B Availability and reservation | 6 | 6 |  | 6 |  |
+| A Order intake and changes | 15 | 1 |  | 8 |  |
+| B Availability and reservation | 7 | 5 |  | 6 |  |
 | C Payment and release | 14 |  |  | 4 |  |
-| D Shipment, split and merge | 4 | 3 |  | 12 |  |
+| D Shipment, split and merge | 5 | 3 |  | 11 |  |
 | E Customer invoice and credit | 11 | 1 |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
 | G Purchase demand and order | 7 | 5 |  | 5 |  |
@@ -51,8 +51,9 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
 5. **No allocation policy.** Priority between promises, reserving by requested date, serving
    backorders on receipt, ship-complete, reservation lapse, channel quotas and shelf-life
    eligibility are all absent; spec 068 names allocation a non-goal. A12, B03, B11, B12, B15,
-   B16, B17, M06 (B08, B10 partial). Reservation and dispatch readiness are also bound to the
-   commitment's own location, so one promise cannot be served from two warehouses (D02).
+   B16, B17, M06 (B08, B10 partial). Since spec 303 a person can reserve the rest of a promise
+   at another warehouse and each warehouse ships its part (D02), but nothing distributes a
+   reservation across warehouses by itself.
 6. **Locations have no availability status.** Quarantine, inspection and in-transit exist only as
    "move it to another location". B05, H08, H15, J01 (J05 partial by design).
 7. **Shopify orders and refunds are interpreted, other sources are not.** Later Shopify versions
@@ -111,7 +112,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | A01 | covered | packages/reality-core/tests/scenarios/test_order_to_cash.py::test_order_to_cash_business_story | Shopify order is reserved with no shortage and shipped in two parts, then invoiced, partly paid and credited; open quantity and open amount are asserted, and the trace reaches the raw payload. |
-| A02 | partial | packages/reality-core/tests/test_unified_order_entry.py::test_multiline_review_trace_and_replay | Only 2 lines are tested. `order_create` takes one `location_id` per order (services/order_actions.py), so no test shows open quantity per line and per location across warehouses. |
+| A02 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_order_with_many_lines_is_served_from_two_warehouses | Twelve lines, half stocked at home and half in Munich: the Munich lines are named, reserved there, all lines are ready and each warehouse ships its own lines in one parcel (spec 303). |
 | A03 | covered | packages/reality-core/tests/test_unified_order_entry.py::test_multiline_review_trace_and_replay | The same `item_id` on two lines gives two commitments with their own amounts. The discounted-versus-free case itself is not tested. |
 | A04 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_raising_the_quantity_after_a_partial_delivery_opens_only_the_rest | 10 ordered, 4 shipped, raised to 12 through the reviewed revision: 8 open, 4 delivered; the rest is reserved again and ships in full. |
 | A05 | partial | packages/reality-core/tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived | The revision is accepted and marks the commitment fulfilled, neither refused nor turned into a return demand. Only the supplier side is tested, and no exception class reports the excess delivery. |
@@ -144,7 +145,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | B03 | gap | specs/068-promise-coverage-exceptions/spec.md (Non-Goals); tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock_impact | No allocation or priority rule exists: whoever reserves first gets the units, and only a `competing_commitments` count is reported. |
 | B04 | covered | tests/scenarios/test_catalog_stock_and_returns.py::test_stock_reserved_for_one_customer_can_be_moved_to_a_more_important_one | Release then reserve moves the stock with exact per-commitment figures and ordered events. Nothing links the two steps unless the caller passes one action id. |
 | B05 | partial | docs/features/inventory.md ("Nothing is blocked"); tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes | There is no blocked-stock state; exclusion only works by moving goods to another location (for example a quarantine disposition transfer), and expired stock is deliberately still available. |
-| B06 | partial | tests/test_stock_at_location.py::test_quantities_stay_at_the_exact_location, ::test_scoped_reservations_hold_that_location_only; docs/features/reservations.md | Availability is judged at the exact location, but nothing proposes the transfer, and no test reserves against stock that sits elsewhere. |
+| B06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_stock_in_the_wrong_warehouse_is_transferred_and_then_reserved | All stock in Munich: the finding names it, the reviewed transfer moves five home, the finding clears, and the order reserves and ships at home (spec 303). |
 | B07 | partial | tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt | Open PO quantity can be assigned to protect a customer promise (`protecting_supply`); there is no dated available-to-promise calculation. |
 | B08 | partial | tests/test_supply_coverage.py::test_purchasing_sales_and_inventory_views_reconcile_without_double_counting | A receipt reserves nothing automatically (the test asserts 0 reservations); a supply assignment names the intended customer, but no serving order exists. |
 | B09 | partial | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_partial_receipt_leaves_the_assigned_backorders_as_they_were | Pinned (spec 314): a receipt does not consume supply assignments, so each backorder keeps its full protecting supply; uncovered promises are answered only by reservations. Moved to spec 305. |
@@ -186,7 +187,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | D01 | covered | packages/reality-core/tests/test_inventory_and_fulfillment.py::test_partial_shipments_derive_fulfillment_and_consume_reservations | Asserts fulfilled 10 / open 20, then fulfilled after the remainder ships; the remaining reservation is used up too. |
-| D02 | gap | packages/reality-core/src/reality/services/fulfillment_readiness.py (readiness at the commitment location only) | A reservation sits only at the commitment's location and dispatch readiness checks only that location, so part-stock in a second warehouse blocks the shipment. Shipping from the second location consumed the first location's reservation; fixed in #202. |
+| D02 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_two_warehouses_ship_one_order_line_as_two_parcels | Six reserved at home and four in Munich for one line: ready to ship, two parcels from their own warehouses fulfil the one promise (spec 303). |
 | D03 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_one_package_carries_several_commitments_of_one_customer | One package fulfils three commitments over two items by their own quantities (0, 0 and 1 open). |
 | D04 | gap | packages/reality-core/src/reality/db/core.py (no picking record; only Reservation → Movement) | Picking is not modelled, so there is no record for a caught picking error to correct. |
 | D05 | gap | packages/reality-core/src/reality/services/core.py `_append_movement` ("Movement does not match the commitment") | A shipment of the wrong item cannot name the commitment it was meant for; it can only be recorded unlinked, as an unexplained movement. |

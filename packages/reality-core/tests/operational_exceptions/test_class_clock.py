@@ -48,6 +48,7 @@ CLOCK_READING = {
 #: producing rows here fails the test until it is moved out of this list.
 WITHOUT_A_SCENARIO = {
     "reorder_point_reached",
+    "stock_in_another_location",
     "missing_acquisition_cost",
     "unassigned_cost_component",
     "stale_cost_review",

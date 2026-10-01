@@ -139,6 +139,8 @@ records:
         item_oversold: traces_only
         # Read only for the line's unit, as for item_oversold.
         reorder_point_reached: traces_only
+        # Read only for the line's unit, as for item_oversold.
+        stock_in_another_location: traces_only
         order_stalled: traces_only
         overdue_incoming_supplier_commitment: traces_only
         sold_below_purchase_price: traces_only

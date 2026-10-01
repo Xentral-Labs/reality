@@ -24,6 +24,7 @@ import {
   operationsApi,
   type WarehouseRow,
   type Page,
+  workspaceApi,
 } from "../api";
 import { formatQuantity, t } from "../localization";
 import { ReadLine } from "./ReadState";
@@ -83,6 +84,17 @@ function DeliveryActionCard({
   const [query, setQuery] = useState("");
   const [tracking, setTracking] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState("");
+  // Spec 303: the rest may be reserved at another warehouse holding stock.
+  const [reserveAt, setReserveAt] = useState("");
+  const reserving = activeTool === "reserve";
+  const warehouses = useRead(
+    () =>
+      reserving && !proposal
+        ? workspaceApi.references(tenant, "location", "", 1, true, { size: 100 })
+        : Promise.resolve(null),
+    [tenant, reserving, proposal?.id],
+  );
+  useEffect(() => setReserveAt(""), [target]);
   // Spec 301: a receipt may be stated in the purchase unit the order was placed in.
   const [unit, setUnit] = useState("");
   const purchaseRead = useRead(
@@ -228,7 +240,12 @@ function DeliveryActionCard({
         : holding
           ? { commitment_id: target, ...(placingHold ? { reason_code: reasonCode, note } : {}) }
           : activeTool === "reserve"
-            ? { commitment_id: target, quantity, ...identities }
+            ? {
+                commitment_id: target,
+                quantity,
+                ...identities,
+                ...(reserveAt ? { location_id: reserveAt } : {}),
+              }
             : {
                 movement_type: receiving ? "receipt" : "shipment",
                 commitment_id: target,
@@ -497,6 +514,30 @@ function DeliveryActionCard({
                   }}
                 />
               </label>
+              {reserving && (
+                <label className="br-label min-w-0 flex-1">
+                  {t("Reserve at")}
+                  <select
+                    className="br-control mt-2 w-full"
+                    aria-label={t("Reserve at")}
+                    disabled={busy}
+                    value={reserveAt}
+                    onChange={(event) => {
+                      setReserveAt(event.target.value);
+                      requestId.current = crypto.randomUUID();
+                    }}
+                  >
+                    <option value="">{t("The order's warehouse")}</option>
+                    {(warehouses.data?.items || [])
+                      .filter((row) => row.allows_stock !== false)
+                      .map((row) => (
+                        <option key={row.id} value={row.id}>
+                          {String(row.name)}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+              )}
               {receiving && purchaseUnit && (
                 <label className="br-label">
                   {t("Unit")}
@@ -634,9 +675,11 @@ function DeliveryActionCard({
                                     ? "Reserved"
                                     : key === "shipped"
                                       ? "Shipped"
-                                      : key === "shortage"
-                                        ? "Shortage"
-                                        : "Requested",
+                                      : key === "transferred"
+                                        ? "Transferred"
+                                        : key === "shortage"
+                                          ? "Shortage"
+                                          : "Requested",
                         )}
                       </dt>
                       <dd>
