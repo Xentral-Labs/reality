@@ -2600,6 +2600,13 @@
           "depth": 1
         },
         {
+          "name": "movements[].unit",
+          "type": "string",
+          "required": false,
+          "description": "Receipts only: the unit the quantity is stated in, the item's stock unit (default) or its purchase unit. A purchase-unit quantity is recorded in the stock unit by the item's stated factor, and what was stated is kept.",
+          "depth": 1
+        },
+        {
           "name": "carrier",
           "type": "string",
           "required": false,
@@ -6024,7 +6031,7 @@
       "summary": "Prepare this business mutation without changing state. Record Movement. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [opening_cost]",
+      "synopsis": "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [opening_cost]",
       "parameters": [
         {
           "name": "movement_type",
@@ -6131,6 +6138,13 @@
           "type": "string",
           "required": false,
           "description": "Opaque identity of the announced return these goods fulfil; absent means they were not announced.",
+          "depth": 0
+        },
+        {
+          "name": "unit",
+          "type": "string",
+          "required": false,
+          "description": "Receipts only: the unit the quantity is stated in, the item's stock unit (default) or its purchase unit. A purchase-unit quantity is recorded in the stock unit by the item's stated factor, and what was stated is kept.",
           "depth": 0
         },
         {
@@ -20412,7 +20426,7 @@
       "related_services": [],
       "tools": ["movement_create_propose"],
       "synopses": [
-        "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [opening_cost]"
+        "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [opening_cost]"
       ],
       "events": ["commitment.fulfilled", "reservation.consumed", "movement.recorded"],
       "actions": ["record_movement"],
@@ -24981,7 +24995,7 @@
       "key": "units_not_comparable",
       "label": "Units not comparable",
       "area": "cross_functional",
-      "summary": "An item's lines are recorded in units Reality cannot reconcile, so several checks on them are being skipped. Reality compares a quantity against an agreement only where the two are the same unit, or where this item states how its own units relate — a purchase unit and a conversion factor, \"we buy this in boxes of twelve\", written down by the company. Where it can, it converts at read time and stores nothing; where it cannot, it says nothing about that line, and that silence used to be indistinguishable from nothing being wrong. This entry is the silence made visible. While it stands, Shipped and not billed, Billed and not received, Receipt not invoiced, Returned and not credited and Credited and not returned are all skipping the affected lines, so an empty queue for those classes does not mean this item is in order. It says which of two things is wrong. Either no conversion is stated, and the fix is to state it once on the item; or one is stated and does not divide evenly — a hundred and seven pieces are not a number of boxes — and the fix is to record the line in a unit that comes out, because rounding a remainder is the thing this product exists not to do. One entry per item, however many lines are affected, because one statement is missing and one statement fixes it. Prices are a different matter and are never converted at all: a price per box divided by twelve is money nobody agreed, so a price left uncompared for units is not reported here and no statement would help it. What an invoice says about a price it did agree on is Invoice price differs from the agreement.",
+      "summary": "An item's lines are recorded in units Reality cannot reconcile, so several checks on them are being skipped. Reality compares a quantity against an agreement only where the two are the same unit, or where this item states how its own units relate — a purchase unit and a conversion factor, \"we buy this in boxes of twelve\", written down by the company. Where it can, it converts at read time and stores nothing; where it cannot, it says nothing about that line, and that silence used to be indistinguishable from nothing being wrong. This entry is the silence made visible. While it stands, Shipped and not billed, Billed and not received, Receipt not invoiced, Returned and not credited and Credited and not returned are all skipping the affected lines, so an empty queue for those classes does not mean this item is in order. It says which of two things is wrong. Either no conversion is stated, and the fix is to state it once on the item; or one is stated and does not divide evenly — a hundred and seven pieces are not a number of boxes — and the fix is to record the line in a unit that comes out, because rounding a remainder is the thing this product exists not to do. One entry per item, however many lines are affected, because one statement is missing and one statement fixes it. Prices are a different matter and are never converted at all: a price per box divided by twelve is money nobody agreed, so a price left uncompared for units is not reported here and no statement would help it. What an invoice says about a price it did agree on is Invoice price differs from the agreement. Since purchases are held in the stock unit (spec 301), an open purchase recorded before in the item's purchase unit is named here too: its promise and receipts kept the line's unit, so stock and supply read it as stated until it is received or closed.",
       "owner": "Whoever maintains item master data, with purchasing",
       "clears_through": "Stating the item's purchase unit and conversion factor, or recording the lines in a unit that reconciles.",
       "severity": "normal",
@@ -73909,6 +73923,20 @@
             "de": "Operative Priorität der Zusage."
           },
           "references": []
+        },
+        {
+          "name": "unit",
+          "type": "VARCHAR",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Unit of measure of the stated quantity.",
+            "de": "Maßeinheit der genannten Menge."
+          },
+          "references": []
         }
       ],
       "actions": [
@@ -74553,6 +74581,34 @@
             "de": "Retourenankündigung, die mit dieser eingehenden Ware erfüllt wird, sofern vorhanden."
           },
           "references": ["return_announcement.id"]
+        },
+        {
+          "name": "stated_quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Quantity a receipt stated in the purchase unit, kept beside the stock-unit quantity.",
+            "de": "Menge, die ein Wareneingang in der Einkaufseinheit angegeben hat, neben der Menge in Lagereinheit."
+          },
+          "references": []
+        },
+        {
+          "name": "stated_unit",
+          "type": "VARCHAR",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Purchase unit a receipt was stated in, such as box.",
+            "de": "Einkaufseinheit, in der ein Wareneingang angegeben wurde, etwa Karton."
+          },
+          "references": []
         }
       ],
       "actions": [

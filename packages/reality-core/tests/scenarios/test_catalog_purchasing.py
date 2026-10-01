@@ -888,3 +888,156 @@ def test_a_partial_receipt_leaves_the_assigned_backorders_as_they_were(
     at_risk = _records_of(session, tenant, "outgoing_commitment_at_risk")
     assert customers[0].id not in at_risk
     assert {customers[1].id, customers[2].id} <= at_risk
+
+
+# --- O05 (spec 301) -------------------------------------------------------------------
+
+
+def test_bought_in_cartons_of_twelve_and_held_in_pieces(session, business):
+    """O05: buy 5 cartons of 12, receive them in cartons, hold and sell pieces."""
+    from reality.services.delivery_reads import delivery_case
+
+    tenant = business.tenant.id
+    item = business.item
+    core.update_item(
+        session,
+        tenant,
+        item.id,
+        item.sku,
+        item.name,
+        "pcs",
+        purchase_unit="box",
+        conversion_factor="12",
+    )
+    order = {
+        "direction": "purchase",
+        "number": "PO-O05",
+        "company_party_id": business.company.id,
+        "counterparty_id": business.supplier.id,
+        "location_id": business.location.id,
+        "currency": "EUR",
+        "gross_amount": "300.00",
+        "lines": [
+            {
+                "item_id": item.id,
+                "quantity": "5",
+                "unit": "box",
+                "unit_price": "60.00",
+                "gross_amount": "300.00",
+            }
+        ],
+    }
+    # A unit the item states nothing about is refused before anything is recorded.
+    with pytest.raises(core.InvalidOperation) as refused:
+        prepare_delivery_action(
+            session,
+            tenant,
+            "order_create",
+            {
+                **order,
+                "number": "PO-O05-X",
+                "lines": [{**order["lines"][0], "unit": "pallet"}],
+            },
+            request_id="o05-pallet",
+        )
+    assert refused.value.code == "purchase_unit_not_convertible"
+
+    _reviewed(session, business, "order_create", order, "o05-order")
+    document = session.scalars(
+        select(Document).where(
+            Document.tenant_id == tenant, Document.number == "PO-O05"
+        )
+    ).one()
+    promise = session.scalars(
+        select(core.Commitment).where(
+            core.Commitment.tenant_id == tenant,
+            core.Commitment.document_id == document.id,
+        )
+    ).one()
+    assert promise.quantity == Decimal("60.0000")
+
+    # Three cartons come in a package, two more on their own, both stated in cartons.
+    executed = _execute_delivery(
+        session,
+        tenant,
+        "shipment_receive",
+        {
+            "purpose": "supplier_delivery",
+            "counterparty_id": business.supplier.id,
+            "tracking_number": "O05-1",
+            "movements": [
+                {
+                    "commitment_id": promise.id,
+                    "item_id": item.id,
+                    "to_location_id": business.location.id,
+                    "quantity": "3",
+                    "unit": "box",
+                }
+            ],
+        },
+    )
+    assert executed.status == "executed"
+    _reviewed(
+        session,
+        business,
+        "movement_create",
+        {
+            "movement_type": "receipt",
+            "item_id": item.id,
+            "quantity": "2",
+            "unit": "box",
+            "to_location_id": business.location.id,
+            "commitment_id": promise.id,
+        },
+        "o05-receipt",
+    )
+
+    assert core.stock_at(session, tenant, item.id) == Decimal("60.0000")
+    received = session.scalars(
+        select(Movement).where(
+            Movement.tenant_id == tenant, Movement.commitment_id == promise.id
+        )
+    ).all()
+    assert sorted((m.quantity, m.stated_quantity, m.stated_unit) for m in received) == [
+        (Decimal("24.0000"), Decimal("2.0000"), "box"),
+        (Decimal("36.0000"), Decimal("3.0000"), "box"),
+    ]
+    case = delivery_case(session, tenant, promise.id)["case"]
+    assert (Decimal(case["open"]), case["purchase_unit"]["received"]) == (0, "5")
+
+    # The supplier invoices 5 cartons: it matches the 60 pieces received.
+    _supplier_invoice(
+        session, business, document_line(session, promise), "5", "300.00", "ER-O05"
+    )
+    findings = {row.class_id for row in operational_exceptions(session, tenant)}
+    assert not {"billed_not_received", "receipt_unbilled", "units_not_comparable"} & (
+        findings
+    )
+
+    # Pieces are what is sold: 7 of the 60 ship.
+    _, _, _, sold = core.create_manual_order(
+        session,
+        tenant,
+        "sales",
+        "SO-O05",
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+        [
+            {
+                "item_id": item.id,
+                "quantity": "7",
+                "unit_price": "9",
+                "gross_amount": "63",
+            }
+        ],
+        "63",
+    )
+    core.reserve(session, tenant, sold[0].id)
+    assert core.active_reserved(session, tenant, item.id) == Decimal("7.0000")
+
+
+def document_line(session, promise):
+    from reality.db.core import DocumentLine
+
+    return session.get(DocumentLine, (promise.tenant_id, promise.document_line_id))

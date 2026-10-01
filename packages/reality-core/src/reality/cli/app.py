@@ -454,6 +454,7 @@ def movement_record(
     reason: str | None = None,
     resolves_movement_id: str | None = None,
     return_announcement_id: str | None = None,
+    unit: str | None = None,
 ):
     """Record one physical item quantity, optionally on a pallet.
 
@@ -485,6 +486,7 @@ def movement_record(
                 reason=reason,
                 resolves_movement_id=resolves_movement_id,
                 return_announcement_id=return_announcement_id,
+                unit=unit,
             )
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error

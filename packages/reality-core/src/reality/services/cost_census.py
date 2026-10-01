@@ -94,7 +94,14 @@ def _capture(
         movements = budget.read(
             session,
             select(
-                *movement.c,
+                # Capture version 1 keeps its reviewed columns. Spec 301's stated
+                # quantity and unit are evidence of what a receipt said; the
+                # census values `quantity`, which is always in the stock unit.
+                *(
+                    column
+                    for column in movement.c
+                    if column.name not in {"stated_quantity", "stated_unit"}
+                ),
                 item.c.id.label("scoped_item_id"),
                 events.c.event_count,
                 events.c.event_id,

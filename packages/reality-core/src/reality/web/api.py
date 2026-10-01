@@ -6102,6 +6102,17 @@ def movement_inspector(session: OrmSession, tenant_id: str, record_id: str):
         "status": correction_snapshot["status"].title(),
         "metrics": [
             inspector_row("Quantity", row.quantity),
+            # Spec 301: a receipt stated in the purchase unit, as it was stated.
+            *(
+                [
+                    inspector_row(
+                        "As stated",
+                        display_text(row.stated_quantity, f" {row.stated_unit}"),
+                    )
+                ]
+                if row.stated_unit
+                else []
+            ),
             inspector_row("Occurred", row.occurred_at),
             inspector_row("From", row.from_location_id),
             inspector_row("To", row.to_location_id),

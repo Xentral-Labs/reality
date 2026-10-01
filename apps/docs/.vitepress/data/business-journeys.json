@@ -4570,19 +4570,37 @@
       "section": "Master data and identity",
       "title": "Unit conversion: buy in cartons of 12, sell in pieces",
       "question": "Quantities comparable?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Quantities comparable?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Quantities comparable? An item states its purchase unit and factor; a purchase in cartons keeps its cartons and promises pieces, a receipt stated in cartons is held in pieces and keeps what was stated, and stock, open quantity, valuation and the supplier invoice in cartons all agree.",
       "limitations": [
-        "Purchase units and conversion factors are compared in exception checks.",
-        "Receipts and stock are not converted between units."
+        "One purchase unit per item; a supplier with another pack size needs its own item or a later specification.",
+        "Selling in cartons is not converted yet.",
+        "A purchase recorded before in the purchase unit is named, not converted."
       ],
-      "keywords": [],
+      "keywords": [
+        "unit conversion",
+        "purchase unit",
+        "cartons of 12",
+        "buy in cartons sell in pieces",
+        "Einheitenumrechnung",
+        "Einkaufseinheit",
+        "Karton zu Stück",
+        "Umrechnungsfaktor"
+      ],
       "question_examples": [
         "Unit conversion: buy in cartons of 12, sell in pieces",
-        "Quantities comparable?"
+        "Quantities comparable?",
+        "We buy in cartons of twelve and sell single pieces; does the stock add up?",
+        "Wir kaufen in Kartons zu 12 und verkaufen Stück, stimmt der Bestand?"
       ],
-      "tools": [],
+      "tools": [
+        "item_update_propose",
+        "order_create_propose",
+        "shipment_receive_propose",
+        "movement_create_propose",
+        "supplier_invoice_record_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

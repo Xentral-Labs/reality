@@ -353,6 +353,16 @@ def _records_schema(record_schema: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+PURCHASE_UNIT = {
+    "type": ["string", "null"],
+    "description": (
+        "Receipts only: the unit the quantity is stated in, the item's stock unit "
+        "(default) or its purchase unit. A purchase-unit quantity is recorded in "
+        "the stock unit by the item's stated factor, and what was stated is kept."
+    ),
+}
+
+
 def _shipment_execution_schema(purposes: dict[str, str]) -> dict[str, Any]:
     branches = []
     for purpose, movement_type in purposes.items():
@@ -368,6 +378,8 @@ def _shipment_execution_schema(purposes: dict[str, str]) -> dict[str, Any]:
                 "lot_id": OPTIONAL_STRING,
                 "serial_unit_id": OPTIONAL_STRING,
                 "reason": OPTIONAL_STRING,
+                # Spec 301: only a receipt may be stated in the purchase unit.
+                **({"unit": PURCHASE_UNIT} if movement_type == "receipt" else {}),
             },
             required=("item_id", "quantity"),
         )
@@ -1599,6 +1611,7 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                 "reason": OPTIONAL_STRING,
                 "resolves_movement_id": OPTIONAL_STRING,
                 "return_announcement_id": OPTIONAL_STRING,
+                "unit": PURCHASE_UNIT,
                 "opening_cost": {
                     "type": "object",
                     "description": "Opening stock only: the total acquisition value its evidence states, recorded as received for the cost review (spec 282).",

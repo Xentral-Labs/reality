@@ -2500,6 +2500,14 @@ export type DeliveryRow = {
   fulfilled: string;
   open: string;
   status: string;
+  /** Spec 301: a purchase ordered in the purchase unit, read in that unit too. */
+  purchase_unit?: {
+    unit: string;
+    conversion_factor: string;
+    ordered: string | null;
+    open: string | null;
+    received: string | null;
+  };
 };
 export type DeliveryDetail = {
   case: DeliveryRow & {
@@ -2699,7 +2707,10 @@ export type DeliveryProposal = {
   review: null | {
     token: string;
     intent: Record<string, unknown>;
-    effect: Record<string, string>;
+    effect: Record<string, string> & {
+      /** Spec 301: a receipt stated in the purchase unit, as it was stated. */
+      stated?: { quantity: string; unit: string };
+    };
     state: {
       case: DeliveryRow;
       inventory: DeliveryDetail["inventory"];

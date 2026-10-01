@@ -532,7 +532,9 @@ per item, however many lines are affected, because one statement is missing and 
 it. Prices are a different matter and are never converted at all: a price per box divided by twelve
 is money nobody agreed, so a price left uncompared for units is not reported here and no statement
 would help it. What an invoice says about a price it did agree on is Invoice price differs from the
-agreement.
+agreement. Since purchases are held in the stock unit (spec 301), an open purchase recorded before
+in the item's purchase unit is named here too: its promise and receipts kept the line's unit, so
+stock and supply read it as stated until it is received or closed.
 
 - **Owner:** Whoever maintains item master data, with purchasing
 - **Clears through:** Stating the item's purchase unit and conversion factor, or recording the lines

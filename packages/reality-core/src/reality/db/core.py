@@ -1630,6 +1630,12 @@ class Commitment(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     cancelled_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     priority: Mapped[str] = mapped_column(String, default="normal")
+    # Spec 301: the unit the quantity is held in, recorded on purchase promises
+    # made since then. None means the line's unit, or the item's without a line.
+    unit: Mapped[str | None] = mapped_column(
+        String, server_default=FetchedValue(), deferred=True
+    )
+    __mapper_args__: ClassVar[dict[str, Any]] = {"eager_defaults": False}
 
 
 class CommitmentRevision(Base):
@@ -2058,7 +2064,13 @@ class Movement(Base):
             ["tenant_id", "from_location_id"],
             ["location.tenant_id", "location.id"],
         ),
+        CheckConstraint(
+            "(stated_quantity IS NULL) = (stated_unit IS NULL)",
+            name="ck_movement_stated_unit",
+        ),
     )
+    # The stated pair is not fetched back on insert (see stated_quantity).
+    __mapper_args__: ClassVar[dict[str, Any]] = {"eager_defaults": False}
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     type: Mapped[str] = mapped_column(String)
@@ -2082,6 +2094,16 @@ class Movement(Base):
     # way: almost every movement fulfils none, and a return that arrives without
     # having been announced is ordinary rather than incomplete.
     return_announcement_id: Mapped[str | None] = mapped_column(default=None)
+    # Spec 301: what a receipt stated when it was not in the stock unit, kept
+    # beside `quantity`, which is always in the item's stock unit. Deferred and
+    # left out of an INSERT that does not set them, so movements on a schema from
+    # before 0106 (the historical migration tests) still load and insert.
+    stated_quantity: Mapped[Decimal | None] = mapped_column(
+        Numeric(18, 4), server_default=FetchedValue(), deferred=True
+    )
+    stated_unit: Mapped[str | None] = mapped_column(
+        String, server_default=FetchedValue(), deferred=True
+    )
 
 
 class ReturnAnnouncement(Base):

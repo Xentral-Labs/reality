@@ -753,6 +753,7 @@ tables:
       created_at: {}
       cancelled_at: {description: UTC cancellation timestamp; empty means not cancelled.}
       priority: {description: Operational priority used for sequencing decisions.}
+      unit: {description: "Unit the quantity is held in, recorded on purchase promises since spec 301; empty means the order line's unit, or the item's without a line."}
   commitment_hold:
     description: Time-bounded execution hold on one commitment.
     columns:
@@ -794,6 +795,8 @@ tables:
       handling_unit_id: {description: Optional physical pallet carrying this moved quantity.}
       lot_id: {description: Optional lot identity physically moved with this quantity.}
       serial_unit_id: {description: Optional exact serialized unit; the movement quantity is one.}
+      stated_quantity: {description: Quantity a receipt stated in the item's purchase unit, kept beside the stock-unit quantity (spec 301).}
+      stated_unit: {description: The purchase unit that quantity was stated in.}
   handling_unit:
     description: Optional physical pallet identity used to group item movements without becoming inventory itself.
     columns:
