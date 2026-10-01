@@ -33,6 +33,8 @@ events:
   - {type: party.delivery_hold_released, producer: release_party_delivery_hold, subject: party, invalidates: [Operational Exceptions, Commitment register, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
   - {type: item.created, producer: create_item, subject: item, invalidates: [Inventory, Item supply and demand, Timeline, Operational Exceptions, Tenant usage]}
   - {type: item.updated, producer: update_item, subject: item, invalidates: [Inventory, Commitment register, Price resolution, Fulfillment queue, Fulfillment blockers, Item supply and demand, Timeline, Operational Exceptions, Tenant usage]}
+  - {type: reorder_point.set, producer: set_reorder_point, subject: reorder_point, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
+  - {type: reorder_point.removed, producer: remove_reorder_point, subject: reorder_point, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
   - {type: location.created, producer: create_location, subject: location, invalidates: [Inventory, Timeline, Item supply and demand, Tenant usage]}
   - {type: location.updated, producer: update_location, subject: location, invalidates: [Inventory, Commitment register, Timeline, Item supply and demand, Operational Exceptions, Tenant usage]}
   - {type: master_data.lifecycle_changed, producer: set_master_data_active, subject: master_data, invalidates: [Inventory, Price resolution, Tenant usage]}

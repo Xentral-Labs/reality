@@ -12,13 +12,13 @@
 
 ## Phase 2: Schema and services (FR-001)
 
-- [ ] T004 Failing tests in `core/tests/test_reorder_points.py`:
+- [x] T004 Failing tests in `core/tests/test_reorder_points.py`:
   - the migration upgrades and downgrades, and refuses while points exist;
   - the unique key and the value check;
   - setting, changing and removing a point, with events;
   - refusals for a non-stocked or inactive item, a location without stock, invalid values, a change since the review, and removing a point that does not exist;
   - another company sees and changes nothing.
-- [ ] T005 Migration `0107`, `ItemReorderPoint`, `services/reorder_points.py` and the refusal codes with translations. Also `data_model.yaml` and the docs field rows, the reference and isolation catalogs and their counts, and `resource_catalog.yaml`.
+- [x] T005 Migration `0107`, `ItemReorderPoint`, `services/reorder_points.py` and the refusal codes with translations. Also `data_model.yaml` and the docs field rows, the reference and isolation catalogs and their counts, and `resource_catalog.yaml`.
 
 ## Phase 3: The derived proposal (FR-002, FR-003)
 

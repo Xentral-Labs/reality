@@ -558,16 +558,17 @@ Change Proposal, and chat activity without loading business rows or querying onc
 `commitment.fulfilled`, `reservation.consumed`, `fact.observed`, `source_record.received`,
 `source_record.unmapped`, `source_record.interpreted`, `party.created`, `party.updated`,
 `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.created`, `item.updated`,
-`location.created`, `location.updated`, `master_data.lifecycle_changed`, `payment_term.updated`,
-`payment_term.created`, `price_list.updated`, `price_list.created`, `price_list_entry.created`,
-`party_price_list.assigned`, `party_group.updated`, `party_group.created`,
-`party_group_member.added`, `party_group_price_list.assigned`, `document.recorded`,
-`document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
-`promises.closed`, `payments.run`, `return.announced`, `return.announcement_withdrawn`,
-`document_line.item_assigned`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
-`lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
-`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`reorder_point.set`, `reorder_point.removed`, `location.created`, `location.updated`,
+`master_data.lifecycle_changed`, `payment_term.updated`, `payment_term.created`,
+`price_list.updated`, `price_list.created`, `price_list_entry.created`, `party_price_list.assigned`,
+`party_group.updated`, `party_group.created`, `party_group_member.added`,
+`party_group_price_list.assigned`, `document.recorded`, `document.corrected`, `commitment.created`,
+`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
+`return.announcement_withdrawn`, `document_line.item_assigned`, `exchange.recorded`,
+`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
+`handling_unit.created`, `lot.created`, `lot.expiry_stated`, `lot.expiry_corrected`,
+`serial_unit.created`, `movement.recorded`, `movement.corrected`, `ledger.posted`,
+`ledger.reversed`, `settlement.allocated`
 
 ### `inventory` — Inventory {#projection-inventory}
 
@@ -625,13 +626,13 @@ restrictions.
 `shipment.event_superseded`, `payment.returned`, `source_record.stored`, `commitment.fulfilled`,
 `reservation.consumed`, `fact.observed`, `source_record.received`, `source_record.unmapped`,
 `source_record.interpreted`, `party.created`, `party.updated`, `party.delivery_hold_placed`,
-`party.delivery_hold_released`, `item.created`, `item.updated`, `location.updated`,
-`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
-`commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
-`return.announcement_withdrawn`, `document_line.item_assigned`, `exchange.recorded`,
-`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
-`lot.expiry_stated`, `lot.expiry_corrected`, `movement.recorded`, `movement.corrected`,
-`ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`party.delivery_hold_released`, `item.created`, `item.updated`, `reorder_point.set`,
+`reorder_point.removed`, `location.updated`, `document.recorded`, `document.corrected`,
+`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
+`payments.run`, `return.announced`, `return.announcement_withdrawn`, `document_line.item_assigned`,
+`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `lot.expiry_stated`, `lot.expiry_corrected`, `movement.recorded`,
+`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 Also eligible for background refresh every 60 seconds, without a new business event.
 
@@ -832,14 +833,14 @@ Normalizes important evidence and reality timestamps into one chronological oper
 `payment.returned`, `dunning.run_confirmed`, `dunning.collection_handover_recorded`,
 `order.recorded`, `source_record.stored`, `commitment.fulfilled`, `reservation.consumed`,
 `fact.observed`, `source_record.received`, `source_record.unmapped`, `source_record.interpreted`,
-`party.created`, `party.updated`, `item.created`, `item.updated`, `location.created`,
-`location.updated`, `document.recorded`, `document.corrected`, `commitment.created`,
-`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
-`return.announcement_withdrawn`, `document_line.item_assigned`, `exchange.recorded`,
-`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
-`handling_unit.created`, `lot.created`, `lot.expiry_stated`, `lot.expiry_corrected`,
-`serial_unit.created`, `movement.recorded`, `movement.corrected`, `ledger.posted`,
-`ledger.reversed`, `settlement.allocated`
+`party.created`, `party.updated`, `item.created`, `item.updated`, `reorder_point.set`,
+`reorder_point.removed`, `location.created`, `location.updated`, `document.recorded`,
+`document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
+`promises.closed`, `payments.run`, `return.announced`, `return.announcement_withdrawn`,
+`document_line.item_assigned`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
+`reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
+`lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
+`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 **See also:** agent tool [`fact_observe_propose`](./commands#tool-fact_observe_propose), agent tool
 [`movement_create_propose`](./commands#tool-movement_create_propose), agent tool

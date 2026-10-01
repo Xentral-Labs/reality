@@ -24600,6 +24600,16 @@ Object.assign(dictionaries.de, {
   "Why it waits": "Warum es wartet",
   "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
   "Invoiced and not shipped": "Fakturiert, nicht versandt",
+  "This reorder point changed after it was reviewed; review it again.":
+    "Dieser Meldebestand wurde nach der Prüfung geändert; prüfe ihn erneut.",
+  "Only an active stocked item can have a reorder point.":
+    "Nur ein aktiver Lagerartikel kann einen Meldebestand haben.",
+  "A reorder point needs an active location that holds stock.":
+    "Ein Meldebestand braucht einen aktiven Lagerort, der Bestand führt.",
+  "This item has no reorder point at this location.":
+    "Dieser Artikel hat an diesem Lagerort keinen Meldebestand.",
+  "Enter a reorder point of zero or more and a reorder quantity above zero.":
+    "Gib einen Meldebestand von null oder mehr und eine Bestellmenge über null an.",
   "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
     "Diese Bestellung wurde erfasst, bevor Einkäufe in der Lagereinheit geführt wurden; buche den Wareneingang in der Einheit ihrer Bestellzeile.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
@@ -24655,6 +24665,16 @@ Object.assign(dictionaries.nl, {
   "Why it waits": "Waarom het wacht",
   "Order line with unknown item": "Orderregel met onbekend artikel",
   "Invoiced and not shipped": "Gefactureerd, niet verzonden",
+  "This reorder point changed after it was reviewed; review it again.":
+    "Dit bestelpunt is na de controle gewijzigd; controleer het opnieuw.",
+  "Only an active stocked item can have a reorder point.":
+    "Alleen een actief voorraadartikel kan een bestelpunt hebben.",
+  "A reorder point needs an active location that holds stock.":
+    "Een bestelpunt heeft een actieve locatie met voorraad nodig.",
+  "This item has no reorder point at this location.":
+    "Dit artikel heeft op deze locatie geen bestelpunt.",
+  "Enter a reorder point of zero or more and a reorder quantity above zero.":
+    "Geef een bestelpunt van nul of meer en een bestelhoeveelheid boven nul op.",
   "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
     "Deze bestelling is vastgelegd voordat inkopen in de voorraadeenheid werden bijgehouden; boek de ontvangst in de eenheid van de orderregel.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
@@ -24710,6 +24730,16 @@ Object.assign(dictionaries.es, {
   "Why it waits": "Por qué espera",
   "Order line with unknown item": "Línea de pedido con artículo desconocido",
   "Invoiced and not shipped": "Facturado y no enviado",
+  "This reorder point changed after it was reviewed; review it again.":
+    "Este punto de pedido cambió después de revisarlo; revísalo de nuevo.",
+  "Only an active stocked item can have a reorder point.":
+    "Solo un artículo de stock activo puede tener un punto de pedido.",
+  "A reorder point needs an active location that holds stock.":
+    "Un punto de pedido necesita una ubicación activa que tenga stock.",
+  "This item has no reorder point at this location.":
+    "Este artículo no tiene punto de pedido en esta ubicación.",
+  "Enter a reorder point of zero or more and a reorder quantity above zero.":
+    "Indica un punto de pedido de cero o más y una cantidad de pedido mayor que cero.",
   "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
     "Este pedido se registró antes de que las compras se llevaran en la unidad de stock; registra la recepción en la unidad de su línea de pedido.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":

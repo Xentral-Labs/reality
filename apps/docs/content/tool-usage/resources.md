@@ -144,8 +144,10 @@ derived from movements and reservations at read time, which is why the stock lis
 **Appears in processes:** [Procure to pay](./processes#process-procure_to_pay),
 [Master data and sources](./processes#process-master_data)
 
-**Underneath:** Tables: `item`, `supply_assignment` · Events:
+**Underneath:** Tables: `item`, `supply_assignment`, `item_reorder_point` · Events:
 [`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
+[`reorder_point.set`](./events#event-reorder_point-set),
+[`reorder_point.removed`](./events#event-reorder_point-removed),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agent tools
 without a command: [`inventory_read`](./commands#tool-inventory_read),
 [`item_supply_demand`](./commands#tool-item_supply_demand),
@@ -306,6 +308,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 **Underneath:** Tables: `commitment`, `commitment_hold`, `commitment_revision`, `reservation` ·
 Events: [`order.recorded`](./events#event-order-recorded),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
+[`reorder_point.set`](./events#event-reorder_point-set),
+[`reorder_point.removed`](./events#event-reorder_point-removed),
 [`commitment.created`](./events#event-commitment-created),
 [`commitment.cancelled`](./events#event-commitment-cancelled),
 [`commitment.revised`](./events#event-commitment-revised),

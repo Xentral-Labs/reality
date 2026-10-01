@@ -1588,6 +1588,21 @@
     "request_identity_other_intent": {
       "message": "Request identity already belongs to another intent."
     },
+    "reorder_point_changed_since_review": {
+      "message": "This reorder point changed after it was reviewed; review it again."
+    },
+    "reorder_point_item_not_stocked": {
+      "message": "Only an active stocked item can have a reorder point."
+    },
+    "reorder_point_location_not_stock": {
+      "message": "A reorder point needs an active location that holds stock."
+    },
+    "reorder_point_not_found": {
+      "message": "This item has no reorder point at this location."
+    },
+    "reorder_point_values_invalid": {
+      "message": "Enter a reorder point of zero or more and a reorder quantity above zero."
+    },
     "reservation_commitment_not_reservable": {
       "message": "Only open customer delivery commitments can be reserved."
     },

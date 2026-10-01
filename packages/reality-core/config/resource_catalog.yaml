@@ -68,8 +68,8 @@ resources:
         gespeichert, sondern beim Lesen aus Bewegungen und Reservierungen abgeleitet. Deshalb
         stehen die Bestandslisten hier.
     synonyms: [product, SKU, stock, inventory, Produkt, Bestand, Lagerbestand, Verfügbarkeit]
-    tables: [item, supply_assignment]
-    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand|supply_(assign|coverage)"
+    tables: [item, supply_assignment, item_reorder_point]
+    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand|supply_(assign|coverage)|reorder_point"
     views: [items, inventory, supply_demand]
     projections: [inventory, item_supply_demand]
     exceptions: [units_not_comparable, reservation_exceeds_stock, item_oversold, missing_acquisition_cost]

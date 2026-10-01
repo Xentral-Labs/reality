@@ -826,6 +826,47 @@ class Location(Base):
     allows_stock: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
+class ItemReorderPoint(Base):
+    """The stock level at which a company reorders an item at a location (spec 302).
+
+    A company statement, kept as stated in the item's stock unit. Whether it is
+    reached is read from stock, reservations and supplier promises each time;
+    nothing about it is stored.
+    """
+
+    __tablename__ = "item_reorder_point"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "location_id"],
+            ["location.tenant_id", "location.id"],
+        ),
+        UniqueConstraint(
+            "tenant_id",
+            "item_id",
+            "location_id",
+            name="uq_item_reorder_point_item_location",
+        ),
+        CheckConstraint(
+            "reorder_point >= 0 AND reorder_quantity > 0",
+            name="ck_item_reorder_point_values",
+        ),
+        Index("ix_item_reorder_point_location_id", "tenant_id", "location_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    item_id: Mapped[str] = mapped_column()
+    location_id: Mapped[str] = mapped_column()
+    reorder_point: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    reorder_quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class SourceSystem(Base):
     __tablename__ = "source_system"
     __table_args__ = (

@@ -222,7 +222,7 @@
         "Lagerbestand",
         "Verfügbarkeit"
       ],
-      "tables": ["item", "supply_assignment"],
+      "tables": ["item", "supply_assignment", "item_reorder_point"],
       "lists": [
         "view:inventory",
         "view:items",
@@ -249,7 +249,13 @@
         "tool:supply_coverage",
         "tool:graph_inventory_reviews_list"
       ],
-      "events": ["event:item.created", "event:item.updated", "event:master_data.lifecycle_changed"],
+      "events": [
+        "event:item.created",
+        "event:item.updated",
+        "event:reorder_point.set",
+        "event:reorder_point.removed",
+        "event:master_data.lifecycle_changed"
+      ],
       "workspace_actions": []
     },
     {
@@ -427,6 +433,8 @@
       "events": [
         "event:order.recorded",
         "event:party.delivery_hold_placed",
+        "event:reorder_point.set",
+        "event:reorder_point.removed",
         "event:commitment.created",
         "event:commitment.cancelled",
         "event:commitment.revised",
@@ -23982,6 +23990,8 @@
         "party.delivery_hold_released",
         "item.created",
         "item.updated",
+        "reorder_point.set",
+        "reorder_point.removed",
         "location.created",
         "location.updated",
         "master_data.lifecycle_changed",
@@ -24150,6 +24160,8 @@
         "party.delivery_hold_released",
         "item.created",
         "item.updated",
+        "reorder_point.set",
+        "reorder_point.removed",
         "location.updated",
         "document.recorded",
         "document.corrected",
@@ -24514,6 +24526,8 @@
         "party.updated",
         "item.created",
         "item.updated",
+        "reorder_point.set",
+        "reorder_point.removed",
         "location.created",
         "location.updated",
         "document.recorded",
@@ -26268,6 +26282,34 @@
       "links": ["command:update_item"],
       "label_de": "item.updated",
       "resources": ["item"]
+    },
+    {
+      "id": "event:reorder_point.set",
+      "kind": "event",
+      "key": "reorder_point.set",
+      "label": "reorder_point.set",
+      "area": "orders",
+      "summary": "",
+      "producer": "set_reorder_point",
+      "subject": "reorder_point",
+      "invalidates": ["Timeline", "Operational Exceptions", "Tenant usage"],
+      "links": [],
+      "label_de": "reorder_point.set",
+      "resources": ["item", "order"]
+    },
+    {
+      "id": "event:reorder_point.removed",
+      "kind": "event",
+      "key": "reorder_point.removed",
+      "label": "reorder_point.removed",
+      "area": "orders",
+      "summary": "",
+      "producer": "remove_reorder_point",
+      "subject": "reorder_point",
+      "invalidates": ["Timeline", "Operational Exceptions", "Tenant usage"],
+      "links": [],
+      "label_de": "reorder_point.removed",
+      "resources": ["item", "order"]
     },
     {
       "id": "event:location.created",
