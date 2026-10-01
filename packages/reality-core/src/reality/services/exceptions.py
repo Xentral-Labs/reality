@@ -34,9 +34,9 @@ from reality.db.core import (
     SourceSystem,
     Tenant,
 )
-from reality.services.exception_inputs import _exception_input_scope, _inputs
 from reality.domain.units import decline_reason as _decline_reason
 from reality.domain.units import in_unit as _in_unit
+from reality.services.exception_inputs import _exception_input_scope, _inputs
 
 ZERO = Decimal(0)
 # A source is judged against the rhythm it has shown itself, never against a
