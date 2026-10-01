@@ -1061,6 +1061,7 @@ def _movement_create(
         serial_unit_id=movement.serial_unit_id,
         action_id=arguments.get("action_id"),
         _movement_id=movement.id,
+        _receipt=movement.quantity,
         _commit=False,
     )
     session.commit()

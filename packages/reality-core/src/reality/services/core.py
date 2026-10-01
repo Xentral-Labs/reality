@@ -3935,6 +3935,49 @@ def blocked_quantity(
     return decimal(session.scalar(query) or ZERO)
 
 
+def blocked_within_identity(
+    session: OrmSession,
+    tenant_id: str,
+    item_id: str,
+    location_id: str,
+    *,
+    handling_unit_id: str | None = None,
+    lot_id: str | None = None,
+    serial_unit_id: str | None = None,
+) -> Decimal:
+    """Blocks that hold back part of exactly this identity (spec 304).
+
+    A block that names a lot holds back that lot wherever it lies at the
+    location, also inside a pallet; a movement of that pallet's lot is judged
+    against it. A block counts here when it names some identity and every
+    field it names agrees with the movement's.
+    """
+    from reality.db.core import StockBlock
+
+    conditions = []
+    for field, value in (
+        (StockBlock.handling_unit_id, handling_unit_id),
+        (StockBlock.lot_id, lot_id),
+        (StockBlock.serial_unit_id, serial_unit_id),
+    ):
+        conditions.append(
+            or_(field.is_(None), field == value) if value else field.is_(None)
+        )
+    query = select(func.coalesce(func.sum(StockBlock.quantity), 0)).where(
+        StockBlock.tenant_id == tenant_id,
+        StockBlock.item_id == item_id,
+        StockBlock.location_id == location_id,
+        StockBlock.status == "active",
+        or_(
+            StockBlock.handling_unit_id.is_not(None),
+            StockBlock.lot_id.is_not(None),
+            StockBlock.serial_unit_id.is_not(None),
+        ),
+        *conditions,
+    )
+    return decimal(session.scalar(query) or ZERO)
+
+
 @dataclass(frozen=True)
 class ReservationResult:
     reservation: Reservation | None
@@ -5164,7 +5207,7 @@ def _append_movement(
                     lot_id=lot_id,
                     serial_unit_id=serial_unit_id,
                 )
-                - blocked_quantity(
+                - blocked_within_identity(
                     session,
                     tenant_id,
                     item_id,
@@ -5908,6 +5951,25 @@ def correct_movement(
             < decimal(original.quantity)
         ):
             raise InvalidOperation(code="movement_correction_later_identity_dependents")
+        from reality.db.core import StockBlock
+
+        # Spec 304: a correction may not take away stock a block holds back,
+        # and a scrap is undone by recording the goods again, not by bringing
+        # them back unblocked.
+        if session.scalar(
+            select(StockBlock.id).where(
+                StockBlock.tenant_id == tenant_id,
+                StockBlock.movement_id == original.id,
+                StockBlock.status == "scrapped",
+            )
+        ):
+            raise InvalidOperation(code="movement_correction_scrap_block")
+        if compensation_from and (
+            stock_at(session, tenant_id, original.item_id, compensation_from)
+            - blocked_quantity(session, tenant_id, original.item_id, compensation_from)
+            < decimal(original.quantity)
+        ):
+            raise InvalidOperation(code="movement_correction_takes_blocked_stock")
         compensation = Movement(
             id=uid("mov"),
             tenant_id=tenant_id,

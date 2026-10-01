@@ -271,7 +271,7 @@ function OpenExceptions({
           mode="block"
           item={{
             id: String(blockingExpired.trace.item_id || ""),
-            name: String(blockingExpired.causal_values.lot_number || ""),
+            name: `${t("Lot")} ${String(blockingExpired.causal_values.lot_number || "")}`,
           }}
           prefill={{
             // Spec 304: the expired lot where it lies, held back for expiry.

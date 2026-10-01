@@ -100,6 +100,7 @@ export function WarehousePage({
   const stock = view === "stock";
   // Spec 304: block stock where it lies, from the row it is on.
   const [blocking, setBlocking] = useState<{ id: string; name: string; unit: string } | null>(null);
+  const [blocksVersion, setBlocksVersion] = useState(0);
   const data = read.data?.scope.view === view ? read.data : undefined;
   const warehouseActions = useContextActions(`warehouse.${view}`);
   // Stock opens every item; its tab warns about shortages only (spec 254).
@@ -209,9 +210,7 @@ export function WarehousePage({
             </p>
           )}
         </div>
-        {stock && (
-          <StockBlockList key={read.data ? "ready" : "loading"} tenant={tenant} item={item} />
-        )}
+        {stock && <StockBlockList key={blocksVersion} tenant={tenant} item={item} />}
         {blocking && (
           <StockBlockCard
             tenant={tenant}
@@ -219,7 +218,10 @@ export function WarehousePage({
             item={blocking}
             prefill={{ location_id: location || undefined }}
             close={() => setBlocking(null)}
-            settled={read.refresh}
+            settled={() => {
+              read.refresh();
+              setBlocksVersion((value) => value + 1);
+            }}
           />
         )}
         {!data ? (

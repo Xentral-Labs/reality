@@ -368,6 +368,7 @@ def record_packaged_execution(
                 serial_unit_id=movement.serial_unit_id,
                 action_id=action_id,
                 _movement_id=movement.id,
+                _receipt=movement.quantity,
                 _commit=False,
             )
     if not created:

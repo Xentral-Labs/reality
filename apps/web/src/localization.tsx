@@ -24695,6 +24695,12 @@ Object.assign(dictionaries.de, {
   "Scrapping writes the goods off their location with one adjustment. Nothing changes before you confirm.":
     "Verschrotten bucht die Ware mit einer Bestandskorrektur aus ihrem Lagerort aus. Vor deiner Bestätigung ändert sich nichts.",
   Why: "Warum",
+  "A receipt can block at most what it receives.":
+    "Ein Wareneingang kann höchstens sperren, was er einbucht.",
+  "Correcting this movement would take stock that is blocked; release or scrap the block first.":
+    "Diese Korrektur würde gesperrten Bestand wegnehmen; gib die Sperre zuerst frei oder verschrotte den Bestand.",
+  "This adjustment scrapped blocked stock; record the goods again instead of correcting it.":
+    "Diese Korrektur hat gesperrten Bestand verschrottet; buche die Ware neu ein, statt sie zu korrigieren.",
   "Reorder point reached": "Meldebestand erreicht",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
@@ -24841,6 +24847,12 @@ Object.assign(dictionaries.nl, {
   "Scrapping writes the goods off their location with one adjustment. Nothing changes before you confirm.":
     "Afschrijven boekt de goederen met één correctie uit hun locatie. Voor je bevestiging verandert er niets.",
   Why: "Waarom",
+  "A receipt can block at most what it receives.":
+    "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
+  "Correcting this movement would take stock that is blocked; release or scrap the block first.":
+    "Deze correctie zou geblokkeerde voorraad wegnemen; geef de blokkering eerst vrij of schrijf de voorraad af.",
+  "This adjustment scrapped blocked stock; record the goods again instead of correcting it.":
+    "Deze correctie heeft geblokkeerde voorraad afgeschreven; boek de goederen opnieuw in in plaats van haar te corrigeren.",
   "Reorder point reached": "Bestelpunt bereikt",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
@@ -24988,6 +25000,12 @@ Object.assign(dictionaries.es, {
   "Scrapping writes the goods off their location with one adjustment. Nothing changes before you confirm.":
     "Desechar da de baja la mercancía de su ubicación con un ajuste. Nada cambia antes de que confirmes.",
   Why: "Por qué",
+  "A receipt can block at most what it receives.":
+    "Una recepción puede bloquear como máximo lo que recibe.",
+  "Correcting this movement would take stock that is blocked; release or scrap the block first.":
+    "Corregir este movimiento quitaría stock bloqueado; libera o desecha el bloqueo primero.",
+  "This adjustment scrapped blocked stock; record the goods again instead of correcting it.":
+    "Este ajuste desechó stock bloqueado; registra la mercancía de nuevo en lugar de corregirlo.",
   "Reorder point reached": "Punto de pedido alcanzado",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",

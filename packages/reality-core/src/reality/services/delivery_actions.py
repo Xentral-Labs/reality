@@ -349,6 +349,7 @@ def review_delivery(
                 lot_id=result.get("lot_id") or intent.get("lot_id"),
                 serial_unit_id=intent.get("serial_unit_id"),
                 _incoming=Decimal(str(result["quantity"])),
+                _receipt=Decimal(str(result["quantity"])),
             )
             block_intent["blocked_quantity"] = _quantity(held)
         intent.update(block_intent)

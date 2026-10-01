@@ -123,7 +123,7 @@ def test_a_receipt_cannot_block_more_than_it_brings(session, business):
             request_id="r304-over",
         )
     except core.InvalidOperation as error:
-        assert error.code == "stock_block_exceeds_available"
+        assert error.code == "stock_block_exceeds_receipt"
     else:
         raise AssertionError("a receipt blocked more than it received")
 

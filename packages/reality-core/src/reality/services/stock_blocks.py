@@ -147,6 +147,7 @@ def validate_block(
     lot_id: str | None = None,
     serial_unit_id: str | None = None,
     _incoming: Decimal = ZERO,
+    _receipt: Decimal | None = None,
 ) -> tuple[Item, Location, Decimal, str | None]:
     """The checks a block makes, also run by its review so both refuse alike.
 
@@ -167,6 +168,9 @@ def validate_block(
         raise InvalidOperation(code="stock_block_quantity_invalid") from error
     if amount <= ZERO or amount.normalize().as_tuple().exponent < -4:
         raise InvalidOperation(code="stock_block_quantity_invalid")
+    # A receipt blocks part of what it brings, never stock already there.
+    if _receipt is not None and amount > _receipt:
+        raise InvalidOperation(code="stock_block_exceeds_receipt")
     _, _, serial = _validate_inventory_identity(
         session,
         tenant_id,
@@ -210,6 +214,7 @@ def block_stock(
     created_by: str = "human",
     action_id: str | None = None,
     _movement_id: str | None = None,
+    _receipt: Decimal | None = None,
     _commit: bool = True,
 ) -> StockBlock:
     """Hold back a quantity where it lies; nothing moves."""
@@ -225,6 +230,7 @@ def block_stock(
         handling_unit_id=handling_unit_id,
         lot_id=lot_id,
         serial_unit_id=serial_unit_id,
+        _receipt=_receipt,
     )
     block = StockBlock(
         id=uid("blk"),

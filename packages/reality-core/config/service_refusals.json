@@ -1973,6 +1973,15 @@
     },
     "stock_block_changed_since_review": {
       "message": "This block changed after it was reviewed; review it again."
+    },
+    "stock_block_exceeds_receipt": {
+      "message": "A receipt can block at most what it receives."
+    },
+    "movement_correction_takes_blocked_stock": {
+      "message": "Correcting this movement would take stock that is blocked; release or scrap the block first."
+    },
+    "movement_correction_scrap_block": {
+      "message": "This adjustment scrapped blocked stock; record the goods again instead of correcting it."
     }
   },
   "terms": [

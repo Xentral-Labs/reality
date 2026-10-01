@@ -203,6 +203,7 @@ def review_shipment_action(
                         lot_id=preview.get("lot_id"),
                         serial_unit_id=movement.get("serial_unit_id"),
                         _incoming=Decimal(str(preview["quantity"])),
+                        _receipt=Decimal(str(preview["quantity"])),
                     )
                 readiness = None
                 if purpose == "customer_delivery":

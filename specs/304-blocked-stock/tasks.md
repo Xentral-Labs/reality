@@ -57,3 +57,11 @@
 - [ ] T014 Full backend suite and web checks
 - [ ] T015 Manual check per `quickstart.md`
 - [ ] T016 Review of the diff; fix findings
+  - A receipt blocks at most what it receives (`stock_block_exceeds_receipt`).
+  - Correcting a receipt whose stock is blocked is refused (`movement_correction_takes_blocked_stock`), and the correction preview shows blocked stock.
+  - A scrap cannot be corrected (`movement_correction_scrap_block`).
+  - A lot or serial block holds inside a pallet (`blocked_within_identity`).
+  - The receipt form names the stock unit of "Of which blocked".
+  - The warehouse blocks list refreshes after a block.
+  - The expired finding names the lot.
+  - Count adjustments below blocked stock, practice companies and serial blocking in the web are recorded limitations.

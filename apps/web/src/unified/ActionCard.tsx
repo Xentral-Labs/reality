@@ -548,6 +548,8 @@ function DeliveryActionCard({
                 <>
                   <label className="br-label min-w-0 flex-1">
                     {t("Of which blocked")}
+                    {/* Spec 304: blocked in the stock unit, whatever unit the receipt states. */}
+                    {purchaseRead.data?.case.unit ? ` (${purchaseRead.data.case.unit})` : ""}
                     <input
                       className="br-control mt-2 w-full"
                       inputMode="decimal"

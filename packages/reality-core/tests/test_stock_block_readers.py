@@ -269,3 +269,106 @@ def test_expired_stock_that_is_blocked_is_no_longer_reported(session, business):
     assert row.causal_values["held_quantity"] == 2
     _block(session, business, "2", item=item, lot_id=lot.id, reason="expiry")
     assert lot.id not in _classes(session, business, "stock_expired")
+
+
+# --- review round (T016) ---------------------------------------------------------------
+
+
+def test_a_receipt_blocks_at_most_what_it_brings(session, business):
+    from reality.services.delivery_actions import prepare_delivery_action
+
+    _stock(session, business, "10")
+    with pytest.raises(core.InvalidOperation) as refused:
+        prepare_delivery_action(
+            session,
+            business.tenant.id,
+            "movement_create",
+            {
+                "movement_type": "receipt",
+                "item_id": business.item.id,
+                "quantity": "20",
+                "to_location_id": business.location.id,
+                "blocked_quantity": "25",
+                "block_reason": "damage",
+            },
+            request_id="r304-cap",
+        )
+    assert refused.value.code == "stock_block_exceeds_receipt"
+
+
+def test_correcting_a_blocked_receipt_is_refused(session, business):
+    tenant = business.tenant.id
+    receipt = core.record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "10",
+        to_location_id=business.location.id,
+    )
+    _block(session, business, "10")
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        core.correct_movement(session, tenant, receipt.id, reason="wrong receipt")
+    assert refused.value.code == "movement_correction_takes_blocked_stock"
+    assert core.stock_at(session, tenant, business.item.id) == 10
+
+
+def test_a_scrap_is_not_undone_by_correcting_it(session, business):
+    from reality.services.stock_blocks import scrap_stock_block
+
+    tenant = business.tenant.id
+    _stock(session, business, "10")
+    block = _block(session, business, "4")
+    scrapped = scrap_stock_block(session, tenant, block.id, reason="cracked")
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        core.correct_movement(
+            session, tenant, scrapped["movement_id"], reason="was not cracked"
+        )
+    assert refused.value.code == "movement_correction_scrap_block"
+
+
+def test_a_lot_block_holds_inside_a_pallet(session, business):
+    tenant = business.tenant.id
+    item = core.create_item(
+        session, tenant, "LOT-304H", "Lot item", tracking_type="lot"
+    )
+    blocked_lot = core.create_lot(session, tenant, item.id, "H-L")
+    other_lot = core.create_lot(session, tenant, item.id, "H-M")
+    pallet = core.create_handling_unit(session, tenant, "003400599999999304")
+    _stock(
+        session,
+        business,
+        "5",
+        item=item,
+        lot_id=blocked_lot.id,
+        handling_unit_id=pallet.id,
+    )
+    _stock(session, business, "10", item=item, lot_id=other_lot.id)
+    _block(session, business, "5", item=item, lot_id=blocked_lot.id)
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        core.record_movement(
+            session,
+            tenant,
+            "adjustment",
+            item.id,
+            "5",
+            from_location_id=business.location.id,
+            lot_id=blocked_lot.id,
+            handling_unit_id=pallet.id,
+            reason="count",
+        )
+    assert refused.value.code == "movement_takes_blocked_stock"
+    # Positive control: the other lot moves.
+    core.record_movement(
+        session,
+        tenant,
+        "adjustment",
+        item.id,
+        "5",
+        from_location_id=business.location.id,
+        lot_id=other_lot.id,
+        reason="count",
+    )
