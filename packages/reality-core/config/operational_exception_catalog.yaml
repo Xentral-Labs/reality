@@ -1070,3 +1070,38 @@ classes:
     evidence:
       - tests/test_item_oversold.py::test_orders_from_two_channels_above_stock_are_reported_by_channel
       - tests/test_item_oversold.py::test_an_open_purchase_order_covering_the_shortfall_clears_it
+  - id: outgoing_commitment_due_soon
+    label: Customer deadline at risk
+    description: >-
+      A delivery promised to a customer is due within a day and part of it has not shipped yet.
+      Reality takes every open customer-delivery commitment with a promised date in force and
+      reports it while the date is less than one day away and quantity remains, whether or not
+      the quantity is reserved: a fully reserved order that nobody packs is the deadline a
+      marketplace counts. It is the step between Customer commitment at risk, which is about a
+      reservation that is short, and Overdue outgoing customer commitment, which is about a date
+      that has passed: a promise close to its date is reported here instead of at risk, with a
+      short reservation as its cause, and once the date passes it is reported as overdue, so one
+      order is never listed twice. The margin is one day for every company. The date judged is
+      the last one anybody stated, and a revised date says so. A promise with no date never
+      appears.
+    owner: Order fulfilment or warehouse operations
+    clears_through: Shipping the outstanding quantity, cancelling the commitment, or agreeing a later date.
+    severity: high
+    derivation: outgoing_commitment_due_soon
+    record_type: commitment
+    authority: 300/FR-002
+    evidence:
+      - tests/test_deadline_due_soon.py::test_a_fully_reserved_promise_due_within_a_day_is_reported
+      - tests/test_deadline_due_soon.py::test_an_unreserved_promise_due_soon_is_one_row_with_its_cause
+      - tests/test_deadline_due_soon.py::test_past_its_date_it_is_overdue_only
+    causes:
+      - id: insufficient_reservation
+        label: Insufficient reservation
+        authority: 300/FR-002
+        evidence:
+          - tests/test_deadline_due_soon.py::test_an_unreserved_promise_due_soon_is_one_row_with_its_cause
+      - id: promise_was_revised
+        label: Promise was revised
+        authority: 300/FR-002
+        evidence:
+          - tests/test_deadline_due_soon.py::test_a_revised_date_carries_its_revision

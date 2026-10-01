@@ -322,7 +322,15 @@ def test_overdue_outgoing_boundaries(session, business):
 
     overdue_class = "overdue_outgoing_customer_commitment"
     assert records_of(session, tenant_id, overdue_class) == {overdue.id}
-    assert {absent.id, future.id, exactly_due.id} <= records_of(
+    # Spec 300: a promise due now is not late yet but its deadline is at risk; one
+    # a full day ahead, or undated, is still only short of reservation.
+    assert records_of(session, tenant_id, "outgoing_commitment_due_soon") == {
+        exactly_due.id
+    }
+    assert {absent.id, future.id} <= records_of(
+        session, tenant_id, "outgoing_commitment_at_risk"
+    )
+    assert exactly_due.id not in records_of(
         session, tenant_id, "outgoing_commitment_at_risk"
     )
 

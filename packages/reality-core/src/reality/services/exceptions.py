@@ -72,6 +72,9 @@ UNARRIVED_ANNOUNCEMENT_FLOOR = timedelta(days=14)
 # Matched to the stalled-order floor for the same reason.
 UNLIFTED_HOLD_FLOOR = timedelta(days=7)
 CREDIT_POSTING_FLOOR = timedelta(days=14)  # a fortnight to book one's own paperwork
+# Spec 300 FR-002: a promise less than a day before its date is at risk, reserved
+# or not. Fixed by the owner, so that "at risk" means the same in every company.
+DUE_SOON_MARGIN = timedelta(days=1)
 SEVERITY_ORDER = {"critical": 0, "high": 1, "normal": 2, "low": 3}
 CLASS_ORDER = {
     "overdue_outgoing_customer_commitment": 0,
@@ -119,6 +122,7 @@ CLASS_ORDER = {
     "order_line_price_missing": 42,
     "billed_not_shipped": 43,
     "item_oversold": 44,
+    "outgoing_commitment_due_soon": 45,
 }
 
 
@@ -627,6 +631,43 @@ def _commitment_exceptions(
                         due_at,
                     )
                 )
+            elif (
+                remaining > ZERO
+                and due_at is not None
+                and due_at - as_of < DUE_SOON_MARGIN
+            ):
+                # Spec 300: close to the date, the time is what is at risk, so this
+                # supersedes the at-risk class and carries a short reservation as
+                # its cause; one promise is still listed once.
+                hours_left = (due_at - as_of).total_seconds() / 3600
+                impact = f"{remaining.normalize():f} to ship within {hours_left:.0f} h"
+                if unreserved > ZERO:
+                    impact = f"{impact}, {unreserved.normalize():f} of them unreserved"
+                result.append(
+                    OperationalException(
+                        _identity("outgoing_commitment_due_soon", row.id),
+                        "outgoing_commitment_due_soon",
+                        _overdue_causes(unreserved, moves),
+                        "high",
+                        "Customer deadline at risk",
+                        impact,
+                        "commitment",
+                        row.id,
+                        {
+                            "due_at": due_at,
+                            "as_of": as_of,
+                            "hours_left": round(hours_left, 2),
+                            **_revision_values(row, moves),
+                            "committed_quantity": promised,
+                            "fulfilled_quantity": fulfilled,
+                            "remaining_quantity": remaining,
+                            "reserved_quantity": reserved,
+                            "unreserved_quantity": unreserved,
+                        },
+                        _commitment_trace(session, tenant_id, row),
+                        due_at,
+                    )
+                )
             elif remaining > ZERO and unreserved > ZERO:
                 result.append(
                     OperationalException(
@@ -697,6 +738,16 @@ def _outgoing_commitment_at_risk(
         row
         for row in _commitment_exceptions(session, tenant_id, as_of)
         if row.class_id == "outgoing_commitment_at_risk"
+    ]
+
+
+def _outgoing_commitment_due_soon(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    return [
+        row
+        for row in _commitment_exceptions(session, tenant_id, as_of)
+        if row.class_id == "outgoing_commitment_due_soon"
     ]
 
 
@@ -3991,6 +4042,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "order_line_price_missing": _order_line_price_missing_exceptions,
     "billed_not_shipped": _billed_not_shipped_exceptions,
     "item_oversold": _item_oversold_exceptions,
+    "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,
@@ -4056,6 +4108,24 @@ def next_clock_moment(
             )
         )
     )
+    # Spec 300: a customer promise turns due soon a day before its date in force,
+    # so the instant the margin opens is a candidate too.
+    for model in (Commitment, CommitmentRevision):
+        conditions = [
+            model.tenant_id == tenant_id,
+            model.due_at.is_not(None),
+            model.due_at > instant + DUE_SOON_MARGIN,
+            model.due_at <= latest + DUE_SOON_MARGIN,
+        ]
+        if model is Commitment:
+            conditions += [
+                Commitment.status == "open",
+                Commitment.type == "customer_delivery",
+            ]
+        candidates.extend(
+            due_at - DUE_SOON_MARGIN
+            for due_at in session.scalars(select(model.due_at).where(*conditions))
+        )
     for expires_at in session.scalars(
         select(Lot.expires_at).where(
             Lot.tenant_id == tenant_id,

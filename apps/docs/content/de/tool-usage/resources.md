@@ -13,7 +13,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 4        | 4         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 8      | 12       | 11        |
+| [Auftrag](#resource-order)                                     | 8      | 12       | 12        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
@@ -307,6 +307,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`order_line_item_unknown`)
 - [Auftragszeile ohne Preis](./exceptions#exception-order_line_price_missing)
   (`order_line_price_missing`)
+- [Liefertermin gefährdet](./exceptions#exception-outgoing_commitment_due_soon)
+  (`outgoing_commitment_due_soon`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay)

@@ -134,6 +134,7 @@ records:
         order_line_price_missing: reports_absence
         overdue_outgoing_customer_commitment: traces_only
         outgoing_commitment_at_risk: traces_only
+        outgoing_commitment_due_soon: traces_only
         # Read only for the line's unit; without the link the item's unit applies.
         item_oversold: traces_only
         order_stalled: traces_only

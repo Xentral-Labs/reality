@@ -82,6 +82,9 @@ WITHOUT_A_SCENARIO = {
     "order_line_price_missing",
     "billed_not_shipped",
     "item_oversold",
+    # Reads the clock (tests/test_deadline_due_soon.py); this fixture never has a
+    # promise within a day of either probe instant.
+    "outgoing_commitment_due_soon",
     "commitment_hold_unreleased",
     "party_hold_unreleased",
     "stock_expired",

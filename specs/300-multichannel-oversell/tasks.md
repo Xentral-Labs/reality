@@ -26,7 +26,7 @@
 
 ## Phase 3: Deadline at risk (FR-002)
 
-- [ ] T006 [US1] Failing tests in `core/tests/test_deadline_due_soon.py`:
+- [x] T006 [US1] Failing tests in `core/tests/test_deadline_due_soon.py`:
   - a fully reserved promise due in 12 hours is reported;
   - control: one due in three days is not;
   - an unreserved one due soon is one row carrying `insufficient_reservation`, not also at risk;
@@ -34,8 +34,8 @@
   - shipping, cancelling or a later agreed date clears it;
   - a revised date carries `promise_was_revised`;
   - `next_clock_moment` names the instant the window opens;
-  - the class clock probe lists it as clock-reading.
-- [ ] T007 [US1] The branch in `_commitment_exceptions`, `DUE_SOON_MARGIN`, `next_clock_moment`, `CLOCK_READING` and every class gate.
+  - the class clock probe's fixture has no promise within a day of either instant, so the class is named there as without a scenario and its clock is proven here.
+- [x] T007 [US1] The branch in `_commitment_exceptions`, `DUE_SOON_MARGIN`, `next_clock_moment`, `CLOCK_READING` and every class gate.
 
 ## Phase 4: Peak intake (FR-003)
 

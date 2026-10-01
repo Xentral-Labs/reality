@@ -52,6 +52,7 @@ it, and which agent tools list and explain it.
 | [`order_line_price_missing`](#exception-order_line_price_missing)                         | Order line without a price               | Master data & pricing      | `normal` | Sales operations                                                                            |
 | [`billed_not_shipped`](#exception-billed_not_shipped)                                     | Invoiced and not shipped                 | Finance                    | `normal` | Billing, with order fulfilment when the goods are late                                      |
 | [`item_oversold`](#exception-item_oversold)                                               | Item oversold                            | Cross-functional           | `high`   | Order fulfilment, with purchasing for the supply                                            |
+| [`outgoing_commitment_due_soon`](#exception-outgoing_commitment_due_soon)                 | Customer deadline at risk                | Orders & fulfilment        | `high`   | Order fulfilment or warehouse operations                                                    |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1324,3 +1325,39 @@ location holds it is a question for the reservation.
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
 [`exception_explain`](./commands#tool-exception_explain), view [`items`](./views#view-items)
+
+## `outgoing_commitment_due_soon` — Customer deadline at risk {#exception-outgoing_commitment_due_soon}
+
+A delivery promised to a customer is due within a day and part of it has not shipped yet. Reality
+takes every open customer-delivery commitment with a promised date in force and reports it while the
+date is less than one day away and quantity remains, whether or not the quantity is reserved: a
+fully reserved order that nobody packs is the deadline a marketplace counts. It is the step between
+Customer commitment at risk, which is about a reservation that is short, and Overdue outgoing
+customer commitment, which is about a date that has passed: a promise close to its date is reported
+here instead of at risk, with a short reservation as its cause, and once the date passes it is
+reported as overdue, so one order is never listed twice. The margin is one day for every company.
+The date judged is the last one anybody stated, and a revised date says so. A promise with no date
+never appears.
+
+- **Owner:** Order fulfilment or warehouse operations
+- **Clears through:** Shipping the outstanding quantity, cancelling the commitment, or agreeing a
+  later date.
+- **Severity:** `high`
+- **Record type:** `commitment`
+- **Authority:** `300/FR-002`
+- **Evidence:**
+  `tests/test_deadline_due_soon.py::test_a_fully_reserved_promise_due_within_a_day_is_reported`,
+  `tests/test_deadline_due_soon.py::test_an_unreserved_promise_due_soon_is_one_row_with_its_cause`,
+  `tests/test_deadline_due_soon.py::test_past_its_date_it_is_overdue_only`
+
+**Causes**
+
+| ID                         | Label                    | Authority    |
+| -------------------------- | ------------------------ | ------------ |
+| `insufficient_reservation` | Insufficient reservation | `300/FR-002` |
+| `promise_was_revised`      | Promise was revised      | `300/FR-002` |
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain), view
+[`commitments`](./views#view-commitments)

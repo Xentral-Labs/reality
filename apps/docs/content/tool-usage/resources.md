@@ -13,7 +13,7 @@ the technical key stands beside each one.
 | [Item](#resource-item)                                           | 5     | 4       | 4                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
-| [Order](#resource-order)                                         | 8     | 12      | 11                  |
+| [Order](#resource-order)                                         | 8     | 12      | 12                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
@@ -297,6 +297,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`order_line_item_unknown`)
 - [Order line without a price](./exceptions#exception-order_line_price_missing)
   (`order_line_price_missing`)
+- [Customer deadline at risk](./exceptions#exception-outgoing_commitment_due_soon)
+  (`outgoing_commitment_due_soon`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay)

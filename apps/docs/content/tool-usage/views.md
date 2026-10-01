@@ -680,7 +680,8 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`payment_returned`](./exceptions#exception-payment_returned), exception
 [`order_line_price_missing`](./exceptions#exception-order_line_price_missing), exception
 [`billed_not_shipped`](./exceptions#exception-billed_not_shipped), exception
-[`item_oversold`](./exceptions#exception-item_oversold)
+[`item_oversold`](./exceptions#exception-item_oversold), exception
+[`outgoing_commitment_due_soon`](./exceptions#exception-outgoing_commitment_due_soon)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 
