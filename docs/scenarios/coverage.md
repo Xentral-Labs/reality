@@ -2,13 +2,13 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 117 covered, 34 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 118 covered, 33 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -26,7 +26,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | L E-commerce and marketplaces | 7 |  |  | 5 |  |
 | M B2B specifics | 1 | 3 |  | 8 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
-| O Master data and identity | 2 | 1 |  | 2 | 1 |
+| O Master data and identity | 3 |  |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
 | Q Time and period | 2 | 1 |  | 2 |  |
 | R Combined stress stories | 1 | 5 |  | 2 |  |
@@ -385,7 +385,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | O02 | gap | — (no merge service in services/) | There is no party merge or duplicate-resolution operation. |
 | O03 | out | specs/004-master-data/spec.md Non-Goals ("postal addresses") | Addresses exist only in lossless party or source payloads; no test proves an old order shows the old address. |
 | O04 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_delisted_item_still_serves_its_open_commitment | An inactive item is still reserved and shipped for its open commitment. |
-| O05 | partial | tests/operational_exceptions/test_derivation.py::test_a_stated_conversion_lets_the_comparison_happen, ::test_an_inexact_conversion_is_declined, ::test_units_not_comparable | The purchase_unit/conversion_factor comparison only runs inside exception classes; receipts and stock are not converted (receipt-costing.md excludes unit conversion). |
+| O05 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_bought_in_cartons_of_twelve_and_held_in_pieces | Bought in cartons of 12, received in cartons and held in pieces; stock, open quantity and the supplier invoice in cartons agree (spec 301). |
 | O06 | gap | db/core.py Item (no supplier reference table) | There's no supplier item number or per-supplier item mapping. |
 
 ## P. Sources and integration
