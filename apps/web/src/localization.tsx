@@ -24667,6 +24667,8 @@ Object.assign(dictionaries.de, {
   "Choose quality, damage, expiry or inspection as the reason.":
     "Wähle Qualität, Beschädigung, Ablauf oder Prüfung als Grund.",
   "Choose active, released, scrapped or all.": "Wähle aktiv, freigegeben, verschrottet oder alle.",
+  "This stock is blocked; release or scrap the block before moving it.":
+    "Dieser Bestand ist gesperrt; gib die Sperre frei oder verschrotte den Bestand, bevor du ihn bewegst.",
   "Reorder point reached": "Meldebestand erreicht",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
@@ -24785,6 +24787,8 @@ Object.assign(dictionaries.nl, {
   "Choose quality, damage, expiry or inspection as the reason.":
     "Kies kwaliteit, schade, verval of keuring als reden.",
   "Choose active, released, scrapped or all.": "Kies actief, vrijgegeven, afgeschreven of alle.",
+  "This stock is blocked; release or scrap the block before moving it.":
+    "Deze voorraad is geblokkeerd; geef de blokkering vrij of schrijf de voorraad af voordat je hem verplaatst.",
   "Reorder point reached": "Bestelpunt bereikt",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
@@ -24904,6 +24908,8 @@ Object.assign(dictionaries.es, {
   "Choose quality, damage, expiry or inspection as the reason.":
     "Elige calidad, daño, caducidad o inspección como motivo.",
   "Choose active, released, scrapped or all.": "Elige activo, liberado, desechado o todos.",
+  "This stock is blocked; release or scrap the block before moving it.":
+    "Este stock está bloqueado; libera el bloqueo o desecha el stock antes de moverlo.",
   "Reorder point reached": "Punto de pedido alcanzado",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",

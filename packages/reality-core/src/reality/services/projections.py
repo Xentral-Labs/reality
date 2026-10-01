@@ -30,6 +30,7 @@ from reality.db.core import (
     ProjectionRow,
     Reservation,
     SourceRecord,
+    StockBlock,
     Tenant,
     TenantEventProgress,
     now,
@@ -198,6 +199,7 @@ def _inventory_rows(
             "aggregation": "item_all_locations",
             "physical": row["physical"],
             "reserved": row["reserved"],
+            "blocked": row["blocked"],
             "available": row["available"],
             "incoming": row["incoming"],
             "projected": row["projected"],
@@ -647,6 +649,16 @@ def _open_work_rows(
                 physical_by_item_location[(item_id, to_location_id)] += quantity
             if from_location_id:
                 physical_by_item_location[(item_id, from_location_id)] -= quantity
+        # Spec 304: blocked stock is neither shippable nor stock behind a promise.
+        for item_id, location_id, quantity in session.execute(
+            select(StockBlock.item_id, StockBlock.location_id, StockBlock.quantity).where(
+                StockBlock.tenant_id == tenant_id,
+                StockBlock.status == "active",
+                StockBlock.item_id.in_(item_ids),
+                StockBlock.location_id.in_(location_ids),
+            )
+        ):
+            physical_by_item_location[(item_id, location_id)] -= quantity
     items = (
         {
             row.id: row

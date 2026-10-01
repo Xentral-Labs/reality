@@ -1918,12 +1918,18 @@ def _stock_expired_exceptions(
     a threshold nobody could defend. Expired is unambiguous and costs nothing
     invented.
 
-    Nothing is blocked, chosen or released. A picker can still ship expired
-    stock: refusing the movement would stop a company recording something that
-    already happened, and choosing which lot ships is an allocation policy this
-    product has never had.
+    Nothing is blocked, chosen or released by the date itself. A picker can
+    still ship expired stock: refusing the movement would stop a company
+    recording something that already happened, and choosing which lot ships is
+    an allocation policy this product has never had. Since spec 304 a person
+    can block the lot from this finding; stock blocked that way is held back
+    and no longer reported here.
     """
-    from reality.services.core import expired_lots, stock_by_identity
+    from reality.services.core import (
+        blocked_quantity,
+        expired_lots,
+        stock_by_identity,
+    )
 
     result: list[OperationalException] = []
     for lot in expired_lots(session, tenant_id, as_of=as_of):
@@ -1934,17 +1940,18 @@ def _stock_expired_exceptions(
             .where(Location.tenant_id == tenant_id)
             .order_by(Location.id)
         ).all()
-        held = sum(
-            (
-                stock_by_identity(
-                    session, tenant_id, lot.item_id, location_id, lot_id=lot.id
-                )
-                for location_id in locations
-            ),
-            ZERO,
-        )
-        # A lot with nothing left is not reported: nothing is held, so there is
-        # nothing for anybody to do, and it would be a wall of history.
+        per_location = {
+            location_id: stock_by_identity(
+                session, tenant_id, lot.item_id, location_id, lot_id=lot.id
+            )
+            - blocked_quantity(
+                session, tenant_id, lot.item_id, location_id, lot_id=lot.id
+            )
+            for location_id in locations
+        }
+        held = sum((quantity for quantity in per_location.values()), ZERO)
+        # A lot with nothing left, or with all of it blocked, is not reported:
+        # nothing is left for anybody to do, and it would be a wall of history.
         if held <= ZERO:
             continue
         reserved = Decimal(
@@ -1985,6 +1992,15 @@ def _stock_expired_exceptions(
                     "lot_id": lot.id,
                     "item_id": lot.item_id,
                     "source_record_id": lot.source_record_id,
+                    # Where the unblocked expired stock lies, for blocking it.
+                    "locations": [
+                        {
+                            "location_id": location_id,
+                            "quantity": f"{quantity.normalize():f}",
+                        }
+                        for location_id, quantity in per_location.items()
+                        if quantity > ZERO
+                    ],
                 },
                 datetime(
                     lot.expires_at.year,
@@ -3049,6 +3065,32 @@ def _stock_coverage_exceptions(
     return result
 
 
+def _blocked_by_item_location(
+    session: Session, tenant_id: str, item_ids: set[str]
+) -> dict[tuple[str, str], Decimal]:
+    """Active stock blocks per item and location, in one read (spec 304)."""
+    from reality.db.core import StockBlock
+
+    if not item_ids:
+        return {}
+    return {
+        (item_id, location_id): Decimal(quantity)
+        for item_id, location_id, quantity in session.execute(
+            select(
+                StockBlock.item_id,
+                StockBlock.location_id,
+                func.sum(StockBlock.quantity),
+            )
+            .where(
+                StockBlock.tenant_id == tenant_id,
+                StockBlock.item_id.in_(item_ids),
+                StockBlock.status == "active",
+            )
+            .group_by(StockBlock.item_id, StockBlock.location_id)
+        )
+    }
+
+
 def _item_oversold_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
@@ -3159,6 +3201,11 @@ def _item_oversold_exceptions(
             .group_by(Movement.item_id)
         ).all()
     }
+    # Spec 304: blocked stock cannot serve demand.
+    for (item_id, _), quantity in _blocked_by_item_location(
+        session, tenant_id, set(demand)
+    ).items():
+        on_hand[item_id] = on_hand.get(item_id, ZERO) - quantity
     result = []
     for item_id in sorted(demand):
         stock = on_hand.get(item_id, ZERO)
@@ -3330,6 +3377,11 @@ def _reorder_point_reached_exceptions(
             .group_by(Reservation.item_id, Reservation.location_id)
         )
     }
+    # Spec 304: blocked stock is not available either.
+    for key, quantity in _blocked_by_item_location(
+        session, tenant_id, item_ids
+    ).items():
+        reserved[key] = reserved.get(key, ZERO) + quantity
     _, fulfilled, _ = fulfillment_expressions()
     items = {row.Item.id: row.Item for row in points}
     incoming: dict[tuple[str, str], Decimal] = {}
@@ -3727,6 +3779,11 @@ def _stock_in_another_location_exceptions(
     ):
         key = (item_id, location_id)
         available[key] = available.get(key, ZERO) - Decimal(quantity)
+    # Spec 304: blocked stock serves no order, here or elsewhere.
+    for key, quantity in _blocked_by_item_location(
+        session, tenant_id, item_ids
+    ).items():
+        available[key] = available.get(key, ZERO) - quantity
 
     result = []
     for row, rest in gaps:

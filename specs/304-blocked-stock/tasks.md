@@ -23,14 +23,15 @@
 
 ## Phase 3: Readers (FR-002)
 
-- [ ] T006 Failing tests in `core/tests/test_stock_block_readers.py`:
+- [x] T006 Failing tests in `core/tests/test_stock_block_readers.py`:
   - reserving takes only unblocked stock;
   - shipping, transferring or adjusting out blocked stock is refused;
   - inventory and detail rows show blocked and available;
   - readiness, the queue, item_oversold, reorder points, stock in another warehouse and stock expired all subtract blocks;
   - nothing changes without blocks;
   - releasing restores availability.
-- [ ] T007 The readers, the projection invalidation, and `test_expiry_blocks_nothing` restated.
+- [x] T007 The readers, the projection invalidation, and `test_expiry_blocks_nothing` restated.
+  - `test_expiry_blocks_nothing` stays as it is: the date still blocks nothing by itself.
 
 ## Phase 4: Receipt and adapters (FR-001, FR-004)
 

@@ -1964,6 +1964,9 @@
     },
     "stock_block_status_unsupported": {
       "message": "Choose active, released, scrapped or all."
+    },
+    "movement_takes_blocked_stock": {
+      "message": "This stock is blocked; release or scrap the block before moving it."
     }
   },
   "terms": [

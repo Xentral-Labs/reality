@@ -4005,7 +4005,9 @@ def _preview_reservation(
     aggregate_available = max(
         ZERO,
         stock_at(session, tenant_id, commitment.item_id, reserved_at)
-        - active_reserved(session, tenant_id, commitment.item_id, reserved_at),
+        - active_reserved(session, tenant_id, commitment.item_id, reserved_at)
+        # Spec 304: blocked stock is never reserved.
+        - blocked_quantity(session, tenant_id, commitment.item_id, reserved_at),
     )
     if handling_unit_id or lot_id or serial_unit_id:
         identity_available = max(
@@ -4020,6 +4022,15 @@ def _preview_reservation(
                 serial_unit_id=serial_unit_id,
             )
             - reserved_by_identity(
+                session,
+                tenant_id,
+                commitment.item_id,
+                reserved_at,
+                handling_unit_id=handling_unit_id,
+                lot_id=lot_id,
+                serial_unit_id=serial_unit_id,
+            )
+            - blocked_quantity(
                 session,
                 tenant_id,
                 commitment.item_id,
@@ -5122,6 +5133,50 @@ def _append_movement(
         < qty
     ):
         raise InvalidOperation(code="movement_exceeds_identity_stock")
+    if (
+        movement_type in {"shipment", "transfer", "supplier_return"}
+        or (movement_type == "adjustment" and from_location_id)
+    ) and from_location_id:
+        # Spec 304: blocked stock stays where it lies until it is released or
+        # scrapped; scrapping closes its block before it writes the part off.
+        held = blocked_quantity(session, tenant_id, item_id, from_location_id)
+        if held and (
+            stock_at(session, tenant_id, item_id, from_location_id)
+            - _excluded_stock_effect(_correcting, item_id, from_location_id)
+            - held
+            < qty
+            or (
+                (handling_unit_id or lot_id or serial_unit_id)
+                and stock_by_identity(
+                    session,
+                    tenant_id,
+                    item_id,
+                    from_location_id,
+                    handling_unit_id=handling_unit_id,
+                    lot_id=lot_id,
+                    serial_unit_id=serial_unit_id,
+                )
+                - _excluded_stock_effect(
+                    _correcting,
+                    item_id,
+                    from_location_id,
+                    handling_unit_id=handling_unit_id,
+                    lot_id=lot_id,
+                    serial_unit_id=serial_unit_id,
+                )
+                - blocked_quantity(
+                    session,
+                    tenant_id,
+                    item_id,
+                    from_location_id,
+                    handling_unit_id=handling_unit_id,
+                    lot_id=lot_id,
+                    serial_unit_id=serial_unit_id,
+                )
+                < qty
+            )
+        ):
+            raise InvalidOperation(code="movement_takes_blocked_stock")
     if serial_unit_id and movement_type in {"opening_stock", "receipt", "return"}:
         serial_in = session.scalar(
             select(func.coalesce(func.sum(Movement.quantity), 0)).where(
@@ -6553,6 +6608,20 @@ def inventory_rows(
             ).group_by(Reservation.item_id)
         ).all()
     )
+    from reality.db.core import StockBlock
+
+    # Spec 304: what is held back is neither available nor projected.
+    blocked_by_item = dict(
+        session.execute(
+            only(
+                select(StockBlock.item_id, func.sum(StockBlock.quantity)).where(
+                    StockBlock.tenant_id == tenant_id,
+                    StockBlock.status == "active",
+                ),
+                StockBlock.item_id,
+            ).group_by(StockBlock.item_id)
+        ).all()
+    )
     suppliers = list(
         session.scalars(
             only(
@@ -6581,15 +6650,17 @@ def inventory_rows(
             ZERO,
         )
         reserved = decimal(reserved_by_item.get(item.id, ZERO))
+        blocked = decimal(blocked_by_item.get(item.id, ZERO))
         incoming = incoming_by_item.get(item.id, ZERO)
         rows.append(
             {
                 "item": item,
                 "physical": physical,
                 "reserved": reserved,
-                "available": physical - reserved,
+                "blocked": blocked,
+                "available": physical - reserved - blocked,
                 "incoming": incoming,
-                "projected": physical - reserved + incoming,
+                "projected": physical - reserved - blocked + incoming,
                 "receipts": receipts,
                 "issues": issues,
             }
