@@ -177,6 +177,41 @@ def _row(row) -> dict[str, Any]:
     }
 
 
+def _purchase_unit_view(
+    session: Session, tenant_id: str, commitment: Commitment, detail: dict[str, Any]
+) -> dict[str, Any] | None:
+    """A purchase promise held in pieces, read also in the cartons it was ordered in.
+
+    Spec 301 FR-002: the line keeps what it states. A quantity that is not a
+    whole number of cartons is shown in the stock unit only.
+    """
+    from reality.domain.units import in_unit, promise_unit
+
+    if commitment.type != "supplier_delivery" or not commitment.document_line_id:
+        return None
+    line = session.get(DocumentLine, (tenant_id, commitment.document_line_id))
+    item = session.get(Item, (tenant_id, commitment.item_id))
+    if line is None or item is None or line.unit == item.unit:
+        return None
+    if promise_unit(commitment.quantity, line, item) != "stock":
+        return None
+
+    def plain(value: Decimal) -> str:
+        return f"{Decimal(value).normalize():f}"
+
+    def cartons(value: str) -> str | None:
+        quantity = in_unit(item, Decimal(value), item.unit, line.unit)
+        return plain(quantity) if quantity is not None else None
+
+    return {
+        "unit": line.unit,
+        "conversion_factor": plain(item.conversion_factor),
+        "ordered": plain(line.quantity),
+        "open": cartons(detail["open"]),
+        "received": cartons(detail["fulfilled"]),
+    }
+
+
 def delivery_work(
     session: Session,
     tenant_id: str,
@@ -377,6 +412,8 @@ def delivery_case(
         if party_hold:
             holds.append((party_hold, "party"))
     detail = _row(row)
+    if purchase := _purchase_unit_view(session, tenant_id, commitment, detail):
+        detail["purchase_unit"] = purchase
     detail["blockers"] = [
         {
             "id": hold.id,

@@ -34,13 +34,13 @@
 
 ## Phase 4: Readers (FR-001, FR-002)
 
-- [ ] T008 [US1] Failing tests:
+- [x] T008 [US1] Failing tests:
   - a supplier invoice of 5 cartons against the received 60 reports neither `receipt_unbilled` nor `billed_not_received` (control: an invoice of 4 cartons reports one);
   - `item_oversold` counts a new promise once, not twelve times;
   - a recorded purchase-unit promise is named by `units_not_comparable` with `promise_in_purchase_unit`;
   - the delivery case shows open and received in both units;
-  - costing values the receipt per piece.
-- [ ] T009 [US1] The readers, `promise_unit` everywhere it decides, the cause in the catalog, and the delivery-case values.
+  - costing needs no change: it takes the receipt's `quantity` as the stock-unit basis (`costing._admit_receipt`), which is what the receipt now records.
+- [x] T009 [US1] The readers, `promise_unit` everywhere it decides, the reason in the catalog description, and the delivery-case values.
 
 ## Phase 5: Adapters and Web (FR-004)
 

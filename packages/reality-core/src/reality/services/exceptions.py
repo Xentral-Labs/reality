@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, time, timedelta
 from decimal import Decimal
 from itertools import pairwise
+from types import SimpleNamespace
 from typing import Any
 
 from sqlalchemy import case, func, or_, select
@@ -36,6 +37,7 @@ from reality.db.core import (
 )
 from reality.domain.units import decline_reason as _decline_reason
 from reality.domain.units import in_unit as _in_unit
+from reality.domain.units import promise_unit
 from reality.services.exception_inputs import _exception_input_scope, _inputs
 
 ZERO = Decimal(0)
@@ -961,6 +963,28 @@ def _quantity_in_agreed_unit(
     return total
 
 
+def _in_promise_unit(
+    session: Session,
+    tenant_id: str,
+    commitment: Commitment,
+    line: DocumentLine,
+    quantity: Decimal | None,
+) -> tuple[Decimal | None, str]:
+    """A quantity in the order line's unit, in the unit its promise is held in.
+
+    Since spec 301 a purchase line in the purchase unit promises, and is
+    received, in the stock unit, so what invoices and credits carry against the
+    line is compared with the movements in that unit. Every other promise is in
+    its line's unit, as before, and the quantity is returned unchanged.
+    """
+    item = _item(session, tenant_id, line.item_id)
+    if quantity is None or item is None:
+        return quantity, line.unit
+    if promise_unit(commitment.quantity, line, item) == "stock":
+        return _in_unit(item, quantity, line.unit, item.unit), item.unit
+    return quantity, line.unit
+
+
 def _prices_comparable(billed: DocumentLine, agreed: DocumentLine) -> bool:
     """Whether two prices are figures of the same kind at all.
 
@@ -1202,8 +1226,14 @@ def _receipt_unbilled_exceptions(
         received = _held_quantity(session, tenant_id, commitment.id)
         if received <= ZERO:
             continue
-        billed = _quantity_in_agreed_unit(
-            session, tenant_id, line, _invoice_lines(session, tenant_id, line.id)
+        billed, unit = _in_promise_unit(
+            session,
+            tenant_id,
+            commitment,
+            line,
+            _quantity_in_agreed_unit(
+                session, tenant_id, line, _invoice_lines(session, tenant_id, line.id)
+            ),
         )
         if billed is None or billed >= received:
             continue
@@ -1232,7 +1262,7 @@ def _receipt_unbilled_exceptions(
                     "standing_for_days": standing.days,
                     "threshold_days": threshold.days,
                     "norm_days": norm.days,
-                    "unit": line.unit,
+                    "unit": unit,
                 },
                 _order_line_trace(commitment, line, document),
                 last,
@@ -2316,8 +2346,20 @@ def _return_exceptions(
             if _referencing_document_type(session, tenant_id, row)
             in {"sales_invoice", "supplier_invoice"}
         ]
-        credited = _quantity_in_agreed_unit(session, tenant_id, line, crediting)
-        billed = _quantity_in_agreed_unit(session, tenant_id, line, billing)
+        credited, unit = _in_promise_unit(
+            session,
+            tenant_id,
+            commitment,
+            line,
+            _quantity_in_agreed_unit(session, tenant_id, line, crediting),
+        )
+        billed, _ = _in_promise_unit(
+            session,
+            tenant_id,
+            commitment,
+            line,
+            _quantity_in_agreed_unit(session, tenant_id, line, billing),
+        )
         if credited is None or billed is None:
             continue
         if uncredited:
@@ -2334,7 +2376,7 @@ def _return_exceptions(
                 "billed_quantity": billed,
                 "credited_quantity": credited,
                 "uncredited_quantity": owed,
-                "unit": line.unit,
+                "unit": unit,
             }
             if side == CUSTOMER_RETURN:
                 values["exchanged_quantity"] = exchanged
@@ -2353,7 +2395,7 @@ def _return_exceptions(
                 "credited_quantity": credited,
                 "returned_quantity": returned,
                 "unreturned_quantity": excess,
-                "unit": line.unit,
+                "unit": unit,
             }
             if side == CUSTOMER_RETURN:
                 values["exchanged_quantity"] = exchanged
@@ -2501,7 +2543,13 @@ def _billed_not_received_exceptions(
         # nobody has billed says nothing at all.
         if not billing:
             continue
-        billed = _quantity_in_agreed_unit(session, tenant_id, line, billing)
+        billed, unit = _in_promise_unit(
+            session,
+            tenant_id,
+            commitment,
+            line,
+            _quantity_in_agreed_unit(session, tenant_id, line, billing),
+        )
         if billed is None or billed <= ZERO:
             continue
         # The raw receipt on purpose. Goods that arrived and went back were
@@ -2537,7 +2585,7 @@ def _billed_not_received_exceptions(
                     "billed_quantity": billed,
                     "received_quantity": received,
                     "unreceived_quantity": unreceived,
-                    "unit": line.unit,
+                    "unit": unit,
                 },
                 _order_line_trace(commitment, line, document),
                 min(instants) if instants else commitment.due_at,
@@ -2601,6 +2649,30 @@ def _units_not_comparable_exceptions(
                 ],
             )
             declines.extend(refused)
+            # Spec 301: an open purchase promise recorded before purchases were
+            # held in the stock unit keeps its line's unit. It is not converted
+            # after the fact, so it is named: stock and supply read it as stated.
+            item = _item(session, tenant_id, line.item_id)
+            if (
+                commitment_type == "supplier_delivery"
+                and _commitment.status == "open"
+                and item is not None
+                and promise_unit(_commitment.quantity, line, item) == "line"
+            ):
+                # A unit the item relates is the purchase unit recorded the old
+                # way; any other unit is a relation nobody stated.
+                stated = (
+                    _decline_reason(item, line.unit, item.unit) != "no_stated_relation"
+                )
+                declines.append(
+                    _UnitDecline(
+                        item.id,
+                        item.unit,
+                        line.unit,
+                        "promise_in_purchase_unit" if stated else "no_stated_relation",
+                        (line.id,),
+                    )
+                )
     by_item: dict[str, list[_UnitDecline]] = {}
     for decline in declines:
         # A line naming no item has nothing to state a relation on and no entry
@@ -2621,6 +2693,9 @@ def _units_not_comparable_exceptions(
         # A relation nobody stated is the more fundamental of the two and its
         # exit is a different one, so it is what the entry says when both appear.
         missing = any(row.reason == "no_stated_relation" for row in rows)
+        recorded = not missing and any(
+            row.reason == "promise_in_purchase_unit" for row in rows
+        )
         factor = Decimal(item.conversion_factor)
         result.append(
             OperationalException(
@@ -2634,6 +2709,8 @@ def _units_not_comparable_exceptions(
                 + (
                     "this item states no conversion between them"
                     if missing
+                    else "a purchase recorded before it was held in the stock unit"
+                    if recorded
                     else f"the stated conversion of {factor:g} does not divide evenly"
                 ),
                 "item",
@@ -2646,6 +2723,8 @@ def _units_not_comparable_exceptions(
                     "reason": (
                         "no_stated_relation"
                         if missing
+                        else "promise_in_purchase_unit"
+                        if recorded
                         else "conversion_leaves_a_remainder"
                     ),
                     "affected_lines": affected,
@@ -2998,6 +3077,8 @@ def _item_oversold_exceptions(
                 unit.label("unit"),
                 promised.label("promised"),
                 fulfilled.label("fulfilled"),
+                Commitment.quantity.label("original"),
+                DocumentLine.quantity.label("line_quantity"),
                 Item,
             )
             .join(
@@ -3035,6 +3116,14 @@ def _item_oversold_exceptions(
         taken there and only then expressed in the item's unit.
         """
         open_quantity = max(ZERO, Decimal(row.promised) - Decimal(row.fulfilled or 0))
+        line = (
+            SimpleNamespace(unit=row.unit, quantity=row.line_quantity)
+            if row.line_quantity is not None
+            else None
+        )
+        # A purchase promise made since spec 301 is already in the stock unit.
+        if promise_unit(row.original, line, row.Item) == "stock":
+            return open_quantity
         return _in_unit(row.Item, open_quantity, row.unit, row.Item.unit)
 
     demand: dict[str, Decimal] = {}

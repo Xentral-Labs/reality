@@ -312,3 +312,164 @@ def test_a_sales_line_in_another_unit_is_unchanged(session, business):
 
     # Selling in cartons is its own specification: the promise is as stated.
     assert commitments[0].quantity == lines[0].quantity == Decimal("2.0000")
+
+
+# --- T008: readers --------------------------------------------------------------------
+
+
+def _supplier_invoice(session, business, line, quantity, number):
+    from reality.services import core
+
+    return core.create_manual_document_with_lines(
+        session,
+        business.tenant.id,
+        "supplier_invoice",
+        number,
+        business.supplier.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": quantity,
+                "unit": "box",
+                "unit_price": "60.00",
+                "gross_amount": str(Decimal(quantity) * 60),
+                "billed_document_line_id": line.id,
+            }
+        ],
+        str(Decimal(quantity) * 60),
+    )
+
+
+def _classes(session, business, class_id):
+    from reality.services.exceptions import operational_exceptions
+
+    return {
+        row.record_id: row
+        for row in operational_exceptions(session, business.tenant.id)
+        if row.class_id == class_id
+    }
+
+
+def test_an_invoice_in_cartons_matches_the_pieces_received(session, business):
+    _cartons(session, business)
+    _, _, lines, commitments = _purchase(session, business, "5", "box")
+    _receive(session, business, commitments[0], "3", unit="box")
+    _supplier_invoice(session, business, lines[0], "5", "ER-301")
+
+    # Control: 5 cartons billed against 3 received is 24 pieces not received.
+    row = _classes(session, business, "billed_not_received")[lines[0].id]
+    assert (row.causal_values["unreceived_quantity"], row.causal_values["unit"]) == (
+        Decimal("24.0000"),
+        "pcs",
+    )
+
+    _receive(session, business, commitments[0], "2", unit="box")
+    assert lines[0].id not in _classes(session, business, "billed_not_received")
+    assert lines[0].id not in _classes(session, business, "receipt_unbilled")
+
+
+def test_an_oversold_item_counts_a_purchase_in_cartons_once(session, business):
+    from reality.services import core
+
+    _cartons(session, business)
+    _purchase(session, business, "2", "box")
+    core.create_manual_order(
+        session,
+        business.tenant.id,
+        "sales",
+        "SO-301-O",
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "25",
+                "unit_price": "10",
+                "gross_amount": "250",
+            }
+        ],
+        "250",
+    )
+
+    row = _classes(session, business, "item_oversold")[business.item.id]
+    # Two cartons are 24 pieces on their way, not 288.
+    assert (
+        row.causal_values["incoming_quantity"],
+        row.causal_values["shortfall_quantity"],
+    ) == (
+        Decimal("24.0000"),
+        Decimal("1.0000"),
+    )
+
+
+def test_a_purchase_recorded_before_in_cartons_is_named(session, business):
+    from reality.services import core
+
+    tenant = business.tenant.id
+    _cartons(session, business)
+    # Control: a purchase recorded now in cartons is held in pieces, nothing named.
+    _purchase(session, business, "5", "box", number="PO-NEW")
+    assert business.item.id not in _classes(session, business, "units_not_comparable")
+
+    document, lines = core.create_manual_document_with_lines(
+        session,
+        tenant,
+        "purchase_order",
+        "PO-OLD",
+        business.supplier.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "5",
+                "unit": "box",
+                "unit_price": "60",
+                "gross_amount": "300",
+            }
+        ],
+        "300",
+    )
+    core.create_commitment(
+        session,
+        tenant,
+        "supplier_delivery",
+        business.supplier.id,
+        business.company.id,
+        business.item.id,
+        business.location.id,
+        "5",
+        None,
+        document_id=document.id,
+        document_line_id=lines[0].id,
+    )
+
+    row = _classes(session, business, "units_not_comparable")[business.item.id]
+    assert row.causal_values["reason"] == "promise_in_purchase_unit"
+    assert lines[0].id in row.trace["document_line_ids"]
+
+
+def test_the_delivery_case_reads_a_purchase_in_both_units(session, business):
+    from reality.services.delivery_reads import delivery_case
+
+    tenant = business.tenant.id
+    _cartons(session, business)
+    _, _, _, commitments = _purchase(session, business, "5", "box")
+    _receive(session, business, commitments[0], "2", unit="box")
+
+    case = delivery_case(session, tenant, commitments[0].id)["case"]
+    assert (case["promised"], case["open"], case["unit"]) == (
+        "60.0000",
+        "36.0000",
+        "pcs",
+    )
+    assert case["purchase_unit"] == {
+        "unit": "box",
+        "conversion_factor": "12",
+        "ordered": "5",
+        "open": "3",
+        "received": "2",
+    }
+
+    # Control: a purchase in the stock unit has no second view.
+    _, _, _, plain = _purchase(session, business, "7", "pcs", number="PO-PCS")
+    assert "purchase_unit" not in delivery_case(session, tenant, plain[0].id)["case"]

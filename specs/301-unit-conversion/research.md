@@ -34,7 +34,7 @@ Read on 2026-10-01 against `origin/main` at ebf3b6e7. Paths are under `packages/
   - The two invoice-matching classes convert the billed quantity into the stock unit, instead of reading receipts in the line unit, when the order line's promise is in the stock unit.
   - `item_oversold` stops converting a promise that is already in the stock unit.
 - **Telling old from new**: a supplier promise whose line is in another unit is in the stock unit if its original quantity equals the line quantity converted; otherwise it is a promise recorded before this feature, in the line's unit (`domain/units.promise_unit`). Readers use that one helper.
-- **Earlier purchase orders** keep their meaning. `units_not_comparable` names an open supplier promise in a purchase unit recorded before the change, with the cause `promise_in_purchase_unit`, so it is not silently mis-summed.
+- **Earlier purchase orders** keep their meaning. `units_not_comparable` names an open supplier promise in a purchase unit recorded before the change, with the reason `promise_in_purchase_unit`, so it is not silently mis-summed.
 - **Sales lines** are unchanged.
 
 ## R3. Reads in both units (FR-002)

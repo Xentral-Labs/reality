@@ -25,4 +25,4 @@
 ## Findings
 
 - **`receipt_unbilled` / `billed_not_received`**: they compare in the stock unit for new purchase orders, and agree with stock.
-- **`units_not_comparable`**: it names an open supplier promise in a purchase unit recorded before this feature, with the cause `promise_in_purchase_unit`.
+- **`units_not_comparable`**: it names an open supplier promise in a purchase unit recorded before this feature, with the reason `promise_in_purchase_unit` (a unit the item states nothing about keeps `no_stated_relation`).

@@ -76,7 +76,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/re
 - `receipt_unbilled` and `billed_not_received` convert billed lines into the stock unit for promises in the stock unit.
 - `item_oversold` uses `promise_unit`.
 - Delivery case and open-work rows add the purchase-unit view.
-- `units_not_comparable` gains the cause `promise_in_purchase_unit` for open supplier promises recorded before.
+- `units_not_comparable` gains the reason `promise_in_purchase_unit` for open supplier promises recorded before.
 
 ### Migration
 
