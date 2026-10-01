@@ -79,6 +79,6 @@
 
 ## Phase 8: Verification
 
-- [ ] T017 Full backend suite from a clean worktree and the web checks
-- [ ] T018 Manual check per `quickstart.md` on an isolated stack
-- [ ] T019 Review of the diff; fix findings
+- [x] T017 Full backend suite from a clean worktree and the web checks
+- [x] T018 Manual check per `quickstart.md` on an isolated stack
+- [x] T019 Review of the diff; fix findings

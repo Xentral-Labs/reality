@@ -121,9 +121,15 @@ export function DeliveryCase({
                 context="commitment.customer"
                 onOpen={setAction}
                 exclude={[
-                  detail.blockers.some((row) => row.scope === "commitment")
-                    ? "commitment_hold"
-                    : "commitment_hold_release",
+                  ...(detail.blockers.some((row) => row.scope === "commitment")
+                    ? detail.blockers
+                        .filter((row) => row.scope === "commitment")
+                        .every((row) => row.owner_release)
+                      ? // Only a credit hold: neither a second hold nor a generic
+                        // release applies; an owner releases it with a reason.
+                        ["commitment_hold", "commitment_hold_release"]
+                      : ["commitment_hold"]
+                    : ["commitment_hold_release"]),
                   detail.blockers.some((row) => row.scope === "party")
                     ? "party_delivery_hold"
                     : "party_delivery_hold_release",
@@ -133,13 +139,11 @@ export function DeliveryCase({
             {detail.type === "supplier_delivery" && detail.status === "open" && receive && (
               <ContextActions context="commitment.supplier" onOpen={() => receive(id)} />
             )}
-            {owner &&
-              detail.document_id &&
-              detail.blockers.some((row) => row.reason === "credit_check") && (
-                <button className="br-btn" onClick={() => setReleasingCredit(true)}>
-                  {t("Release credit hold")}
-                </button>
-              )}
+            {owner && detail.document_id && detail.blockers.some((row) => row.owner_release) && (
+              <button className="br-btn" onClick={() => setReleasingCredit(true)}>
+                {t("Release credit hold")}
+              </button>
+            )}
             <button
               className="br-btn"
               onClick={() => window.dispatchEvent(new Event("reality:open-chat"))}

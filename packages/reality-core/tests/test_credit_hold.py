@@ -747,3 +747,28 @@ def test_the_exposure_read_does_not_grow_with_the_order_lines(session, business)
     order_with(40, "SO-C-Q2")
 
     assert statements() <= few + 2
+
+
+def test_the_delivery_case_says_which_hold_only_an_owner_releases(session, business):
+    from reality.services.delivery_reads import delivery_case
+
+    tenant = business.tenant.id
+    _, commitments = _held_order(session, business)
+    session.add(
+        CommitmentHold(
+            id=core.uid("hld"),
+            tenant_id=tenant,
+            commitment_id=commitments[0].id,
+            reason_code="credit_check",
+            note="Placed by hand",
+        )
+    )
+    session.flush()
+
+    blockers = delivery_case(session, tenant, commitments[0].id)["case"]["blockers"]
+
+    # The credit check's own hold is the owner's; the one a person placed is not.
+    assert sorted((row["note"][:6], row["owner_release"]) for row in blockers) == [
+        ("Credit", True),
+        ("Placed", False),
+    ]

@@ -2509,6 +2509,7 @@ export type DeliveryDetail = {
       scope?: "commitment" | "party";
       note?: string;
       created_at?: string;
+      owner_release?: boolean;
     }>;
   };
   supply_coverage: SupplyCoverage;
