@@ -16,6 +16,7 @@ import { ResolutionGuidance } from "./ResolutionGuidance";
 import { OrderLineItemCard } from "./OrderLineItemCard";
 import { OrderCard } from "./OrderCard";
 import { StockElsewhereCard } from "./StockElsewhereCard";
+import { StockBlockCard } from "./StockBlockCard";
 const severities = [
   ["critical", "Critical"],
   ["high", "High"],
@@ -76,6 +77,7 @@ function OpenExceptions({
   const [assigning, setAssigning] = useState("");
   const [ordering, setOrdering] = useState<AttentionRow | null>(null);
   const [serving, setServing] = useState<AttentionRow | null>(null);
+  const [blockingExpired, setBlockingExpired] = useState<AttentionRow | null>(null);
   const selected = detail.data?.id === exception ? detail.data : null;
   // Spec 279 FR-012: the catalog title of the class, translated; the stored title
   // only stands in for a class the catalog does not know yet.
@@ -219,6 +221,14 @@ function OpenExceptions({
                           {t("Assign item")}
                         </button>
                       )}
+                      {selected.class_id === "stock_expired" && (
+                        <button
+                          className="br-btn br-btn-primary"
+                          onClick={() => setBlockingExpired(selected)}
+                        >
+                          {t("Block")}
+                        </button>
+                      )}
                       {selected.class_id === "stock_in_another_location" && (
                         <button
                           className="br-btn br-btn-primary"
@@ -255,6 +265,36 @@ function OpenExceptions({
       </section>
 
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
+      {blockingExpired && (
+        <StockBlockCard
+          tenant={tenant}
+          mode="block"
+          item={{
+            id: String(blockingExpired.trace.item_id || ""),
+            name: String(blockingExpired.causal_values.lot_number || ""),
+          }}
+          prefill={{
+            // Spec 304: the expired lot where it lies, held back for expiry.
+            location_id: (
+              blockingExpired.trace as unknown as {
+                locations?: { location_id: string; quantity: string }[];
+              }
+            ).locations?.[0]?.location_id,
+            quantity: (
+              blockingExpired.trace as unknown as {
+                locations?: { location_id: string; quantity: string }[];
+              }
+            ).locations?.[0]?.quantity,
+            lot_id: String(blockingExpired.trace.lot_id || ""),
+            reason: "expiry",
+          }}
+          close={() => setBlockingExpired(null)}
+          settled={() => {
+            detail.refresh();
+            read.refresh();
+          }}
+        />
+      )}
       {serving && (
         <StockElsewhereCard
           tenant={tenant}

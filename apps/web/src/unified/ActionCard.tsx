@@ -97,6 +97,9 @@ function DeliveryActionCard({
   useEffect(() => setReserveAt(""), [target]);
   // Spec 301: a receipt may be stated in the purchase unit the order was placed in.
   const [unit, setUnit] = useState("");
+  // Spec 304: part of a receipt may be held back where it lands.
+  const [blockedPart, setBlockedPart] = useState("");
+  const [blockReason, setBlockReason] = useState("damage");
   const purchaseRead = useRead(
     () =>
       receiving && target && !proposal ? deliveryApi.detail(tenant, target) : Promise.resolve(null),
@@ -253,6 +256,9 @@ function DeliveryActionCard({
                 [receiving ? "to_location_id" : "from_location_id"]: detail!.location_id,
                 quantity,
                 ...(receiving && purchaseUnit && unit === purchaseUnit.unit ? { unit } : {}),
+                ...(receiving && blockedPart
+                  ? { blocked_quantity: blockedPart, block_reason: blockReason }
+                  : {}),
                 ...identities,
               };
       const result = await deliveryActions.prepare(
@@ -538,6 +544,51 @@ function DeliveryActionCard({
                   </select>
                 </label>
               )}
+              {receiving && (
+                <>
+                  <label className="br-label min-w-0 flex-1">
+                    {t("Of which blocked")}
+                    <input
+                      className="br-control mt-2 w-full"
+                      inputMode="decimal"
+                      disabled={busy}
+                      value={blockedPart}
+                      onChange={(event) => {
+                        setBlockedPart(event.target.value);
+                        requestId.current = crypto.randomUUID();
+                      }}
+                    />
+                  </label>
+                  {blockedPart && (
+                    <label className="br-label min-w-0 flex-1">
+                      {t("Reason")}
+                      <select
+                        className="br-control mt-2 w-full"
+                        aria-label={t("Reason")}
+                        disabled={busy}
+                        value={blockReason}
+                        onChange={(event) => {
+                          setBlockReason(event.target.value);
+                          requestId.current = crypto.randomUUID();
+                        }}
+                      >
+                        {(
+                          [
+                            ["damage", "Damage"],
+                            ["inspection", "Inspection"],
+                            ["quality", "Quality"],
+                            ["expiry", "Expiry"],
+                          ] as const
+                        ).map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {t(label)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                </>
+              )}
               {receiving && purchaseUnit && (
                 <label className="br-label">
                   {t("Unit")}
@@ -677,9 +728,11 @@ function DeliveryActionCard({
                                       ? "Shipped"
                                       : key === "transferred"
                                         ? "Transferred"
-                                        : key === "shortage"
-                                          ? "Shortage"
-                                          : "Requested",
+                                        : key === "blocked"
+                                          ? "Blocked"
+                                          : key === "shortage"
+                                            ? "Shortage"
+                                            : "Requested",
                         )}
                       </dt>
                       <dd>

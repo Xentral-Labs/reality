@@ -386,7 +386,7 @@ def review_delivery(
     if result.get("lot_id"):
         intent["lot_id"] = result["lot_id"]
     if tool == "movement_create" and not intent.get("commitment_id"):
-        from reality.services.core import active_reserved, stock_at
+        from reality.services.core import active_reserved, blocked_quantity, stock_at
 
         # A transfer is judged where it takes stock from.
         location_id = (
@@ -396,6 +396,7 @@ def review_delivery(
         )
         physical = stock_at(session, tenant_id, intent["item_id"], location_id)
         reserved = active_reserved(session, tenant_id, intent["item_id"], location_id)
+        held_back = blocked_quantity(session, tenant_id, intent["item_id"], location_id)
         detail = {
             "case": {
                 "commitment_id": None,
@@ -411,7 +412,8 @@ def review_delivery(
                 "location_id": location_id,
                 "physical": str(physical),
                 "reserved": str(reserved),
-                "available": str(physical - reserved),
+                "blocked": str(held_back),
+                "available": str(physical - reserved - held_back),
             },
         }
     else:
@@ -430,17 +432,19 @@ def review_delivery(
         and intent.get(location_key)
         and intent.get(location_key) != detail["case"]["location_id"]
     ):
-        from reality.services.core import active_reserved, stock_at
+        from reality.services.core import active_reserved, blocked_quantity, stock_at
 
         location_id = intent[location_key]
         item_id = intent.get("item_id") or detail["case"]["item_id"]
         physical = stock_at(session, tenant_id, item_id, location_id)
         reserved = active_reserved(session, tenant_id, item_id, location_id)
+        held_back = blocked_quantity(session, tenant_id, item_id, location_id)
         detail["inventory"].update(
             location_id=location_id,
             physical=str(physical),
             reserved=str(reserved),
-            available=str(physical - reserved),
+            blocked=str(held_back),
+            available=str(physical - reserved - held_back),
         )
         named = session.scalar(
             select(Location.name).where(

@@ -44,8 +44,8 @@
 
 ## Phase 5: Web
 
-- [ ] T010 The warehouse view's blocked column and Block action; the blocks list with release and scrap; "Of which blocked" in the receipt form; "Block" on the expired-stock finding.
-- [ ] T011 Translations, `test:i18n`, the audit, the build and the browser fixtures.
+- [x] T010 The warehouse view's blocked column and Block action; the blocks list with release and scrap; "Of which blocked" in the receipt form; "Block" on the expired-stock finding.
+- [x] T011 Translations, `test:i18n`, the audit, the build and the browser fixtures.
 
 ## Phase 6: Stories and Guide (FR-005)
 

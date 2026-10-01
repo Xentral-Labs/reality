@@ -264,6 +264,22 @@ def inventory_page(
         .group_by(Reservation.item_id)
         .subquery()
     )
+    from reality.db.core import StockBlock
+
+    # Spec 304: what is held back is neither available nor projected.
+    blocked = (
+        select(
+            StockBlock.item_id.label("item_id"),
+            func.sum(StockBlock.quantity).label("qty"),
+        )
+        .where(
+            StockBlock.tenant_id == tenant_id,
+            StockBlock.status == "active",
+            *([StockBlock.location_id == location_id] if location_id else []),
+        )
+        .group_by(StockBlock.item_id)
+        .subquery()
+    )
     supplier_open = (
         select(
             Commitment.item_id.label("item_id"),
@@ -304,8 +320,9 @@ def inventory_page(
         )
     physical = func.coalesce(incoming.c.qty, 0) - func.coalesce(outgoing.c.qty, 0)
     reserved_qty = func.coalesce(reserved.c.qty, 0)
+    blocked_qty = func.coalesce(blocked.c.qty, 0)
     supplier_qty = func.coalesce(supplier_open.c.qty, 0)
-    available = physical - reserved_qty
+    available = physical - reserved_qty - blocked_qty
     projected = available + supplier_qty
     if stock_state == "shortage":
         criteria.append(available < 0)
@@ -327,10 +344,12 @@ def inventory_page(
             physical.label("physical"),
             reserved_qty.label("reserved"),
             supplier_qty.label("supplier_open"),
+            blocked_qty.label("blocked"),
         )
         .outerjoin(incoming, incoming.c.item_id == Item.id)
         .outerjoin(outgoing, outgoing.c.item_id == Item.id)
         .outerjoin(reserved, reserved.c.item_id == Item.id)
+        .outerjoin(blocked, blocked.c.item_id == Item.id)
         .outerjoin(supplier_open, supplier_open.c.item_id == Item.id)
         .where(*criteria)
     )
@@ -359,16 +378,18 @@ def inventory_page(
         .offset(pager.offset)
     )
     rows = []
-    for item, physical, reserved_value, supplier_value in records:
-        physical, reserved_value, supplier_value = (
-            Decimal(value or 0) for value in (physical, reserved_value, supplier_value)
+    for item, physical, reserved_value, supplier_value, blocked_value in records:
+        physical, reserved_value, supplier_value, blocked_value = (
+            Decimal(value or 0)
+            for value in (physical, reserved_value, supplier_value, blocked_value)
         )
-        available = physical - reserved_value
+        available = physical - reserved_value - blocked_value
         rows.append(
             {
                 "item": item,
                 "physical": physical,
                 "reserved": reserved_value,
+                "blocked": blocked_value,
                 "available": available,
                 "incoming": supplier_value,
                 "projected": available + supplier_value,

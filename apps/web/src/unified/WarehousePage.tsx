@@ -4,7 +4,7 @@ import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWo
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { Boxes, Search } from "lucide-react";
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { useWorkCount } from "./workCounts";
 import { withWorkCount } from "./TabWorkCount";
 import { operationsApi, type Page, type WarehouseView } from "../api";
@@ -15,6 +15,7 @@ import { useRead } from "./useCompanyContext";
 import type { Selection } from "./routing";
 import { CostExplanation } from "./CostExplanation";
 import { MovementExplanation } from "./MovementExplanation";
+import { StockBlockCard, StockBlockList } from "./StockBlockCard";
 
 const states: Record<WarehouseView, [string, string][]> = {
   stock: [
@@ -74,6 +75,8 @@ export function RegisterPager({ page, change }: { page: Page; change: (page: num
     </div>
   );
 }
+// Each quantity answers its own question (spec 262 FR-015).
+const quantityView = (field: string) => (field === "physical" ? "movements" : "reservations");
 export function WarehousePage({
   selection,
   navigate,
@@ -95,6 +98,8 @@ export function WarehousePage({
   );
   const kind = view === "stock" ? "item" : view === "reservations" ? "reservation" : "movement";
   const stock = view === "stock";
+  // Spec 304: block stock where it lies, from the row it is on.
+  const [blocking, setBlocking] = useState<{ id: string; name: string; unit: string } | null>(null);
   const data = read.data?.scope.view === view ? read.data : undefined;
   const warehouseActions = useContextActions(`warehouse.${view}`);
   // Stock opens every item; its tab warns about shortages only (spec 254).
@@ -204,6 +209,19 @@ export function WarehousePage({
             </p>
           )}
         </div>
+        {stock && (
+          <StockBlockList key={read.data ? "ready" : "loading"} tenant={tenant} item={item} />
+        )}
+        {blocking && (
+          <StockBlockCard
+            tenant={tenant}
+            mode="block"
+            item={blocking}
+            prefill={{ location_id: location || undefined }}
+            close={() => setBlocking(null)}
+            settled={read.refresh}
+          />
+        )}
         {!data ? (
           <ReadState loading={read.loading} error={read.error} retry={read.refresh} rows={8} />
         ) : (
@@ -221,6 +239,7 @@ export function WarehousePage({
                       <>
                         <th className="pb-3 text-right">{t("Physical")}</th>
                         <th className="pb-3 text-right">{t("Reserved")}</th>
+                        <th className="pb-3 text-right">{t("Blocked")}</th>
                         <th className="pb-3 text-right">{t("Available")}</th>
                       </>
                     ) : (
@@ -248,41 +267,48 @@ export function WarehousePage({
                         </td>
                         {stock ? (
                           <>
-                            {(["physical", "reserved", "available"] as const).map((field) => (
-                              <td key={field} className="py-5 text-right">
-                                <button
-                                  className="rounded px-2 py-1 hover:bg-surface-muted"
-                                  aria-label={`${t(field === "physical" ? "Physical" : field === "reserved" ? "Reserved" : "Available")} · ${row.name}`}
-                                  title={t(
-                                    field === "physical"
-                                      ? "Movements that make this quantity"
-                                      : field === "reserved"
-                                        ? "Reservations that hold this quantity"
-                                        : "How this quantity is composed",
-                                  )}
-                                  onClick={() =>
-                                    // Each quantity answers its own question (spec 262 FR-015);
-                                    // an active place scope is kept by the merge.
-                                    navigate(
-                                      field === "available"
-                                        ? { entry: row.id }
-                                        : {
-                                            warehouseView:
-                                              field === "physical" ? "movements" : "reservations",
-                                            item: row.id,
-                                            entry: "",
-                                            q: "",
-                                            state: "",
-                                            page: 1,
-                                          },
-                                    )
-                                  }
-                                >
-                                  {formatQuantity(row[field]!)}{" "}
-                                  <span className="text-xs text-fg-muted">{row.unit}</span>
-                                </button>
-                              </td>
-                            ))}
+                            {(["physical", "reserved", "blocked", "available"] as const).map(
+                              (field) =>
+                                field === "blocked" ? (
+                                  <td key={field} className="py-5 text-right">
+                                    {formatQuantity(row.blocked || "0")}{" "}
+                                    <span className="text-xs text-fg-muted">{row.unit}</span>
+                                  </td>
+                                ) : (
+                                  <td key={field} className="py-5 text-right">
+                                    <button
+                                      className="rounded px-2 py-1 hover:bg-surface-muted"
+                                      aria-label={`${t(field === "physical" ? "Physical" : field === "reserved" ? "Reserved" : "Available")} · ${row.name}`}
+                                      title={t(
+                                        field === "physical"
+                                          ? "Movements that make this quantity"
+                                          : field === "reserved"
+                                            ? "Reservations that hold this quantity"
+                                            : "How this quantity is composed",
+                                      )}
+                                      onClick={() =>
+                                        // Each quantity answers its own question (spec 262 FR-015);
+                                        // an active place scope is kept by the merge.
+                                        navigate(
+                                          field === "available"
+                                            ? { entry: row.id }
+                                            : {
+                                                warehouseView: quantityView(field),
+                                                item: row.id,
+                                                entry: "",
+                                                q: "",
+                                                state: "",
+                                                page: 1,
+                                              },
+                                        )
+                                      }
+                                    >
+                                      {formatQuantity(row[field]!)}{" "}
+                                      <span className="text-xs text-fg-muted">{row.unit}</span>
+                                    </button>
+                                  </td>
+                                ),
+                            )}
                           </>
                         ) : (
                           <>
@@ -329,6 +355,20 @@ export function WarehousePage({
                           </>
                         )}
                         <td className="py-5 pl-3 text-right">
+                          {stock && (
+                            <button
+                              className="br-btn mr-2"
+                              onClick={() =>
+                                setBlocking({
+                                  id: row.id,
+                                  name: row.name || row.item || row.id,
+                                  unit: row.unit,
+                                })
+                              }
+                            >
+                              {t("Block")}
+                            </button>
+                          )}
                           <PreviewButton
                             open={entry === row.id}
                             controls={`warehouse-preview-${row.id}`}
@@ -340,7 +380,7 @@ export function WarehousePage({
                       <TablePreview
                         id={`warehouse-preview-${row.id}`}
                         open={entry === row.id}
-                        columns={5}
+                        columns={stock ? 6 : 5}
                       >
                         {view === "movements" && (
                           <MovementExplanation tenant={tenant} movementId={row.id} />

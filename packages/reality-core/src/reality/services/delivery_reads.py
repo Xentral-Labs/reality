@@ -459,6 +459,13 @@ def delivery_case(
             else {"customer_commitment_id": commitment.id}
         ),
     )
+    from reality.services.core import blocked_quantity
+
+    held_back = (
+        blocked_quantity(session, tenant_id, commitment.item_id, commitment.location_id)
+        if commitment.item_id and commitment.location_id
+        else Decimal(0)
+    )
     return {
         "case": detail,
         "supply_coverage": coverage,
@@ -469,7 +476,9 @@ def delivery_case(
             "unit": row.unit,
             "physical": str(physical),
             "reserved": str(reserved),
-            "available": str(physical - reserved),
+            # Spec 304: blocked stock lies there and is not available.
+            "blocked": str(held_back),
+            "available": str(physical - reserved - held_back),
         },
         "links": links,
         "history": {

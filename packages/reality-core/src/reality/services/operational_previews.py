@@ -298,6 +298,8 @@ def _document(session: Session, tenant: str, record_id: str) -> list[Section]:
 
 
 def _stock(session: Session, tenant: str, record_id: str) -> list[Section]:
+    from reality.services.core import blocked_quantity
+
     item = _record(session, tenant, Item, record_id)
     physical = stock_at(session, tenant, item.id)
     reserved = active_reserved(session, tenant, item.id)
@@ -325,6 +327,7 @@ def _stock(session: Session, tenant: str, record_id: str) -> list[Section]:
     for location in locations[:LIMIT]:
         held = stock_at(session, tenant, item.id, location.id)
         assigned = active_reserved(session, tenant, item.id, location.id)
+        assigned += blocked_quantity(session, tenant, item.id, location.id)
         location_rows.append(
             _row(
                 location.name,
@@ -335,6 +338,7 @@ def _stock(session: Session, tenant: str, record_id: str) -> list[Section]:
                 original_label=True,
             )
         )
+    held_back = blocked_quantity(session, tenant, item.id)
     scope = _section("Available stock by location", location_rows)
     scope["has_more"] = len(locations) > LIMIT
     return [
@@ -344,7 +348,9 @@ def _stock(session: Session, tenant: str, record_id: str) -> list[Section]:
                 _row("Item", f"{item.sku} · {item.name}", "item", item.id),
                 _row("Physical", _quantity(physical, item.unit)),
                 _row("Reserved", _quantity(reserved, item.unit)),
-                _row("Available", _quantity(physical - reserved, item.unit)),
+                # Spec 304: blocked stock lies there and is not available.
+                _row("Blocked", _quantity(held_back, item.unit)),
+                _row("Available", _quantity(physical - reserved - held_back, item.unit)),
             ],
         ),
         scope,
