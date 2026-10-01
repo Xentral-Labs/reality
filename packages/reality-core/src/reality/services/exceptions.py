@@ -641,7 +641,9 @@ def _commitment_exceptions(
                 # its cause; one promise is still listed once.
                 hours_left = (due_at - as_of).total_seconds() / 3600
                 window = (
-                    f"within {hours_left:.0f} h" if hours_left >= 1 else "within the hour"
+                    f"within {hours_left:.0f} h"
+                    if hours_left >= 1
+                    else "within the hour"
                 )
                 impact = f"{remaining.normalize():f} to ship {window}"
                 if unreserved > ZERO:
@@ -3138,6 +3140,28 @@ def _item_oversold_exceptions(
                 channel["orders"].append(row.document_id)
         for channel in channels.values():
             channel["orders"].sort()
+        channels = dict(sorted(channels.items()))
+        # The explanation shows values as they are, so the breakdown a person
+        # reads is one line; the structure behind it travels in the trace.
+        readable = " · ".join(
+            f"{name or 'unstated'} {values['quantity'].normalize():f} "
+            f"({len(values['orders'])} "
+            + ("order" if len(values["orders"]) == 1 else "orders")
+            + ")"
+            for name, values in channels.items()
+        )
+        values = {
+            "demand_quantity": demand[item_id],
+            "on_hand_quantity": stock,
+            "incoming_quantity": incoming,
+            "shortfall_quantity": shortfall,
+            "channels": readable,
+        }
+        if not_comparable:
+            values["not_comparable"] = " · ".join(
+                f"{row['quantity'].normalize():f} {row['unit']}"
+                for row in not_comparable
+            )
         result.append(
             OperationalException(
                 _identity("item_oversold", item_id),
@@ -3150,16 +3174,11 @@ def _item_oversold_exceptions(
                 + ("channel" if len(channels) == 1 else "channels"),
                 "item",
                 item_id,
-                {
-                    "demand_quantity": demand[item_id],
-                    "on_hand_quantity": stock,
-                    "incoming_quantity": incoming,
-                    "shortfall_quantity": shortfall,
-                    "channels": dict(sorted(channels.items())),
-                    "not_comparable": not_comparable,
-                },
+                values,
                 {
                     "item_id": item_id,
+                    "channels": channels,
+                    "not_comparable": not_comparable,
                     "commitment_ids": [row.id for row, _ in rows],
                     "document_ids": sorted(
                         {row.document_id for row, _ in rows if row.document_id}

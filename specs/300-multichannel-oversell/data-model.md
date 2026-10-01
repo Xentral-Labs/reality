@@ -10,11 +10,11 @@ No schema change: no migration, table or column.
 | `on_hand_quantity` | item-wide stock from movements |
 | `incoming_quantity` | open quantity of open supplier-delivery promises for the item |
 | `shortfall_quantity` | demand − on hand − incoming, reported while > 0 |
-| `channels` | per stated `sales_channel` (empty shown as "unstated"): quantity and order document ids |
-| `not_comparable` | promises in a unit the item states no relation to, named and left out of the sums |
+| `channels` | one readable line: per stated `sales_channel` (empty shown as "unstated"), the quantity and the number of orders; the quantities and order ids per channel are in the trace |
+| `not_comparable` | present only when there are any: promises in a unit the item states no relation to, named and left out of the sums (their documents are in the trace) |
 
 - Record: `item`.
-- Trace: the promise and document ids.
+- Trace: the promise and document ids, the channels with their quantities and orders, and the promises not comparable.
 
 ## Derived: `outgoing_commitment_due_soon` (finding)
 

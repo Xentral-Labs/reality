@@ -100,7 +100,7 @@ def test_orders_from_two_channels_above_stock_are_reported_by_channel(
         values["incoming_quantity"],
         values["shortfall_quantity"],
     ) == (Decimal("7.0000"), Decimal("4.0000"), Decimal(0), Decimal("3.0000"))
-    assert values["channels"] == {
+    assert row.trace["channels"] == {
         "amazon": {"quantity": Decimal("2.0000"), "orders": [market.id]},
         "shopify": {
             "quantity": Decimal("5.0000"),
@@ -108,6 +108,9 @@ def test_orders_from_two_channels_above_stock_are_reported_by_channel(
         },
     }
     assert set(row.trace["document_ids"]) == {shop.id, shop_two.id, market.id}
+    # What a person reads in the explanation is one line, not a structure.
+    assert values["channels"] == "amazon 2 (1 order) · shopify 5 (2 orders)"
+    assert "not_comparable" not in values
 
 
 def test_an_open_purchase_order_covering_the_shortfall_clears_it(session, business):
@@ -164,7 +167,7 @@ def test_a_promise_in_another_unit_is_named_not_summed(session, business):
 
     row = _oversold(session, tenant)[business.item.id]
     assert row.causal_values["demand_quantity"] == Decimal("5.0000")
-    assert row.causal_values["not_comparable"] == [
+    assert row.trace["not_comparable"] == [
         {"document_id": boxes.id, "unit": "box", "quantity": Decimal("2.0000")}
     ]
 

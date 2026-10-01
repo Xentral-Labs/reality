@@ -54,6 +54,6 @@
 
 ## Phase 6: Verification
 
-- [ ] T012 Full backend suite and the web checks (run alone, not beside a stack build)
-- [ ] T013 Manual check per `quickstart.md` on an isolated stack
-- [ ] T014 Review of the diff; fix findings
+- [x] T012 Full backend suite and the web checks (run alone, not beside a stack build)
+- [x] T013 Manual check per `quickstart.md` on an isolated stack
+- [x] T014 Review of the diff; fix findings

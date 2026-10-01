@@ -960,8 +960,7 @@ def test_an_item_oversold_in_the_shop_and_on_a_marketplace_names_both(
     row = _findings(session, business, "item_oversold")[business.item.id]
     assert row.causal_values["shortfall_quantity"] == 2
     assert {
-        channel: values["orders"]
-        for channel, values in row.causal_values["channels"].items()
+        channel: values["orders"] for channel, values in row.trace["channels"].items()
     } == {"amazon_marketplace": [market.id], "shopify": [shop.id]}
 
     # A purchase order for the two missing units is supply on its way: covered.
