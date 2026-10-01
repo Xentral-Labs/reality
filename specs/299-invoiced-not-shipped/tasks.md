@@ -77,6 +77,6 @@
 
 ## Phase 9: Verification
 
-- [ ] T019 Full backend suite from a clean worktree and the web checks (run alone, not beside a stack build)
-- [ ] T020 Manual check per `quickstart.md` on an isolated stack
-- [ ] T021 Review of the diff; fix findings
+- [x] T019 Full backend suite from a clean worktree and the web checks (run alone, not beside a stack build)
+- [x] T020 Manual check per `quickstart.md` on an isolated stack
+- [x] T021 Review of the diff; fix findings
