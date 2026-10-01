@@ -12,7 +12,7 @@ from typing import Any
 
 from sqlalchemy import cast, delete, func, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from reality.db.core import (
     BusinessEvent,
@@ -1474,6 +1474,118 @@ def _narrowed_item_supply_demand(
     return NarrowedRows(rows, frozenset(rows))
 
 
+def _settled_documents(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> set[str]:
+    """The documents a payment, its allocation, reversal or return settles.
+
+    Prepayment readiness reads what was allocated to an order's invoices, so an
+    allocation, a reversed posting or a returned payment changes the queue through
+    the invoices on both sides of it, never through a promise of its own.
+    """
+    from reality.db.core import LedgerEntry, PaymentReturn, SettlementAllocation
+
+    entries: set[str] = set()
+    documents: set[str] = set()
+    if allocations := changes.ids("settlement_allocation"):
+        for invoice_entry, payment_entry in session.execute(
+            select(
+                SettlementAllocation.invoice_ledger_entry_id,
+                SettlementAllocation.payment_ledger_entry_id,
+            ).where(
+                SettlementAllocation.tenant_id == tenant_id,
+                SettlementAllocation.id.in_(allocations),
+            )
+        ).all():
+            entries.update((invoice_entry, payment_entry))
+    if returns := changes.ids("payment_return"):
+        documents.update(
+            session.scalars(
+                select(PaymentReturn.payment_document_id).where(
+                    PaymentReturn.tenant_id == tenant_id,
+                    PaymentReturn.id.in_(returns),
+                )
+            )
+        )
+    group_entries = set()
+    if groups := changes.ids("posting_group"):
+        group_entries = set(
+            session.scalars(
+                select(LedgerEntry.id).where(
+                    LedgerEntry.tenant_id == tenant_id,
+                    LedgerEntry.posting_group_id.in_(groups),
+                )
+            )
+        )
+    if documents:
+        group_entries |= set(
+            session.scalars(
+                select(LedgerEntry.id).where(
+                    LedgerEntry.tenant_id == tenant_id,
+                    LedgerEntry.document_id.in_(documents),
+                )
+            )
+        )
+    if group_entries:
+        entries |= group_entries
+        for invoice_entry, payment_entry in session.execute(
+            select(
+                SettlementAllocation.invoice_ledger_entry_id,
+                SettlementAllocation.payment_ledger_entry_id,
+            ).where(
+                SettlementAllocation.tenant_id == tenant_id,
+                (SettlementAllocation.invoice_ledger_entry_id.in_(group_entries))
+                | (SettlementAllocation.payment_ledger_entry_id.in_(group_entries)),
+            )
+        ).all():
+            entries.update((invoice_entry, payment_entry))
+    if entries:
+        documents.update(
+            session.scalars(
+                select(LedgerEntry.document_id).where(
+                    LedgerEntry.tenant_id == tenant_id,
+                    LedgerEntry.id.in_(entries),
+                    LedgerEntry.document_id.is_not(None),
+                )
+            )
+        )
+    return documents
+
+
+def _orders_billed_by(
+    session: Session, tenant_id: str, documents: set[str]
+) -> set[str]:
+    """The orders these invoices bill, and that a down-payment or pro-forma is for."""
+    if not documents:
+        return set()
+    billed = aliased(DocumentLine)
+    orders = set(
+        session.scalars(
+            select(billed.document_id)
+            .select_from(DocumentLine)
+            .join(
+                billed,
+                (billed.tenant_id == DocumentLine.tenant_id)
+                & (billed.id == DocumentLine.billed_document_line_id),
+            )
+            .where(
+                DocumentLine.tenant_id == tenant_id,
+                DocumentLine.document_id.in_(documents),
+            )
+        )
+    )
+    orders.update(
+        session.scalars(
+            select(Document.order_document_id).where(
+                Document.tenant_id == tenant_id,
+                Document.id.in_(documents),
+                Document.order_document_id.is_not(None),
+            )
+        )
+    )
+    return orders
+
+
 def _orders_touched(
     session: Session, tenant_id: str, changes: ChangeSet, projection: str
 ) -> frozenset[str] | str:
@@ -1509,12 +1621,17 @@ def _orders_touched(
         "movement",
         "reservation",
         "fact",
+        "settlement_allocation",
+        "posting_group",
+        "payment_return",
     }
     unknown = sorted(set(changes.subjects or {}) - known)
     if unknown:
         return f"{projection} cannot narrow by {unknown[0]}"
     commitments = set(changes.ids("commitment"))
-    documents = set(changes.ids("document"))
+    documents = set(changes.ids("document")) | _settled_documents(
+        session, tenant_id, changes
+    )
     movements = set(changes.ids("movement"))
     reservations = set(changes.ids("reservation"))
     if facts := changes.ids("fact"):
@@ -1607,7 +1724,7 @@ def _orders_touched(
                 )
             )
         )
-    orders = set(documents)
+    orders = set(documents) | _orders_billed_by(session, tenant_id, documents)
     if commitments:
         for commitment_id, document_id in session.execute(
             select(Commitment.id, Commitment.document_id).where(

@@ -454,12 +454,13 @@ readiness from active reservations and execution holds.
 
 [How this query runs](./views#read-execution)
 
-**Background refresh after:** `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
-`source_record.interpreted`, `party.created`, `party.updated`, `party.delivery_hold_placed`,
-`party.delivery_hold_released`, `item.updated`, `document.recorded`, `document.corrected`,
-`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`document_line.item_assigned`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `movement.recorded`, `movement.corrected`
+**Background refresh after:** `payment.returned`, `commitment.fulfilled`, `reservation.consumed`,
+`fact.observed`, `source_record.interpreted`, `party.created`, `party.updated`,
+`party.delivery_hold_placed`, `party.delivery_hold_released`, `item.updated`, `document.recorded`,
+`document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
+`promises.closed`, `document_line.item_assigned`, `exchange.recorded`, `commitment.held`,
+`commitment.hold_released`, `reservation.created`, `reservation.released`, `movement.recorded`,
+`movement.corrected`, `ledger.reversed`, `settlement.allocated`
 
 **See also:** view [`orders`](./views#view-orders), view
 [`warehouse_queue`](./views#view-warehouse_queue), agent tool
@@ -485,12 +486,13 @@ and active order or party delivery holds.
 
 [How this query runs](./views#read-execution)
 
-**Background refresh after:** `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
-`source_record.interpreted`, `party.delivery_hold_placed`, `party.delivery_hold_released`,
-`item.updated`, `document.recorded`, `document.corrected`, `commitment.created`,
-`commitment.cancelled`, `commitment.revised`, `promises.closed`, `exchange.recorded`,
-`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
-`movement.recorded`, `movement.corrected`
+**Background refresh after:** `payment.returned`, `commitment.fulfilled`, `reservation.consumed`,
+`fact.observed`, `source_record.interpreted`, `party.delivery_hold_placed`,
+`party.delivery_hold_released`, `item.updated`, `document.recorded`, `document.corrected`,
+`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
+`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `movement.recorded`, `movement.corrected`, `ledger.reversed`,
+`settlement.allocated`
 
 **See also:** view [`fulfillment_blockers`](./views#view-fulfillment_blockers), agent tool
 [`fulfillment_blockers`](./commands#tool-fulfillment_blockers)

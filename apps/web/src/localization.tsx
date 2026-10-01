@@ -51,7 +51,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Dismiss: "Ausblenden",
     "Confirmed action recorded. Readiness was reloaded; review the current blockers and projection freshness.":
       "Bestätigte Aktion erfasst. Die Versandbereitschaft wurde neu gelesen; prüfen Sie die aktuellen Blockaden und die Projektionsfrische.",
-    "Prepare prepayment invoice": "Anzahlungsrechnung vorbereiten",
+    "Prepare prepayment invoice": "Vorkasserechnung vorbereiten",
     "Prepare available shipment": "Verfügbare Teilmenge vorbereiten",
     Readiness: "Versandbereitschaft",
     Blockers: "Blockaden",
@@ -24752,6 +24752,9 @@ Object.assign(dictionaries.de, {
     "Die Rechnung wird wieder ausgeglichen: durch eine neue Zahlung, eine Gutschrift oder eine akzeptierte Abschreibung.",
   "Returned payments": "Zurückgegangene Zahlungen",
   "Down-payment and pro-forma invoices": "Anzahlungs- und Proforma-Rechnungen",
+  Paid: "Bezahlt",
+  "Already offset": "Bereits verrechnet",
+  "Left to offset": "Noch zu verrechnen",
   "A pro-forma posts nothing, is no open item and bills no quantity.":
     "Eine Proforma-Rechnung bucht nichts, ist kein offener Posten und berechnet keine Menge.",
   "As of": "Stichtag",
@@ -24828,6 +24831,9 @@ Object.assign(dictionaries.nl, {
     "De factuur wordt opnieuw vereffend: door een nieuwe betaling, een creditnota of een geaccepteerde afboeking.",
   "Returned payments": "Teruggeboekte betalingen",
   "Down-payment and pro-forma invoices": "Aanbetalings- en proformafacturen",
+  Paid: "Betaald",
+  "Already offset": "Al verrekend",
+  "Left to offset": "Nog te verrekenen",
   "A pro-forma posts nothing, is no open item and bills no quantity.":
     "Een proformafactuur boekt niets, is geen openstaande post en factureert geen hoeveelheid.",
   "As of": "Peildatum",
@@ -24902,6 +24908,9 @@ Object.assign(dictionaries.es, {
     "La factura se vuelve a saldar con un nuevo cobro, un abono o una cancelación aceptada.",
   "Returned payments": "Cobros devueltos",
   "Down-payment and pro-forma invoices": "Facturas de anticipo y proforma",
+  Paid: "Pagado",
+  "Already offset": "Ya descontado",
+  "Left to offset": "Pendiente de descontar",
   "A pro-forma posts nothing, is no open item and bills no quantity.":
     "Una proforma no contabiliza nada, no es una partida abierta y no factura ninguna cantidad.",
   "As of": "Fecha de corte",

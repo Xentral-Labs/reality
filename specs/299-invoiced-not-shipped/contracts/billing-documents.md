@@ -24,6 +24,7 @@
   - `down_payment_offset_fields_invalid` (not a list of distinct down-payment invoices with positive amounts)
 - **Paid** is what active payments allocated to the down-payment invoice; a credit or write-off that settles it is not a down payment and cannot be offset.
 - **Reversal** (review round): an offset counts while its posting on the final invoice stands. The final invoice is reversed only after its offset (`down_payment_offset_reverse_first`); a down-payment invoice, or a payment of it, is not reversed while a standing offset deducts it (`down_payment_offset_active`). Reversing the offset posting releases the down payment for a new final invoice.
+- **Stored readiness** (manual check): an allocation, a reversed posting and a returned payment refresh the fulfillment queue and blockers, which resolve invoices, down-payment and pro-forma invoices to their orders; before, a paid prepayment invoice stayed blocked in the stored queue until a full rebuild.
 - **Readiness and exposure**: a settled consolidated invoice counts this order's lines less the order's down payments it offset; a received, not yet offset down payment lowers the customer's credit exposure like an available credit.
 
 ## Reviewed tool `proforma_invoice_record`

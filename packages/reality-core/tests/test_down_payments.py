@@ -903,3 +903,57 @@ def test_a_received_down_payment_lowers_the_credit_exposure(session, business):
     assert credit_exposure(session, tenant, business.customer.id)["exposure"] == (
         Decimal("600.00")
     )
+
+
+# --- T020 manual check: the stored fulfillment queue follows payments ------------------
+
+
+def _queued(session, tenant, order_id):
+    from tests.test_incremental_derivation import _queue
+
+    row = _queue(session, tenant).get(order_id)
+    return row and sorted(
+        {code for line in row["lines"] for code in line["blocking_reasons"]}
+    )
+
+
+@pytest.mark.parametrize("down_payment", [False, True])
+def test_the_narrowed_queue_follows_an_invoice_and_its_payment(
+    session, business, down_payment
+):
+    from reality.services import projections
+
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, _ = _order(session, business, prepay=True)
+    projections.refresh_operational_projections(session, tenant)
+    assert "prepayment_invoice_missing" in _queued(session, tenant, order.id)
+
+    if down_payment:
+        _, receipt = _down_payment(session, business, order)
+        document, amount = receipt["document_id"], "300.00"
+    else:
+        invoice = core.record_sales_invoice(
+            session, tenant, line.id, "10", "1000.00", "RE-Q"
+        )
+        document, amount = _invoice_document(invoice), "1000.00"
+    payment = core.post_customer_payment(
+        session, tenant, document, amount, payment_number="PAY-Q"
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    assert report.get(projections.FULFILLMENT_QUEUE) is None
+    narrowed = _queued(session, tenant, order.id)
+    projections.refresh_operational_projections(session, tenant, force=True)
+    # The narrowed refresh agrees with the company evaluated whole.
+    assert narrowed == _queued(session, tenant, order.id)
+    assert "prepayment_invoice_missing" not in narrowed
+
+    core.reverse_ledger_posting_group(
+        session, tenant, payment[0].posting_group_id, reason="Bounced"
+    )
+    projections.refresh_operational_projections(session, tenant)
+    narrowed = _queued(session, tenant, order.id)
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _queued(session, tenant, order.id)
+    assert "prepayment_required" in narrowed

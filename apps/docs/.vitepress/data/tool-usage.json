@@ -23721,6 +23721,7 @@
         }
       ],
       "refresh_events": [
+        "payment.returned",
         "commitment.fulfilled",
         "reservation.consumed",
         "fact.observed",
@@ -23743,7 +23744,9 @@
         "reservation.created",
         "reservation.released",
         "movement.recorded",
-        "movement.corrected"
+        "movement.corrected",
+        "ledger.reversed",
+        "settlement.allocated"
       ],
       "clock_refresh_seconds": null,
       "service": "projection_rows",
@@ -23796,6 +23799,7 @@
         }
       ],
       "refresh_events": [
+        "payment.returned",
         "commitment.fulfilled",
         "reservation.consumed",
         "fact.observed",
@@ -23815,7 +23819,9 @@
         "reservation.created",
         "reservation.released",
         "movement.recorded",
-        "movement.corrected"
+        "movement.corrected",
+        "ledger.reversed",
+        "settlement.allocated"
       ],
       "clock_refresh_seconds": null,
       "service": "projection_rows",
@@ -25851,6 +25857,8 @@
         "Journal",
         "Timeline",
         "Operational Exceptions",
+        "Fulfillment queue",
+        "Fulfillment blockers",
         "Tenant usage"
       ],
       "links": ["command:record_return"],
@@ -26839,6 +26847,8 @@
         "Journal",
         "Operational Exceptions",
         "Timeline",
+        "Fulfillment queue",
+        "Fulfillment blockers",
         "Tenant usage"
       ],
       "links": ["command:reverse_ledger_posting_group"],
@@ -26859,6 +26869,8 @@
         "Payments",
         "Timeline",
         "Operational Exceptions",
+        "Fulfillment queue",
+        "Fulfillment blockers",
         "Tenant usage"
       ],
       "links": [],

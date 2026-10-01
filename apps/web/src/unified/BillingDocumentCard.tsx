@@ -157,7 +157,7 @@ export function BillingDocumentCard({
               {state.earlier_down_payments.map((row) => (
                 <li key={row.document_id}>
                   {t("Earlier down payment")} {row.number}: {formatMoney(row.gross, state.currency)}{" "}
-                  · {t("paid")} {formatMoney(row.paid, state.currency)}
+                  · {t("Paid")} {formatMoney(row.paid, state.currency)}
                 </li>
               ))}
             </ul>

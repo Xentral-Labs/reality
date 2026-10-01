@@ -2462,7 +2462,7 @@ def _billed_not_shipped_exceptions(
                 (),
                 "normal",
                 "Invoiced and not shipped",
-                f"{unshipped:g} invoiced before shipping",
+                f"{unshipped.normalize():f} invoiced before shipping",
                 "document_line",
                 line.id,
                 {

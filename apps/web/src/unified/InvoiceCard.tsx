@@ -174,17 +174,12 @@ export function InvoiceCard({
     index: number,
     next: Partial<NonNullable<InvoiceInput["lines"]>[number]>,
   ) => change({ lines: draft.lines?.map((row, i) => (i === index ? { ...row, ...next } : row)) });
-  const prepare = (offsets?: DownPaymentOffset[]) =>
+  const prepare = () =>
     run(async () => {
       const result = await invoiceActions.prepare(tenant, request.current, activeTool, {
         ...Object.fromEntries(
-          Object.entries(draft).filter(
-            ([key, value]) =>
-              (key !== "effective_at" || !!value) &&
-              (offsets === undefined || key !== "down_payment_offsets"),
-          ),
+          Object.entries(draft).filter(([key, value]) => key !== "effective_at" || !!value),
         ),
-        ...(offsets?.length ? { down_payment_offsets: offsets } : {}),
         lines: draft.lines?.map(withStatedDetail),
       } as InvoiceInput);
       if (alive.current) {
@@ -193,17 +188,25 @@ export function InvoiceCard({
         prepared?.(result.id);
       }
     });
-  // Spec 299: state which paid down payments this final invoice deducts, and review again.
-  const applyOffsets = (offsets: DownPaymentOffset[]) => {
-    setDraft((old) => {
-      const next: InvoiceInput = { ...old };
-      if (offsets.length) next.down_payment_offsets = offsets;
-      else delete next.down_payment_offsets;
-      return next;
+  // Spec 299: state which paid down payments this final invoice deducts and review
+  // again. The reviewed intent is the basis, as Edit does, since the draft is empty
+  // once a proposal is reopened; the superseded proposal is rejected first.
+  const applyOffsets = (offsets: DownPaymentOffset[]) =>
+    run(async () => {
+      if (!proposal?.review) return;
+      await api.rejectProposal(tenant, proposal.id, null);
+      const intent = structuredClone(proposal.review.intent);
+      delete intent.down_payment_offsets;
+      request.current = crypto.randomUUID();
+      const result = await invoiceActions.prepare(tenant, request.current, activeTool, {
+        ...intent,
+        ...(offsets.length ? { down_payment_offsets: offsets } : {}),
+      });
+      if (alive.current) {
+        setProposal(result);
+        prepared?.(result.id);
+      }
     });
-    request.current = crypto.randomUUID();
-    void prepare(offsets);
-  };
   const refresh = async () => {
     if (!proposal) return;
     const result = await invoiceActions.reconcile(tenant, proposal.id);
@@ -1091,8 +1094,8 @@ function DownPaymentOffsets({
               {offer.number}
             </button>
             <span className="text-fg-muted">
-              {t("paid")} {formatMoney(offer.paid, currency)} · {t("offset")}{" "}
-              {formatMoney(offer.offset, currency)} · {t("left")}{" "}
+              {t("Paid")} {formatMoney(offer.paid, currency)} · {t("Already offset")}{" "}
+              {formatMoney(offer.offset, currency)} · {t("Left to offset")}{" "}
               {formatMoney(offer.offsettable, currency)}
             </span>
             <label className="ml-auto flex items-center gap-2">
