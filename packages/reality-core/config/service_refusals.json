@@ -1603,6 +1603,9 @@
     "reorder_point_values_invalid": {
       "message": "Enter a reorder point of zero or more and a reorder quantity above zero, each with at most four decimal places."
     },
+    "reservation_location_not_stock": {
+      "message": "A reservation needs an active location that holds stock."
+    },
     "reservation_commitment_not_reservable": {
       "message": "Only open customer delivery commitments can be reserved."
     },

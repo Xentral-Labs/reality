@@ -3918,12 +3918,22 @@ def _preview_reservation(
     handling_unit_id: str | None = None,
     lot_id: str | None = None,
     serial_unit_id: str | None = None,
+    location_id: str | None = None,
 ) -> dict[str, Any]:
     """Validate and calculate allocation once for review and execution."""
     commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
     require_not_held(session, tenant_id, commitment_id)
     if commitment.type != "customer_delivery" or commitment.status != "open":
         raise InvalidOperation(code="reservation_commitment_not_reservable")
+    # Spec 303: the rest of a promise may be reserved where its stock lies, at
+    # a location the person names; any active location holding stock serves.
+    if location_id and location_id != commitment.location_id:
+        location = _tenant_record(session, Location, tenant_id, location_id)
+        if not location.is_active or not location.allows_stock:
+            raise InvalidOperation(code="reservation_location_not_stock")
+        reserved_at = location.id
+    else:
+        reserved_at = commitment.location_id
     item = _tenant_record(session, Item, tenant_id, commitment.item_id)
     _, _, serial = _validate_inventory_identity(
         session,
@@ -3959,9 +3969,9 @@ def _preview_reservation(
     requested = min(requested, max(ZERO, remaining - already))
     aggregate_available = max(
         ZERO,
-        stock_at(session, tenant_id, commitment.item_id, commitment.location_id)
+        stock_at(session, tenant_id, commitment.item_id, reserved_at)
         - active_reserved(
-            session, tenant_id, commitment.item_id, commitment.location_id
+            session, tenant_id, commitment.item_id, reserved_at
         ),
     )
     if handling_unit_id or lot_id or serial_unit_id:
@@ -3971,7 +3981,7 @@ def _preview_reservation(
                 session,
                 tenant_id,
                 commitment.item_id,
-                commitment.location_id,
+                reserved_at,
                 handling_unit_id=handling_unit_id,
                 lot_id=lot_id,
                 serial_unit_id=serial_unit_id,
@@ -3980,7 +3990,7 @@ def _preview_reservation(
                 session,
                 tenant_id,
                 commitment.item_id,
-                commitment.location_id,
+                reserved_at,
                 handling_unit_id=handling_unit_id,
                 lot_id=lot_id,
                 serial_unit_id=serial_unit_id,
@@ -3995,6 +4005,7 @@ def _preview_reservation(
         "requested": requested,
         "allocated": allocated,
         "lot_id": lot_id,
+        "location_id": reserved_at,
     }
 
 
@@ -4007,6 +4018,7 @@ def reserve(
     handling_unit_id: str | None = None,
     lot_id: str | None = None,
     serial_unit_id: str | None = None,
+    location_id: str | None = None,
     action_id: str | None = None,
     _commit: bool = True,
 ) -> ReservationResult:
@@ -4021,8 +4033,10 @@ def reserve(
         handling_unit_id=handling_unit_id,
         lot_id=lot_id,
         serial_unit_id=serial_unit_id,
+        location_id=location_id,
     )
     commitment = preview["commitment"]
+    reserved_at = preview["location_id"]
     requested, allocated, lot_id = (
         preview["requested"],
         preview["allocated"],
@@ -4036,7 +4050,7 @@ def reserve(
             tenant_id=tenant_id,
             commitment_id=commitment.id,
             item_id=commitment.item_id,
-            location_id=commitment.location_id,
+            location_id=reserved_at,
             quantity=allocated,
             status="active",
             handling_unit_id=handling_unit_id,
@@ -4053,7 +4067,7 @@ def reserve(
             {
                 "commitment_id": commitment.id,
                 "item_id": commitment.item_id,
-                "location_id": commitment.location_id,
+                "location_id": reserved_at,
                 "quantity": allocated,
                 "handling_unit_id": handling_unit_id,
                 "lot_id": lot_id,

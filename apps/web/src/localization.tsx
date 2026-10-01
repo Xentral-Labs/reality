@@ -24632,6 +24632,8 @@ Object.assign(dictionaries.de, {
   "Set reorder point": "Meldebestand festlegen",
   "When available plus incoming stock at the location falls to the reorder point, Exceptions proposes the reorder quantity. Nothing is ordered without your confirmation.":
     "Sinkt der verfügbare Bestand plus Zulauf am Lagerort auf den Meldebestand, schlägt Ausnahmen die Bestellmenge vor. Ohne deine Bestätigung wird nichts bestellt.",
+  "A reservation needs an active location that holds stock.":
+    "Eine Reservierung braucht einen aktiven Lagerort, der Bestand führt.",
   "Reorder point reached": "Meldebestand erreicht",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
@@ -24715,6 +24717,8 @@ Object.assign(dictionaries.nl, {
   "Set reorder point": "Bestelpunt instellen",
   "When available plus incoming stock at the location falls to the reorder point, Exceptions proposes the reorder quantity. Nothing is ordered without your confirmation.":
     "Als de beschikbare plus inkomende voorraad op de locatie tot het bestelpunt daalt, stelt Uitzonderingen de bestelhoeveelheid voor. Zonder jouw bevestiging wordt niets besteld.",
+  "A reservation needs an active location that holds stock.":
+    "Een reservering heeft een actieve locatie met voorraad nodig.",
   "Reorder point reached": "Bestelpunt bereikt",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
@@ -24799,6 +24803,8 @@ Object.assign(dictionaries.es, {
   "Set reorder point": "Fijar punto de pedido",
   "When available plus incoming stock at the location falls to the reorder point, Exceptions proposes the reorder quantity. Nothing is ordered without your confirmation.":
     "Cuando el stock disponible más el entrante en la ubicación baja al punto de pedido, Incidencias propone la cantidad de pedido. Nada se pide sin tu confirmación.",
+  "A reservation needs an active location that holds stock.":
+    "Una reserva necesita una ubicación activa que tenga stock.",
   "Reorder point reached": "Punto de pedido alcanzado",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",

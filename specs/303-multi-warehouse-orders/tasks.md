@@ -12,14 +12,14 @@
 
 ## Phase 2: Reservation at a named location (FR-001)
 
-- [ ] T004 Failing tests in `core/tests/test_multi_warehouse_reservations.py`:
+- [x] T004 Failing tests in `core/tests/test_multi_warehouse_reservations.py`:
   - reserving without a location is unchanged (control);
   - reserving the rest at a named second location records it there, judged by that location's availability;
   - an inactive location, one without stock, and a location of another company are refused;
   - nothing available there reserves nothing;
   - lots and serials at the named location;
   - a release frees it.
-- [ ] T005 `location_id` through `_preview_reservation`, `reserve`, and the delivery review of `reserve`, with refusal codes and translations.
+- [x] T005 `location_id` through `_preview_reservation`, `reserve`, and the delivery review of `reserve`, with refusal codes and translations.
 
 ## Phase 3: Readiness and shipping per location (FR-002, D02)
 
