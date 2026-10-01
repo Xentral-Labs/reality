@@ -284,8 +284,8 @@ def test_reservations_in_two_warehouses_make_the_promise_ready(session, business
     readiness = _readiness(session, business, promise)
     assert readiness.ship_ready, readiness.blocker_codes
     assert (readiness.reserved_quantity, readiness.physical_quantity) == (
-        Decimal("10"),
-        Decimal("10"),
+        Decimal(10),
+        Decimal(10),
     )
     line = _queue_line(session, business, promise)
     assert Decimal(line["shippable_quantity"]) == 10
