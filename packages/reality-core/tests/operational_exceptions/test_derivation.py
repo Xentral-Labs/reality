@@ -3070,6 +3070,46 @@ def purchase(session, business, number, *, unit="pcs", quantity="10"):
     return line, commitment
 
 
+def recorded_purchase(session, business, number, *, unit, quantity="10"):
+    """A purchase order recorded before spec 301: its promise took the line as stated.
+
+    The order path now refuses a unit the item states no relation to, so a line
+    in such a unit exists only in companies that recorded it earlier. Built the
+    way it was then, so the classes are still judged on what such data holds.
+    """
+    document, lines = create_manual_document_with_lines(
+        session,
+        business.tenant.id,
+        "purchase_order",
+        number,
+        business.supplier.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": quantity,
+                "unit": unit,
+                "unit_price": "9.00",
+                "gross_amount": "90.00",
+            }
+        ],
+        "90.00",
+    )
+    commitment = create_commitment(
+        session,
+        business.tenant.id,
+        "supplier_delivery",
+        business.supplier.id,
+        business.company.id,
+        business.item.id,
+        business.location.id,
+        quantity,
+        AS_OF + timedelta(days=30),
+        document_id=document.id,
+        document_line_id=lines[0].id,
+    )
+    return lines[0], commitment
+
+
 def billing_history(session, business, *, lag_days=3, cases=6):
     """A tenant whose suppliers normally invoice `lag_days` after delivery."""
     for index in range(cases):
@@ -3133,7 +3173,7 @@ def test_receipt_unbilled(session, business):
 
 def test_lag_classes_ignore_mismatched_units(session, business):
     billing_history(session, business, lag_days=3, cases=6)
-    line, commitment = purchase(session, business, "PO-UNITS", unit="box")
+    line, commitment = recorded_purchase(session, business, "PO-UNITS", unit="box")
     receive(session, business, commitment, 10, days_ago=60)
     bill(
         session,
@@ -3149,7 +3189,7 @@ def test_lag_classes_ignore_mismatched_units(session, business):
     assert "receipt_unbilled" not in by_class(session, business.tenant.id)
 
     # The same figures in the order line's own unit report immediately.
-    matching, matching_commitment = purchase(
+    matching, matching_commitment = recorded_purchase(
         session, business, "PO-UNITS-MATCH", unit="box"
     )
     receive(session, business, matching_commitment, 10, days_ago=60)

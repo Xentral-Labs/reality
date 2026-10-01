@@ -136,3 +136,179 @@ def test_the_migration_upgrades_downgrades_and_keeps_stated_receipts(
         assert columns() == {"stated_quantity", "stated_unit"}
     finally:
         engine.dispose()
+
+
+# --- T006: purchase orders and receipts in the purchase unit --------------------------
+
+
+def _cartons(session, business):
+    business.item.purchase_unit = "box"
+    business.item.conversion_factor = Decimal(12)
+    session.commit()
+    return business.item
+
+
+def _purchase(session, business, quantity, unit, number="PO-301"):
+    from reality.services import core
+
+    return core.create_manual_order(
+        session,
+        business.tenant.id,
+        "purchase",
+        number,
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": quantity,
+                "unit": unit,
+                "unit_price": "60.00",
+                "gross_amount": str(Decimal(quantity) * 60),
+            }
+        ],
+        str(Decimal(quantity) * 60),
+    )
+
+
+def _receive(session, business, commitment, quantity, unit=None):
+    from reality.services import core
+
+    return core.record_movement(
+        session,
+        business.tenant.id,
+        "receipt",
+        business.item.id,
+        quantity,
+        to_location_id=business.location.id,
+        commitment_id=commitment.id,
+        unit=unit,
+    )
+
+
+def test_a_purchase_in_cartons_keeps_the_line_and_promises_pieces(session, business):
+    _cartons(session, business)
+
+    _, _, lines, commitments = _purchase(session, business, "5", "box")
+
+    assert (lines[0].quantity, lines[0].unit) == (Decimal("5.0000"), "box")
+    assert commitments[0].quantity == Decimal("60.0000")
+
+
+def test_a_purchase_in_the_stock_unit_is_unchanged(session, business):
+    _cartons(session, business)
+
+    _, _, lines, commitments = _purchase(session, business, "7", "pcs")
+
+    assert (lines[0].quantity, commitments[0].quantity) == (
+        Decimal("7.0000"),
+        Decimal("7.0000"),
+    )
+
+
+def test_a_purchase_in_a_unit_without_a_conversion_is_refused(session, business):
+    from reality.services import core
+
+    _cartons(session, business)
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _purchase(session, business, "1", "pallet")
+    assert refused.value.code == "purchase_unit_not_convertible"
+
+
+def test_a_receipt_in_cartons_records_pieces_and_keeps_what_was_stated(
+    session, business
+):
+    from reality.services import core
+
+    tenant = business.tenant.id
+    _cartons(session, business)
+    _, _, _, commitments = _purchase(session, business, "5", "box")
+
+    movement = _receive(session, business, commitments[0], "5", unit="box")
+
+    assert (movement.quantity, movement.stated_quantity, movement.stated_unit) == (
+        Decimal("60.0000"),
+        Decimal("5.0000"),
+        "box",
+    )
+    assert core.stock_at(session, tenant, business.item.id) == Decimal("60.0000")
+    assert core.open_quantity(session, tenant, commitments[0].id) == 0
+
+
+def test_a_receipt_in_the_stock_unit_is_unchanged(session, business):
+    _cartons(session, business)
+    _, _, _, commitments = _purchase(session, business, "5", "box")
+
+    movement = _receive(session, business, commitments[0], "24")
+
+    assert (movement.quantity, movement.stated_quantity, movement.stated_unit) == (
+        Decimal("24.0000"),
+        None,
+        None,
+    )
+
+
+def test_a_receipt_in_a_unit_without_a_conversion_is_refused(session, business):
+    from reality.services import core
+
+    _cartons(session, business)
+    _, _, _, commitments = _purchase(session, business, "5", "box")
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _receive(session, business, commitments[0], "1", unit="pallet")
+    assert refused.value.code == "movement_unit_not_convertible"
+    # A shipment is not a purchase: no unit other than the stock unit.
+    with pytest.raises(core.InvalidOperation) as refused:
+        core.record_movement(
+            session,
+            business.tenant.id,
+            "opening_stock",
+            business.item.id,
+            "1",
+            to_location_id=business.location.id,
+            unit="box",
+        )
+    assert refused.value.code == "movement_unit_not_convertible"
+
+
+def test_more_cartons_than_ordered_are_refused_in_pieces(session, business):
+    from reality.services import core
+
+    _cartons(session, business)
+    _, _, _, commitments = _purchase(session, business, "5", "box")
+    # Positive control: exactly the ordered cartons are accepted.
+    _receive(session, business, commitments[0], "4", unit="box")
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _receive(session, business, commitments[0], "2", unit="box")
+    assert refused.value.code == "movement_exceeds_commitment_open_quantity"
+
+
+def test_a_sales_line_in_another_unit_is_unchanged(session, business):
+    from reality.services import core
+
+    _cartons(session, business)
+    _, _, lines, commitments = core.create_manual_order(
+        session,
+        business.tenant.id,
+        "sales",
+        "SO-301",
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "2",
+                "unit": "box",
+                "unit_price": "100",
+                "gross_amount": "200",
+            }
+        ],
+        "200",
+    )
+
+    # Selling in cartons is its own specification: the promise is as stated.
+    assert commitments[0].quantity == lines[0].quantity == Decimal("2.0000")

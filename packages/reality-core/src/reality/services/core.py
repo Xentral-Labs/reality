@@ -4945,6 +4945,7 @@ def _append_movement(
     commit: bool = False,
     action_id: str | None = None,
     validate_only: bool = False,
+    unit: str | None = None,
     _correcting: Movement | None = None,
 ) -> Movement | dict[str, Any]:
     if _correcting is not None and not validate_only:
@@ -4953,6 +4954,19 @@ def _append_movement(
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     qty = positive(quantity)
     item = _tenant_record(session, Item, tenant_id, item_id)
+    stated: tuple[Decimal, str] | None = None
+    if unit is not None and unit != item.unit:
+        # Spec 301: a receipt may be stated in the purchase unit. It is held in
+        # the stock unit, and what was stated is kept beside it. Nothing else is
+        # stated in another unit: stock is counted in one.
+        from reality.domain.units import in_unit
+
+        converted = (
+            in_unit(item, qty, unit, item.unit) if movement_type == "receipt" else None
+        )
+        if converted is None:
+            raise InvalidOperation(code="movement_unit_not_convertible")
+        stated, qty = (qty, unit), converted
     if item.item_type != "stocked":
         raise InvalidOperation(code="movement_item_not_stocked")
     for location_id in (from_location_id, to_location_id):
@@ -5181,6 +5195,11 @@ def _append_movement(
     if validate_only:
         return {
             "quantity": qty,
+            **(
+                {"stated_quantity": stated[0], "stated_unit": stated[1]}
+                if stated
+                else {}
+            ),
             "lot_id": lot_id,
             "commitment_id": commitment_id,
             "item_id": item_id,
@@ -5204,6 +5223,7 @@ def _append_movement(
         resolves_movement_id=resolves_movement_id,
         return_announcement_id=return_announcement_id,
         shipment_package_id=shipment_package_id,
+        **({"stated_quantity": stated[0], "stated_unit": stated[1]} if stated else {}),
     )
     session.add(movement)
     recorded_event = None
@@ -5225,6 +5245,11 @@ def _append_movement(
                 "lot_id": lot_id,
                 "serial_unit_id": serial_unit_id,
                 "shipment_package_id": shipment_package_id,
+                **(
+                    {"stated_quantity": stated[0], "stated_unit": stated[1]}
+                    if stated
+                    else {}
+                ),
             },
             source_record_id=source_record_id,
             occurred_at=movement.occurred_at,
@@ -5322,6 +5347,7 @@ def record_movement(
     resolves_movement_id: str | None = None,
     return_announcement_id: str | None = None,
     shipment_package_id: str | None = None,
+    unit: str | None = None,
     action_id: str | None = None,
     _commit: bool = True,
 ) -> Movement:
@@ -5380,6 +5406,7 @@ def record_movement(
         resolves_movement_id=resolves_movement_id,
         return_announcement_id=return_announcement_id,
         shipment_package_id=shipment_package_id,
+        unit=unit,
         commit=_commit,
         action_id=action_id,
     )
@@ -7649,6 +7676,21 @@ def create_manual_document_with_lines(
     return document, created_lines
 
 
+def _purchase_promise_quantity(item: Item, quantity: Decimal, unit: str) -> Decimal:
+    """A purchase line's quantity in the item's stock unit (spec 301 FR-001).
+
+    The item's own stated relation, applied once when the line is interpreted:
+    cartons of twelve promise twelve pieces each. A unit the item says nothing
+    about is refused rather than taken at face value.
+    """
+    from reality.domain.units import in_unit
+
+    converted = in_unit(item, quantity, unit, item.unit)
+    if converted is None:
+        raise InvalidOperation(code="purchase_unit_not_convertible")
+    return converted
+
+
 def _preview_manual_order(
     session: OrmSession,
     tenant_id: str,
@@ -7712,10 +7754,22 @@ def _preview_manual_order(
             arguments["gross_amount"],
             **{key: arguments[key] for key in optional if key in arguments},
         )
-        for line in normalized:
+        items = [
             _tenant_record(session, Item, tenant_id, line["item_id"])
+            for line in normalized
+        ]
     except (TypeError, ValueError, ArithmeticError, AttributeError) as error:
         raise InvalidOperation(code="manual_order_value_invalid") from error
+    if direction == "purchase":
+        # Spec 301: the promise of a purchase line is in the stock unit. The line
+        # keeps what it states; the converted promise rides on the preview only
+        # when it differs, so other reviews keep their shape and their token.
+        for line, item in zip(normalized, items, strict=True):
+            promised = _purchase_promise_quantity(
+                item, Decimal(str(line["quantity"])), line.get("unit") or item.unit
+            )
+            if promised != Decimal(str(line["quantity"])):
+                line["promised_quantity"] = str(promised)
     if check_existing:
         payload = {
             "currency": "EUR",
@@ -7845,7 +7899,13 @@ def create_manual_order(
                     counterparty_id if direction == "sales" else company_party_id,
                     line.item_id,
                     location_id,
-                    line.quantity,
+                    _purchase_promise_quantity(
+                        _tenant_record(session, Item, tenant_id, line.item_id),
+                        line.quantity,
+                        line.unit,
+                    )
+                    if direction == "purchase" and line.item_id
+                    else line.quantity,
                     line.requested_at or requested_delivery_at,
                     amount=line.gross_amount,
                     currency=currency,

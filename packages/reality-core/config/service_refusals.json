@@ -1203,6 +1203,9 @@
         "types": "text"
       }
     },
+    "movement_unit_not_convertible": {
+      "message": "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit."
+    },
     "opening_cost_currency_invalid": {
       "message": "Enter a three-letter currency code."
     },
@@ -1512,6 +1515,9 @@
     },
     "proposal_uses_existing_workspace": {
       "message": "This proposal uses its existing review workspace."
+    },
+    "purchase_unit_not_convertible": {
+      "message": "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor."
     },
     "quantity_amount_not_finite": {
       "message": "Quantity and amount values must be finite."

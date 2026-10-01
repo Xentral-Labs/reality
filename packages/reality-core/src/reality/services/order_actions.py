@@ -255,7 +255,7 @@ def _evidence(
         if any(snapshot.get(key) != value for key, value in expected.items()):
             return None
         if Decimal(str(snapshot.get("quantity", "-1"))) != Decimal(
-            line["quantity"]
+            line.get("promised_quantity", line["quantity"])
         ) or Decimal(str(snapshot.get("amount", "-1"))) != Decimal(
             line["gross_amount"]
         ):

@@ -24600,6 +24600,10 @@ Object.assign(dictionaries.de, {
   "Why it waits": "Warum es wartet",
   "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
   "Invoiced and not shipped": "Fakturiert, nicht versandt",
+  "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
+    "Nur ein Wareneingang kann in der Einkaufseinheit des Artikels angegeben werden, und nur in dieser; alles andere wird in der Lagereinheit erfasst.",
+  "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
+    "Eine Bestellzeile steht in der Lagereinheit des Artikels oder in seiner Einkaufseinheit mit angegebenem Umrechnungsfaktor.",
   "Item oversold": "Artikel überverkauft",
   "Customer deadline at risk": "Liefertermin gefährdet",
   "Shipping the outstanding quantity, cancelling the commitment, or agreeing a later date.":
@@ -24648,6 +24652,10 @@ Object.assign(dictionaries.nl, {
   "Why it waits": "Waarom het wacht",
   "Order line with unknown item": "Orderregel met onbekend artikel",
   "Invoiced and not shipped": "Gefactureerd, niet verzonden",
+  "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
+    "Alleen een ontvangst kan in de inkoopeenheid van het artikel worden opgegeven, en alleen in die eenheid; al het andere wordt in de voorraadeenheid vastgelegd.",
+  "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
+    "Een inkoopregel staat in de voorraadeenheid van het artikel of in de inkoopeenheid met een opgegeven omrekenfactor.",
   "Item oversold": "Artikel oververkocht",
   "Customer deadline at risk": "Leverdatum in gevaar",
   "Shipping the outstanding quantity, cancelling the commitment, or agreeing a later date.":
@@ -24696,6 +24704,10 @@ Object.assign(dictionaries.es, {
   "Why it waits": "Por qué espera",
   "Order line with unknown item": "Línea de pedido con artículo desconocido",
   "Invoiced and not shipped": "Facturado y no enviado",
+  "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
+    "Solo una recepción puede indicarse en la unidad de compra del artículo, y solo en esa; todo lo demás se registra en la unidad de existencias.",
+  "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
+    "Una línea de compra está en la unidad de existencias del artículo o en su unidad de compra con un factor de conversión indicado.",
   "Item oversold": "Artículo sobrevendido",
   "Customer deadline at risk": "Plazo de entrega en riesgo",
   "Shipping the outstanding quantity, cancelling the commitment, or agreeing a later date.":

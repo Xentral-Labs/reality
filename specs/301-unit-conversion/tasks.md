@@ -21,7 +21,7 @@
 
 ## Phase 3: Purchase orders and receipts (FR-001 to FR-003)
 
-- [ ] T006 [US1] Failing tests:
+- [x] T006 [US1] Failing tests:
   - a purchase order of 5 cartons (factor 12) keeps the line at 5 box and promises 60;
   - a line in the stock unit is unchanged (control);
   - a line in pallets is refused with `purchase_unit_not_convertible`;
@@ -30,7 +30,7 @@
   - a receipt in pallets is refused with `movement_unit_not_convertible`;
   - 6 cartons exceed the open 60 and are refused;
   - sales lines are unchanged.
-- [ ] T007 [US1] The conversion in `create_manual_order` (purchase only) and in `record_movement` / `_append_movement`; the refusal codes with translations.
+- [x] T007 [US1] The conversion in `create_manual_order` (purchase only) and in `record_movement` / `_append_movement`; the refusal codes with translations.
 
 ## Phase 4: Readers (FR-001, FR-002)
 
