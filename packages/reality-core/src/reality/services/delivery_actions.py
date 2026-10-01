@@ -286,6 +286,9 @@ def review_delivery(
             "resolves_movement_id",
             "return_announcement_id",
             "unit",
+            # Spec 304: a receipt may block part of what it brings in.
+            "blocked_quantity",
+            "block_reason",
         }
     if tool == "reserve":
         # Spec 303: the location the rest is reserved at, if not the promise's.
@@ -324,7 +327,31 @@ def review_delivery(
             "shortage": _quantity(result["requested"] - result["allocated"]),
         }
     else:
+        block_intent = {
+            key: intent.pop(key)
+            for key in ("blocked_quantity", "block_reason")
+            if key in intent
+        }
         result = _append_movement(session, tenant_id, **intent, validate_only=True)
+        if block_intent.get("blocked_quantity"):
+            from reality.services.stock_blocks import validate_block
+
+            if intent.get("movement_type") != "receipt":
+                raise InvalidOperation(code="stock_block_receipt_only")
+            _, _, held, _ = validate_block(
+                session,
+                tenant_id,
+                intent["item_id"],
+                intent["to_location_id"],
+                block_intent["blocked_quantity"],
+                block_intent.get("block_reason") or "",
+                handling_unit_id=intent.get("handling_unit_id"),
+                lot_id=result.get("lot_id") or intent.get("lot_id"),
+                serial_unit_id=intent.get("serial_unit_id"),
+                _incoming=Decimal(str(result["quantity"])),
+            )
+            block_intent["blocked_quantity"] = _quantity(held)
+        intent.update(block_intent)
         # Spec 301: a receipt stated in the purchase unit keeps what was stated
         # in the intent, which is executed again, and shows the stock-unit
         # quantity as its effect.
@@ -349,6 +376,8 @@ def review_delivery(
             if intent["movement_type"] == "transfer"
             else "shipped": _quantity(result["quantity"])
         }
+        if intent.get("blocked_quantity"):
+            effect["blocked"] = intent["blocked_quantity"]
         if "stated_quantity" in result:
             effect["stated"] = {
                 "quantity": _quantity(result["stated_quantity"]),

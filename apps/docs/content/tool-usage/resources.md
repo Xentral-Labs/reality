@@ -10,7 +10,7 @@ the technical key stands beside each one.
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 8       | 2                   |
-| [Item](#resource-item)                                           | 5     | 6       | 6                   |
+| [Item](#resource-item)                                           | 5     | 9       | 6                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
 | [Order](#resource-order)                                         | 8     | 14      | 12                  |
@@ -126,6 +126,9 @@ derived from movements and reservations at read time, which is why the stock lis
 - [Update item](./commands#command-update_item) (`update_item`)
 - [Change master-data lifecycle](./commands#command-set_master_data_active)
   (`set_master_data_active`)
+- [Block stock](./commands#command-block_stock) (`block_stock`)
+- [Release a stock block](./commands#command-release_stock_block) (`release_stock_block`)
+- [Scrap blocked stock](./commands#command-scrap_stock_block) (`scrap_stock_block`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Assign incoming supply to customer demand](./commands#command-assign_supply) (`assign_supply`)
@@ -133,6 +136,7 @@ derived from movements and reservations at read time, which is why the stock lis
 **Look up**
 
 - [Read reviewed inventory acquisition costs](./commands#command-inventory_cost) (`inventory_cost`)
+- [Read stock blocks](./commands#command-stock_blocks) (`stock_blocks`)
 - [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 
 **Exceptions to clear**

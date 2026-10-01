@@ -459,3 +459,88 @@ def stock_block_detail(
         session.get(Item, (tenant_id, block.item_id)),
         session.get(Location, (tenant_id, block.location_id)),
     )
+
+
+STOCK_BLOCK_TOOLS = {"stock_block", "stock_block_release", "stock_block_scrap"}
+
+
+def review_stock_block(
+    session: Session, tenant_id: str, tool_name: str, arguments: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """The arguments a confirmation executes and what the person is shown.
+
+    A block's review shows the stock at its identity: physical, reserved,
+    already blocked and what this block leaves available. A release or scrap
+    review shows the block and carries the quantity it saw, so a confirmation
+    after the block changed is refused.
+    """
+    if tool_name == "stock_block":
+        identity = {
+            key: arguments.get(key) or None
+            for key in ("handling_unit_id", "lot_id", "serial_unit_id")
+        }
+        item, location, amount, lot_id = validate_block(
+            session,
+            tenant_id,
+            str(arguments.get("item_id") or ""),
+            str(arguments.get("location_id") or ""),
+            arguments.get("quantity", ""),
+            str(arguments.get("reason_code") or ""),
+            **identity,
+        )
+        identity["lot_id"] = lot_id
+        free = free_to_block(session, tenant_id, item.id, location.id, **identity)
+        normalized = {
+            "item_id": item.id,
+            "location_id": location.id,
+            "quantity": _plain(amount),
+            "reason_code": arguments["reason_code"],
+            "note": str(arguments.get("note") or "").strip(),
+            **{key: value for key, value in identity.items() if value},
+        }
+        preview = {
+            "item": item.name,
+            "unit": item.unit,
+            "location": location.name,
+            "physical": _plain(stock_at(session, tenant_id, item.id, location.id)),
+            "reserved": _plain(
+                active_reserved(session, tenant_id, item.id, location.id)
+            ),
+            "blocked": _plain(
+                blocked_quantity(session, tenant_id, item.id, location.id)
+            ),
+            "free_before": _plain(free),
+            "free_after": _plain(free - amount),
+            "quantity": _plain(amount),
+            "reason_code": arguments["reason_code"],
+        }
+        return normalized, preview
+    if tool_name not in STOCK_BLOCK_TOOLS:
+        raise InvalidOperation(code="proposal_tool_not_found")
+    block, amount, stated = validate_resolution(
+        session,
+        tenant_id,
+        str(arguments.get("block_id") or ""),
+        arguments.get("quantity"),
+        str(arguments.get("reason") or ""),
+    )
+    normalized = {
+        "block_id": block.id,
+        "quantity": _plain(amount),
+        "reason": stated,
+        "reviewed": _plain(block.quantity),
+    }
+    detail = stock_block_detail(session, tenant_id, block.id)
+    preview = {**detail, "resolving": _plain(amount), "reason": stated}
+    return normalized, preview
+
+
+def check_reviewed_block(
+    session: Session, tenant_id: str, block_id: str, reviewed: str | None
+) -> None:
+    """Refuse a release or scrap of a block that changed after its review."""
+    if reviewed is None:
+        return
+    block = _tenant_record(session, StockBlock, tenant_id, block_id)
+    if block.status != "active" or _plain(block.quantity) != reviewed:
+        raise InvalidOperation(code="stock_block_changed_since_review")

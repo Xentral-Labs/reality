@@ -22,4 +22,4 @@
   - A blocks list with "Release" and "Scrap".
   - The receipt form gets "Of which blocked" with a reason.
   - The "Stock expired" finding offers "Block".
-- **CLI:** `reality stock block|release|scrap|list`.
+- **CLI:** `reality stock-block block|release|scrap|list` (`reality stock` already reads stock).

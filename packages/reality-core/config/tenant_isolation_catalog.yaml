@@ -439,6 +439,10 @@ families:
       - tool:reorder_points
       - tool:reorder_point_set
       - tool:reorder_point_remove
+      - tool:stock_blocks
+      - tool:stock_block
+      - tool:stock_block_release
+      - tool:stock_block_scrap
       - tool:customer_exchange
       - tool:movement_explanation
       - tool:exceptions

@@ -24669,6 +24669,10 @@ Object.assign(dictionaries.de, {
   "Choose active, released, scrapped or all.": "Wähle aktiv, freigegeben, verschrottet oder alle.",
   "This stock is blocked; release or scrap the block before moving it.":
     "Dieser Bestand ist gesperrt; gib die Sperre frei oder verschrotte den Bestand, bevor du ihn bewegst.",
+  "Only a receipt can block part of what it records.":
+    "Nur ein Wareneingang kann einen Teil dessen sperren, was er einbucht.",
+  "This block changed after it was reviewed; review it again.":
+    "Diese Sperre wurde nach der Prüfung geändert; prüfe sie erneut.",
   "Reorder point reached": "Meldebestand erreicht",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
@@ -24789,6 +24793,10 @@ Object.assign(dictionaries.nl, {
   "Choose active, released, scrapped or all.": "Kies actief, vrijgegeven, afgeschreven of alle.",
   "This stock is blocked; release or scrap the block before moving it.":
     "Deze voorraad is geblokkeerd; geef de blokkering vrij of schrijf de voorraad af voordat je hem verplaatst.",
+  "Only a receipt can block part of what it records.":
+    "Alleen een ontvangst kan een deel van wat ze boekt blokkeren.",
+  "This block changed after it was reviewed; review it again.":
+    "Deze blokkering is na de controle gewijzigd; controleer haar opnieuw.",
   "Reorder point reached": "Bestelpunt bereikt",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
@@ -24910,6 +24918,10 @@ Object.assign(dictionaries.es, {
   "Choose active, released, scrapped or all.": "Elige activo, liberado, desechado o todos.",
   "This stock is blocked; release or scrap the block before moving it.":
     "Este stock está bloqueado; libera el bloqueo o desecha el stock antes de moverlo.",
+  "Only a receipt can block part of what it records.":
+    "Solo una recepción puede bloquear parte de lo que registra.",
+  "This block changed after it was reviewed; review it again.":
+    "Este bloqueo cambió después de revisarlo; revísalo de nuevo.",
   "Reorder point reached": "Punto de pedido alcanzado",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",

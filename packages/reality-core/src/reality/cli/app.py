@@ -95,6 +95,7 @@ item_app = typer.Typer()
 location_app = typer.Typer()
 payment_term_app = typer.Typer()
 reorder_point_app = typer.Typer(help="Reorder points per item and location (spec 302).")
+stock_app = typer.Typer(help="Blocked stock: block, release, scrap (spec 304).")
 pricing_app = typer.Typer()
 finance_app = typer.Typer()
 commitment_app = typer.Typer()
@@ -114,6 +115,7 @@ app.add_typer(item_app, name="item")
 app.add_typer(location_app, name="location")
 app.add_typer(payment_term_app, name="payment-term")
 app.add_typer(reorder_point_app, name="reorder-point")
+app.add_typer(stock_app, name="stock-block")
 app.add_typer(pricing_app, name="pricing")
 app.add_typer(finance_app, name="finance")
 app.add_typer(commitment_app, name="commitment")
@@ -969,6 +971,111 @@ def party_deactivate(party_id: str, tenant: str | None = None):
 @party_app.command("activate")
 def party_activate(party_id: str, tenant: str | None = None):
     change_party_active(party_id, True, tenant)
+
+
+@stock_app.command("list")
+def stock_block_list(
+    item_id: str = "", location_id: str = "", status: str = "active",
+    tenant: str | None = None,
+):
+    """List stock blocks."""
+    from reality.services.stock_blocks import stock_blocks
+
+    with Session() as s:
+        selected = selected_tenant(s, tenant)
+        rows = stock_blocks(
+            s,
+            selected.id,
+            item_id=item_id or None,
+            location_id=location_id or None,
+            status=status,
+        )
+    con.print_json(data=rows, default=str)
+
+
+def _stock_block_change(tool: str, arguments: dict, tenant: str | None, yes: bool):
+    from reality.tools.application import create_change_proposal, reject_proposal
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            proposal = create_change_proposal(
+                s, selected.id, tool, arguments, actor_type="human"
+            )
+            con.print_json(data=json.loads(proposal.output)["stock_block"], default=str)
+            if not yes and not typer.confirm("Confirm this change?"):
+                reject_proposal(s, selected.id, proposal.id)
+                con.print("Stopped; nothing changed.")
+                raise typer.Exit()
+            approve_and_execute_proposal(s, selected.id, proposal.id, confirmed=True)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+
+
+@stock_app.command("block")
+def stock_block_command(
+    item_id: str,
+    location_id: str,
+    quantity: str,
+    reason_code: str = typer.Option(..., "--reason", help="quality, damage, expiry or inspection"),
+    note: str = "",
+    lot_id: str = "",
+    handling_unit_id: str = "",
+    serial_unit_id: str = "",
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm blocking stock where it lies."""
+    arguments = {
+        "item_id": item_id,
+        "location_id": location_id,
+        "quantity": quantity,
+        "reason_code": reason_code,
+        "note": note,
+        **{
+            key: value
+            for key, value in (
+                ("lot_id", lot_id),
+                ("handling_unit_id", handling_unit_id),
+                ("serial_unit_id", serial_unit_id),
+            )
+            if value
+        },
+    }
+    _stock_block_change("stock_block", arguments, tenant, yes)
+    con.print("✓ Stock blocked")
+
+
+@stock_app.command("release")
+def stock_block_release_command(
+    block_id: str,
+    reason: str = typer.Option(..., "--reason"),
+    quantity: str = "",
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm releasing a stock block, wholly or partly."""
+    arguments = {"block_id": block_id, "reason": reason}
+    if quantity:
+        arguments["quantity"] = quantity
+    _stock_block_change("stock_block_release", arguments, tenant, yes)
+    con.print("✓ Stock released")
+
+
+@stock_app.command("scrap")
+def stock_block_scrap_command(
+    block_id: str,
+    reason: str = typer.Option(..., "--reason"),
+    quantity: str = "",
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm scrapping blocked stock, wholly or partly."""
+    arguments = {"block_id": block_id, "reason": reason}
+    if quantity:
+        arguments["quantity"] = quantity
+    _stock_block_change("stock_block_scrap", arguments, tenant, yes)
+    con.print("✓ Stock scrapped")
 
 
 @reorder_point_app.command("list")

@@ -1967,6 +1967,12 @@
     },
     "movement_takes_blocked_stock": {
       "message": "This stock is blocked; release or scrap the block before moving it."
+    },
+    "stock_block_receipt_only": {
+      "message": "Only a receipt can block part of what it records."
+    },
+    "stock_block_changed_since_review": {
+      "message": "This block changed after it was reviewed; review it again."
     }
   },
   "terms": [

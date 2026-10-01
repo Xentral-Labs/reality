@@ -35,12 +35,12 @@
 
 ## Phase 4: Receipt and adapters (FR-001, FR-004)
 
-- [ ] T008 Failing tests in `core/tests/test_stock_block_adapters.py`:
+- [x] T008 Failing tests in `core/tests/test_stock_block_adapters.py`:
   - a reviewed receipt with a blocked part, and the package receipt;
   - MCP block, release and scrap propose and confirm with strict schemas;
   - Web and a foreign tenant;
   - CLI.
-- [ ] T009 Receipt blocking, the delivery-action reviews, MCP, Web, CLI and the catalogs.
+- [x] T009 Receipt blocking, the delivery-action reviews, MCP, Web, CLI and the catalogs.
 
 ## Phase 5: Web
 

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:28a4d27f3e5373ed99f5b201f6023550d4adf9a87958939cd24f02404e64866d",
+  "knowledge_version": "advisor-v1:sha256:334d47d226d8919e90b4333303b4568d64c47eac70b6fc3e711ec25e331533ce",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "80bec8da5cf03073e7e40b54fa662521f9065dc9be504193376c553ca84c2546"
+      "fingerprint": "7954b48d5e807d78d239bf84c9a430e184fc2e5a25cf70dea4347e2240639c65"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7099,6 +7099,66 @@
       ],
       "language": "en",
       "fingerprint": "8c20c745c5e5b466b5777a8b0b6dece01577bb7d99504407b93874de54bffe52"
+    },
+    {
+      "id": "evidence_command_block_stock",
+      "source_id": "source_executable_commands",
+      "subject": "Block stock",
+      "title": "Block stock",
+      "search_text": "block_stock Block stock Holds back a quantity where it lies with a reason; nothing moves, and it is excluded from availability, reservation and shipping. mutation",
+      "claim_text": "block_stock is a governed mutation command for Holds back a quantity where it lies with a reason; nothing moves, and it is excluded from availability, reservation and shipping..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "block_stock"
+      ],
+      "language": "en",
+      "fingerprint": "5c13724cb9cbd899be0c31330b723441586b541e7a2cd8db6cbf1faf92185452"
+    },
+    {
+      "id": "evidence_command_release_stock_block",
+      "source_id": "source_executable_commands",
+      "subject": "Release a stock block",
+      "title": "Release a stock block",
+      "search_text": "release_stock_block Release a stock block Makes blocked stock available again, wholly or partly, with the reason; nothing moves. mutation",
+      "claim_text": "release_stock_block is a governed mutation command for Makes blocked stock available again, wholly or partly, with the reason; nothing moves..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "release_stock_block"
+      ],
+      "language": "en",
+      "fingerprint": "c5bad81cf7d8b66e69a668f72399c294807136d7121963c87a2318ba2a193002"
+    },
+    {
+      "id": "evidence_command_scrap_stock_block",
+      "source_id": "source_executable_commands",
+      "subject": "Scrap blocked stock",
+      "title": "Scrap blocked stock",
+      "search_text": "scrap_stock_block Scrap blocked stock Writes blocked stock off its location, wholly or partly, with one reasoned adjustment linked to the block. mutation",
+      "claim_text": "scrap_stock_block is a governed mutation command for Writes blocked stock off its location, wholly or partly, with one reasoned adjustment linked to the block..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "scrap_stock_block"
+      ],
+      "language": "en",
+      "fingerprint": "5fbeb471dc898ea37d1becddfd987c61375636caaccd8017cc4855582c852d4a"
+    },
+    {
+      "id": "evidence_command_stock_blocks",
+      "source_id": "source_executable_commands",
+      "subject": "Read stock blocks",
+      "title": "Read stock blocks",
+      "search_text": "stock_blocks Read stock blocks Lists the stock held back by blocks with item, location, identity, quantity, reason and who blocked it. query",
+      "claim_text": "stock_blocks is a governed query command for Lists the stock held back by blocks with item, location, identity, quantity, reason and who blocked it..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "stock_blocks"
+      ],
+      "language": "en",
+      "fingerprint": "af9d56e87c5e0d0ba52775103cb64d1156b5334122827389893650b5858cf5cf"
     },
     {
       "id": "evidence_command_set_reorder_point",

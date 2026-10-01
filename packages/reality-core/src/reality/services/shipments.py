@@ -338,17 +338,38 @@ def record_packaged_execution(
             raise InvalidOperation(code="shipment_movement_type_mismatch")
         arguments = {**movement_arguments, "movement_type": supplied_type}
         arguments.pop("shipment_package_id", None)
-        created.append(
-            record_movement(
+        blocked = arguments.pop("blocked_quantity", None)
+        block_reason = arguments.pop("block_reason", None)
+        movement = record_movement(
+            session,
+            tenant_id,
+            shipment_package_id=package.id,
+            source_record_id=arguments.pop("source_record_id", source_record_id),
+            action_id=action_id,
+            _commit=False,
+            **arguments,
+        )
+        created.append(movement)
+        if blocked:
+            # Spec 304: part of what arrives is held back where it lands.
+            from reality.services.stock_blocks import block_stock
+
+            if supplied_type != "receipt":
+                raise InvalidOperation(code="stock_block_receipt_only")
+            block_stock(
                 session,
                 tenant_id,
-                shipment_package_id=package.id,
-                source_record_id=arguments.pop("source_record_id", source_record_id),
+                movement.item_id,
+                movement.to_location_id,
+                blocked,
+                block_reason or "",
+                handling_unit_id=movement.handling_unit_id,
+                lot_id=movement.lot_id,
+                serial_unit_id=movement.serial_unit_id,
                 action_id=action_id,
+                _movement_id=movement.id,
                 _commit=False,
-                **arguments,
             )
-        )
     if not created:
         raise InvalidOperation(code="shipment_execution_movement_missing")
     if commit:

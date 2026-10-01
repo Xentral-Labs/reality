@@ -15,7 +15,7 @@ from reality.services.projections import OPERATIONAL_PROJECTIONS
 def test_split_catalog_is_complete_and_composed():
     catalog = load_application_catalog()
 
-    assert catalog["command_count"] == 139
+    assert catalog["command_count"] == 143
     assert catalog["event_count"] == 75
     assert catalog["projection_count"] == len(OPERATIONAL_PROJECTIONS) == 13
     assert catalog["fact_predicate_count"] == 7
@@ -468,13 +468,13 @@ def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
     catalog = catalogs.load_tenant_isolation_catalog()
 
     assert len(catalog.families) == 33
-    assert len(catalog.discovered_operations) == 609
+    assert len(catalog.discovered_operations) == 613
     assert (
         "reality.services.projections:refresh_projection"
         in catalog.discovered_operations
     )
     assert "reality.services.playground:start_run" in catalog.discovered_operations
-    assert sum(len(family["operations"]) for family in catalog.families) == 609
+    assert sum(len(family["operations"]) for family in catalog.families) == 613
     assert (
         "reality.services.core:validate_commitment_movement_quantity"
         in catalog.discovered_operations

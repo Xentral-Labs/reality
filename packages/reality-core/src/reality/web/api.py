@@ -1070,6 +1070,75 @@ def post_reference_prepare(
         raise api_error(error) from error
 
 
+class StockBlockProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    operation: Literal["block", "release", "scrap"]
+    item_id: str | None = Field(default=None, max_length=200)
+    location_id: str | None = Field(default=None, max_length=200)
+    quantity: str | None = Field(default=None, max_length=40)
+    reason_code: str | None = Field(default=None, max_length=40)
+    note: str | None = Field(default=None, max_length=2000)
+    handling_unit_id: str | None = Field(default=None, max_length=200)
+    lot_id: str | None = Field(default=None, max_length=200)
+    serial_unit_id: str | None = Field(default=None, max_length=200)
+    block_id: str | None = Field(default=None, max_length=200)
+    reason: str | None = Field(default=None, max_length=2000)
+
+
+@router.get("/stock-blocks")
+def get_stock_blocks(
+    tenant_id: str,
+    session: DatabaseSession,
+    item_id: str | None = Query(default=None, max_length=200),
+    location_id: str | None = Query(default=None, max_length=200),
+    status: str = Query(default="active", max_length=20),
+):
+    from reality.services.stock_blocks import stock_blocks
+
+    try:
+        return {
+            "rows": stock_blocks(
+                session,
+                tenant_id,
+                item_id=item_id,
+                location_id=location_id,
+                status=status,
+            )
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/stock-blocks/proposals")
+def post_stock_block_proposal(
+    tenant_id: str, body: StockBlockProposal, session: DatabaseSession
+):
+    """Spec 304: prepare a block, release or scrap; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    fields = (
+        ("item_id", "location_id", "quantity", "reason_code", "note")
+        + ("handling_unit_id", "lot_id", "serial_unit_id")
+        if body.operation == "block"
+        else ("block_id", "quantity", "reason")
+    )
+    arguments = {
+        name: getattr(body, name) for name in fields if getattr(body, name) is not None
+    }
+    tool = "stock_block" if body.operation == "block" else f"stock_block_{body.operation}"
+    try:
+        proposal = create_change_proposal(
+            session, tenant_id, tool, arguments, actor_type="human"
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 class ReorderPointProposal(ApiModel):
     model_config = ConfigDict(extra="forbid")
     operation: Literal["set", "remove"]
