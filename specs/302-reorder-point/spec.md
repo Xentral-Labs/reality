@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Clarified
+**Status**: Approved
 
 **Language**: English
 
@@ -103,6 +103,7 @@ None. See Clarifications.
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
-| FR-001–FR-003 | US1 | Business stories and service tests (planned) |
-| FR-004, DR-001, DR-002 | All | Adapter tests and diff review (planned) |
-| FR-005, SC-001, SC-002 | US1 | Catalog tests and Guide questions (planned) |
+| FR-001 | US1 3 | `tests/test_reorder_points.py` |
+| FR-002, FR-003 | US1 1, 2 | `tests/test_reorder_point_reached.py`, story G02 |
+| FR-004, DR-001, DR-002 | All | `tests/test_reorder_point_adapters.py`; diff review (T016) |
+| FR-005, SC-001, SC-002 | US1 | `tests/scenarios/test_catalog_purchasing.py` (G02); `tests/test_business_journey_catalog.py` |
