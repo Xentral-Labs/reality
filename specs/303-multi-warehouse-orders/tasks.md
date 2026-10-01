@@ -71,8 +71,15 @@
 - [x] T015 Full backend suite and the web checks (run alone)
   - 5266 passed, 10 skipped. One Guide test cited A02 as a partial journey and now cites B07.
   - The browser suite passed 82 of 82; seven scripts that address `localhost:5177` directly were run on that port.
-- [ ] T016 Manual check per `quickstart.md` on an isolated stack
-- [ ] T017 Review of the diff; fix findings
+- [x] T016 Manual check per `quickstart.md` on an isolated stack, in German in the browser:
+  - Both orders showed "Bestand in anderem Lager", naming Munich.
+  - "Aus anderem Lager beliefern" reserved the lamp's four in Munich through the review, and the finding cleared.
+  - The delivery listed 6 in Hamburg and 4 in Munich.
+  - "Versandbereitschaft" offered one shipment per warehouse. Munich's four shipped as one package and Hamburg's six as another. The promise was fulfilled with no reservation left.
+  - "Umlagerung vorbereiten" moved the cable's five to Hamburg and cleared its finding.
+  - Reserving at a location without stock was refused with its reason.
+  - Fixed from it: the warehouse choice said "available" in English; it now reads "Verfügbar".
+- [x] T017 Review of the diff; fix findings
   - The queue's shipment action is offered per warehouse, for what is ready there (`ready_by_location`); before, it prepared everything from the order's warehouse and the review refused it.
   - A fulfilled customer promise releases reservations it still holds elsewhere.
   - A transfer review warns when it takes reserved stock.

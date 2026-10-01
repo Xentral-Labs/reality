@@ -139,7 +139,7 @@ export function StockElsewhereCard({
             >
               {places.map((row) => (
                 <option key={row.location_id} value={row.location_id}>
-                  {row.name} · {formatQuantity(row.available)} {t("available")}
+                  {row.name} · {t("Available")} {formatQuantity(row.available)}
                 </option>
               ))}
             </select>
