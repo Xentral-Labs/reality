@@ -118,6 +118,7 @@ CLASS_ORDER = {
     "payment_returned": 41,
     "order_line_price_missing": 42,
     "billed_not_shipped": 43,
+    "item_oversold": 44,
 }
 
 
@@ -2954,6 +2955,184 @@ def _stock_coverage_exceptions(
     return result
 
 
+def _item_oversold_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Open customer demand above stock on hand plus open supply (spec 300 FR-001).
+
+    Every unreserved promise is already at risk on its own; what no promise can
+    see is that the item as a whole has been sold more often than it exists or is
+    on order, across every channel the orders came through. Demand and supply are
+    open quantities in force, read in grouped queries and expressed in the item's
+    unit by the one shared rule; a quantity it cannot express is named, not added.
+    """
+    from reality.db.core import Commitment, Document, DocumentLine, Item, Movement
+    from reality.services.delivery_reads import fulfillment_expressions
+
+    _, _, open_quantity = fulfillment_expressions()
+    unit = func.coalesce(DocumentLine.unit, Item.unit)
+
+    def open_by_item(commitment_type: str, item_ids=None):
+        query = (
+            select(Commitment.item_id, unit, func.sum(open_quantity))
+            .join(
+                Item,
+                (Item.tenant_id == Commitment.tenant_id)
+                & (Item.id == Commitment.item_id),
+            )
+            .outerjoin(
+                DocumentLine,
+                (DocumentLine.tenant_id == Commitment.tenant_id)
+                & (DocumentLine.id == Commitment.document_line_id),
+            )
+            .where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.type == commitment_type,
+                Commitment.status == "open",
+                Commitment.item_id.is_not(None),
+            )
+            .group_by(Commitment.item_id, unit)
+        )
+        if item_ids is not None:
+            query = query.where(Commitment.item_id.in_(item_ids))
+        return session.execute(query).all()
+
+    items = {
+        item.id: item
+        for item in session.scalars(select(Item).where(Item.tenant_id == tenant_id))
+    }
+
+    def in_item_unit(item_id: str, quantity: Any, stated_unit: str) -> Decimal | None:
+        item = items.get(item_id)
+        return (
+            _in_unit(item, Decimal(quantity), stated_unit, item.unit) if item else None
+        )
+
+    def summed(rows) -> dict[str, Decimal]:
+        totals: dict[str, Decimal] = {}
+        for item_id, stated_unit, quantity in rows:
+            converted = in_item_unit(item_id, quantity or ZERO, stated_unit)
+            if converted:
+                totals[item_id] = totals.get(item_id, ZERO) + converted
+        return totals
+
+    demand = summed(open_by_item("customer_delivery"))
+    if not demand:
+        return []
+    supply = summed(open_by_item("supplier_delivery", set(demand)))
+    signed = case(
+        (Movement.to_location_id.is_not(None), Movement.quantity), else_=0
+    ) - case((Movement.from_location_id.is_not(None), Movement.quantity), else_=0)
+    on_hand = {
+        item_id: Decimal(quantity)
+        for item_id, quantity in session.execute(
+            select(Movement.item_id, func.sum(signed))
+            .where(Movement.tenant_id == tenant_id, Movement.item_id.in_(set(demand)))
+            .group_by(Movement.item_id)
+        ).all()
+    }
+    oversold = {
+        item_id: quantity
+        for item_id, quantity in demand.items()
+        if quantity > on_hand.get(item_id, ZERO) + supply.get(item_id, ZERO)
+    }
+    if not oversold:
+        return []
+    promises: dict[str, list[Any]] = {}
+    for row in session.execute(
+        select(
+            Commitment.id,
+            Commitment.item_id,
+            Commitment.document_id,
+            Commitment.created_at,
+            Document.sales_channel,
+            unit.label("unit"),
+            open_quantity.label("open"),
+        )
+        .join(
+            Item,
+            (Item.tenant_id == Commitment.tenant_id) & (Item.id == Commitment.item_id),
+        )
+        .outerjoin(
+            DocumentLine,
+            (DocumentLine.tenant_id == Commitment.tenant_id)
+            & (DocumentLine.id == Commitment.document_line_id),
+        )
+        .outerjoin(
+            Document,
+            (Document.tenant_id == Commitment.tenant_id)
+            & (Document.id == Commitment.document_id),
+        )
+        .where(
+            Commitment.tenant_id == tenant_id,
+            Commitment.type == "customer_delivery",
+            Commitment.status == "open",
+            Commitment.item_id.in_(set(oversold)),
+        )
+        .order_by(Commitment.created_at, Commitment.id)
+    ).all():
+        if row.open and Decimal(row.open) > ZERO:
+            promises.setdefault(row.item_id, []).append(row)
+    result = []
+    for item_id in sorted(oversold):
+        channels: dict[str, dict[str, Any]] = {}
+        not_comparable = []
+        rows = promises.get(item_id, [])
+        for row in rows:
+            converted = in_item_unit(item_id, row.open, row.unit)
+            if converted is None:
+                not_comparable.append(
+                    {
+                        "document_id": row.document_id,
+                        "unit": row.unit,
+                        "quantity": Decimal(row.open),
+                    }
+                )
+                continue
+            channel = channels.setdefault(
+                row.sales_channel or "", {"quantity": ZERO, "orders": []}
+            )
+            channel["quantity"] += converted
+            if row.document_id and row.document_id not in channel["orders"]:
+                channel["orders"].append(row.document_id)
+        for channel in channels.values():
+            channel["orders"].sort()
+        stock = on_hand.get(item_id, ZERO)
+        incoming = supply.get(item_id, ZERO)
+        shortfall = oversold[item_id] - stock - incoming
+        result.append(
+            OperationalException(
+                _identity("item_oversold", item_id),
+                "item_oversold",
+                (),
+                "high",
+                "Item oversold",
+                f"{shortfall.normalize():f} ordered beyond stock and supply "
+                f"across {len(channels)} "
+                + ("channel" if len(channels) == 1 else "channels"),
+                "item",
+                item_id,
+                {
+                    "demand_quantity": oversold[item_id],
+                    "on_hand_quantity": stock,
+                    "incoming_quantity": incoming,
+                    "shortfall_quantity": shortfall,
+                    "channels": dict(sorted(channels.items())),
+                    "not_comparable": not_comparable,
+                },
+                {
+                    "item_id": item_id,
+                    "commitment_ids": [row.id for row in rows],
+                    "document_ids": sorted(
+                        {row.document_id for row in rows if row.document_id}
+                    ),
+                },
+                rows[0].created_at if rows else None,
+            )
+        )
+    return result
+
+
 def _open_item_exceptions(
     session: Session,
     tenant_id: str,
@@ -3811,6 +3990,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "payment_returned": _payment_returned_exceptions,
     "order_line_price_missing": _order_line_price_missing_exceptions,
     "billed_not_shipped": _billed_not_shipped_exceptions,
+    "item_oversold": _item_oversold_exceptions,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,

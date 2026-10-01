@@ -46,7 +46,8 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 [Lieferverpflichtung gefährdet](./exceptions#exception-outgoing_commitment_at_risk)
 (`outgoing_commitment_at_risk`),
 [Reservierung übersteigt Bestand](./exceptions#exception-reservation_exceeds_stock)
-(`reservation_exceeds_stock`)
+(`reservation_exceeds_stock`), [Artikel überverkauft](./exceptions#exception-item_oversold)
+(`item_oversold`)
 
 ### 3. Sperren oder ändern
 

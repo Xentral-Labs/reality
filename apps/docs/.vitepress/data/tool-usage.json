@@ -240,7 +240,8 @@
       "exceptions": [
         "exception:units_not_comparable",
         "exception:reservation_exceeds_stock",
-        "exception:missing_acquisition_cost"
+        "exception:missing_acquisition_cost",
+        "exception:item_oversold"
       ],
       "tools": [
         "tool:inventory_read",
@@ -1173,7 +1174,8 @@
           "lists": ["view:supply_demand", "view:reservations"],
           "exceptions": [
             "exception:outgoing_commitment_at_risk",
-            "exception:reservation_exceeds_stock"
+            "exception:reservation_exceeds_stock",
+            "exception:item_oversold"
           ]
         },
         {
@@ -24208,7 +24210,8 @@
         "exception:order_line_item_unknown",
         "exception:payment_returned",
         "exception:order_line_price_missing",
-        "exception:billed_not_shipped"
+        "exception:billed_not_shipped",
+        "exception:item_oversold"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -25645,6 +25648,32 @@
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Fakturiert, nicht versandt",
       "resources": ["invoice"]
+    },
+    {
+      "id": "exception:item_oversold",
+      "kind": "exception",
+      "key": "item_oversold",
+      "label": "Item oversold",
+      "area": "cross_functional",
+      "summary": "More of an item has been promised to customers than the company holds and has on order. Reality adds up the open quantity of every open customer promise for the item, whatever channel the order came through, and compares it with the stock on hand across all locations plus the open quantity of every open supplier promise. The entry appears while the demand is larger, and names the orders grouped by the sales channel they state, so an item sold in the shop and on a marketplace at once shows both. It does not ask which order should go without: that is a decision, and every order is named and none is blamed. It is the item-wide view behind Customer commitment at risk, which looks at one promise's reservation; a company can be oversold with nothing reserved at all. Reservation exceeds stock is the other direction, reservations that lost their stock. Only promises stated in the item's own unit are added up; a promise in another unit is named in the entry and left out, and Units not comparable reports the pair that cannot be reconciled. Stock is counted across locations; whether the right location holds it is a question for the reservation.",
+      "owner": "Order fulfilment, with purchasing for the supply",
+      "clears_through": "Receiving or ordering more, or shipping, reducing or cancelling the demand until it is covered.",
+      "severity": "high",
+      "record_type": "item",
+      "authority": "300/FR-001",
+      "evidence": [
+        "tests/test_item_oversold.py::test_orders_from_two_channels_above_stock_are_reported_by_channel",
+        "tests/test_item_oversold.py::test_an_open_purchase_order_covering_the_shortfall_clears_it"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:items"
+      ],
+      "label_de": "Artikel überverkauft",
+      "resources": ["item"]
     },
     {
       "id": "event:cost.attributed",

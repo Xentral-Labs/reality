@@ -81,6 +81,7 @@ WITHOUT_A_SCENARIO = {
     "payment_returned",
     "order_line_price_missing",
     "billed_not_shipped",
+    "item_oversold",
     "commitment_hold_unreleased",
     "party_hold_unreleased",
     "stock_expired",

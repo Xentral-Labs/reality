@@ -6,12 +6,12 @@ No schema change: no migration, table or column.
 
 | Value | Meaning |
 |---|---|
-| `demand_quantity` | open quantity of open customer-delivery promises for the item, in the item's unit |
+| `demand_quantity` | open quantity of open customer-delivery promises for the item, expressed in the item's unit by its stated factor |
 | `on_hand_quantity` | item-wide stock from movements |
 | `incoming_quantity` | open quantity of open supplier-delivery promises for the item |
 | `shortfall_quantity` | demand − on hand − incoming, reported while > 0 |
 | `channels` | per stated `sales_channel` (empty shown as "unstated"): quantity and order document ids |
-| `not_comparable` | promises in another unit, named and left out of the sums |
+| `not_comparable` | promises in a unit the item states no relation to, named and left out of the sums |
 
 - Record: `item`.
 - Trace: the promise and document ids.

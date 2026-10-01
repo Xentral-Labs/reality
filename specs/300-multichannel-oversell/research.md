@@ -6,6 +6,7 @@ Read on 2026-10-01 against `origin/main` at 03524fb6. Paths are under `packages/
 
 - **Stock**: `services/core.py` `stock_at(item, location=None)` sums movements into and out of locations; without a location it is the item-wide total. `active_reserved` sums active reservations the same way.
 - **Demand and supply**: `open_quantity(commitment)` is the promise in force less what was shipped (customer) or received (supplier). `services/delivery_reads.py` `fulfillment_expressions` computes it in SQL with revisions applied. There is no per-item aggregate of either.
+- **Supply and demand view**: the projection `item_supply_demand` (MCP read, Web view) already lists per item the physical stock, reserved, available, incoming (open supplier promises) and open customer demand. It is a register to look at; nothing reports an item whose demand runs past stock and supply, and it has no channel dimension.
 - **Findings**:
   - `reservation_exceeds_stock` compares reserved with stock per item.
   - `outgoing_commitment_at_risk` reports an undated-or-not-yet-due promise whose reservation is short.
@@ -21,9 +22,10 @@ Read on 2026-10-01 against `origin/main` at 03524fb6. Paths are under `packages/
   - Demand is the open quantity of open customer-delivery promises for the item.
   - Supply is the item-wide stock on hand plus the open quantity of open supplier-delivery promises.
   - The finding is reported while demand exceeds supply. Its values are demand, on hand, incoming, shortfall and, per sales channel, the quantity and the orders.
-  - Only promises in the item's own unit are summed; a promise in another unit is named in the finding as not comparable and left out of the sums.
+  - Quantities are expressed in the item's unit by the shared rule `_in_unit` (the item's stated purchase unit and factor); a quantity it cannot express is named in the finding as not comparable and left out of the sums. The supply and demand view adds raw quantities, so the two agree whenever every promise is in the item's unit.
   - Its trace names every promise and document involved. Severity high.
 - **Neighbours**: `outgoing_commitment_at_risk` is per promise and about reservation; `reservation_exceeds_stock` is about reservations against stock. A company can be oversold with no reservation at all, which is the B14 gap.
+- **One truth**: on hand and incoming are the same quantities the supply and demand view shows, and a test pins that the finding's shortfall equals the view's demand less stock and incoming.
 - **Bound**: demand and supply are read in two grouped queries for all items, not per item; a statement-count test pins it.
 - **Rejected**: per location (B14 asks about the company's stock across channels; per-location coverage is spec 303); counting supply only when due before the demand (needs a dated allocation, out of scope).
 

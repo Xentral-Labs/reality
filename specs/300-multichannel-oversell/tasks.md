@@ -12,16 +12,17 @@
 
 ## Phase 2: Item oversold (FR-001)
 
-- [ ] T004 [US1] Failing tests in `core/tests/test_item_oversold.py`:
+- [x] T004 [US1] Failing tests in `core/tests/test_item_oversold.py`:
   - shop and second-channel orders exceeding stock are reported with demand, on hand, incoming, shortfall and both channels;
   - control: within stock nothing is reported;
   - an open purchase order covering the shortfall clears it;
   - shipped and cancelled quantity no longer counts;
   - a revised promise counts its quantity in force;
-  - a promise in another unit is named, not summed;
+  - a promise in a unit the item states no relation to is named, not summed, and supply in the purchase unit counts by the item's factor;
+  - the shortfall agrees with the supply and demand view;
   - another company's stock and orders never count;
   - the statement count is the same for 2 and 40 items.
-- [ ] T005 [US1] `_item_oversold_exceptions` and every class gate (order, registry, dependencies, catalogs, reference catalog and counts, resource labels, de/nl/es label and resolution).
+- [x] T005 [US1] `_item_oversold_exceptions` and every class gate (order, registry, dependencies, catalogs, reference catalog and counts, resource labels, de/nl/es label and resolution).
 
 ## Phase 3: Deadline at risk (FR-002)
 

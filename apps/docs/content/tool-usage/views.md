@@ -679,7 +679,8 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`order_line_item_unknown`](./exceptions#exception-order_line_item_unknown), exception
 [`payment_returned`](./exceptions#exception-payment_returned), exception
 [`order_line_price_missing`](./exceptions#exception-order_line_price_missing), exception
-[`billed_not_shipped`](./exceptions#exception-billed_not_shipped)
+[`billed_not_shipped`](./exceptions#exception-billed_not_shipped), exception
+[`item_oversold`](./exceptions#exception-item_oversold)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

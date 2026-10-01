@@ -51,6 +51,7 @@ it, and which agent tools list and explain it.
 | [`payment_returned`](#exception-payment_returned)                                         | Payment returned                         | Finance                    | `high`   | Accounts receivable                                                                         |
 | [`order_line_price_missing`](#exception-order_line_price_missing)                         | Order line without a price               | Master data & pricing      | `normal` | Sales operations                                                                            |
 | [`billed_not_shipped`](#exception-billed_not_shipped)                                     | Invoiced and not shipped                 | Finance                    | `normal` | Billing, with order fulfilment when the goods are late                                      |
+| [`item_oversold`](#exception-item_oversold)                                               | Item oversold                            | Cross-functional           | `high`   | Order fulfilment, with purchasing for the supply                                            |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1294,3 +1295,32 @@ and a pair that cannot be reconciled is reported as Units not comparable.
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool
 [`exception_explain`](./commands#tool-exception_explain)
+
+## `item_oversold` — Item oversold {#exception-item_oversold}
+
+More of an item has been promised to customers than the company holds and has on order. Reality adds
+up the open quantity of every open customer promise for the item, whatever channel the order came
+through, and compares it with the stock on hand across all locations plus the open quantity of every
+open supplier promise. The entry appears while the demand is larger, and names the orders grouped by
+the sales channel they state, so an item sold in the shop and on a marketplace at once shows both.
+It does not ask which order should go without: that is a decision, and every order is named and none
+is blamed. It is the item-wide view behind Customer commitment at risk, which looks at one promise's
+reservation; a company can be oversold with nothing reserved at all. Reservation exceeds stock is
+the other direction, reservations that lost their stock. Only promises stated in the item's own unit
+are added up; a promise in another unit is named in the entry and left out, and Units not comparable
+reports the pair that cannot be reconciled. Stock is counted across locations; whether the right
+location holds it is a question for the reservation.
+
+- **Owner:** Order fulfilment, with purchasing for the supply
+- **Clears through:** Receiving or ordering more, or shipping, reducing or cancelling the demand
+  until it is covered.
+- **Severity:** `high`
+- **Record type:** `item`
+- **Authority:** `300/FR-001`
+- **Evidence:**
+  `tests/test_item_oversold.py::test_orders_from_two_channels_above_stock_are_reported_by_channel`,
+  `tests/test_item_oversold.py::test_an_open_purchase_order_covering_the_shortfall_clears_it`
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain), view [`items`](./views#view-items)
