@@ -1291,6 +1291,15 @@ def _down_payment_invoice_record(
     return record_down_payment_invoice(session, tenant_id, **arguments)
 
 
+def _proforma_invoice_record(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.down_payments import record_proforma_invoice
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    return record_proforma_invoice(session, tenant_id, **arguments)
+
+
 def _credit_hold_release(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2396,6 +2405,12 @@ TOOLS = {
         "Record and post a down-payment invoice for a sales order: a receivable against received down payments that bills no quantity.",
         True,
         _down_payment_invoice_record,
+    ),
+    "proforma_invoice_record": Tool(
+        "proforma_invoice_record",
+        "Record a pro-forma invoice for a sales order as evidence only: it posts nothing, is no open item and bills no quantity.",
+        True,
+        _proforma_invoice_record,
     ),
     "credit_hold_release": Tool(
         "credit_hold_release",
@@ -3825,6 +3840,7 @@ def approve_and_execute_proposal(
         "order_line_item_assign",
         "credit_hold_release",
         "down_payment_invoice_record",
+        "proforma_invoice_record",
         "commitment_revise",
         "commitment_cancel",
         "sales_credit_record",

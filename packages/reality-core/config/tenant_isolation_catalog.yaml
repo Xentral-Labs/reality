@@ -433,6 +433,7 @@ families:
       - tool:credit_hold_release
       - tool:credit_exposure
       - tool:down_payment_invoice_record
+      - tool:proforma_invoice_record
       - tool:customer_exchange
       - tool:movement_explanation
       - tool:exceptions

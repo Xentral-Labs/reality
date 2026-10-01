@@ -1157,6 +1157,7 @@ class DeliveryActionPrepare(ApiModel):
         "order_line_item_assign",
         "credit_hold_release",
         "down_payment_invoice_record",
+        "proforma_invoice_record",
     ]
     arguments: dict[str, Any]
     session_id: str | None = None
@@ -5369,6 +5370,9 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
     from reality.services.shop_refunds import refunds_for_order
 
     returns_rows = invoice_return_rows(session, tenant_id, document)
+    from reality.services.down_payments import order_billing_rows
+
+    billing_documents = order_billing_rows(session, tenant_id, document)
 
     refunds = (
         refunds_for_order(session, tenant_id, document)
@@ -5529,6 +5533,24 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 ]
                 if returns_rows
                 else []
+            ),
+            *(
+                {
+                    # Spec 299: down-payment and pro-forma invoices are for the
+                    # order itself; offsets join a final invoice and a down payment.
+                    "title": title,
+                    "rows": [
+                        inspector_row(
+                            row["label"],
+                            row["value"],
+                            kind=row["kind"],
+                            record_id=row["record_id"],
+                            meta=row["meta"],
+                        )
+                        for row in rows
+                    ],
+                }
+                for title, rows in billing_documents.items()
             ),
             *(
                 [

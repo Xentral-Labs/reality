@@ -1,4 +1,4 @@
-"""Down-payment invoices for a sales order (spec 299).
+"""Down-payment and pro-forma invoices for a sales order (spec 299).
 
 A down-payment invoice is for its order, not for any order line: it states what
 the customer is asked to pay before delivery, is posted as a receivable against
@@ -10,6 +10,7 @@ was paid on it.
 from __future__ import annotations
 
 import json
+from datetime import date
 from decimal import Decimal
 from decimal import InvalidOperation as DecimalInvalid
 from typing import Any
@@ -31,15 +32,28 @@ from reality.services.finance.accounts import lock_finance, resolve_account
 
 ZERO = Decimal(0)
 SOURCE_SYSTEM = "internal_down_payment"
+PROFORMA_SOURCE_SYSTEM = "internal_proforma"
+PROFORMA_FIELDS = {"order_id", "number", "gross_amount"}
+PROFORMA_OPTIONAL = {"currency", "document_date", "lines"}
+PROFORMA_LINE_FIELDS = {"description", "quantity", "gross_amount"}
+PROFORMA_LINE_OPTIONAL = {"net_amount", "tax_amount"}
 AMOUNT_SCALE = Decimal("0.0001")
 
 
-def _amount(value: Any, code: str) -> Decimal:
+def _positive(value: Any) -> Decimal | None:
+    """A positive amount with at most four decimals, or None."""
     try:
         amount = Decimal(str(value))
-    except (DecimalInvalid, TypeError, ValueError) as error:
-        raise core.InvalidOperation(code=code) from error
+    except (DecimalInvalid, TypeError, ValueError):
+        return None
     if not amount.is_finite() or amount <= ZERO or amount.as_tuple().exponent < -4:
+        return None
+    return amount
+
+
+def _amount(value: Any, code: str) -> Decimal:
+    amount = _positive(value)
+    if amount is None:
         raise core.InvalidOperation(code=code)
     return amount
 
@@ -435,3 +449,279 @@ def order_down_payment_invoice_ids(
             )
         )
     )
+
+
+# --- Pro-forma (FR-004) ---------------------------------------------------------------
+
+
+def preview_proforma_invoice(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> dict[str, Any]:
+    """What recording this pro-forma would record; it posts nothing."""
+    if not PROFORMA_FIELDS <= set(arguments) or set(arguments) - (
+        PROFORMA_FIELDS | PROFORMA_OPTIONAL
+    ):
+        raise core.InvalidOperation(code="proforma_fields_invalid")
+    order = core._tenant_record(session, Document, tenant_id, arguments["order_id"])
+    if order.type != "sales_order" or not order.party_id:
+        raise core.InvalidOperation(code="proforma_order_required")
+    currency = arguments.get("currency")
+    if currency and str(currency).strip().upper() != order.currency:
+        raise core.InvalidOperation(code="proforma_currency_mismatch")
+    number = str(arguments["number"] or "").strip()
+    if not number:
+        raise core.InvalidOperation(code="proforma_number_missing")
+    amount = _positive(arguments["gross_amount"])
+    if amount is None:
+        raise core.InvalidOperation(code="proforma_amount_invalid")
+    document_date = arguments.get("document_date")
+    if document_date:
+        try:
+            document_date = date.fromisoformat(str(document_date)).isoformat()
+        except ValueError as error:
+            raise core.InvalidOperation(code="proforma_date_invalid") from error
+    else:
+        document_date = core.now().date().isoformat()
+    lines = arguments.get("lines")
+    if lines is None:
+        lines = [
+            {
+                "description": f"Pro-forma for {order.number}",
+                "quantity": "1",
+                "gross_amount": str(amount),
+            }
+        ]
+    stated_lines = []
+    if not isinstance(lines, list) or not lines:
+        raise core.InvalidOperation(code="proforma_line_fields_invalid")
+    for line in lines:
+        if (
+            not isinstance(line, dict)
+            or not PROFORMA_LINE_FIELDS <= set(line)
+            or set(line) - (PROFORMA_LINE_FIELDS | PROFORMA_LINE_OPTIONAL)
+            or not str(line["description"] or "").strip()
+        ):
+            raise core.InvalidOperation(code="proforma_line_fields_invalid")
+        stated = {
+            "description": str(line["description"]).strip(),
+            "quantity": str(_amount(line["quantity"], "proforma_line_fields_invalid")),
+            "gross_amount": str(
+                _amount(line["gross_amount"], "proforma_line_fields_invalid")
+            ),
+        }
+        for key in sorted(PROFORMA_LINE_OPTIONAL & set(line)):
+            try:
+                stated[key] = str(Decimal(str(line[key])))
+            except (DecimalInvalid, ValueError) as error:
+                raise core.InvalidOperation(
+                    code="proforma_line_fields_invalid"
+                ) from error
+        stated_lines.append(stated)
+    return {
+        "order_id": order.id,
+        "order_number": order.number,
+        "party_id": order.party_id,
+        "currency": order.currency,
+        "number": number,
+        "gross_amount": str(amount),
+        "document_date": document_date,
+        "lines": stated_lines,
+    }
+
+
+def record_proforma_invoice(
+    session: Session,
+    tenant_id: str,
+    *,
+    order_id: str,
+    number: str,
+    gross_amount: Any,
+    currency: str | None = None,
+    document_date: str | None = None,
+    lines: list[dict[str, Any]] | None = None,
+    action_id: str | None = None,
+    _commit: bool = True,
+) -> dict[str, Any]:
+    """Record a pro-forma for its order as evidence only: nothing is posted."""
+    core._require_business_mutation(session, tenant_id, "record_proforma_invoice")
+    arguments = {
+        "order_id": order_id,
+        "number": number,
+        "gross_amount": gross_amount,
+        **({"currency": currency} if currency is not None else {}),
+        **({"document_date": document_date} if document_date is not None else {}),
+        **({"lines": lines} if lines is not None else {}),
+    }
+    preview = preview_proforma_invoice(session, tenant_id, arguments)
+    external_id = action_id or uid("proforma")
+    existing = session.scalar(
+        select(Document)
+        .join(
+            SourceRecord,
+            (SourceRecord.tenant_id == Document.tenant_id)
+            & (SourceRecord.id == Document.source_record_id),
+        )
+        .where(
+            Document.tenant_id == tenant_id,
+            Document.type == "proforma_invoice",
+            SourceRecord.source_system == PROFORMA_SOURCE_SYSTEM,
+            SourceRecord.external_id == external_id,
+        )
+    )
+    if existing:
+        return _result(existing)
+    source, _, _ = core.store_source_record(
+        session,
+        tenant_id,
+        PROFORMA_SOURCE_SYSTEM,
+        "proforma_invoice",
+        external_id,
+        preview,
+    )
+    document = core.create_document(
+        session,
+        tenant_id,
+        "proforma_invoice",
+        preview["number"],
+        preview["party_id"],
+        Decimal(preview["gross_amount"]),
+        currency=preview["currency"],
+        document_date=preview["document_date"],
+        source_record_id=source.id,
+        action_id=action_id,
+        _commit=False,
+    )
+    document.order_document_id = preview["order_id"]
+    for index, line in enumerate(preview["lines"], 1):
+        quantity = Decimal(line["quantity"])
+        session.add(
+            DocumentLine(
+                id=uid("lin"),
+                tenant_id=tenant_id,
+                document_id=document.id,
+                source_line_id=str(index),
+                sku="",
+                description=line["description"],
+                quantity=quantity,
+                # A pro-forma states no unit price; none is derived from its amount.
+                unit_price=None,
+                gross_amount=Decimal(line["gross_amount"]),
+                unit="pcs",
+                line_type="proforma",
+                # For the order, not for any of its lines: it bills no order line.
+                billed_document_line_id=None,
+                payload=json.dumps(line, sort_keys=True),
+            )
+        )
+    session.flush()
+    if _commit:
+        session.commit()
+    return _result(document)
+
+
+# --- Inspector ------------------------------------------------------------------------
+
+
+def order_billing_rows(
+    session: Session, tenant_id: str, document: Document
+) -> dict[str, list[dict[str, Any]]]:
+    """Inspector sections: an order's down-payment and pro-forma invoices with
+    what was paid and offset, a final invoice's offsets, and the order a
+    down-payment or pro-forma invoice is for."""
+    sections: dict[str, list[dict[str, Any]]] = {}
+    if document.type == "sales_order":
+        rows = []
+        for record in session.scalars(
+            select(Document)
+            .where(
+                Document.tenant_id == tenant_id,
+                Document.order_document_id == document.id,
+            )
+            .order_by(Document.document_date, Document.number, Document.id)
+        ):
+            label = (
+                "Pro-forma invoice"
+                if record.type == "proforma_invoice"
+                else "Down-payment invoice"
+            )
+            rows.append(
+                {
+                    "label": f"{label} {record.number}",
+                    "value": f"{Decimal(record.gross_amount):.2f} {record.currency}",
+                    "kind": "document",
+                    "record_id": record.id,
+                    "meta": "Posts nothing"
+                    if record.type == "proforma_invoice"
+                    else None,
+                }
+            )
+        by_id = {
+            row["document_id"]: row
+            for row in down_payment_invoices(session, tenant_id, document.id)
+        }
+        for row in rows:
+            figures = by_id.get(row["record_id"])
+            if figures is not None:
+                row["meta"] = (
+                    "Reversed"
+                    if figures["reversed"]
+                    else f"Paid {figures['paid']:.2f} · offset {figures['offset']:.2f}"
+                )
+        if rows:
+            sections["Down-payment and pro-forma invoices"] = rows
+    if document.type in {"down_payment_invoice", "proforma_invoice"}:
+        order_id = session.scalar(
+            select(Document.order_document_id).where(
+                Document.tenant_id == tenant_id, Document.id == document.id
+            )
+        )
+        order = session.get(Document, (tenant_id, order_id)) if order_id else None
+        if order is not None:
+            sections["For order"] = [
+                {
+                    "label": order.number,
+                    "value": f"{Decimal(order.gross_amount):.2f} {order.currency}",
+                    "kind": "document",
+                    "record_id": order.id,
+                    "meta": None,
+                }
+            ]
+    offsets = list(
+        session.execute(
+            select(DownPaymentOffset, Document)
+            .join(
+                Document,
+                (Document.tenant_id == DownPaymentOffset.tenant_id)
+                & (
+                    Document.id
+                    == (
+                        DownPaymentOffset.down_payment_document_id
+                        if document.type == "sales_invoice"
+                        else DownPaymentOffset.final_invoice_document_id
+                    )
+                ),
+            )
+            .where(
+                DownPaymentOffset.tenant_id == tenant_id,
+                (
+                    DownPaymentOffset.final_invoice_document_id
+                    if document.type == "sales_invoice"
+                    else DownPaymentOffset.down_payment_document_id
+                )
+                == document.id,
+            )
+            .order_by(Document.number, DownPaymentOffset.id)
+        )
+    )
+    if offsets:
+        sections["Down-payment offsets"] = [
+            {
+                "label": other.number,
+                "value": f"{Decimal(offset.amount):.2f} {other.currency}",
+                "kind": "document",
+                "record_id": other.id,
+                "meta": None,
+            }
+            for offset, other in offsets
+        ]
+    return sections

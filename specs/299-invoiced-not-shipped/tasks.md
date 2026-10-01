@@ -43,12 +43,12 @@
 
 ## Phase 5: Pro-forma (FR-004)
 
-- [ ] T010 [US3] Failing tests in `core/tests/test_proforma_invoices.py`:
+- [x] T010 [US3] Failing tests in `core/tests/test_proforma_invoices.py`:
   - a pro-forma for an order posts nothing and is no open item;
   - it counts neither as invoiced quantity nor as prepayment, with a goods invoice as control;
   - the order inspector lists it;
   - refusals.
-- [ ] T011 [US3] `proforma_invoice_record` service and reviewed tool; the inspector section for the order's down-payment and pro-forma invoices and offsets.
+- [x] T011 [US3] `proforma_invoice_record` service and reviewed tool; the inspector section for the order's down-payment and pro-forma invoices and offsets.
 
 ## Phase 6: Invoiced but not shipped (FR-001)
 

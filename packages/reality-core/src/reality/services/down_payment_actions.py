@@ -14,7 +14,7 @@ from reality.services import core
 
 DOWN_PAYMENT_FIELDS = {"order_id", "number", "gross_amount"}
 DOWN_PAYMENT_OPTIONAL = {"currency", "effective_at", "net_amount", "tax_amount"}
-BILLING_DOCUMENT_TOOLS = {"down_payment_invoice_record"}
+BILLING_DOCUMENT_TOOLS = {"down_payment_invoice_record", "proforma_invoice_record"}
 
 
 def _json(value: Any) -> str:
@@ -32,11 +32,39 @@ def _intent(arguments: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _review_proforma(
+    session: Session, tenant_id: str, tool: str, arguments: dict[str, Any]
+) -> dict[str, Any]:
+    from reality.services.down_payments import preview_proforma_invoice
+
+    intent = json.loads(_json(arguments))
+    state = json.loads(_json(preview_proforma_invoice(session, tenant_id, intent)))
+    return {
+        "version": 1,
+        "tool": tool,
+        "intent": intent,
+        "state": state,
+        "effect": {
+            "order_id": state["order_id"],
+            "gross_amount": state["gross_amount"],
+            "bills_quantity": False,
+            "posts": False,
+            "money_moves": False,
+            "creates": ["document"],
+        },
+        "token": hashlib.sha256(
+            _json([tenant_id, tool, intent, state]).encode()
+        ).hexdigest(),
+    }
+
+
 def review_billing_document(
     session: Session, tenant_id: str, tool: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
     from reality.services.down_payments import preview_down_payment_invoice
 
+    if tool == "proforma_invoice_record":
+        return _review_proforma(session, tenant_id, tool, arguments)
     intent = _intent(arguments)
     state = json.loads(
         _json(preview_down_payment_invoice(session, tenant_id, **intent))
@@ -79,15 +107,20 @@ def assert_no_unresolved_billing_document(
             arguments.get("order_id"),
             arguments.get("number"),
         ):
+            if tool == "proforma_invoice_record":
+                raise core.InvalidOperation(code="proforma_record_unresolved")
             raise core.InvalidOperation(code="down_payment_record_unresolved")
 
 
 def billing_document_detail(
     session: Session, tenant_id: str, proposal: ChangeProposal
 ) -> dict[str, Any]:
-    from reality.services.down_payments import SOURCE_SYSTEM
+    from reality.services.down_payments import PROFORMA_SOURCE_SYSTEM, SOURCE_SYSTEM
 
     tool = proposal.type.removeprefix("tool:")
+    source_system = (
+        PROFORMA_SOURCE_SYSTEM if tool == "proforma_invoice_record" else SOURCE_SYSTEM
+    )
     review = json.loads(proposal.input).get("_delivery_review")
     result: dict[str, Any] = {
         "id": proposal.id,
@@ -111,7 +144,7 @@ def billing_document_detail(
         )
         .where(
             Document.tenant_id == tenant_id,
-            SourceRecord.source_system == SOURCE_SYSTEM,
+            SourceRecord.source_system == source_system,
             SourceRecord.external_id == proposal.id,
         )
     )

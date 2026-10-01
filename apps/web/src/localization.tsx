@@ -22393,6 +22393,20 @@ Object.assign(dictionaries.de, {
     "Verrechnet werden kann nur eine Anzahlungsrechnung eines Auftrags, den diese Rechnung berechnet.",
   "A reversed down-payment invoice cannot be offset.":
     "Eine stornierte Anzahlungsrechnung kann nicht verrechnet werden.",
+  "State a positive pro-forma amount with at most four decimals.":
+    "Gib einen positiven Proforma-Betrag mit höchstens vier Nachkommastellen an.",
+  "A pro-forma invoice is in its order's currency.":
+    "Eine Proforma-Rechnung ist in der Währung ihres Auftrags.",
+  "State the pro-forma date as a calendar date.": "Gib das Proforma-Datum als Kalenderdatum an.",
+  "A pro-forma invoice names its order, number and amount, and optionally the currency, date and lines.":
+    "Eine Proforma-Rechnung nennt Auftrag, Nummer und Betrag, optional Währung, Datum und Positionen.",
+  "Each pro-forma line states a description, a positive quantity and amount, and optionally net and tax.":
+    "Jede Proforma-Position nennt Beschreibung, positive Menge und Betrag, optional Netto und Steuer.",
+  "State the pro-forma invoice number.": "Gib die Nummer der Proforma-Rechnung an.",
+  "A pro-forma invoice is for a sales order.":
+    "Eine Proforma-Rechnung gehört zu einem Kundenauftrag.",
+  "A recording of this pro-forma invoice is still being settled.":
+    "Eine Erfassung dieser Proforma-Rechnung wird noch abgeschlossen.",
   "A down-payment invoice is in its order's currency.":
     "Eine Anzahlungsrechnung ist in der Währung ihres Auftrags.",
   "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
@@ -23323,6 +23337,19 @@ Object.assign(dictionaries.nl, {
     "Alleen een aanbetalingsfactuur van een order die deze factuur factureert kan worden verrekend.",
   "A reversed down-payment invoice cannot be offset.":
     "Een tegengeboekte aanbetalingsfactuur kan niet worden verrekend.",
+  "State a positive pro-forma amount with at most four decimals.":
+    "Geef een positief proformabedrag met hoogstens vier decimalen op.",
+  "A pro-forma invoice is in its order's currency.":
+    "Een proformafactuur is in de valuta van haar order.",
+  "State the pro-forma date as a calendar date.": "Geef de proformadatum op als kalenderdatum.",
+  "A pro-forma invoice names its order, number and amount, and optionally the currency, date and lines.":
+    "Een proformafactuur noemt order, nummer en bedrag, en optioneel valuta, datum en regels.",
+  "Each pro-forma line states a description, a positive quantity and amount, and optionally net and tax.":
+    "Elke proformaregel noemt een omschrijving, een positieve hoeveelheid en bedrag, en optioneel netto en btw.",
+  "State the pro-forma invoice number.": "Geef het nummer van de proformafactuur op.",
+  "A pro-forma invoice is for a sales order.": "Een proformafactuur hoort bij een verkooporder.",
+  "A recording of this pro-forma invoice is still being settled.":
+    "Een vastlegging van deze proformafactuur wordt nog afgerond.",
   "A down-payment invoice is in its order's currency.":
     "Een aanbetalingsfactuur is in de valuta van haar order.",
   "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
@@ -24264,6 +24291,20 @@ Object.assign(dictionaries.es, {
     "Solo se puede descontar una factura de anticipo de un pedido que esta factura factura.",
   "A reversed down-payment invoice cannot be offset.":
     "Una factura de anticipo anulada no se puede descontar.",
+  "State a positive pro-forma amount with at most four decimals.":
+    "Indica un importe proforma positivo con como máximo cuatro decimales.",
+  "A pro-forma invoice is in its order's currency.":
+    "Una factura proforma está en la moneda de su pedido.",
+  "State the pro-forma date as a calendar date.":
+    "Indica la fecha de la proforma como fecha de calendario.",
+  "A pro-forma invoice names its order, number and amount, and optionally the currency, date and lines.":
+    "Una factura proforma indica el pedido, el número y el importe, y opcionalmente la moneda, la fecha y las líneas.",
+  "Each pro-forma line states a description, a positive quantity and amount, and optionally net and tax.":
+    "Cada línea de la proforma indica una descripción, una cantidad y un importe positivos, y opcionalmente el neto y el impuesto.",
+  "State the pro-forma invoice number.": "Indica el número de la factura proforma.",
+  "A pro-forma invoice is for a sales order.": "Una factura proforma es para un pedido de venta.",
+  "A recording of this pro-forma invoice is still being settled.":
+    "Un registro de esta factura proforma aún se está completando.",
   "A down-payment invoice is in its order's currency.":
     "Una factura de anticipo está en la moneda de su pedido.",
   "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
@@ -24689,6 +24730,10 @@ Object.assign(dictionaries.de, {
   "The invoice being settled again by a new payment, a credit or an accepted write-off.":
     "Die Rechnung wird wieder ausgeglichen: durch eine neue Zahlung, eine Gutschrift oder eine akzeptierte Abschreibung.",
   "Returned payments": "Zurückgegangene Zahlungen",
+  "Down-payment and pro-forma invoices": "Anzahlungs- und Proforma-Rechnungen",
+  "Down-payment offsets": "Verrechnete Anzahlungen",
+  "For order": "Zum Auftrag",
+  "Posts nothing": "Bucht nichts",
   "Returned direct debit": "Rücklastschrift",
 });
 
@@ -24730,6 +24775,10 @@ Object.assign(dictionaries.nl, {
   "The invoice being settled again by a new payment, a credit or an accepted write-off.":
     "De factuur wordt opnieuw vereffend: door een nieuwe betaling, een creditnota of een geaccepteerde afboeking.",
   "Returned payments": "Teruggeboekte betalingen",
+  "Down-payment and pro-forma invoices": "Aanbetalings- en proformafacturen",
+  "Down-payment offsets": "Verrekende aanbetalingen",
+  "For order": "Bij order",
+  "Posts nothing": "Boekt niets",
   "Returned direct debit": "Gestorneerde incasso",
 });
 
@@ -24769,6 +24818,10 @@ Object.assign(dictionaries.es, {
   "The invoice being settled again by a new payment, a credit or an accepted write-off.":
     "La factura se vuelve a saldar con un nuevo cobro, un abono o una cancelación aceptada.",
   "Returned payments": "Cobros devueltos",
+  "Down-payment and pro-forma invoices": "Facturas de anticipo y proforma",
+  "Down-payment offsets": "Anticipos descontados",
+  "For order": "Del pedido",
+  "Posts nothing": "No contabiliza nada",
   "Returned direct debit": "Adeudo devuelto",
   Chargeback: "Contracargo",
 });
