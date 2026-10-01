@@ -3,6 +3,7 @@ import { recordOpened } from "./usePaletteHistory";
 import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWorkbench";
 import { PageActionBar } from "./PageActionBar";
 import { CustomerHoldCard } from "./CustomerHoldCard";
+import { ReorderPoints } from "./ReorderPointCard";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -95,6 +96,12 @@ export function MasterDataPage({
               .filter((field) => field.key !== "name")
               .map((field) => [field.key, detail[field.key]]),
           )}
+        />
+      )}
+      {family === "item" && (
+        <ReorderPoints
+          tenant={tenant}
+          item={{ id: detail.id, name: detail.name, unit: String(detail.unit ?? "") }}
         />
       )}
       <details className="mt-4 text-sm">

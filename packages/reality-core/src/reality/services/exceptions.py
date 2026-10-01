@@ -3488,6 +3488,9 @@ def _reorder_point_reached_exceptions(
             "item_id": item.id,
             "location_id": point.location_id,
             "supplier_ids": sorted(offered),
+            # Names for whoever prepares the order from the entry; ids decide.
+            "item_name": item.name,
+            "location_name": row.location,
         }
         if choice == "single":
             ((party_id, (name, _, currency)),) = offered.items()

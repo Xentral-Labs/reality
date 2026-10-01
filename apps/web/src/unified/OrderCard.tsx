@@ -89,6 +89,8 @@ export function OrderCard({
   tenant,
   proposalId = "",
   direction = "sales",
+  initial,
+  initialNames,
   close,
   prepared,
   settled,
@@ -96,6 +98,10 @@ export function OrderCard({
   tenant: string;
   proposalId?: string;
   direction?: string;
+  /** A draft prefilled from a finding (spec 302); the person still checks and states it. */
+  initial?: Partial<OrderInput>;
+  /** Display names for the prefilled references, so the choices read as names. */
+  initialNames?: Record<string, string>;
   close: () => void;
   prepared?: (id: string) => void;
   settled: () => void;
@@ -112,13 +118,14 @@ export function OrderCard({
     currency: "EUR",
     gross_amount: "",
     lines: [blankLine()],
+    ...initial,
   });
   const [proposal, setProposal] = useState<OrderProposal | null>(null),
     [editing, setEditing] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [uncertain, setUncertain] = useState(false);
-  const [seeds, setSeeds] = useState<Record<string, string>>({}),
+  const [seeds, setSeeds] = useState<Record<string, string>>(initialNames || {}),
     [inspection, inspect] = useState<{ kind: string; id: string } | null>(null);
   useEffect(() => {
     alive.current = true;
@@ -354,6 +361,7 @@ export function OrderCard({
                         className="min-w-0 text-sm sm:flex sm:flex-col sm:justify-end"
                       >
                         {t(label)}
+                        {key === "quantity" && line.unit ? ` (${String(line.unit)})` : ""}
                         <input
                           className="br-control mt-2 w-full"
                           aria-label={t(label)}

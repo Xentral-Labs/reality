@@ -51,11 +51,12 @@
 
 ## Phase 5: Web (FR-004)
 
-- [ ] T010 Web:
+- [x] T010 Web:
   - the master-data item detail gets the "Reorder points" section with `ReorderPointCard` (set, change, remove through the review);
   - `AttentionPage` gets "Prepare purchase order" for `reorder_point_reached`;
   - `OrderCard` takes an `initial` draft.
-- [ ] T011 Translations, `npm run test:i18n`, the audit, prettier and the build. Add a browser test in the sharded web suite if the item detail has one.
+- [x] T011 Translations, `npm run test:i18n`, the audit, prettier and the build. Add a browser test in the sharded web suite if the item detail has one.
+  - The item detail has none; the page is checked in the browser in T015.
 
 ## Phase 6: Story and Guide (FR-005)
 
