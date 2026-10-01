@@ -61,8 +61,8 @@
 
 ## Phase 7: Adapters and Web (FR-005)
 
-- [ ] T014 Failing adapter tests in `core/tests/test_billing_document_adapters.py`: MCP strict schemas, propose then confirm, the read; Web pass-through and the month-end endpoint; another company refused; CLI.
-- [ ] T015 MCP, Web API and CLI wiring; command catalog, coverage, guidance, discovery and the web fixture, labels, isolation catalog and counts.
+- [x] T014 Failing adapter tests in `core/tests/test_billing_document_adapters.py`: MCP strict schemas, propose then confirm, the read; Web pass-through and the month-end endpoint; another company refused; CLI.
+- [x] T015 MCP, Web API and CLI wiring; command catalog, coverage, guidance, discovery and the web fixture, labels, isolation catalog and counts.
 - [ ] T016 Web:
   - order actions "Down-payment invoice" and "Pro-forma";
   - the final-invoice dialog with offers and the offset;

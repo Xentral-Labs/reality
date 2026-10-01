@@ -434,6 +434,7 @@ families:
       - tool:credit_exposure
       - tool:down_payment_invoice_record
       - tool:proforma_invoice_record
+      - tool:month_end_billing
       - tool:customer_exchange
       - tool:movement_explanation
       - tool:exceptions

@@ -37,6 +37,7 @@ all reach the same operation.
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs             | Cross-functional           | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`cost_evidence`](#command-cost_evidence)                                         | Read received acquisition-cost evidence    | Cross-functional           | `cost_evidence_get`                                                                                                                                                                          | CLI · Web · MCP · Chat                  |
 | [`reviewed_contribution`](#command-reviewed_contribution)                         | Read reviewed commercial contribution      | Cross-functional           | `cost_contribution_get`                                                                                                                                                                      | CLI · Web · MCP · Chat                  |
+| [`month_end_billing`](#command-month_end_billing)                                 | Read the month-end billing lists           | Cross-functional           | `month_end_billing`                                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
 | [`record_notice`](#command-record_notice)                                         | Record dunning notice                      | Cross-functional           | `finance_dunning_record_propose`                                                                                                                                                             | Web · MCP · Chat                        |
 | [`propose_company_party`](#command-propose_company_party)                         | Record the company as its business partner | Cross-functional           | `company_party_record_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`reverse_notice`](#command-reverse_notice)                                       | Reverse dunning notice                     | Cross-functional           | `finance_dunning_reverse_propose`                                                                                                                                                            | Web · MCP · Chat                        |
@@ -79,6 +80,8 @@ all reach the same operation.
 | [`adjustment_context`](#command-adjustment_context)                               | Read settlement reduction context          | Finance                    | `finance_adjustment_context`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`list_source_mappings`](#command-list_source_mappings)                           | Read source code mappings                  | Finance                    | `finance_source_mappings`                                                                                                                                                                    | CLI · Web · MCP · Chat                  |
 | [`source_mapping_history`](#command-source_mapping_history)                       | Read source mapping history                | Finance                    | `finance_source_mapping_history`                                                                                                                                                             | CLI · Web · MCP · Chat                  |
+| [`record_down_payment_invoice`](#command-record_down_payment_invoice)             | Record a down-payment invoice              | Finance                    | `down_payment_invoice_record_propose`                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
+| [`record_proforma_invoice`](#command-record_proforma_invoice)                     | Record a pro-forma invoice                 | Finance                    | `proforma_invoice_record_propose`                                                                                                                                                            | CLI · Web · API · MCP · Chat            |
 | [`record_free_supplier_invoice`](#command-record_free_supplier_invoice)           | Record free supplier invoice               | Finance                    | `supplier_invoice_free_record_propose`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`apply_settlement`](#command-apply_settlement)                                   | Record payment or use existing credit      | Finance                    | `finance_settlement_propose`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`record_sales_credit`](#command-record_sales_credit)                             | Record return credit                       | Finance                    | `sales_credit_record_propose`                                                                                                                                                                | Web · API · MCP · Chat                  |
@@ -3495,6 +3498,104 @@ Read or propose exact source-code classification with separate source and intern
 
 **See also:** command [`source_mapping_history`](./commands#command-source_mapping_history)
 
+### `record_down_payment_invoice` — Record a down-payment invoice {#command-record_down_payment_invoice}
+
+Records and posts a down-payment invoice for a sales order, a receivable against received down
+payments that bills no quantity and counts towards prepayment once paid.
+
+**Synopsis**
+
+```text
+down_payment_invoice_record_propose order_id number gross_amount [currency] [effective_at] [net_amount] [tax_amount]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `document`, `document_line`, `ledger_entry`, `settlement_allocation`,
+`down_payment_offset` · Writes: `source_record`, `document`, `document_line`, `ledger_entry`,
+`business_event`
+
+**See also:** agent tool
+[`down_payment_invoice_record_propose`](./commands#tool-down_payment_invoice_record_propose)
+
+#### `down_payment_invoice_record_propose` — Record a down-payment invoice {#tool-down_payment_invoice_record_propose}
+
+Prepare this business mutation without changing state. Record a down-payment invoice. Human
+confirmation is required.
+
+**Synopsis**
+
+```text
+down_payment_invoice_record_propose order_id number gross_amount [currency] [effective_at] [net_amount] [tax_amount]
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name           | Type     | Required | Description                                                                                | Default |
+| -------------- | -------- | -------- | ------------------------------------------------------------------------------------------ | ------- |
+| `order_id`     | `string` | yes      | Opaque same-tenant identity of the sales order a down-payment or pro-forma invoice is for. | —       |
+| `number`       | `string` | yes      | Human-facing document or transaction number; it is not internal identity.                  | —       |
+| `gross_amount` | `string` | yes      | Total the source states for the document; recorded as received and never calculated.       | —       |
+| `currency`     | `string` | no       | ISO 4217 currency code for monetary values.                                                | —       |
+| `effective_at` | `string` | no       | UTC instant from which the observation or rule takes effect.                               | —       |
+| `net_amount`   | `string` | no       | Net amount the document states; recorded as stated and never derived from the gross.       | —       |
+| `tax_amount`   | `string` | no       | Tax amount the document states; recorded as stated and never derived from the gross.       | —       |
+
+**See also:** command
+[`record_down_payment_invoice`](./commands#command-record_down_payment_invoice)
+
+### `record_proforma_invoice` — Record a pro-forma invoice {#command-record_proforma_invoice}
+
+Records a pro-forma invoice for a sales order as evidence only; it posts nothing, is no open item
+and bills no quantity.
+
+**Synopsis**
+
+```text
+proforma_invoice_record_propose order_id number gross_amount [currency] [document_date] [lines]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `document` · Writes: `source_record`, `document`, `document_line`,
+`business_event`
+
+**See also:** agent tool
+[`proforma_invoice_record_propose`](./commands#tool-proforma_invoice_record_propose)
+
+#### `proforma_invoice_record_propose` — Record a pro-forma invoice {#tool-proforma_invoice_record_propose}
+
+Prepare this business mutation without changing state. Record a pro-forma invoice. Human
+confirmation is required.
+
+**Synopsis**
+
+```text
+proforma_invoice_record_propose order_id number gross_amount [currency] [document_date] [lines]
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                   | Type     | Required | Description                                                                                  | Default |
+| ---------------------- | -------- | -------- | -------------------------------------------------------------------------------------------- | ------- |
+| `order_id`             | `string` | yes      | Opaque same-tenant identity of the sales order a down-payment or pro-forma invoice is for.   | —       |
+| `number`               | `string` | yes      | Human-facing document or transaction number; it is not internal identity.                    | —       |
+| `gross_amount`         | `string` | yes      | Total the source states for the document; recorded as received and never calculated.         | —       |
+| `currency`             | `string` | no       | ISO 4217 currency code for monetary values.                                                  | —       |
+| `document_date`        | `string` | no       | Business date printed on or asserted by the evidence document.                               | —       |
+| `lines`                | `array`  | no       | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction. | —       |
+| `lines[].description`  | `string` | yes      | Human-readable explanation of the record or rule.                                            | —       |
+| `lines[].quantity`     | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                      | —       |
+| `lines[].gross_amount` | `string` | yes      | Total the source states for the document; recorded as received and never calculated.         | —       |
+| `lines[].net_amount`   | `string` | no       | Net amount the document states; recorded as stated and never derived from the gross.         | —       |
+| `lines[].tax_amount`   | `string` | no       | Tax amount the document states; recorded as stated and never derived from the gross.         | —       |
+
+**See also:** command [`record_proforma_invoice`](./commands#command-record_proforma_invoice)
+
 ### `record_free_supplier_invoice` — Record free supplier invoice {#command-record_free_supplier_invoice}
 
 Records stated supplier invoice evidence without a purchase-order line and posts its payable
@@ -3738,7 +3839,7 @@ atomically.
 **Synopsis**
 
 ```text
-sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [delivery_guard]
+sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [delivery_guard] [down_payment_offsets]
 ```
 
 **Reach via:** Web · API · MCP · Chat
@@ -3758,43 +3859,46 @@ required.
 **Synopsis**
 
 ```text
-sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [delivery_guard]
+sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [delivery_guard] [down_payment_offsets]
 ```
 
 **Access:** `propose`
 
 **Parameters**
 
-| Name                                  | Type      | Required | Description                                                                                                                                                                  | Default |
-| ------------------------------------- | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `order_line_id`                       | `string`  | no       | Opaque sales-order line identity linked by invoice billing evidence.                                                                                                         | —       |
-| `quantity`                            | `string`  | no       | Decimal quantity expressed in the item's relevant unit.                                                                                                                      | —       |
-| `lines`                               | `array`   | no       | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                                                                 | —       |
-| `lines[].order_line_id`               | `string`  | yes      | Opaque sales-order line identity linked by invoice billing evidence.                                                                                                         | —       |
-| `lines[].quantity`                    | `string`  | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                                      | —       |
-| `lines[].gross_amount`                | `string`  | yes      | Total the source states for the document; recorded as received and never calculated.                                                                                         | —       |
-| `lines[].reality_finance_v1`          | `object`  | no       | Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.                                                   | —       |
-| `lines[].reality_finance_v1.version`  | `integer` | no       | `1`                                                                                                                                                                          | —       |
-| `lines[].reality_finance_v1.net`      | `string`  | no       | —                                                                                                                                                                            | —       |
-| `lines[].reality_finance_v1.tax`      | `string`  | no       | —                                                                                                                                                                            | —       |
-| `lines[].reality_finance_v1.base`     | `string`  | no       | —                                                                                                                                                                            | —       |
-| `lines[].reality_finance_v1.gross`    | `string`  | no       | —                                                                                                                                                                            | —       |
-| `lines[].reality_finance_v1.currency` | `string`  | no       | ISO 4217 currency code for monetary values.                                                                                                                                  | —       |
-| `lines[].reality_finance_v1.codes`    | `object`  | no       | —                                                                                                                                                                            | —       |
-| `gross_amount`                        | `string`  | yes      | Total the source states for the document; recorded as received and never calculated.                                                                                         | —       |
-| `reality_finance_v1`                  | `object`  | no       | Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.                                                   | —       |
-| `reality_finance_v1.version`          | `integer` | no       | `1`                                                                                                                                                                          | —       |
-| `reality_finance_v1.net`              | `string`  | no       | —                                                                                                                                                                            | —       |
-| `reality_finance_v1.tax`              | `string`  | no       | —                                                                                                                                                                            | —       |
-| `reality_finance_v1.base`             | `string`  | no       | —                                                                                                                                                                            | —       |
-| `reality_finance_v1.gross`            | `string`  | no       | —                                                                                                                                                                            | —       |
-| `reality_finance_v1.currency`         | `string`  | no       | ISO 4217 currency code for monetary values.                                                                                                                                  | —       |
-| `reality_finance_v1.codes`            | `object`  | no       | —                                                                                                                                                                            | —       |
-| `number`                              | `string`  | yes      | Human-facing document or transaction number; it is not internal identity.                                                                                                    | —       |
-| `effective_at`                        | `string`  | no       | UTC instant from which the observation or rule takes effect.                                                                                                                 | —       |
-| `delivery_guard`                      | `object`  | no       | Optional single-line sales-invoice precondition binding the unit and unbilled quantity read for the invoiced order line; rechecked under the delivery lock before recording. | —       |
-| `delivery_guard.unbilled_quantity`    | `string`  | yes      | —                                                                                                                                                                            | —       |
-| `delivery_guard.unit`                 | `string`  | yes      | Unit of measure in which the quantity is expressed.                                                                                                                          | —       |
+| Name                                              | Type      | Required | Description                                                                                                                                                                                          | Default |
+| ------------------------------------------------- | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `order_line_id`                                   | `string`  | no       | Opaque sales-order line identity linked by invoice billing evidence.                                                                                                                                 | —       |
+| `quantity`                                        | `string`  | no       | Decimal quantity expressed in the item's relevant unit.                                                                                                                                              | —       |
+| `lines`                                           | `array`   | no       | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                                                                                         | —       |
+| `lines[].order_line_id`                           | `string`  | yes      | Opaque sales-order line identity linked by invoice billing evidence.                                                                                                                                 | —       |
+| `lines[].quantity`                                | `string`  | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                                                              | —       |
+| `lines[].gross_amount`                            | `string`  | yes      | Total the source states for the document; recorded as received and never calculated.                                                                                                                 | —       |
+| `lines[].reality_finance_v1`                      | `object`  | no       | Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.                                                                           | —       |
+| `lines[].reality_finance_v1.version`              | `integer` | no       | `1`                                                                                                                                                                                                  | —       |
+| `lines[].reality_finance_v1.net`                  | `string`  | no       | —                                                                                                                                                                                                    | —       |
+| `lines[].reality_finance_v1.tax`                  | `string`  | no       | —                                                                                                                                                                                                    | —       |
+| `lines[].reality_finance_v1.base`                 | `string`  | no       | —                                                                                                                                                                                                    | —       |
+| `lines[].reality_finance_v1.gross`                | `string`  | no       | —                                                                                                                                                                                                    | —       |
+| `lines[].reality_finance_v1.currency`             | `string`  | no       | ISO 4217 currency code for monetary values.                                                                                                                                                          | —       |
+| `lines[].reality_finance_v1.codes`                | `object`  | no       | —                                                                                                                                                                                                    | —       |
+| `gross_amount`                                    | `string`  | yes      | Total the source states for the document; recorded as received and never calculated.                                                                                                                 | —       |
+| `reality_finance_v1`                              | `object`  | no       | Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.                                                                           | —       |
+| `reality_finance_v1.version`                      | `integer` | no       | `1`                                                                                                                                                                                                  | —       |
+| `reality_finance_v1.net`                          | `string`  | no       | —                                                                                                                                                                                                    | —       |
+| `reality_finance_v1.tax`                          | `string`  | no       | —                                                                                                                                                                                                    | —       |
+| `reality_finance_v1.base`                         | `string`  | no       | —                                                                                                                                                                                                    | —       |
+| `reality_finance_v1.gross`                        | `string`  | no       | —                                                                                                                                                                                                    | —       |
+| `reality_finance_v1.currency`                     | `string`  | no       | ISO 4217 currency code for monetary values.                                                                                                                                                          | —       |
+| `reality_finance_v1.codes`                        | `object`  | no       | —                                                                                                                                                                                                    | —       |
+| `number`                                          | `string`  | yes      | Human-facing document or transaction number; it is not internal identity.                                                                                                                            | —       |
+| `effective_at`                                    | `string`  | no       | UTC instant from which the observation or rule takes effect.                                                                                                                                         | —       |
+| `delivery_guard`                                  | `object`  | no       | Optional single-line sales-invoice precondition binding the unit and unbilled quantity read for the invoiced order line; rechecked under the delivery lock before recording.                         | —       |
+| `delivery_guard.unbilled_quantity`                | `string`  | yes      | —                                                                                                                                                                                                    | —       |
+| `delivery_guard.unit`                             | `string`  | yes      | Unit of measure in which the quantity is expressed.                                                                                                                                                  | —       |
+| `down_payment_offsets`                            | `array`   | no       | Optional down payments a final sales invoice states it deducts (spec 299), each a paid down-payment invoice of an order it bills and the stated amount; never more than was paid and not yet offset. | —       |
+| `down_payment_offsets[].down_payment_document_id` | `string`  | yes      | —                                                                                                                                                                                                    | —       |
+| `down_payment_offsets[].amount`                   | `string`  | yes      | Monetary amount of the payment or financial observation.                                                                                                                                             | —       |
 
 **See also:** command [`record_sales_invoice`](./commands#command-record_sales_invoice)
 
@@ -8025,6 +8129,64 @@ retained inputs.
 | `review_id`        | `string` | no       | Exact retained inventory or contribution review identity for the selected tool; absence selects its latest review. | `None`  |
 
 **See also:** command [`reviewed_contribution`](./commands#command-reviewed_contribution)
+
+### `month_end_billing` — Read the month-end billing lists {#command-month_end_billing}
+
+Lists order lines shipped and not invoiced, and invoiced and not shipped, from the findings at one
+instant.
+
+**Synopsis**
+
+```text
+month_end_billing [as_of]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `document`, `document_line`, `commitment`, `movement` · Writes: —
+
+**See also:** agent tool [`month_end_billing`](./commands#tool-month_end_billing)
+
+#### `month_end_billing` — Month-end billing {#tool-month_end_billing}
+
+Read the month-end billing lists at one instant: order lines shipped and not invoiced, and order
+lines invoiced and not shipped, taken from the findings.
+
+**Synopsis**
+
+```text
+month_end_billing [as_of]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query          | Kind                        | Default |
+| ----------------------- | --------------------------- | ------- |
+| `MCP month_end_billing` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+List what the month-end close must invoice or accrue, from the same findings the exception queue
+reports.
+
+**Use when**
+
+- Someone closes a month and asks what was shipped and not invoiced
+- or invoiced and not shipped.
+
+**Do not use when**
+
+- The question is which invoices are unpaid; use the open items read.
+
+**Parameters**
+
+| Name    | Type     | Required | Description                                                                  | Default |
+| ------- | -------- | -------- | ---------------------------------------------------------------------------- | ------- |
+| `as_of` | `string` | no       | UTC instant the derivation is evaluated at; the current instant when absent. | —       |
+
+**See also:** command [`month_end_billing`](./commands#command-month_end_billing)
 
 ### `record_notice` — Record dunning notice {#command-record_notice}
 

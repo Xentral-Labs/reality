@@ -22,12 +22,14 @@ from reality.services import credit_exposure as credit_exposure_service_module
 from reality.services import credit_hold_actions as credit_hold_service_module
 from reality.services import customer_exchanges as customer_exchange_service_module
 from reality.services import demo_data as demo_data_service_module
+from reality.services import down_payments as down_payment_service_module
 from reality.services import dunning as dunning_service_module
 from reality.services import dunning_runs as dunning_run_service_module
 from reality.services import file_interpreters as interpreter_service_module
 from reality.services import invoice_actions as invoice_action_service_module
 from reality.services import invoice_billing as invoice_billing_service_module
 from reality.services import memberships as membership_service_module
+from reality.services import month_end_billing as month_end_billing_service_module
 from reality.services import notifications as notification_service_module
 from reality.services import order_line_items as order_line_item_service_module
 from reality.services import payment_intake as payment_intake_service_module
@@ -1088,6 +1090,11 @@ def _service(name: str) -> Any:
         return getattr(order_line_item_service_module, name)
     if hasattr(payment_return_service_module, name):
         return getattr(payment_return_service_module, name)
+    # Spec 299: only what these modules define, never a name they import.
+    for module in (down_payment_service_module, month_end_billing_service_module):
+        own = getattr(module, name, None)
+        if own is not None and getattr(own, "__module__", None) == module.__name__:
+            return own
     if hasattr(credit_hold_service_module, name):
         return getattr(credit_hold_service_module, name)
     if hasattr(credit_exposure_service_module, name):

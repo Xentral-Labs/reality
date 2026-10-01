@@ -1300,6 +1300,14 @@ def _proforma_invoice_record(
     return record_proforma_invoice(session, tenant_id, **arguments)
 
 
+def _month_end_billing(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.month_end_billing import month_end_billing
+
+    return month_end_billing(session, tenant_id, as_of=arguments.get("as_of"))
+
+
 def _credit_hold_release(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2411,6 +2419,12 @@ TOOLS = {
         "Record a pro-forma invoice for a sales order as evidence only: it posts nothing, is no open item and bills no quantity.",
         True,
         _proforma_invoice_record,
+    ),
+    "month_end_billing": Tool(
+        "month_end_billing",
+        "Read the month-end billing lists: order lines shipped and not invoiced, and invoiced and not shipped, from the findings at one instant.",
+        False,
+        _month_end_billing,
     ),
     "credit_hold_release": Tool(
         "credit_hold_release",

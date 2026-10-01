@@ -1944,6 +1944,97 @@ def credit_hold_release_propose(
     con.print_json(data=result, default=str)
 
 
+@app.command("down-payment-invoice-record-propose")
+def down_payment_invoice_record_propose(
+    arguments: str,
+    request_id: str,
+    tenant_id: str | None = None,
+) -> None:
+    """Prepare a down-payment invoice for a sales order; a person confirms."""
+    from reality.services.delivery_actions import (
+        delivery_proposal_detail,
+        prepare_delivery_action,
+    )
+
+    try:
+        values = json.loads(arguments)
+        if not isinstance(values, dict):
+            raise TypeError
+    except (json.JSONDecodeError, TypeError) as error:
+        raise typer.BadParameter("Arguments must be a JSON object.") from error
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            proposal = prepare_delivery_action(
+                session,
+                tenant.id,
+                "down_payment_invoice_record",
+                values,
+                request_id=request_id,
+                actor_id="cli",
+            )
+            result = delivery_proposal_detail(session, tenant.id, proposal.id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@app.command("proforma-invoice-record-propose")
+def proforma_invoice_record_propose(
+    arguments: str,
+    request_id: str,
+    tenant_id: str | None = None,
+) -> None:
+    """Prepare a pro-forma invoice for a sales order; it posts nothing."""
+    from reality.services.delivery_actions import (
+        delivery_proposal_detail,
+        prepare_delivery_action,
+    )
+
+    try:
+        values = json.loads(arguments)
+        if not isinstance(values, dict):
+            raise TypeError
+    except (json.JSONDecodeError, TypeError) as error:
+        raise typer.BadParameter("Arguments must be a JSON object.") from error
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            proposal = prepare_delivery_action(
+                session,
+                tenant.id,
+                "proforma_invoice_record",
+                values,
+                request_id=request_id,
+                actor_id="cli",
+            )
+            result = delivery_proposal_detail(session, tenant.id, proposal.id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@app.command("month-end-billing")
+def month_end_billing_read(
+    as_of: str | None = None, tenant_id: str | None = None
+) -> None:
+    """List order lines shipped and not invoiced, and invoiced and not shipped."""
+    from reality.tools.application import run_read_tool
+
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            result = run_read_tool(
+                session,
+                tenant.id,
+                "month_end_billing",
+                {"as_of": as_of} if as_of else {},
+            )
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
 @app.command("credit-exposure")
 def credit_exposure_read(party_id: str, tenant_id: str | None = None) -> None:
     """Read a customer's credit exposure against its limit."""

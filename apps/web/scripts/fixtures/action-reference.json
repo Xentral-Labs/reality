@@ -557,6 +557,29 @@
       "effect": "Derives a customer's exposure against its credit limit, open invoices plus open uninvoiced orders minus available credits, naming overdue invoices and payables."
     },
     {
+      "name": "Record a down-payment invoice",
+      "service": "record_down_payment_invoice",
+      "related_services": ["preview_down_payment_invoice"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records and posts a down-payment invoice for a sales order, a receivable against received down payments that bills no quantity and counts towards prepayment once paid."
+    },
+    {
+      "name": "Record a pro-forma invoice",
+      "service": "record_proforma_invoice",
+      "related_services": ["preview_proforma_invoice"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records a pro-forma invoice for a sales order as evidence only; it posts nothing, is no open item and bills no quantity."
+    },
+    {
+      "name": "Read the month-end billing lists",
+      "service": "month_end_billing",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lists order lines shipped and not invoiced, and invoiced and not shipped, from the findings at one instant."
+    },
+    {
       "name": "Post customer payment",
       "service": "post_customer_payment",
       "mode": "mutation",

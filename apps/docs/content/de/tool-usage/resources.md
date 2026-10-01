@@ -16,8 +16,8 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Auftrag](#resource-order)                                     | 8      | 12       | 11        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
-| [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 12       | 15        |
-| [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 3         |
+| [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
+| [Zahlung und Ausgleich](#resource-payment)                     | 2      | 8        | 3         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 15       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 5        | 8         |
@@ -280,6 +280,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 **Nachschlagen**
 
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
+- [Monatsabschluss Fakturierung anzeigen](./commands#command-month_end_billing)
+  (`month_end_billing`)
 - [Schließen alter Verpflichtungen vorschauen](./commands#command-preview_stale_promise_closure)
   (`preview_stale_promise_closure`)
 
@@ -353,6 +355,11 @@ Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück,
 - [Sendungsereignis korrigieren](./commands#command-supersede_shipment_event)
   (`supersede_shipment_event`)
 
+**Nachschlagen**
+
+- [Monatsabschluss Fakturierung anzeigen](./commands#command-month_end_billing)
+  (`month_end_billing`)
+
 **Klärfälle**
 
 - [Retoure nicht bearbeitet](./exceptions#exception-return_unresolved) (`return_unresolved`)
@@ -425,6 +432,10 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 
 **Aktionen**
 
+- [Anzahlungsrechnung erfassen](./commands#command-record_down_payment_invoice)
+  (`record_down_payment_invoice`)
+- [Proforma-Rechnung erfassen](./commands#command-record_proforma_invoice)
+  (`record_proforma_invoice`)
 - [Ausgangsrechnung buchen](./commands#command-post_sales_invoice) (`post_sales_invoice`)
 - [Eingangsrechnung buchen](./commands#command-post_supplier_invoice) (`post_supplier_invoice`)
 - [Retourengutschrift erfassen](./commands#command-record_sales_credit) (`record_sales_credit`)
@@ -512,6 +523,8 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 
 **Aktionen**
 
+- [Anzahlungsrechnung erfassen](./commands#command-record_down_payment_invoice)
+  (`record_down_payment_invoice`)
 - [Zahlungseingang buchen](./commands#command-post_customer_payment) (`post_customer_payment`)
 - [Zahllauf ausführen](./commands#command-execute_payment_run) (`execute_payment_run`)
 - [Kundenerstattung buchen](./commands#command-post_customer_refund) (`post_customer_refund`)
@@ -812,6 +825,8 @@ Nachweis, Quelle
 - [Verlauf der Quellcode-Zuordnung](./commands#command-source_mapping_history)
   (`source_mapping_history`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
+- [Monatsabschluss Fakturierung anzeigen](./commands#command-month_end_billing)
+  (`month_end_billing`)
 - [Mahnungen anzeigen](./commands#command-notices) (`notices`)
 - [Mahnung anzeigen](./commands#command-notice_detail) (`notice_detail`)
 - [Mahnlauf vorbereiten](./commands#command-run_context) (`run_context`)

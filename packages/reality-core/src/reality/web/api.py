@@ -7645,6 +7645,24 @@ def get_dunning_run_context(
         raise api_error(error) from error
 
 
+@router.get("/finance/month-end-billing")
+def tenant_month_end_billing(
+    tenant_id: str, session: DatabaseSession, as_of: str | None = None
+):
+    """Spec 299: shipped-not-billed and billed-not-shipped lines from the findings."""
+    from reality.tools.application import run_read_tool
+
+    try:
+        return run_read_tool(
+            session,
+            tenant_id,
+            "month_end_billing",
+            {"as_of": as_of} if as_of else {},
+        )
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.get("/parties/{party_id}/credit-exposure")
 def tenant_party_credit_exposure(
     tenant_id: str, party_id: str, session: DatabaseSession

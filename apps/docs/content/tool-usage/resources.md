@@ -16,8 +16,8 @@ the technical key stands beside each one.
 | [Order](#resource-order)                                         | 8     | 12      | 11                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
-| [Invoice and credit note](#resource-invoice)                     | 3     | 12      | 15                  |
-| [Payment and settlement](#resource-payment)                      | 2     | 7       | 3                   |
+| [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
+| [Payment and settlement](#resource-payment)                      | 2     | 8       | 3                   |
 | [Ledger and accounts](#resource-accounting)                      | 2     | 15      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 5       | 8                   |
@@ -272,6 +272,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 **Look up**
 
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
+- [Read the month-end billing lists](./commands#command-month_end_billing) (`month_end_billing`)
 - [Preview stale promise closure](./commands#command-preview_stale_promise_closure)
   (`preview_stale_promise_closure`)
 
@@ -343,6 +344,10 @@ Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking
 - [Record shipment event](./commands#command-record_shipment_event) (`record_shipment_event`)
 - [Supersede shipment event](./commands#command-supersede_shipment_event)
   (`supersede_shipment_event`)
+
+**Look up**
+
+- [Read the month-end billing lists](./commands#command-month_end_billing) (`month_end_billing`)
 
 **Exceptions to clear**
 
@@ -416,6 +421,10 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 
 **Actions**
 
+- [Record a down-payment invoice](./commands#command-record_down_payment_invoice)
+  (`record_down_payment_invoice`)
+- [Record a pro-forma invoice](./commands#command-record_proforma_invoice)
+  (`record_proforma_invoice`)
 - [Post sales invoice](./commands#command-post_sales_invoice) (`post_sales_invoice`)
 - [Post supplier invoice](./commands#command-post_supplier_invoice) (`post_supplier_invoice`)
 - [Record return credit](./commands#command-record_sales_credit) (`record_sales_credit`)
@@ -501,6 +510,8 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 
 **Actions**
 
+- [Record a down-payment invoice](./commands#command-record_down_payment_invoice)
+  (`record_down_payment_invoice`)
 - [Post customer payment](./commands#command-post_customer_payment) (`post_customer_payment`)
 - [Execute payment run](./commands#command-execute_payment_run) (`execute_payment_run`)
 - [Post customer refund](./commands#command-post_customer_refund) (`post_customer_refund`)
@@ -801,6 +812,7 @@ Nachweis, Quelle
 - [Read source mapping history](./commands#command-source_mapping_history)
   (`source_mapping_history`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
+- [Read the month-end billing lists](./commands#command-month_end_billing) (`month_end_billing`)
 - [List dunning notices](./commands#command-notices) (`notices`)
 - [Read dunning notice](./commands#command-notice_detail) (`notice_detail`)
 - [Preview dunning run](./commands#command-run_context) (`run_context`)

@@ -706,6 +706,9 @@ labels:
       assign_line_item: Artikel für Auftragszeile zuordnen
       release_credit_holds: Kreditsperre freigeben
       credit_exposure: Kreditobligo anzeigen
+      record_down_payment_invoice: Anzahlungsrechnung erfassen
+      record_proforma_invoice: Proforma-Rechnung erfassen
+      month_end_billing: Monatsabschluss Fakturierung anzeigen
     views:
       commitments: Verpflichtungen
       inventory: Bestand

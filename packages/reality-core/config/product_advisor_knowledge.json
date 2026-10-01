@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:c0e875b3d0be06bc426af6ba541f47ca9f5ac02a46af181b69f0129cb4e70e5c",
+  "knowledge_version": "advisor-v1:sha256:b2fb2e858fea282de923f8a6ffec362a9080c5db4ccadf98d7fe1ee37be2fdbf",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "b3529d7a273ba61ad8f5b6d649ecd7b8e29fe5857194a9a175e3f4d0eff515b0"
+      "fingerprint": "71bbd0e354d792e86582fda54712805f23712b2a907feb69c0689c1e96f1e728"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7085,6 +7085,51 @@
       ],
       "language": "en",
       "fingerprint": "493f554cb070a1e3a9c02f45dccdfb292e5fad0b16d9e80044f868d41ec9b5cc"
+    },
+    {
+      "id": "evidence_command_record_down_payment_invoice",
+      "source_id": "source_executable_commands",
+      "subject": "Record a down-payment invoice",
+      "title": "Record a down-payment invoice",
+      "search_text": "record_down_payment_invoice Record a down-payment invoice Records and posts a down-payment invoice for a sales order, a receivable against received down payments that bills no quantity and counts towards prepayment once paid. mutation",
+      "claim_text": "record_down_payment_invoice is a governed mutation command for Records and posts a down-payment invoice for a sales order, a receivable against received down payments that bills no quantity and counts towards prepayment once paid..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "record_down_payment_invoice"
+      ],
+      "language": "en",
+      "fingerprint": "9ccb143153efed0c61ff40079ebf0dd8efcfab8c3b9b30a43f8ef5dfced098b2"
+    },
+    {
+      "id": "evidence_command_record_proforma_invoice",
+      "source_id": "source_executable_commands",
+      "subject": "Record a pro-forma invoice",
+      "title": "Record a pro-forma invoice",
+      "search_text": "record_proforma_invoice Record a pro-forma invoice Records a pro-forma invoice for a sales order as evidence only; it posts nothing, is no open item and bills no quantity. mutation",
+      "claim_text": "record_proforma_invoice is a governed mutation command for Records a pro-forma invoice for a sales order as evidence only; it posts nothing, is no open item and bills no quantity..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "record_proforma_invoice"
+      ],
+      "language": "en",
+      "fingerprint": "1969e9383fd0992dfbc9039b90e925761f947c15d1b940c7278d3d72f5da1237"
+    },
+    {
+      "id": "evidence_command_month_end_billing",
+      "source_id": "source_executable_commands",
+      "subject": "Read the month-end billing lists",
+      "title": "Read the month-end billing lists",
+      "search_text": "month_end_billing Read the month-end billing lists Lists order lines shipped and not invoiced, and invoiced and not shipped, from the findings at one instant. query",
+      "claim_text": "month_end_billing is a governed query command for Lists order lines shipped and not invoiced, and invoiced and not shipped, from the findings at one instant..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "month_end_billing"
+      ],
+      "language": "en",
+      "fingerprint": "0acf6a91e1047c65b869831ed09cc24e5a05be2d0198be6c3ac00d65485f58c0"
     },
     {
       "id": "evidence_command_post_customer_payment",
