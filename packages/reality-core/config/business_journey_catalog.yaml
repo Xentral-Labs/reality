@@ -609,23 +609,36 @@ entries:
   section: Availability, reservation and backorder
   title: Stock exists but is blocked (quality, quarantine, expiry)
   question: Is blocked stock excluded from availability?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Is blocked stock excluded from availability?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Is blocked stock excluded from availability? Stock is blocked where it lies with a reason (quality, damage, expiry, inspection), optionally by lot or pallet; it stays physically there and is excluded from availability, reservation, shipping and transfer until it is released or scrapped through the review."
   limitations:
-  - There is no blocked-stock state; stock is excluded from availability only by moving it to another location, such as a quarantine location.
-  - Expired stock deliberately stays available.
-  keywords: []
+  - "Nothing blocks by itself: an expired lot is reported and blocked by a person."
+  - Quality management workflows beyond block, release and scrap are not modelled.
+  keywords:
+  - blocked stock
+  - quality hold
+  - gesperrter Bestand
+  - Sperrbestand
+  - Qualitätssperre
   question_examples:
   - Stock exists but is blocked (quality, quarantine, expiry)
   - Is blocked stock excluded from availability?
-  tools: []
+  - Some stock is on quality hold; can it still be reserved?
+  - Ein Teil des Bestands ist qualitätsgesperrt, kann er trotzdem reserviert werden?
+  tools:
+  - stock_block_propose
+  - stock_blocks
+  - stock_block_release_propose
+  - reservation_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: docs/features/inventory.md ("Nothing is blocked"); tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes
-    note: There is no blocked-stock state; exclusion only works by moving goods to another location (for example a quarantine disposition transfer), and expired stock is deliberately still available.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_blocked_stock_is_not_available_until_quality_releases_it
+    note: "20 in stock, 5 blocked for quality: an order of 20 reserves 15; quality releases the 5 with its reason and the order reserves all 20."
+  - reference: packages/reality-core/tests/test_stock_block_readers.py
+    note: Every availability reader holds blocked stock back (spec 304).
 - id: B06
   section: Availability, reservation and backorder
   title: Stock exists in the wrong warehouse
@@ -2837,23 +2850,37 @@ entries:
   section: Goods receipt and supplier deviations
   title: Damaged goods, part to quarantine
   question: Quarantine not available?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Quarantine not available?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Quarantine not available? A reviewed receipt can block the damaged part of what it brings in, in the same confirmation; the blocked part is in stock but not available, and is scrapped or released later."
   limitations:
-  - Warehouse locations have no availability status, so incoming goods cannot be put into quarantine.
-  - Moving them to a separate location is the only way to keep them apart.
-  keywords: []
+  - The damage itself is stated as a reason and note, not as a structured inspection record.
+  keywords:
+  - damaged goods receipt
+  - receive damaged part
+  - quarantine at receipt
+  - quarantine not available
+  - Quarantäne
+  - beschädigte Ware
+  - Wareneingang beschädigt
+  - Teilmenge sperren
   question_examples:
   - Damaged goods, part to quarantine
   - Quarantine not available?
-  tools: []
+  - Five of twenty arrived damaged; how do we keep them out of stock?
+  - Fünf von zwanzig kamen beschädigt an, wie halten wir sie aus dem verfügbaren Bestand?
+  tools:
+  - movement_create_propose
+  - shipment_receive_propose
+  - stock_block_scrap_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: services/return_dispositions.py (customer returns only)
-    note: Location has no availability status; inbound quarantine is not modelled.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_damaged_goods_are_received_blocked_and_scrapped
+    note: "A reviewed receipt of 20 with 5 damaged blocked: 20 physical, 15 available; scrapping the 5 leaves 15 physical and no block."
+  - reference: packages/reality-core/tests/test_stock_block_readers.py
+    note: Every availability reader holds blocked stock back (spec 304).
 - id: H09
   section: Goods receipt and supplier deviations
   title: Receipt without purchase order (free, sample, misdelivery)
@@ -2983,22 +3010,35 @@ entries:
   section: Goods receipt and supplier deviations
   title: Quality inspection releases days later
   question: Received but not released?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Received but not released?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Received but not released? A package can be received entirely blocked for inspection: it is in stock but nothing is reservable until quality releases it, wholly or partly, through the review."
   limitations:
-  - 'There is no inspection hold: goods are either received and available or not received.'
-  keywords: []
+  - Inspection results are stated as release or scrap reasons, not as a structured test record.
+  keywords:
+  - quality inspection
+  - inspection hold
+  - received not released
+  - Wareneingangsprüfung
+  - Prüfsperre
+  - Freigabe nach Prüfung
   question_examples:
   - Quality inspection releases days later
   - Received but not released?
-  tools: []
+  - The goods arrived but are awaiting inspection; are they available?
+  - Die Ware ist eingegangen, wartet aber auf die Prüfung, ist sie verfügbar?
+  tools:
+  - shipment_receive_propose
+  - stock_blocks
+  - stock_block_release_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: specs/116-unified-receipt-release (reservation release, not QC)
-    note: No inspection hold or received-but-not-released state.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_receipt_awaiting_inspection_is_released_days_later
+    note: "A package of 12 received blocked for inspection reserves nothing; quality releases 10 and the order reserves 10, 2 stay blocked."
+  - reference: packages/reality-core/tests/test_stock_block_readers.py
+    note: Every availability reader holds blocked stock back (spec 304).
 - id: H16
   section: Goods receipt and supplier deviations
   title: Receipt for a customer-specific purchase (cross-docking)
@@ -3421,23 +3461,36 @@ entries:
   section: Warehouse and stock
   title: Expired stock blocked and scrapped
   question: Excluded from availability, then scrapped?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Excluded from availability, then scrapped?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Excluded from availability, then scrapped? An expired lot is reported as Stock expired with where it lies; blocking it from the finding holds it back and clears the finding, and scrapping it writes it off with one adjustment."
   limitations:
-  - Expired lots are reported but deliberately stay available.
-  - Scrapping is an ordinary stock adjustment.
-  keywords: []
+  - The expiry date blocks nothing by itself; a person blocks the lot.
+  - There is no first-expiring-first-out allocation.
+  keywords:
+  - expired stock
+  - scrap expired
+  - write off expired lot
+  - abgelaufener Bestand
+  - abgelaufene Charge verschrotten
+  - Ablauf sperren
   question_examples:
   - Expired stock blocked and scrapped
   - Excluded from availability, then scrapped?
-  tools: []
+  - How do we block and scrap an expired batch?
+  - Wie sperren und verschrotten wir eine abgelaufene Charge?
+  tools:
+  - exceptions
+  - stock_block_propose
+  - stock_block_scrap_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_inventory_tracking_reservations.py::test_expiry_blocks_nothing; tests/operational_exceptions/test_derivation.py::test_stock_expired
-    note: Expired lots are reported (`stock_expired`) but deliberately not excluded from availability; scrapping is a plain adjustment.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_expired_lot_is_blocked_from_its_finding_and_scrapped
+    note: "An expired lot of 6 is named with its location; blocking it from the finding clears the finding and leaves nothing available; scrapping it writes the 6 off."
+  - reference: packages/reality-core/tests/test_stock_block_readers.py
+    note: Every availability reader holds blocked stock back (spec 304).
 - id: J06
   section: Warehouse and stock
   title: Negative stock because shipment was booked before receipt

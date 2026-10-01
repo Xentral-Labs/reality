@@ -49,8 +49,8 @@
 
 ## Phase 6: Stories and Guide (FR-005)
 
-- [ ] T012 Stories B05, H08, H15 and J05.
-- [ ] T013 Promotion, routing check, coverage, roadmap, matrix, `docs/features/inventory.md` and `make docs-generate`.
+- [x] T012 Stories B05, H08, H15 and J05.
+- [x] T013 Promotion, routing check, coverage, roadmap, matrix, `docs/features/inventory.md` and `make docs-generate`.
 
 ## Phase 7: Verification
 

@@ -24,6 +24,7 @@ from reality.services.core import (
     create_commitment,
     create_item,
     create_location,
+    create_lot,
     create_party,
     fulfilled_quantity,
     location_detail,
@@ -981,3 +982,192 @@ def test_a_goodwill_refund_is_paid_while_the_return_is_still_expected(
     arrive(1, 12)
     assert announcement_outstanding(session, tenant, announcement) == 0
     assert _findings_at(session, business, AS_OF + timedelta(days=13), watched) == set()
+
+
+# --- spec 304: blocked stock -----------------------------------------------------------
+
+
+def _confirmed(session, business, tool, arguments):
+    from reality.tools.application import create_change_proposal
+
+    proposal = create_change_proposal(session, business.tenant.id, tool, arguments)
+    executed = approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, confirmed=True
+    )
+    assert executed.status == "executed"
+    return json.loads(executed.output)
+
+
+def _active_blocks(session, business):
+    from reality.services.stock_blocks import stock_blocks
+
+    return stock_blocks(session, business.tenant.id)
+
+
+def test_blocked_stock_is_not_available_until_quality_releases_it(session, business):
+    """B05: is blocked stock excluded from availability?"""
+    opening_stock(session, business, "20")
+    _confirmed(
+        session,
+        business,
+        "stock_block",
+        {
+            "item_id": business.item.id,
+            "location_id": business.location.id,
+            "quantity": "5",
+            "reason_code": "quality",
+            "note": "scratched housings",
+        },
+    )
+    assert position(session, business, business.location)["available"] == 15
+
+    # An order for 20 gets the 15 that are free; the 5 stay blocked.
+    commitment = customer_commitment(
+        session, business, business.customer, business.location, "20"
+    )
+    _reviewed(session, business, "reserve", {"commitment_id": commitment.id}, "b05-1")
+    assert reserved_for(session, business, commitment) == 15
+
+    # Quality releases them, saying why; they are reserved for the order.
+    (block,) = _active_blocks(session, business)
+    assert (block["quantity"], block["reason_code"]) == ("5", "quality")
+    _confirmed(
+        session,
+        business,
+        "stock_block_release",
+        {"block_id": block["id"], "reason": "rework passed QC"},
+    )
+    assert _active_blocks(session, business) == []
+    _reviewed(session, business, "reserve", {"commitment_id": commitment.id}, "b05-2")
+    assert reserved_for(session, business, commitment) == 20
+    (released,) = events_about(session, business, "stock_block.released", block["id"])
+    assert json.loads(released.payload)["reason"] == "rework passed QC"
+
+
+def test_damaged_goods_are_received_blocked_and_scrapped(session, business):
+    """H08: damaged goods, part to quarantine."""
+    _reviewed(
+        session,
+        business,
+        "movement_create",
+        {
+            "movement_type": "receipt",
+            "item_id": business.item.id,
+            "quantity": "20",
+            "to_location_id": business.location.id,
+            "blocked_quantity": "5",
+            "block_reason": "damage",
+        },
+        "h08-receipt",
+    )
+    assert position(session, business, business.location) == {
+        "physical": Decimal(20),
+        "reserved": Decimal(0),
+        "available": Decimal(15),
+    }
+
+    (block,) = _active_blocks(session, business)
+    _confirmed(
+        session,
+        business,
+        "stock_block_scrap",
+        {"block_id": block["id"], "reason": "crushed in transit"},
+    )
+    assert position(session, business, business.location)["physical"] == 15
+    assert _active_blocks(session, business) == []
+
+
+def test_a_receipt_awaiting_inspection_is_released_days_later(session, business):
+    """H15: received but not released?"""
+    _reviewed(
+        session,
+        business,
+        "shipment_receive",
+        {
+            "purpose": "supplier_delivery",
+            "counterparty_id": business.supplier.id,
+            "tracking_number": "H15-1",
+            "movements": [
+                {
+                    "item_id": business.item.id,
+                    "to_location_id": business.location.id,
+                    "quantity": "12",
+                    "blocked_quantity": "12",
+                    "block_reason": "inspection",
+                }
+            ],
+        },
+        "h15-receipt",
+    )
+    commitment = customer_commitment(
+        session, business, business.customer, business.location, "12"
+    )
+    # Received, but nothing can be reserved while inspection holds it.
+    _reviewed(session, business, "reserve", {"commitment_id": commitment.id}, "h15-1")
+    assert reserved_for(session, business, commitment) == 0
+    assert position(session, business, business.location)["available"] == 0
+
+    # Days later quality releases ten and rejects two.
+    (block,) = _active_blocks(session, business)
+    _confirmed(
+        session,
+        business,
+        "stock_block_release",
+        {"block_id": block["id"], "quantity": "10", "reason": "inspection passed"},
+    )
+    (rest,) = _active_blocks(session, business)
+    assert rest["quantity"] == "2"
+    _reviewed(session, business, "reserve", {"commitment_id": commitment.id}, "h15-2")
+    assert reserved_for(session, business, commitment) == 10
+
+
+def test_an_expired_lot_is_blocked_from_its_finding_and_scrapped(session, business):
+    """J05: excluded from availability, then scrapped?"""
+    from datetime import date
+
+    tenant = business.tenant.id
+    item = create_item(session, tenant, "MILK-J05", "Milk", tracking_type="lot")
+    lot = create_lot(session, tenant, item.id, "J05-1", expires_at=date(2020, 1, 1))
+    record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        item.id,
+        "6",
+        to_location_id=business.location.id,
+        lot_id=lot.id,
+    )
+
+    def expired():
+        return {
+            row.record_id: row
+            for row in operational_exceptions(session, tenant)
+            if row.class_id == "stock_expired"
+        }
+
+    finding = expired()[lot.id]
+    (where,) = finding.trace["locations"]
+    _confirmed(
+        session,
+        business,
+        "stock_block",
+        {
+            "item_id": item.id,
+            "location_id": where["location_id"],
+            "lot_id": lot.id,
+            "quantity": where["quantity"],
+            "reason_code": "expiry",
+        },
+    )
+    # Blocked, the lot is no longer reported, and nothing of it is available.
+    assert lot.id not in expired()
+    assert position(session, business, business.location, item=item)["available"] == 0
+
+    (block,) = _active_blocks(session, business)
+    _confirmed(
+        session,
+        business,
+        "stock_block_scrap",
+        {"block_id": block["id"], "reason": "expired"},
+    )
+    assert position(session, business, business.location, item=item)["physical"] == 0

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:334d47d226d8919e90b4333303b4568d64c47eac70b6fc3e711ec25e331533ce",
+  "knowledge_version": "advisor-v1:sha256:eb9d21df8f871f9afdc0e67923926e8936c0cd025510780fc0cfd7abf8c08a9e",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -261,7 +261,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#B05",
-      "fingerprint": "3117d7c0e53c503e184b5231a33fb44c5db6b08ea6194af9ee9c7aa2b6927ab8"
+      "fingerprint": "57202c839ccb6ebd3895d65ce564764a8f2f46bf2da791e0de5e63d5433c2dec"
     },
     {
       "id": "source_journey_b06",
@@ -1161,7 +1161,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H08",
-      "fingerprint": "eadb9c8a7f75505530a8bbf41ca8db927ca23acbd9073bdc5b57153eeadf4a6b"
+      "fingerprint": "48b46b86e2732836dae04d054de39df007413ae71cede5ce5cbd05f88992a9cb"
     },
     {
       "id": "source_journey_h09",
@@ -1224,7 +1224,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H15",
-      "fingerprint": "593fba913325209e20631eca64fd64738eedaf0d9ca9e2e6e2a89dbb1dd57cac"
+      "fingerprint": "71a207abcf699f9e9b3a540749f6d9fc16e28d4a3ccc801d5c4233def6883588"
     },
     {
       "id": "source_journey_h16",
@@ -1413,7 +1413,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#J05",
-      "fingerprint": "1dd13dcb600a73a366ac57d8e3482cb807b772c395c00b6e6548197441e5757f"
+      "fingerprint": "23d4b826b2fdf8b837fe46ed9aef9e42326b4361123db8c41dc26b0636fea100"
     },
     {
       "id": "source_journey_j06",
@@ -2584,18 +2584,22 @@
       "source_id": "source_journey_b05",
       "subject": "Availability, reservation and backorder",
       "title": "Stock exists but is blocked (quality, quarantine, expiry)",
-      "search_text": "B05 Availability, reservation and backorder Stock exists but is blocked (quality, quarantine, expiry) Is blocked stock excluded from availability? Stock exists but is blocked (quality, quarantine, expiry) Is blocked stock excluded from availability?",
-      "claim_text": "Reality evaluates: Is blocked stock excluded from availability?",
-      "support": "limited",
+      "search_text": "B05 Availability, reservation and backorder Stock exists but is blocked (quality, quarantine, expiry) Is blocked stock excluded from availability? blocked stock quality hold gesperrter Bestand Sperrbestand Qualitätssperre Stock exists but is blocked (quality, quarantine, expiry) Is blocked stock excluded from availability? Some stock is on quality hold; can it still be reserved? Ein Teil des Bestands ist qualitätsgesperrt, kann er trotzdem reserviert werden?",
+      "claim_text": "Reality evaluates: Is blocked stock excluded from availability? Stock is blocked where it lies with a reason (quality, damage, expiry, inspection), optionally by lot or pallet; it stays physically there and is excluded from availability, reservation, shipping and transfer until it is released or scrapped through the review.",
+      "support": "proven",
       "limitations": [
-        "There is no blocked-stock state; stock is excluded from availability only by moving it to another location, such as a quarantine location.",
-        "Expired stock deliberately stays available."
+        "Nothing blocks by itself: an expired lot is reported and blocked by a person.",
+        "Quality management workflows beyond block, release and scrap are not modelled."
       ],
       "references": [
-        "B05"
+        "B05",
+        "stock_block_propose",
+        "stock_blocks",
+        "stock_block_release_propose",
+        "reservation_propose"
       ],
       "language": "en",
-      "fingerprint": "dcf74a5b1fb9dfeeb104bae798e97bef9569d02557a2bc00d1d26a48c06ef01c"
+      "fingerprint": "ae156ffefd454d62ff7a66c519b5855b3bd7882996fb52f0116b689dfad4a3e1"
     },
     {
       "id": "evidence_journey_b06",
@@ -4281,18 +4285,20 @@
       "source_id": "source_journey_h08",
       "subject": "Goods receipt and supplier deviations",
       "title": "Damaged goods, part to quarantine",
-      "search_text": "H08 Goods receipt and supplier deviations Damaged goods, part to quarantine Quarantine not available? Damaged goods, part to quarantine Quarantine not available?",
-      "claim_text": "Reality evaluates: Quarantine not available?",
-      "support": "unavailable",
+      "search_text": "H08 Goods receipt and supplier deviations Damaged goods, part to quarantine Quarantine not available? damaged goods receipt receive damaged part quarantine at receipt quarantine not available Quarantäne beschädigte Ware Wareneingang beschädigt Teilmenge sperren Damaged goods, part to quarantine Quarantine not available? Five of twenty arrived damaged; how do we keep them out of stock? Fünf von zwanzig kamen beschädigt an, wie halten wir sie aus dem verfügbaren Bestand?",
+      "claim_text": "Reality evaluates: Quarantine not available? A reviewed receipt can block the damaged part of what it brings in, in the same confirmation; the blocked part is in stock but not available, and is scrapped or released later.",
+      "support": "proven",
       "limitations": [
-        "Warehouse locations have no availability status, so incoming goods cannot be put into quarantine.",
-        "Moving them to a separate location is the only way to keep them apart."
+        "The damage itself is stated as a reason and note, not as a structured inspection record."
       ],
       "references": [
-        "H08"
+        "H08",
+        "movement_create_propose",
+        "shipment_receive_propose",
+        "stock_block_scrap_propose"
       ],
       "language": "en",
-      "fingerprint": "969128fe026709bf13e1c53355768175fd2ea8a8f76ab5f7133f0c9006207fad"
+      "fingerprint": "59c82a484ad0db2653b6a799ed3a25a4a982e53a473f073edfa48bacd1da5886"
     },
     {
       "id": "evidence_journey_h09",
@@ -4391,17 +4397,20 @@
       "source_id": "source_journey_h15",
       "subject": "Goods receipt and supplier deviations",
       "title": "Quality inspection releases days later",
-      "search_text": "H15 Goods receipt and supplier deviations Quality inspection releases days later Received but not released? Quality inspection releases days later Received but not released?",
-      "claim_text": "Reality evaluates: Received but not released?",
-      "support": "unavailable",
+      "search_text": "H15 Goods receipt and supplier deviations Quality inspection releases days later Received but not released? quality inspection inspection hold received not released Wareneingangsprüfung Prüfsperre Freigabe nach Prüfung Quality inspection releases days later Received but not released? The goods arrived but are awaiting inspection; are they available? Die Ware ist eingegangen, wartet aber auf die Prüfung, ist sie verfügbar?",
+      "claim_text": "Reality evaluates: Received but not released? A package can be received entirely blocked for inspection: it is in stock but nothing is reservable until quality releases it, wholly or partly, through the review.",
+      "support": "proven",
       "limitations": [
-        "There is no inspection hold: goods are either received and available or not received."
+        "Inspection results are stated as release or scrap reasons, not as a structured test record."
       ],
       "references": [
-        "H15"
+        "H15",
+        "shipment_receive_propose",
+        "stock_blocks",
+        "stock_block_release_propose"
       ],
       "language": "en",
-      "fingerprint": "1e76d191de6b2ccafbf61263f38671311b69f1d34a4cb828bbcb2193a8cda721"
+      "fingerprint": "93ad60ea3ac5f8c78e4e38179821879bc6979a99b78b086e07ad8d54aae75db9"
     },
     {
       "id": "evidence_journey_h16",
@@ -4738,18 +4747,21 @@
       "source_id": "source_journey_j05",
       "subject": "Warehouse and stock",
       "title": "Expired stock blocked and scrapped",
-      "search_text": "J05 Warehouse and stock Expired stock blocked and scrapped Excluded from availability, then scrapped? Expired stock blocked and scrapped Excluded from availability, then scrapped?",
-      "claim_text": "Reality evaluates: Excluded from availability, then scrapped?",
-      "support": "limited",
+      "search_text": "J05 Warehouse and stock Expired stock blocked and scrapped Excluded from availability, then scrapped? expired stock scrap expired write off expired lot abgelaufener Bestand abgelaufene Charge verschrotten Ablauf sperren Expired stock blocked and scrapped Excluded from availability, then scrapped? How do we block and scrap an expired batch? Wie sperren und verschrotten wir eine abgelaufene Charge?",
+      "claim_text": "Reality evaluates: Excluded from availability, then scrapped? An expired lot is reported as Stock expired with where it lies; blocking it from the finding holds it back and clears the finding, and scrapping it writes it off with one adjustment.",
+      "support": "proven",
       "limitations": [
-        "Expired lots are reported but deliberately stay available.",
-        "Scrapping is an ordinary stock adjustment."
+        "The expiry date blocks nothing by itself; a person blocks the lot.",
+        "There is no first-expiring-first-out allocation."
       ],
       "references": [
-        "J05"
+        "J05",
+        "exceptions",
+        "stock_block_propose",
+        "stock_block_scrap_propose"
       ],
       "language": "en",
-      "fingerprint": "7c0210109dd101abb5fe7f7e1909c1a5b41dc5e80310431b3a261e43b7cc29cc"
+      "fingerprint": "56060012264d1aed147fabb41563146e5a0e711162cb78776a0d72851e81013a"
     },
     {
       "id": "evidence_journey_j06",
