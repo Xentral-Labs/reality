@@ -24600,12 +24600,41 @@ Object.assign(dictionaries.de, {
   "Why it waits": "Warum es wartet",
   "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
   "Invoiced and not shipped": "Fakturiert, nicht versandt",
+  "This reorder point changed after it was reviewed; review it again.":
+    "Dieser Meldebestand wurde nach der Prüfung geändert; prüfe ihn erneut.",
+  "Only an active stocked item can have a reorder point.":
+    "Nur ein aktiver Lagerartikel kann einen Meldebestand haben.",
+  "A reorder point needs an active location that holds stock.":
+    "Ein Meldebestand braucht einen aktiven Lagerort, der Bestand führt.",
+  "This item has no reorder point at this location.":
+    "Dieser Artikel hat an diesem Lagerort keinen Meldebestand.",
+  "Enter a reorder point of zero or more and a reorder quantity above zero, each with at most four decimal places.":
+    "Gib einen Meldebestand von null oder mehr und eine Bestellmenge über null an, jeweils mit höchstens vier Nachkommastellen.",
   "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
     "Diese Bestellung wurde erfasst, bevor Einkäufe in der Lagereinheit geführt wurden; buche den Wareneingang in der Einheit ihrer Bestellzeile.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
     "Nur ein Wareneingang kann in der Einkaufseinheit des Artikels angegeben werden, und nur in dieser; alles andere wird in der Lagereinheit erfasst.",
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
     "Eine Bestellzeile steht in der Lagereinheit des Artikels oder in seiner Einkaufseinheit mit angegebenem Umrechnungsfaktor.",
+  "After confirming": "Nach der Bestätigung",
+  "Change reorder point": "Meldebestand ändern",
+  "Choose a location": "Lagerort wählen",
+  "No reorder point": "Kein Meldebestand",
+  "No reorder point is stated for this item.":
+    "Für diesen Artikel ist kein Meldebestand angegeben.",
+  "Prepare purchase order": "Bestellung vorbereiten",
+  "Remove reorder point": "Meldebestand entfernen",
+  "Reorder point": "Meldebestand",
+  "Reorder point removed.": "Meldebestand entfernt.",
+  "Reorder point saved.": "Meldebestand gespeichert.",
+  "Reorder points": "Meldebestände",
+  "Reorder quantity": "Bestellmenge",
+  "Set reorder point": "Meldebestand festlegen",
+  "When available plus incoming stock at the location falls to the reorder point, Exceptions proposes the reorder quantity. Nothing is ordered without your confirmation.":
+    "Sinkt der verfügbare Bestand plus Zulauf am Lagerort auf den Meldebestand, schlägt Ausnahmen die Bestellmenge vor. Ohne deine Bestätigung wird nichts bestellt.",
+  "Reorder point reached": "Meldebestand erreicht",
+  "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
+    "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
   "Item oversold": "Artikel überverkauft",
   "As stated": "Wie angegeben",
   "Customer deadline at risk": "Liefertermin gefährdet",
@@ -24655,12 +24684,40 @@ Object.assign(dictionaries.nl, {
   "Why it waits": "Waarom het wacht",
   "Order line with unknown item": "Orderregel met onbekend artikel",
   "Invoiced and not shipped": "Gefactureerd, niet verzonden",
+  "This reorder point changed after it was reviewed; review it again.":
+    "Dit bestelpunt is na de controle gewijzigd; controleer het opnieuw.",
+  "Only an active stocked item can have a reorder point.":
+    "Alleen een actief voorraadartikel kan een bestelpunt hebben.",
+  "A reorder point needs an active location that holds stock.":
+    "Een bestelpunt heeft een actieve locatie met voorraad nodig.",
+  "This item has no reorder point at this location.":
+    "Dit artikel heeft op deze locatie geen bestelpunt.",
+  "Enter a reorder point of zero or more and a reorder quantity above zero, each with at most four decimal places.":
+    "Geef een bestelpunt van nul of meer en een bestelhoeveelheid boven nul op, elk met hoogstens vier decimalen.",
   "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
     "Deze bestelling is vastgelegd voordat inkopen in de voorraadeenheid werden bijgehouden; boek de ontvangst in de eenheid van de orderregel.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
     "Alleen een ontvangst kan in de inkoopeenheid van het artikel worden opgegeven, en alleen in die eenheid; al het andere wordt in de voorraadeenheid vastgelegd.",
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
     "Een inkoopregel staat in de voorraadeenheid van het artikel of in de inkoopeenheid met een opgegeven omrekenfactor.",
+  "After confirming": "Na bevestiging",
+  "Change reorder point": "Bestelpunt wijzigen",
+  "Choose a location": "Kies een locatie",
+  "No reorder point": "Geen bestelpunt",
+  "No reorder point is stated for this item.": "Voor dit artikel is geen bestelpunt opgegeven.",
+  "Prepare purchase order": "Inkooporder voorbereiden",
+  "Remove reorder point": "Bestelpunt verwijderen",
+  "Reorder point": "Bestelpunt",
+  "Reorder point removed.": "Bestelpunt verwijderd.",
+  "Reorder point saved.": "Bestelpunt opgeslagen.",
+  "Reorder points": "Bestelpunten",
+  "Reorder quantity": "Bestelhoeveelheid",
+  "Set reorder point": "Bestelpunt instellen",
+  "When available plus incoming stock at the location falls to the reorder point, Exceptions proposes the reorder quantity. Nothing is ordered without your confirmation.":
+    "Als de beschikbare plus inkomende voorraad op de locatie tot het bestelpunt daalt, stelt Uitzonderingen de bestelhoeveelheid voor. Zonder jouw bevestiging wordt niets besteld.",
+  "Reorder point reached": "Bestelpunt bereikt",
+  "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
+    "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
   "Item oversold": "Artikel oververkocht",
   "As stated": "Zoals opgegeven",
   "Customer deadline at risk": "Leverdatum in gevaar",
@@ -24710,12 +24767,41 @@ Object.assign(dictionaries.es, {
   "Why it waits": "Por qué espera",
   "Order line with unknown item": "Línea de pedido con artículo desconocido",
   "Invoiced and not shipped": "Facturado y no enviado",
+  "This reorder point changed after it was reviewed; review it again.":
+    "Este punto de pedido cambió después de revisarlo; revísalo de nuevo.",
+  "Only an active stocked item can have a reorder point.":
+    "Solo un artículo de stock activo puede tener un punto de pedido.",
+  "A reorder point needs an active location that holds stock.":
+    "Un punto de pedido necesita una ubicación activa que tenga stock.",
+  "This item has no reorder point at this location.":
+    "Este artículo no tiene punto de pedido en esta ubicación.",
+  "Enter a reorder point of zero or more and a reorder quantity above zero, each with at most four decimal places.":
+    "Indica un punto de pedido de cero o más y una cantidad de pedido mayor que cero, cada uno con cuatro decimales como máximo.",
   "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
     "Este pedido se registró antes de que las compras se llevaran en la unidad de stock; registra la recepción en la unidad de su línea de pedido.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
     "Solo una recepción puede indicarse en la unidad de compra del artículo, y solo en esa; todo lo demás se registra en la unidad de existencias.",
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
     "Una línea de compra está en la unidad de existencias del artículo o en su unidad de compra con un factor de conversión indicado.",
+  "After confirming": "Tras confirmar",
+  "Change reorder point": "Cambiar punto de pedido",
+  "Choose a location": "Elige una ubicación",
+  "No reorder point": "Sin punto de pedido",
+  "No reorder point is stated for this item.":
+    "Este artículo no tiene ningún punto de pedido indicado.",
+  "Prepare purchase order": "Preparar pedido de compra",
+  "Remove reorder point": "Eliminar punto de pedido",
+  "Reorder point": "Punto de pedido",
+  "Reorder point removed.": "Punto de pedido eliminado.",
+  "Reorder point saved.": "Punto de pedido guardado.",
+  "Reorder points": "Puntos de pedido",
+  "Reorder quantity": "Cantidad de pedido",
+  "Set reorder point": "Fijar punto de pedido",
+  "When available plus incoming stock at the location falls to the reorder point, Exceptions proposes the reorder quantity. Nothing is ordered without your confirmation.":
+    "Cuando el stock disponible más el entrante en la ubicación baja al punto de pedido, Incidencias propone la cantidad de pedido. Nada se pide sin tu confirmación.",
+  "Reorder point reached": "Punto de pedido alcanzado",
+  "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
+    "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",
   "Item oversold": "Artículo sobrevendido",
   "As stated": "Según lo indicado",
   "Customer deadline at risk": "Plazo de entrega en riesgo",

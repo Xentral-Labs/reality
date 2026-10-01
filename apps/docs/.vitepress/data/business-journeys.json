@@ -2359,19 +2359,36 @@
       "section": "Purchasing: demand and purchase order",
       "title": "Reorder for stock at reorder point",
       "question": "Is the demand explained?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Is the demand explained?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the demand explained? An item states a reorder point and quantity per location; when available plus incoming stock there falls to the point, Reorder point reached proposes the quantity, in cartons when it divides, with the supplier and price when one purchase price list names them, and the buyer orders it through the reviewed purchase order.",
       "limitations": [
-        "The purpose of a stock purchase can be stated.",
-        "There is no reorder point and nothing triggers a reorder."
+        "The reorder quantity is fixed; there is no maximum level to order up to and no forecast.",
+        "A supplier is proposed only when exactly one purchase price list prices the item; otherwise the buyer chooses.",
+        "Nothing is ordered automatically; every purchase is confirmed by a person."
       ],
-      "keywords": [],
+      "keywords": [
+        "reorder point",
+        "minimum stock",
+        "replenishment proposal",
+        "reorder suggestion",
+        "Meldebestand",
+        "Mindestbestand",
+        "Bestellvorschlag",
+        "Nachbestellen"
+      ],
       "question_examples": [
         "Reorder for stock at reorder point",
-        "Is the demand explained?"
+        "Is the demand explained?",
+        "Which items have fallen below their reorder point and need to be reordered?",
+        "Welche Artikel haben den Meldebestand erreicht und müssen nachbestellt werden?"
       ],
-      "tools": [],
+      "tools": [
+        "reorder_point_set_propose",
+        "reorder_points",
+        "exceptions",
+        "order_create_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

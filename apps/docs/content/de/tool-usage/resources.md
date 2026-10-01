@@ -10,10 +10,10 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 8        | 2         |
-| [Artikel](#resource-item)                                      | 5      | 4        | 4         |
+| [Artikel](#resource-item)                                      | 5      | 6        | 5         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 8      | 12       | 12        |
+| [Auftrag](#resource-order)                                     | 8      | 14       | 12        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
@@ -131,11 +131,14 @@ hier.
 - [Artikel ändern](./commands#command-update_item) (`update_item`)
 - [Stammdatensatz aktivieren oder deaktivieren](./commands#command-set_master_data_active)
   (`set_master_data_active`)
+- [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
+- [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Zulauf einem Kundenbedarf zuordnen](./commands#command-assign_supply) (`assign_supply`)
 
 **Nachschlagen**
 
 - [Bestand zu Anschaffungskosten anzeigen](./commands#command-inventory_cost) (`inventory_cost`)
+- [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 
 **Klärfälle**
 
@@ -146,12 +149,15 @@ hier.
 - [Anschaffungskosten fehlen](./exceptions#exception-missing_acquisition_cost)
   (`missing_acquisition_cost`)
 - [Artikel überverkauft](./exceptions#exception-item_oversold) (`item_oversold`)
+- [Meldebestand erreicht](./exceptions#exception-reorder_point_reached) (`reorder_point_reached`)
 
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Stammdaten und Quellen](./processes#process-master_data)
 
-**Darunter:** Tabellen: `item`, `supply_assignment` · Events:
+**Darunter:** Tabellen: `item`, `supply_assignment`, `item_reorder_point` · Events:
 [`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
+[`reorder_point.set`](./events#event-reorder_point-set),
+[`reorder_point.removed`](./events#event-reorder_point-removed),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agenten-Tools ohne
 Geschäftsaktion: [`inventory_read`](./commands#tool-inventory_read),
 [`item_supply_demand`](./commands#tool-item_supply_demand),
@@ -273,6 +279,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Liefersperre setzen oder aufheben](./commands#command-hold_party_delivery)
   (`hold_party_delivery`)
 - [Kreditsperre freigeben](./commands#command-release_credit_holds) (`release_credit_holds`)
+- [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
+- [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Alte Verpflichtungen schließen](./commands#command-close_stale_promises) (`close_stale_promises`)
 - [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
@@ -280,6 +288,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 **Nachschlagen**
 
+- [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Monatsabschluss Fakturierung anzeigen](./commands#command-month_end_billing)
   (`month_end_billing`)
@@ -316,6 +325,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 **Darunter:** Tabellen: `commitment`, `commitment_hold`, `commitment_revision`, `reservation` ·
 Events: [`order.recorded`](./events#event-order-recorded),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
+[`reorder_point.set`](./events#event-reorder_point-set),
+[`reorder_point.removed`](./events#event-reorder_point-removed),
 [`commitment.created`](./events#event-commitment-created),
 [`commitment.cancelled`](./events#event-commitment-cancelled),
 [`commitment.revised`](./events#event-commitment-revised),

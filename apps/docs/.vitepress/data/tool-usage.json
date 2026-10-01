@@ -222,7 +222,7 @@
         "Lagerbestand",
         "Verfügbarkeit"
       ],
-      "tables": ["item", "supply_assignment"],
+      "tables": ["item", "supply_assignment", "item_reorder_point"],
       "lists": [
         "view:inventory",
         "view:items",
@@ -234,14 +234,17 @@
         "command:create_item",
         "command:update_item",
         "command:set_master_data_active",
+        "command:set_reorder_point",
+        "command:remove_reorder_point",
         "command:assign_supply"
       ],
-      "reads": ["command:inventory_cost"],
+      "reads": ["command:inventory_cost", "command:reorder_points"],
       "exceptions": [
         "exception:units_not_comparable",
         "exception:reservation_exceeds_stock",
         "exception:missing_acquisition_cost",
-        "exception:item_oversold"
+        "exception:item_oversold",
+        "exception:reorder_point_reached"
       ],
       "tools": [
         "tool:inventory_read",
@@ -249,7 +252,13 @@
         "tool:supply_coverage",
         "tool:graph_inventory_reviews_list"
       ],
-      "events": ["event:item.created", "event:item.updated", "event:master_data.lifecycle_changed"],
+      "events": [
+        "event:item.created",
+        "event:item.updated",
+        "event:reorder_point.set",
+        "event:reorder_point.removed",
+        "event:master_data.lifecycle_changed"
+      ],
       "workspace_actions": []
     },
     {
@@ -394,11 +403,14 @@
         "command:hold_document_commitments",
         "command:hold_party_delivery",
         "command:release_credit_holds",
+        "command:set_reorder_point",
+        "command:remove_reorder_point",
         "command:close_stale_promises",
         "command:record_packaged_execution",
         "command:assign_line_item"
       ],
       "reads": [
+        "command:reorder_points",
         "command:credit_exposure",
         "command:month_end_billing",
         "command:preview_stale_promise_closure"
@@ -427,6 +439,8 @@
       "events": [
         "event:order.recorded",
         "event:party.delivery_hold_placed",
+        "event:reorder_point.set",
+        "event:reorder_point.removed",
         "event:commitment.created",
         "event:commitment.cancelled",
         "event:commitment.revised",
@@ -1711,7 +1725,7 @@
           "name": "tool_name",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Name of the application tool whose arguments are reviewed.",
           "depth": 0
         }
       ],
@@ -9643,6 +9657,143 @@
       "links": [],
       "label_de": "Supply coverage",
       "resources": ["item"]
+    },
+    {
+      "id": "tool:reorder_points",
+      "kind": "tool",
+      "key": "reorder_points",
+      "label": "Reorder points",
+      "area": "orders",
+      "summary": "Read the reorder points the company stated: per item and location, the stock level it reorders at and the quantity it then orders, in the item's stock unit. Which are reached is the exception class reorder_point_reached.",
+      "access": "read",
+      "group": "Purchasing",
+      "synopsis": "reorder_points [item_id] [location_id]",
+      "parameters": [
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "List the reorder points the company stated, per item and location, with the reorder quantity.",
+        "use_when": [
+          "Someone asks at which stock level an item is reordered",
+          "or before changing a reorder point."
+        ],
+        "do_not_use_when": [
+          "The question is which items need reordering now; read the exception reorder_point_reached."
+        ],
+        "limitations": [
+          "Values are in the item's stock unit; whether a point is reached is derived by the exception class",
+          "not stored here."
+        ],
+        "empty_result": "The company has stated no reorder point for the selection.",
+        "freshness": "Read from the stated points at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP reorder_points",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "reorder_points",
+      "projections": [],
+      "links": ["command:reorder_points"],
+      "label_de": "Reorder points",
+      "resources": ["item", "order"]
+    },
+    {
+      "id": "tool:reorder_point_set_propose",
+      "kind": "tool",
+      "key": "reorder_point_set_propose",
+      "label": "Set reorder point",
+      "area": "orders",
+      "summary": "Prepare the reorder point and reorder quantity of an item at a location, in the item's stock unit, for confirmation. The review shows the current values beside the new ones; confirming refuses if the point changed meanwhile.",
+      "access": "propose",
+      "group": "Purchasing",
+      "synopsis": "reorder_point_set_propose item_id location_id reorder_point reorder_quantity",
+      "parameters": [
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "reorder_point",
+          "type": "string",
+          "required": true,
+          "description": "Stock level, in the item's stock unit, at or below which available plus incoming stock at the location is reported (spec 302).",
+          "depth": 0
+        },
+        {
+          "name": "reorder_quantity",
+          "type": "string",
+          "required": true,
+          "description": "Quantity, in the item's stock unit, proposed when the reorder point is reached.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "set_reorder_point",
+      "projections": [],
+      "links": ["command:set_reorder_point"],
+      "label_de": "Set reorder point",
+      "resources": ["item", "order"]
+    },
+    {
+      "id": "tool:reorder_point_remove_propose",
+      "kind": "tool",
+      "key": "reorder_point_remove_propose",
+      "label": "Remove reorder point",
+      "area": "orders",
+      "summary": "Prepare removing the reorder point of an item at a location for confirmation. The review shows the values being removed.",
+      "access": "propose",
+      "group": "Purchasing",
+      "synopsis": "reorder_point_remove_propose item_id location_id",
+      "parameters": [
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "remove_reorder_point",
+      "projections": [],
+      "links": ["command:remove_reorder_point"],
+      "label_de": "Remove reorder point",
+      "resources": ["item", "order"]
     },
     {
       "id": "tool:movement_explanation",
@@ -20786,6 +20937,87 @@
       "resources": ["order"]
     },
     {
+      "id": "command:set_reorder_point",
+      "kind": "command",
+      "key": "set_reorder_point",
+      "label": "Set a reorder point",
+      "area": "orders",
+      "summary": "States or restates the stock level at which an item is reordered at a location and the quantity then ordered, refusing a change since the review.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["item", "location", "item_reorder_point"],
+      "writes": ["item_reorder_point", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_reorder_point"],
+      "tools": ["reorder_point_set_propose"],
+      "synopses": ["reorder_point_set_propose item_id location_id reorder_point reorder_quantity"],
+      "events": ["reorder_point.set"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:reorder_point_set_propose", "event:reorder_point.set"],
+      "label_de": "Set a reorder point",
+      "resources": ["item", "order"]
+    },
+    {
+      "id": "command:remove_reorder_point",
+      "kind": "command",
+      "key": "remove_reorder_point",
+      "label": "Remove a reorder point",
+      "area": "orders",
+      "summary": "Withdraws an item's reorder point at a location; the event keeps the values it had.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["item", "location", "item_reorder_point"],
+      "writes": ["item_reorder_point", "business_event"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["reorder_point_remove_propose"],
+      "synopses": ["reorder_point_remove_propose item_id location_id"],
+      "events": ["reorder_point.removed"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:reorder_point_remove_propose", "event:reorder_point.removed"],
+      "label_de": "Remove a reorder point",
+      "resources": ["item", "order"]
+    },
+    {
+      "id": "command:reorder_points",
+      "kind": "command",
+      "key": "reorder_points",
+      "label": "Read reorder points",
+      "area": "orders",
+      "summary": "Lists the reorder points the company stated, per item and location, in the item's stock unit.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["item_reorder_point", "item", "location"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["reorder_points"],
+      "synopses": ["reorder_points [item_id] [location_id]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "List the reorder points the company stated, per item and location, with the reorder quantity.",
+        "use_when": [
+          "Someone asks at which stock level an item is reordered",
+          "or before changing a reorder point."
+        ],
+        "do_not_use_when": [
+          "The question is which items need reordering now; read the exception reorder_point_reached."
+        ],
+        "limitations": [
+          "Values are in the item's stock unit; whether a point is reached is derived by the exception class",
+          "not stored here."
+        ],
+        "empty_result": "The company has stated no reorder point for the selection.",
+        "freshness": "Read from the stated points at request time."
+      },
+      "links": ["tool:reorder_points"],
+      "label_de": "Read reorder points",
+      "resources": ["item", "order"]
+    },
+    {
       "id": "command:credit_exposure",
       "kind": "command",
       "key": "credit_exposure",
@@ -23982,6 +24214,8 @@
         "party.delivery_hold_released",
         "item.created",
         "item.updated",
+        "reorder_point.set",
+        "reorder_point.removed",
         "location.created",
         "location.updated",
         "master_data.lifecycle_changed",
@@ -24150,7 +24384,18 @@
         "party.delivery_hold_released",
         "item.created",
         "item.updated",
+        "reorder_point.set",
+        "reorder_point.removed",
         "location.updated",
+        "master_data.lifecycle_changed",
+        "price_list.updated",
+        "price_list.created",
+        "price_list_entry.created",
+        "party_price_list.assigned",
+        "party_group.updated",
+        "party_group.created",
+        "party_group_member.added",
+        "party_group_price_list.assigned",
         "document.recorded",
         "document.corrected",
         "commitment.created",
@@ -24228,7 +24473,8 @@
         "exception:payment_returned",
         "exception:order_line_price_missing",
         "exception:billed_not_shipped",
-        "exception:item_oversold"
+        "exception:item_oversold",
+        "exception:reorder_point_reached"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -24514,6 +24760,8 @@
         "party.updated",
         "item.created",
         "item.updated",
+        "reorder_point.set",
+        "reorder_point.removed",
         "location.created",
         "location.updated",
         "document.recorded",
@@ -25731,6 +25979,28 @@
       "resources": ["item"]
     },
     {
+      "id": "exception:reorder_point_reached",
+      "kind": "exception",
+      "key": "reorder_point_reached",
+      "label": "Reorder point reached",
+      "area": "orders",
+      "summary": "Stock of an item at a location has fallen to the level at which the company said it reorders. Reality takes what the location holds, less what is reserved there, adds what open supplier promises still bring to it, and compares the sum with the stated reorder point; at or below it, the entry appears. It proposes the stated reorder quantity, in the item's purchase unit when it is a whole number of them and in the stock unit otherwise, never rounded. When exactly one supplier's purchase price list prices the item, directly or through the supplier's group, the entry names that supplier and the price the price rules resolve; when several or none do, it names none and the buyer chooses. Nothing is ordered by the entry itself: the buyer prepares the purchase order from it and confirms it through the reviewed order, and its open promise then counts as incoming. A supplier promise in a unit the item relates no conversion for is left out of incoming, counted in the entry, and named by Units not comparable. A point on an item that is inactive or no longer stocked, or at a location that is inactive or holds no stock, proposes nothing until it qualifies again; an inactive supplier is never named. Item oversold is the company-wide view of demand; this is one location's own level, whatever customers have ordered.",
+      "owner": "Purchasing",
+      "clears_through": "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.",
+      "severity": "normal",
+      "record_type": "reorder_point",
+      "authority": "302/FR-002",
+      "evidence": [
+        "tests/test_reorder_point_reached.py::test_at_or_below_the_point_is_reported_and_above_is_not",
+        "tests/test_reorder_point_reached.py::test_an_open_purchase_to_the_location_counts_as_incoming",
+        "tests/test_reorder_point_reached.py::test_one_supplier_on_a_purchase_list_is_named_with_its_price"
+      ],
+      "causes": [],
+      "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
+      "label_de": "Meldebestand erreicht",
+      "resources": ["item"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -26270,6 +26540,34 @@
       "resources": ["item"]
     },
     {
+      "id": "event:reorder_point.set",
+      "kind": "event",
+      "key": "reorder_point.set",
+      "label": "reorder_point.set",
+      "area": "orders",
+      "summary": "",
+      "producer": "set_reorder_point",
+      "subject": "reorder_point",
+      "invalidates": ["Timeline", "Operational Exceptions", "Tenant usage"],
+      "links": ["command:set_reorder_point"],
+      "label_de": "reorder_point.set",
+      "resources": ["item", "order"]
+    },
+    {
+      "id": "event:reorder_point.removed",
+      "kind": "event",
+      "key": "reorder_point.removed",
+      "label": "reorder_point.removed",
+      "area": "orders",
+      "summary": "",
+      "producer": "remove_reorder_point",
+      "subject": "reorder_point",
+      "invalidates": ["Timeline", "Operational Exceptions", "Tenant usage"],
+      "links": ["command:remove_reorder_point"],
+      "label_de": "reorder_point.removed",
+      "resources": ["item", "order"]
+    },
+    {
       "id": "event:location.created",
       "kind": "event",
       "key": "location.created",
@@ -26313,7 +26611,7 @@
       "summary": "",
       "producer": "set_master_data_active",
       "subject": "master_data",
-      "invalidates": ["Inventory", "Price resolution", "Tenant usage"],
+      "invalidates": ["Inventory", "Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": ["command:set_master_data_active"],
       "label_de": "master_data.lifecycle_changed",
       "resources": ["item", "location", "party", "terms"]
@@ -26355,7 +26653,7 @@
       "summary": "",
       "producer": "update_price_list",
       "subject": "price_list",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": [],
       "label_de": "price_list.updated",
       "resources": ["terms"]
@@ -26369,7 +26667,7 @@
       "summary": "",
       "producer": "create_price_list",
       "subject": "price_list",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": ["command:create_price_list"],
       "label_de": "price_list.created",
       "resources": ["terms"]
@@ -26383,7 +26681,7 @@
       "summary": "",
       "producer": "create_price_list_entry",
       "subject": "price_list_entry",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": ["command:create_price_list_entry"],
       "label_de": "price_list_entry.created",
       "resources": ["terms"]
@@ -26397,7 +26695,7 @@
       "summary": "",
       "producer": "assign_party_price_list",
       "subject": "party_price_list",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": ["command:assign_party_price_list"],
       "label_de": "party_price_list.assigned",
       "resources": ["party", "terms"]
@@ -26411,7 +26709,7 @@
       "summary": "",
       "producer": "update_party_group",
       "subject": "party_group",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": [],
       "label_de": "party_group.updated",
       "resources": ["party"]
@@ -26425,7 +26723,7 @@
       "summary": "",
       "producer": "create_party_group",
       "subject": "party_group",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": ["command:create_party_group"],
       "label_de": "party_group.created",
       "resources": ["party", "terms"]
@@ -26439,7 +26737,7 @@
       "summary": "",
       "producer": "add_party_group_member",
       "subject": "party_group_member",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": [],
       "label_de": "party_group_member.added",
       "resources": ["party"]
@@ -26453,7 +26751,7 @@
       "summary": "",
       "producer": "assign_group_price_list",
       "subject": "party_group_price_list",
-      "invalidates": ["Price resolution", "Tenant usage"],
+      "invalidates": ["Price resolution", "Operational Exceptions", "Tenant usage"],
       "links": [],
       "label_de": "party_group_price_list.assigned",
       "resources": ["terms"]

@@ -22,7 +22,7 @@ spec 305.
 | 5 | 1 | [299 Invoiced Not Shipped, Down-Payment and Pro-Forma Invoices](../../specs/299-invoiced-not-shipped/spec.md) | E03, Q01, E11, C14 (implemented; supported) |
 | 6 | 1 | [300 Multichannel Oversell, Deadlines and Peak Intake](../../specs/300-multichannel-oversell/spec.md) | B14, L02, L07 (implemented; supported) |
 | 7 | 1 | [301 Unit Conversion Between Purchase and Sales Units](../../specs/301-unit-conversion/spec.md) | O05 (implemented; supported) |
-| 8 | 1 | [302 Reorder Point and Replenishment Proposal](../../specs/302-reorder-point/spec.md) | G02 |
+| 8 | 1 | [302 Reorder Point and Replenishment Proposal](../../specs/302-reorder-point/spec.md) | G02 (implemented; supported) |
 | 9 | 1 | [303 Orders Served From Several Warehouses](../../specs/303-multi-warehouse-orders/spec.md) | A02, B06, D02 |
 | 10 | 1 | [304 Blocked Stock and Best-Before Dates](../../specs/304-blocked-stock/spec.md) | B05, J05, H08, H15 |
 

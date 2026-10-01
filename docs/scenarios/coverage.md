@@ -2,13 +2,13 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 118 covered, 33 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 119 covered, 32 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -18,7 +18,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | D Shipment, split and merge | 4 | 3 |  | 12 |  |
 | E Customer invoice and credit | 11 | 1 |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
-| G Purchase demand and order | 6 | 6 |  | 5 |  |
+| G Purchase demand and order | 7 | 5 |  | 5 |  |
 | H Receipt and supplier deviations | 11 | 1 |  | 7 |  |
 | I Supplier invoice and payment | 10 | 1 |  | 1 |  |
 | J Warehouse and stock | 3 | 3 |  | 5 |  |
@@ -245,7 +245,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | G01 | covered | packages/reality-core/tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt; tests/scenarios/test_b2b_operational_chain.py::test_supply_and_return_reconciliations_are_exact | An explicit `customer_demand` assignment links the PO commitment to the customer commitment (`protecting_supply`). |
-| G02 | partial | tests/test_supply_assignments.py (purpose `stock_replenishment`) | The purpose of stock demand can be stated, but there is no reorder point or trigger (no `reorder` concept anywhere in src). |
+| G02 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_reorder_for_stock_at_the_reorder_point | A reorder point of 20 and quantity of 48 per warehouse: only Hamburg at 12 is proposed, 4 cartons from the one listed supplier at 54; the reviewed purchase order covers it and the entry clears; raising the point brings it back with 48 incoming (spec 302). |
 | G03 | covered | tests/scenarios/test_b2b_operational_chain.py::test_supply_and_return_reconciliations_are_exact | Asserts 10 = 6 customer + 2 stock + 2 unassigned for PO-010. |
 | G04 | gap | src/reality/db/core.py `uq_commitment_document_line_type` | Only one supplier_delivery commitment is allowed per PO line, so several schedule lines per line cannot be represented. |
 | G05 | gap | — | No framework agreement or call-off concept exists. |

@@ -58,6 +58,9 @@ billed_document_line_id|Agreed order line that this invoice line bills, if any.|
 from_party_id|Party making the promise.|Geschäftspartner, der die Zusage macht.
 to_party_id|Party receiving the promise.|Geschäftspartner, dem die Zusage gilt.
 location_id|Location associated with the promise or stock allocation.|Ort, auf den sich die Zusage oder Bestandszuordnung bezieht.
+reorder_point|Stock level at or below which the item is reordered at the location.|Bestand, bei dessen Erreichen oder Unterschreiten der Artikel am Lagerort nachbestellt wird.
+reorder_quantity|Quantity proposed when the reorder point is reached.|Menge, die beim Erreichen des Meldebestands vorgeschlagen wird.
+updated_at|UTC timestamp of the last change.|UTC-Zeitpunkt der letzten Änderung.
 amount|Amount recorded for this entry, in its currency.|Für diesen Eintrag erfasster Betrag in seiner Währung.
 due_at|Date stated for the promise; see original versus revised values above.|Genannter Zusagetermin; ursprünglicher und geänderter Wert werden oben unterschieden.
 document_line_id|Evidence line supporting this promise.|Belegposition, auf der diese Zusage beruht.

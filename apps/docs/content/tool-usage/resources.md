@@ -10,10 +10,10 @@ the technical key stands beside each one.
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 8       | 2                   |
-| [Item](#resource-item)                                           | 5     | 4       | 4                   |
+| [Item](#resource-item)                                           | 5     | 6       | 5                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
-| [Order](#resource-order)                                         | 8     | 12      | 12                  |
+| [Order](#resource-order)                                         | 8     | 14      | 12                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
@@ -126,11 +126,14 @@ derived from movements and reservations at read time, which is why the stock lis
 - [Update item](./commands#command-update_item) (`update_item`)
 - [Change master-data lifecycle](./commands#command-set_master_data_active)
   (`set_master_data_active`)
+- [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
+- [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Assign incoming supply to customer demand](./commands#command-assign_supply) (`assign_supply`)
 
 **Look up**
 
 - [Read reviewed inventory acquisition costs](./commands#command-inventory_cost) (`inventory_cost`)
+- [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 
 **Exceptions to clear**
 
@@ -140,12 +143,15 @@ derived from movements and reservations at read time, which is why the stock lis
 - [Missing acquisition cost](./exceptions#exception-missing_acquisition_cost)
   (`missing_acquisition_cost`)
 - [Item oversold](./exceptions#exception-item_oversold) (`item_oversold`)
+- [Reorder point reached](./exceptions#exception-reorder_point_reached) (`reorder_point_reached`)
 
 **Appears in processes:** [Procure to pay](./processes#process-procure_to_pay),
 [Master data and sources](./processes#process-master_data)
 
-**Underneath:** Tables: `item`, `supply_assignment` · Events:
+**Underneath:** Tables: `item`, `supply_assignment`, `item_reorder_point` · Events:
 [`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
+[`reorder_point.set`](./events#event-reorder_point-set),
+[`reorder_point.removed`](./events#event-reorder_point-removed),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agent tools
 without a command: [`inventory_read`](./commands#tool-inventory_read),
 [`item_supply_demand`](./commands#tool-item_supply_demand),
@@ -265,6 +271,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`hold_document_commitments`)
 - [Set party delivery hold](./commands#command-hold_party_delivery) (`hold_party_delivery`)
 - [Release a credit hold](./commands#command-release_credit_holds) (`release_credit_holds`)
+- [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
+- [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Close stale promises](./commands#command-close_stale_promises) (`close_stale_promises`)
 - [Dispatch or receive shipment package](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
@@ -272,6 +280,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 **Look up**
 
+- [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 - [Read the month-end billing lists](./commands#command-month_end_billing) (`month_end_billing`)
 - [Preview stale promise closure](./commands#command-preview_stale_promise_closure)
@@ -306,6 +315,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 **Underneath:** Tables: `commitment`, `commitment_hold`, `commitment_revision`, `reservation` ·
 Events: [`order.recorded`](./events#event-order-recorded),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
+[`reorder_point.set`](./events#event-reorder_point-set),
+[`reorder_point.removed`](./events#event-reorder_point-removed),
 [`commitment.created`](./events#event-commitment-created),
 [`commitment.cancelled`](./events#event-commitment-cancelled),
 [`commitment.revised`](./events#event-commitment-revised),

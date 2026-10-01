@@ -14,12 +14,48 @@ import { ProjectionFreshness } from "./ProjectionFreshness";
 import { useActionDiscovery } from "./ActionLauncher";
 import { ResolutionGuidance } from "./ResolutionGuidance";
 import { OrderLineItemCard } from "./OrderLineItemCard";
+import { OrderCard } from "./OrderCard";
 const severities = [
   ["critical", "Critical"],
   ["high", "High"],
   ["normal", "Normal"],
   ["low", "Low"],
 ] as const;
+/**
+ * Spec 302: the purchase order a reorder entry proposes, as a draft the buyer
+ * checks and completes. Amounts are left to the person; the price is offered
+ * only when the price list states it in the proposed unit.
+ */
+function replenishment(row: AttentionRow) {
+  const values = row.causal_values,
+    trace = row.trace;
+  const supplier = trace.supplier_id || "";
+  const priced = values.unit_price != null && values.price_unit === values.proposed_unit;
+  return {
+    initial: {
+      direction: "purchase",
+      ...(values.currency ? { currency: String(values.currency) } : {}),
+      counterparty_id: supplier,
+      location_id: trace.location_id || "",
+      lines: [
+        {
+          item_id: trace.item_id || "",
+          quantity: String(values.proposed_quantity ?? ""),
+          unit: String(values.proposed_unit ?? ""),
+          unit_price: priced ? String(values.unit_price) : "",
+          gross_amount: "",
+        },
+      ],
+    },
+    initialNames: Object.fromEntries(
+      [
+        [supplier, String(values.supplier || "")],
+        [trace.item_id || "", trace.item_name || ""],
+        [trace.location_id || "", trace.location_name || ""],
+      ].filter(([id, name]) => id && name),
+    ),
+  };
+}
 function OpenExceptions({
   selection,
   navigate,
@@ -37,6 +73,7 @@ function OpenExceptions({
   );
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const [assigning, setAssigning] = useState("");
+  const [ordering, setOrdering] = useState<AttentionRow | null>(null);
   const selected = detail.data?.id === exception ? detail.data : null;
   // Spec 279 FR-012: the catalog title of the class, translated; the stored title
   // only stands in for a class the catalog does not know yet.
@@ -180,6 +217,14 @@ function OpenExceptions({
                           {t("Assign item")}
                         </button>
                       )}
+                      {selected.class_id === "reorder_point_reached" && (
+                        <button
+                          className="br-btn br-btn-primary"
+                          onClick={() => setOrdering(selected)}
+                        >
+                          {t("Prepare purchase order")}
+                        </button>
+                      )}
                       <button
                         className="br-btn"
                         onClick={() => setTarget({ kind: "exception", id: selected.id })}
@@ -200,6 +245,18 @@ function OpenExceptions({
       </section>
 
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
+      {ordering && (
+        <OrderCard
+          tenant={tenant}
+          direction="purchase"
+          {...replenishment(ordering)}
+          close={() => setOrdering(null)}
+          settled={() => {
+            detail.refresh();
+            read.refresh();
+          }}
+        />
+      )}
       {assigning && (
         <OrderLineItemCard
           tenant={tenant}

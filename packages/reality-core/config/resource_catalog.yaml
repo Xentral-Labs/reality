@@ -68,11 +68,11 @@ resources:
         gespeichert, sondern beim Lesen aus Bewegungen und Reservierungen abgeleitet. Deshalb
         stehen die Bestandslisten hier.
     synonyms: [product, SKU, stock, inventory, Produkt, Bestand, Lagerbestand, Verfügbarkeit]
-    tables: [item, supply_assignment]
-    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand|supply_(assign|coverage)"
+    tables: [item, supply_assignment, item_reorder_point]
+    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand|supply_(assign|coverage)|reorder_point"
     views: [items, inventory, supply_demand]
     projections: [inventory, item_supply_demand]
-    exceptions: [units_not_comparable, reservation_exceeds_stock, item_oversold, missing_acquisition_cost]
+    exceptions: [units_not_comparable, reservation_exceeds_stock, item_oversold, reorder_point_reached, missing_acquisition_cost]
 
   - key: location
     label:
@@ -760,6 +760,7 @@ labels:
       units_not_comparable: Einheiten nicht vergleichbar
       reservation_exceeds_stock: Reservierung übersteigt Bestand
       item_oversold: Artikel überverkauft
+      reorder_point_reached: Meldebestand erreicht
       outgoing_commitment_due_soon: Liefertermin gefährdet
       silent_source: Quelle verstummt
       source_interpretation_failure: Quelle nicht interpretierbar

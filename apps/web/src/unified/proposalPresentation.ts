@@ -23,6 +23,8 @@ const proposalBusinessLabels: Record<string, string> = {
   location_update: "Update location",
   payment_term_create: "Create payment term",
   payment_term_update: "Update payment term",
+  reorder_point_set: "Set reorder point",
+  reorder_point_remove: "Remove reorder point",
 };
 
 export const proposalBusinessLabelEntries = Object.entries(proposalBusinessLabels);

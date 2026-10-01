@@ -127,6 +127,7 @@ CLASS_ORDER = {
     "order_line_price_missing": 43,
     "billed_not_shipped": 44,
     "item_oversold": 45,
+    "reorder_point_reached": 46,
 }
 
 
@@ -3237,6 +3238,359 @@ def _item_oversold_exceptions(
     return result
 
 
+def _reorder_point_reached_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Stock at a location at or below the point the company reorders at (spec 302).
+
+    Available is what the location holds less what is reserved there; incoming
+    is what open supplier promises still bring to it. Both are read for every
+    stated point at once, so the work does not grow with the points. The
+    proposal is the stated reorder quantity, in the purchase unit when it is a
+    whole number of them, and the supplier a purchase price list names when
+    exactly one does. Nothing here creates a purchase: the reviewed order does.
+    """
+    from reality.db.core import (
+        Commitment,
+        DocumentLine,
+        Item,
+        ItemReorderPoint,
+        Location,
+        Movement,
+        Party,
+        PartyGroup,
+        PartyGroupMember,
+        PartyGroupPriceList,
+        PartyPriceList,
+        PartyRole,
+        PriceList,
+        PriceListEntry,
+        Reservation,
+    )
+    from reality.services.core import resolve_price
+    from reality.services.delivery_reads import effective_value, fulfillment_expressions
+
+    points = session.execute(
+        select(ItemReorderPoint, Item, Location.name.label("location"))
+        .join(
+            Item,
+            (Item.tenant_id == ItemReorderPoint.tenant_id)
+            & (Item.id == ItemReorderPoint.item_id),
+        )
+        .join(
+            Location,
+            (Location.tenant_id == ItemReorderPoint.tenant_id)
+            & (Location.id == ItemReorderPoint.location_id),
+        )
+        .where(
+            ItemReorderPoint.tenant_id == tenant_id,
+            # What a point may be set on is what it is judged on: an item that
+            # became a service or inactive, or a place that no longer holds
+            # stock, proposes no purchase until it qualifies again.
+            Item.is_active.is_(True),
+            Item.item_type == "stocked",
+            Location.is_active.is_(True),
+            Location.allows_stock.is_(True),
+        )
+        .order_by(ItemReorderPoint.id)
+    ).all()
+    if not points:
+        return []
+    item_ids = {row.ItemReorderPoint.item_id for row in points}
+    stock: dict[tuple[str, str], Decimal] = {}
+    for column, sign in (
+        (Movement.to_location_id, Decimal(1)),
+        (Movement.from_location_id, Decimal(-1)),
+    ):
+        for item_id, location_id, quantity in session.execute(
+            select(Movement.item_id, column, func.sum(Movement.quantity))
+            .where(
+                Movement.tenant_id == tenant_id,
+                Movement.item_id.in_(item_ids),
+                column.is_not(None),
+            )
+            .group_by(Movement.item_id, column)
+        ):
+            key = (item_id, location_id)
+            stock[key] = stock.get(key, ZERO) + sign * Decimal(quantity)
+    reserved = {
+        (item_id, location_id): Decimal(quantity)
+        for item_id, location_id, quantity in session.execute(
+            select(
+                Reservation.item_id,
+                Reservation.location_id,
+                func.sum(Reservation.quantity),
+            )
+            .where(
+                Reservation.tenant_id == tenant_id,
+                Reservation.item_id.in_(item_ids),
+                Reservation.status == "active",
+            )
+            .group_by(Reservation.item_id, Reservation.location_id)
+        )
+    }
+    _, fulfilled, _ = fulfillment_expressions()
+    items = {row.Item.id: row.Item for row in points}
+    incoming: dict[tuple[str, str], Decimal] = {}
+    unconverted: dict[tuple[str, str], int] = {}
+    for row in session.execute(
+        select(
+            Commitment.item_id,
+            Commitment.location_id,
+            Commitment.unit.label("held_unit"),
+            effective_value("quantity").label("promised"),
+            fulfilled.label("fulfilled"),
+            DocumentLine.unit.label("line_unit"),
+            DocumentLine.quantity.label("line_quantity"),
+        )
+        .outerjoin(
+            DocumentLine,
+            (DocumentLine.tenant_id == Commitment.tenant_id)
+            & (DocumentLine.id == Commitment.document_line_id),
+        )
+        .where(
+            Commitment.tenant_id == tenant_id,
+            Commitment.type == "supplier_delivery",
+            Commitment.status == "open",
+            Commitment.item_id.in_(item_ids),
+        )
+    ):
+        item = items[row.item_id]
+        open_quantity = max(ZERO, Decimal(row.promised) - Decimal(row.fulfilled or 0))
+        line = (
+            SimpleNamespace(unit=row.line_unit, quantity=row.line_quantity)
+            if row.line_unit is not None
+            else None
+        )
+        # Movements against a promise are in its own unit: the open quantity is
+        # formed there and only then expressed in pieces. A promise the item
+        # relates no unit for is left out; Units not comparable names it.
+        held = promise_held_unit(row.held_unit, line, item.unit)
+        quantity = (
+            open_quantity
+            if held == item.unit
+            else _in_unit(item, open_quantity, held, item.unit)
+        )
+        key = (row.item_id, row.location_id)
+        if quantity is None and open_quantity:
+            # Named in the entry rather than silently missing from incoming.
+            unconverted[key] = unconverted.get(key, 0) + 1
+        elif quantity:
+            incoming[key] = incoming.get(key, ZERO) + quantity
+
+    def valid(*records: Any) -> bool:
+        return all(
+            (record.valid_from is None or record.valid_from <= as_of)
+            and (record.valid_until is None or record.valid_until > as_of)
+            for record in records
+        )
+
+    supplier = (
+        select(PartyRole.id)
+        .where(
+            PartyRole.tenant_id == tenant_id,
+            PartyRole.party_id == Party.id,
+            PartyRole.role == "supplier",
+        )
+        .exists()
+    )
+    listed = (
+        (PriceList.tenant_id == tenant_id)
+        & (PriceList.direction == "purchase")
+        & PriceList.is_active.is_(True)
+    )
+    priced = (
+        (PriceListEntry.tenant_id == tenant_id)
+        & (PriceListEntry.price_list_id == PriceList.id)
+        & PriceListEntry.item_id.in_(item_ids)
+    )
+    offers: list[tuple[Any, ...]] = [
+        (
+            entry.item_id,
+            party_id,
+            name,
+            (0, link.priority),
+            price_list.currency,
+            valid(link, price_list, entry),
+        )
+        for party_id, name, link, price_list, entry in session.execute(
+            select(Party.id, Party.name, PartyPriceList, PriceList, PriceListEntry)
+            .join(
+                PartyPriceList,
+                (PartyPriceList.tenant_id == Party.tenant_id)
+                & (PartyPriceList.party_id == Party.id),
+            )
+            .join(
+                PriceList,
+                (PriceList.tenant_id == PartyPriceList.tenant_id)
+                & (PriceList.id == PartyPriceList.price_list_id),
+            )
+            .join(PriceListEntry, priced)
+            .where(
+                Party.tenant_id == tenant_id,
+                Party.is_active.is_(True),
+                listed,
+                supplier,
+            )
+        )
+    ] + [
+        (
+            entry.item_id,
+            party_id,
+            name,
+            (1, link.priority),
+            price_list.currency,
+            valid(link, member, price_list, entry),
+        )
+        for party_id, name, link, member, price_list, entry in session.execute(
+            select(
+                Party.id,
+                Party.name,
+                PartyGroupPriceList,
+                PartyGroupMember,
+                PriceList,
+                PriceListEntry,
+            )
+            .join(
+                PartyGroupMember,
+                (PartyGroupMember.tenant_id == Party.tenant_id)
+                & (PartyGroupMember.party_id == Party.id),
+            )
+            .join(
+                PartyGroup,
+                (PartyGroup.tenant_id == PartyGroupMember.tenant_id)
+                & (PartyGroup.id == PartyGroupMember.party_group_id)
+                & PartyGroup.is_active.is_(True),
+            )
+            .join(
+                PartyGroupPriceList,
+                (PartyGroupPriceList.tenant_id == PartyGroup.tenant_id)
+                & (PartyGroupPriceList.party_group_id == PartyGroup.id),
+            )
+            .join(
+                PriceList,
+                (PriceList.tenant_id == PartyGroupPriceList.tenant_id)
+                & (PriceList.id == PartyGroupPriceList.price_list_id),
+            )
+            .join(PriceListEntry, priced)
+            .where(
+                Party.tenant_id == tenant_id,
+                Party.is_active.is_(True),
+                listed,
+                supplier,
+            )
+        )
+    ]
+    # The currency asked for is the one of the list the price rule tries
+    # first: a supplier's own lists by priority, then its groups' lists.
+    candidates: dict[str, dict[str, tuple[str, tuple[int, int], str]]] = {}
+    for item_id, party_id, name, priority, currency, current in offers:
+        if not current:
+            continue
+        known = candidates.setdefault(item_id, {}).get(party_id)
+        if known is None or priority < known[1]:
+            candidates[item_id][party_id] = (name, priority, currency)
+
+    result = []
+    for row in points:
+        point, item = row.ItemReorderPoint, row.Item
+        key = (item.id, point.location_id)
+        available = stock.get(key, ZERO) - reserved.get(key, ZERO)
+        coming = incoming.get(key, ZERO)
+        stated = Decimal(point.reorder_point)
+        if available + coming > stated:
+            continue
+        quantity, unit = Decimal(point.reorder_quantity), item.unit
+        if item.purchase_unit and item.purchase_unit != item.unit:
+            cartons = _in_unit(item, quantity, item.unit, item.purchase_unit)
+            if cartons is not None:
+                quantity, unit = cartons, item.purchase_unit
+        offered = candidates.get(item.id, {})
+        choice = {0: "none", 1: "single"}.get(len(offered), "several")
+        values: dict[str, Any] = {
+            "reorder_point": stated.normalize(),
+            "available_quantity": available.normalize(),
+            "incoming_quantity": coming.normalize(),
+            "proposed_quantity": quantity.normalize(),
+            "proposed_unit": unit,
+            "supplier": "",
+            "supplier_choice": choice,
+        }
+        if unconverted.get(key):
+            # Units not comparable names each of these promises.
+            values["incoming_not_comparable"] = unconverted[key]
+        trace: dict[str, Any] = {
+            "reorder_point_id": point.id,
+            "item_id": item.id,
+            "location_id": point.location_id,
+            "supplier_ids": sorted(offered),
+            # Names for whoever prepares the order from the entry; ids decide.
+            "item_name": item.name,
+            "location_name": row.location,
+        }
+        if choice == "single":
+            ((party_id, (name, _, currency)),) = offered.items()
+            values["supplier"] = name
+            trace["supplier_id"] = party_id
+            # The one price rule decides, in the unit proposed and, failing
+            # that, in pieces; no price is better than one worked out here.
+            price = resolve_price(
+                session,
+                tenant_id,
+                party_id,
+                item.id,
+                quantity,
+                "purchase",
+                currency,
+                unit,
+                at=as_of,
+            ) or (
+                resolve_price(
+                    session,
+                    tenant_id,
+                    party_id,
+                    item.id,
+                    point.reorder_quantity,
+                    "purchase",
+                    currency,
+                    item.unit,
+                    at=as_of,
+                )
+                if unit != item.unit
+                else None
+            )
+            if price is not None:
+                values["unit_price"] = price.unit_price
+                values["price_unit"] = price.unit
+                values["currency"] = price.currency
+                trace["price_list_entry_id"] = price.price_list_entry_id
+        offer = (
+            f" from {values['supplier']}"
+            if choice == "single"
+            else "; several suppliers price it"
+            if choice == "several"
+            else "; no purchase price list prices it"
+        )
+        result.append(
+            OperationalException(
+                _identity("reorder_point_reached", point.id),
+                "reorder_point_reached",
+                (),
+                "normal",
+                "Reorder point reached",
+                f"{(available + coming).normalize():f} available and incoming at "
+                f"{row.location}, reorder point {stated.normalize():f}: propose "
+                f"{quantity.normalize():f} {unit}{offer}",
+                "reorder_point",
+                point.id,
+                values,
+                trace,
+                point.updated_at,
+            )
+        )
+    return result
+
+
 def _open_item_exceptions(
     session: Session,
     tenant_id: str,
@@ -4095,6 +4449,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "order_line_price_missing": _order_line_price_missing_exceptions,
     "billed_not_shipped": _billed_not_shipped_exceptions,
     "item_oversold": _item_oversold_exceptions,
+    "reorder_point_reached": _reorder_point_reached_exceptions,
     "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,

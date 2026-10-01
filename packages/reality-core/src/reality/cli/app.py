@@ -94,6 +94,7 @@ party_app = typer.Typer()
 item_app = typer.Typer()
 location_app = typer.Typer()
 payment_term_app = typer.Typer()
+reorder_point_app = typer.Typer(help="Reorder points per item and location (spec 302).")
 pricing_app = typer.Typer()
 finance_app = typer.Typer()
 commitment_app = typer.Typer()
@@ -112,6 +113,7 @@ app.add_typer(party_app, name="party")
 app.add_typer(item_app, name="item")
 app.add_typer(location_app, name="location")
 app.add_typer(payment_term_app, name="payment-term")
+app.add_typer(reorder_point_app, name="reorder-point")
 app.add_typer(pricing_app, name="pricing")
 app.add_typer(finance_app, name="finance")
 app.add_typer(commitment_app, name="commitment")
@@ -963,6 +965,79 @@ def party_deactivate(party_id: str, tenant: str | None = None):
 @party_app.command("activate")
 def party_activate(party_id: str, tenant: str | None = None):
     change_party_active(party_id, True, tenant)
+
+
+@reorder_point_app.command("list")
+def reorder_point_list(
+    item_id: str = "", location_id: str = "", tenant: str | None = None
+):
+    """List the stated reorder points."""
+    from reality.services.reorder_points import reorder_points
+
+    with Session() as s:
+        selected = selected_tenant(s, tenant)
+        rows = reorder_points(
+            s, selected.id, item_id=item_id or None, location_id=location_id or None
+        )
+    con.print_json(data=rows, default=str)
+
+
+def _reorder_point_change(tool: str, arguments: dict, tenant: str | None, yes: bool):
+    from reality.tools.application import create_change_proposal, reject_proposal
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            proposal = create_change_proposal(
+                s, selected.id, tool, arguments, actor_type="human"
+            )
+            con.print_json(data=json.loads(proposal.output)["reorder_point"])
+            if not yes and not typer.confirm("Confirm this reorder point change?"):
+                # A declined review leaves no decision waiting for anyone.
+                reject_proposal(s, selected.id, proposal.id)
+                con.print("Stopped; the reorder point is unchanged.")
+                raise typer.Exit()
+            approve_and_execute_proposal(s, selected.id, proposal.id, confirmed=True)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+
+
+@reorder_point_app.command("set")
+def reorder_point_set(
+    item_id: str,
+    location_id: str,
+    point: str = typer.Option(..., "--point", help="Reorder point, stock unit."),
+    quantity: str = typer.Option(..., "--quantity", help="Reorder quantity, stock unit."),
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm the reorder point and quantity of an item at a location."""
+    _reorder_point_change(
+        "reorder_point_set",
+        {
+            "item_id": item_id,
+            "location_id": location_id,
+            "reorder_point": point,
+            "reorder_quantity": quantity,
+        },
+        tenant,
+        yes,
+    )
+    con.print(f"✓ Reorder point set: {item_id} at {location_id}")
+
+
+@reorder_point_app.command("remove")
+def reorder_point_remove(
+    item_id: str, location_id: str, tenant: str | None = None, yes: bool = False
+):
+    """Review and confirm removing the reorder point of an item at a location."""
+    _reorder_point_change(
+        "reorder_point_remove",
+        {"item_id": item_id, "location_id": location_id},
+        tenant,
+        yes,
+    )
+    con.print(f"✓ Reorder point removed: {item_id} at {location_id}")
 
 
 @payment_term_app.command("create")

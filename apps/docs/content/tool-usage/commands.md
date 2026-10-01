@@ -116,11 +116,14 @@ all reach the same operation.
 | [`preview_stale_promise_closure`](#command-preview_stale_promise_closure)         | Preview stale promise closure              | Orders & fulfilment        | `stale_closure_preview`                                                                                                                                                                      | Web · MCP · Chat                        |
 | [`return_detail`](#command-return_detail)                                         | Read a returned payment                    | Orders & fulfilment        | `finance_payment_return`                                                                                                                                                                     | Web · MCP · Chat · CLI                  |
 | [`return_announcements`](#command-return_announcements)                           | Read announced returns                     | Orders & fulfilment        | `return_announcements`                                                                                                                                                                       | Web · API · MCP · Chat                  |
+| [`reorder_points`](#command-reorder_points)                                       | Read reorder points                        | Orders & fulfilment        | `reorder_points`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`record_return`](#command-record_return)                                         | Record a returned payment                  | Orders & fulfilment        | `finance_payment_return_propose`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`release_reservation`](#command-release_reservation)                             | Release reservation                        | Orders & fulfilment        | `reservation_release_propose`                                                                                                                                                                | CLI · Web · API · MCP · Chat            |
+| [`remove_reorder_point`](#command-remove_reorder_point)                           | Remove a reorder point                     | Orders & fulfilment        | `reorder_point_remove_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`reserve`](#command-reserve)                                                     | Reserve stock                              | Orders & fulfilment        | `reservation_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`record_return_disposition`](#command-record_return_disposition)                 | Resolve arrived customer-return goods      | Orders & fulfilment        | `return_disposition_propose`                                                                                                                                                                 | CLI · Web · API · MCP · Chat            |
 | [`revise_commitment`](#command-revise_commitment)                                 | Revise commitment                          | Orders & fulfilment        | `commitment_revise_propose`                                                                                                                                                                  | Web · MCP · Chat                        |
+| [`set_reorder_point`](#command-set_reorder_point)                                 | Set a reorder point                        | Orders & fulfilment        | `reorder_point_set_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`hold_party_delivery`](#command-hold_party_delivery)                             | Set party delivery hold                    | Orders & fulfilment        | `party_delivery_hold_propose`, `party_delivery_hold_release_propose`                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`withdraw_return_announcement`](#command-withdraw_return_announcement)           | Withdraw return announcement               | Orders & fulfilment        | `return_announcement_withdraw_propose`                                                                                                                                                       | Web · API · MCP · Chat                  |
 | [`correct_manual_document`](#command-correct_manual_document)                     | Correct manual document evidence           | Documents, sources & facts | `document_correct_propose`, `document_lines_correct_propose`                                                                                                                                 | Web · API · MCP · Chat                  |
@@ -4857,6 +4860,64 @@ waiting for.
 
 **See also:** command [`return_announcements`](./commands#command-return_announcements)
 
+### `reorder_points` — Read reorder points {#command-reorder_points}
+
+Lists the reorder points the company stated, per item and location, in the item's stock unit.
+
+**Synopsis**
+
+```text
+reorder_points [item_id] [location_id]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `item_reorder_point`, `item`, `location` · Writes: —
+
+**See also:** agent tool [`reorder_points`](./commands#tool-reorder_points)
+
+#### `reorder_points` — Reorder points {#tool-reorder_points}
+
+Read the reorder points the company stated: per item and location, the stock level it reorders at
+and the quantity it then orders, in the item's stock unit. Which are reached is the exception class
+reorder_point_reached.
+
+**Synopsis**
+
+```text
+reorder_points [item_id] [location_id]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query       | Kind                        | Default |
+| -------------------- | --------------------------- | ------- |
+| `MCP reorder_points` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+List the reorder points the company stated, per item and location, with the reorder quantity.
+
+**Use when**
+
+- Someone asks at which stock level an item is reordered
+- or before changing a reorder point.
+
+**Do not use when**
+
+- The question is which items need reordering now; read the exception reorder_point_reached.
+
+**Parameters**
+
+| Name          | Type     | Required | Description                                              | Default |
+| ------------- | -------- | -------- | -------------------------------------------------------- | ------- |
+| `item_id`     | `string` | no       | Opaque identity of the operational item reference.       | —       |
+| `location_id` | `string` | no       | Opaque identity of the operational or physical location. | —       |
+
+**See also:** command [`reorder_points`](./commands#command-reorder_points)
+
 ### `record_return` — Record a returned payment {#command-record_return}
 
 Reverses a returned customer payment so its invoices are open again, keeps the stated kind, reason
@@ -4970,6 +5031,47 @@ reservation_release_propose reservation_id
 | `reservation_id` | `string` | yes      | Opaque identity of the reservation being given back. | —       |
 
 **See also:** command [`release_reservation`](./commands#command-release_reservation)
+
+### `remove_reorder_point` — Remove a reorder point {#command-remove_reorder_point}
+
+Withdraws an item's reorder point at a location; the event keeps the values it had.
+
+**Synopsis**
+
+```text
+reorder_point_remove_propose item_id location_id
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `item`, `location`, `item_reorder_point` · Writes: `item_reorder_point`,
+`business_event` · Emits: `reorder_point.removed`
+
+**See also:** agent tool
+[`reorder_point_remove_propose`](./commands#tool-reorder_point_remove_propose), event
+[`reorder_point.removed`](./events#event-reorder_point-removed)
+
+#### `reorder_point_remove_propose` — Remove reorder point {#tool-reorder_point_remove_propose}
+
+Prepare removing the reorder point of an item at a location for confirmation. The review shows the
+values being removed.
+
+**Synopsis**
+
+```text
+reorder_point_remove_propose item_id location_id
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name          | Type     | Required | Description                                              | Default |
+| ------------- | -------- | -------- | -------------------------------------------------------- | ------- |
+| `item_id`     | `string` | yes      | Opaque identity of the operational item reference.       | —       |
+| `location_id` | `string` | yes      | Opaque identity of the operational or physical location. | —       |
+
+**See also:** command [`remove_reorder_point`](./commands#command-remove_reorder_point)
 
 ### `reserve` — Reserve stock {#command-reserve}
 
@@ -5191,6 +5293,50 @@ revision.; `inventory` — Only the reviewed reservation quantities remain alloc
 **See also:** command [`revise_commitment`](./commands#command-revise_commitment), projection
 [`commitment_register`](./views#projection-commitment_register), projection
 [`inventory`](./views#projection-inventory)
+
+### `set_reorder_point` — Set a reorder point {#command-set_reorder_point}
+
+States or restates the stock level at which an item is reordered at a location and the quantity then
+ordered, refusing a change since the review.
+
+**Synopsis**
+
+```text
+reorder_point_set_propose item_id location_id reorder_point reorder_quantity
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `item`, `location`, `item_reorder_point` · Writes: `item_reorder_point`,
+`business_event` · Emits: `reorder_point.set`
+
+**See also:** agent tool [`reorder_point_set_propose`](./commands#tool-reorder_point_set_propose),
+event [`reorder_point.set`](./events#event-reorder_point-set)
+
+#### `reorder_point_set_propose` — Set reorder point {#tool-reorder_point_set_propose}
+
+Prepare the reorder point and reorder quantity of an item at a location, in the item's stock unit,
+for confirmation. The review shows the current values beside the new ones; confirming refuses if the
+point changed meanwhile.
+
+**Synopsis**
+
+```text
+reorder_point_set_propose item_id location_id reorder_point reorder_quantity
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name               | Type     | Required | Description                                                                                                                    | Default |
+| ------------------ | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| `item_id`          | `string` | yes      | Opaque identity of the operational item reference.                                                                             | —       |
+| `location_id`      | `string` | yes      | Opaque identity of the operational or physical location.                                                                       | —       |
+| `reorder_point`    | `string` | yes      | Stock level, in the item's stock unit, at or below which available plus incoming stock at the location is reported (spec 302). | —       |
+| `reorder_quantity` | `string` | yes      | Quantity, in the item's stock unit, proposed when the reorder point is reached.                                                | —       |
+
+**See also:** command [`set_reorder_point`](./commands#command-set_reorder_point)
 
 ### `hold_party_delivery` — Set party delivery hold {#command-hold_party_delivery}
 
@@ -8603,9 +8749,9 @@ capability_describe tool_name
 
 **Parameters**
 
-| Name        | Type     | Required | Description | Default |
-| ----------- | -------- | -------- | ----------- | ------- |
-| `tool_name` | `string` | yes      | —           | —       |
+| Name        | Type     | Required | Description                                                | Default |
+| ----------- | -------- | -------- | ---------------------------------------------------------- | ------- |
+| `tool_name` | `string` | yes      | Name of the application tool whose arguments are reviewed. | —       |
 
 ### `business_records_discover` — Discover business records {#tool-business_records_discover}
 

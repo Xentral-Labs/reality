@@ -2723,6 +2723,62 @@ export type DeliveryProposal = {
   observation: DeliveryDetail | null;
   observation_error: string | null;
 };
+/** Spec 302: a reorder point an item states for a location, in its stock unit. */
+export type ReorderPoint = {
+  id: string;
+  item_id: string;
+  item: string;
+  sku: string;
+  unit: string;
+  location_id: string;
+  location: string;
+  reorder_point: string;
+  reorder_quantity: string;
+  updated_at: string;
+};
+export type ReorderPointValues = { reorder_point: string; reorder_quantity: string };
+export type ReorderPointProposal = {
+  id: string;
+  status: string;
+  preview: {
+    tool: "reorder_point_set" | "reorder_point_remove";
+    reorder_point: {
+      item: string;
+      unit: string;
+      location: string;
+      current: ReorderPointValues | null;
+      proposed: ReorderPointValues | null;
+    };
+  };
+};
+export const reorderPoints = {
+  list: (tenant: string, item = "", location = "") =>
+    request<{ rows: ReorderPoint[] }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/reorder-points?${new URLSearchParams({
+        ...(item ? { item_id: item } : {}),
+        ...(location ? { location_id: location } : {}),
+      })}`,
+    ),
+  prepare: (
+    tenant: string,
+    body: {
+      operation: "set" | "remove";
+      item_id: string;
+      location_id: string;
+      reorder_point?: string;
+      reorder_quantity?: string;
+    },
+  ) =>
+    request<ReorderPointProposal>(
+      `/api/tenants/${encodeURIComponent(tenant)}/reorder-points/proposals`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
+};
 export const deliveryActions = {
   references: (tenant: string, commitment: string, family: string, query = "") =>
     request<{ items: Array<{ id: string; label: string }>; has_more: boolean }>(
