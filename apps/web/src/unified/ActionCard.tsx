@@ -83,6 +83,14 @@ function DeliveryActionCard({
   const [query, setQuery] = useState("");
   const [tracking, setTracking] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState("");
+  // Spec 301: a receipt may be stated in the purchase unit the order was placed in.
+  const [unit, setUnit] = useState("");
+  const purchaseRead = useRead(
+    () =>
+      receiving && target && !proposal ? deliveryApi.detail(tenant, target) : Promise.resolve(null),
+    [tenant, target, receiving, proposal?.id],
+  );
+  const purchaseUnit = purchaseRead.data?.case.purchase_unit;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [uncertain, setUncertain] = useState(false);
@@ -225,6 +233,7 @@ function DeliveryActionCard({
                 item_id: detail!.item_id,
                 [receiving ? "to_location_id" : "from_location_id"]: detail!.location_id,
                 quantity,
+                ...(receiving && unit ? { unit } : {}),
                 ...identities,
               };
       const result = await deliveryActions.prepare(
@@ -471,20 +480,43 @@ function DeliveryActionCard({
               )}
             </p>
           ) : (
-            <label className="br-label">
-              {t("Quantity")}
-              <input
-                className="br-control mt-2 w-full"
-                inputMode="decimal"
-                disabled={busy}
-                required
-                value={quantity}
-                onChange={(event) => {
-                  setQuantity(event.target.value);
-                  requestId.current = crypto.randomUUID();
-                }}
-              />
-            </label>
+            <div className="flex flex-wrap items-end gap-3">
+              <label className="br-label min-w-0 flex-1">
+                {t("Quantity")}
+                <input
+                  className="br-control mt-2 w-full"
+                  inputMode="decimal"
+                  disabled={busy}
+                  required
+                  value={quantity}
+                  onChange={(event) => {
+                    setQuantity(event.target.value);
+                    requestId.current = crypto.randomUUID();
+                  }}
+                />
+              </label>
+              {receiving && purchaseUnit && (
+                <label className="br-label">
+                  {t("Unit")}
+                  <select
+                    className="br-control mt-2"
+                    disabled={busy}
+                    value={unit}
+                    onChange={(event) => {
+                      setUnit(event.target.value);
+                      requestId.current = crypto.randomUUID();
+                    }}
+                  >
+                    <option value="">{purchaseRead.data?.case.unit}</option>
+                    <option value={purchaseUnit.unit}>
+                      {purchaseUnit.unit} ({t("of")}{" "}
+                      {formatQuantity(purchaseUnit.conversion_factor)}{" "}
+                      {purchaseRead.data?.case.unit})
+                    </option>
+                  </select>
+                </label>
+              )}
+            </div>
           )}
           {target && !releasing && !holding && (
             <details>
@@ -573,32 +605,44 @@ function DeliveryActionCard({
                 </div>
               )}
               <dl className="space-y-2">
-                {Object.entries(proposal.review.effect).map(([key, value]) => (
-                  <div key={key} className="flex justify-between gap-4">
-                    <dt>
-                      {t(
-                        key === "holds_set"
-                          ? "Delivery holds to set"
-                          : key === "holds_released"
-                            ? "Delivery holds to release"
-                            : key === "released"
-                              ? "Released"
-                              : key === "received"
-                                ? "Received"
-                                : key === "applied"
-                                  ? "Reserved"
-                                  : key === "shipped"
-                                    ? "Shipped"
-                                    : key === "shortage"
-                                      ? "Shortage"
-                                      : "Requested",
-                      )}
-                    </dt>
+                {proposal.review.effect.stated && (
+                  <div className="flex justify-between gap-4">
+                    <dt>{t("As stated")}</dt>
                     <dd>
-                      {formatQuantity(value)} {holding ? "" : proposal.review!.state.case.unit}
+                      {formatQuantity(proposal.review.effect.stated.quantity)}{" "}
+                      {proposal.review.effect.stated.unit}
                     </dd>
                   </div>
-                ))}
+                )}
+                {Object.entries(proposal.review.effect)
+                  .filter(([key]) => key !== "stated")
+                  .map(([key, value]) => (
+                    <div key={key} className="flex justify-between gap-4">
+                      <dt>
+                        {t(
+                          key === "holds_set"
+                            ? "Delivery holds to set"
+                            : key === "holds_released"
+                              ? "Delivery holds to release"
+                              : key === "released"
+                                ? "Released"
+                                : key === "received"
+                                  ? "Received"
+                                  : key === "applied"
+                                    ? "Reserved"
+                                    : key === "shipped"
+                                      ? "Shipped"
+                                      : key === "shortage"
+                                        ? "Shortage"
+                                        : "Requested",
+                        )}
+                      </dt>
+                      <dd>
+                        {formatQuantity(String(value))}{" "}
+                        {holding ? "" : proposal.review!.state.case.unit}
+                      </dd>
+                    </div>
+                  ))}
               </dl>
             </>
           )}

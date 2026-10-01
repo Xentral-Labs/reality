@@ -284,6 +284,7 @@ def review_delivery(
             "reason",
             "resolves_movement_id",
             "return_announcement_id",
+            "unit",
         }
     if tool == "reservation_release":
         allowed = {"reservation_id"}
@@ -320,7 +321,12 @@ def review_delivery(
         }
     else:
         result = _append_movement(session, tenant_id, **intent, validate_only=True)
-        intent["quantity"] = _quantity(result["quantity"])
+        # Spec 301: a receipt stated in the purchase unit keeps what was stated
+        # in the intent, which is executed again, and shows the stock-unit
+        # quantity as its effect.
+        intent["quantity"] = _quantity(
+            result.get("stated_quantity", result["quantity"])
+        )
         if tool == "movement_create":
             from reality.services.fulfillment_readiness import require_paid_prepayment
 
@@ -336,6 +342,11 @@ def review_delivery(
             if intent["movement_type"] == "receipt"
             else "shipped": _quantity(result["quantity"])
         }
+        if "stated_quantity" in result:
+            effect["stated"] = {
+                "quantity": _quantity(result["stated_quantity"]),
+                "unit": result["stated_unit"],
+            }
     if result.get("lot_id"):
         intent["lot_id"] = result["lot_id"]
     if tool == "movement_create" and not intent.get("commitment_id"):

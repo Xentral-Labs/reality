@@ -2600,6 +2600,13 @@
           "depth": 1
         },
         {
+          "name": "movements[].unit",
+          "type": "string",
+          "required": false,
+          "description": "Receipts only: the unit the quantity is stated in, the item's stock unit (default) or its purchase unit. A purchase-unit quantity is recorded in the stock unit by the item's stated factor, and what was stated is kept.",
+          "depth": 1
+        },
+        {
           "name": "carrier",
           "type": "string",
           "required": false,
@@ -6024,7 +6031,7 @@
       "summary": "Prepare this business mutation without changing state. Record Movement. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [opening_cost]",
+      "synopsis": "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [opening_cost]",
       "parameters": [
         {
           "name": "movement_type",
@@ -6131,6 +6138,13 @@
           "type": "string",
           "required": false,
           "description": "Opaque identity of the announced return these goods fulfil; absent means they were not announced.",
+          "depth": 0
+        },
+        {
+          "name": "unit",
+          "type": "string",
+          "required": false,
+          "description": "Receipts only: the unit the quantity is stated in, the item's stock unit (default) or its purchase unit. A purchase-unit quantity is recorded in the stock unit by the item's stated factor, and what was stated is kept.",
           "depth": 0
         },
         {
@@ -20412,7 +20426,7 @@
       "related_services": [],
       "tools": ["movement_create_propose"],
       "synopses": [
-        "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [opening_cost]"
+        "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [opening_cost]"
       ],
       "events": ["commitment.fulfilled", "reservation.consumed", "movement.recorded"],
       "actions": ["record_movement"],

@@ -66,6 +66,8 @@ SHIPMENT_MOVEMENT_FIELDS = {
     "lot_id",
     "serial_unit_id",
     "reason",
+    # Spec 301: a receipt may state the purchase unit.
+    "unit",
 }
 
 

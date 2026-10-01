@@ -24605,6 +24605,7 @@ Object.assign(dictionaries.de, {
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
     "Eine Bestellzeile steht in der Lagereinheit des Artikels oder in seiner Einkaufseinheit mit angegebenem Umrechnungsfaktor.",
   "Item oversold": "Artikel überverkauft",
+  "As stated": "Wie angegeben",
   "Customer deadline at risk": "Liefertermin gefährdet",
   "Shipping the outstanding quantity, cancelling the commitment, or agreeing a later date.":
     "Versand der offenen Menge, Storno der Verpflichtung oder ein später vereinbarter Termin.",
@@ -24657,6 +24658,7 @@ Object.assign(dictionaries.nl, {
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
     "Een inkoopregel staat in de voorraadeenheid van het artikel of in de inkoopeenheid met een opgegeven omrekenfactor.",
   "Item oversold": "Artikel oververkocht",
+  "As stated": "Zoals opgegeven",
   "Customer deadline at risk": "Leverdatum in gevaar",
   "Shipping the outstanding quantity, cancelling the commitment, or agreeing a later date.":
     "De openstaande hoeveelheid verzenden, de verplichting annuleren of een latere datum afspreken.",
@@ -24709,6 +24711,7 @@ Object.assign(dictionaries.es, {
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
     "Una línea de compra está en la unidad de existencias del artículo o en su unidad de compra con un factor de conversión indicado.",
   "Item oversold": "Artículo sobrevendido",
+  "As stated": "Según lo indicado",
   "Customer deadline at risk": "Plazo de entrega en riesgo",
   "Shipping the outstanding quantity, cancelling the commitment, or agreeing a later date.":
     "Enviar la cantidad pendiente, cancelar el compromiso o acordar una fecha posterior.",

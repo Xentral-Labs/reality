@@ -5628,25 +5628,26 @@ shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_n
 
 **Parameter**
 
-| Name                           | Typ      | Pflicht | Beschreibung                                                                                                                                                      | Standard |
-| ------------------------------ | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `purpose`                      | `string` | ja      | Closed business purpose that determines the shipment's counterparty role and compatible Movement type.                                                            | —        |
-| `counterparty_id`              | `string` | ja      | Opaque identity of the customer or supplier Party in an order flow.                                                                                               | —        |
-| `movements`                    | `array`  | ja      | Exact existing Movement command inputs to record atomically as the physical contents of one Package.                                                              | —        |
-| `movements[].movement_type`    | `string` | nein    | Physical event kind — opening_stock, receipt, shipment, transfer, adjustment, return (goods back from a customer), or supplier_return (goods back to a supplier). | —        |
-| `movements[].item_id`          | `string` | ja      | Opaque identity of the operational item reference.                                                                                                                | —        |
-| `movements[].quantity`         | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                                                                                           | —        |
-| `movements[].from_location_id` | `string` | nein    | Opaque identity of the location from which physical stock leaves.                                                                                                 | —        |
-| `movements[].to_location_id`   | `string` | nein    | Opaque identity of the location into which physical stock arrives.                                                                                                | —        |
-| `movements[].commitment_id`    | `string` | nein    | Opaque identity of the obligation being reserved, held, or executed.                                                                                              | —        |
-| `movements[].handling_unit_id` | `string` | nein    | Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.                                                                               | —        |
-| `movements[].lot_id`           | `string` | nein    | Exact batch or lot identity to reserve or move.                                                                                                                   | —        |
-| `movements[].serial_unit_id`   | `string` | nein    | Exact serial-unit identity to reserve or move; serialized quantities are always one.                                                                              | —        |
-| `movements[].reason`           | `string` | nein    | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                           | —        |
-| `carrier`                      | `string` | nein    | Carrier name stated for a physical package; it is descriptive and not an internal identity.                                                                       | —        |
-| `tracking_number`              | `string` | nein    | Carrier-assigned package reference used for operational lookup; it is not internal identity.                                                                      | —        |
-| `source_record_id`             | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.                                                                                      | —        |
-| `occurred_at`                  | `string` | nein    | UTC instant at which the physical or business event occurred.                                                                                                     | —        |
+| Name                           | Typ      | Pflicht | Beschreibung                                                                                                                                                                                                              | Standard |
+| ------------------------------ | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `purpose`                      | `string` | ja      | Closed business purpose that determines the shipment's counterparty role and compatible Movement type.                                                                                                                    | —        |
+| `counterparty_id`              | `string` | ja      | Opaque identity of the customer or supplier Party in an order flow.                                                                                                                                                       | —        |
+| `movements`                    | `array`  | ja      | Exact existing Movement command inputs to record atomically as the physical contents of one Package.                                                                                                                      | —        |
+| `movements[].movement_type`    | `string` | nein    | Physical event kind — opening_stock, receipt, shipment, transfer, adjustment, return (goods back from a customer), or supplier_return (goods back to a supplier).                                                         | —        |
+| `movements[].item_id`          | `string` | ja      | Opaque identity of the operational item reference.                                                                                                                                                                        | —        |
+| `movements[].quantity`         | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                                                                                                                                                   | —        |
+| `movements[].from_location_id` | `string` | nein    | Opaque identity of the location from which physical stock leaves.                                                                                                                                                         | —        |
+| `movements[].to_location_id`   | `string` | nein    | Opaque identity of the location into which physical stock arrives.                                                                                                                                                        | —        |
+| `movements[].commitment_id`    | `string` | nein    | Opaque identity of the obligation being reserved, held, or executed.                                                                                                                                                      | —        |
+| `movements[].handling_unit_id` | `string` | nein    | Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.                                                                                                                                       | —        |
+| `movements[].lot_id`           | `string` | nein    | Exact batch or lot identity to reserve or move.                                                                                                                                                                           | —        |
+| `movements[].serial_unit_id`   | `string` | nein    | Exact serial-unit identity to reserve or move; serialized quantities are always one.                                                                                                                                      | —        |
+| `movements[].reason`           | `string` | nein    | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                                                                                   | —        |
+| `movements[].unit`             | `string` | nein    | Receipts only: the unit the quantity is stated in, the item's stock unit (default) or its purchase unit. A purchase-unit quantity is recorded in the stock unit by the item's stated factor, and what was stated is kept. | —        |
+| `carrier`                      | `string` | nein    | Carrier name stated for a physical package; it is descriptive and not an internal identity.                                                                                                                               | —        |
+| `tracking_number`              | `string` | nein    | Carrier-assigned package reference used for operational lookup; it is not internal identity.                                                                                                                              | —        |
+| `source_record_id`             | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.                                                                                                                                              | —        |
+| `occurred_at`                  | `string` | nein    | UTC instant at which the physical or business event occurred.                                                                                                                                                             | —        |
 
 **Siehe auch:** Geschäftsaktion
 [`record_packaged_execution`](./commands#command-record_packaged_execution)
@@ -5779,7 +5780,7 @@ reservations.
 **Aufruf**
 
 ```text
-movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [opening_cost]
+movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [opening_cost]
 ```
 
 **Erreichbar über:** CLI · Web · API · scenario · MCP · Chat
@@ -5802,7 +5803,7 @@ required.
 **Aufruf**
 
 ```text
-movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [opening_cost]
+movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [opening_cost]
 ```
 
 **Zugriff:** `propose`
@@ -5849,6 +5850,7 @@ Record an immutable physical receipt, transfer, shipment, return, or adjustment.
 | `reason`                          | `string` | nein    | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                                                                                                                         | —        |
 | `resolves_movement_id`            | `string` | nein    | Opaque identity of the return this movement settles; absent means it settles none.                                                                                                                                                                              | —        |
 | `return_announcement_id`          | `string` | nein    | Opaque identity of the announced return these goods fulfil; absent means they were not announced.                                                                                                                                                               | —        |
+| `unit`                            | `string` | nein    | Receipts only: the unit the quantity is stated in, the item's stock unit (default) or its purchase unit. A purchase-unit quantity is recorded in the stock unit by the item's stated factor, and what was stated is kept.                                       | —        |
 | `opening_cost`                    | `object` | nein    | Opening stock only: the total acquisition value its evidence states, recorded as received for the cost review (spec 282).                                                                                                                                       | —        |
 | `opening_cost.amount`             | `string` | ja      | Total acquisition value exactly as the evidence states it; never a computed unit cost.                                                                                                                                                                          | —        |
 | `opening_cost.currency`           | `string` | ja      | Three-letter currency code of the stated value.                                                                                                                                                                                                                 | —        |

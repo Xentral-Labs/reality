@@ -44,13 +44,13 @@
 
 ## Phase 5: Adapters and Web (FR-004)
 
-- [ ] T010 Failing adapter tests in `core/tests/test_purchase_unit_adapters.py`:
+- [x] T010 Failing adapter tests in `core/tests/test_purchase_unit_adapters.py`:
   - the MCP schemas carry `unit` and stay strict;
   - propose then confirm a receipt in cartons;
   - the Web pass-through;
   - the CLI `--unit`;
   - another company refused.
-- [ ] T011 MCP, Web and CLI wiring and the catalogs. Web:
+- [x] T011 MCP, Web and CLI wiring and the catalogs. Web:
   - the receipt form's unit selector and the converted quantity in the review;
   - the movement inspector's stated pair;
   - translations, with `npm run test:i18n`, the audit, prettier and the build.
