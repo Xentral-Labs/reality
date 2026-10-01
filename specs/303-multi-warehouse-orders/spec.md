@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Clarified
+**Status**: Approved
 
 **Language**: English
 
@@ -104,6 +104,8 @@ None. See Clarifications.
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
-| FR-001–FR-003 | US1 | Business stories and service tests (planned) |
-| FR-004, DR-001, DR-002 | All | Adapter tests and diff review (planned) |
-| FR-005, SC-001, SC-002 | US1 | Catalog tests and Guide questions (planned) |
+| FR-001 | US1 1 | `tests/test_multi_warehouse_reservations.py` |
+| FR-002 | US1 1, 3 | `tests/test_multi_warehouse_reservations.py`, stories D02 and A02 |
+| FR-003 | US1 2 | `tests/test_stock_in_another_location.py`, story B06 |
+| FR-004, DR-001, DR-002 | All | `tests/test_multi_warehouse_adapters.py`; diff review (T017) |
+| FR-005, SC-001, SC-002 | US1 | `tests/scenarios/test_catalog_orders_and_shipments.py`; `tests/test_business_journey_catalog.py` |
