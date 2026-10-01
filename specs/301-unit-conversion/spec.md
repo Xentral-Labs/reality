@@ -99,6 +99,8 @@ None. See Clarifications.
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
-| FR-001–FR-003 | US1 | Business stories and service tests (planned) |
-| FR-004, DR-001, DR-002 | All | Adapter tests and diff review (planned) |
-| FR-005, SC-001, SC-002 | US1 | Catalog tests and Guide questions (planned) |
+| FR-001 | US1 1 | `tests/test_purchase_units.py`, story O05 (planned) |
+| FR-002 | US1 1 | `tests/test_purchase_units.py` reads, inspector (planned) |
+| FR-003 | US1 2 | refusal tests (planned) |
+| FR-004, DR-001, DR-002 | All | `tests/test_purchase_unit_adapters.py`, diff review (planned) |
+| FR-005, SC-001, SC-002 | US1 | catalog tests and Guide questions (planned) |
