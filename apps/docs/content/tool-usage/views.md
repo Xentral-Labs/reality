@@ -637,6 +637,7 @@ Also eligible for background refresh every 60 seconds, without a new business ev
 
 **See also:** exception
 [`overdue_outgoing_customer_commitment`](./exceptions#exception-overdue_outgoing_customer_commitment),
+exception [`outgoing_commitment_due_soon`](./exceptions#exception-outgoing_commitment_due_soon),
 exception [`outgoing_commitment_at_risk`](./exceptions#exception-outgoing_commitment_at_risk),
 exception [`order_stalled`](./exceptions#exception-order_stalled), exception
 [`overdue_incoming_supplier_commitment`](./exceptions#exception-overdue_incoming_supplier_commitment),
@@ -680,8 +681,7 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`payment_returned`](./exceptions#exception-payment_returned), exception
 [`order_line_price_missing`](./exceptions#exception-order_line_price_missing), exception
 [`billed_not_shipped`](./exceptions#exception-billed_not_shipped), exception
-[`item_oversold`](./exceptions#exception-item_oversold), exception
-[`outgoing_commitment_due_soon`](./exceptions#exception-outgoing_commitment_due_soon)
+[`item_oversold`](./exceptions#exception-item_oversold)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

@@ -290,6 +290,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Lieferverzug an Kunden](./exceptions#exception-overdue_outgoing_customer_commitment)
   (`overdue_outgoing_customer_commitment`)
+- [Liefertermin gefährdet](./exceptions#exception-outgoing_commitment_due_soon)
+  (`outgoing_commitment_due_soon`)
 - [Lieferverpflichtung gefährdet](./exceptions#exception-outgoing_commitment_at_risk)
   (`outgoing_commitment_at_risk`)
 - [Auftrag hängt](./exceptions#exception-order_stalled) (`order_stalled`)
@@ -307,8 +309,6 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`order_line_item_unknown`)
 - [Auftragszeile ohne Preis](./exceptions#exception-order_line_price_missing)
   (`order_line_price_missing`)
-- [Liefertermin gefährdet](./exceptions#exception-outgoing_commitment_due_soon)
-  (`outgoing_commitment_due_soon`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay)

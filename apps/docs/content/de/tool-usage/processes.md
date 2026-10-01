@@ -165,7 +165,8 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 
 **Kann hinterlassen:**
 [Lieferverpflichtung gefährdet](./exceptions#exception-outgoing_commitment_at_risk)
-(`outgoing_commitment_at_risk`)
+(`outgoing_commitment_at_risk`), [Artikel überverkauft](./exceptions#exception-item_oversold)
+(`item_oversold`)
 
 ### 2. Bestellung anlegen
 

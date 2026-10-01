@@ -645,6 +645,7 @@ Event.
 
 **Siehe auch:** Ausnahme
 [`overdue_outgoing_customer_commitment`](./exceptions#exception-overdue_outgoing_customer_commitment),
+Ausnahme [`outgoing_commitment_due_soon`](./exceptions#exception-outgoing_commitment_due_soon),
 Ausnahme [`outgoing_commitment_at_risk`](./exceptions#exception-outgoing_commitment_at_risk),
 Ausnahme [`order_stalled`](./exceptions#exception-order_stalled), Ausnahme
 [`overdue_incoming_supplier_commitment`](./exceptions#exception-overdue_incoming_supplier_commitment),
@@ -688,8 +689,7 @@ Ausnahme [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), Ausn
 [`payment_returned`](./exceptions#exception-payment_returned), Ausnahme
 [`order_line_price_missing`](./exceptions#exception-order_line_price_missing), Ausnahme
 [`billed_not_shipped`](./exceptions#exception-billed_not_shipped), Ausnahme
-[`item_oversold`](./exceptions#exception-item_oversold), Ausnahme
-[`outgoing_commitment_due_soon`](./exceptions#exception-outgoing_commitment_due_soon)
+[`item_oversold`](./exceptions#exception-item_oversold)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

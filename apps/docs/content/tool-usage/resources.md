@@ -281,6 +281,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 
 - [Overdue outgoing customer commitment](./exceptions#exception-overdue_outgoing_customer_commitment)
   (`overdue_outgoing_customer_commitment`)
+- [Customer deadline at risk](./exceptions#exception-outgoing_commitment_due_soon)
+  (`outgoing_commitment_due_soon`)
 - [Customer commitment at risk](./exceptions#exception-outgoing_commitment_at_risk)
   (`outgoing_commitment_at_risk`)
 - [Order stalled](./exceptions#exception-order_stalled) (`order_stalled`)
@@ -297,8 +299,6 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`order_line_item_unknown`)
 - [Order line without a price](./exceptions#exception-order_line_price_missing)
   (`order_line_price_missing`)
-- [Customer deadline at risk](./exceptions#exception-outgoing_commitment_due_soon)
-  (`outgoing_commitment_due_soon`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay)

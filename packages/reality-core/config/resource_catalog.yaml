@@ -439,7 +439,7 @@ processes:
         resource: item
         tools: [item_supply_demand, fulfillment_blockers]
         lists: [supply_demand, fulfillment_blockers]
-        exceptions: [outgoing_commitment_at_risk]
+        exceptions: [outgoing_commitment_at_risk, item_oversold]
       - title: { en: Place the purchase order, de: Bestellung anlegen }
         resource: order
         actions: [create_manual_order]

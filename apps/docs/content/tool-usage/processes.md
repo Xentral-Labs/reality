@@ -162,7 +162,8 @@ run.
 
 **Can leave behind:**
 [Customer commitment at risk](./exceptions#exception-outgoing_commitment_at_risk)
-(`outgoing_commitment_at_risk`)
+(`outgoing_commitment_at_risk`), [Item oversold](./exceptions#exception-item_oversold)
+(`item_oversold`)
 
 ### 2. Place the purchase order
 

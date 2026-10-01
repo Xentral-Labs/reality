@@ -7,6 +7,8 @@ Measured on 2026-10-01 at commit `ced61bc1`, with `benchmarks/peak_intake` on a 
 | 1 process | 196 s | **404 s** | 24.7 | 0 | 224 s (60 ms each per connection) |
 | 4 processes | 100 s | **226 s** | 44.3 | 0 | 201 s (54 ms each per connection) |
 
+Times are the slowest process from its first query to its last; the wall clock including process start-up was 405 s and 227 s.
+
 **Target**: 10,000 orders within two hours (7,200 s). One process interprets them in under seven minutes, about 18 times faster than needed. L07's throughput holds.
 
 Invariants held in both runs:

@@ -55,6 +55,16 @@ def _engine(url: str):
     return create_engine(url, pool_pre_ping=True)
 
 
+def _child(target: str, *args) -> None:
+    """Run a process body and always answer, so a failure ends the run, not hangs it."""
+    queue = args[-1]
+    try:
+        globals()[target](*args)
+    except Exception as error:  # reported to the parent, then re-raised
+        queue.put({"error": f"{type(error).__name__}: {error}"})
+        raise
+
+
 def _work_jobs(url: str, tenant_id: str, queue) -> None:
     """One worker process: work pending import jobs until none are left."""
     from reality.services import core
@@ -100,11 +110,12 @@ def _reserve(url: str, tenant_id: str, commitment_ids: list[str], queue) -> None
     queue.put({"reserved": reserved, "refused": refused, "seconds": elapsed})
 
 
-def _parallel(target, arguments: list[tuple]) -> tuple[float, list[dict]]:
+def _parallel(target: str, arguments: list[tuple]) -> tuple[float, list[dict]]:
     context = multiprocessing.get_context("spawn")
     queue = context.Queue()
     workers = [
-        context.Process(target=target, args=(*args, queue)) for args in arguments
+        context.Process(target=_child, args=(target, *args, queue))
+        for args in arguments
     ]
     started = time.perf_counter()
     for worker in workers:
@@ -113,8 +124,9 @@ def _parallel(target, arguments: list[tuple]) -> tuple[float, list[dict]]:
     for worker in workers:
         worker.join()
     elapsed = time.perf_counter() - started
-    if any(worker.exitcode for worker in workers):
-        raise RuntimeError("A benchmark process failed.")
+    errors = [row["error"] for row in results if "error" in row]
+    if errors or any(worker.exitcode for worker in workers):
+        raise RuntimeError(f"A benchmark process failed: {errors}")
     return elapsed, results
 
 
@@ -242,7 +254,9 @@ def run(
         session.execute(text("ANALYZE"))
         session.commit()
 
-    worked_wall, workers = _parallel(_work_jobs, [(url, company.tenant_id)] * processes)
+    worked_wall, workers = _parallel(
+        "_work_jobs", [(url, company.tenant_id)] * processes
+    )
 
     with Session(engine, expire_on_commit=False) as session:
         promises = list(
@@ -258,7 +272,7 @@ def run(
         )
     connections = 4
     reserving_wall, reservers = _parallel(
-        _reserve,
+        "_reserve",
         [
             (url, company.tenant_id, promises[index::connections])
             for index in range(connections)
@@ -326,6 +340,7 @@ def _invariants_hold(result: dict[str, Any]) -> bool:
     return (
         checks["sales_orders"] == result["orders"]
         and checks["orders_interpreted_more_than_once"] == 0
+        and checks["import_jobs"] == {"completed": result["orders"]}
         and not checks["over_reserved_items"]
         and checks["oversold_matches_demand_less_stock"]
     )

@@ -21,6 +21,7 @@ def test_split_catalog_is_complete_and_composed():
     assert catalog["fact_predicate_count"] == 7
     assert catalog["operational_exception_classes"] == [
         "overdue_outgoing_customer_commitment",
+        "outgoing_commitment_due_soon",
         "outgoing_commitment_at_risk",
         "order_stalled",
         "overdue_incoming_supplier_commitment",
@@ -65,7 +66,6 @@ def test_split_catalog_is_complete_and_composed():
         "order_line_price_missing",
         "billed_not_shipped",
         "item_oversold",
-        "outgoing_commitment_due_soon",
     ]
     assert {entry["materialized_as"] for entry in catalog["projections"]} == set(
         OPERATIONAL_PROJECTIONS
