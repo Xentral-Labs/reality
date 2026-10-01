@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from typing import Any
 
 from sqlalchemy import case, func, or_, select
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session, aliased, undefer
 
 from reality.db.core import (
     Commitment,
@@ -37,7 +37,7 @@ from reality.db.core import (
 )
 from reality.domain.units import decline_reason as _decline_reason
 from reality.domain.units import in_unit as _in_unit
-from reality.domain.units import promise_unit
+from reality.domain.units import line_in_promise, promise_held_unit
 from reality.services.exception_inputs import _exception_input_scope, _inputs
 
 ZERO = Decimal(0)
@@ -974,15 +974,14 @@ def _in_promise_unit(
 
     Since spec 301 a purchase line in the purchase unit promises, and is
     received, in the stock unit, so what invoices and credits carry against the
-    line is compared with the movements in that unit. Every other promise is in
-    its line's unit, as before, and the quantity is returned unchanged.
+    line is compared with the movements in that unit, by the relation fixed
+    when it was ordered. Every other promise is in its line's unit, as before,
+    and the quantity is returned unchanged.
     """
-    item = _item(session, tenant_id, line.item_id)
-    if quantity is None or item is None:
+    held = promise_held_unit(commitment.unit, line, line.unit)
+    if quantity is None or held == line.unit:
         return quantity, line.unit
-    if promise_unit(commitment.quantity, line, item) == "stock":
-        return _in_unit(item, quantity, line.unit, item.unit), item.unit
-    return quantity, line.unit
+    return line_in_promise(quantity, line, commitment.quantity, held), held
 
 
 def _prices_comparable(billed: DocumentLine, agreed: DocumentLine) -> bool:
@@ -1041,6 +1040,8 @@ def _read_order_line_promises(
                 Commitment.type == commitment_type,
                 Commitment.document_line_id.is_not(None),
             )
+            # Every reader of these pairs asks which unit the promise is held in.
+            .options(undefer(Commitment.unit))
             .order_by(DocumentLine.id)
         ).all()
     )
@@ -2657,7 +2658,7 @@ def _units_not_comparable_exceptions(
                 commitment_type == "supplier_delivery"
                 and _commitment.status == "open"
                 and item is not None
-                and promise_unit(_commitment.quantity, line, item) == "line"
+                and promise_held_unit(_commitment.unit, line, item.unit) != item.unit
             ):
                 # A unit the item relates is the purchase unit recorded the old
                 # way; any other unit is a relation nobody stated.
@@ -2693,8 +2694,10 @@ def _units_not_comparable_exceptions(
         # A relation nobody stated is the more fundamental of the two and its
         # exit is a different one, so it is what the entry says when both appear.
         missing = any(row.reason == "no_stated_relation" for row in rows)
-        recorded = not missing and any(
-            row.reason == "promise_in_purchase_unit" for row in rows
+        # A conversion that does not divide asks for a decision; a purchase
+        # recorded the old way only explains itself, so it is named last.
+        remainder = not missing and any(
+            row.reason == "conversion_leaves_a_remainder" for row in rows
         )
         factor = Decimal(item.conversion_factor)
         result.append(
@@ -2709,9 +2712,9 @@ def _units_not_comparable_exceptions(
                 + (
                     "this item states no conversion between them"
                     if missing
-                    else "a purchase recorded before it was held in the stock unit"
-                    if recorded
                     else f"the stated conversion of {factor:g} does not divide evenly"
+                    if remainder
+                    else "a purchase recorded before it was held in the stock unit"
                 ),
                 "item",
                 item_id,
@@ -2723,9 +2726,9 @@ def _units_not_comparable_exceptions(
                     "reason": (
                         "no_stated_relation"
                         if missing
-                        else "promise_in_purchase_unit"
-                        if recorded
                         else "conversion_leaves_a_remainder"
+                        if remainder
+                        else "promise_in_purchase_unit"
                     ),
                     "affected_lines": affected,
                 },
@@ -3077,7 +3080,7 @@ def _item_oversold_exceptions(
                 unit.label("unit"),
                 promised.label("promised"),
                 fulfilled.label("fulfilled"),
-                Commitment.quantity.label("original"),
+                Commitment.unit.label("held_unit"),
                 DocumentLine.quantity.label("line_quantity"),
                 Item,
             )
@@ -3122,7 +3125,8 @@ def _item_oversold_exceptions(
             else None
         )
         # A purchase promise made since spec 301 is already in the stock unit.
-        if promise_unit(row.original, line, row.Item) == "stock":
+        held = promise_held_unit(row.held_unit, line, row.Item.unit)
+        if held == row.Item.unit:
             return open_quantity
         return _in_unit(row.Item, open_quantity, row.unit, row.Item.unit)
 

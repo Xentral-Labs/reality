@@ -182,31 +182,34 @@ def _purchase_unit_view(
 ) -> dict[str, Any] | None:
     """A purchase promise held in pieces, read also in the cartons it was ordered in.
 
-    Spec 301 FR-002: the line keeps what it states. A quantity that is not a
-    whole number of cartons is shown in the stock unit only.
+    Spec 301 FR-002: the line keeps what it states. The cartons are read by the
+    relation fixed when the line was promised, so a factor changed afterwards
+    changes nothing here. A quantity that is not a whole number of cartons is
+    shown in the stock unit only.
     """
-    from reality.domain.units import in_unit, promise_unit
+    from reality.domain.units import promise_held_unit, promise_in_line
 
     if commitment.type != "supplier_delivery" or not commitment.document_line_id:
         return None
     line = session.get(DocumentLine, (tenant_id, commitment.document_line_id))
-    item = session.get(Item, (tenant_id, commitment.item_id))
-    if line is None or item is None or line.unit == item.unit:
+    if line is None:
         return None
-    if promise_unit(commitment.quantity, line, item) != "stock":
+    held = promise_held_unit(commitment.unit, line, line.unit)
+    if held == line.unit or Decimal(line.quantity) <= 0:
         return None
 
     def plain(value: Decimal) -> str:
         return f"{Decimal(value).normalize():f}"
 
     def cartons(value: str) -> str | None:
-        quantity = in_unit(item, Decimal(value), item.unit, line.unit)
+        quantity = promise_in_line(Decimal(value), line, commitment.quantity, held)
         return plain(quantity) if quantity is not None else None
 
     return {
         "unit": line.unit,
-        "conversion_factor": plain(item.conversion_factor),
-        "ordered": plain(line.quantity),
+        "conversion_factor": plain(Decimal(commitment.quantity) / Decimal(line.quantity)),
+        # The promise in force, so a revision is read here as well.
+        "ordered": cartons(detail["promised"]),
         "open": cartons(detail["open"]),
         "received": cartons(detail["fulfilled"]),
     }

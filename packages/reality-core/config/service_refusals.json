@@ -1164,6 +1164,9 @@
     "movement_not_found": {
       "message": "Movement not found."
     },
+    "movement_promise_in_line_unit": {
+      "message": "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line."
+    },
     "movement_projected_state_not_preview": {
       "message": "Projected state is only valid for a read-only preview."
     },

@@ -33,7 +33,7 @@ Read on 2026-10-01 against `origin/main` at ebf3b6e7. Paths are under `packages/
   - Everything that subtracts movements from promises now works in one unit for new purchase orders, unchanged.
   - The two invoice-matching classes convert the billed quantity into the stock unit, instead of reading receipts in the line unit, when the order line's promise is in the stock unit.
   - `item_oversold` stops converting a promise that is already in the stock unit.
-- **Telling old from new**: a supplier promise whose line is in another unit is in the stock unit if its original quantity equals the line quantity converted; otherwise it is a promise recorded before this feature, in the line's unit (`domain/units.promise_unit`). Readers use that one helper.
+- **Telling old from new**: the review of T016 found that comparing the promise's quantity with today's factor breaks when master data changes. The owner decided that a supplier promise made since this feature records its unit (`commitment.unit`). A promise without one is in its line's unit. Readers ask `domain/units.promise_held_unit` and convert line quantities by the relation fixed at ordering (`line_in_promise`, `promise_in_line`).
 - **Earlier purchase orders** keep their meaning. `units_not_comparable` names an open supplier promise in a purchase unit recorded before the change, with the reason `promise_in_purchase_unit`, so it is not silently mis-summed.
 - **Sales lines** are unchanged.
 

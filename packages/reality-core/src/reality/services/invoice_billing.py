@@ -15,7 +15,7 @@ from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, undefer
 
 from reality.db.core import (
     Commitment,
@@ -25,6 +25,7 @@ from reality.db.core import (
     LedgerReversal,
     Party,
 )
+from reality.domain.units import promise_held_unit, promise_in_line
 from reality.services import core
 
 ZERO = Decimal(0)
@@ -145,11 +146,13 @@ def billable_positions(
         session, tenant_id, order_type, invoice_type, party.id, currency
     ):
         promise = session.scalar(
-            select(Commitment).where(
+            select(Commitment)
+            .where(
                 Commitment.tenant_id == tenant_id,
                 Commitment.document_line_id == line.id,
                 Commitment.type == promise_type,
             )
+            .options(undefer(Commitment.unit))
         )
         if promise is None:
             continue
@@ -157,6 +160,17 @@ def billable_positions(
             session, tenant_id, promise.id, delivered_type
         ) - core.movement_quantity(session, tenant_id, promise.id, returned_type)
         if delivered <= ZERO:
+            continue
+        # Spec 301: a purchase line in cartons is received in pieces, and is
+        # billed in cartons. A delivery that is not a whole number of them is
+        # not offered rather than rounded into one.
+        delivered = promise_in_line(
+            delivered,
+            line,
+            promise.quantity,
+            promise_held_unit(promise.unit, line, line.unit),
+        )
+        if delivered is None:
             continue
         billing = core._order_line_billing(session, tenant_id, line.id)
         billable = min(delivered - billing["invoiced"], billing["remaining"])

@@ -24600,6 +24600,8 @@ Object.assign(dictionaries.de, {
   "Why it waits": "Warum es wartet",
   "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
   "Invoiced and not shipped": "Fakturiert, nicht versandt",
+  "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
+    "Diese Bestellung wurde erfasst, bevor Einkäufe in der Lagereinheit geführt wurden; buche den Wareneingang in der Einheit ihrer Bestellzeile.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
     "Nur ein Wareneingang kann in der Einkaufseinheit des Artikels angegeben werden, und nur in dieser; alles andere wird in der Lagereinheit erfasst.",
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
@@ -24653,6 +24655,8 @@ Object.assign(dictionaries.nl, {
   "Why it waits": "Waarom het wacht",
   "Order line with unknown item": "Orderregel met onbekend artikel",
   "Invoiced and not shipped": "Gefactureerd, niet verzonden",
+  "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
+    "Deze bestelling is vastgelegd voordat inkopen in de voorraadeenheid werden bijgehouden; boek de ontvangst in de eenheid van de orderregel.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
     "Alleen een ontvangst kan in de inkoopeenheid van het artikel worden opgegeven, en alleen in die eenheid; al het andere wordt in de voorraadeenheid vastgelegd.",
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":
@@ -24706,6 +24710,8 @@ Object.assign(dictionaries.es, {
   "Why it waits": "Por qué espera",
   "Order line with unknown item": "Línea de pedido con artículo desconocido",
   "Invoiced and not shipped": "Facturado y no enviado",
+  "This order was recorded before purchases were held in the stock unit; receive it in the unit of its order line.":
+    "Este pedido se registró antes de que las compras se llevaran en la unidad de stock; registra la recepción en la unidad de su línea de pedido.",
   "Only a receipt can be stated in the item's purchase unit, and only in that unit; anything else is recorded in the stock unit.":
     "Solo una recepción puede indicarse en la unidad de compra del artículo, y solo en esa; todo lo demás se registra en la unidad de existencias.",
   "A purchase line is in the item's stock unit or in its purchase unit with a stated conversion factor.":

@@ -10,7 +10,13 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from reality.domain.units import decline_reason, in_unit, promise_unit
+from reality.domain.units import (
+    decline_reason,
+    in_unit,
+    line_in_promise,
+    promise_held_unit,
+    promise_in_line,
+)
 
 CARTONS = SimpleNamespace(
     unit="pcs", purchase_unit="box", conversion_factor=Decimal(12)
@@ -43,16 +49,27 @@ def test_a_refusal_says_which_statement_is_missing():
     assert decline_reason(without, "box", "pcs") == "no_stated_relation"
 
 
-def test_a_promise_tells_whether_it_is_in_the_stock_unit():
+def test_a_promise_says_which_unit_it_is_held_in():
     line = SimpleNamespace(unit="box", quantity=Decimal(5))
-    # New: the promise was made in pieces from the line's cartons.
-    assert promise_unit(Decimal(60), line, CARTONS) == "stock"
+    # New: the promise recorded the stock unit it was made in.
+    assert promise_held_unit("pcs", line, "pcs") == "pcs"
     # Recorded before spec 301: the promise took the line's cartons as stated.
-    assert promise_unit(Decimal(5), line, CARTONS) == "line"
-    # A line in the stock unit, or no line, is always the stock unit.
-    stock_line = SimpleNamespace(unit="pcs", quantity=Decimal(5))
-    assert promise_unit(Decimal(5), stock_line, CARTONS) == "stock"
-    assert promise_unit(Decimal(5), None, CARTONS) == "stock"
+    assert promise_held_unit(None, line, "pcs") == "box"
+    # A promise without a line was always in the item's unit.
+    assert promise_held_unit(None, None, "pcs") == "pcs"
+
+
+def test_the_relation_fixed_at_ordering_converts_line_quantities():
+    line = SimpleNamespace(unit="box", quantity=Decimal(5))
+    # Five cartons promised as sixty pieces: twelve a carton, whatever the item
+    # says today.
+    assert line_in_promise(Decimal(3), line, Decimal(60), "pcs") == Decimal(36)
+    assert promise_in_line(Decimal(36), line, Decimal(60), "pcs") == Decimal(3)
+    # Half a carton is not a number of cartons.
+    assert promise_in_line(Decimal(30), line, Decimal(60), "pcs") is None
+    # A promise in its line's unit is read unchanged.
+    assert line_in_promise(Decimal(3), line, Decimal(5), "box") == Decimal(3)
+    assert promise_in_line(Decimal(3), line, Decimal(5), "box") == Decimal(3)
 
 
 # --- T004: schema ---------------------------------------------------------------------
@@ -98,12 +115,19 @@ def test_the_migration_upgrades_downgrades_and_keeps_stated_receipts(
     engine = create_engine(postgres_database)
 
     def columns():
-        return {
-            column["name"] for column in inspect(engine).get_columns("movement")
-        } & {"stated_quantity", "stated_unit"}
+        return (
+            {column["name"] for column in inspect(engine).get_columns("movement")}
+            & {"stated_quantity", "stated_unit"}
+        ) | {
+            f"commitment.{column['name']}"
+            for column in inspect(engine).get_columns("commitment")
+            if column["name"] == "unit"
+        }
+
+    added = {"stated_quantity", "stated_unit", "commitment.unit"}
 
     try:
-        assert columns() == {"stated_quantity", "stated_unit"}
+        assert columns() == added
         # Positive control: with nothing stated the downgrade removes them.
         command.downgrade(config, "0105_down_payments")
         assert columns() == set()
@@ -133,7 +157,20 @@ def test_the_migration_upgrades_downgrades_and_keeps_stated_receipts(
             )
         with pytest.raises(RuntimeError, match="stated in a purchase unit"):
             command.downgrade(config, "0105_down_payments")
-        assert columns() == {"stated_quantity", "stated_unit"}
+        assert columns() == added
+
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO commitment (id, tenant_id, type, item_id, quantity, "
+                    "amount, currency, status, created_at, priority, unit) VALUES "
+                    "('com_m301', 'ten_m301', 'supplier_delivery', 'itm_m301', 60, "
+                    "0, 'EUR', 'open', now(), 'normal', 'pcs')"
+                )
+            )
+        with pytest.raises(RuntimeError, match="held in the stock unit"):
+            command.downgrade(config, "0105_down_payments")
+        assert columns() == added
     finally:
         engine.dispose()
 
@@ -193,7 +230,10 @@ def test_a_purchase_in_cartons_keeps_the_line_and_promises_pieces(session, busin
     _, _, lines, commitments = _purchase(session, business, "5", "box")
 
     assert (lines[0].quantity, lines[0].unit) == (Decimal("5.0000"), "box")
-    assert commitments[0].quantity == Decimal("60.0000")
+    assert (commitments[0].quantity, commitments[0].unit) == (
+        Decimal("60.0000"),
+        "pcs",
+    )
 
 
 def test_a_purchase_in_the_stock_unit_is_unchanged(session, business):
@@ -312,6 +352,7 @@ def test_a_sales_line_in_another_unit_is_unchanged(session, business):
 
     # Selling in cartons is its own specification: the promise is as stated.
     assert commitments[0].quantity == lines[0].quantity == Decimal("2.0000")
+    assert commitments[0].unit is None
 
 
 # --- T008: readers --------------------------------------------------------------------
@@ -473,3 +514,169 @@ def test_the_delivery_case_reads_a_purchase_in_both_units(session, business):
     # Control: a purchase in the stock unit has no second view.
     _, _, _, plain = _purchase(session, business, "7", "pcs", number="PO-PCS")
     assert "purchase_unit" not in delivery_case(session, tenant, plain[0].id)["case"]
+
+
+# --- T016: review fixes ---------------------------------------------------------------
+
+
+def _legacy_purchase(session, business, number="PO-OLD"):
+    """A purchase in cartons recorded before spec 301: promised as stated."""
+    from reality.services import core
+
+    tenant = business.tenant.id
+    document, lines = core.create_manual_document_with_lines(
+        session,
+        tenant,
+        "purchase_order",
+        number,
+        business.supplier.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "5",
+                "unit": "box",
+                "unit_price": "60",
+                "gross_amount": "300",
+            }
+        ],
+        "300",
+    )
+    commitment = core.create_commitment(
+        session,
+        tenant,
+        "supplier_delivery",
+        business.supplier.id,
+        business.company.id,
+        business.item.id,
+        business.location.id,
+        "5",
+        None,
+        document_id=document.id,
+        document_line_id=lines[0].id,
+    )
+    return lines[0], commitment
+
+
+def test_a_factor_changed_after_ordering_changes_no_promise(session, business):
+    from reality.services.delivery_reads import delivery_case
+
+    tenant = business.tenant.id
+    _cartons(session, business)
+    _, _, lines, commitments = _purchase(session, business, "5", "box")
+    _receive(session, business, commitments[0], "3", unit="box")
+    _supplier_invoice(session, business, lines[0], "5", "ER-301-F")
+
+    # The company now buys cartons of ten. The order was placed for twelve.
+    business.item.conversion_factor = Decimal(10)
+    session.commit()
+
+    row = _classes(session, business, "billed_not_received")[lines[0].id]
+    assert (row.causal_values["unreceived_quantity"], row.causal_values["unit"]) == (
+        Decimal("24.0000"),
+        "pcs",
+    )
+    purchase = delivery_case(session, tenant, commitments[0].id)["case"][
+        "purchase_unit"
+    ]
+    assert (purchase["conversion_factor"], purchase["open"]) == ("12", "2")
+    # Nor does it make the new promise look recorded the old way.
+    assert business.item.id not in _classes(session, business, "units_not_comparable")
+
+
+def test_an_order_recorded_before_cannot_take_a_receipt_in_cartons(session, business):
+    from reality.services import core
+
+    _cartons(session, business)
+    _, commitment = _legacy_purchase(session, business)
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _receive(session, business, commitment, "5", unit="box")
+    assert refused.value.code == "movement_promise_in_line_unit"
+    # Positive control: received as its line states, as before.
+    assert _receive(session, business, commitment, "5").quantity == Decimal("5.0000")
+
+
+def test_billable_positions_of_a_purchase_in_cartons_are_in_cartons(
+    session, business
+):
+    from reality.services.invoice_billing import billable_positions
+
+    _cartons(session, business)
+    _, _, lines, commitments = _purchase(session, business, "5", "box")
+    _receive(session, business, commitments[0], "3", unit="box")
+
+    def position():
+        orders = billable_positions(
+            session,
+            business.tenant.id,
+            direction="purchase",
+            party_id=business.supplier.id,
+            currency="EUR",
+        )["orders"]
+        return [row for order in orders for row in order["positions"]]
+
+    (row,) = position()
+    assert (row["unit"], row["delivered"], row["billable"]) == (
+        "box",
+        Decimal("3.0000"),
+        Decimal("3.0000"),
+    )
+    _supplier_invoice(session, business, lines[0], "3", "ER-301-B")
+    # Three cartons received and three billed leaves nothing, not 33.
+    assert position() == []
+    # Half a carton is not offered rather than rounded.
+    _receive(session, business, commitments[0], "6")
+    assert position() == []
+
+
+def test_the_purchase_view_reads_the_promise_in_force(session, business):
+    from reality.services import core
+    from reality.services.delivery_reads import delivery_case
+
+    tenant = business.tenant.id
+    _cartons(session, business)
+    _, _, _, commitments = _purchase(session, business, "5", "box")
+    core.revise_commitment(session, tenant, commitments[0].id, quantity="48")
+
+    purchase = delivery_case(session, tenant, commitments[0].id)["case"][
+        "purchase_unit"
+    ]
+    assert (purchase["ordered"], purchase["open"]) == ("4", "4")
+
+
+def test_a_conversion_that_does_not_divide_is_named_before_an_old_purchase(
+    session, business
+):
+    from reality.services import core
+
+    _cartons(session, business)
+    line, _ = _legacy_purchase(session, business)
+    # Control: the old purchase alone is named as such.
+    assert (
+        _classes(session, business, "units_not_comparable")[business.item.id]
+        .causal_values["reason"]
+        == "promise_in_purchase_unit"
+    )
+
+    core.create_manual_document_with_lines(
+        session,
+        business.tenant.id,
+        "supplier_invoice",
+        "ER-301-R",
+        business.supplier.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "61",
+                "unit": "pcs",
+                "unit_price": "5",
+                "gross_amount": "305",
+                "billed_document_line_id": line.id,
+            }
+        ],
+        "305",
+    )
+
+    row = _classes(session, business, "units_not_comparable")[business.item.id]
+    # The one that asks for a decision is what the entry says.
+    assert row.causal_values["reason"] == "conversion_leaves_a_remainder"

@@ -58,17 +58,45 @@ def decline_reason(item: Any | None, recorded: str, target: str) -> str:
     return "conversion_leaves_a_remainder"
 
 
-def promise_unit(promised: Decimal, line: Any | None, item: Any) -> str:
-    """Whether a promise is held in the stock unit or in its line's unit.
+def promise_held_unit(commitment_unit: str | None, line: Any | None, item_unit: str) -> str:
+    """The unit a promise's quantity is held in.
 
-    Since spec 301 a purchase line in the purchase unit promises its quantity in
-    the stock unit. A promise recorded before kept the line's quantity as
-    stated, in the line's unit, and was not converted. The two are told apart by
-    the one fact that differs: the promise's original quantity.
+    Since spec 301 a purchase promise records the unit it was made in, the
+    item's stock unit at the time of ordering. A promise recorded before kept
+    its line's quantity as stated, in the line's unit, and says nothing; one
+    without a line was always in the item's unit. Reading the marker rather
+    than today's master data means a factor changed after ordering changes no
+    promise.
     """
-    if line is None or line.unit == item.unit:
-        return "stock"
-    converted = in_unit(item, Decimal(line.quantity), line.unit, item.unit)
-    if converted is not None and Decimal(promised) == converted:
-        return "stock"
-    return "line"
+    if commitment_unit:
+        return commitment_unit
+    return line.unit if line is not None else item_unit
+
+
+def line_in_promise(
+    quantity: Decimal, line: Any, promised: Decimal, held: str
+) -> Decimal | None:
+    """A quantity in an order line's unit, in the unit its promise is held in.
+
+    The relation is the one fixed when the line was promised: its quantity
+    against the promise's original quantity, so five cartons that became sixty
+    pieces stay twelve pieces a carton whatever the item says later.
+    """
+    if line.unit == held:
+        return quantity
+    stated = Decimal(line.quantity)
+    if stated <= ZERO:
+        return None
+    return quantity * Decimal(promised) / stated
+
+
+def promise_in_line(
+    quantity: Decimal, line: Any, promised: Decimal, held: str
+) -> Decimal | None:
+    """The inverse: a promise-unit quantity in the line's unit, if it is whole."""
+    if line.unit == held:
+        return quantity
+    if Decimal(promised) <= ZERO:
+        return None
+    whole, remainder = divmod(quantity * Decimal(line.quantity), Decimal(promised))
+    return whole if remainder == ZERO else None

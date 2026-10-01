@@ -2504,7 +2504,7 @@ export type DeliveryRow = {
   purchase_unit?: {
     unit: string;
     conversion_factor: string;
-    ordered: string;
+    ordered: string | null;
     open: string | null;
     received: string | null;
   };

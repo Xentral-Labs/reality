@@ -33,6 +33,7 @@ from reality.db.core import (
     now,
     uid,
 )
+from reality.domain.units import promise_held_unit, promise_in_line
 from reality.playground import catalog
 from reality.playground.actions import (
     MASTER_TOOLS,
@@ -151,16 +152,26 @@ def _finance_state(session: Session, tenant_id: str, arguments: dict) -> dict:
                 )
             )
         commitments = list(
-            session.scalars(
-                select(Commitment.id).where(
+            session.execute(
+                select(Commitment.id, Commitment.quantity, Commitment.unit).where(
                     Commitment.tenant_id == tenant_id,
                     Commitment.document_line_id == line.id,
                     Commitment.type.in_(["customer_delivery", "supplier_delivery"]),
                 )
             )
         )
+        # In the line's unit, which is what an invoice line states (spec 301).
         delivered = sum(
-            (fulfilled_quantity(session, tenant_id, id_) for id_ in commitments),
+            (
+                promise_in_line(
+                    fulfilled_quantity(session, tenant_id, id_),
+                    line,
+                    promised,
+                    promise_held_unit(held, line, line.unit),
+                )
+                or Decimal(0)
+                for id_, promised, held in commitments
+            ),
             Decimal(0),
         )
         state = {

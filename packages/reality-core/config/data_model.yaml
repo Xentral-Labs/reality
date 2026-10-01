@@ -753,6 +753,7 @@ tables:
       created_at: {}
       cancelled_at: {description: UTC cancellation timestamp; empty means not cancelled.}
       priority: {description: Operational priority used for sequencing decisions.}
+      unit: {description: "Unit the quantity is held in, recorded on purchase promises since spec 301; empty means the order line's unit, or the item's without a line."}
   commitment_hold:
     description: Time-bounded execution hold on one commitment.
     columns:

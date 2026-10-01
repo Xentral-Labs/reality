@@ -91,6 +91,8 @@ function DeliveryActionCard({
     [tenant, target, receiving, proposal?.id],
   );
   const purchaseUnit = purchaseRead.data?.case.purchase_unit;
+  // A unit chosen for one order means nothing for the next one picked.
+  useEffect(() => setUnit(""), [target]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [uncertain, setUncertain] = useState(false);
@@ -233,7 +235,7 @@ function DeliveryActionCard({
                 item_id: detail!.item_id,
                 [receiving ? "to_location_id" : "from_location_id"]: detail!.location_id,
                 quantity,
-                ...(receiving && unit ? { unit } : {}),
+                ...(receiving && purchaseUnit && unit === purchaseUnit.unit ? { unit } : {}),
                 ...identities,
               };
       const result = await deliveryActions.prepare(

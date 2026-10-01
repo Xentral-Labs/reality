@@ -3142,6 +3142,7 @@ def create_commitment(
     document_line_id: str | None = None,
     priority: str = "normal",
     _commit: bool = True,
+    _unit: str | None = None,
 ) -> Commitment:
     _require_business_mutation(session, tenant_id, "create_commitment")
     if action_id:
@@ -3179,6 +3180,7 @@ def create_commitment(
         document_id=document_id,
         document_line_id=document_line_id,
         priority=priority,
+        **({"unit": _unit} if _unit else {}),
     )
     session.add(commitment)
     emit_business_event(
@@ -3192,6 +3194,7 @@ def create_commitment(
             "item_id": item_id,
             "quantity": commitment.quantity,
             "document_id": document_id,
+            **({"unit": _unit} if _unit else {}),
         },
         action_id=action_id,
         correlation_id=action_id,
@@ -5123,6 +5126,21 @@ def _append_movement(
         )
         if movement_type not in allowed or commitment.item_id != item_id:
             raise InvalidOperation(code="movement_commitment_mismatch")
+        if stated is not None:
+            # A promise recorded before spec 301 is held in its line's unit and
+            # its receipts are stated there; sixty pieces against five cartons
+            # would read as fifty-five too many.
+            from reality.domain.units import promise_held_unit
+
+            line = (
+                _tenant_record(
+                    session, DocumentLine, tenant_id, commitment.document_line_id
+                )
+                if commitment.document_line_id
+                else None
+            )
+            if promise_held_unit(commitment.unit, line, item.unit) != item.unit:
+                raise InvalidOperation(code="movement_promise_in_line_unit")
         if (
             movement_type == "shipment"
             and commitment.type == "customer_delivery"
@@ -7888,6 +7906,11 @@ def create_manual_order(
         )
         commitments = []
         for line in document_lines:
+            purchased = (
+                _tenant_record(session, Item, tenant_id, line.item_id)
+                if direction == "purchase" and line.item_id
+                else None
+            )
             commitments.append(
                 create_commitment(
                     session,
@@ -7899,12 +7922,8 @@ def create_manual_order(
                     counterparty_id if direction == "sales" else company_party_id,
                     line.item_id,
                     location_id,
-                    _purchase_promise_quantity(
-                        _tenant_record(session, Item, tenant_id, line.item_id),
-                        line.quantity,
-                        line.unit,
-                    )
-                    if direction == "purchase" and line.item_id
+                    _purchase_promise_quantity(purchased, line.quantity, line.unit)
+                    if purchased is not None
                     else line.quantity,
                     line.requested_at or requested_delivery_at,
                     amount=line.gross_amount,
@@ -7912,6 +7931,9 @@ def create_manual_order(
                     document_id=document.id,
                     document_line_id=line.id,
                     _commit=False,
+                    # The unit the promise is held in, so later readers need
+                    # not guess it from today's master data.
+                    _unit=purchased.unit if purchased is not None else None,
                     action_id=action_id,
                 )
             )

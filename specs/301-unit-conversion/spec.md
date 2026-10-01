@@ -43,6 +43,7 @@ Purchase units and conversion factors are compared in exception checks, but rece
 - Q: Is one purchase unit per item enough, or one per supplier? → A: One per item: the existing `Item.purchase_unit` and `Item.conversion_factor`. A supplier-specific pack size is a later specification.
 - Q: What happens to purchase orders already recorded in a purchase unit? → A: Conversion applies to purchase orders recorded from now on. Recorded promises are not changed; open supplier promises stated in a purchase unit before the change are named, not converted.
 - Q: Does the conversion apply to sales too? → A: No, purchasing only. Sales lines keep today's behaviour; selling in cartons is its own specification.
+- Q: (Review) How does a reader tell a new promise held in pieces from an old one in cartons? → A: The promise records the unit it is held in. Line quantities convert by the relation fixed at ordering, not by the item's current factor.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -63,6 +64,9 @@ As a wholesaler, I receive 5 cartons and see 60 pieces in stock.
 
 - Tenant isolation: nothing crosses companies.
 - A source-stated value is recorded as stated and never recomputed (Constitution VIII).
+- An order recorded before this feature cannot take a receipt stated in cartons. It is refused with `movement_promise_in_line_unit` and received in its line's unit, as before.
+- A delivery that is not a whole number of cartons is not offered as billable. It is never rounded.
+- Recorded limitations: a revision of a purchase promise is stated in the stock unit, and the purchase view reads it in cartons. A replacement in a movement correction is stated in the stock unit.
 
 ## Requirements *(mandatory)*
 

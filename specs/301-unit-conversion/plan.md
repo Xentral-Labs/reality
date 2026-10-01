@@ -61,7 +61,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/re
 
 - `in_unit(item, quantity, recorded, target)`: moved from `services/exceptions._in_unit`, which then imports it. Behaviour is unchanged.
 - `to_stock_unit(item, quantity, unit)` raises the coded refusal.
-- `promise_unit(commitment, line, item)`: `"stock"` or `"line"`, distinguishing new from recorded promises.
+- `promise_held_unit(commitment_unit, line, item_unit)`, `line_in_promise` and `promise_in_line`: the unit a promise is held in, and line quantities converted by the relation fixed at ordering. These replaced the first `promise_unit` heuristic after review (see `data-model.md`).
 
 ### Purchase orders
 
@@ -74,7 +74,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/re
 ### Readers
 
 - `receipt_unbilled` and `billed_not_received` convert billed lines into the stock unit for promises in the stock unit.
-- `item_oversold` uses `promise_unit`.
+- `item_oversold` uses `promise_held_unit`.
 - Delivery case and open-work rows add the purchase-unit view.
 - `units_not_comparable` gains the reason `promise_in_purchase_unit` for open supplier promises recorded before.
 

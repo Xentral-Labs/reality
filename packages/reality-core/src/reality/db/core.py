@@ -1630,6 +1630,12 @@ class Commitment(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     cancelled_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     priority: Mapped[str] = mapped_column(String, default="normal")
+    # Spec 301: the unit the quantity is held in, recorded on purchase promises
+    # made since then. None means the line's unit, or the item's without a line.
+    unit: Mapped[str | None] = mapped_column(
+        String, server_default=FetchedValue(), deferred=True
+    )
+    __mapper_args__: ClassVar[dict[str, Any]] = {"eager_defaults": False}
 
 
 class CommitmentRevision(Base):

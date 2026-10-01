@@ -11,10 +11,16 @@
 - **Rule**: `quantity` is always in the item's stock unit from now on. The stated values are evidence of what was said; they are never read back into stock.
 - **Typed, not payload**: the inspector and the purchase reads show them on every receipt, and the downgrade guard filters on them (Constitution III).
 
-## Unchanged schema, changed meaning for new purchase orders
+## Changed: `commitment`
 
-- **`commitment.quantity`** of a supplier promise is in the item's stock unit. The line keeps the stated quantity and unit.
-- **Old or new**: `domain/units.promise_unit(commitment, line, item)` tells a promise recorded before this feature, in the line's unit, from a new one.
+| Field | Type | Why |
+|---|---|---|
+| `unit` | text, nullable | The unit a promise's quantity is held in. It is set on supplier promises made since this feature, to the item's stock unit at ordering. |
+
+- **Empty**: the promise is in its line's unit, or in the item's unit when it has no line. That covers every promise recorded before this feature, and every customer promise.
+- **Relation fixed at ordering**: a line quantity is converted into the promise by the line quantity against the promise's original quantity, for example 5 cartons → 60 pieces. It is not converted by today's item factor, so a factor changed after ordering changes no promise (review of T016, owner decision).
+- **Typed, not derived**: telling old promises from new by comparing quantities with the current factor broke when master data changed. Every reader in `domain/units.py` (`promise_held_unit`, `line_in_promise`, `promise_in_line`) filters on the unit: exceptions, billable positions, the purchase view and the receipt check.
+- **Downgrade**: refused while any promise carries a unit.
 
 ## Not changed
 

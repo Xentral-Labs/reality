@@ -73923,6 +73923,20 @@
             "de": "Operative Priorität der Zusage."
           },
           "references": []
+        },
+        {
+          "name": "unit",
+          "type": "VARCHAR",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Unit of measure of the stated quantity.",
+            "de": "Maßeinheit der genannten Menge."
+          },
+          "references": []
         }
       ],
       "actions": [
