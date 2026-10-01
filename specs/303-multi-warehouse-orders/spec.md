@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: Clarified
 
 **Language**: English
 
@@ -30,9 +30,19 @@ An order is entered for one warehouse, reservation and readiness are bound to th
 
 ### Non-Goals
 
-- Automatic routing optimisation.
+- Automatic routing optimisation, or reserving across warehouses without a person naming the warehouse.
+- A flag or list of locations allowed to serve orders.
 - In-transit stock (missing journey J01).
 - Anything that requires a document status field (Constitution II).
+
+## Clarifications
+
+### Session 2026-10-01
+
+- Q: Which locations may serve an order? → A: Every active location that holds stock (`is_active` and `allows_stock`). No new field is needed. The order's own location stays the first one.
+- Q: How is a line reserved when its own warehouse is short? → A: Reserving takes the order's own location, as today. For the rest, the person names another location. The review shows what is available there, and nothing is distributed silently. Readiness and shipping then count every reservation at the location it holds, and a shipment leaves from where its stock is reserved.
+- Q: What does Reality propose when stock sits in the wrong warehouse (B06)? → A: A new exception class, "Stock in another warehouse", one entry per open customer promise whose own location cannot cover its unreserved rest while other locations can. It names those locations and their available quantity, and offers both ways as reviewed actions: "Reserve there" and "Prepare transfer" to the order's location.
+- Q: Does D02 (two warehouses, two parcels, one order) join this package? → A: Yes. One package per warehouse, both against the same promise, proven by a business story.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -46,21 +56,26 @@ As a warehouse lead, I serve one order from two warehouses without splitting it 
 
 **Acceptance Scenarios**:
 
-1. **Given** stock split across two warehouses, **When** a line is reserved, **Then** it reserves from both and ships as two packages against one promise.
-2. **Given** stock only in the wrong warehouse, **When** the order is read, **Then** a transfer is proposed.
+1. **Given** stock split across two warehouses, **When** the line is reserved at its own location and the rest at a named second location, **Then** the promise is ready to ship, and it ships as two packages, one from each warehouse, against the one promise.
+2. **Given** stock only in the wrong warehouse, **When** exceptions are read, **Then** "Stock in another warehouse" names the location and its available quantity, and offers to reserve there or to prepare a transfer, each through the review.
+3. **Given** an order with many lines across warehouses (A02), **When** each line is reserved where its stock is, **Then** readiness and shipping follow every line's reservations.
 
 ### Edge Cases
 
 - Tenant isolation: nothing crosses companies.
+- A named location that is inactive, holds no stock, or has nothing available is refused with a coded reason.
+- A transfer moves stock only. It reserves nothing and changes no promise. Reserving after the transfer is the usual step.
+- A reservation at another location is released, consumed by shipping and reported like any other.
+- When the order's own location can cover the rest, no entry appears, even if other locations hold stock.
 - A source-stated value is recorded as stated and never recomputed (Constitution VIII).
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: A promise MUST be reservable against stock in more than one location.
-- **FR-002**: Readiness MUST consider every location the promise may ship from.
-- **FR-003**: A transfer proposal MUST be a reviewed action.
+- **FR-001**: A promise MUST be reservable against stock at a location the person names, besides its own. The reservation MUST record that location, and only active locations holding stock qualify.
+- **FR-002**: Readiness and the fulfilment queue MUST count each reservation with the stock at its own location. A shipment against the promise MUST consume the reservations at the location it leaves from.
+- **FR-003**: "Stock in another warehouse" MUST be derived at read time for an open customer promise whose unreserved rest its own location cannot cover while other locations can. Reserving there and preparing a transfer MUST be reviewed actions.
 - **FR-004**: Every mutation this feature adds MUST use the reviewed, tenant-scoped application tools shared by Web, Chat/MCP and CLI.
 - **FR-005**: When the journeys in scope are proven by a business story, the Business Journey Guide MUST promote them with executable evidence, as specs 292 to 294 did.
 
@@ -83,8 +98,7 @@ As a warehouse lead, I serve one order from two warehouses without splitting it 
 
 ## Open Questions
 
-- [NEEDS CLARIFICATION: Which locations may serve an order: all, or a stated set per company?]
-- [NEEDS CLARIFICATION: Does D02 (missing today) join this package or stay separate?]
+None. See Clarifications.
 
 ## Requirement Traceability
 
