@@ -39,12 +39,12 @@
 
 ## Phase 4: Peak intake (FR-003)
 
-- [ ] T008 [US1] Failing test in `core/tests/test_peak_intake_benchmark.py`:
+- [x] T008 [US1] Failing test in `core/tests/test_peak_intake_benchmark.py`:
   - 50 Shopify orders and 2 processes produce a report;
   - every order is interpreted exactly once and no item is over-reserved;
   - the shortfall check matches;
   - the runner refuses without `--confirm-disposable`.
-- [ ] T009 [US1] `benchmarks/peak_intake` (company, runner, report); run 10,000 orders with 1 and 4 processes on a quiet machine and record the figures in `results.md`.
+- [x] T009 [US1] `benchmarks/peak_intake` (company, runner, report); run 10,000 orders with 1 and 4 processes on a quiet machine and record the figures in `results.md`.
 
 ## Phase 5: Stories and Guide (FR-005)
 
