@@ -1094,3 +1094,171 @@ def test_a_black_friday_burst_is_interpreted_once_and_never_over_reserved(
         ]
         == demand - stock
     )
+
+
+# --- spec 303: orders served from several warehouses -----------------------------------
+
+
+def _warehouse_findings(session, tenant_id):
+    return {
+        row.record_id: row
+        for row in operational_exceptions(session, tenant_id)
+        if row.class_id == "stock_in_another_location"
+    }
+
+
+def _from(business, commitment_id, location, quantity, item_id=None):
+    return {
+        "commitment_id": commitment_id,
+        "item_id": item_id or business.item.id,
+        "from_location_id": location.id,
+        "quantity": quantity,
+    }
+
+
+def test_two_warehouses_ship_one_order_line_as_two_parcels(session, business):
+    """D02: movements per location, one commitment?"""
+    tenant = business.tenant.id
+    munich = core.create_location(session, tenant, "Munich Warehouse")
+    _receive(session, business, business.item.id, "6", business.location.id)
+    _receive(session, business, business.item.id, "40", munich.id)
+    (promise_id,) = _order(
+        session, business, "SO-D02", [_line(business.item.id, "10")]
+    )["commitment_ids"]
+
+    # Home reserves its six; the finding points at Munich for the other four.
+    _act(session, business, "reserve", {"commitment_id": promise_id}, "d02-home")
+    where = _warehouse_findings(session, tenant)[promise_id].trace["locations"][0]
+    assert (where["location_id"], where["proposed"]) == (munich.id, "4")
+    _act(
+        session,
+        business,
+        "reserve",
+        {
+            "commitment_id": promise_id,
+            "location_id": where["location_id"],
+            "quantity": where["proposed"],
+        },
+        "d02-munich",
+    )
+    assert promise_id not in _warehouse_findings(session, tenant)
+    assert fulfillment_readiness(session, tenant, promise_id).ship_ready
+
+    # Each warehouse ships its part as its own parcel against the one promise.
+    home = _dispatch(
+        session,
+        business,
+        "D02-1",
+        [_from(business, promise_id, business.location, "6")],
+    )
+    away = _dispatch(
+        session, business, "D02-2", [_from(business, promise_id, munich, "4")]
+    )
+    parcels = [home["package_id"], away["package_id"]]
+    assert len(set(parcels)) == 2
+    assert [
+        [
+            (m.from_location_id, m.quantity)
+            for m in _package_movements(session, business, p)
+        ]
+        for p in parcels
+    ] == [[(business.location.id, Decimal("6.0000"))], [(munich.id, Decimal("4.0000"))]]
+    assert core.open_quantity(session, tenant, promise_id) == 0
+    assert _active_reservations(session, business, promise_id) == 0
+
+
+def test_stock_in_the_wrong_warehouse_is_transferred_and_then_reserved(
+    session, business
+):
+    """B06: is a transfer needed, and is availability per location?"""
+    tenant = business.tenant.id
+    munich = core.create_location(session, tenant, "Munich Warehouse")
+    _receive(session, business, business.item.id, "40", munich.id)
+    (promise_id,) = _order(session, business, "SO-B06", [_line(business.item.id, "5")])[
+        "commitment_ids"
+    ]
+
+    # Home reserves nothing; the stock is in Munich, and the finding says so.
+    _act(session, business, "reserve", {"commitment_id": promise_id}, "b06-home")
+    assert _active_reservations(session, business, promise_id) == 0
+    finding = _warehouse_findings(session, tenant)[promise_id]
+    assert finding.causal_values["elsewhere"] == "Munich Warehouse 40"
+    where = finding.trace["locations"][0]
+
+    # The warehouse lead moves the five home through the reviewed transfer.
+    _act(
+        session,
+        business,
+        "movement_create",
+        {
+            "movement_type": "transfer",
+            "item_id": business.item.id,
+            "quantity": where["proposed"],
+            "from_location_id": where["location_id"],
+            "to_location_id": finding.trace["location_id"],
+        },
+        "b06-transfer",
+    )
+    assert promise_id not in _warehouse_findings(session, tenant)
+    assert core.stock_at(session, tenant, business.item.id, business.location.id) == 5
+
+    # Then the order reserves and ships at home, as usual.
+    _act(session, business, "reserve", {"commitment_id": promise_id}, "b06-reserve")
+    _ship(session, business, "B06-1", promise_id, "5")
+    assert core.open_quantity(session, tenant, promise_id) == 0
+
+
+def test_an_order_with_many_lines_is_served_from_two_warehouses(session, business):
+    """A02: what is open per line and per location?"""
+    tenant = business.tenant.id
+    munich = core.create_location(session, tenant, "Munich Warehouse")
+    items = [business.item] + [
+        core.create_item(session, tenant, f"A02-{index}", f"Part {index}")
+        for index in range(1, 12)
+    ]
+    # Even items are stocked at home, odd ones in Munich.
+    for index, item in enumerate(items):
+        place = business.location if index % 2 == 0 else munich
+        _receive(session, business, item.id, "3", place.id)
+    promise_ids = _order(
+        session, business, "SO-A02", [_line(item.id, "3") for item in items]
+    )["commitment_ids"]
+    assert len(promise_ids) == 12
+
+    for promise_id in promise_ids:
+        _act(session, business, "reserve", {"commitment_id": promise_id}, promise_id)
+    # Every line whose stock is in Munich is named; no line stocked at home is.
+    named = _warehouse_findings(session, tenant)
+    assert set(named) == set(promise_ids[1::2])
+    for promise_id in promise_ids[1::2]:
+        where = named[promise_id].trace["locations"][0]
+        _act(
+            session,
+            business,
+            "reserve",
+            {"commitment_id": promise_id, "location_id": where["location_id"]},
+            f"{promise_id}-m",
+        )
+    assert _warehouse_findings(session, tenant) == {}
+    assert all(
+        fulfillment_readiness(session, tenant, promise_id).ship_ready
+        for promise_id in promise_ids
+    )
+
+    # Each warehouse ships its own lines in one parcel.
+    for tracking, place, ids in (
+        ("A02-H", business.location, promise_ids[0::2]),
+        ("A02-M", munich, promise_ids[1::2]),
+    ):
+        _dispatch(
+            session,
+            business,
+            tracking,
+            [
+                _from(business, promise_id, place, "3", item_id=item.id)
+                for promise_id, item in zip(
+                    ids, items[0::2] if place is business.location else items[1::2]
+                )
+            ],
+        )
+    assert all(core.open_quantity(session, tenant, pid) == 0 for pid in promise_ids)
