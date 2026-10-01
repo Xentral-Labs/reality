@@ -107,7 +107,7 @@ export function ReorderPointCard({
   const unit = review?.unit || item.unit || "";
   const values = (row: ReorderPointValues | null) =>
     row
-      ? `${formatQuantity(row.reorder_point)} ${unit} · ${t("Reorder quantity")} ${formatQuantity(row.reorder_quantity)} ${unit}`
+      ? `${t("Reorder point")} ${formatQuantity(row.reorder_point)} ${unit} · ${t("Reorder quantity")} ${formatQuantity(row.reorder_quantity)} ${unit}`
       : t("None");
   const title = removing
     ? "Remove reorder point"
