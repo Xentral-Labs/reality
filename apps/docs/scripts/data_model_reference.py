@@ -76,6 +76,8 @@ occurred_at|When the physical movement happened (UTC).|Wann die physische Warenb
 shipment_package_id|Package in the physical shipment carrying these goods.|Packstück der physischen Sendung, in dem diese Ware liegt.
 resolves_movement_id|Earlier return movement whose goods this movement disposes of.|Frühere Retourenbewegung, über deren Ware diese Bewegung verfügt.
 return_announcement_id|Return announcement fulfilled by these arriving goods, if any.|Retourenankündigung, die mit dieser eingehenden Ware erfüllt wird, sofern vorhanden.
+stated_quantity|Quantity a receipt stated in the purchase unit, kept beside the stock-unit quantity.|Menge, die ein Wareneingang in der Einkaufseinheit angegeben hat, neben der Menge in Lagereinheit.
+stated_unit|Purchase unit a receipt was stated in, such as box.|Einkaufseinheit, in der ein Wareneingang angegeben wurde, etwa Karton.
 posting_group_id|Groups the entries of one balanced posting; not a document number.|Gruppiert die Einträge einer ausgeglichenen Buchung; keine Belegnummer.
 account_id|Subledger account within this tenant; account role is read from it.|Nebenbuchkonto dieses Unternehmens; die Kontorolle wird daraus gelesen.
 debit_credit|Debit or credit side of this posting entry.|Soll- oder Habenseite dieses Buchungseintrags.

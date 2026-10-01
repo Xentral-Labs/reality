@@ -12,12 +12,12 @@
 
 ## Phase 2: Shared rule and schema
 
-- [ ] T004 Failing tests in `core/tests/test_purchase_units.py`:
+- [x] T004 Failing tests in `core/tests/test_purchase_units.py`:
   - the shared rule moved to `domain/units.py` behaves as before (the existing comparability tests stay green);
   - `promise_unit` tells a new promise from a recorded one;
   - the migration upgrades and downgrades, refusing while stated receipts exist;
   - the pairing check refuses one stated value without the other.
-- [ ] T005 `domain/units.py`, `exceptions._in_unit` importing it, migration `0106`, model columns (deferred, `FetchedValue`), `data_model.yaml` and the schema gates.
+- [x] T005 `domain/units.py`, `exceptions._in_unit` importing it, migration `0106`, model columns (deferred, `FetchedValue`), `data_model.yaml` and the schema gates.
 
 ## Phase 3: Purchase orders and receipts (FR-001 to FR-003)
 

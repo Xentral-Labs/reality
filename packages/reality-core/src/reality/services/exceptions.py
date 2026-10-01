@@ -35,6 +35,8 @@ from reality.db.core import (
     Tenant,
 )
 from reality.services.exception_inputs import _exception_input_scope, _inputs
+from reality.domain.units import decline_reason as _decline_reason
+from reality.domain.units import in_unit as _in_unit
 
 ZERO = Decimal(0)
 # A source is judged against the rhythm it has shown itself, never against a
@@ -901,54 +903,6 @@ def _item(session: Session, tenant_id: str, item_id: str | None) -> Item | None:
     return session.scalar(
         select(Item).where(Item.tenant_id == tenant_id, Item.id == item_id)
     )
-
-
-def _in_unit(
-    item: Item | None, quantity: Decimal, recorded: str, target: str
-) -> Decimal | None:
-    """A quantity recorded in one unit, expressed in another, or None.
-
-    The only relation Reality holds is the one an item states between its own
-    stock unit and its own purchase unit — "we buy this in boxes of twelve",
-    written down by the company. Multiplying a stated quantity by a stated
-    factor at read time, storing nothing, is an observation over facts held and
-    never a second authority for either of them.
-
-    Three things stop it, and each is a company that has not said enough: no
-    item to carry a statement, a factor that states nothing, and a pair the
-    statement does not cover. A fourth stops it although everything was said —
-    a conversion leaving a remainder, because a hundred and seven pieces are not
-    a number of boxes and rounding them into one is the thing this product
-    exists not to do.
-    """
-    if recorded == target:
-        return quantity
-    if item is None:
-        return None
-    factor = Decimal(item.conversion_factor)
-    if factor <= ZERO:
-        return None
-    if recorded == item.purchase_unit and target == item.unit:
-        return quantity * factor
-    if recorded == item.unit and target == item.purchase_unit:
-        whole, remainder = divmod(quantity, factor)
-        return whole if remainder == ZERO else None
-    return None
-
-
-def _decline_reason(item: Item | None, recorded: str, target: str) -> str:
-    """Which of the two went wrong, because their exits are different.
-
-    A relation nobody stated is master data to fill in. A relation that is
-    stated and does not divide is a company that ordered ten boxes and delivered
-    a hundred and seven pieces, and telling it to state the relation would be
-    advice it has already taken.
-    """
-    if item is None or Decimal(item.conversion_factor) <= ZERO:
-        return "no_stated_relation"
-    if {recorded, target} != {item.unit, item.purchase_unit}:
-        return "no_stated_relation"
-    return "conversion_leaves_a_remainder"
 
 
 def _reconcile(

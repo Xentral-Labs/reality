@@ -794,6 +794,8 @@ tables:
       handling_unit_id: {description: Optional physical pallet carrying this moved quantity.}
       lot_id: {description: Optional lot identity physically moved with this quantity.}
       serial_unit_id: {description: Optional exact serialized unit; the movement quantity is one.}
+      stated_quantity: {description: Quantity a receipt stated in the item's purchase unit, kept beside the stock-unit quantity (spec 301).}
+      stated_unit: {description: The purchase unit that quantity was stated in.}
   handling_unit:
     description: Optional physical pallet identity used to group item movements without becoming inventory itself.
     columns:

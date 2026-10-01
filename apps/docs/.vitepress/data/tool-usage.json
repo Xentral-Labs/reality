@@ -74553,6 +74553,34 @@
             "de": "Retourenankündigung, die mit dieser eingehenden Ware erfüllt wird, sofern vorhanden."
           },
           "references": ["return_announcement.id"]
+        },
+        {
+          "name": "stated_quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Quantity a receipt stated in the purchase unit, kept beside the stock-unit quantity.",
+            "de": "Menge, die ein Wareneingang in der Einkaufseinheit angegeben hat, neben der Menge in Lagereinheit."
+          },
+          "references": []
+        },
+        {
+          "name": "stated_unit",
+          "type": "VARCHAR",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Purchase unit a receipt was stated in, such as box.",
+            "de": "Einkaufseinheit, in der ein Wareneingang angegeben wurde, etwa Karton."
+          },
+          "references": []
         }
       ],
       "actions": [
