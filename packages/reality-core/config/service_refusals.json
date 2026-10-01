@@ -466,6 +466,24 @@
     "document_date_format_invalid": {
       "message": "Document date must use YYYY-MM-DD."
     },
+    "down_payment_amount_invalid": {
+      "message": "State a positive down-payment amount with at most four decimals."
+    },
+    "down_payment_currency_mismatch": {
+      "message": "A down-payment invoice is in its order's currency."
+    },
+    "down_payment_fields_invalid": {
+      "message": "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax."
+    },
+    "down_payment_number_missing": {
+      "message": "State the down-payment invoice number."
+    },
+    "down_payment_order_required": {
+      "message": "A down-payment invoice is for a sales order."
+    },
+    "down_payment_record_unresolved": {
+      "message": "A recording of this down-payment invoice is still being settled."
+    },
     "dunning_preview_stale": {
       "message": "Dunning preview is stale; reload and confirm again."
     },

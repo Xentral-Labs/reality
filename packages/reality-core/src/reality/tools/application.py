@@ -1282,6 +1282,15 @@ def _customer_exchange_record(
     }
 
 
+def _down_payment_invoice_record(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.down_payments import record_down_payment_invoice
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    return record_down_payment_invoice(session, tenant_id, **arguments)
+
+
 def _credit_hold_release(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2381,6 +2390,12 @@ TOOLS = {
         "Settle part of a customer return with a free replacement instead of a credit.",
         True,
         _customer_exchange_record,
+    ),
+    "down_payment_invoice_record": Tool(
+        "down_payment_invoice_record",
+        "Record and post a down-payment invoice for a sales order: a receivable against received down payments that bills no quantity.",
+        True,
+        _down_payment_invoice_record,
     ),
     "credit_hold_release": Tool(
         "credit_hold_release",
@@ -3809,6 +3824,7 @@ def approve_and_execute_proposal(
         "customer_exchange_record",
         "order_line_item_assign",
         "credit_hold_release",
+        "down_payment_invoice_record",
         "commitment_revise",
         "commitment_cancel",
         "sales_credit_record",

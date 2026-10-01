@@ -72661,6 +72661,7 @@
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
           "references": [
+            "document.tenant_id",
             "party.tenant_id",
             "payment_term.tenant_id",
             "source_record.tenant_id",
@@ -72862,6 +72863,20 @@
             "de": "Geschäftspartner der Lieferadresse."
           },
           "references": ["party.id"]
+        },
+        {
+          "name": "order_document_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Sales order a down-payment or pro-forma invoice is for.",
+            "de": "Auftrag, für den eine Anzahlungs- oder Proforma-Rechnung ausgestellt ist."
+          },
+          "references": ["document.id"]
         }
       ],
       "actions": [

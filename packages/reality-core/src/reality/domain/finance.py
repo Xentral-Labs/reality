@@ -16,6 +16,7 @@ ACCOUNT_ROLES.update(
         "bad_debt_expense": "Customer bad-debt expense",
         "dunning_fee_revenue": "Dunning fee revenue",
         "payment_fee_expense": "Payment fees",
+        "customer_down_payments": "Received down payments",
     }
 )
 CONTROL_ROLES = frozenset({"accounts_receivable", "accounts_payable"})
@@ -136,6 +137,22 @@ TRANSACTION_MATRIX = (
         "accounts_receivable",
         "payment_fee_expense",
         "Stated fee charged to the customer",
+        "configured_default",
+    ),
+    (
+        "down_payment_invoice",
+        "Down-payment invoice",
+        "accounts_receivable",
+        "customer_down_payments",
+        "Stated down payment for an order",
+        "configured_default",
+    ),
+    (
+        "down_payment_offset",
+        "Down payment offset on a final invoice",
+        "customer_down_payments",
+        "accounts_receivable",
+        "Stated down payment the final invoice deducts",
         "configured_default",
     ),
     (

@@ -22381,6 +22381,17 @@ Object.assign(dictionaries.de, {
   "State why the credit hold is released.": "Gib an, warum die Kreditsperre freigegeben wird.",
   "A release of this order's credit hold is still being settled.":
     "Eine Freigabe der Kreditsperre dieses Auftrags wird noch abgeschlossen.",
+  "State a positive down-payment amount with at most four decimals.":
+    "Gib einen positiven Anzahlungsbetrag mit höchstens vier Nachkommastellen an.",
+  "A down-payment invoice is in its order's currency.":
+    "Eine Anzahlungsrechnung ist in der Währung ihres Auftrags.",
+  "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
+    "Eine Anzahlungsrechnung nennt Auftrag, Nummer und Betrag, optional Währung, Datum, Netto und Steuer.",
+  "State the down-payment invoice number.": "Gib die Nummer der Anzahlungsrechnung an.",
+  "A down-payment invoice is for a sales order.":
+    "Eine Anzahlungsrechnung gehört zu einem Kundenauftrag.",
+  "A recording of this down-payment invoice is still being settled.":
+    "Eine Erfassung dieser Anzahlungsrechnung wird noch abgeschlossen.",
   "This delivery has no active own hold. Prepare a fresh review.":
     "Diese Lieferung hat keine aktive eigene Sperre. Bereite eine neue Prüfung vor.",
   "This delivery is already on hold. Prepare a fresh review.":
@@ -23290,6 +23301,17 @@ Object.assign(dictionaries.nl, {
   "State why the credit hold is released.": "Geef aan waarom de kredietblokkade wordt vrijgegeven.",
   "A release of this order's credit hold is still being settled.":
     "Een vrijgave van de kredietblokkade van deze order wordt nog afgerond.",
+  "State a positive down-payment amount with at most four decimals.":
+    "Geef een positief aanbetalingsbedrag met hoogstens vier decimalen op.",
+  "A down-payment invoice is in its order's currency.":
+    "Een aanbetalingsfactuur is in de valuta van haar order.",
+  "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
+    "Een aanbetalingsfactuur noemt order, nummer en bedrag, en optioneel valuta, datum, netto en btw.",
+  "State the down-payment invoice number.": "Geef het nummer van de aanbetalingsfactuur op.",
+  "A down-payment invoice is for a sales order.":
+    "Een aanbetalingsfactuur hoort bij een verkooporder.",
+  "A recording of this down-payment invoice is still being settled.":
+    "Een registratie van deze aanbetalingsfactuur wordt nog afgerond.",
   "This delivery has no active own hold. Prepare a fresh review.":
     "Deze levering heeft geen actieve eigen blokkade. Bereid een nieuwe controle voor.",
   "This delivery is already on hold. Prepare a fresh review.":
@@ -24210,6 +24232,17 @@ Object.assign(dictionaries.es, {
   "State why the credit hold is released.": "Indica por qué se libera el bloqueo de crédito.",
   "A release of this order's credit hold is still being settled.":
     "Una liberación del bloqueo de crédito de este pedido aún se está cerrando.",
+  "State a positive down-payment amount with at most four decimals.":
+    "Indica un importe de anticipo positivo con como máximo cuatro decimales.",
+  "A down-payment invoice is in its order's currency.":
+    "Una factura de anticipo está en la moneda de su pedido.",
+  "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
+    "Una factura de anticipo indica el pedido, el número y el importe, y opcionalmente la moneda, la fecha, el neto y el impuesto.",
+  "State the down-payment invoice number.": "Indica el número de la factura de anticipo.",
+  "A down-payment invoice is for a sales order.":
+    "Una factura de anticipo es para un pedido de venta.",
+  "A recording of this down-payment invoice is still being settled.":
+    "Un registro de esta factura de anticipo aún se está cerrando.",
   "This delivery has no active own hold. Prepare a fresh review.":
     "Esta entrega no tiene un bloqueo propio activo. Prepara una nueva revisión.",
   "This delivery is already on hold. Prepare a fresh review.":

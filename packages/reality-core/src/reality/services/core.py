@@ -10003,7 +10003,11 @@ def _preview_invoice_payment(
         "supplier": "supplier_invoice",
         "customer_refund": "credit_note",
     }.get(direction)
-    if expected is None or invoice.type != expected:
+    # A down-payment invoice is paid like a sales invoice (spec 299).
+    accepted = (
+        {expected, "down_payment_invoice"} if direction == "customer" else {expected}
+    )
+    if expected is None or invoice.type not in accepted:
         raise InvalidOperation(
             code="payment_document_type_mismatch",
             values={"document_type": str(expected)},
@@ -10613,6 +10617,7 @@ SETTLEMENT_CONTROL = {
     "supplier_deposit": ("accounts_payable", "debit"),
     "dunning_fee_charge": ("accounts_receivable", "debit"),
     "payment_return_fee_charge": ("accounts_receivable", "debit"),
+    "down_payment_invoice": ("accounts_receivable", "debit"),
 }
 
 
@@ -11202,6 +11207,8 @@ def _financial_open_items(
                         "supplier_invoice",
                         "opening_customer_debt",
                         "opening_supplier_debt",
+                        # A down-payment invoice is owed like any invoice (spec 299).
+                        "down_payment_invoice",
                     )
                 ),
             )

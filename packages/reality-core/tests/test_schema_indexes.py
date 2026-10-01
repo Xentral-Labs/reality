@@ -79,6 +79,7 @@ def test_the_migrations_together_create_exactly_the_derived_indexes():
         "dunning_notice",
         "dunning_notice_invoice",
         "dunning_schedule_level",
+        "down_payment_offset",
         "payment_return",
         "supply_assignment",
     }

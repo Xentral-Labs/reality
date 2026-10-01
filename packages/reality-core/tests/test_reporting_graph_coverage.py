@@ -102,6 +102,7 @@ DEFERRED = {
             "dunning_notice",
             "dunning_notice_invoice",
             "dunning_schedule_level",
+            "down_payment_offset",
             "payment_return",
             "supply_assignment",
         },

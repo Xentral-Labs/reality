@@ -12,23 +12,23 @@
 
 ## Phase 2: Schema and roles
 
-- [ ] T004 Failing tests:
+- [x] T004 Failing tests:
   - `document.order_document_id` refuses another tenant's order;
   - `down_payment_offset` refuses a non-positive amount;
   - the `customer_down_payments` role exists and gets a default;
   - the migration upgrades and downgrades, refusing while rows exist.
-- [ ] T005 Migration `0105_down_payments`; model, `ACCOUNT_ROLES`, transaction matrix, `initialize_accounts`, `SETTLEMENT_CONTROL`, open-item types, `data_model.yaml`; schema-index and reporting-graph gates.
+- [x] T005 Migration `0105_down_payments`; model, `ACCOUNT_ROLES`, transaction matrix, `initialize_accounts`, `SETTLEMENT_CONTROL`, open-item types, `data_model.yaml`; schema-index and reporting-graph gates.
 
 ## Phase 3: Down-payment invoice and readiness (FR-002)
 
-- [ ] T006 [US1] Failing tests in `core/tests/test_down_payments.py`:
+- [x] T006 [US1] Failing tests in `core/tests/test_down_payments.py`:
   - a down-payment invoice of 300 for an order of 1,000 is a receivable tied to the order and bills no quantity (no billing reader counts it);
   - a payment settles it;
   - a prepayment order counts the paid 300 as received with 700 required, and is not ready (C14);
   - `prepayment_invoice_missing` is no longer reported once a down-payment invoice exists;
-  - refusals for another currency, another party, a non-sales order and a non-positive amount;
+  - refusals for another currency, a non-sales order, a blank number and a non-positive amount (the party is the order's, so no other party can be stated);
   - a reversed down-payment invoice no longer counts.
-- [ ] T007 [US1] `services/down_payments.py` record and preview, the reviewed tool `down_payment_invoice_record`, and readiness reading the order's down-payment invoices.
+- [x] T007 [US1] `services/down_payments.py` record and preview, the reviewed tool `down_payment_invoice_record`, and readiness reading the order's down-payment invoices.
 
 ## Phase 4: Final invoice offset (FR-003)
 

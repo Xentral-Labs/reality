@@ -328,6 +328,11 @@ def fulfillment_readiness(
         )
     )
     candidate_invoice_ids = {row.document_id for row in invoice_rows}
+    # A down-payment invoice is for the order, not for a line (spec 299), and its
+    # payments count towards the prepayment like an invoice's.
+    from reality.services.down_payments import order_down_payment_invoice_ids
+
+    candidate_invoice_ids |= order_down_payment_invoice_ids(session, tenant_id, order.id)
     # An invoice that also bills other orders of this party in this currency is a
     # consolidated invoice (spec 283), not ambiguous: it counts for this order only
     # once it is settled in full, by what its own lines state for this order. A
