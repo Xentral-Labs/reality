@@ -30,7 +30,9 @@ def month_end_billing(
     moment = core.utc_datetime(as_of) or core.now()
     findings = [
         row
-        for row in operational_exceptions(session, tenant_id, as_of=moment)
+        for row in operational_exceptions(
+            session, tenant_id, as_of=moment, classes=list(LISTS)
+        )
         if row.class_id in LISTS
     ]
     line_ids = {row.record_id for row in findings}

@@ -15,7 +15,7 @@ from decimal import Decimal
 from decimal import InvalidOperation as DecimalInvalid
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
@@ -87,6 +87,170 @@ def _reversed(session: Session, tenant_id: str, document_id: str) -> bool:
     return groups <= reversed_groups
 
 
+def _cash_received(session: Session, tenant_id: str, document_id: str) -> Decimal:
+    """What active payments, not credits or write-offs, allocated to the invoice."""
+    controls = set(
+        session.scalars(
+            select(LedgerEntry.id).where(
+                LedgerEntry.tenant_id == tenant_id,
+                LedgerEntry.document_id == document_id,
+                LedgerEntry.account == "accounts_receivable",
+                LedgerEntry.debit_credit == "debit",
+            )
+        )
+    )
+    if not controls:
+        return ZERO
+    allocations = [
+        row
+        for row in core.active_settlement_allocations(
+            session, tenant_id, entry_ids=controls
+        )
+        if row.invoice_ledger_entry_id in controls
+    ]
+    if not allocations:
+        return ZERO
+    payment_groups = dict(
+        session.execute(
+            select(LedgerEntry.id, LedgerEntry.posting_group_id).where(
+                LedgerEntry.tenant_id == tenant_id,
+                LedgerEntry.id.in_(
+                    {row.payment_ledger_entry_id for row in allocations}
+                ),
+            )
+        ).all()
+    )
+    cash_groups = set(
+        session.scalars(
+            select(LedgerEntry.posting_group_id).where(
+                LedgerEntry.tenant_id == tenant_id,
+                LedgerEntry.account == "cash",
+                LedgerEntry.posting_group_id.in_(set(payment_groups.values())),
+            )
+        )
+    )
+    return sum(
+        (
+            Decimal(row.amount)
+            for row in allocations
+            if payment_groups.get(row.payment_ledger_entry_id) in cash_groups
+        ),
+        ZERO,
+    )
+
+
+def _offset_groups(
+    session: Session, tenant_id: str, final_ids: set[str]
+) -> dict[str, set[str]]:
+    """Each final invoice's offset posting groups that are not reversed."""
+    if not final_ids:
+        return {}
+    groups: dict[str, set[str]] = {}
+    for document_id, group in session.execute(
+        select(LedgerEntry.document_id, LedgerEntry.posting_group_id).where(
+            LedgerEntry.tenant_id == tenant_id,
+            LedgerEntry.document_id.in_(final_ids),
+            LedgerEntry.account == "customer_down_payments",
+            LedgerEntry.debit_credit == "debit",
+        )
+    ):
+        groups.setdefault(document_id, set()).add(group)
+    reversed_groups = set(
+        session.scalars(
+            select(LedgerReversal.original_posting_group_id).where(
+                LedgerReversal.tenant_id == tenant_id,
+                LedgerReversal.original_posting_group_id.in_(
+                    {group for values in groups.values() for group in values}
+                ),
+            )
+        )
+    )
+    return {
+        document_id: live
+        for document_id, values in groups.items()
+        if (live := values - reversed_groups)
+    }
+
+
+def live_offsets(
+    session: Session,
+    tenant_id: str,
+    *,
+    down_payment_ids: set[str] | None = None,
+    final_invoice_ids: set[str] | None = None,
+) -> list[DownPaymentOffset]:
+    """Offsets whose posting on the final invoice still stands.
+
+    Reversing that posting releases the offset: the down payment can be offset
+    again, and the final invoice is open for the full amount once more.
+    """
+    query = select(DownPaymentOffset).where(DownPaymentOffset.tenant_id == tenant_id)
+    if down_payment_ids is not None:
+        query = query.where(
+            DownPaymentOffset.down_payment_document_id.in_(down_payment_ids)
+        )
+    if final_invoice_ids is not None:
+        query = query.where(
+            DownPaymentOffset.final_invoice_document_id.in_(final_invoice_ids)
+        )
+    rows = list(session.scalars(query.order_by(DownPaymentOffset.id)))
+    live = _offset_groups(
+        session, tenant_id, {row.final_invoice_document_id for row in rows}
+    )
+    return [row for row in rows if row.final_invoice_document_id in live]
+
+
+def assert_reversal_keeps_offsets(
+    session: Session, tenant_id: str, entries: list[LedgerEntry]
+) -> None:
+    """Refuse a reversal that would leave a standing offset without its basis.
+
+    The final invoice is reversed only after its offset; a down-payment invoice,
+    or a payment of it, only once no standing offset deducts it (spec 299).
+    """
+    if not session.scalar(
+        select(DownPaymentOffset.id)
+        .where(DownPaymentOffset.tenant_id == tenant_id)
+        .limit(1)
+    ):
+        return
+    documents = {entry.document_id for entry in entries if entry.document_id}
+    accounts = {entry.account for entry in entries}
+    if (
+        documents
+        and "customer_down_payments" not in accounts
+        and live_offsets(session, tenant_id, final_invoice_ids=documents)
+    ):
+        raise core.InvalidOperation(code="down_payment_offset_reverse_first")
+    down_payments = set(documents)
+    allocations = core.active_settlement_allocations(
+        session, tenant_id, entry_ids={entry.id for entry in entries}
+    )
+    paid = {
+        row.invoice_ledger_entry_id
+        for row in allocations
+        if row.payment_ledger_entry_id in {entry.id for entry in entries}
+    }
+    if paid:
+        down_payments |= set(
+            session.scalars(
+                select(LedgerEntry.document_id).where(
+                    LedgerEntry.tenant_id == tenant_id, LedgerEntry.id.in_(paid)
+                )
+            )
+        )
+    is_offset_group = "customer_down_payments" in accounts and any(
+        entry.account == "customer_down_payments" and entry.debit_credit == "debit"
+        for entry in entries
+    )
+    if (
+        not is_offset_group
+        and down_payments
+        and live_offsets(session, tenant_id, down_payment_ids=down_payments)
+    ):
+        raise core.InvalidOperation(code="down_payment_offset_active")
+
+
 def down_payment_invoices(
     session: Session, tenant_id: str, order_id: str
 ) -> list[dict[str, Any]]:
@@ -108,12 +272,17 @@ def down_payment_invoices(
             if reversed_
             else core.open_invoice_amount(session, tenant_id, document.id)
         )
-        paid = ZERO if reversed_ else gross - open_amount
-        offset = session.scalar(
-            select(func.coalesce(func.sum(DownPaymentOffset.amount), 0)).where(
-                DownPaymentOffset.tenant_id == tenant_id,
-                DownPaymentOffset.down_payment_document_id == document.id,
-            )
+        # Paid means money received: a credit or write-off that settles the
+        # invoice is no down payment anyone can deduct later.
+        paid = ZERO if reversed_ else _cash_received(session, tenant_id, document.id)
+        offset = sum(
+            (
+                Decimal(row.amount)
+                for row in live_offsets(
+                    session, tenant_id, down_payment_ids={document.id}
+                )
+            ),
+            ZERO,
         )
         rows.append(
             {
@@ -267,8 +436,6 @@ def record_down_payment_invoice(
             gross_amount=amount,
             unit="pcs",
             line_type="down_payment",
-            # For the order, not for any of its lines: it bills no order line.
-            billed_document_line_id=None,
             payload=json.dumps({"stated": preview["stated"]}, sort_keys=True),
         )
     )
@@ -434,6 +601,36 @@ def post_offsets(
     session.add_all(rows)
     session.flush()
     return list(entries), rows
+
+
+def held_down_payments(
+    session: Session, tenant_id: str, party_ids: set[str]
+) -> list[dict[str, Any]]:
+    """Down payments received from these customers and not yet offset.
+
+    Money the company holds against an order not yet invoiced in full, so the
+    credit exposure counts it like an available credit (spec 299).
+    """
+    if not party_ids:
+        return []
+    orders = {
+        order_id: party_id
+        for order_id, party_id in session.execute(
+            select(Document.order_document_id, Document.party_id)
+            .where(
+                Document.tenant_id == tenant_id,
+                Document.type == "down_payment_invoice",
+                Document.party_id.in_(party_ids),
+            )
+            .distinct()
+        )
+    }
+    rows = []
+    for order_id, party_id in sorted(orders.items()):
+        for row in down_payment_invoices(session, tenant_id, order_id):
+            if not row["reversed"] and row["offsettable"] > ZERO:
+                rows.append({**row, "party_id": party_id})
+    return rows
 
 
 def order_down_payment_invoice_ids(
@@ -608,8 +805,6 @@ def record_proforma_invoice(
                 gross_amount=Decimal(line["gross_amount"]),
                 unit="pcs",
                 line_type="proforma",
-                # For the order, not for any of its lines: it bills no order line.
-                billed_document_line_id=None,
                 payload=json.dumps(line, sort_keys=True),
             )
         )

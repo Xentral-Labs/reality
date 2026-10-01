@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from reality.db.core import Document, DownPaymentOffset
+from reality.db.core import Document, DocumentLine, DownPaymentOffset
 from reality.domain.finance import ACCOUNT_ROLES
 from reality.services import core
 from reality.services.delivery_actions import prepare_delivery_action
@@ -692,4 +692,214 @@ def test_offsets_are_stated_as_a_list_of_documents_and_amounts(
 
     assert _refused(session, business, _final(line, offsets=offsets)) == (
         "down_payment_offset_fields_invalid"
+    )
+
+
+# --- T021 review: offsets, reversals and what counts as paid ---------------------------
+
+
+def _offset_final(
+    session, business, line, down_payment, amount="300.00", number="RE-RV"
+):
+    _, receipt = _reviewed(
+        session,
+        business,
+        "sales_invoice_record",
+        _final(
+            line,
+            number=number,
+            offsets=[{"down_payment_document_id": down_payment, "amount": amount}],
+        ),
+        number,
+    )
+    return _invoice_document(receipt)
+
+
+def _group(session, tenant, document_id, account):
+    from reality.db.core import LedgerEntry
+
+    return session.scalar(
+        select(LedgerEntry.posting_group_id).where(
+            LedgerEntry.tenant_id == tenant,
+            LedgerEntry.document_id == document_id,
+            LedgerEntry.account == account,
+        )
+    )
+
+
+def _offers(session, business, line):
+    """What a final invoice for the line's order is offered (the review's read)."""
+    from reality.services.down_payments import down_payment_offers
+
+    order_id = session.get(DocumentLine, (business.tenant.id, line.id)).document_id
+    return down_payment_offers(session, business.tenant.id, [order_id])
+
+
+def test_a_final_invoice_is_reversed_after_its_offset_and_frees_the_down_payment(
+    session, business
+):
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, _ = _order(session, business)
+    down_payment = _paid_down_payment(session, business, order)
+    final = _offset_final(session, business, line, down_payment)
+    invoice_group = _group(session, tenant, final, "sales_revenue")
+    offset_group = _group(session, tenant, final, "customer_down_payments")
+
+    # The invoice cannot go while its offset stands: received down payments
+    # would stay debited for an invoice that no longer exists.
+    with pytest.raises(core.InvalidOperation) as refused:
+        core.reverse_ledger_posting_group(
+            session, tenant, invoice_group, reason="Wrong"
+        )
+    assert refused.value.code == "down_payment_offset_reverse_first"
+
+    core.reverse_ledger_posting_group(session, tenant, offset_group, reason="Undo")
+    (offer,) = _offers(session, business, line)
+    assert (offer["offset"], offer["offsettable"]) == ("0.0000", "300.0000")
+    assert core.account_balance(session, tenant, "customer_down_payments") == Decimal(
+        "-300.00"
+    )
+    # Positive control: with the offset reversed, the invoice can be reversed.
+    core.reverse_ledger_posting_group(session, tenant, invoice_group, reason="Wrong")
+    _offset_final(session, business, line, down_payment, number="RE-RV-2")
+
+
+def test_an_offset_down_payment_and_its_payment_cannot_be_reversed(session, business):
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, _ = _order(session, business)
+    _, receipt = _down_payment(session, business, order)
+    down_payment = receipt["document_id"]
+    payment = core.post_customer_payment(
+        session, tenant, down_payment, "300.00", payment_number="PAY-OFF"
+    )
+    final = _offset_final(session, business, line, down_payment)
+
+    for group in (
+        payment[0].posting_group_id,
+        _group(session, tenant, down_payment, "customer_down_payments"),
+    ):
+        with pytest.raises(core.InvalidOperation) as refused:
+            core.reverse_ledger_posting_group(session, tenant, group, reason="Bounced")
+        assert refused.value.code == "down_payment_offset_active"
+
+    # Positive control: once the offset is reversed, the payment can come back.
+    core.reverse_ledger_posting_group(
+        session,
+        tenant,
+        _group(session, tenant, final, "customer_down_payments"),
+        reason="Undo",
+    )
+    core.reverse_ledger_posting_group(
+        session, tenant, payment[0].posting_group_id, reason="Bounced"
+    )
+
+
+def test_a_down_payment_settled_by_a_credit_is_not_paid(session, business):
+    from reality.db.core import LedgerEntry
+
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, _ = _order(session, business)
+    _, receipt = _down_payment(session, business, order)
+    down_payment = receipt["document_id"]
+    note = core.create_document(
+        session, tenant, "credit_note", "GS-DP", business.customer.id, "300.00"
+    )
+    core.post_sales_credit_note(session, tenant, note.id)
+
+    def control(document_id, side):
+        return session.scalar(
+            select(LedgerEntry.id).where(
+                LedgerEntry.tenant_id == tenant,
+                LedgerEntry.document_id == document_id,
+                LedgerEntry.account == "accounts_receivable",
+                LedgerEntry.debit_credit == side,
+            )
+        )
+
+    core.allocate_settlement(
+        session,
+        tenant,
+        control(note.id, "credit"),
+        control(down_payment, "debit"),
+        "300",
+    )
+    assert core.open_invoice_amount(session, tenant, down_payment) == 0
+
+    (offer,) = _offers(session, business, line)
+    # Settled, but not by money received: nothing may be deducted for it.
+    assert (offer["paid"], offer["offsettable"]) == ("0.0000", "0.0000")
+
+
+def test_a_consolidated_invoice_offsetting_the_down_payment_counts_it_once(
+    session, business
+):
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, commitment = _order(session, business, prepay=True)
+    _, other_line, _ = _order(session, business, number="SO-299-C", total="500.00")
+    down_payment = _paid_down_payment(session, business, order, "400.00", "AR-C")
+
+    _, receipt = _reviewed(
+        session,
+        business,
+        "sales_invoice_record",
+        {
+            "lines": [
+                {"order_line_id": line.id, "quantity": "6", "gross_amount": "600.00"},
+                {
+                    "order_line_id": other_line.id,
+                    "quantity": "10",
+                    "gross_amount": "500.00",
+                },
+            ],
+            "gross_amount": "1100.00",
+            "number": "RE-C",
+            "effective_at": "2026-09-25T10:00:00Z",
+            "down_payment_offsets": [
+                {"down_payment_document_id": down_payment, "amount": "400.00"}
+            ],
+        },
+        "consolidated",
+    )
+    invoice = _invoice_document(receipt)
+    core.post_customer_payment(
+        session, tenant, invoice, "700.00", payment_number="PAY-C"
+    )
+    assert core.open_invoice_amount(session, tenant, invoice) == 0
+
+    readiness = fulfillment_readiness(session, tenant, commitment.id)
+    # 400 down payment plus this order's 600 on the settled consolidated invoice,
+    # less the 400 that invoice deducted: 600 received, not 1,000.
+    assert readiness.received_amount == Decimal("600.0000")
+    assert readiness.remaining_amount == Decimal("400.0000")
+
+
+def test_a_received_down_payment_lowers_the_credit_exposure(session, business):
+    from reality.services.credit_exposure import credit_exposure
+
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, _ = _order(session, business)
+    _, receipt = _down_payment(session, business, order, "400.00", "AR-EXP")
+    # Positive control: an unpaid down-payment invoice holds no money.
+    assert credit_exposure(session, tenant, business.customer.id)["exposure"] == (
+        Decimal("1000.0000")
+    )
+
+    core.post_customer_payment(
+        session, tenant, receipt["document_id"], "400.00", payment_number="PAY-EXP"
+    )
+    exposure = credit_exposure(session, tenant, business.customer.id)
+    assert exposure["exposure"] == Decimal("600.0000")
+    assert [row["origin"] for row in exposure["available_credits"]["rows"]] == [
+        "down_payment"
+    ]
+
+    # Once offset, the final invoice's open 600 is the exposure; nothing twice.
+    _offset_final(session, business, line, receipt["document_id"], "400.00", "RE-EXP")
+    assert credit_exposure(session, tenant, business.customer.id)["exposure"] == (
+        Decimal("600.00")
     )

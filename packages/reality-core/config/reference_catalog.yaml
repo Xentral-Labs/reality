@@ -214,6 +214,20 @@ writers_that_do_not_set_a_reference:
       A Shopify refund line is evidence of money returned, not a bill or a credit note. Every
       billing and crediting reader counts lines carrying the reference, so a refund line names
       the Shopify line it refunds through source_line_id instead (spec 296).
+  - module: services/down_payments.py
+    function: record_down_payment_invoice
+    record: DocumentLine
+    reference: billed_document_line_id
+    reason: >-
+      A down-payment invoice is for its order, not for any order line (spec 299). Naming a line
+      would make every billing reader count its amount as invoiced quantity.
+  - module: services/down_payments.py
+    function: record_proforma_invoice
+    record: DocumentLine
+    reference: billed_document_line_id
+    reason: >-
+      A pro-forma is evidence only and bills nothing (spec 299); naming an order line would
+      count it as invoiced and as a prepayment basis.
 
 # Adapters that carry a reference by forwarding whatever they are given, without
 # naming it in a schema. Allowed for a human adapter and never for MCP: an agent

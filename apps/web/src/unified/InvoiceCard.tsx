@@ -638,6 +638,7 @@ export function InvoiceCard({
               </div>
               {review.state.down_payment_offers && proposal.status === "proposed" && (
                 <DownPaymentOffsets
+                  key={proposal.id}
                   offers={review.state.down_payment_offers}
                   stated={review.state.creation.down_payment_offsets ?? []}
                   currency={review.state.creation.currency}

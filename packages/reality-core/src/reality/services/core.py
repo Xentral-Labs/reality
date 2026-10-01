@@ -8935,6 +8935,13 @@ def preview_ledger_reversal(
         if snapshot["role"] == "reversing":
             raise InvalidOperation(code="posting_group_reversing_not_reversible")
         raise InvalidOperation(code="posting_group_already_reversed")
+    from reality.services.down_payments import assert_reversal_keeps_offsets
+
+    assert_reversal_keeps_offsets(
+        session,
+        tenant_id,
+        _ledger_group_entries(session, tenant_id, posting_group_id),
+    )
     inverse = [
         {
             **entry,
@@ -9005,6 +9012,10 @@ def reverse_ledger_posting_group(
             if role == "reversing":
                 raise InvalidOperation(code="ledger_reversing_group_not_reversible")
             raise Conflict(code="ledger_posting_group_already_reversed")
+        from reality.services.down_payments import assert_reversal_keeps_offsets
+
+        # Spec 299: a standing down-payment offset keeps its basis.
+        assert_reversal_keeps_offsets(session, tenant_id, entries)
         snapshot = ledger_reversal_snapshot(session, tenant_id, posting_group_id)
         if expected_revision and expected_revision != snapshot["revision"]:
             raise Conflict(code="ledger_reversal_preview_stale")

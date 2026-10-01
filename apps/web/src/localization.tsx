@@ -22391,6 +22391,10 @@ Object.assign(dictionaries.de, {
     "Gib jede Verrechnung als Anzahlungsrechnung des Auftrags mit positivem Betrag an, jede Rechnung einmal.",
   "Only a down-payment invoice of an order this invoice bills can be offset.":
     "Verrechnet werden kann nur eine Anzahlungsrechnung eines Auftrags, den diese Rechnung berechnet.",
+  "A down payment that a final invoice still offsets cannot be reversed; reverse the final invoice's offset first.":
+    "Eine Anzahlung, die eine Schlussrechnung noch verrechnet, kann nicht storniert werden; storniere zuerst die Verrechnung der Schlussrechnung.",
+  "This final invoice still offsets a down payment; reverse its offset first.":
+    "Diese Schlussrechnung verrechnet noch eine Anzahlung; storniere zuerst die Verrechnung.",
   "A reversed down-payment invoice cannot be offset.":
     "Eine stornierte Anzahlungsrechnung kann nicht verrechnet werden.",
   "State a positive pro-forma amount with at most four decimals.":
@@ -23335,6 +23339,10 @@ Object.assign(dictionaries.nl, {
     "Geef elke verrekening op als aanbetalingsfactuur van de order met een positief bedrag, elke factuur één keer.",
   "Only a down-payment invoice of an order this invoice bills can be offset.":
     "Alleen een aanbetalingsfactuur van een order die deze factuur factureert kan worden verrekend.",
+  "A down payment that a final invoice still offsets cannot be reversed; reverse the final invoice's offset first.":
+    "Een aanbetaling die een eindfactuur nog verrekent kan niet worden tegengeboekt; boek eerst de verrekening van de eindfactuur tegen.",
+  "This final invoice still offsets a down payment; reverse its offset first.":
+    "Deze eindfactuur verrekent nog een aanbetaling; boek eerst de verrekening tegen.",
   "A reversed down-payment invoice cannot be offset.":
     "Een tegengeboekte aanbetalingsfactuur kan niet worden verrekend.",
   "State a positive pro-forma amount with at most four decimals.":
@@ -24289,6 +24297,10 @@ Object.assign(dictionaries.es, {
     "Indica cada descuento como una factura de anticipo del pedido con un importe positivo, cada factura una vez.",
   "Only a down-payment invoice of an order this invoice bills can be offset.":
     "Solo se puede descontar una factura de anticipo de un pedido que esta factura factura.",
+  "A down payment that a final invoice still offsets cannot be reversed; reverse the final invoice's offset first.":
+    "Un anticipo que una factura final aún descuenta no se puede anular; anula primero el descuento de la factura final.",
+  "This final invoice still offsets a down payment; reverse its offset first.":
+    "Esta factura final aún descuenta un anticipo; anula primero el descuento.",
   "A reversed down-payment invoice cannot be offset.":
     "Una factura de anticipo anulada no se puede descontar.",
   "State a positive pro-forma amount with at most four decimals.":

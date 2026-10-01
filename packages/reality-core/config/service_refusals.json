@@ -472,6 +472,9 @@
     "down_payment_currency_mismatch": {
       "message": "A down-payment invoice is in its order's currency."
     },
+    "down_payment_offset_active": {
+      "message": "A down payment that a final invoice still offsets cannot be reversed; reverse the final invoice's offset first."
+    },
     "down_payment_offset_exceeds_invoice": {
       "message": "A final invoice offsets no more down payment than it bills."
     },
@@ -486,6 +489,9 @@
     },
     "down_payment_offset_reversed": {
       "message": "A reversed down-payment invoice cannot be offset."
+    },
+    "down_payment_offset_reverse_first": {
+      "message": "This final invoice still offsets a down payment; reverse its offset first."
     },
     "down_payment_fields_invalid": {
       "message": "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax."
