@@ -171,7 +171,7 @@ def _blocker_links(code: str, result: FulfillmentReadiness) -> list[dict[str, st
 def stock_cover(
     own_location_id: str | None,
     reserved_by_location: dict[str, Decimal],
-    physical_at: Callable[[str], Decimal],
+    physical_at: Callable[[str | None], Decimal],
 ) -> tuple[Decimal, Decimal]:
     """What stock stands behind a promise, and how much of it is ready (spec 303).
 
@@ -182,7 +182,9 @@ def stock_cover(
     home both are what they were before: the own location's stock, and the
     smaller of reserved and stock.
     """
-    own = physical_at(own_location_id) if own_location_id else ZERO
+    # A promise without a warehouse reads what the reader reads for "no
+    # location", exactly as before.
+    own = physical_at(own_location_id)
     basis = own
     ready = min(reserved_by_location.get(own_location_id or "", ZERO), own)
     for location_id, reserved in reserved_by_location.items():
@@ -192,6 +194,24 @@ def stock_cover(
         basis += here
         ready += here
     return basis, ready
+
+
+def ready_by_location(
+    own_location_id: str | None,
+    reserved_by_location: dict[str, Decimal],
+    physical_at: Callable[[str | None], Decimal],
+) -> dict[str, Decimal]:
+    """What could ship now from each warehouse: reserved there and on hand there.
+
+    The parts add up to the ready quantity of `stock_cover`, so a person can
+    prepare one shipment per warehouse for exactly what the promise shows as
+    ready (spec 303).
+    """
+    return {
+        location_id: here
+        for location_id, reserved in reserved_by_location.items()
+        if (here := min(reserved, physical_at(location_id))) > ZERO
+    }
 
 
 def fulfillment_readiness(
@@ -242,7 +262,7 @@ def fulfillment_readiness(
         )
     }
 
-    def physical_at(location_id: str) -> Decimal:
+    def physical_at(location_id: str | None) -> Decimal:
         return (
             stock_at(session, tenant_id, commitment.item_id, location_id)
             if commitment.item_id

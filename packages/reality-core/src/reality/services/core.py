@@ -5330,6 +5330,36 @@ def _append_movement(
                 serial_unit_id=serial_unit_id,
             )
         if open_quantity(session, tenant_id, commitment.id) == ZERO:
+            # Spec 303: a fulfilled promise holds no stock anywhere. What it
+            # still had reserved, for instance in another warehouse it did not
+            # ship from, is released so that warehouse can serve other orders.
+            if commitment.type == "customer_delivery":
+                for leftover in session.scalars(
+                    select(Reservation)
+                    .where(
+                        Reservation.tenant_id == tenant_id,
+                        Reservation.commitment_id == commitment.id,
+                        Reservation.status == "active",
+                    )
+                    .order_by(Reservation.reserved_at, Reservation.id)
+                ):
+                    leftover.status = "released"
+                    emit_business_event(
+                        session,
+                        tenant_id,
+                        "reservation.released",
+                        "reservation",
+                        leftover.id,
+                        {
+                            "commitment_id": commitment.id,
+                            "location_id": leftover.location_id,
+                            "quantity": leftover.quantity,
+                            "cause": "commitment_fulfilled",
+                        },
+                        action_id=action_id,
+                        correlation_id=action_id,
+                        causation_id=recorded_event.id if recorded_event else None,
+                    )
             previous_status = commitment.status
             commitment.status = "fulfilled"
             if previous_status != "fulfilled" and emit_recorded_event:

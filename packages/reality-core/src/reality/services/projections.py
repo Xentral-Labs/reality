@@ -21,6 +21,7 @@ from reality.db.core import (
     Document,
     DocumentLine,
     Item,
+    Location,
     Movement,
     Party,
     PartyHold,
@@ -528,6 +529,7 @@ def _open_work_rows(
     """
     from reality.services.fulfillment_readiness import (
         fulfillment_readiness,
+        ready_by_location,
         stock_cover,
     )
 
@@ -613,6 +615,17 @@ def _open_work_rows(
         {row.location_id for row in commitments}
         | {row.location_id for row in reservation_rows}
     ) - {None}
+    location_names = (
+        dict(
+            session.execute(
+                select(Location.id, Location.name).where(
+                    Location.tenant_id == tenant_id, Location.id.in_(location_ids)
+                )
+            ).all()
+        )
+        if location_ids
+        else {}
+    )
     physical_by_item_location: dict[tuple[str, str], Decimal] = defaultdict(Decimal)
     if item_ids and location_ids:
         for item_id, from_location_id, to_location_id, quantity in session.execute(
@@ -716,12 +729,14 @@ def _open_work_rows(
             reasons = _open_delivery_reasons(
                 commitment, shortage, commitment_holds, party_holds
             )
+            def physical_at(location, item=commitment.item_id):
+                return physical_by_item_location[(item, location or "")]
+
             physical, ready = stock_cover(
-                commitment.location_id,
-                reserved_by_location[commitment.id],
-                lambda location, item=commitment.item_id: physical_by_item_location[
-                    (item, location)
-                ],
+                commitment.location_id, reserved_by_location[commitment.id], physical_at
+            )
+            ready_parts = ready_by_location(
+                commitment.location_id, reserved_by_location[commitment.id], physical_at
             )
             if physical < open_value or reserved >= open_value > ready:
                 reasons.append(("insufficient_stock", "physical stock is insufficient"))
@@ -768,6 +783,24 @@ def _open_work_rows(
                 "reserved_quantity": reserved,
                 "physical_quantity": physical,
                 "shippable_quantity": shippable,
+                # Spec 303: what each warehouse could ship now; empty while any
+                # blocker other than reservation or stock stops the line.
+                "ready_by_location": [
+                    {
+                        "location_id": location_id,
+                        "location": location_names.get(location_id, location_id),
+                        "quantity": quantity,
+                    }
+                    for location_id, quantity in sorted(
+                        ready_parts.items(),
+                        key=lambda part: (
+                            part[0] != commitment.location_id,
+                            location_names.get(part[0], ""),
+                        ),
+                    )
+                ]
+                if shippable > 0
+                else [],
                 "shortage_quantity": shortage,
                 "due_at": terms[commitment.id].due_at,
                 "original_due_at": commitment.due_at,

@@ -675,9 +675,11 @@ function DeliveryActionCard({
                                     ? "Reserved"
                                     : key === "shipped"
                                       ? "Shipped"
-                                      : key === "shortage"
-                                        ? "Shortage"
-                                        : "Requested",
+                                      : key === "transferred"
+                                        ? "Transferred"
+                                        : key === "shortage"
+                                          ? "Shortage"
+                                          : "Requested",
                         )}
                       </dt>
                       <dd>

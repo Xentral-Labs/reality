@@ -197,6 +197,15 @@ export function StockElsewhereCard({
                 </div>
               ))}
           </dl>
+          {(proposal.review.warnings || []).map((warning) => (
+            <div
+              key={warning.code}
+              role="note"
+              className="rounded-lg border border-border-default bg-surface-muted p-3"
+            >
+              {t(warning.message)}
+            </div>
+          ))}
           {done ? (
             <div role="status" className="font-medium">
               {t("Done.")}

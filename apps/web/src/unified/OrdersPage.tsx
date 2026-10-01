@@ -206,8 +206,21 @@ function ReadinessEvidence({
                       prepareShipment &&
                       row.party_id &&
                       line.location_id &&
-                      Number(line.shippable_quantity) > 0 && (
+                      Number(line.shippable_quantity) > 0 &&
+                      // Spec 303: one shipment per warehouse, each for what is
+                      // reserved and on hand there; rows stored before carry
+                      // only the order's own warehouse.
+                      (
+                        line.ready_by_location || [
+                          {
+                            location_id: line.location_id,
+                            location: "",
+                            quantity: line.shippable_quantity,
+                          },
+                        ]
+                      ).map((part) => (
                         <button
+                          key={part.location_id}
                           className="br-btn mr-2"
                           onClick={() =>
                             prepareShipment({
@@ -216,16 +229,18 @@ function ReadinessEvidence({
                                 {
                                   commitment_id: line.commitment_id,
                                   item_id: line.item_id,
-                                  from_location_id: line.location_id!,
-                                  quantity: line.shippable_quantity,
+                                  from_location_id: part.location_id,
+                                  quantity: part.quantity,
                                 },
                               ],
                             })
                           }
                         >
-                          {t("Prepare available shipment")}
+                          {part.location_id === line.location_id
+                            ? t("Prepare available shipment")
+                            : `${t("Prepare shipment from")} ${part.location}`}
                         </button>
-                      )}
+                      ))}
                     <button
                       className="br-btn"
                       onClick={() => inspect({ kind: "commitment", id: line.commitment_id })}

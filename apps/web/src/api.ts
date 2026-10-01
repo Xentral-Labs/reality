@@ -1274,6 +1274,8 @@ export type FulfillmentQueueLine = {
   reserved_quantity: string;
   physical_quantity: string;
   shippable_quantity: string;
+  /** Spec 303: what each warehouse could ship now, the order's own first. */
+  ready_by_location?: Array<{ location_id: string; location: string; quantity: string }>;
   shortage_quantity: string;
   due_at: string | null;
   location_id: string | null;
@@ -2707,6 +2709,8 @@ export type DeliveryProposal = {
   tool: string;
   status: string;
   review: null | {
+    /** Notices the server raises in the review, such as a transfer taking reserved stock. */
+    warnings?: Array<{ code: string; message: string }>;
     token: string;
     intent: Record<string, unknown>;
     effect: Record<string, string> & {

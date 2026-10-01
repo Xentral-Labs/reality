@@ -427,3 +427,92 @@ def test_the_delivery_case_lists_reservations_by_warehouse(session, business):
         (row["location_id"], Decimal(row["reserved"]))
         for row in case["reservations_by_location"]
     ) == sorted([(business.location.id, 6), (munich.id, 4)])
+
+
+# --- review round (T017) ---------------------------------------------------------------
+
+
+def test_the_queue_offers_each_warehouse_its_ready_part(session, business):
+    munich, promise = _split(session, business)
+
+    line = _queue_line(session, business, promise)
+
+    assert [
+        (part["location_id"], Decimal(part["quantity"]))
+        for part in line["ready_by_location"]
+    ] == [(business.location.id, 6), (munich.id, 4)]
+
+
+def test_a_fulfilled_promise_releases_what_it_still_holds_elsewhere(session, business):
+    tenant = business.tenant.id
+    munich, promise = _split(session, business)
+    _stock(session, business, "4", business.location)
+
+    # All ten leave from home in one plain shipment; Munich's four are not needed.
+    core.record_movement(
+        session,
+        tenant,
+        "shipment",
+        business.item.id,
+        "10",
+        from_location_id=business.location.id,
+        commitment_id=promise.id,
+    )
+
+    assert core.open_quantity(session, tenant, promise.id) == 0
+    assert (munich.id, Decimal("4.0000"), "released") in _reservations(
+        session, business, promise
+    )
+    assert core.active_reserved(session, tenant, business.item.id, munich.id) == 0
+
+
+def test_a_transfer_that_takes_reserved_stock_is_warned(session, business):
+    tenant = business.tenant.id
+    munich, _ = _split(session, business)
+
+    def warnings(quantity, request):
+        proposal = prepare_delivery_action(
+            session,
+            tenant,
+            "movement_create",
+            {
+                "movement_type": "transfer",
+                "item_id": business.item.id,
+                "quantity": quantity,
+                "from_location_id": munich.id,
+                "to_location_id": business.location.id,
+            },
+            request_id=request,
+        )
+        review = json.loads(proposal.input)["_delivery_review"]
+        return [warning["code"] for warning in review["warnings"]]
+
+    # Munich holds 40, four of them reserved: 36 move freely, 37 take reserved stock.
+    assert warnings("36", "t303-free") == []
+    assert warnings("37", "t303-reserved") == ["transfer_takes_reserved_stock"]
+
+
+def test_a_promise_without_a_warehouse_reads_as_before(session, business):
+    from reality.services.fulfillment_readiness import fulfillment_readiness
+
+    tenant = business.tenant.id
+    _stock(session, business, "10", business.location)
+    promise = core.create_commitment(
+        session,
+        tenant,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "5",
+        "2026-10-10",
+    )
+    # Promises interpreted from some sources carry no warehouse.
+    promise.location_id = None
+    session.commit()
+
+    readiness = fulfillment_readiness(session, tenant, promise.id)
+    # The company's stock, as before, and only the reservation is missing.
+    assert readiness.physical_quantity == 10
+    assert readiness.blocker_codes == ("insufficient_reservation",)

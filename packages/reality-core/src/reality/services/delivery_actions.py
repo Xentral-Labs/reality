@@ -449,6 +449,22 @@ def review_delivery(
                 ),
             }
         )
+    if (
+        tool == "movement_create"
+        and intent.get("movement_type") == "transfer"
+        and Decimal(str(result["quantity"])) > Decimal(detail["inventory"]["available"])
+    ):
+        # Spec 303: the stock reserved there for other orders goes with it,
+        # and those reservations are left without stock.
+        warnings.append(
+            {
+                "code": "transfer_takes_reserved_stock",
+                "message": (
+                    "This transfer takes stock that is reserved at its warehouse; "
+                    "the orders reserved there lose their stock."
+                ),
+            }
+        )
     if reservation_state is not None:
         state["reservation"] = reservation_state
     if holds_state is not None:

@@ -24649,6 +24649,10 @@ Object.assign(dictionaries.de, {
   "Still missing": "Fehlt noch",
   "The order's warehouse": "Lager des Auftrags",
   "Transferred after confirming": "Umgelagert nach der Bestätigung",
+  "Prepare shipment from": "Lieferung vorbereiten aus",
+  Transferred: "Umgelagert",
+  "This transfer takes stock that is reserved at its warehouse; the orders reserved there lose their stock.":
+    "Diese Umlagerung nimmt Bestand, der in ihrem Lager reserviert ist; die dort reservierten Aufträge verlieren ihren Bestand.",
   "Reorder point reached": "Meldebestand erreicht",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
@@ -24749,6 +24753,10 @@ Object.assign(dictionaries.nl, {
   "Still missing": "Ontbreekt nog",
   "The order's warehouse": "Magazijn van de order",
   "Transferred after confirming": "Verplaatst na bevestiging",
+  "Prepare shipment from": "Levering voorbereiden vanuit",
+  Transferred: "Verplaatst",
+  "This transfer takes stock that is reserved at its warehouse; the orders reserved there lose their stock.":
+    "Deze verplaatsing neemt voorraad die in het magazijn gereserveerd is; de daar gereserveerde orders verliezen hun voorraad.",
   "Reorder point reached": "Bestelpunt bereikt",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
@@ -24850,6 +24858,10 @@ Object.assign(dictionaries.es, {
   "Still missing": "Aún falta",
   "The order's warehouse": "Almacén del pedido",
   "Transferred after confirming": "Trasladado tras confirmar",
+  "Prepare shipment from": "Preparar envío desde",
+  Transferred: "Trasladado",
+  "This transfer takes stock that is reserved at its warehouse; the orders reserved there lose their stock.":
+    "Este traslado toma stock reservado en su almacén; los pedidos reservados allí pierden su stock.",
   "Reorder point reached": "Punto de pedido alcanzado",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",

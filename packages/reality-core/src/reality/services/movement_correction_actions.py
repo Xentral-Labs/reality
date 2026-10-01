@@ -70,6 +70,10 @@ def action_keys(
             row = _tenant_record(session, Commitment, tenant_id, value["commitment_id"])
             keys.add(("commitment", row.id))
             keys.add((row.item_id, row.location_id))
+            # Spec 303: a reservation at a named warehouse competes for that
+            # warehouse's stock.
+            if value.get("location_id"):
+                keys.add((row.item_id, value["location_id"]))
     return keys
 
 
