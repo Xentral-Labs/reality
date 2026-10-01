@@ -32,14 +32,14 @@
 
 ## Phase 4: Final invoice offset (FR-003)
 
-- [ ] T008 [US1] Failing tests:
+- [x] T008 [US1] Failing tests:
   - recording the final invoice offers the paid 300;
   - stating it posts the offset, the final invoice is open for 700, and the offset row is recorded;
   - a second final invoice offers only what is left;
   - refusals: exceeds paid, another order, a reversed down payment, exceeds the invoice;
   - no offset stated keeps today's behaviour (control);
   - readiness after the rest is paid is ready.
-- [ ] T009 [US1] Offers and offsets in `_preview_order_invoice` / `_record_order_invoice` and the reviewed `sales_invoice_record`; refusal codes with translations.
+- [x] T009 [US1] Offers and offsets in `_preview_order_invoice` / `_record_order_invoice` and the reviewed `sales_invoice_record`; refusal codes with translations.
 
 ## Phase 5: Pro-forma (FR-004)
 

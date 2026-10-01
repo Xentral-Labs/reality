@@ -321,3 +321,375 @@ def test_the_migration_upgrades_downgrades_and_keeps_recorded_down_payments(
             command.downgrade(config, "0104_line_price_optional")
     finally:
         engine.dispose()
+
+
+# --- T008: the final invoice offsets what was paid --------------------------------------
+
+
+def _paid_down_payment(session, business, order, amount="300.00", number="AR-299-1"):
+    _, receipt = _down_payment(session, business, order, amount, number)
+    core.post_customer_payment(
+        session,
+        business.tenant.id,
+        receipt["document_id"],
+        amount,
+        payment_number=f"PAY-{number}",
+    )
+    return receipt["document_id"]
+
+
+def _final(line, quantity="10", amount="1000.00", number="RE-299", offsets=None):
+    return {
+        "order_line_id": line.id,
+        "quantity": quantity,
+        "gross_amount": amount,
+        "number": number,
+        "effective_at": "2026-09-25T10:00:00Z",
+        **({"down_payment_offsets": offsets} if offsets is not None else {}),
+    }
+
+
+def _invoice_document(receipt):
+    return next(r["id"] for r in receipt["records"] if r["family"] == "document")
+
+
+def test_the_final_invoice_offers_the_paid_down_payment(session, business):
+    initialize_accounts(session, business.tenant.id)
+    order, line, _ = _order(session, business)
+    down_payment = _paid_down_payment(session, business, order)
+
+    review = prepare_delivery_action(
+        session,
+        business.tenant.id,
+        "sales_invoice_record",
+        _final(line),
+        request_id="o",
+    )
+    offers = json.loads(review.input)["_delivery_review"]["state"][
+        "down_payment_offers"
+    ]
+
+    assert offers == [
+        {
+            "document_id": down_payment,
+            "number": "AR-299-1",
+            "currency": "EUR",
+            "gross": "300.0000",
+            "paid": "300.0000",
+            "offset": "0.0000",
+            "offsettable": "300.0000",
+        }
+    ]
+
+
+def test_an_order_without_down_payments_reviews_its_invoice_as_before(
+    session, business
+):
+    initialize_accounts(session, business.tenant.id)
+    _, line, _ = _order(session, business)
+
+    review, receipt = _reviewed(
+        session, business, "sales_invoice_record", _final(line), "plain"
+    )
+
+    # Control: no offers, no offsets, the invoice is open for its whole amount.
+    assert "down_payment_offers" not in review["state"]
+    assert "down_payment_offsets" not in review["state"]["creation"]
+    assert core.open_invoice_amount(
+        session, business.tenant.id, _invoice_document(receipt)
+    ) == Decimal("1000.00")
+
+
+def test_a_stated_offset_is_posted_and_recorded(session, business):
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, _ = _order(session, business)
+    down_payment = _paid_down_payment(session, business, order)
+
+    review, receipt = _reviewed(
+        session,
+        business,
+        "sales_invoice_record",
+        _final(
+            line,
+            offsets=[{"down_payment_document_id": down_payment, "amount": "300.00"}],
+        ),
+        "final",
+    )
+
+    invoice = _invoice_document(receipt)
+    assert review["state"]["open_after_offsets"] == "700.00"
+    assert core.open_invoice_amount(session, tenant, invoice) == Decimal("700.00")
+    assert core.account_balance(session, tenant, "customer_down_payments") == 0
+    offset = session.scalar(
+        select(DownPaymentOffset).where(DownPaymentOffset.tenant_id == tenant)
+    )
+    assert (
+        offset.final_invoice_document_id,
+        offset.down_payment_document_id,
+        offset.amount,
+    ) == (invoice, down_payment, Decimal("300.0000"))
+    # The down-payment invoice stays paid; its offset is used up.
+    assert core.open_invoice_amount(session, tenant, down_payment) == 0
+    proposal_id = next(
+        p.id
+        for p in session.scalars(
+            select(core.ChangeProposal).where(
+                core.ChangeProposal.tenant_id == tenant,
+                core.ChangeProposal.type == "tool:sales_invoice_record",
+            )
+        )
+    )
+    from reality.services.delivery_actions import delivery_proposal_detail
+
+    detail = delivery_proposal_detail(session, tenant, proposal_id)
+    assert detail["verification"] == "verified"
+    assert {"kind": "down_payment_offset", "id": offset.id} in detail["links"]
+
+
+def test_a_second_final_invoice_offers_only_what_is_left(session, business):
+    initialize_accounts(session, business.tenant.id)
+    order, line, _ = _order(session, business)
+    down_payment = _paid_down_payment(session, business, order)
+    _reviewed(
+        session,
+        business,
+        "sales_invoice_record",
+        _final(
+            line,
+            "5",
+            "500.00",
+            "RE-299-A",
+            [{"down_payment_document_id": down_payment, "amount": "200.00"}],
+        ),
+        "first",
+    )
+
+    review = prepare_delivery_action(
+        session,
+        business.tenant.id,
+        "sales_invoice_record",
+        _final(line, "5", "500.00", "RE-299-B"),
+        request_id="second",
+    )
+    (offer,) = json.loads(review.input)["_delivery_review"]["state"][
+        "down_payment_offers"
+    ]
+
+    assert (offer["offset"], offer["offsettable"]) == ("200.0000", "100.0000")
+
+
+def test_a_consolidated_final_invoice_offsets_too(session, business):
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, _ = _order(session, business)
+    down_payment = _paid_down_payment(session, business, order)
+
+    _, receipt = _reviewed(
+        session,
+        business,
+        "sales_invoice_record",
+        {
+            "lines": [
+                {"order_line_id": line.id, "quantity": "10", "gross_amount": "1000.00"}
+            ],
+            "gross_amount": "1000.00",
+            "number": "RE-299-L",
+            "effective_at": "2026-09-25T10:00:00Z",
+            "down_payment_offsets": [
+                {"down_payment_document_id": down_payment, "amount": "300.00"}
+            ],
+        },
+        "lines",
+    )
+
+    assert core.open_invoice_amount(
+        session, tenant, _invoice_document(receipt)
+    ) == Decimal("700.00")
+
+
+def test_the_rest_paid_makes_the_prepayment_order_ready(session, business):
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, commitment = _order(session, business, prepay=True)
+    down_payment = _paid_down_payment(session, business, order)
+    _, receipt = _reviewed(
+        session,
+        business,
+        "sales_invoice_record",
+        _final(
+            line,
+            offsets=[{"down_payment_document_id": down_payment, "amount": "300.00"}],
+        ),
+        "final-prepay",
+    )
+    # Positive control: before the rest is paid, 700 is still required.
+    assert fulfillment_readiness(session, tenant, commitment.id).remaining_amount == (
+        Decimal("700.0000")
+    )
+
+    core.post_customer_payment(
+        session, tenant, _invoice_document(receipt), "700.00", payment_number="PAY-R"
+    )
+
+    readiness = fulfillment_readiness(session, tenant, commitment.id)
+    assert readiness.received_amount == Decimal("1000.00")
+    assert not {"prepayment_required", "prepayment_invoice_missing"} & set(
+        readiness.blocker_codes
+    )
+
+
+def _refused(session, business, arguments):
+    with pytest.raises(core.InvalidOperation) as refused:
+        prepare_delivery_action(
+            session,
+            business.tenant.id,
+            "sales_invoice_record",
+            arguments,
+            request_id="refused",
+        )
+    return refused.value.code
+
+
+def test_an_offset_beyond_what_was_paid_is_refused(session, business):
+    initialize_accounts(session, business.tenant.id)
+    order, line, _ = _order(session, business)
+    down_payment = _paid_down_payment(session, business, order)
+    _, unpaid = _down_payment(session, business, order, "100.00", "AR-299-U")
+
+    def offset(document, amount):
+        return _final(
+            line, offsets=[{"down_payment_document_id": document, "amount": amount}]
+        )
+
+    assert _refused(session, business, offset(down_payment, "300.01")) == (
+        "down_payment_offset_exceeds_paid"
+    )
+    assert _refused(session, business, offset(unpaid["document_id"], "1")) == (
+        "down_payment_offset_exceeds_paid"
+    )
+    # Positive control: the paid amount itself is accepted.
+    prepare_delivery_action(
+        session,
+        business.tenant.id,
+        "sales_invoice_record",
+        offset(down_payment, "300.00"),
+        request_id="accepted",
+    )
+
+
+def test_an_offset_beyond_the_invoice_is_refused(session, business):
+    initialize_accounts(session, business.tenant.id)
+    order, line, _ = _order(session, business)
+    down_payment = _paid_down_payment(session, business, order)
+
+    assert (
+        _refused(
+            session,
+            business,
+            _final(
+                line,
+                "1",
+                "100.00",
+                offsets=[{"down_payment_document_id": down_payment, "amount": "200"}],
+            ),
+        )
+        == "down_payment_offset_exceeds_invoice"
+    )
+
+
+def test_an_offset_of_another_orders_down_payment_is_refused(session, business):
+    initialize_accounts(session, business.tenant.id)
+    _, line, _ = _order(session, business)
+    other, _, _ = _order(session, business, number="SO-299-B")
+    foreign = _paid_down_payment(session, business, other, number="AR-299-B")
+
+    assert (
+        _refused(
+            session,
+            business,
+            _final(
+                line, offsets=[{"down_payment_document_id": foreign, "amount": "300"}]
+            ),
+        )
+        == "down_payment_offset_other_order"
+    )
+    # A goods invoice is not a down payment either.
+    _, plain = _reviewed(
+        session,
+        business,
+        "sales_invoice_record",
+        _final(line, "1", "100.00", "RE-PLAIN"),
+        "plain-other",
+    )
+    assert (
+        _refused(
+            session,
+            business,
+            _final(
+                line,
+                "1",
+                "100.00",
+                "RE-X",
+                [{"down_payment_document_id": _invoice_document(plain), "amount": "1"}],
+            ),
+        )
+        == "down_payment_offset_other_order"
+    )
+
+
+def test_an_offset_of_a_reversed_down_payment_is_refused(session, business):
+    from reality.db.core import LedgerEntry
+
+    tenant = business.tenant.id
+    initialize_accounts(session, tenant)
+    order, line, _ = _order(session, business)
+    _, receipt = _down_payment(session, business, order)
+    down_payment = receipt["document_id"]
+    payment = core.post_customer_payment(
+        session, tenant, down_payment, "300.00", payment_number="PAY-REV"
+    )
+    core.reverse_ledger_posting_group(
+        session, tenant, payment[0].posting_group_id, reason="Bounced"
+    )
+    group = session.scalar(
+        select(LedgerEntry.posting_group_id).where(
+            LedgerEntry.tenant_id == tenant,
+            LedgerEntry.document_id == down_payment,
+            LedgerEntry.account == "customer_down_payments",
+        )
+    )
+    core.reverse_ledger_posting_group(session, tenant, group, reason="Cancelled")
+
+    assert (
+        _refused(
+            session,
+            business,
+            _final(
+                line,
+                offsets=[{"down_payment_document_id": down_payment, "amount": "300"}],
+            ),
+        )
+        == "down_payment_offset_reversed"
+    )
+
+
+@pytest.mark.parametrize(
+    "offsets",
+    [
+        "300",
+        [],
+        [{"down_payment_document_id": "x"}],
+        [{"down_payment_document_id": "x", "amount": "1", "extra": 1}],
+        [{"down_payment_document_id": "x", "amount": "0"}],
+    ],
+)
+def test_offsets_are_stated_as_a_list_of_documents_and_amounts(
+    session, business, offsets
+):
+    initialize_accounts(session, business.tenant.id)
+    _, line, _ = _order(session, business)
+
+    assert _refused(session, business, _final(line, offsets=offsets)) == (
+        "down_payment_offset_fields_invalid"
+    )

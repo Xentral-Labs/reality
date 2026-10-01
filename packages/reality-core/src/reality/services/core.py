@@ -9096,6 +9096,7 @@ def record_sales_invoice(
     action_id: str | None = None,
     delivery_guard: dict[str, Any] | None = None,
     reality_finance_v1: dict[str, Any] | None = None,
+    down_payment_offsets: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Record stated invoice evidence and its receivable, never generate a total."""
     _require_business_mutation(session, tenant_id, "record_sales_invoice")
@@ -9107,6 +9108,11 @@ def record_sales_invoice(
             "gross_amount": gross_amount,
             "number": number,
             "effective_at": effective_at,
+            **(
+                {"down_payment_offsets": down_payment_offsets}
+                if down_payment_offsets is not None
+                else {}
+            ),
         }
         if order_line_id is not None or quantity is not None:
             raise InvalidOperation(code="invoice_lines_or_order_line_exclusive")
@@ -9125,6 +9131,7 @@ def record_sales_invoice(
         direction="sales",
         delivery_guard=delivery_guard,
         finance_detail=reality_finance_v1,
+        down_payment_offsets=down_payment_offsets,
         effective_at=effective_at,
         action_id=action_id,
     )
@@ -9397,6 +9404,43 @@ def _stated_invoice_amounts(
     return detail
 
 
+def _preview_down_payment_offsets(
+    session: OrmSession,
+    tenant_id: str,
+    direction: str,
+    arguments: dict[str, Any],
+    order_line_ids: list[str],
+    amount: Decimal,
+    currency: str,
+) -> dict[str, Any]:
+    """A final invoice's stated down-payment offsets (spec 299), if it states any.
+
+    An invoice that states none keeps its former shape, and so its review token.
+    """
+    if "down_payment_offsets" not in arguments:
+        return {}
+    if direction != "sales":
+        raise InvalidOperation(code="invoice_fields_invalid")
+    from reality.services.down_payments import preview_offsets
+
+    order_ids = list(
+        dict.fromkeys(
+            _tenant_record(session, DocumentLine, tenant_id, line_id).document_id
+            for line_id in order_line_ids
+        )
+    )
+    return {
+        "down_payment_offsets": preview_offsets(
+            session,
+            tenant_id,
+            order_ids=order_ids,
+            offsets=arguments["down_payment_offsets"],
+            invoice_gross=amount,
+            currency=currency,
+        )
+    }
+
+
 def _preview_order_invoice(
     session: OrmSession, tenant_id: str, direction: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
@@ -9404,7 +9448,8 @@ def _preview_order_invoice(
     if "lines" in arguments:
         required = {"lines", "gross_amount", "number"}
         if not required <= arguments.keys() or arguments.keys() - required - {
-            "effective_at"
+            "effective_at",
+            "down_payment_offsets",
         }:
             raise InvalidOperation(code="invoice_fields_invalid")
         selections = arguments["lines"]
@@ -9484,8 +9529,18 @@ def _preview_order_invoice(
             currency=first["currency"],
             document_date=first["document"]["document_date"],
         )
+        offsets = _preview_down_payment_offsets(
+            session,
+            tenant_id,
+            direction,
+            arguments,
+            [row["order_line_id"] for row in previews],
+            amount,
+            first["currency"],
+        )
         return {
             "direction": direction,
+            **offsets,
             "order_line_id": first["order_line_id"],
             "gross_amount": amount,
             "number": document["number"],
@@ -9515,6 +9570,7 @@ def _preview_order_invoice(
         "effective_at",
         "reality_finance_v1",
         "delivery_guard",
+        "down_payment_offsets",
     }:
         raise InvalidOperation(code="invoice_fields_invalid")
     line = _tenant_record(session, DocumentLine, tenant_id, arguments["order_line_id"])
@@ -9565,8 +9621,12 @@ def _preview_order_invoice(
         currency=order.currency,
         document_date=effective.date().isoformat() if effective else "",
     )
+    offsets = _preview_down_payment_offsets(
+        session, tenant_id, direction, arguments, [line.id], amount, order.currency
+    )
     return {
         "direction": direction,
+        **offsets,
         **({"delivery_guard": guard} if guard is not None else {}),
         **({"reality_finance_v1": stated} if stated is not None else {}),
         "order_line_id": line.id,
@@ -9584,6 +9644,55 @@ def _preview_order_invoice(
     }
 
 
+_ENTRY_SNAPSHOT_KEYS = (
+    "id",
+    "posting_group_id",
+    "account",
+    "party_id",
+    "amount",
+    "currency",
+    "debit_credit",
+    "effective_at",
+    "document_id",
+    "source_record_id",
+)
+
+
+def _post_down_payment_offsets(
+    session: OrmSession,
+    tenant_id: str,
+    creation: dict[str, Any],
+    document: Document,
+    effective_at: datetime,
+    source_record_id: str,
+    action_id: str | None,
+) -> tuple[list[LedgerEntry], list[Any]]:
+    """Post the final invoice's reviewed down-payment offsets, if it states any."""
+    if not creation.get("down_payment_offsets"):
+        return [], []
+    from reality.services.down_payments import post_offsets
+
+    return post_offsets(
+        session,
+        tenant_id,
+        invoice=document,
+        offsets=creation["down_payment_offsets"],
+        effective_at=effective_at,
+        source_record_id=source_record_id,
+        action_id=action_id,
+    )
+
+
+def _offset_snapshots(entries: list[LedgerEntry]) -> dict[str, Any]:
+    if not entries:
+        return {}
+    return {
+        "offset_entries": [
+            {key: getattr(row, key) for key in _ENTRY_SNAPSHOT_KEYS} for row in entries
+        ]
+    }
+
+
 def _record_multi_order_invoice(
     session: OrmSession,
     tenant_id: str,
@@ -9597,6 +9706,10 @@ def _record_multi_order_invoice(
     require_decision_finance(
         session, tenant_id, f"{invoice_type}_record", arguments, action_id
     )
+    if "down_payment_offsets" in arguments:
+        from reality.services.finance.accounts import lock_finance
+
+        lock_finance(session, tenant_id)
     with session.begin_nested():
         creation = _preview_order_invoice(session, tenant_id, direction, arguments)
         ids = [row["order_line_id"] for row in creation["selections"]]
@@ -9650,12 +9763,19 @@ def _record_multi_order_invoice(
             action_id=action_id,
             _commit=False,
         )
+        offset_entries, offsets = _post_down_payment_offsets(
+            session, tenant_id, creation, document, effective, source.id, action_id
+        )
         result = {
             "records": [
                 {"family": "source_record", "id": source.id},
                 {"family": "document", "id": document.id},
                 *[{"family": "document_line", "id": row.id} for row in lines],
-                *[{"family": "ledger_entry", "id": row.id} for row in entries],
+                *[
+                    {"family": "ledger_entry", "id": row.id}
+                    for row in [*entries, *offset_entries]
+                ],
+                *[{"family": "down_payment_offset", "id": row.id} for row in offsets],
             ]
         }
         emit_business_event(
@@ -9668,6 +9788,7 @@ def _record_multi_order_invoice(
                 "creation": creation,
                 "receipt": result,
                 "effective_at": effective,
+                **_offset_snapshots(offset_entries),
                 "entries": [
                     {
                         key: getattr(row, key)
@@ -9709,6 +9830,7 @@ def _record_order_invoice(
     credit: bool = False,
     delivery_guard: dict[str, Any] | None = None,
     finance_detail: dict[str, Any] | None = None,
+    down_payment_offsets: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     from reality.services.tenant_policy import require_decision_finance
 
@@ -9716,6 +9838,17 @@ def _record_order_invoice(
         raise InvalidOperation(code="credit_note_stated_amounts_unsupported")
     stated = (
         {"reality_finance_v1": finance_detail} if finance_detail is not None else {}
+    )
+    if down_payment_offsets is not None:
+        if credit:
+            raise InvalidOperation(code="invoice_fields_invalid")
+        from reality.services.finance.accounts import lock_finance
+
+        lock_finance(session, tenant_id)
+    offset_arguments = (
+        {"down_payment_offsets": down_payment_offsets}
+        if down_payment_offsets is not None
+        else {}
     )
 
     invoice_type = (
@@ -9739,6 +9872,7 @@ def _record_order_invoice(
             "number": number,
             "effective_at": effective_at,
             **stated,
+            **offset_arguments,
         },
         action_id,
     )
@@ -9771,6 +9905,7 @@ def _record_order_invoice(
                     "number": number,
                     "effective_at": effective_at,
                     **stated,
+                    **offset_arguments,
                 },
             )
         order = _tenant_record(session, Document, tenant_id, line.document_id)
@@ -9802,6 +9937,7 @@ def _record_order_invoice(
             "currency": order.currency,
             "effective_at": effective_at.isoformat(),
             **stated,
+            **offset_arguments,
         }
         source = create_master_source_record(
             session,
@@ -9856,12 +9992,25 @@ def _record_order_invoice(
             action_id=action_id,
             _commit=False,
         )
+        offset_entries, offsets = _post_down_payment_offsets(
+            session,
+            tenant_id,
+            creation or {},
+            document,
+            effective_at,
+            source.id,
+            action_id,
+        )
         result = {
             "records": [
                 {"family": "source_record", "id": source.id},
                 {"family": "document", "id": document.id},
                 *[{"family": "document_line", "id": row.id} for row in lines],
-                *[{"family": "ledger_entry", "id": row.id} for row in entries],
+                *[
+                    {"family": "ledger_entry", "id": row.id}
+                    for row in [*entries, *offset_entries]
+                ],
+                *[{"family": "down_payment_offset", "id": row.id} for row in offsets],
             ]
         }
         if creation is not None:
@@ -9875,6 +10024,7 @@ def _record_order_invoice(
                     "creation": creation,
                     "receipt": result,
                     "effective_at": effective_at,
+                    **_offset_snapshots(offset_entries),
                     "entries": [
                         {
                             key: getattr(row, key)

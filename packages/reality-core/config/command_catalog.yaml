@@ -9,6 +9,7 @@ parameter_descriptions:
   reality_finance_v1: Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.
   answers: What a person decided for a cost review draft's open inputs; only the valuation method and the owner party are accepted.
   delivery_guard: Optional single-line sales-invoice precondition binding the unit and unbilled quantity read for the invoiced order line; rechecked under the delivery lock before recording.
+  down_payment_offsets: Optional down payments a final sales invoice states it deducts (spec 299), each a paid down-payment invoice of an order it bills and the stated amount; never more than was paid and not yet offset.
   supplier_id: Opaque same-tenant identity of the supplier Party stated on the invoice.
   invoice_ids: Opaque same-tenant customer-invoice identities explicitly selected for one reminder.
   notice_id: Opaque same-tenant identity of the retained manual reminder.

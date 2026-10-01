@@ -22383,6 +22383,16 @@ Object.assign(dictionaries.de, {
     "Eine Freigabe der Kreditsperre dieses Auftrags wird noch abgeschlossen.",
   "State a positive down-payment amount with at most four decimals.":
     "Gib einen positiven Anzahlungsbetrag mit höchstens vier Nachkommastellen an.",
+  "A final invoice offsets no more down payment than it bills.":
+    "Eine Schlussrechnung verrechnet nicht mehr Anzahlung, als sie berechnet.",
+  "A down payment is offset only up to what was paid on it and not yet offset.":
+    "Eine Anzahlung wird nur bis zu dem Betrag verrechnet, der darauf bezahlt und noch nicht verrechnet ist.",
+  "State each offset as a down-payment invoice of the order and a positive amount, each invoice once.":
+    "Gib jede Verrechnung als Anzahlungsrechnung des Auftrags mit positivem Betrag an, jede Rechnung einmal.",
+  "Only a down-payment invoice of an order this invoice bills can be offset.":
+    "Verrechnet werden kann nur eine Anzahlungsrechnung eines Auftrags, den diese Rechnung berechnet.",
+  "A reversed down-payment invoice cannot be offset.":
+    "Eine stornierte Anzahlungsrechnung kann nicht verrechnet werden.",
   "A down-payment invoice is in its order's currency.":
     "Eine Anzahlungsrechnung ist in der Währung ihres Auftrags.",
   "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
@@ -23303,6 +23313,16 @@ Object.assign(dictionaries.nl, {
     "Een vrijgave van de kredietblokkade van deze order wordt nog afgerond.",
   "State a positive down-payment amount with at most four decimals.":
     "Geef een positief aanbetalingsbedrag met hoogstens vier decimalen op.",
+  "A final invoice offsets no more down payment than it bills.":
+    "Een eindfactuur verrekent niet meer aanbetaling dan ze factureert.",
+  "A down payment is offset only up to what was paid on it and not yet offset.":
+    "Een aanbetaling wordt alleen verrekend tot het bedrag dat erop betaald en nog niet verrekend is.",
+  "State each offset as a down-payment invoice of the order and a positive amount, each invoice once.":
+    "Geef elke verrekening op als aanbetalingsfactuur van de order met een positief bedrag, elke factuur één keer.",
+  "Only a down-payment invoice of an order this invoice bills can be offset.":
+    "Alleen een aanbetalingsfactuur van een order die deze factuur factureert kan worden verrekend.",
+  "A reversed down-payment invoice cannot be offset.":
+    "Een tegengeboekte aanbetalingsfactuur kan niet worden verrekend.",
   "A down-payment invoice is in its order's currency.":
     "Een aanbetalingsfactuur is in de valuta van haar order.",
   "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":
@@ -24234,6 +24254,16 @@ Object.assign(dictionaries.es, {
     "Una liberación del bloqueo de crédito de este pedido aún se está cerrando.",
   "State a positive down-payment amount with at most four decimals.":
     "Indica un importe de anticipo positivo con como máximo cuatro decimales.",
+  "A final invoice offsets no more down payment than it bills.":
+    "Una factura final no descuenta más anticipo del que factura.",
+  "A down payment is offset only up to what was paid on it and not yet offset.":
+    "Un anticipo solo se descuenta hasta lo pagado sobre él y aún no descontado.",
+  "State each offset as a down-payment invoice of the order and a positive amount, each invoice once.":
+    "Indica cada descuento como una factura de anticipo del pedido con un importe positivo, cada factura una vez.",
+  "Only a down-payment invoice of an order this invoice bills can be offset.":
+    "Solo se puede descontar una factura de anticipo de un pedido que esta factura factura.",
+  "A reversed down-payment invoice cannot be offset.":
+    "Una factura de anticipo anulada no se puede descontar.",
   "A down-payment invoice is in its order's currency.":
     "Una factura de anticipo está en la moneda de su pedido.",
   "A down-payment invoice names its order, number and amount, and optionally the currency, date, net and tax.":

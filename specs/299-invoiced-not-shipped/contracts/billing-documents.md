@@ -14,13 +14,14 @@
 ## Changed: `sales_invoice_record`
 
 - **New optional argument**: `down_payment_offsets: [{down_payment_document_id, amount}]`.
-- **Review**: adds `down_payment_offers`, the order's down-payment invoices with paid, already offset and offsettable amounts. It also shows the stated offsets and the open amount after them.
+- **Review**: adds `down_payment_offers`, the order's down-payment invoices with paid, already offset and offsettable amounts, only when the order has any (an order without keeps its former review and token). It also shows the stated offsets and `open_after_offsets`. Both the single-line and the `lines` form accept the argument.
 - **Execution**: posts the invoice, then the offset posting, and records one `down_payment_offset` per stated offset.
 - **Refusals**:
   - `down_payment_offset_exceeds_paid`
   - `down_payment_offset_other_order`
   - `down_payment_offset_reversed`
   - `down_payment_offset_exceeds_invoice`
+  - `down_payment_offset_fields_invalid` (not a list of distinct down-payment invoices with positive amounts)
 
 ## Reviewed tool `proforma_invoice_record`
 

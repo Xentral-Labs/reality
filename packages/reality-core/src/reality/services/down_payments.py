@@ -298,6 +298,130 @@ def _result(document: Document) -> dict[str, Any]:
     }
 
 
+def down_payment_offers(
+    session: Session, tenant_id: str, order_ids: list[str]
+) -> list[dict[str, Any]]:
+    """What a final invoice for these orders may offset (spec 299 FR-003)."""
+    return [
+        {
+            key: str(row[key].quantize(AMOUNT_SCALE))
+            if isinstance(row[key], Decimal)
+            else row[key]
+            for key in (
+                "document_id",
+                "number",
+                "currency",
+                "gross",
+                "paid",
+                "offset",
+                "offsettable",
+            )
+        }
+        for order_id in dict.fromkeys(order_ids)
+        for row in down_payment_invoices(session, tenant_id, order_id)
+        if not row["reversed"]
+    ]
+
+
+def preview_offsets(
+    session: Session,
+    tenant_id: str,
+    *,
+    order_ids: list[str],
+    offsets: Any,
+    invoice_gross: Decimal,
+    currency: str,
+) -> list[dict[str, str]]:
+    """Check the stated offsets of a final invoice; returns them as stated."""
+    if (
+        not isinstance(offsets, list)
+        or not offsets
+        or any(
+            not isinstance(row, dict)
+            or set(row) != {"down_payment_document_id", "amount"}
+            or not isinstance(row["down_payment_document_id"], str)
+            for row in offsets
+        )
+    ):
+        raise core.InvalidOperation(code="down_payment_offset_fields_invalid")
+    if len({row["down_payment_document_id"] for row in offsets}) != len(offsets):
+        raise core.InvalidOperation(code="down_payment_offset_fields_invalid")
+    stated = [
+        (
+            row["down_payment_document_id"],
+            _amount(row["amount"], "down_payment_offset_fields_invalid"),
+        )
+        for row in offsets
+    ]
+    by_id = {
+        row["document_id"]: row
+        for order_id in dict.fromkeys(order_ids)
+        for row in down_payment_invoices(session, tenant_id, order_id)
+    }
+    for document_id, amount in stated:
+        row = by_id.get(document_id)
+        if row is None or row["currency"] != currency:
+            raise core.InvalidOperation(code="down_payment_offset_other_order")
+        if row["reversed"]:
+            raise core.InvalidOperation(code="down_payment_offset_reversed")
+        if amount > row["offsettable"]:
+            raise core.InvalidOperation(code="down_payment_offset_exceeds_paid")
+    if sum((amount for _, amount in stated), ZERO) > invoice_gross:
+        raise core.InvalidOperation(code="down_payment_offset_exceeds_invoice")
+    return [
+        {"down_payment_document_id": document_id, "amount": str(amount)}
+        for document_id, amount in stated
+    ]
+
+
+def post_offsets(
+    session: Session,
+    tenant_id: str,
+    *,
+    invoice: Document,
+    offsets: list[dict[str, str]],
+    effective_at: Any,
+    source_record_id: str,
+    action_id: str | None,
+) -> tuple[list[LedgerEntry], list[DownPaymentOffset]]:
+    """Post a final invoice's stated offsets and record one row for each."""
+    total = sum((Decimal(row["amount"]) for row in offsets), ZERO)
+    accounts = {
+        role: resolve_account(session, tenant_id, role).id
+        for role in ("customer_down_payments", "accounts_receivable")
+    }
+    entries = core.post_ledger(
+        session,
+        tenant_id,
+        invoice.id,
+        invoice.party_id,
+        [
+            ("customer_down_payments", "debit", total),
+            ("accounts_receivable", "credit", total),
+        ],
+        account_ids=accounts,
+        currency=invoice.currency,
+        source_record_id=source_record_id,
+        effective_at=effective_at,
+        action_id=action_id,
+        _commit=False,
+    )
+    rows = [
+        DownPaymentOffset(
+            id=uid("dpo"),
+            tenant_id=tenant_id,
+            final_invoice_document_id=invoice.id,
+            down_payment_document_id=row["down_payment_document_id"],
+            amount=Decimal(row["amount"]),
+            source_record_id=source_record_id,
+        )
+        for row in offsets
+    ]
+    session.add_all(rows)
+    session.flush()
+    return list(entries), rows
+
+
 def order_down_payment_invoice_ids(
     session: Session, tenant_id: str, order_id: str
 ) -> set[str]:
