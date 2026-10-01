@@ -60,8 +60,8 @@
 
 ## Phase 6: Story and Guide (FR-005)
 
-- [ ] T012 Business story G02 in `core/tests/scenarios/test_catalog_purchasing.py`.
-- [ ] T013 Promote G02 with story-first evidence and English and German keywords, and check that neighbouring questions keep their journeys. Update coverage, the roadmap and the coverage matrix, then run `make docs-generate`.
+- [x] T012 Business story G02 in `core/tests/scenarios/test_catalog_purchasing.py`.
+- [x] T013 Promote G02 with story-first evidence and English and German keywords, and check that neighbouring questions keep their journeys. Update coverage, the roadmap and the coverage matrix, then run `make docs-generate`.
 
 ## Phase 7: Verification
 

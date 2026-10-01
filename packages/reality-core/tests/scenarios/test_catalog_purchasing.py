@@ -1041,3 +1041,147 @@ def document_line(session, promise):
     from reality.db.core import DocumentLine
 
     return session.get(DocumentLine, (promise.tenant_id, promise.document_line_id))
+
+
+def test_reorder_for_stock_at_the_reorder_point(session, business):
+    """G02: stock at a location falls to its reorder point; a buyer orders from it."""
+    tenant = business.tenant.id
+    item = business.item
+    core.update_item(
+        session,
+        tenant,
+        item.id,
+        item.sku,
+        item.name,
+        "pcs",
+        purchase_unit="box",
+        conversion_factor="12",
+    )
+    munich = core.create_location(session, tenant, "Munich Warehouse")
+    for location, quantity in ((business.location, "12"), (munich, "100")):
+        core.record_movement(
+            session,
+            tenant,
+            "opening_stock",
+            item.id,
+            quantity,
+            to_location_id=location.id,
+        )
+    price_list = core.create_price_list(
+        session, tenant, "PL-PARTS", "Parts purchase", "purchase", "EUR"
+    )
+    core.create_price_list_entry(
+        session, tenant, price_list.id, item.id, "1", "54.00", "box"
+    )
+    core.assign_party_price_list(session, tenant, business.supplier.id, price_list.id)
+
+    # Both points are stated through the reviewed tool, nothing before confirming.
+    for location in (business.location, munich):
+        proposal = create_change_proposal(
+            session,
+            tenant,
+            "reorder_point_set",
+            {
+                "item_id": item.id,
+                "location_id": location.id,
+                "reorder_point": "20",
+                "reorder_quantity": "48",
+            },
+        )
+        approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
+
+    def reached():
+        return {
+            row.trace["location_id"]: row
+            for row in operational_exceptions(session, tenant)
+            if row.class_id == "reorder_point_reached"
+        }
+
+    # Only the location at its point is proposed; Munich holds 100.
+    (entry,) = reached().values()
+    assert entry.trace["location_id"] == business.location.id
+    values = entry.causal_values
+    assert (
+        values["available_quantity"],
+        values["incoming_quantity"],
+        values["proposed_quantity"],
+        values["proposed_unit"],
+        values["supplier"],
+        values["unit_price"],
+    ) == (
+        Decimal("12"),
+        Decimal("0"),
+        Decimal("4"),
+        "box",
+        business.supplier.name,
+        Decimal("54.0000"),
+    )
+
+    # The buyer orders what the entry proposes, through the reviewed order.
+    _reviewed(
+        session,
+        business,
+        "order_create",
+        {
+            "direction": "purchase",
+            "number": "PO-G02",
+            "company_party_id": business.company.id,
+            "counterparty_id": entry.trace["supplier_id"],
+            "location_id": entry.trace["location_id"],
+            "currency": "EUR",
+            "gross_amount": "216.00",
+            "lines": [
+                {
+                    "item_id": item.id,
+                    "quantity": "4",
+                    "unit": "box",
+                    "unit_price": "54.00",
+                    "gross_amount": "216.00",
+                }
+            ],
+        },
+        "g02-order",
+    )
+    # Forty-eight pieces on their way cover the point: nothing is proposed.
+    assert reached() == {}
+
+    # A customer reservation takes what Hamburg holds, but the open purchase
+    # still covers the point: 12 − 12 reserved + 48 incoming is 48, above 20.
+    _, _, _, sold = core.create_manual_order(
+        session,
+        tenant,
+        "sales",
+        "SO-G02",
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+        [
+            {
+                "item_id": item.id,
+                "quantity": "12",
+                "unit_price": "9",
+                "gross_amount": "108",
+            }
+        ],
+        "108",
+    )
+    core.reserve(session, tenant, sold[0].id)
+    assert reached() == {}
+    # Raising the point above what is there and coming brings the entry back.
+    proposal = create_change_proposal(
+        session,
+        tenant,
+        "reorder_point_set",
+        {
+            "item_id": item.id,
+            "location_id": business.location.id,
+            "reorder_point": "60",
+            "reorder_quantity": "48",
+        },
+    )
+    approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
+    (entry,) = reached().values()
+    assert (
+        entry.causal_values["available_quantity"],
+        entry.causal_values["incoming_quantity"],
+    ) == (Decimal("0"), Decimal("48"))

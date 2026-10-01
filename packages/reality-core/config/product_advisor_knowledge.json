@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:f904a47edeb56236b7ee403f92635df61a70fb51e94dbb88ee896aa311079d45",
+  "knowledge_version": "advisor-v1:sha256:7b520088c6d93293029b099c47e03a4cda71fcd525d701173265e266605a70a7",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -954,7 +954,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G02",
-      "fingerprint": "b10c326e7fe65a39ebd93e002a76605b5dc1c2aa27a5ea895633c60e35705682"
+      "fingerprint": "8e64d0f30ff5abb5359825401ab9f7572cdec3517d70c1caafe50030fcb591fb"
     },
     {
       "id": "source_journey_g03",
@@ -3878,18 +3878,23 @@
       "source_id": "source_journey_g02",
       "subject": "Purchasing: demand and purchase order",
       "title": "Reorder for stock at reorder point",
-      "search_text": "G02 Purchasing: demand and purchase order Reorder for stock at reorder point Is the demand explained? Reorder for stock at reorder point Is the demand explained?",
-      "claim_text": "Reality evaluates: Is the demand explained?",
-      "support": "limited",
+      "search_text": "G02 Purchasing: demand and purchase order Reorder for stock at reorder point Is the demand explained? reorder point minimum stock replenishment proposal reorder suggestion Meldebestand Mindestbestand Bestellvorschlag Nachbestellen Reorder for stock at reorder point Is the demand explained? Which items have fallen below their reorder point and need to be reordered? Welche Artikel haben den Meldebestand erreicht und müssen nachbestellt werden?",
+      "claim_text": "Reality evaluates: Is the demand explained? An item states a reorder point and quantity per location; when available plus incoming stock there falls to the point, Reorder point reached proposes the quantity, in cartons when it divides, with the supplier and price when one purchase price list names them, and the buyer orders it through the reviewed purchase order.",
+      "support": "proven",
       "limitations": [
-        "The purpose of a stock purchase can be stated.",
-        "There is no reorder point and nothing triggers a reorder."
+        "The reorder quantity is fixed; there is no maximum level to order up to and no forecast.",
+        "A supplier is proposed only when exactly one purchase price list prices the item; otherwise the buyer chooses.",
+        "Nothing is ordered automatically; every purchase is confirmed by a person."
       ],
       "references": [
-        "G02"
+        "G02",
+        "reorder_point_set_propose",
+        "reorder_points",
+        "exceptions",
+        "order_create_propose"
       ],
       "language": "en",
-      "fingerprint": "76e2c8ac20d77014b58fd1c3b13af193b4f8b313bcfa0c204b6598c9ca529dbb"
+      "fingerprint": "2f64ca3bf675079735deb4b00ddf19375d555dc54df494804f631c5520a772aa"
     },
     {
       "id": "evidence_journey_g03",
