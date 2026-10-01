@@ -55,6 +55,11 @@ const introductions = {
     description:
       "See where each customer or supplier stands: open, overdue, available credit and balance per currency.",
   },
+  "month-end": {
+    title: "Finance",
+    description:
+      "Close the month: goods shipped and not yet invoiced, and invoices ahead of the goods.",
+  },
   overview: {
     title: "Reality Inspector",
     description: "Follow how sources, documents and business records connect over time.",

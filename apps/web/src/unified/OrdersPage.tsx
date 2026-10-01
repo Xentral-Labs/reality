@@ -4,6 +4,7 @@ import { PageActionBar } from "./PageActionBar";
 import { isPurchasing } from "./pageIntroduction";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DeliveryCase } from "./DeliveryCase";
+import { BillingDocumentCard, type BillingDocumentTool } from "./BillingDocumentCard";
 import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWorkbench";
 import { DocumentContributionExplanations } from "./DocumentContributionExplanations";
 import { useRegisterQuery } from "./TableContext";
@@ -109,11 +110,14 @@ function ReadinessEvidence({
   inspect,
   prepareInvoice,
   prepareShipment,
+  prepareBilling,
   actionsCurrent,
 }: {
   row: FulfillmentQueueRow;
   inspect: (target: { kind: string; id: string }) => void;
   prepareInvoice?: (order: string) => void;
+  /** Spec 299: a down-payment or pro-forma invoice for the sales order. */
+  prepareBilling?: (tool: BillingDocumentTool, order: string) => void;
   prepareShipment?: (input: {
     counterparty_id: string;
     movements: Record<string, string>[];
@@ -141,6 +145,22 @@ function ReadinessEvidence({
               {t("Prepare prepayment invoice")}
             </button>
           )}
+        {actionsCurrent && row.document_id && prepareBilling && (
+          <>
+            <button
+              className="br-btn"
+              onClick={() => prepareBilling("down_payment_invoice_record", row.document_id!)}
+            >
+              {t("Down-payment invoice")}
+            </button>
+            <button
+              className="br-btn"
+              onClick={() => prepareBilling("proforma_invoice_record", row.document_id!)}
+            >
+              {t("Pro-forma invoice")}
+            </button>
+          </>
+        )}
       </div>
       {!actionsCurrent && (
         <p className="rounded-lg border border-border-default bg-surface px-3 py-2 text-sm text-fg-muted">
@@ -250,6 +270,7 @@ export function OrdersPage({
   });
   const table = useRegisterQuery();
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
+  const [billing, setBilling] = useState<{ tool: BillingDocumentTool; order: string } | null>(null);
   const [settledNotice, setSettledNotice] = useState(false);
   useEffect(() => {
     const settled = () => setSettledNotice(true);
@@ -552,6 +573,11 @@ export function OrdersPage({
                                   inspect={setTarget}
                                   prepareInvoice={prepareInvoice}
                                   prepareShipment={prepareShipment}
+                                  prepareBilling={
+                                    purchasing
+                                      ? undefined
+                                      : (tool, order) => setBilling({ tool, order })
+                                  }
                                   actionsCurrent={data.metadata?.state === "ready"}
                                 />
                               </TablePreview>
@@ -776,6 +802,15 @@ export function OrdersPage({
         />
       )}
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
+      {billing && (
+        <BillingDocumentCard
+          tenant={tenant}
+          order={billing.order}
+          tool={billing.tool}
+          close={() => setBilling(null)}
+          settled={() => read.refresh()}
+        />
+      )}
     </>
   );
 }
