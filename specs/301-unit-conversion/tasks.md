@@ -62,9 +62,9 @@
 
 ## Phase 7: Verification
 
-- [ ] T014 Full backend suite and the web checks (run alone)
-- [ ] T015 Manual check per `quickstart.md` on an isolated stack
-- [ ] T016 Review of the diff; fix findings
+- [x] T014 Full backend suite and the web checks (run alone)
+- [x] T015 Manual check per `quickstart.md` on an isolated stack
+- [x] T016 Review of the diff; fix findings
   - The promise records its unit (`commitment.unit`, owner decision), and line quantities convert by the relation fixed at ordering.
   - Billable positions and the practice lesson read deliveries in the line's unit.
   - An old order refuses a receipt in cartons.
