@@ -156,10 +156,13 @@ hier.
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Stammdaten und Quellen](./processes#process-master_data)
 
-**Darunter:** Tabellen: `item`, `supply_assignment`, `item_reorder_point` · Events:
+**Darunter:** Tabellen: `item`, `supply_assignment`, `item_reorder_point`, `stock_block` · Events:
 [`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
+[`stock_block.created`](./events#event-stock_block-created),
+[`stock_block.released`](./events#event-stock_block-released),
+[`stock_block.scrapped`](./events#event-stock_block-scrapped),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agenten-Tools ohne
 Geschäftsaktion: [`inventory_read`](./commands#tool-inventory_read),
 [`item_supply_demand`](./commands#tool-item_supply_demand),

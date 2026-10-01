@@ -12,14 +12,14 @@
 
 ## Phase 2: Schema and services (FR-001, FR-003)
 
-- [ ] T004 Failing tests in `core/tests/test_stock_blocks.py`:
+- [x] T004 Failing tests in `core/tests/test_stock_blocks.py`:
   - migration and checks;
   - blocking up to what is free, and its refusals (beyond free stock, beyond what is not reserved, unknown reason, foreign tenant);
   - blocking by lot or serial;
   - partial and full release and scrap, with their split rows and events;
   - a scrap's adjustment;
   - no movement for a block or release.
-- [ ] T005 Migration `0108`, `StockBlock`, `services/stock_blocks.py`, `blocked_quantity`, refusals with translations, and the table gates.
+- [x] T005 Migration `0108`, `StockBlock`, `services/stock_blocks.py`, `blocked_quantity`, refusals with translations, and the table gates.
 
 ## Phase 3: Readers (FR-002)
 

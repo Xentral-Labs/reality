@@ -1930,6 +1930,40 @@
     },
     "valuation_assessment_quantity_exceeds_remaining": {
       "message": "Assessment quantity exceeds remaining inventory."
+    },
+    "stock_block_exceeds_available": {
+      "message": "Only {available} of the {requested} can be blocked: the rest is reserved, already blocked or not there.",
+      "values": {
+        "available": "number",
+        "requested": "number"
+      }
+    },
+    "stock_block_item_not_stocked": {
+      "message": "Only a stocked item can be blocked."
+    },
+    "stock_block_location_not_stock": {
+      "message": "Stock can be blocked only at a location that holds stock."
+    },
+    "stock_block_not_active": {
+      "message": "This block is no longer active."
+    },
+    "stock_block_not_found": {
+      "message": "Stock block not found."
+    },
+    "stock_block_quantity_exceeds_block": {
+      "message": "That is more than the block holds."
+    },
+    "stock_block_quantity_invalid": {
+      "message": "Enter a quantity above zero with at most four decimal places."
+    },
+    "stock_block_reason_required": {
+      "message": "State why the block is lifted."
+    },
+    "stock_block_reason_unsupported": {
+      "message": "Choose quality, damage, expiry or inspection as the reason."
+    },
+    "stock_block_status_unsupported": {
+      "message": "Choose active, released, scrapped or all."
     }
   },
   "terms": [

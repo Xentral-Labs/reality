@@ -104,6 +104,7 @@ DEFERRED = {
             "dunning_schedule_level",
             "down_payment_offset",
             "item_reorder_point",
+            "stock_block",
             "payment_return",
             "supply_assignment",
         },

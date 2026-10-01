@@ -38,6 +38,7 @@ from reality.services import playground as playground_service_module
 from reality.services import projection_jobs as projection_job_service_module
 from reality.services import projections as projection_service_module
 from reality.services import reorder_points as reorder_point_service_module
+from reality.services import stock_blocks as stock_block_service_module
 from reality.services import return_dispositions as return_disposition_service_module
 from reality.services import scheduled_jobs as scheduled_job_service_module
 from reality.services import shipments as shipment_service_module
@@ -1100,6 +1101,7 @@ def _service(name: str) -> Any:
         down_payment_service_module,
         month_end_billing_service_module,
         reorder_point_service_module,
+        stock_block_service_module,
     ):
         own = getattr(module, name, None)
         if own is not None and getattr(own, "__module__", None) == module.__name__:
@@ -1302,6 +1304,7 @@ def _literal_business_events() -> set[str]:
         order_line_item_service_module,
         payment_return_service_module,
         reorder_point_service_module,
+        stock_block_service_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

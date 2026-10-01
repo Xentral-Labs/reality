@@ -3900,6 +3900,41 @@ def reserved_by_identity(
     return decimal(session.scalar(query) or ZERO)
 
 
+def blocked_quantity(
+    session: OrmSession,
+    tenant_id: str,
+    item_id: str,
+    location_id: str | None = None,
+    *,
+    handling_unit_id: str | None = None,
+    lot_id: str | None = None,
+    serial_unit_id: str | None = None,
+) -> Decimal:
+    """What is held back by active stock blocks (spec 304).
+
+    Available is physical less reserved less blocked, at a location and at an
+    identity alike; every reader that reserves, moves or reports availability
+    takes the third term from here, beside `stock_at` and `active_reserved`.
+    """
+    from reality.db.core import StockBlock
+
+    query = select(func.coalesce(func.sum(StockBlock.quantity), 0)).where(
+        StockBlock.tenant_id == tenant_id,
+        StockBlock.item_id == item_id,
+        StockBlock.status == "active",
+    )
+    if location_id:
+        query = query.where(StockBlock.location_id == location_id)
+    for field, value in (
+        (StockBlock.handling_unit_id, handling_unit_id),
+        (StockBlock.lot_id, lot_id),
+        (StockBlock.serial_unit_id, serial_unit_id),
+    ):
+        if value:
+            query = query.where(field == value)
+    return decimal(session.scalar(query) or ZERO)
+
+
 @dataclass(frozen=True)
 class ReservationResult:
     reservation: Reservation | None

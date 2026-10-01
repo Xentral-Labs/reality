@@ -24653,6 +24653,20 @@ Object.assign(dictionaries.de, {
   Transferred: "Umgelagert",
   "This transfer takes stock that is reserved at its warehouse; the orders reserved there lose their stock.":
     "Diese Umlagerung nimmt Bestand, der in ihrem Lager reserviert ist; die dort reservierten Aufträge verlieren ihren Bestand.",
+  "Only {available} of the {requested} can be blocked: the rest is reserved, already blocked or not there.":
+    "Nur {available} von {requested} lassen sich sperren: der Rest ist reserviert, schon gesperrt oder nicht vorhanden.",
+  "Only a stocked item can be blocked.": "Nur ein Lagerartikel kann gesperrt werden.",
+  "Stock can be blocked only at a location that holds stock.":
+    "Bestand lässt sich nur an einem Lagerort sperren, der Bestand führt.",
+  "This block is no longer active.": "Diese Sperre ist nicht mehr aktiv.",
+  "Stock block not found.": "Sperre nicht gefunden.",
+  "That is more than the block holds.": "Das ist mehr, als die Sperre enthält.",
+  "Enter a quantity above zero with at most four decimal places.":
+    "Gib eine Menge über null mit höchstens vier Nachkommastellen an.",
+  "State why the block is lifted.": "Gib an, warum die Sperre aufgehoben wird.",
+  "Choose quality, damage, expiry or inspection as the reason.":
+    "Wähle Qualität, Beschädigung, Ablauf oder Prüfung als Grund.",
+  "Choose active, released, scrapped or all.": "Wähle aktiv, freigegeben, verschrottet oder alle.",
   "Reorder point reached": "Meldebestand erreicht",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
@@ -24757,6 +24771,20 @@ Object.assign(dictionaries.nl, {
   Transferred: "Verplaatst",
   "This transfer takes stock that is reserved at its warehouse; the orders reserved there lose their stock.":
     "Deze verplaatsing neemt voorraad die in het magazijn gereserveerd is; de daar gereserveerde orders verliezen hun voorraad.",
+  "Only {available} of the {requested} can be blocked: the rest is reserved, already blocked or not there.":
+    "Slechts {available} van de {requested} kunnen worden geblokkeerd: de rest is gereserveerd, al geblokkeerd of niet aanwezig.",
+  "Only a stocked item can be blocked.": "Alleen een voorraadartikel kan worden geblokkeerd.",
+  "Stock can be blocked only at a location that holds stock.":
+    "Voorraad kan alleen worden geblokkeerd op een locatie met voorraad.",
+  "This block is no longer active.": "Deze blokkering is niet meer actief.",
+  "Stock block not found.": "Blokkering niet gevonden.",
+  "That is more than the block holds.": "Dat is meer dan de blokkering bevat.",
+  "Enter a quantity above zero with at most four decimal places.":
+    "Geef een hoeveelheid boven nul met hoogstens vier decimalen op.",
+  "State why the block is lifted.": "Geef aan waarom de blokkering wordt opgeheven.",
+  "Choose quality, damage, expiry or inspection as the reason.":
+    "Kies kwaliteit, schade, verval of keuring als reden.",
+  "Choose active, released, scrapped or all.": "Kies actief, vrijgegeven, afgeschreven of alle.",
   "Reorder point reached": "Bestelpunt bereikt",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
@@ -24862,6 +24890,20 @@ Object.assign(dictionaries.es, {
   Transferred: "Trasladado",
   "This transfer takes stock that is reserved at its warehouse; the orders reserved there lose their stock.":
     "Este traslado toma stock reservado en su almacén; los pedidos reservados allí pierden su stock.",
+  "Only {available} of the {requested} can be blocked: the rest is reserved, already blocked or not there.":
+    "Solo {available} de {requested} se pueden bloquear: el resto está reservado, ya bloqueado o no está.",
+  "Only a stocked item can be blocked.": "Solo se puede bloquear un artículo de stock.",
+  "Stock can be blocked only at a location that holds stock.":
+    "Solo se puede bloquear stock en una ubicación que tenga stock.",
+  "This block is no longer active.": "Este bloqueo ya no está activo.",
+  "Stock block not found.": "Bloqueo no encontrado.",
+  "That is more than the block holds.": "Eso es más de lo que contiene el bloqueo.",
+  "Enter a quantity above zero with at most four decimal places.":
+    "Indica una cantidad mayor que cero con cuatro decimales como máximo.",
+  "State why the block is lifted.": "Indica por qué se levanta el bloqueo.",
+  "Choose quality, damage, expiry or inspection as the reason.":
+    "Elige calidad, daño, caducidad o inspección como motivo.",
+  "Choose active, released, scrapped or all.": "Elige activo, liberado, desechado o todos.",
   "Reorder point reached": "Punto de pedido alcanzado",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",

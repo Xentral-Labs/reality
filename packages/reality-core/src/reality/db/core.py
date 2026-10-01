@@ -2254,6 +2254,80 @@ class CustomerExchange(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class StockBlock(Base):
+    """Stock held back where it lies: not available, reserved, shipped or moved (spec 304).
+
+    A person's statement about goods the company holds, with its reason. The
+    goods stay where they are and no movement is recorded; a release makes them
+    available again, a scrap writes them off with one reasoned adjustment. A
+    partial release or scrap closes this row for the part and continues the
+    rest as a new active row, as a reservation does.
+    """
+
+    __tablename__ = "stock_block"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(["tenant_id", "item_id"], ["item.tenant_id", "item.id"]),
+        ForeignKeyConstraint(
+            ["tenant_id", "location_id"], ["location.tenant_id", "location.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "handling_unit_id"],
+            ["handling_unit.tenant_id", "handling_unit.id"],
+        ),
+        ForeignKeyConstraint(["tenant_id", "lot_id"], ["lot.tenant_id", "lot.id"]),
+        ForeignKeyConstraint(
+            ["tenant_id", "serial_unit_id"],
+            ["serial_unit.tenant_id", "serial_unit.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "previous_block_id"], ["stock_block.tenant_id", "stock_block.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "movement_id"], ["movement.tenant_id", "movement.id"]
+        ),
+        CheckConstraint("quantity > 0", name="ck_stock_block_quantity"),
+        CheckConstraint(
+            "reason_code IN ('quality','damage','expiry','inspection')",
+            name="ck_stock_block_reason",
+        ),
+        CheckConstraint(
+            "status IN ('active','released','scrapped')", name="ck_stock_block_status"
+        ),
+        Index(
+            "ix_stock_block_item_location_status",
+            "tenant_id",
+            "item_id",
+            "location_id",
+            "status",
+        ),
+        Index("ix_stock_block_location_id", "tenant_id", "location_id"),
+        Index("ix_stock_block_handling_unit_id", "tenant_id", "handling_unit_id"),
+        Index("ix_stock_block_lot_id", "tenant_id", "lot_id"),
+        Index("ix_stock_block_serial_unit_id", "tenant_id", "serial_unit_id"),
+        Index("ix_stock_block_previous_block_id", "tenant_id", "previous_block_id"),
+        Index("ix_stock_block_movement_id", "tenant_id", "movement_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    item_id: Mapped[str] = mapped_column()
+    location_id: Mapped[str] = mapped_column()
+    handling_unit_id: Mapped[str | None] = mapped_column(default=None)
+    lot_id: Mapped[str | None] = mapped_column(default=None)
+    serial_unit_id: Mapped[str | None] = mapped_column(default=None)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    reason_code: Mapped[str] = mapped_column(String)
+    note: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String, default="active")
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    created_by: Mapped[str] = mapped_column(String, default="human")
+    resolved_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
+    resolved_by: Mapped[str | None] = mapped_column(String, default=None)
+    resolution_reason: Mapped[str | None] = mapped_column(Text, default=None)
+    previous_block_id: Mapped[str | None] = mapped_column(default=None)
+    movement_id: Mapped[str | None] = mapped_column(default=None)
+
+
 class MovementCorrection(Base):
     __tablename__ = "movement_correction"
     __table_args__ = (

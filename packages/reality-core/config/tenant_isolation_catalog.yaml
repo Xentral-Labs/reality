@@ -227,6 +227,7 @@ families:
     operations: &aggregate_operations
       - reality.services.core:account_balance
       - reality.services.core:active_reserved
+      - reality.services.core:blocked_quantity
       - reality.services.core:activity_signal
       - reality.services.core:change_proposal_count
       - reality.services.core:chat_session_count
