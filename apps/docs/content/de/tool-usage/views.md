@@ -684,7 +684,8 @@ Ausnahme [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), Ausn
 [`exchange_without_return`](./exceptions#exception-exchange_without_return), Ausnahme
 [`order_line_item_unknown`](./exceptions#exception-order_line_item_unknown), Ausnahme
 [`payment_returned`](./exceptions#exception-payment_returned), Ausnahme
-[`order_line_price_missing`](./exceptions#exception-order_line_price_missing)
+[`order_line_price_missing`](./exceptions#exception-order_line_price_missing), Ausnahme
+[`billed_not_shipped`](./exceptions#exception-billed_not_shipped)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

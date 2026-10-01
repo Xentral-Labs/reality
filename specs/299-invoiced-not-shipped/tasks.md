@@ -52,12 +52,12 @@
 
 ## Phase 6: Invoiced but not shipped (FR-001)
 
-- [ ] T012 [US2] Failing tests in `core/tests/test_billed_not_shipped.py`:
+- [x] T012 [US2] Failing tests in `core/tests/test_billed_not_shipped.py`:
   - an invoice for 5 with nothing shipped is reported; it clears after shipping 5, and partly after 3;
   - a down-payment invoice reports nothing (control: a goods invoice does);
   - a cancelled order line;
   - `month_end_billing` returns both lists from the same findings (SC-003).
-- [ ] T013 [US2] Class `billed_not_shipped` with every class gate (registry, catalogs, test lists, reference catalog, labels, de/nl/es for label and resolution); the read `month_end_billing`.
+- [x] T013 [US2] Class `billed_not_shipped` with every class gate (registry, catalogs, test lists, reference catalog, labels, de/nl/es for label and resolution); the read `month_end_billing`.
 
 ## Phase 7: Adapters and Web (FR-005)
 

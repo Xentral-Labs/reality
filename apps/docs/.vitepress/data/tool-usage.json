@@ -616,7 +616,8 @@
         "exception:overdue_receivable",
         "exception:overdue_payable",
         "exception:purchase_discount_available",
-        "exception:duplicate_supplier_invoice"
+        "exception:duplicate_supplier_invoice",
+        "exception:billed_not_shipped"
       ],
       "tools": ["tool:finance_credits", "tool:finance_party_balances"],
       "events": [
@@ -1211,7 +1212,11 @@
           "actions": ["command:record_sales_invoice", "command:post_sales_invoice"],
           "tools": [],
           "lists": ["view:open_items"],
-          "exceptions": ["exception:shipped_not_billed", "exception:sales_invoice_unposted"]
+          "exceptions": [
+            "exception:shipped_not_billed",
+            "exception:billed_not_shipped",
+            "exception:sales_invoice_unposted"
+          ]
         },
         {
           "title": {
@@ -23868,7 +23873,8 @@
         "exception:exchange_without_return",
         "exception:order_line_item_unknown",
         "exception:payment_returned",
-        "exception:order_line_price_missing"
+        "exception:order_line_price_missing",
+        "exception:billed_not_shipped"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -25283,6 +25289,28 @@
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Auftragszeile ohne Preis",
       "resources": ["order", "terms"]
+    },
+    {
+      "id": "exception:billed_not_shipped",
+      "kind": "exception",
+      "key": "billed_not_shipped",
+      "label": "Invoiced and not shipped",
+      "area": "finance",
+      "summary": "A customer has been invoiced for more of a sales order line than has shipped. Reality sums what every invoice line bills against that order line, subtracts what has shipped against its promise, and reports the rest. It is the sales mirror of Billed and not received, and the opposite of Shipped and not billed: invoicing ahead of the goods is allowed, so this is a normal finding, not a defect, and it is what the month-end close lists beside the goods shipped and not yet invoiced. Down-payment and pro-forma invoices are for the order, not for any of its lines, so they bill nothing and never appear here. Goods that left and came back still count as shipped; what the customer is owed for them is Returned and not credited. A line whose promise was cancelled after it was invoiced stays reported, because the customer was asked to pay for goods that will not come, until the invoice is reversed. Quantities are compared across the item's own stated units where it says how they relate, and a pair that cannot be reconciled is reported as Units not comparable.",
+      "owner": "Billing, with order fulfilment when the goods are late",
+      "clears_through": "Shipping the invoiced quantity, or reversing the invoice.",
+      "severity": "normal",
+      "record_type": "document_line",
+      "authority": "299/FR-001",
+      "evidence": [
+        "tests/test_billed_not_shipped.py::test_an_invoice_ahead_of_the_goods_is_reported_until_they_ship",
+        "tests/test_billed_not_shipped.py::test_a_down_payment_invoice_reports_nothing",
+        "tests/test_billed_not_shipped.py::test_a_cancelled_line_stays_reported_until_its_invoice_is_reversed"
+      ],
+      "causes": [],
+      "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
+      "label_de": "Fakturiert, nicht versandt",
+      "resources": ["invoice"]
     },
     {
       "id": "event:cost.attributed",

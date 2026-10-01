@@ -16,7 +16,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Auftrag](#resource-order)                                     | 8      | 12       | 11        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
-| [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 12       | 14        |
+| [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 12       | 15        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 3         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 15       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
@@ -479,6 +479,7 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
   (`purchase_discount_available`)
 - [Doppelte Eingangsrechnung](./exceptions#exception-duplicate_supplier_invoice)
   (`duplicate_supplier_invoice`)
+- [Fakturiert, nicht versandt](./exceptions#exception-billed_not_shipped) (`billed_not_shipped`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay), [Kundenretouren](./processes#process-returns)

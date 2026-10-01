@@ -208,7 +208,7 @@ resources:
     views: [open_items, documents]
     projections: [open_financial_items]
     exceptions:
-      [shipped_not_billed, billed_not_received, receipt_unbilled, invoice_price_differs, sales_invoice_unposted, supplier_invoice_unposted, credit_note_unposted, credit_note_unsettled, supplier_credit_unposted, supplier_credit_unclaimed, duplicate_supplier_invoice, overdue_receivable, overdue_payable, purchase_discount_available]
+      [shipped_not_billed, billed_not_shipped, billed_not_received, receipt_unbilled, invoice_price_differs, sales_invoice_unposted, supplier_invoice_unposted, credit_note_unposted, credit_note_unsettled, supplier_credit_unposted, supplier_credit_unclaimed, duplicate_supplier_invoice, overdue_receivable, overdue_payable, purchase_discount_available]
 
   - key: payment
     label:
@@ -413,7 +413,7 @@ processes:
         resource: invoice
         actions: [record_sales_invoice, post_sales_invoice]
         lists: [open_items]
-        exceptions: [shipped_not_billed, sales_invoice_unposted]
+        exceptions: [shipped_not_billed, billed_not_shipped, sales_invoice_unposted]
       - title: { en: Record the payment and allocate it, de: Zahlungseingang erfassen und zuordnen }
         resource: payment
         actions: [post_customer_payment, apply_settlement, accept_adjustment]
@@ -776,6 +776,7 @@ labels:
       order_line_item_unknown: Auftragszeile mit unbekanntem Artikel
       payment_returned: Zahlung zurückgegangen
       order_line_price_missing: Auftragszeile ohne Preis
+      billed_not_shipped: Fakturiert, nicht versandt
       commitment_hold_unreleased: Sperre der Verpflichtung nicht aufgehoben
       party_hold_unreleased: Liefersperre nicht aufgehoben
       stock_expired: Abgelaufener Bestand

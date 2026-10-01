@@ -24587,6 +24587,9 @@ Object.assign(dictionaries.de, {
   "Stated SKU": "Angegebene SKU",
   "Why it waits": "Warum es wartet",
   "Order line with unknown item": "Auftragszeile mit unbekanntem Artikel",
+  "Invoiced and not shipped": "Fakturiert, nicht versandt",
+  "Shipping the invoiced quantity, or reversing the invoice.":
+    "Versand der fakturierten Menge oder Storno der Rechnung.",
   "Order line without a price": "Auftragszeile ohne Preis",
   "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
     "Eine Rechnung, die die Zeile abrechnet und den berechneten Betrag angibt, oder die Stornierung der Zusage der Zeile.",
@@ -24626,6 +24629,9 @@ Object.assign(dictionaries.nl, {
   "Stated SKU": "Opgegeven SKU",
   "Why it waits": "Waarom het wacht",
   "Order line with unknown item": "Orderregel met onbekend artikel",
+  "Invoiced and not shipped": "Gefactureerd, niet verzonden",
+  "Shipping the invoiced quantity, or reversing the invoice.":
+    "De gefactureerde hoeveelheid verzenden of de factuur tegenboeken.",
   "Order line without a price": "Orderregel zonder prijs",
   "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
     "Een factuur die de regel factureert met het gefactureerde bedrag, of het annuleren van de toezegging van de regel.",
@@ -24665,6 +24671,9 @@ Object.assign(dictionaries.es, {
   "Stated SKU": "SKU indicada",
   "Why it waits": "Por qué espera",
   "Order line with unknown item": "Línea de pedido con artículo desconocido",
+  "Invoiced and not shipped": "Facturado y no enviado",
+  "Shipping the invoiced quantity, or reversing the invoice.":
+    "Enviar la cantidad facturada o anular la factura.",
   "Order line without a price": "Línea de pedido sin precio",
   "An invoice that bills the line, stating the amount charged, or cancelling the line's promise.":
     "Una factura que facture la línea indicando el importe cobrado, o la cancelación del compromiso de la línea.",

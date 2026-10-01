@@ -16,7 +16,7 @@ the technical key stands beside each one.
 | [Order](#resource-order)                                         | 8     | 12      | 11                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
-| [Invoice and credit note](#resource-invoice)                     | 3     | 12      | 14                  |
+| [Invoice and credit note](#resource-invoice)                     | 3     | 12      | 15                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 3                   |
 | [Ledger and accounts](#resource-accounting)                      | 2     | 15      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
@@ -468,6 +468,7 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
   (`purchase_discount_available`)
 - [Duplicate supplier invoice](./exceptions#exception-duplicate_supplier_invoice)
   (`duplicate_supplier_invoice`)
+- [Invoiced and not shipped](./exceptions#exception-billed_not_shipped) (`billed_not_shipped`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay),
