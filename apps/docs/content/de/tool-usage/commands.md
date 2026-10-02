@@ -2793,7 +2793,7 @@ Explain a customer's credit exposure against its limit and why an order is held 
 | `party_id` | `string` | ja      | Opaque identity of the customer, supplier, or other operational party.       | —        |
 | `as_of`    | `string` | nein    | UTC instant the derivation is evaluated at; the current instant when absent. | —        |
 
-**Siehe auch:** Geschäftsaktion [`credit_exposure`](./commands#command-credit_exposure)
+**Siehe auch:** Command [`credit_exposure`](./commands#command-credit_exposure)
 
 ### `billable_positions` — Read billable invoice positions {#command-billable_positions}
 
@@ -3589,7 +3589,7 @@ down_payment_invoice_record_propose order_id number gross_amount [currency] [eff
 | `net_amount`   | `string` | nein    | Net amount the document states; recorded as stated and never derived from the gross.       | —        |
 | `tax_amount`   | `string` | nein    | Tax amount the document states; recorded as stated and never derived from the gross.       | —        |
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`record_down_payment_invoice`](./commands#command-record_down_payment_invoice)
 
 ### `record_proforma_invoice` — Record a pro-forma invoice {#command-record_proforma_invoice}
@@ -3640,8 +3640,7 @@ proforma_invoice_record_propose order_id number gross_amount [currency] [documen
 | `lines[].net_amount`   | `string` | nein    | Net amount the document states; recorded as stated and never derived from the gross.         | —        |
 | `lines[].tax_amount`   | `string` | nein    | Tax amount the document states; recorded as stated and never derived from the gross.         | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`record_proforma_invoice`](./commands#command-record_proforma_invoice)
+**Siehe auch:** Command [`record_proforma_invoice`](./commands#command-record_proforma_invoice)
 
 ### `record_free_supplier_invoice` — Record free supplier invoice {#command-record_free_supplier_invoice}
 
@@ -4053,7 +4052,7 @@ credit_hold_release_propose document_id reason
 | `document_id` | `string` | ja      | Opaque identity of the evidence document to inspect or correct.         | —        |
 | `reason`      | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change. | —        |
 
-**Siehe auch:** Geschäftsaktion [`release_credit_holds`](./commands#command-release_credit_holds)
+**Siehe auch:** Command [`release_credit_holds`](./commands#command-release_credit_holds)
 
 ### `reverse_ledger_posting_group` — Reverse ledger posting group {#command-reverse_ledger_posting_group}
 
@@ -4730,7 +4729,7 @@ List returned customer payments with their reason, fee and reopened invoices.
 
 Keine Parameter.
 
-**Siehe auch:** Geschäftsaktion [`returns`](./commands#command-returns)
+**Siehe auch:** Command [`returns`](./commands#command-returns)
 
 ### `preview_stale_promise_closure` — Preview stale promise closure {#command-preview_stale_promise_closure}
 
@@ -4846,7 +4845,7 @@ Read one returned customer payment with its reason, reference, fee and reopened 
 | ----------- | -------- | ------- | -------------------------------------------------- | -------- |
 | `return_id` | `string` | ja      | Opaque same-tenant identity of a returned payment. | —        |
 
-**Siehe auch:** Geschäftsaktion [`return_detail`](./commands#command-return_detail)
+**Siehe auch:** Command [`return_detail`](./commands#command-return_detail)
 
 ### `return_announcements` — Read announced returns {#command-return_announcements}
 
@@ -4962,7 +4961,7 @@ List the reorder points the company stated, per item and location, with the reor
 | `item_id`     | `string` | nein    | Opaque identity of the operational item reference.       | —        |
 | `location_id` | `string` | nein    | Opaque identity of the operational or physical location. | —        |
 
-**Siehe auch:** Geschäftsaktion [`reorder_points`](./commands#command-reorder_points)
+**Siehe auch:** Command [`reorder_points`](./commands#command-reorder_points)
 
 ### `record_return` — Record a returned payment {#command-record_return}
 
@@ -5036,7 +5035,7 @@ Record a returned direct debit or chargeback of a customer payment for owner con
 
 **Prüfen mit:** `finance.payment_return` — The return
 
-**Siehe auch:** Geschäftsaktion [`record_return`](./commands#command-record_return)
+**Siehe auch:** Command [`record_return`](./commands#command-record_return)
 
 ### `release_reservation` — Release reservation {#command-release_reservation}
 
@@ -5117,7 +5116,7 @@ reorder_point_remove_propose item_id location_id
 | `item_id`     | `string` | ja      | Opaque identity of the operational item reference.       | —        |
 | `location_id` | `string` | ja      | Opaque identity of the operational or physical location. | —        |
 
-**Siehe auch:** Geschäftsaktion [`remove_reorder_point`](./commands#command-remove_reorder_point)
+**Siehe auch:** Command [`remove_reorder_point`](./commands#command-remove_reorder_point)
 
 ### `reserve` — Reserve stock {#command-reserve}
 
@@ -5388,7 +5387,7 @@ reorder_point_set_propose item_id location_id reorder_point reorder_quantity
 | `reorder_point`    | `string` | ja      | Stock level, in the item's stock unit, at or below which available plus incoming stock at the location is reported (spec 302). | —        |
 | `reorder_quantity` | `string` | ja      | Quantity, in the item's stock unit, proposed when the reorder point is reached.                                                | —        |
 
-**Siehe auch:** Geschäftsaktion [`set_reorder_point`](./commands#command-set_reorder_point)
+**Siehe auch:** Command [`set_reorder_point`](./commands#command-set_reorder_point)
 
 ### `hold_party_delivery` — Set party delivery hold {#command-hold_party_delivery}
 
@@ -5546,7 +5545,7 @@ stock_block_propose item_id location_id quantity reason_code [note] [handling_un
 | `lot_id`           | `string` | nein    | Exact batch or lot identity to reserve or move.                                                               | —        |
 | `serial_unit_id`   | `string` | nein    | Exact serial-unit identity to reserve or move; serialized quantities are always one.                          | —        |
 
-**Siehe auch:** Geschäftsaktion [`block_stock`](./commands#command-block_stock)
+**Siehe auch:** Command [`block_stock`](./commands#command-block_stock)
 
 ### `correct_lot_expiry` — Correct lot expiry {#command-correct_lot_expiry}
 
@@ -6045,7 +6044,7 @@ List stock held back where it lies, with its reason, quantity and who blocked it
 | `location_id` | `string` | nein    | Opaque identity of the operational or physical location.                                                     | —        |
 | `status`      | `string` | nein    | Lifecycle state to filter by, such as open, fulfilled, or withdrawn. `active`, `released`, `scrapped`, `all` | —        |
 
-**Siehe auch:** Geschäftsaktion [`stock_blocks`](./commands#command-stock_blocks)
+**Siehe auch:** Command [`stock_blocks`](./commands#command-stock_blocks)
 
 ### `record_movement` — Record movement {#command-record_movement}
 
@@ -6273,7 +6272,7 @@ stock_block_release_propose block_id [quantity] reason
 | `quantity` | `string` | nein    | Decimal quantity expressed in the item's relevant unit.                 | —        |
 | `reason`   | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change. | —        |
 
-**Siehe auch:** Geschäftsaktion [`release_stock_block`](./commands#command-release_stock_block)
+**Siehe auch:** Command [`release_stock_block`](./commands#command-release_stock_block)
 
 ### `scrap_stock_block` — Scrap blocked stock {#command-scrap_stock_block}
 
@@ -6316,7 +6315,7 @@ stock_block_scrap_propose block_id [quantity] reason
 | `quantity` | `string` | nein    | Decimal quantity expressed in the item's relevant unit.                 | —        |
 | `reason`   | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change. | —        |
 
-**Siehe auch:** Geschäftsaktion [`scrap_stock_block`](./commands#command-scrap_stock_block)
+**Siehe auch:** Command [`scrap_stock_block`](./commands#command-scrap_stock_block)
 
 ### `state_lot_expiry` — State lot expiry {#command-state_lot_expiry}
 
@@ -7064,7 +7063,7 @@ order_line_item_assign_propose document_line_id item_id
 | `document_line_id` | `string` | ja      | Opaque same-tenant received document line identity; must belong to the selected document. | —        |
 | `item_id`          | `string` | ja      | Opaque identity of the operational item reference.                                        | —        |
 
-**Siehe auch:** Geschäftsaktion [`assign_line_item`](./commands#command-assign_line_item)
+**Siehe auch:** Command [`assign_line_item`](./commands#command-assign_line_item)
 
 ### `assign_supply` — Assign incoming supply to customer demand {#command-assign_supply}
 
@@ -8592,7 +8591,7 @@ reports.
 | ------- | -------- | ------- | ---------------------------------------------------------------------------- | -------- |
 | `as_of` | `string` | nein    | UTC instant the derivation is evaluated at; the current instant when absent. | —        |
 
-**Siehe auch:** Geschäftsaktion [`month_end_billing`](./commands#command-month_end_billing)
+**Siehe auch:** Command [`month_end_billing`](./commands#command-month_end_billing)
 
 ### `record_notice` — Record dunning notice {#command-record_notice}
 

@@ -32,3 +32,7 @@ An initial build overlapped generation and failed reading an incomplete JSON fil
 Only documentation presentation, generator metadata, generated reference pages and tests changed. Existing kind keys, routes, explicit anchors, schemas, handlers and business state are preserved. General business resource/process Actions terminology is retained. The audit covers reservation, order creation and customer payment, including their Web forms. Their shared service/proposal paths already avoid duplicate business implementation; the demonstrated duplicated category definitions were removed from the Vue and renderer copy tables.
 
 No new persistent model, input generator or runtime schema abstraction was justified. No migration, backend PostgreSQL suite or operational application frontend build is required for this documentation-only execution scope, as recorded in the plan. The existing untracked database dump was untouched.
+
+## Integration branch
+
+The original commit's `make docs-catalog-check` passed after commit. The previous branch's PR was already merged, so the documentation commit was cherry-picked onto `codex/docs-tool-interface-clarity` from current `origin/main` (`590c4d72`). Regeneration also applies the shared Command label to the newer main entries in the German manual. The complete main catalog entries, schema representations and links remain identical. The spec gate, 14 reference tests, 112 Node tests and format check were repeated on this integration branch; production build and committed catalog gate are checked before publishing the draft PR.
