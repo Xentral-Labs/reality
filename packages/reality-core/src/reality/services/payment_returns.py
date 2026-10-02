@@ -34,6 +34,8 @@ SOURCE_SYSTEM = "internal_payment_return"
 KINDS = {"direct_debit_return": "Returned direct debit", "chargeback": "Chargeback"}
 BEARERS = {"customer", "company"}
 FEE_SCALE = Decimal("0.0001")
+#: The documents a fee creates, each carrying the return's source record.
+FEE_TYPES = ("payment_return_fee", "payment_return_fee_charge")
 #: What a customer owes as an invoice; only these are reported as open again.
 OWED_TYPES = {"sales_invoice", "opening_customer_debt"}
 
@@ -359,9 +361,6 @@ def record_return(
         returned_on=date.fromisoformat(preview["returned_on"]),
         fee_amount=fee,
         fee_bearer=preview["fee_bearer"],
-        ledger_reversal_id=reversal.reversal_id,
-        fee_document_id=fee_document.id if fee_document else None,
-        fee_charge_document_id=fee_charge.id if fee_charge else None,
         source_record_id=source.id,
     )
     session.add(row)
@@ -382,12 +381,41 @@ def record_return(
             "reopened_invoice_ids": [
                 item["invoice_id"] for item in preview["reopened"]
             ],
-            "ledger_reversal_id": row.ledger_reversal_id,
+            "ledger_reversal_id": reversal.reversal_id,
         },
         source_record_id=source.id,
         action_id=action_id,
     )
     return return_detail(session, tenant_id, row.id)
+
+
+def _caused(
+    session: Session, tenant_id: str, row: PaymentReturn, entry: LedgerEntry
+) -> dict[str, str | None]:
+    """What the return caused, read from the records that point back to it (spec 318).
+
+    The reversal is the one of the payment's posting group, which can be
+    reversed once; the fee documents carry the return's own source record.
+    """
+    fees = dict(
+        session.execute(
+            select(Document.type, Document.id).where(
+                Document.tenant_id == tenant_id,
+                Document.source_record_id == row.source_record_id,
+                Document.type.in_(FEE_TYPES),
+            )
+        ).all()
+    )
+    return {
+        "ledger_reversal_id": session.scalar(
+            select(LedgerReversal.id).where(
+                LedgerReversal.tenant_id == tenant_id,
+                LedgerReversal.original_posting_group_id == entry.posting_group_id,
+            )
+        ),
+        "fee_document_id": fees.get("payment_return_fee"),
+        "fee_charge_document_id": fees.get("payment_return_fee_charge"),
+    }
 
 
 def return_detail(session: Session, tenant_id: str, return_id: str) -> dict[str, Any]:
@@ -415,9 +443,7 @@ def return_detail(session: Session, tenant_id: str, return_id: str) -> dict[str,
             }
             for invoice, amount in _paid_invoices(session, tenant_id, entry)
         ],
-        "ledger_reversal_id": row.ledger_reversal_id,
-        "fee_document_id": row.fee_document_id,
-        "fee_charge_document_id": row.fee_charge_document_id,
+        **_caused(session, tenant_id, row, entry),
         "source_record_id": row.source_record_id,
     }
 

@@ -1,4 +1,4 @@
-"""Spec 297: returned direct debits, chargebacks and payment fees."""
+"""Spec 297: returned direct debits, chargebacks and payment fees; spec 318 links."""
 
 import json
 from datetime import date
@@ -62,19 +62,12 @@ def _row(session, business, payment_document_id, **columns):
         "returned_on": date(2026, 10, 2),
         "fee_amount": Decimal(0),
         "fee_bearer": "none",
-        "ledger_reversal_id": None,
         "source_record_id": core.create_master_source_record(
             session, tenant, "payment_return", "manual", core.uid("t005"), {}
         ).id,
         **columns,
     }
     return PaymentReturn(**values)
-
-
-def _reversal(session, business, payment_entry):
-    return core.reverse_ledger_posting_group(
-        session, business.tenant.id, payment_entry.posting_group_id, reason="T005"
-    ).reversal_id
 
 
 def _insert(session, record):
@@ -85,15 +78,10 @@ def _insert(session, record):
 
 def test_a_return_names_its_kind_and_who_bears_the_fee(session, business):
     _, entry = _paid_invoice(session, business)
-    reversal = _reversal(session, business, entry)
     # Positive control: a well-formed return is accepted.
-    _insert(
-        session,
-        _row(session, business, entry.document_id, ledger_reversal_id=reversal),
-    )
+    _insert(session, _row(session, business, entry.document_id))
 
     _, other = _paid_invoice(session, business, "RE-297-B")
-    other_reversal = _reversal(session, business, other)
     for columns, constraint in (
         ({"kind": "refund"}, "ck_payment_return_kind"),
         ({"fee_bearer": "partner"}, "ck_payment_return_fee_bearer"),
@@ -111,28 +99,27 @@ def test_a_return_names_its_kind_and_who_bears_the_fee(session, business):
         with pytest.raises(IntegrityError, match=constraint):
             _insert(
                 session,
-                _row(
-                    session,
-                    business,
-                    other.document_id,
-                    ledger_reversal_id=other_reversal,
-                    **columns,
-                ),
+                _row(session, business, other.document_id, **columns),
             )
 
 
 def test_a_payment_is_returned_once(session, business):
     _, entry = _paid_invoice(session, business)
-    reversal = _reversal(session, business, entry)
-    _insert(
-        session, _row(session, business, entry.document_id, ledger_reversal_id=reversal)
-    )
+    _insert(session, _row(session, business, entry.document_id))
 
     with pytest.raises(IntegrityError, match="uq_payment_return_payment"):
-        _insert(
-            session,
-            _row(session, business, entry.document_id, ledger_reversal_id=reversal),
-        )
+        _insert(session, _row(session, business, entry.document_id))
+
+
+def test_a_return_does_not_store_what_it_caused(session, business):
+    """Spec 318 FR-001: the reversal and fee documents point back, not forward."""
+    columns = set(PaymentReturn.__table__.columns.keys())
+    assert not columns & {
+        "ledger_reversal_id",
+        "fee_document_id",
+        "fee_charge_document_id",
+    }
+    assert {"payment_document_id", "source_record_id", "fee_amount"} <= columns
 
 
 def test_the_payment_fee_role_exists_and_can_hold_an_account(session, business):
@@ -222,7 +209,7 @@ def test_a_returned_direct_debit_reverses_the_payment_and_reopens_the_invoice(
         "MD06 refund on customer request",
         "RTN-4711",
     )
-    reversal = record_by_id(session, LedgerReversal, row.ledger_reversal_id)
+    reversal = record_by_id(session, LedgerReversal, receipt["ledger_reversal_id"])
     assert reversal.original_posting_group_id == entry.posting_group_id
     event = session.scalars(
         select(BusinessEvent).where(
@@ -749,3 +736,138 @@ def test_a_return_date_that_is_no_date_is_refused_as_such(
     with pytest.raises(core.InvalidOperation) as refused:
         _preview(session, tenant, entry.document_id, returned_on=returned_on)
     assert refused.value.code == "payment_return_date_invalid"
+
+
+def test_each_return_names_its_own_reversal_and_fee_documents(session, business):
+    """Spec 318 FR-002: the links are read from the records that hold them."""
+    from reality.db.core import Document
+    from reality.services.payment_returns import return_detail
+
+    tenant = business.tenant.id
+    _fee_account(session, tenant)
+    _, first = _paid_invoice(session, business)
+    _, second = _paid_invoice(session, business, "RE-318-B")
+
+    _, one = _return(
+        session, tenant, first.document_id, fee_amount="3.50", fee_bearer="customer"
+    )
+    _, two = _return(
+        session,
+        tenant,
+        second.document_id,
+        kind="chargeback",
+        reference="dp_318",
+        fee_amount="15",
+        fee_bearer="company",
+    )
+
+    for receipt, entry, charged in ((one, first, True), (two, second, False)):
+        session.expire_all()
+        detail = return_detail(session, tenant, receipt["id"])
+        assert detail == receipt
+        reversal = record_by_id(session, LedgerReversal, detail["ledger_reversal_id"])
+        assert reversal.original_posting_group_id == entry.posting_group_id
+        fee = record_by_id(session, Document, detail["fee_document_id"])
+        assert (fee.type, fee.source_record_id) == (
+            "payment_return_fee",
+            detail["source_record_id"],
+        )
+        if charged:
+            charge = record_by_id(session, Document, detail["fee_charge_document_id"])
+            assert (charge.type, charge.source_record_id) == (
+                "payment_return_fee_charge",
+                detail["source_record_id"],
+            )
+        else:
+            assert detail["fee_charge_document_id"] is None
+    assert one["ledger_reversal_id"] != two["ledger_reversal_id"]
+    assert one["fee_document_id"] != two["fee_document_id"]
+
+
+def test_a_return_without_a_fee_names_no_fee_documents(session, business):
+    tenant = business.tenant.id
+    _, entry = _paid_invoice(session, business)
+
+    _, receipt = _return(session, tenant, entry.document_id)
+
+    assert (receipt["fee_document_id"], receipt["fee_charge_document_id"]) == (
+        None,
+        None,
+    )
+    assert receipt["ledger_reversal_id"]
+
+
+def test_the_migration_drops_the_links_only_when_they_can_be_read_back(
+    postgres_database, monkeypatch
+):
+    """Spec 318 FR-003: 0110 checks every stored link, and its downgrade restores them."""
+    from types import SimpleNamespace
+
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine, inspect, text
+    from sqlalchemy.orm import Session
+
+    monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+    config = Config("alembic.ini")
+    config.set_main_option("sqlalchemy.url", postgres_database)
+    command.upgrade(config, "0109_stock_block_resolution")
+    engine = create_engine(postgres_database)
+    links = ("ledger_reversal_id", "fee_document_id", "fee_charge_document_id")
+
+    def columns():
+        return {c["name"] for c in inspect(engine).get_columns("payment_return")}
+
+    try:
+        with Session(engine) as session:
+            tenant = core.create_tenant(session, "Migration 318")
+            business = SimpleNamespace(
+                tenant=tenant,
+                customer=core.create_party(session, tenant.id, "Kunde", "customer"),
+            )
+            _fee_account(session, tenant.id)
+            _, entry = _paid_invoice(session, business)
+            _, receipt = _return(
+                session,
+                tenant.id,
+                entry.document_id,
+                fee_amount="3.50",
+                fee_bearer="customer",
+            )
+            session.commit()
+        stated = {key: receipt[key] for key in links}
+        assert all(stated.values())
+
+        def store(values):
+            with engine.begin() as connection:
+                connection.execute(
+                    text(
+                        "UPDATE payment_return SET ledger_reversal_id = :ledger_reversal_id, "
+                        "fee_document_id = :fee_document_id, "
+                        "fee_charge_document_id = :fee_charge_document_id WHERE id = :id"
+                    ),
+                    {**values, "id": receipt["id"]},
+                )
+
+        # A link that is not what the records say is refused, not dropped.
+        store({**stated, "fee_document_id": stated["fee_charge_document_id"]})
+        with pytest.raises(Exception, match="payment returns name links"):
+            command.upgrade(config, "head")
+        assert set(links) <= columns()
+
+        store(stated)
+        command.upgrade(config, "head")
+        assert not set(links) & columns()
+
+        command.downgrade(config, "0109_stock_block_resolution")
+        with engine.connect() as connection:
+            restored = connection.execute(
+                text(
+                    "SELECT ledger_reversal_id, fee_document_id, fee_charge_document_id "
+                    "FROM payment_return WHERE id = :id"
+                ),
+                {"id": receipt["id"]},
+            ).one()
+        assert dict(zip(links, restored)) == stated
+    finally:
+        engine.dispose()
