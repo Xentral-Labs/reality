@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:44279e960dfe132c8870468f3a8cf3ca83506f5e5f78161729362271d0888f8f",
+  "knowledge_version": "advisor-v1:sha256:41f2182f15d82dd2259bde7276ec64a92b8cb891aa4c24ce078bead7d9cc880f",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -688,7 +688,16 @@
         "evidence_journey_j10",
         "evidence_journey_j11"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "stock_counts",
+          "mode": "query"
+        },
+        {
+          "name": "stock_count_detail",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_resource_analytics",
@@ -928,6 +937,9 @@
         "evidence_command_scrap_stock_block",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
+        "evidence_command_record_stock_count",
+        "evidence_command_stock_counts",
+        "evidence_command_stock_count_detail",
         "evidence_command_stock_blocks",
         "evidence_command_set_reorder_point",
         "evidence_command_remove_reorder_point",
@@ -1024,6 +1036,18 @@
           "mode": "query"
         },
         {
+          "name": "record_stock_count",
+          "mode": "mutation"
+        },
+        {
+          "name": "stock_counts",
+          "mode": "query"
+        },
+        {
+          "name": "stock_count_detail",
+          "mode": "query"
+        },
+        {
           "name": "stock_blocks",
           "mode": "query"
         },
@@ -1084,6 +1108,9 @@
         "evidence_command_correct_movement",
         "evidence_command_block_stock",
         "evidence_command_serve_backorders",
+        "evidence_command_record_stock_count",
+        "evidence_command_stock_counts",
+        "evidence_command_stock_count_detail",
         "evidence_command_stock_blocks",
         "evidence_command_set_reorder_point",
         "evidence_command_remove_reorder_point",
@@ -1135,6 +1162,18 @@
         {
           "name": "serve_backorders",
           "mode": "mutation"
+        },
+        {
+          "name": "record_stock_count",
+          "mode": "mutation"
+        },
+        {
+          "name": "stock_counts",
+          "mode": "query"
+        },
+        {
+          "name": "stock_count_detail",
+          "mode": "query"
         },
         {
           "name": "stock_blocks",
@@ -1278,6 +1317,7 @@
         "evidence_command_block_stock",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
+        "evidence_command_record_stock_count",
         "evidence_command_state_delivery_rule",
         "evidence_command_delivery_rules",
         "evidence_command_set_reorder_point",
@@ -1364,6 +1404,10 @@
         {
           "name": "available_to_promise",
           "mode": "query"
+        },
+        {
+          "name": "record_stock_count",
+          "mode": "mutation"
         },
         {
           "name": "state_delivery_rule",
@@ -1469,6 +1513,7 @@
         "evidence_command_scrap_stock_block",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
+        "evidence_command_record_stock_count",
         "evidence_command_month_end_billing",
         "evidence_command_announce_customer_return",
         "evidence_command_return_announcements",
@@ -1539,6 +1584,10 @@
         {
           "name": "available_to_promise",
           "mode": "query"
+        },
+        {
+          "name": "record_stock_count",
+          "mode": "mutation"
         },
         {
           "name": "month_end_billing",
@@ -1618,7 +1667,8 @@
         "evidence_command_create_serial_unit",
         "evidence_command_reserve",
         "evidence_command_record_movement",
-        "evidence_command_correct_movement"
+        "evidence_command_correct_movement",
+        "evidence_command_record_stock_count"
       ],
       "tools": [
         {
@@ -1655,6 +1705,10 @@
         },
         {
           "name": "correct_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_stock_count",
           "mode": "mutation"
         }
       ]

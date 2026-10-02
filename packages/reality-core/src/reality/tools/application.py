@@ -1428,6 +1428,37 @@ def _available_to_promise(
     return available_to_promise(session, tenant_id, arguments["item_id"])
 
 
+def _stock_count(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.stock_counts import record_stock_count
+
+    count = record_stock_count(
+        session,
+        tenant_id,
+        arguments["location_id"],
+        arguments["lines"],
+        arguments.get("note", ""),
+        reviewed=arguments.get("reviewed"),
+        action_id=arguments.get("_action_id"),
+    )
+    return _entity_result("stock_count", count)
+
+
+def _stock_counts(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.stock_counts import stock_counts
+
+    return stock_counts(
+        session, tenant_id, location_id=arguments.get("location_id") or None
+    )
+
+
+def _stock_count_detail(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.stock_counts import stock_count_detail
+
+    return stock_count_detail(session, tenant_id, arguments["stock_count_id"])
+
+
 def _delivery_rule_set(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2650,6 +2681,24 @@ TOOLS = {
         False,
         _available_to_promise,
     ),
+    "stock_count": Tool(
+        "stock_count",
+        "Record a count of a location and post every difference as an adjustment; a loss comes off free stock first, then blocks.",
+        True,
+        _stock_count,
+    ),
+    "stock_counts": Tool(
+        "stock_counts",
+        "Read the counts of a location or of the company, newest first.",
+        False,
+        _stock_counts,
+    ),
+    "stock_count_detail": Tool(
+        "stock_count_detail",
+        "Read one count: each line as counted, the book at its counting time, and the adjustments that posted it.",
+        False,
+        _stock_count_detail,
+    ),
     "delivery_rule_set": Tool(
         "delivery_rule_set",
         "State how a customer or one order is delivered: partial allowed, ship complete or no backorders, with a reason.",
@@ -3459,6 +3508,13 @@ def create_change_proposal(
         normalized_arguments, stock_block_review = review_stock_block(
             session, tenant_id, tool_name, arguments
         )
+    stock_count_review = None
+    if tool_name == "stock_count":
+        from reality.services.stock_counts import review_stock_count
+
+        normalized_arguments, stock_count_review = review_stock_count(
+            session, tenant_id, arguments
+        )
     delivery_rule_review = None
     if tool_name == "delivery_rule_set":
         from reality.services.delivery_rules import review_delivery_rule
@@ -3541,6 +3597,8 @@ def create_change_proposal(
         preview["reorder_point"] = reorder_review
     if delivery_rule_review is not None:
         preview["delivery_rule"] = delivery_rule_review
+    if stock_count_review is not None:
+        preview["stock_count"] = stock_count_review
     if stock_block_review is not None:
         preview["stock_block"] = stock_block_review
     if backorder_review is not None:
@@ -4150,6 +4208,7 @@ def approve_and_execute_proposal(
         "stock_block_scrap",
         "backorders_serve",
         "delivery_rule_set",
+        "stock_count",
         "down_payment_invoice_record",
         "proforma_invoice_record",
         "commitment_revise",

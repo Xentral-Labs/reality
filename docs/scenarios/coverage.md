@@ -8,7 +8,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 134 covered, 21 partial, 0 missing, 70 gap, 3 out.
+228 scenarios: 137 covered, 19 partial, 0 missing, 69 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -21,7 +21,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | G Purchase demand and order | 8 | 4 |  | 5 |  |
 | H Receipt and supplier deviations | 14 |  |  | 5 |  |
 | I Supplier invoice and payment | 10 | 1 |  | 1 |  |
-| J Warehouse and stock | 4 | 2 |  | 5 |  |
+| J Warehouse and stock | 6 | 1 |  | 4 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
 | L E-commerce and marketplaces | 7 |  |  | 5 |  |
 | M B2B specifics | 2 | 3 |  | 7 |  |
@@ -29,7 +29,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | O Master data and identity | 3 |  |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
 | Q Time and period | 2 | 1 |  | 2 |  |
-| R Combined stress stories | 2 | 4 |  | 2 |  |
+| R Combined stress stories | 3 | 3 |  | 2 |  |
 
 Strongest where an operational exception class exists (at-risk, reservation_exceeds_stock,
 shipped_not_billed, returned_not_credited, billed_not_received, duplicate supplier invoice) and in
@@ -79,7 +79,7 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
 14. **Other single gaps:** loans and samples with a return obligation (M12), repair round trip
     (F10), returnable packaging (D19), subscriptions (L08), stored tax rate and customs data (L11,
     L12, D14), negative stock (J06 is refused by design), 3PL stock reconciliation (J07),
-    cycle-count sessions (J03), re-labelling pairs (J11), unconfirmed purchase orders (G10),
+    re-labelling pairs (J11), unconfirmed purchase orders (G10),
     advised versus received quantity (G16, H17), quote documents (A14), variant swap on an
     open order (A10), customer delivery documents (M07).
 
@@ -313,8 +313,8 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | J01 | gap | docs/features/movements.md (transfer has both source and destination) | A transfer is one instant movement with no in-transit state; spec 242 FR-008 mentions transit for valuation only. |
-| J02 | partial | tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock ("stocktake loss"); tests/test_inventory_and_fulfillment.py::test_adjustment_requires_reason | Losses and gains are recorded as reasoned adjustments; there is no count record (counted vs book quantity) and no test of a stocktake gain. |
-| J03 | gap | services/ (no count or pick concept) | There are no count sessions and no picking state, so a cycle count during open picks cannot be represented. |
+| J02 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_count_posts_its_gain_and_its_loss | A count of 17 and 9 against 20 and 8 shows the book beside each line and posts -3 and +1 in one confirmation, each adjustment linked to its count line (spec 307). |
+| J03 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_cycle_count_during_operation_keeps_the_picks_after_it | A line counted at 10:00 is posted against the book then; a pick of 2 at 10:30 stays, so the bin is never frozen (spec 307). |
 | J04 | covered | tests/test_inventory_and_fulfillment.py::test_transfer_return_and_reasoned_adjustment_reconcile_by_location, ::test_adjustment_requires_reason | A write-off adjustment requires a reason and reconciles by location; the reason is free text, not a code. |
 | J05 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_expired_lot_is_blocked_from_its_finding_and_scrapped | An expired lot is named with its location, blocked from the finding (which then clears) and scrapped (spec 304). |
 | J06 | gap | services/core.py ("Movement exceeds physical stock."); tests/test_inventory_and_fulfillment.py::test_cannot_ship_more_than_stock | Outbound movements above physical stock are refused, so negative stock cannot occur or be explained. |
@@ -426,5 +426,5 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | R04 | gap | services/payment_intake.py (refuses references to several invoices); tests/test_payment_intake.py::test_two_invoices_for_one_order_and_a_consolidated_invoice_yield_no_allocation | There's no payout, fee or chargeback allocation across many orders. |
 | R05 | partial | tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived, ::test_shrinking_to_what_arrived_finishes_the_promise | Revising after a partial fulfilment is proven on commitments; there's no EDI ORDCHG or advice source. |
 | R06 | partial | docs/features/receipt-costing.md (freight/duty categories; FX excluded); tests/test_cost_allocation_services.py::test_weighted_preview_and_confirmation_retain_exact_existing_parts; tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt | Freight/duty landed cost and customer assignment exist; USD rate conversion is out of the costing slice, and there's no combined container test. |
-| R07 | partial | tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock, ::test_reservation_exceeds_stock_impact, ::test_reservation_exceeds_stock_references_are_opaque | A stocktake loss surfaces the competing reservations (2, not 3), and by design no promise is named as postponed. |
+| R07 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_month_end_loss_uncovers_three_reservations_and_releases_none | Three reservations of 4 against 12, a count of 9: the review names all three, Reservation exceeds stock raises, and none is released by itself (spec 307). |
 | R08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_customer_who_is_also_a_supplier_is_held_with_every_fact | Overdue receivable, ordered value and open credit make the exposure; the payable to the same party is named, not netted (spec 298). |

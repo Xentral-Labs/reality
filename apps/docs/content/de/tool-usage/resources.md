@@ -10,7 +10,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 8        | 2         |
-| [Artikel](#resource-item)                                      | 5      | 10       | 6         |
+| [Artikel](#resource-item)                                      | 5      | 11       | 6         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
 | [Auftrag](#resource-order)                                     | 8      | 16       | 14        |
@@ -135,6 +135,7 @@ hier.
 - [Release a stock block](./commands#command-release_stock_block) (`release_stock_block`)
 - [Scrap blocked stock](./commands#command-scrap_stock_block) (`scrap_stock_block`)
 - [Rückstände bedienen](./commands#command-serve_backorders) (`serve_backorders`)
+- [Inventur erfassen](./commands#command-record_stock_count) (`record_stock_count`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Zulauf einem Kundenbedarf zuordnen](./commands#command-assign_supply) (`assign_supply`)
@@ -143,6 +144,8 @@ hier.
 
 - [Bestand zu Anschaffungskosten anzeigen](./commands#command-inventory_cost) (`inventory_cost`)
 - [Lieferfähigkeit anzeigen](./commands#command-available_to_promise) (`available_to_promise`)
+- [Inventuren anzeigen](./commands#command-stock_counts) (`stock_counts`)
+- [Inventur anzeigen](./commands#command-stock_count_detail) (`stock_count_detail`)
 - [Read stock blocks](./commands#command-stock_blocks) (`stock_blocks`)
 - [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 
@@ -163,13 +166,14 @@ hier.
 [Stammdaten und Quellen](./processes#process-master_data)
 
 **Darunter:** Tabellen: `item`, `supply_assignment`, `item_reorder_point`, `stock_block`,
-`stock_block_resolution` · Events: [`item.created`](./events#event-item-created),
-[`item.updated`](./events#event-item-updated),
+`stock_block_resolution`, `stock_count`, `stock_count_line` · Events:
+[`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
 [`stock_block.created`](./events#event-stock_block-created),
 [`stock_block.released`](./events#event-stock_block-released),
 [`stock_block.scrapped`](./events#event-stock_block-scrapped),
+[`stock_count.posted`](./events#event-stock_count-posted),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agenten-Tools ohne
 Geschäftsaktion: [`inventory_read`](./commands#tool-inventory_read),
 [`item_supply_demand`](./commands#tool-item_supply_demand),

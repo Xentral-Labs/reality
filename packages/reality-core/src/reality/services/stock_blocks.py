@@ -14,6 +14,7 @@ quantity less the resolutions, is read at read time and never stored.
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
@@ -453,6 +454,7 @@ def scrap_stock_block(
     reason: str,
     resolved_by: str = "human",
     action_id: str | None = None,
+    _occurred_at: datetime | None = None,
     _commit: bool = True,
 ) -> dict[str, Any]:
     """Write blocked goods off: one reasoned adjustment out of their location."""
@@ -482,6 +484,7 @@ def scrap_stock_block(
         serial_unit_id=block.serial_unit_id,
         reason=f"scrap: {stated}",
         action_id=action_id,
+        occurred_at=_occurred_at,
         _commit=False,
         _movement_id=movement_id,
     )

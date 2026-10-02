@@ -587,6 +587,28 @@
       "effect": "Answers from when and how much of an item can be promised, naming each open purchase and its date."
     },
     {
+      "name": "Record a stock count",
+      "service": "record_stock_count",
+      "related_services": ["review_stock_count", "book_as_of"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records what was counted at a location and posts each difference against the book at its counting time as an adjustment; a loss comes off free stock first, then the location's blocks."
+    },
+    {
+      "name": "Read stock counts",
+      "service": "stock_counts",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lists the counts of a location or of the company, newest first."
+    },
+    {
+      "name": "Read a stock count",
+      "service": "stock_count_detail",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Shows one count with each line as counted, the book at its counting time, and the adjustments that posted it."
+    },
+    {
       "name": "State a delivery rule",
       "service": "state_delivery_rule",
       "related_services": ["review_delivery_rule"],

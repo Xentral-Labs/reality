@@ -455,6 +455,9 @@ families:
       - tool:stock_block_release
       - tool:stock_block_scrap
       - tool:delivery_rule_set
+      - tool:stock_count
+      - tool:stock_counts
+      - tool:stock_count_detail
       - tool:delivery_rules
       - tool:backorders_serve
       - tool:available_to_promise

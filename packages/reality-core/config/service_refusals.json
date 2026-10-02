@@ -2037,6 +2037,54 @@
         "order": "text",
         "lines": "number"
       }
+    },
+    "stock_count_location_not_stock": {
+      "message": "A count is taken at an active location that holds stock."
+    },
+    "stock_count_lines_required": {
+      "message": "A count needs at least one counted line."
+    },
+    "stock_count_item_not_found": {
+      "message": "This item was not found in this company."
+    },
+    "stock_count_item_not_stocked": {
+      "message": "Only stocked items are counted."
+    },
+    "stock_count_serial_item": {
+      "message": "Serial-tracked items are not counted here; correct them unit by unit."
+    },
+    "stock_count_lot_required": {
+      "message": "A lot-tracked item is counted by its lot."
+    },
+    "stock_count_lot_not_for_item": {
+      "message": "This lot does not belong to this item, or the item is not lot-tracked."
+    },
+    "stock_count_quantity_invalid": {
+      "message": "A counted quantity is zero or more, with at most four decimals."
+    },
+    "stock_count_time_invalid": {
+      "message": "The counting time is not a valid date and time."
+    },
+    "stock_count_time_in_future": {
+      "message": "A count cannot be dated in the future."
+    },
+    "stock_count_line_twice": {
+      "message": "Each item and lot is counted once per count."
+    },
+    "stock_count_loss_exceeds_stock": {
+      "message": "The loss is more than the location holds now; goods left after the count. Count again."
+    },
+    "stock_count_changed_since_review": {
+      "message": "Stock at the counting time changed after the review; review the count again."
+    },
+    "stock_count_not_found": {
+      "message": "This count was not found."
+    },
+    "stock_count_time_needs_offset": {
+      "message": "A counting time needs its time-zone offset, for example 2026-10-02T10:00:00+02:00."
+    },
+    "stock_count_time_before_stock": {
+      "message": "The counting time is before the goods first came to this location; check the date."
     }
   },
   "terms": [

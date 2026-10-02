@@ -2967,6 +2967,77 @@ export const deliveryRules = {
       { method: "POST", body: JSON.stringify({ confirmed: true }) },
     ),
 };
+export type StockCountLineView = {
+  item_id: string;
+  item: string;
+  unit: string;
+  lot_id: string | null;
+  counted_at: string;
+  book: string;
+  counted: string;
+  difference: string;
+  from_free: string;
+  from_blocks: string;
+};
+export type StockCountProposal = {
+  id: string;
+  status: string;
+  preview: {
+    stock_count: {
+      location_id: string;
+      location: string;
+      note: string;
+      lines: StockCountLineView[];
+      uncovered: Array<{
+        item_id: string;
+        item: string;
+        reserved: string;
+        physical_after: string;
+        reservations: Array<{
+          reservation_id: string;
+          commitment_id: string;
+          quantity: string;
+          customer: string;
+        }>;
+      }>;
+    };
+  };
+};
+export const stockCounts = {
+  list: (tenant: string, location = "") =>
+    request<{
+      rows: Array<{
+        id: string;
+        location: string;
+        note: string;
+        created_at: string;
+        lines: number;
+      }>;
+    }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/stock-counts${location ? `?location_id=${encodeURIComponent(location)}` : ""}`,
+    ),
+  detail: (tenant: string, id: string) =>
+    request<{ id: string; note: string; lines: StockCountLineView[] }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/stock-counts/${encodeURIComponent(id)}`,
+    ),
+  prepare: (
+    tenant: string,
+    body: {
+      location_id: string;
+      note?: string;
+      lines: Array<{ item_id: string; counted_quantity: string; lot_id?: string }>;
+    },
+  ) =>
+    request<StockCountProposal>(
+      `/api/tenants/${encodeURIComponent(tenant)}/stock-counts/proposals`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
+};
 export const deliveryActions = {
   references: (tenant: string, commitment: string, family: string, query = "") =>
     request<{ items: Array<{ id: string; label: string }>; has_more: boolean }>(

@@ -16,6 +16,7 @@ import type { Selection } from "./routing";
 import { CostExplanation } from "./CostExplanation";
 import { MovementExplanation } from "./MovementExplanation";
 import { StockBlockCard, StockBlockList } from "./StockBlockCard";
+import { StockCountCard, StockCountList } from "./StockCountCard";
 import { AvailableToPromise, BackorderServingCard } from "./BackorderServingCard";
 
 const states: Record<WarehouseView, [string, string][]> = {
@@ -103,6 +104,8 @@ export function WarehousePage({
   const [blocking, setBlocking] = useState<{ id: string; name: string; unit: string } | null>(null);
   const [serving, setServing] = useState<{ id: string; name: string; unit: string } | null>(null);
   const [blocksVersion, setBlocksVersion] = useState(0);
+  // Spec 307: count the location in view.
+  const [counting, setCounting] = useState(false);
   const data = read.data?.scope.view === view ? read.data : undefined;
   const warehouseActions = useContextActions(`warehouse.${view}`);
   // Stock opens every item; its tab warns about shortages only (spec 254).
@@ -200,6 +203,11 @@ export function WarehousePage({
               {data?.scope.location || location} · {t("Clear location filter")}
             </button>
           )}
+          {location && stock && data && (
+            <button className="br-btn br-btn-primary" onClick={() => setCounting(true)}>
+              {t("Stock count")}
+            </button>
+          )}
           {location && (
             <p className="basis-full text-sm text-fg-muted">
               {t(
@@ -214,6 +222,27 @@ export function WarehousePage({
         </div>
         <div className="register-table-inset">
           {stock && <StockBlockList key={blocksVersion} tenant={tenant} item={item} />}
+          {stock && location && (
+            <StockCountList key={`count:${blocksVersion}`} tenant={tenant} location={location} />
+          )}
+          {counting && data && (
+            <StockCountCard
+              tenant={tenant}
+              location={{ id: location, name: String(data.scope.location || location) }}
+              rows={data.items.map((row) => ({
+                id: row.id,
+                name: row.name || row.item || row.id,
+                sku: row.sku,
+                unit: row.unit,
+                physical: String(row.physical ?? "0"),
+              }))}
+              close={() => setCounting(false)}
+              settled={() => {
+                read.refresh();
+                setBlocksVersion((value) => value + 1);
+              }}
+            />
+          )}
           {blocking && (
             <StockBlockCard
               tenant={tenant}

@@ -167,6 +167,7 @@ parameter_descriptions:
   is_active: Whether the record remains selectable for new operational work.
   is_default: Whether this rule is the fallback for its direction and currency.
   item_id: Opaque identity of the operational item reference.
+  stock_count_id: Opaque identity of a recorded stock count.
   rule: "How the customer or order is delivered: partial_allowed, ship_complete or no_backorders."
   reviewed: What the review showed, such as the rule, point or stock in force; a confirmation after it changed is refused.
   item_type: Operational classification such as product, service, or charge.
@@ -1149,6 +1150,29 @@ commands:
     reads: [item, commitment, movement, reservation, stock_block, supply_assignment, party]
     writes: []
     effect: Answers from when and how much of an item can be promised, naming each open purchase and its date.
+  - name: Record a stock count
+    service: record_stock_count
+    related_services: [review_stock_count, book_as_of]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [location, item, lot, movement, stock_block, reservation, commitment]
+    writes: [stock_count, stock_count_line, movement, stock_block_resolution, source_record, business_event]
+    effect: Records what was counted at a location and posts each difference against the book at its counting time as an adjustment; a loss comes off free stock first, then the location's blocks.
+  - name: Read stock counts
+    service: stock_counts
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [stock_count, stock_count_line, location]
+    writes: []
+    effect: Lists the counts of a location or of the company, newest first.
+  - name: Read a stock count
+    service: stock_count_detail
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [stock_count, stock_count_line, source_record, business_event, location]
+    writes: []
+    effect: Shows one count with each line as counted, the book at its counting time, and the adjustments that posted it.
   - name: State a delivery rule
     service: state_delivery_rule
     related_services: [review_delivery_rule]
@@ -5062,6 +5086,42 @@ capability_guidance:
     unknown_when: [A purchase or order exists that was not recorded.]
     next_steps: [Promise the customer the date shown, or prepare backorders_serve_propose when goods have arrived.]
     examples: {use: [{scenario: A customer asks when 10 more can be delivered., reason: The read names the purchase and its date.}], do_not_use: [{scenario: Reserve stock for a waiting order., reason: Use backorders_serve_propose; a person confirms.}]}
+  stock_counts:
+    kind: read
+    application_tool: stock_counts
+    purpose: List the counts taken at a location or in the company.
+    use_when: [Someone asks when a location was last counted or which counts exist.]
+    do_not_use_when: [The question is current stock; read inventory.]
+    required_context: [tenant]
+    data_basis: [stock_count, stock_count_line]
+    limitations: [A count is what a person counted; it says nothing about locations not counted.]
+    freshness: Read from the counts at request time.
+    empty_result: No count has been recorded for the selection.
+    refusal_behavior: Only the company's own counts are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which counts were recorded where and when.], does_not_prove: [That the counted quantities were right.]}
+    unknown_when: [Goods were counted on paper and never recorded.]
+    next_steps: [Read one count with stock_count_detail, or count again with stock_count_propose.]
+    examples: {use: [{scenario: Find when the Hamburg warehouse was last counted., reason: The list shows its counts newest first.}], do_not_use: [{scenario: Tell how much is in stock now., reason: Read inventory instead.}]}
+  stock_count_detail:
+    kind: read
+    application_tool: stock_count_detail
+    purpose: Explain one count, line by line, and the adjustments that posted it.
+    use_when: [Someone asks where an adjustment came from or what a count found.]
+    do_not_use_when: [The question is current stock; read inventory.]
+    required_context: [tenant, stock_count_id]
+    data_basis: [stock_count, stock_count_line, business_event, source_record]
+    limitations: [The book shown is what the movements held at the counting time when the count was posted.]
+    freshness: Read from the count and its posting event at request time.
+    empty_result: The count is not found.
+    refusal_behavior: Only the company's own counts are read.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Each line's book, counted quantity, difference and the movements that posted it.], does_not_prove: [That the goods were counted correctly.]}
+    unknown_when: [A count was taken but not recorded.]
+    next_steps: [Count the location again with stock_count_propose if the result is doubted.]
+    examples: {use: [{scenario: Explain why stock dropped by three yesterday., reason: The count line links the adjustment.}], do_not_use: [{scenario: Correct a single movement., reason: Use the movement correction instead.}]}
   delivery_rules:
     kind: read
     application_tool: delivery_rules
@@ -5251,6 +5311,9 @@ agent_command_coverage:
   scrap_stock_block: {classification: eligible, tools: [stock_block_scrap_propose]}
   stock_blocks: {classification: eligible, tools: [stock_blocks]}
   state_delivery_rule: {classification: eligible, tools: [delivery_rule_set_propose]}
+  record_stock_count: {classification: eligible, tools: [stock_count_propose]}
+  stock_counts: {classification: eligible, tools: [stock_counts]}
+  stock_count_detail: {classification: eligible, tools: [stock_count_detail]}
   delivery_rules: {classification: eligible, tools: [delivery_rules]}
   serve_backorders: {classification: eligible, tools: [backorders_serve_propose]}
   available_to_promise: {classification: eligible, tools: [available_to_promise]}

@@ -1176,3 +1176,188 @@ def test_an_expired_lot_is_blocked_from_its_finding_and_scrapped(session, busine
         {"block_id": block["id"], "reason": "expired"},
     )
     assert position(session, business, business.location, item=item)["physical"] == 0
+
+
+# --- spec 307: stock counts (J02, J03, R07) --------------------------------------------
+
+
+def _count(session, business, lines, note="Count"):
+    """Review a count of the business location and confirm it as a person."""
+    from reality.tools.application import create_change_proposal
+
+    proposal = create_change_proposal(
+        session,
+        business.tenant.id,
+        "stock_count",
+        {"location_id": business.location.id, "note": note, "lines": lines},
+    )
+    review = json.loads(proposal.output)["stock_count"]
+    executed = approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, confirmed=True
+    )
+    assert executed.status == "executed"
+    return review, json.loads(executed.output)
+
+
+def test_a_count_posts_its_gain_and_its_loss(session, business):
+    """J02: a count finds 3 missing of one item and 1 more of another."""
+    from reality.services.core import create_item, record_movement, stock_at
+    from reality.services.stock_counts import stock_count_detail
+
+    tenant = business.tenant.id
+    lamp = create_item(session, tenant, "LAMP-J02", "Lamp J02")
+    for item, quantity in ((business.item, "20"), (lamp, "8")):
+        record_movement(
+            session,
+            tenant,
+            "opening_stock",
+            item.id,
+            quantity,
+            to_location_id=business.location.id,
+        )
+
+    review, output = _count(
+        session,
+        business,
+        [
+            {"item_id": business.item.id, "counted_quantity": "17"},
+            {"item_id": lamp.id, "counted_quantity": "9"},
+        ],
+        note="Month end J02",
+    )
+
+    assert [(line["book"], line["difference"]) for line in review["lines"]] == [
+        ("20", "-3"),
+        ("8", "1"),
+    ]
+    assert (
+        stock_at(session, tenant, business.item.id),
+        stock_at(session, tenant, lamp.id),
+    ) == (17, 9)
+    detail = stock_count_detail(session, tenant, output["records"][0]["id"])
+    assert all(line["movement_id"] for line in detail["lines"])
+
+
+def test_a_cycle_count_during_operation_keeps_the_picks_after_it(session, business):
+    """J03: a bin is counted at 10:00; a pick at 10:30 stays; the count posts at 11:00."""
+    from reality.services.core import record_movement, stock_at
+
+    tenant = business.tenant.id
+    counted_at = datetime.now(UTC) - timedelta(hours=1)
+    record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "10",
+        to_location_id=business.location.id,
+        occurred_at=counted_at - timedelta(days=1),
+    )
+    record_movement(
+        session,
+        tenant,
+        "adjustment",
+        business.item.id,
+        "2",
+        from_location_id=business.location.id,
+        reason="picked during the count",
+        occurred_at=counted_at + timedelta(minutes=30),
+    )
+
+    review, _ = _count(
+        session,
+        business,
+        [
+            {
+                "item_id": business.item.id,
+                "counted_quantity": "9",
+                "counted_at": counted_at.isoformat(),
+            }
+        ],
+        note="Cycle count bin A",
+    )
+
+    assert (review["lines"][0]["book"], review["lines"][0]["difference"]) == (
+        "10",
+        "-1",
+    )
+    # The pick of 2 after the count stays; only the difference at 10:00 is posted.
+    assert stock_at(session, tenant, business.item.id) == 7
+
+
+def test_a_month_end_loss_uncovers_three_reservations_and_releases_none(
+    session, business
+):
+    """R07: three reservations of 4 against 12; a count finds 9."""
+    from sqlalchemy import select
+
+    from reality.db.core import Reservation
+    from reality.services.core import (
+        create_commitment,
+        record_movement,
+        reserve,
+    )
+    from reality.services.exceptions import operational_exceptions
+
+    tenant = business.tenant.id
+    record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "12",
+        to_location_id=business.location.id,
+    )
+    promises = [
+        create_commitment(
+            session,
+            tenant,
+            "customer_delivery",
+            business.company.id,
+            business.customer.id,
+            business.item.id,
+            business.location.id,
+            "4",
+            "2026-10-20",
+        )
+        for _ in range(3)
+    ]
+    for promise in promises:
+        reserve(session, tenant, promise.id)
+
+    def flagged():
+        return {
+            row.record_id
+            for row in operational_exceptions(session, tenant)
+            if row.class_id == "reservation_exceeds_stock"
+        }
+
+    # Positive control: before the count nothing exceeds stock.
+    assert not flagged()
+
+    review, _ = _count(
+        session, business, [{"item_id": business.item.id, "counted_quantity": "9"}]
+    )
+
+    (uncovered,) = review["uncovered"]
+    assert {row["commitment_id"] for row in uncovered["reservations"]} == {
+        promise.id for promise in promises
+    }
+    assert flagged()
+    # No reservation is released by the count: who waits stays a person's decision.
+    assert all(
+        core_reserved == 4
+        for core_reserved in (
+            sum(
+                row.quantity
+                for row in session.scalars(
+                    select(Reservation).where(
+                        Reservation.tenant_id == tenant,
+                        Reservation.commitment_id == promise.id,
+                        Reservation.status == "active",
+                    )
+                )
+            )
+            for promise in promises
+        )
+    )

@@ -1185,6 +1185,71 @@ def get_available_to_promise(tenant_id: str, item_id: str, session: DatabaseSess
         raise api_error(error) from error
 
 
+class StockCountLineBody(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    item_id: str = Field(min_length=1, max_length=200)
+    lot_id: str | None = Field(default=None, max_length=200)
+    counted_quantity: str = Field(min_length=1, max_length=40)
+    counted_at: str | None = Field(default=None, max_length=40)
+
+
+class StockCountProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    location_id: str = Field(min_length=1, max_length=200)
+    note: str | None = Field(default=None, max_length=2000)
+    lines: list[StockCountLineBody] = Field(min_length=1, max_length=500)
+
+
+@router.get("/stock-counts")
+def get_stock_counts(
+    tenant_id: str,
+    session: DatabaseSession,
+    location_id: str | None = Query(default=None, max_length=200),
+):
+    """Spec 307: the counts of a location or of the company."""
+    from reality.services.stock_counts import stock_counts
+
+    try:
+        return {"rows": stock_counts(session, tenant_id, location_id=location_id)}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/stock-counts/{count_id}")
+def get_stock_count(tenant_id: str, count_id: str, session: DatabaseSession):
+    """Spec 307: one count with its lines and the adjustments that posted it."""
+    from reality.services.stock_counts import stock_count_detail
+
+    try:
+        return stock_count_detail(session, tenant_id, count_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/stock-counts/proposals")
+def post_stock_count_proposal(
+    tenant_id: str, body: StockCountProposal, session: DatabaseSession
+):
+    """Spec 307: prepare a count; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    try:
+        proposal = create_change_proposal(
+            session,
+            tenant_id,
+            "stock_count",
+            body.model_dump(exclude_none=True),
+            actor_type="human",
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 class DeliveryRuleProposal(ApiModel):
     model_config = ConfigDict(extra="forbid")
     party_id: str | None = Field(default=None, max_length=200)

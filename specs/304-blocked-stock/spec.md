@@ -76,7 +76,7 @@ As a warehouse clerk, I block a damaged batch; it can no longer be reserved unti
 - A receipt blocks at most what it receives. A movement correction may not take blocked stock, and a scrap is undone by recording the goods again, not by correcting it.
 - A block on a lot holds the lot wherever it lies at the location, also on a pallet.
 - Recorded limitations:
-  - A stock count that finds blocked goods missing needs the block released or scrapped first.
+  - A stock count that finds blocked goods missing needs the block released or scrapped first. Resolved by spec 307: a count takes free stock first, then scraps from blocks.
   - Practice companies cannot block yet.
   - The web blocks by lot ID; serial-tracked items are blocked through MCP or the CLI.
 - A source-stated value is recorded as stated and never recomputed (Constitution VIII).

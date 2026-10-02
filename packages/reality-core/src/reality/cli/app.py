@@ -96,6 +96,7 @@ location_app = typer.Typer()
 payment_term_app = typer.Typer()
 reorder_point_app = typer.Typer(help="Reorder points per item and location (spec 302).")
 stock_app = typer.Typer(help="Blocked stock: block, release, scrap (spec 304).")
+stock_count_app = typer.Typer(help="Stock counts: count a location and post the differences (spec 307).")
 delivery_rule_app = typer.Typer(
     help="Delivery rules: ship complete or no backorders per customer or order (spec 306)."
 )
@@ -124,6 +125,7 @@ app.add_typer(reorder_point_app, name="reorder-point")
 app.add_typer(stock_app, name="stock-block")
 app.add_typer(backorder_app, name="backorders")
 app.add_typer(delivery_rule_app, name="delivery-rule")
+app.add_typer(stock_count_app, name="stock-count")
 app.add_typer(pricing_app, name="pricing")
 app.add_typer(finance_app, name="finance")
 app.add_typer(commitment_app, name="commitment")
@@ -1106,6 +1108,69 @@ def backorders_serve_command(
         "backorders_serve", arguments, tenant, yes, preview_key="backorder_serving"
     )
     con.print("✓ Backorders served")
+
+
+_COUNT_LINE = typer.Option(
+    None, "--line", help="ITEM_ID[:LOT_ID]=QUANTITY; repeat per counted line"
+)
+
+
+@stock_count_app.command("record")
+def stock_count_record_command(
+    location_id: str,
+    line: list[str] | None = _COUNT_LINE,
+    note: str = "",
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm a count of a location; differences are posted."""
+    lines = []
+    for entry in line or []:
+        try:
+            subject, quantity = entry.split("=", 1)
+        except ValueError as error:
+            raise typer.BadParameter("--line takes ITEM_ID[:LOT_ID]=QUANTITY") from error
+        item_id, _, lot_id = subject.partition(":")
+        lines.append(
+            {
+                "item_id": item_id,
+                "counted_quantity": quantity,
+                **({"lot_id": lot_id} if lot_id else {}),
+            }
+        )
+    _stock_block_change(
+        "stock_count",
+        {"location_id": location_id, "note": note, "lines": lines},
+        tenant,
+        yes,
+        preview_key="stock_count",
+    )
+    con.print("✓ Count recorded")
+
+
+@stock_count_app.command("list")
+def stock_count_list_command(location_id: str = "", tenant: str | None = None):
+    """The counts of a location or of the company, newest first."""
+    from reality.services.stock_counts import stock_counts
+
+    with Session() as s:
+        selected = selected_tenant(s, tenant)
+        rows = stock_counts(s, selected.id, location_id=location_id or None)
+    con.print_json(data=rows, default=str)
+
+
+@stock_count_app.command("show")
+def stock_count_show_command(stock_count_id: str, tenant: str | None = None):
+    """One count with its lines and the adjustments that posted it."""
+    from reality.services.stock_counts import stock_count_detail
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            answer = stock_count_detail(s, selected.id, stock_count_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=answer, default=str)
 
 
 @delivery_rule_app.command("show")

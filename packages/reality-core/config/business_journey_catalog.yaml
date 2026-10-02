@@ -3441,43 +3441,63 @@ entries:
   section: Warehouse and stock
   title: Stock count with gains and losses
   question: Count movements with reason?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Count movements with reason?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Count movements with reason? A count of a location states, per item and lot, what was counted and when; the review shows the book at that time beside it, and one confirmation posts every gain and loss as an adjustment linked to its count line. A loss comes off free stock first, then the location's blocks."
   limitations:
-  - Gains and losses are recorded as stock adjustments with a reason.
-  - There is no count record comparing counted and book quantity, and a count gain is not yet proven.
-  keywords: []
+  - Items are counted by item and lot; pallets and serial units are corrected by their own movements.
+  - There is no cycle-count planning.
+  keywords:
+  - stock count
+  - inventory count
+  - stocktake
+  - Inventur
+  - Zählung
   question_examples:
   - Stock count with gains and losses
   - Count movements with reason?
-  tools: []
+  - We counted the warehouse; how do the differences get booked?
+  - Wir haben das Lager gezählt; wie werden die Differenzen gebucht?
+  tools:
+  - stock_count_propose
+  - stock_counts
+  - stock_count_detail
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock ("stocktake loss"); tests/test_inventory_and_fulfillment.py::test_adjustment_requires_reason
-    note: Losses and gains are recorded as reasoned adjustments; there is no count record (counted vs book quantity) and no test of a stocktake gain.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_count_posts_its_gain_and_its_loss
+    note: "20 and 8 in stock, 17 and 9 counted: the review shows -3 and +1, and one confirmation posts both adjustments, each linked to its count line."
+  - reference: packages/reality-core/tests/test_stock_counts.py
+    note: Book at the counting time, losses from blocks, lots, refusals and stale reviews (spec 307).
 - id: J03
   section: Warehouse and stock
   title: Cycle count of single bins during operation
   question: Correct during open picks?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Correct during open picks?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Correct during open picks? Each counted line keeps when it was counted, and its difference is taken against the book at that time; picks and other movements after it carry on and are not part of the difference, so the location is never frozen."
   limitations:
-  - There are no count sessions and no picking state, so a count during open picks cannot be shown.
-  keywords: []
+  - There is no picking state; a pick is a movement once it is recorded.
+  keywords:
+  - cycle count
+  - count during operation
+  - permanente Inventur
+  - Stichprobeninventur
   question_examples:
   - Cycle count of single bins during operation
   - Correct during open picks?
-  tools: []
+  - Can we count one bin while picking goes on?
+  - Können wir ein Fach zählen, während weiter kommissioniert wird?
+  tools:
+  - stock_count_propose
+  - stock_count_detail
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: services/ (no count or pick concept)
-    note: There are no count sessions and no picking state, so a cycle count during open picks cannot be represented.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_cycle_count_during_operation_keeps_the_picks_after_it
+    note: "10 at the counting time, 9 counted, 2 picked half an hour later: -1 is posted against the book then, and the pick stays, leaving 7."
 - id: J04
   section: Warehouse and stock
   title: Shrinkage, theft, breakage with reason
@@ -5109,23 +5129,25 @@ entries:
   section: Combined stress stories
   title: Month-end count difference uncovers three reservations
   question: Who is postponed, and how is it explained?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Who is postponed, and how is it explained?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Who is postponed, and how is it explained? The count's review names every reservation at the location the loss leaves uncovered; after confirming, Reservation exceeds stock names them, and nothing is released by itself: who waits is a person's decision."
   limitations:
-  - A count loss shows which reservations now compete for the stock.
   - By design no promise is named as the one to postpone.
   keywords: []
   question_examples:
   - Month-end count difference uncovers three reservations
   - Who is postponed, and how is it explained?
-  tools: []
+  tools:
+  - stock_count_propose
+  - exception_explain
+  - reservation_release_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock, ::test_reservation_exceeds_stock_impact, ::test_reservation_exceeds_stock_references_are_opaque
-    note: A stocktake loss surfaces the competing reservations (2, not 3), and by design no promise is named as postponed.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_month_end_loss_uncovers_three_reservations_and_releases_none
+    note: "Three reservations of 4 against 12; a count finds 9: the review names all three, the finding raises, and every reservation stays."
 - id: R08
   section: Combined stress stories
   title: Customer is also a supplier, with an overdue receivable, an open credit and a new order above the credit limit

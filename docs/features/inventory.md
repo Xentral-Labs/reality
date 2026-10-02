@@ -96,6 +96,15 @@ scrap is its own resolution, and what is still blocked is the stated quantity le
 read time (spec 316). An
 expired lot that is blocked is no longer reported as Stock expired, which offers to block it.
 
+**Stock counts (spec 307).** A count of a location states, per item and lot, what was counted and
+when. The book a line is compared with is what the movements up to its counting time hold, read
+when asked and never stored, so movements after that time carry on and a location is never frozen.
+One reviewed confirmation records the count and posts every difference as an adjustment linked
+to its count line. A loss comes off free stock first; what free stock cannot cover is scrapped
+from the location's blocks with the count as the reason, so a count no longer needs blocked goods
+released first. The review names the reservations the loss leaves uncovered; nothing releases
+them by itself, and Reservation exceeds stock names them afterwards.
+
 `stock_expired` reports every lot past its stated date that still has stock on hand, counted
 through the same tracked-identity stock rule the inventory register uses, with a
 `reserved_for_delivery` reason when a customer is waiting for it. See
