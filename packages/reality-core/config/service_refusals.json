@@ -2142,6 +2142,33 @@
     },
     "invoice_not_converted": {
       "message": "This invoice was posted without an exchange rate and cannot be paid in another currency."
+    },
+    "commitment_price_purchase_only": {
+      "message": "Only a supplier can confirm a price for a purchase."
+    },
+    "commitment_price_needs_order_line": {
+      "message": "A confirmed price needs the purchase order line it belongs to."
+    },
+    "commitment_price_invalid": {
+      "message": "A confirmed price must be a number of at most four decimal places, not negative."
+    },
+    "supplier_item_terms_party_not_supplier": {
+      "message": "Minimum quantities are stated for suppliers."
+    },
+    "supplier_item_terms_empty": {
+      "message": "State a minimum order quantity, an order multiple or both."
+    },
+    "supplier_item_terms_invalid": {
+      "message": "A minimum order quantity and an order multiple must be positive numbers."
+    },
+    "supplier_item_terms_not_found": {
+      "message": "No terms are stated for this supplier and item."
+    },
+    "supplier_item_terms_changed_since_review": {
+      "message": "The supplier's terms changed since this review. Review them again."
+    },
+    "purchase_match_order_required": {
+      "message": "A match is read for a purchase order."
     }
   },
   "terms": [
