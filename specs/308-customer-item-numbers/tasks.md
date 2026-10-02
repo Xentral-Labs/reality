@@ -45,12 +45,12 @@ Tests come first in each phase where practical.
 
 ## Phase 5: Web
 
-- [ ] T010 Kundenartikelnummern on the customer, the number on order and invoice lines, the entry field, remember on assignment, translations, browser fixtures
+- [x] T010 Kundenartikelnummern on the customer, the number on order and invoice lines, the entry field, remember on assignment, translations, browser fixtures
 
 ## Phase 6: Stories and Guide (FR-004)
 
-- [ ] T011 Business story M02 (manual entry and import with an unknown number)
-- [ ] T012 Promote M02: Guide catalog, Guide tests, coverage, roadmap, docs
+- [x] T011 Business story M02 (manual entry and import with an unknown number)
+- [x] T012 Promote M02: Guide catalog, Guide tests, coverage, roadmap, docs
 
 ## Phase 7: Verification
 

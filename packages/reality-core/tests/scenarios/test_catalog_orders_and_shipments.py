@@ -1389,3 +1389,125 @@ def test_a_customer_who_wants_no_backorders_has_the_rest_cancelled(session, busi
     )
     assert record_by_id(session, Commitment, bikes).status == "cancelled"
     assert bikes not in _rule_findings(session, business, "backorder_against_rule")
+
+
+def _customer_number(session, business, number, item_id, name):
+    proposal = create_change_proposal(
+        session,
+        business.tenant.id,
+        "customer_item_number_set",
+        {
+            "party_id": business.customer.id,
+            "customer_item_number": number,
+            "item_id": item_id,
+            "customer_item_name": name,
+        },
+    )
+    executed = approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, confirmed=True
+    )
+    assert executed.status == "executed"
+
+
+def _order_file(session, business, tmp_path, order_id, rows):
+    import csv
+
+    from reality.services.artifacts import stage_artifact
+    from reality.services.file_interpreters import suggested_mapping
+
+    columns = ["order_id", "line_id", "party_name", "customer_item_number"]
+    columns += ["name", "quantity", "unit_price", "currency", "location"]
+    path = tmp_path / f"{order_id}.csv"
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(columns)
+        for index, (number, quantity) in enumerate(rows, start=1):
+            writer.writerow(
+                [order_id, index, business.customer.name, number, number]
+                + [quantity, "10", "EUR", business.location.name]
+            )
+    with path.open("rb") as handle:
+        artifact, _ = stage_artifact(
+            session,
+            business.tenant.id,
+            handle,
+            filename=path.name,
+            content_type="text/csv",
+        )
+    proposal = propose_tool(
+        session,
+        business.tenant.id,
+        "source_ingest",
+        {
+            "artifact_id": artifact.id,
+            "source_system": "edi_customer",
+            "source_type": "order",
+            "expected_target": "sales_order",
+            "column_mapping": suggested_mapping(columns, "sales_order"),
+        },
+    )
+    output = json.loads(confirm_tool(session, business.tenant.id, proposal.id).output)
+    core.process_import_job(session, business.tenant.id, output["import_job_id"])
+
+
+def _unknown_lines(session, business):
+    return {
+        row.trace.get("customer_item_number"): row.record_id
+        for row in operational_exceptions(session, business.tenant.id, as_of=AS_OF)
+        if row.class_id == "order_line_item_unknown"
+    }
+
+
+def test_a_customer_orders_by_its_own_item_numbers(
+    session, business, tmp_path, monkeypatch
+):
+    """M02: the customer's numbers name our items, by hand, by file and once assigned."""
+    monkeypatch.setenv("REALITY_ARTIFACT_DIR", str(tmp_path / "artifacts"))
+    tenant = business.tenant.id
+    lamp = core.create_item(session, tenant, "LAMP-M02", "Lamp M02")
+    _customer_number(session, business, "K-4711", business.item.id, "Laufrad 28 Zoll")
+
+    # By hand: the clerk types the customer's number and gets our item.
+    order = _order(
+        session,
+        business,
+        "SO-M02",
+        [
+            {
+                **_line(business.item.id, "2"),
+                "item_id": "",
+                "customer_item_number": "k-4711",
+            }
+        ],
+    )
+    (wheels,) = order["commitment_ids"]
+    assert record_by_id(session, Commitment, wheels).item_id == business.item.id
+
+    # By file: the known number is promised, the unknown one waits for a person.
+    _order_file(
+        session, business, tmp_path, "EDI-M02", [("K-4711", "3"), ("K-55", "1")]
+    )
+    pending = _unknown_lines(session, business)
+    assert list(pending) == ["K-55"]
+    _act(
+        session,
+        business,
+        "order_line_item_assign",
+        {
+            "document_line_id": pending["K-55"],
+            "item_id": lamp.id,
+            "remember_for_customer": True,
+        },
+        "m02-assign",
+    )
+    assert _unknown_lines(session, business) == {}
+
+    # The next order by the same number needs nobody.
+    _order_file(session, business, tmp_path, "EDI-M02B", [("K-55", "4")])
+    assert _unknown_lines(session, business) == {}
+    later = session.scalar(
+        select(Commitment)
+        .join(Document, Document.id == Commitment.document_id)
+        .where(Commitment.tenant_id == tenant, Document.number == "EDI-M02B")
+    )
+    assert later.item_id == lamp.id
