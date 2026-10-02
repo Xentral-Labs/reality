@@ -210,20 +210,22 @@ export function WarehousePage({
             </p>
           )}
         </div>
-        {stock && <StockBlockList key={blocksVersion} tenant={tenant} item={item} />}
-        {blocking && (
-          <StockBlockCard
-            tenant={tenant}
-            mode="block"
-            item={blocking}
-            prefill={{ location_id: location || undefined }}
-            close={() => setBlocking(null)}
-            settled={() => {
-              read.refresh();
-              setBlocksVersion((value) => value + 1);
-            }}
-          />
-        )}
+        <div className="register-table-inset">
+          {stock && <StockBlockList key={blocksVersion} tenant={tenant} item={item} />}
+          {blocking && (
+            <StockBlockCard
+              tenant={tenant}
+              mode="block"
+              item={blocking}
+              prefill={{ location_id: location || undefined }}
+              close={() => setBlocking(null)}
+              settled={() => {
+                read.refresh();
+                setBlocksVersion((value) => value + 1);
+              }}
+            />
+          )}
+        </div>
         {!data ? (
           <ReadState loading={read.loading} error={read.error} retry={read.refresh} rows={8} />
         ) : (
@@ -357,20 +359,6 @@ export function WarehousePage({
                           </>
                         )}
                         <td className="py-5 pl-3 text-right">
-                          {stock && (
-                            <button
-                              className="br-btn mr-2"
-                              onClick={() =>
-                                setBlocking({
-                                  id: row.id,
-                                  name: row.name || row.item || row.id,
-                                  unit: row.unit,
-                                })
-                              }
-                            >
-                              {t("Block")}
-                            </button>
-                          )}
                           <PreviewButton
                             open={entry === row.id}
                             controls={`warehouse-preview-${row.id}`}
@@ -386,6 +374,22 @@ export function WarehousePage({
                       >
                         {view === "movements" && (
                           <MovementExplanation tenant={tenant} movementId={row.id} />
+                        )}
+                        {stock && (
+                          <div className="mb-3">
+                            <button
+                              className="br-btn"
+                              onClick={() =>
+                                setBlocking({
+                                  id: row.id,
+                                  name: row.name || row.item || row.id,
+                                  unit: row.unit,
+                                })
+                              }
+                            >
+                              {t("Block stock")}
+                            </button>
+                          </div>
                         )}
                         {stock && (
                           <CostExplanation

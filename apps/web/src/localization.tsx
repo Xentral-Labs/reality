@@ -20876,8 +20876,8 @@ Object.assign(dictionaries.de, {
     "Die Sperre aufheben, oder erst das erledigen, wofür sie gesetzt wurde, und sie dann aufheben.",
   "Party hold not lifted": "Liefersperre nicht aufgehoben",
   "Expired stock on hand": "Abgelaufener Bestand",
-  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
-    "Den Bestand per Bestandsanpassung ausbuchen, an den Lieferanten zurückschicken oder anderweitig aus dem Lager nehmen.",
+  "Blocking the stock, writing it off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "Den Bestand sperren, per Bestandsanpassung ausbuchen, an den Lieferanten zurückschicken oder anderweitig aus dem Lager nehmen.",
   "Missing acquisition cost": "Anschaffungskosten fehlen",
   "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
     "Die fehlenden Kostennachweise der Wareneingänge bestätigen und eine aktuelle, vollständige Unternehmensbewertung veröffentlichen.",
@@ -20995,8 +20995,8 @@ Object.assign(dictionaries.nl, {
     "De blokkade opheffen, of eerst doen waarvoor die is ingesteld en haar dan opheffen.",
   "Party hold not lifted": "Leveringsblokkade niet opgeheven",
   "Expired stock on hand": "Verlopen voorraad aanwezig",
-  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
-    "De voorraad afboeken met een correctie, terugsturen naar de leverancier of op een andere manier uit voorraad halen.",
+  "Blocking the stock, writing it off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "De voorraad blokkeren, afboeken met een correctie, terugsturen naar de leverancier of op een andere manier uit voorraad halen.",
   "Missing acquisition cost": "Aanschafkosten ontbreken",
   "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
     "Het ontbrekende kostenbewijs van de ontvangsten bevestigen en een actuele, volledige bedrijfswaardering publiceren.",
@@ -21113,8 +21113,8 @@ Object.assign(dictionaries.es, {
     "Levantar la retención, o hacer primero aquello por lo que se puso y después levantarla.",
   "Party hold not lifted": "Bloqueo del socio sin levantar",
   "Expired stock on hand": "Stock caducado en almacén",
-  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
-    "Dar de baja el stock con un ajuste, devolverlo al proveedor o sacarlo del almacén de otra forma.",
+  "Blocking the stock, writing it off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "Bloquear el stock, darlo de baja con un ajuste, devolverlo al proveedor o sacarlo del almacén de otra forma.",
   "Missing acquisition cost": "Falta el coste de adquisición",
   "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
     "Confirmar los justificantes de coste que faltan en las entradas y publicar una valoración de empresa actual y completa.",
