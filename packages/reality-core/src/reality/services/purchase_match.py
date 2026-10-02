@@ -23,9 +23,9 @@ from reality.db.core import Commitment, Document, DocumentLine, Item
 from reality.services.core import (
     ZERO,
     InvalidOperation,
+    _agreed_line_prices,
     _movement_quantities,
     _tenant_record,
-    agreed_line_prices,
     commitment_terms,
     decimal,
 )
@@ -35,7 +35,9 @@ def _text(value: Decimal | None) -> str | None:
     return None if value is None else format(decimal(value).normalize(), "f")
 
 
-def purchase_match(session: Session, tenant_id: str, document_id: str) -> dict[str, Any]:
+def purchase_match(
+    session: Session, tenant_id: str, document_id: str
+) -> dict[str, Any]:
     """Whether each line of a purchase order is ordered = received = billed."""
     from reality.services.exceptions import (
         _billing_lines,
@@ -76,9 +78,11 @@ def purchase_match(session: Session, tenant_id: str, document_id: str) -> dict[s
     movements = {
         key: value
         for commitment_id in {c.id for rows in promises.values() for c in rows}
-        for key, value in _movement_quantities(session, tenant_id, commitment_id).items()
+        for key, value in _movement_quantities(
+            session, tenant_id, commitment_id
+        ).items()
     }
-    agreed = agreed_line_prices(session, tenant_id, lines)
+    agreed = _agreed_line_prices(session, tenant_id, lines)
     items = {
         item.id: item
         for item in session.scalars(

@@ -3506,28 +3506,7 @@ def _revision_prices_stored(session: OrmSession) -> bool:
     return known
 
 
-def confirmed_unit_prices(
-    session: OrmSession, tenant_id: str, commitment_ids: Iterable[str]
-) -> dict[str, Decimal]:
-    """The latest unit price a supplier confirmed per promise, where one was."""
-    ids = set(commitment_ids)
-    if not ids or not _revision_prices_stored(session):
-        return {}
-    confirmed: dict[str, Decimal] = {}
-    for commitment_id, price in session.execute(
-        select(CommitmentRevision.commitment_id, CommitmentRevision.unit_price)
-        .where(
-            CommitmentRevision.tenant_id == tenant_id,
-            CommitmentRevision.commitment_id.in_(ids),
-            CommitmentRevision.unit_price.is_not(None),
-        )
-        .order_by(CommitmentRevision.stated_at, CommitmentRevision.id)
-    ):
-        confirmed[commitment_id] = decimal(price)
-    return confirmed
-
-
-def agreed_line_prices(
+def _agreed_line_prices(
     session: OrmSession, tenant_id: str, lines: Iterable[DocumentLine]
 ) -> dict[str, Decimal | None]:
     """The price agreed for each purchase line: the confirmed one, else as ordered.
@@ -10352,7 +10331,7 @@ def _preview_order_invoice_stated(
         _validate_invoice_delivery_guard(session, tenant_id, line, quantity, guard)
     effective = utc_datetime(arguments.get("effective_at"))
     agreed_price = (
-        agreed_line_prices(session, tenant_id, [line])[line.id]
+        _agreed_line_prices(session, tenant_id, [line])[line.id]
         if direction == "purchase"
         else line.unit_price
     )

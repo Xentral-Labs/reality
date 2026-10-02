@@ -9,7 +9,7 @@ the technical key stands beside each one.
 | Object                                                           | Lists | Actions | Exceptions to clear |
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
-| [Business partner](#resource-party)                              | 1     | 10      | 2                   |
+| [Business partner](#resource-party)                              | 1     | 12      | 2                   |
 | [Item](#resource-item)                                           | 5     | 11      | 6                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
@@ -77,6 +77,10 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 - [Assign party price list](./commands#command-assign_party_price_list) (`assign_party_price_list`)
 - [Create and assign pricing group](./commands#command-create_party_group) (`create_party_group`)
 - [Set party delivery hold](./commands#command-hold_party_delivery) (`hold_party_delivery`)
+- [State supplier item terms](./commands#command-set_supplier_item_terms)
+  (`set_supplier_item_terms`)
+- [Withdraw supplier item terms](./commands#command-remove_supplier_item_terms)
+  (`remove_supplier_item_terms`)
 - [State a customer item number](./commands#command-set_customer_item_number)
   (`set_customer_item_number`)
 - [Withdraw a customer item number](./commands#command-remove_customer_item_number)
@@ -85,6 +89,7 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 
 **Look up**
 
+- [Read supplier item terms](./commands#command-supplier_item_terms) (`supplier_item_terms`)
 - [Read customer item numbers](./commands#command-customer_item_numbers) (`customer_item_numbers`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 
@@ -96,11 +101,13 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 **Appears in processes:** [Master data and sources](./processes#process-master_data)
 
 **Underneath:** Tables: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold`,
-`customer_item_number` · Events:
+`customer_item_number`, `supplier_item_terms` · Events:
 [`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded),
 [`party.created`](./events#event-party-created), [`party.updated`](./events#event-party-updated),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`party.delivery_hold_released`](./events#event-party-delivery_hold_released),
+[`supplier_item_terms.set`](./events#event-supplier_item_terms-set),
+[`supplier_item_terms.removed`](./events#event-supplier_item_terms-removed),
 [`customer_item_number.set`](./events#event-customer_item_number-set),
 [`customer_item_number.removed`](./events#event-customer_item_number-removed),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed),
@@ -146,6 +153,8 @@ derived from movements and reservations at read time, which is why the stock lis
 
 - [Read reviewed inventory acquisition costs](./commands#command-inventory_cost) (`inventory_cost`)
 - [Read available to promise](./commands#command-available_to_promise) (`available_to_promise`)
+- [Read the three-way match of a purchase order](./commands#command-purchase_match)
+  (`purchase_match`)
 - [Read stock counts](./commands#command-stock_counts) (`stock_counts`)
 - [Read a stock count](./commands#command-stock_count_detail) (`stock_count_detail`)
 - [Read stock blocks](./commands#command-stock_blocks) (`stock_blocks`)
@@ -306,6 +315,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 **Look up**
 
 - [Read available to promise](./commands#command-available_to_promise) (`available_to_promise`)
+- [Read the three-way match of a purchase order](./commands#command-purchase_match)
+  (`purchase_match`)
 - [Read delivery rules](./commands#command-delivery_rules) (`delivery_rules`)
 - [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
@@ -393,6 +404,8 @@ Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking
 
 **Look up**
 
+- [Read the three-way match of a purchase order](./commands#command-purchase_match)
+  (`purchase_match`)
 - [Read the month-end billing lists](./commands#command-month_end_billing) (`month_end_billing`)
 
 **Exceptions to clear**
@@ -860,6 +873,8 @@ Nachweis, Quelle
 - [Read source code mappings](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Read source mapping history](./commands#command-source_mapping_history)
   (`source_mapping_history`)
+- [Read the three-way match of a purchase order](./commands#command-purchase_match)
+  (`purchase_match`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 - [Read the month-end billing lists](./commands#command-month_end_billing) (`month_end_billing`)
 - [List dunning notices](./commands#command-notices) (`notices`)

@@ -40,12 +40,14 @@ from reality.services import payment_returns as payment_return_service_module
 from reality.services import playground as playground_service_module
 from reality.services import projection_jobs as projection_job_service_module
 from reality.services import projections as projection_service_module
+from reality.services import purchase_match as purchase_match_service_module
 from reality.services import reorder_points as reorder_point_service_module
 from reality.services import return_dispositions as return_disposition_service_module
 from reality.services import scheduled_jobs as scheduled_job_service_module
 from reality.services import shipments as shipment_service_module
 from reality.services import stock_blocks as stock_block_service_module
 from reality.services import stock_counts as stock_count_service_module
+from reality.services import supplier_item_terms as supplier_terms_service_module
 from reality.services import supply_assignments as supply_assignment_service_module
 from reality.services.finance import accounts as finance_account_service_module
 from reality.services.finance import company_currency as company_currency_service_module
@@ -1113,6 +1115,8 @@ def _service(name: str) -> Any:
         delivery_rule_service_module,
         stock_count_service_module,
         customer_item_service_module,
+        supplier_terms_service_module,
+        purchase_match_service_module,
         company_currency_service_module,
     ):
         own = getattr(module, name, None)
@@ -1321,6 +1325,8 @@ def _literal_business_events() -> set[str]:
         delivery_rule_service_module,
         stock_count_service_module,
         customer_item_service_module,
+        supplier_terms_service_module,
+        purchase_match_service_module,
         company_currency_service_module,
         finance_account_service_module,
         finance_reference_service_module,

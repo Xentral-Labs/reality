@@ -130,6 +130,12 @@ app.add_typer(backorder_app, name="backorders")
 app.add_typer(delivery_rule_app, name="delivery-rule")
 app.add_typer(stock_count_app, name="stock-count")
 app.add_typer(customer_item_app, name="customer-item")
+supplier_terms_app = typer.Typer(
+    help="A supplier's minimum order quantity and order multiple per item (spec 310)."
+)
+app.add_typer(supplier_terms_app, name="supplier-terms")
+purchase_app = typer.Typer(help="Purchase orders: the three-way match (spec 310).")
+app.add_typer(purchase_app, name="purchase")
 app.add_typer(pricing_app, name="pricing")
 app.add_typer(finance_app, name="finance")
 app.add_typer(commitment_app, name="commitment")
@@ -1206,6 +1212,77 @@ def company_currency_set_command(
         preview_key="company_currency",
     )
     con.print("✓ Company currency stated")
+
+
+@supplier_terms_app.command("list")
+def supplier_terms_list_command(
+    party: str = typer.Option("", "--party"),
+    item: str = typer.Option("", "--item"),
+    tenant: str | None = None,
+):
+    """Suppliers' minimum order quantities and order multiples."""
+    from reality.services.supplier_item_terms import supplier_item_terms
+
+    with Session() as s:
+        selected = selected_tenant(s, tenant)
+        rows = supplier_item_terms(
+            s, selected.id, party_id=party or None, item_id=item or None
+        )
+    con.print_json(data=rows, default=str)
+
+
+@supplier_terms_app.command("set")
+def supplier_terms_set_command(
+    party_id: str,
+    item_id: str,
+    minimum: str | None = typer.Option(None, "--minimum"),
+    multiple: str | None = typer.Option(None, "--multiple"),
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm a supplier's minimum and order multiple for an item."""
+    _stock_block_change(
+        "supplier_item_terms_set",
+        {
+            "party_id": party_id,
+            "item_id": item_id,
+            **({"minimum_quantity": minimum} if minimum else {}),
+            **({"order_multiple": multiple} if multiple else {}),
+        },
+        tenant,
+        yes,
+        preview_key="supplier_item_terms",
+    )
+    con.print("✓ Supplier item terms stated")
+
+
+@supplier_terms_app.command("remove")
+def supplier_terms_remove_command(
+    party_id: str, item_id: str, tenant: str | None = None, yes: bool = False
+):
+    """Review and confirm withdrawing a supplier's terms for an item."""
+    _stock_block_change(
+        "supplier_item_terms_remove",
+        {"party_id": party_id, "item_id": item_id},
+        tenant,
+        yes,
+        preview_key="supplier_item_terms",
+    )
+    con.print("✓ Supplier item terms withdrawn")
+
+
+@purchase_app.command("match")
+def purchase_match_command(document_id: str, tenant: str | None = None):
+    """Whether each line of a purchase order is ordered = received = billed."""
+    from reality.services.purchase_match import purchase_match
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            result = purchase_match(s, selected.id, document_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
 
 
 _COUNT_LINE = typer.Option(

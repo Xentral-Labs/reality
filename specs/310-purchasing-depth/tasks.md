@@ -12,35 +12,35 @@ Tests come first in each phase where practical.
 
 ## Phase 2: Confirmed price (FR-001)
 
-- [ ] T004 Tests:
+- [x] T004 Tests:
   - a revision states a price on a purchase promise, refused on a customer promise;
   - the price in force;
   - the guided invoice takes it;
   - "invoice price differs" compares against it;
   - the review shows both;
   - the migration and downgrade.
-- [ ] T005 Migration `0117`, `revise_commitment`, `commitment_terms`, the review, the guided invoice and the exception
+- [x] T005 Migration `0117`, `revise_commitment`, `commitment_terms`, the review, the guided invoice and the exception
 
 ## Phase 3: Supplier terms (FR-005)
 
-- [ ] T006 Tests:
+- [x] T006 Tests:
   - set, restate and remove as versions;
   - refusals;
   - the order preview names below-minimum and off-multiple with the suggested quantity;
   - isolation.
-- [ ] T007 `supplier_item_terms` model and service, preview hints, events, refusals
+- [x] T007 `supplier_item_terms` model and service, preview hints, events, refusals
 
 ## Phase 4: Cancellation charge and match (FR-006, FR-002)
 
-- [ ] T008 Tests:
+- [x] T008 Tests:
   - a charge against a cancelled line raises no finding (with a positive control);
   - the match read: matched, received short, billed at another price, returns and credits, cancelled with charge.
-- [ ] T009 Exception filters, `services/purchase_match.py`
+- [x] T009 Exception filters, `services/purchase_match.py`
 
 ## Phase 5: Adapters and gates (FR-003)
 
-- [ ] T010 Tools, MCP, Web and CLI, with adapter tests
-- [ ] T011 Catalog gates (data model and field rows, reporting graph, command and action catalogs, tool topics, isolation and counts, events, resource catalog and labels, refusals and translations, coverage matrix, docs generation)
+- [x] T010 Tools, MCP, Web and CLI, with adapter tests
+- [x] T011 Catalog gates (data model and field rows, reporting graph, command and action catalogs, tool topics, isolation and counts, events, resource catalog and labels, refusals and translations, coverage matrix, docs generation)
 
 ## Phase 6: Web
 

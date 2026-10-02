@@ -92,8 +92,10 @@ def test_a_supplier_confirms_quantity_date_and_price(session, business):
         note="Supplier confirmation AB-1",
     )
 
-    assert core.agreed_line_prices(session, tenant, [line])[line.id] == Decimal("10.5")
-    assert core.commitment_terms(session, tenant, [promise.id])[promise.id].quantity == 90
+    assert core._agreed_line_prices(session, tenant, [line])[line.id] == Decimal("10.5")
+    assert (
+        core.commitment_terms(session, tenant, [promise.id])[promise.id].quantity == 90
+    )
     _receive(session, business, promise, "90")
     invoice = _invoice(session, business, line, "90", "945", "INV-310-1")
     billed = session.scalar(
@@ -107,7 +109,12 @@ def test_a_supplier_confirms_quantity_date_and_price(session, business):
     match = purchase_match(session, tenant, document.id)
     assert match["matched"] is True
     (row,) = match["lines"]
-    assert (row["ordered"], row["in_force"], row["ordered_unit_price"], row["agreed_unit_price"]) == (
+    assert (
+        row["ordered"],
+        row["in_force"],
+        row["ordered_unit_price"],
+        row["agreed_unit_price"],
+    ) == (
         "100",
         "90",
         "10",
@@ -139,7 +146,9 @@ def test_an_invoice_above_the_confirmed_price_is_reported_against_it(session, bu
             }
         ],
     )
-    billed_line = next(r["id"] for r in receipt["records"] if r["family"] == "document_line")
+    billed_line = next(
+        r["id"] for r in receipt["records"] if r["family"] == "document_line"
+    )
 
     finding = _findings(session, business, "invoice_price_differs")[billed_line]
     assert finding.causal_values["agreed_unit_price"] == Decimal("10.5")
@@ -155,12 +164,21 @@ def test_a_price_is_confirmed_for_purchases_only(session, business):
         business.company.id,
         business.customer.id,
         business.location.id,
-        [{"item_id": business.item.id, "quantity": "1", "unit_price": "10", "gross_amount": "10"}],
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "1",
+                "unit_price": "10",
+                "gross_amount": "10",
+            }
+        ],
         "10",
     )
     _refused(
         "commitment_price_purchase_only",
-        lambda: core.revise_commitment(session, tenant, customer_promise.id, unit_price="9"),
+        lambda: core.revise_commitment(
+            session, tenant, customer_promise.id, unit_price="9"
+        ),
     )
     _, _, promise = _purchase(session, business, "PO-310-3")
     _refused(
@@ -191,25 +209,38 @@ def test_terms_name_a_quantity_below_the_minimum_or_off_the_multiple(session, bu
         session, tenant, business.supplier.id, business.item.id, "50", "12"
     )
 
-    below = order_terms_check(session, tenant, business.supplier.id, business.item.id, Decimal(30))
-    assert (below["below_minimum"], below["off_multiple"], below["suggested_quantity"]) == (
+    below = order_terms_check(
+        session, tenant, business.supplier.id, business.item.id, Decimal(30)
+    )
+    assert (
+        below["below_minimum"],
+        below["off_multiple"],
+        below["suggested_quantity"],
+    ) == (
         True,
         True,
         "60",
     )
     # Positive control: 60 meets both.
-    fine = order_terms_check(session, tenant, business.supplier.id, business.item.id, Decimal(60))
+    fine = order_terms_check(
+        session, tenant, business.supplier.id, business.item.id, Decimal(60)
+    )
     assert (fine["below_minimum"], fine["off_multiple"]) == (False, False)
     # Another supplier has no terms.
     other = core.create_party(session, tenant, "Other Supplier", "supplier")
-    assert order_terms_check(session, tenant, other.id, business.item.id, Decimal(1)) is None
+    assert (
+        order_terms_check(session, tenant, other.id, business.item.id, Decimal(1))
+        is None
+    )
 
 
 def test_the_order_review_names_the_terms(session, business):
     from reality.services.order_actions import review_order
 
     tenant = business.tenant.id
-    set_supplier_item_terms(session, tenant, business.supplier.id, business.item.id, "50", None)
+    set_supplier_item_terms(
+        session, tenant, business.supplier.id, business.item.id, "50", None
+    )
     review = review_order(
         session,
         tenant,
@@ -220,7 +251,14 @@ def test_the_order_review_names_the_terms(session, business):
             "counterparty_id": business.supplier.id,
             "location_id": business.location.id,
             "gross_amount": "300",
-            "lines": [{"item_id": business.item.id, "quantity": "30", "unit_price": "10", "gross_amount": "300"}],
+            "lines": [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "30",
+                    "unit_price": "10",
+                    "gross_amount": "300",
+                }
+            ],
         },
     )
     assert review["state"]["supplier_terms"]["0"]["suggested_quantity"] == "50"
@@ -228,8 +266,12 @@ def test_the_order_review_names_the_terms(session, business):
 
 def test_terms_are_versions_and_refuse_nonsense(session, business):
     tenant = business.tenant.id
-    first = set_supplier_item_terms(session, tenant, business.supplier.id, business.item.id, "50")
-    second = set_supplier_item_terms(session, tenant, business.supplier.id, business.item.id, None, "6")
+    first = set_supplier_item_terms(
+        session, tenant, business.supplier.id, business.item.id, "50"
+    )
+    second = set_supplier_item_terms(
+        session, tenant, business.supplier.id, business.item.id, None, "6"
+    )
     assert first.id == second.id
     (row,) = supplier_item_terms(session, tenant, party_id=business.supplier.id)
     assert (row["minimum_quantity"], row["order_multiple"]) == (None, "6")
@@ -243,21 +285,45 @@ def test_terms_are_versions_and_refuse_nonsense(session, business):
     ).all()
     assert len(versions) == 3
     for code, call in (
-        ("supplier_item_terms_party_not_supplier", lambda: set_supplier_item_terms(session, tenant, business.customer.id, business.item.id, "1")),
-        ("supplier_item_terms_empty", lambda: set_supplier_item_terms(session, tenant, business.supplier.id, business.item.id)),
-        ("supplier_item_terms_invalid", lambda: set_supplier_item_terms(session, tenant, business.supplier.id, business.item.id, "0")),
-        ("supplier_item_terms_not_found", lambda: remove_supplier_item_terms(session, tenant, business.supplier.id, business.item.id)),
+        (
+            "supplier_item_terms_party_not_supplier",
+            lambda: set_supplier_item_terms(
+                session, tenant, business.customer.id, business.item.id, "1"
+            ),
+        ),
+        (
+            "supplier_item_terms_empty",
+            lambda: set_supplier_item_terms(
+                session, tenant, business.supplier.id, business.item.id
+            ),
+        ),
+        (
+            "supplier_item_terms_invalid",
+            lambda: set_supplier_item_terms(
+                session, tenant, business.supplier.id, business.item.id, "0"
+            ),
+        ),
+        (
+            "supplier_item_terms_not_found",
+            lambda: remove_supplier_item_terms(
+                session, tenant, business.supplier.id, business.item.id
+            ),
+        ),
     ):
         _refused(code, call)
 
 
 def test_another_company_cannot_state_or_read_terms(session, business):
     tenant = business.tenant.id
-    set_supplier_item_terms(session, tenant, business.supplier.id, business.item.id, "5")
+    set_supplier_item_terms(
+        session, tenant, business.supplier.id, business.item.id, "5"
+    )
     other = core.create_tenant(session, "Other GmbH")
     assert supplier_item_terms(session, other.id) == []
     with pytest.raises((core.InvalidOperation, core.NotFound)):
-        set_supplier_item_terms(session, other.id, business.supplier.id, business.item.id, "5")
+        set_supplier_item_terms(
+            session, other.id, business.supplier.id, business.item.id, "5"
+        )
 
 
 # --- Cancellation charge (FR-006) ---------------------------------------------------
@@ -288,7 +354,9 @@ def _charge(session, business, line, amount="40.00", number="CXL-310"):
 def test_a_cancellation_charge_raises_no_purchase_finding(session, business):
     tenant = business.tenant.id
     document, line, promise = _purchase(session, business, "PO-310-C", "20")
-    core.cancel_commitment(session, tenant, promise.id, reason="Supplier had produced; agreed charge")
+    core.cancel_commitment(
+        session, tenant, promise.id, reason="Supplier had produced; agreed charge"
+    )
 
     _charge(session, business, line)
 
@@ -316,13 +384,18 @@ def test_a_cancellation_charge_raises_no_purchase_finding(session, business):
         ],
     )
     assert line.id in _findings(session, business, "billed_not_received")
-    assert "billed_over" in purchase_match(session, tenant, document.id)["lines"][0]["differences"]
+    assert (
+        "billed_over"
+        in purchase_match(session, tenant, document.id)["lines"][0]["differences"]
+    )
 
 
 # --- Three-way match (FR-002) --------------------------------------------------------
 
 
-def test_a_line_received_short_or_billed_at_another_price_is_not_matched(session, business):
+def test_a_line_received_short_or_billed_at_another_price_is_not_matched(
+    session, business
+):
     tenant = business.tenant.id
     document, line, promise = _purchase(session, business, "PO-310-M")
     _receive(session, business, promise, "95")
@@ -368,14 +441,28 @@ def test_the_match_is_read_for_purchase_orders_only(session, business):
         business.company.id,
         business.customer.id,
         business.location.id,
-        [{"item_id": business.item.id, "quantity": "1", "unit_price": "10", "gross_amount": "10"}],
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "1",
+                "unit_price": "10",
+                "gross_amount": "10",
+            }
+        ],
         "10",
     )
     sales = session.scalar(
-        select(core.Document).where(core.Document.tenant_id == tenant, core.Document.number == "SO-310-M")
+        select(core.Document).where(
+            core.Document.tenant_id == tenant, core.Document.number == "SO-310-M"
+        )
     )
-    _refused("purchase_match_order_required", lambda: purchase_match(session, tenant, sales.id))
-    assert json.dumps(purchase_match(session, tenant, _purchase(session, business, "PO-310-Z")[0].id))
+    _refused(
+        "purchase_match_order_required",
+        lambda: purchase_match(session, tenant, sales.id),
+    )
+    assert json.dumps(
+        purchase_match(session, tenant, _purchase(session, business, "PO-310-Z")[0].id)
+    )
 
 
 def test_the_migration_guards_its_downgrade(postgres_database, monkeypatch):
