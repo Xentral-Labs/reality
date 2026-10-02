@@ -50,6 +50,8 @@ export function CommitmentActionCard({
   const [target, setTarget] = useState(commitment);
   const [quantity, setQuantity] = useState("");
   const [dueAt, setDueAt] = useState("");
+  // Spec 310: a supplier's confirmed unit price; customer promises refuse it.
+  const [unitPrice, setUnitPrice] = useState("");
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [retained, setRetained] = useState<Record<string, string>>({});
@@ -122,6 +124,9 @@ export function CommitmentActionCard({
               ? { quantity: quantity || currentIntent.quantity }
               : {}),
             ...(dueAt || currentIntent.due_at ? { due_at: dueAt || currentIntent.due_at } : {}),
+            ...(unitPrice || currentIntent.unit_price
+              ? { unit_price: unitPrice || currentIntent.unit_price }
+              : {}),
             note: note || currentIntent.note || "",
             ...(withRetained
               ? {
@@ -216,6 +221,15 @@ export function CommitmentActionCard({
                 />
               </label>
               <label className="br-label">
+                {t("Confirmed unit price (purchases)")}
+                <input
+                  className="br-control mt-2 w-full"
+                  inputMode="decimal"
+                  value={unitPrice}
+                  onChange={(event) => setUnitPrice(event.target.value)}
+                />
+              </label>
+              <label className="br-label">
                 {t("Due date")}
                 <input
                   className="br-control mt-2 w-full"
@@ -248,7 +262,10 @@ export function CommitmentActionCard({
           <button
             className="br-btn br-btn-primary self-start"
             disabled={
-              busy || loading || !target || (revising ? !quantity && !dueAt : !reason.trim())
+              busy ||
+              loading ||
+              !target ||
+              (revising ? !quantity && !dueAt && !unitPrice : !reason.trim())
             }
           >
             {t("Review change")}

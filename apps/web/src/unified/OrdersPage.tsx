@@ -26,6 +26,7 @@ import { formatDateTime, formatMoney, formatNumber, formatQuantity, t } from "..
 import { ReadState } from "./ReadState";
 import { InlineInspector, PreviewButton, TablePreview } from "./InlinePreview";
 import { DeliveryRuleSection } from "./DeliveryRuleCard";
+import { PurchaseMatchSection } from "./PurchaseMatchSection";
 import { RegisterPager } from "./WarehousePage";
 import { useRead } from "./useCompanyContext";
 import type { Selection } from "./routing";
@@ -782,7 +783,9 @@ export function OrdersPage({
                                       source="billed_invoice_lines"
                                     />
                                   </>
-                                ) : null
+                                ) : (
+                                  <PurchaseMatchSection tenant={tenant} document={row.id} />
+                                )
                               }
                             >
                               <button

@@ -44,7 +44,7 @@ Tests come first in each phase where practical.
 
 ## Phase 6: Web
 
-- [ ] T012 Match and confirmed price on the purchase order, the price field in the revision card, terms on the supplier, the hint in purchase entry, translations
+- [x] T012 Match and confirmed price on the purchase order, the price field in the revision card, terms on the supplier, the hint in purchase entry, translations
 
 ## Phase 7: Stories and Guide (FR-004)
 

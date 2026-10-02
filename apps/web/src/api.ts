@@ -3080,6 +3080,80 @@ export type CustomerItemNumber = {
   customer_item_number: string;
   customer_item_name: string;
 };
+export type SupplierTermsCheck = {
+  minimum_quantity: string | null;
+  order_multiple: string | null;
+  below_minimum: boolean;
+  off_multiple: boolean;
+  suggested_quantity: string;
+};
+export type SupplierItemTerms = {
+  id: string;
+  party_id: string;
+  supplier: string;
+  item_id: string;
+  item: string;
+  sku: string;
+  unit: string;
+  minimum_quantity: string | null;
+  order_multiple: string | null;
+};
+export const supplierItemTerms = {
+  list: (tenant: string, subject: { party_id: string } | { item_id: string }) =>
+    request<{ rows: SupplierItemTerms[] }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/supplier-item-terms?${new URLSearchParams(subject)}`,
+    ),
+  prepare: (
+    tenant: string,
+    body: {
+      operation: "set" | "remove";
+      party_id: string;
+      item_id: string;
+      minimum_quantity?: string;
+      order_multiple?: string;
+    },
+  ) =>
+    request<{ id: string; status: string; preview: Record<string, unknown> }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/supplier-item-terms/proposals`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
+};
+export type PurchaseMatchLine = {
+  document_line_id: string;
+  item: string;
+  sku: string;
+  unit: string;
+  ordered: string;
+  in_force: string;
+  received: string;
+  billed: string | null;
+  ordered_unit_price: string | null;
+  agreed_unit_price: string | null;
+  billed_unit_prices: string[];
+  price_unit: string;
+  cancelled: boolean;
+  charges: { document_line_id: string; document_id: string; amount: string; description: string }[];
+  matched: boolean;
+  differences: string[];
+};
+export type PurchaseMatch = {
+  document_id: string;
+  number: string;
+  currency: string;
+  matched: boolean;
+  lines: PurchaseMatchLine[];
+};
+export const purchaseMatchApi = {
+  read: (tenant: string, document: string) =>
+    request<PurchaseMatch>(
+      `/api/tenants/${encodeURIComponent(tenant)}/purchase-orders/${encodeURIComponent(document)}/match`,
+    ),
+};
 export const customerItemNumbers = {
   list: (tenant: string, subject: { party_id: string } | { item_id: string }) =>
     request<{ rows: CustomerItemNumber[] }>(
@@ -3402,6 +3476,8 @@ export type OrderProposal = Omit<DeliveryProposal, "review" | "observation"> & {
       creation: { direction: string; document: Record<string, unknown>; lines: OrderLineInput[] };
       references: Record<string, { id: string; name: string }>;
       items: Record<string, { id: string; name: string; sku: string; unit: string }>;
+      /** Spec 310: a purchase line against the supplier's terms, by line index. */
+      supplier_terms?: Record<string, SupplierTermsCheck>;
     };
   };
   observation: null | { deliveries: DeliveryRow[] };
