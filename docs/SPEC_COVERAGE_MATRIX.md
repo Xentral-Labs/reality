@@ -1919,6 +1919,8 @@ Table `item_reorder_point`: the stock level at which the company reorders an ite
 
 ## Blocked stock — Spec 304
 
+Shared inventory observations — spec 315 FR-001–FR-005: `packages/reality-core/tests/test_shared_inventory_observations.py` covers surface equivalence after revision and partial receipt, reservations and partial block release, location and tenant boundaries, derived filters and projection metadata. Verification pending.
+
 Table `stock_block`: stock held back where it lies with its reason, excluded from availability until released or scrapped.
 
 - `packages/reality-core/tests/test_stock_blocks.py`: the table refuses a zero quantity and an unknown reason, a valid row as control; the migration refuses to drop stated blocks; a block holds back stock without moving it, with its event; only free stock can be blocked (reserved and already blocked stock excluded, the free rest as control); a block is refused with its code for an unknown reason, a zero or over-precise quantity, a service item and another company; a lot-tracked item is blocked by its exact lot; scrapping writes the part off with one adjustment linked to its resolution; a release beyond the block, without a reason, after resolution or by another company is refused.

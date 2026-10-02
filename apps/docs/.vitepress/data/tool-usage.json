@@ -24411,7 +24411,7 @@
       "key": "fulfillment_queue",
       "label": "Fulfillment queue",
       "area": "orders",
-      "summary": "Groups open customer-delivery commitments by their shortest order/evidence link and derives ship readiness from active reservations and execution holds.",
+      "summary": "Groups open customer-delivery commitments by their shortest order/evidence link and derives ship readiness from active reservations, unblocked physical stock at each supplying location, and execution holds.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/fulfillment_queue",
@@ -24467,7 +24467,8 @@
         "commitment_hold",
         "party_hold",
         "reservation",
-        "movement"
+        "movement",
+        "stock_block"
       ],
       "outputs": [
         "order_key",
@@ -24492,7 +24493,7 @@
       "key": "fulfillment_blockers",
       "label": "Fulfillment blockers",
       "area": "orders",
-      "summary": "Emits one rebuildable blocker row per open commitment and reason, including reservation shortages and active order or party delivery holds.",
+      "summary": "Emits one rebuildable blocker row per open commitment and reason, including reservation shortages, insufficient unblocked stock at supplying locations, and active order or party delivery holds.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/fulfillment_blockers",
@@ -24543,7 +24544,8 @@
         "commitment_hold",
         "party_hold",
         "reservation",
-        "movement"
+        "movement",
+        "stock_block"
       ],
       "outputs": [
         "blocker_id",
@@ -24566,7 +24568,7 @@
       "key": "item_supply_demand",
       "label": "Item supply and demand",
       "area": "warehouse",
-      "summary": "Materializes physical, allocated, incoming, open-demand, uncovered-demand and affected-order quantities per item.",
+      "summary": "Materializes physical, allocated, effective outstanding incoming, open-demand, uncovered-demand and affected-order quantities per item; available and projected stock exclude active blocks.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/item_supply_demand",
@@ -24606,7 +24608,7 @@
       "service": "projection_rows",
       "related_services": [],
       "consumers": ["MCP", "Copilot", "Inventory"],
-      "reads": ["business_event", "item", "commitment", "reservation", "movement"],
+      "reads": ["business_event", "item", "commitment", "reservation", "movement", "stock_block"],
       "outputs": [
         "item_id",
         "sku",
@@ -24757,7 +24759,7 @@
       "key": "inventory",
       "label": "Inventory",
       "area": "warehouse",
-      "summary": "Physical movement balance minus active reservations; incoming commitments are added for projected stock.",
+      "summary": "Shared inventory observation; available is physical movement balance minus active reservations and active blocks, and projected adds correction-aware effective outstanding supplier promises after revisions and cancellation.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/inventory",
@@ -24793,8 +24795,17 @@
       "service": "projection_rows",
       "related_services": ["inventory_rows"],
       "consumers": ["Home", "Inventory", "Chat", "CLI"],
-      "reads": ["item", "location", "movement", "reservation", "commitment"],
-      "outputs": ["physical", "reserved", "available", "incoming", "projected"],
+      "reads": [
+        "item",
+        "location",
+        "movement",
+        "reservation",
+        "commitment",
+        "commitment_revision",
+        "movement_correction",
+        "stock_block"
+      ],
+      "outputs": ["physical", "reserved", "blocked", "available", "incoming", "projected"],
       "views": ["inventory"],
       "tools": [
         "inventory_read",
