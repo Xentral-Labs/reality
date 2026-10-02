@@ -62,7 +62,7 @@ def _refused(code, call):
 def test_a_manual_line_resolves_by_the_customers_number(session, business):
     _map(session, business)
 
-    _, document, lines, commitments = _manual_order(
+    _, _document, lines, commitments = _manual_order(
         session, business, "SO-308-1", [({"customer_item_number": "k-4711"}, "2")]
     )
 
