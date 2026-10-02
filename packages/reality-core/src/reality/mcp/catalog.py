@@ -1399,8 +1399,10 @@ ORDER_LINE = _object_schema(
         "promised_at": OPTIONAL_STRING,
         "line_type": {"type": "string", "default": "item"},
         "price_list_entry_id": OPTIONAL_STRING,
+        # Spec 308: a sales order line may name the item by the customer's number.
+        "customer_item_number": OPTIONAL_STRING,
     },
-    required=("item_id", "quantity", "unit", "unit_price", "gross_amount"),
+    required=("quantity", "unit", "unit_price", "gross_amount"),
 )
 
 ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (

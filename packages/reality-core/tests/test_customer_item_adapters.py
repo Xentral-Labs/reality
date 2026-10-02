@@ -216,3 +216,43 @@ def test_the_cli_states_after_asking(session, business, monkeypatch):
         ["customer-item", "list", "--party", business.customer.id, "--tenant", tenant],
     )
     assert json.loads(listed.output)[0]["customer_item_number"] == "K-9"
+
+
+def test_an_agent_orders_by_the_customers_number(session, business):
+    from reality.mcp.server import _reject_unknown_fields
+
+    tenant = business.tenant.id
+    set_customer_item_number(
+        session, tenant, business.customer.id, business.item.id, "K-4711", ""
+    )
+    arguments = {
+        "direction": "sales",
+        "number": "SO-308-MCP",
+        "company_party_id": business.company.id,
+        "counterparty_id": business.customer.id,
+        "location_id": business.location.id,
+        "gross_amount": "20",
+        "lines": [
+            {
+                "customer_item_number": "K-4711",
+                "quantity": "2",
+                "unit": "pcs",
+                "unit_price": "10",
+                "gross_amount": "20",
+            }
+        ],
+    }
+    definition = MCP_TOOL_REGISTRY["order_create_propose"]
+    _reject_unknown_fields(definition.input_schema, arguments)
+    assert (
+        "item_id"
+        not in definition.input_schema["properties"]["lines"]["items"]["required"]
+    )
+
+    proposed = definition.handler(session, tenant, arguments)
+
+    (line,) = proposed["preview"]["state"]["creation"]["lines"]
+    assert (line["item_id"], line["customer_item_number"]) == (
+        business.item.id,
+        "K-4711",
+    )
