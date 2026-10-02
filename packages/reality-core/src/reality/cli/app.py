@@ -96,6 +96,9 @@ location_app = typer.Typer()
 payment_term_app = typer.Typer()
 reorder_point_app = typer.Typer(help="Reorder points per item and location (spec 302).")
 stock_app = typer.Typer(help="Blocked stock: block, release, scrap (spec 304).")
+backorder_app = typer.Typer(
+    help="Backorders: serve waiting orders, available to promise (spec 305)."
+)
 pricing_app = typer.Typer()
 finance_app = typer.Typer()
 commitment_app = typer.Typer()
@@ -116,6 +119,7 @@ app.add_typer(location_app, name="location")
 app.add_typer(payment_term_app, name="payment-term")
 app.add_typer(reorder_point_app, name="reorder-point")
 app.add_typer(stock_app, name="stock-block")
+app.add_typer(backorder_app, name="backorders")
 app.add_typer(pricing_app, name="pricing")
 app.add_typer(finance_app, name="finance")
 app.add_typer(commitment_app, name="commitment")
@@ -993,7 +997,13 @@ def stock_block_list(
     con.print_json(data=rows, default=str)
 
 
-def _stock_block_change(tool: str, arguments: dict, tenant: str | None, yes: bool):
+def _stock_block_change(
+    tool: str,
+    arguments: dict,
+    tenant: str | None,
+    yes: bool,
+    preview_key: str = "stock_block",
+):
     from reality.tools.application import create_change_proposal, reject_proposal
 
     with Session() as s:
@@ -1002,7 +1012,7 @@ def _stock_block_change(tool: str, arguments: dict, tenant: str | None, yes: boo
             proposal = create_change_proposal(
                 s, selected.id, tool, arguments, actor_type="human"
             )
-            con.print_json(data=json.loads(proposal.output)["stock_block"], default=str)
+            con.print_json(data=json.loads(proposal.output)[preview_key], default=str)
             if not yes and not typer.confirm("Confirm this change?"):
                 reject_proposal(s, selected.id, proposal.id)
                 con.print("Stopped; nothing changed.")
@@ -1060,6 +1070,52 @@ def stock_block_release_command(
         arguments["quantity"] = quantity
     _stock_block_change("stock_block_release", arguments, tenant, yes)
     con.print("✓ Stock released")
+
+
+_BACKORDER_LINE = typer.Option(
+    None, "--line", help="COMMITMENT_ID=QUANTITY; repeat per order"
+)
+
+
+@backorder_app.command("serve")
+def backorders_serve_command(
+    item_id: str,
+    location_id: str,
+    purchase: str = typer.Option("", "--purchase", help="The received purchase"),
+    line: list[str] | None = _BACKORDER_LINE,
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm reserving available stock for waiting orders."""
+    arguments: dict = {"item_id": item_id, "location_id": location_id}
+    if purchase:
+        arguments["supplier_commitment_id"] = purchase
+    if line:
+        try:
+            arguments["lines"] = [
+                {"commitment_id": identity, "quantity": quantity}
+                for identity, quantity in (entry.split("=", 1) for entry in line)
+            ]
+        except ValueError as error:
+            raise typer.BadParameter("--line takes COMMITMENT_ID=QUANTITY") from error
+    _stock_block_change(
+        "backorders_serve", arguments, tenant, yes, preview_key="backorder_serving"
+    )
+    con.print("✓ Backorders served")
+
+
+@backorder_app.command("promise")
+def backorders_promise_command(item_id: str, tenant: str | None = None):
+    """Available to promise: free now, then each open purchase by its date."""
+    from reality.services.backorders import available_to_promise
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            answer = available_to_promise(s, selected.id, item_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=answer, default=str)
 
 
 @stock_app.command("scrap")

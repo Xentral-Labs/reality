@@ -38,8 +38,8 @@ Tests come first in each phase where practical.
 
 ## Phase 5: Adapters and gates
 
-- [ ] T010 MCP, Web and CLI, with adapter tests and tenant isolation
-- [ ] T011 Catalog gates:
+- [x] T010 MCP, Web and CLI, with adapter tests and tenant isolation
+- [x] T011 Catalog gates:
   - command and action catalogs, tool topics;
   - isolation catalog and counts;
   - resource catalog and labels;

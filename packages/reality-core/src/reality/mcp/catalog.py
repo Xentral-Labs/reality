@@ -2660,6 +2660,39 @@ MCP_TOOL_CATALOG += (
         _propose("stock_block_scrap"),
     ),
     MCPToolDefinition(
+        "backorders_serve_propose",
+        "Serve backorders",
+        "Prepare reserving what is available of an item at a location for the customer orders waiting for it. Serving order: the orders the named purchase (supplier_commitment_id, usually the one just received) is assigned to, in assignment order, then the others by due date. Without lines the available quantity is given out in that order; stated lines set the quantity per order. The review lists every waiting order and those on hold. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {
+                "item_id": STRING,
+                "location_id": STRING,
+                "supplier_commitment_id": OPTIONAL_STRING,
+                "lines": {
+                    "type": "array",
+                    "maxItems": 200,
+                    "items": _object_schema(
+                        {"commitment_id": STRING, "quantity": DECIMAL_STRING},
+                        required=("commitment_id", "quantity"),
+                    ),
+                },
+            },
+            required=("item_id", "location_id"),
+        ),
+        _propose("backorders_serve"),
+    ),
+    MCPToolDefinition(
+        "available_to_promise",
+        "Available to promise",
+        "Read from when and how much of an item can be promised: free stock now (less reservations, blocks and waiting orders no supply covers), then each open purchase by its stated date with what stays free of it after its customer assignments, as a running total naming the purchase.",
+        "read",
+        "Warehouse",
+        _object_schema({"item_id": STRING}, required=("item_id",)),
+        _read("available_to_promise"),
+    ),
+    MCPToolDefinition(
         "reorder_points",
         "Reorder points",
         "Read the reorder points the company stated: per item and location, the stock level it reorders at and the quantity it then orders, in the item's stock unit. Which are reached is the exception class reorder_point_reached.",

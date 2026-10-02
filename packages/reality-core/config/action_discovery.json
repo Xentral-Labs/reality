@@ -158,6 +158,8 @@
     "release_stock_block": "movements",
     "scrap_stock_block": "movements",
     "stock_blocks": "movements",
+    "serve_backorders": "movements",
+    "available_to_promise": "movements",
     "create_location": "references",
     "update_location": "references",
     "create_handling_unit": "tracking",

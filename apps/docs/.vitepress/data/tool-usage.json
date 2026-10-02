@@ -314,11 +314,17 @@
         "command:block_stock",
         "command:release_stock_block",
         "command:scrap_stock_block",
+        "command:serve_backorders",
         "command:set_reorder_point",
         "command:remove_reorder_point",
         "command:assign_supply"
       ],
-      "reads": ["command:inventory_cost", "command:stock_blocks", "command:reorder_points"],
+      "reads": [
+        "command:inventory_cost",
+        "command:available_to_promise",
+        "command:stock_blocks",
+        "command:reorder_points"
+      ],
       "exceptions": [
         "exception:units_not_comparable",
         "exception:reservation_exceeds_stock",
@@ -487,6 +493,7 @@
         "command:hold_document_commitments",
         "command:hold_party_delivery",
         "command:release_credit_holds",
+        "command:serve_backorders",
         "command:set_reorder_point",
         "command:remove_reorder_point",
         "command:close_stale_promises",
@@ -494,6 +501,7 @@
         "command:assign_line_item"
       ],
       "reads": [
+        "command:available_to_promise",
         "command:reorder_points",
         "command:credit_exposure",
         "command:month_end_billing",
@@ -10002,6 +10010,116 @@
       "links": ["command:scrap_stock_block"],
       "label_de": "Scrap blocked stock",
       "resources": ["item"]
+    },
+    {
+      "id": "tool:backorders_serve_propose",
+      "kind": "tool",
+      "key": "backorders_serve_propose",
+      "label": "Serve backorders",
+      "area": "orders",
+      "summary": "Prepare reserving what is available of an item at a location for the customer orders waiting for it. Serving order: the orders the named purchase (supplier_commitment_id, usually the one just received) is assigned to, in assignment order, then the others by due date. Without lines the available quantity is given out in that order; stated lines set the quantity per order. The review lists every waiting order and those on hold. A person confirms.",
+      "access": "propose",
+      "group": "Warehouse",
+      "synopsis": "backorders_serve_propose item_id location_id [supplier_commitment_id] [lines]",
+      "parameters": [
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "supplier_commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the incoming supplier commitment whose quantity is being assigned.",
+          "depth": 0
+        },
+        {
+          "name": "lines",
+          "type": "array",
+          "required": false,
+          "description": "Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.",
+          "depth": 0
+        },
+        {
+          "name": "lines[].commitment_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the obligation being reserved, held, or executed.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 1
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "serve_backorders",
+      "projections": [],
+      "links": ["command:serve_backorders"],
+      "label_de": "Serve backorders",
+      "resources": ["item", "order"]
+    },
+    {
+      "id": "tool:available_to_promise",
+      "kind": "tool",
+      "key": "available_to_promise",
+      "label": "Available to promise",
+      "area": "orders",
+      "summary": "Read from when and how much of an item can be promised: free stock now (less reservations, blocks and waiting orders no supply covers), then each open purchase by its stated date with what stays free of it after its customer assignments, as a running total naming the purchase.",
+      "access": "read",
+      "group": "Warehouse",
+      "synopsis": "available_to_promise item_id",
+      "parameters": [
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Answer from when and how much of an item can be promised, naming the purchases the answer relies on.",
+        "use_when": [
+          "Someone asks whether or when an item can be promised",
+          "or when more arrives."
+        ],
+        "do_not_use_when": [
+          "The question is which order a receipt should serve; prepare backorders_serve_propose."
+        ],
+        "limitations": [
+          "Purchase dates are what the supplier stated; an overdue purchase is still counted and marked overdue.",
+          "Waiting orders that no reservation or incoming supply covers are taken from free stock first."
+        ],
+        "empty_result": "No open purchase; only what is free now.",
+        "freshness": "Read from stock, reservations, blocks, open orders and assignments at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP available_to_promise",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "available_to_promise",
+      "projections": [],
+      "links": ["command:available_to_promise"],
+      "label_de": "Available to promise",
+      "resources": ["item", "order"]
     },
     {
       "id": "tool:reorder_points",
@@ -21356,6 +21474,82 @@
       "links": ["tool:stock_block_scrap_propose", "event:stock_block.scrapped"],
       "label_de": "Scrap blocked stock",
       "resources": ["item"]
+    },
+    {
+      "id": "command:serve_backorders",
+      "kind": "command",
+      "key": "serve_backorders",
+      "label": "Serve backorders",
+      "area": "orders",
+      "summary": "Reserves available stock for waiting customer orders in the serving order (assigned to the received purchase first, then by due date), as a person confirmed it.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "item",
+        "location",
+        "commitment",
+        "movement",
+        "reservation",
+        "stock_block",
+        "supply_assignment",
+        "party"
+      ],
+      "writes": ["reservation", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_backorder_serving", "waiting_promises"],
+      "tools": ["backorders_serve_propose"],
+      "synopses": ["backorders_serve_propose item_id location_id [supplier_commitment_id] [lines]"],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:backorders_serve_propose"],
+      "label_de": "Rückstände bedienen",
+      "resources": ["item", "order"]
+    },
+    {
+      "id": "command:available_to_promise",
+      "kind": "command",
+      "key": "available_to_promise",
+      "label": "Read available to promise",
+      "area": "orders",
+      "summary": "Answers from when and how much of an item can be promised, naming each open purchase and its date.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "item",
+        "commitment",
+        "movement",
+        "reservation",
+        "stock_block",
+        "supply_assignment",
+        "party"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["available_to_promise"],
+      "synopses": ["available_to_promise item_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Answer from when and how much of an item can be promised, naming the purchases the answer relies on.",
+        "use_when": [
+          "Someone asks whether or when an item can be promised",
+          "or when more arrives."
+        ],
+        "do_not_use_when": [
+          "The question is which order a receipt should serve; prepare backorders_serve_propose."
+        ],
+        "limitations": [
+          "Purchase dates are what the supplier stated; an overdue purchase is still counted and marked overdue.",
+          "Waiting orders that no reservation or incoming supply covers are taken from free stock first."
+        ],
+        "empty_result": "No open purchase; only what is free now.",
+        "freshness": "Read from stock, reservations, blocks, open orders and assignments at request time."
+      },
+      "links": ["tool:available_to_promise"],
+      "label_de": "Lieferfähigkeit anzeigen",
+      "resources": ["item", "order"]
     },
     {
       "id": "command:stock_blocks",
@@ -75210,6 +75404,7 @@
         "command:release_reservation",
         "command:record_movement",
         "command:cancel_commitment",
+        "command:serve_backorders",
         "command:close_stale_promises",
         "command:record_packaged_execution"
       ]

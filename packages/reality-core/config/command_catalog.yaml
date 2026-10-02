@@ -1131,6 +1131,22 @@ commands:
     reads: [stock_block, movement]
     writes: [stock_block, movement, business_event]
     effect: Writes blocked stock off its location, wholly or partly, with one reasoned adjustment linked to the block.
+  - name: Serve backorders
+    service: serve_backorders
+    related_services: [review_backorder_serving, waiting_promises]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [item, location, commitment, movement, reservation, stock_block, supply_assignment, party]
+    writes: [reservation, business_event]
+    effect: Reserves available stock for waiting customer orders in the serving order (assigned to the received purchase first, then by due date), as a person confirmed it.
+  - name: Read available to promise
+    service: available_to_promise
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [item, commitment, movement, reservation, stock_block, supply_assignment, party]
+    writes: []
+    effect: Answers from when and how much of an item can be promised, naming each open purchase and its date.
   - name: Read stock blocks
     service: stock_blocks
     mode: query
@@ -5010,6 +5026,24 @@ capability_guidance:
     unknown_when: [An order or payment exists that was not recorded, or an amount is in another currency.]
     next_steps: [Release a held order with credit_hold_release_propose after deciding.]
     examples: {use: [{scenario: Explain why an order is held for credit., reason: The read names the open, overdue and ordered amounts and the credits.}], do_not_use: [{scenario: Release the hold., reason: Use credit_hold_release_propose; an owner confirms.}]}
+  available_to_promise:
+    kind: read
+    application_tool: available_to_promise
+    purpose: Answer from when and how much of an item can be promised, naming the purchases the answer relies on.
+    use_when: [Someone asks whether or when an item can be promised, or when more arrives.]
+    do_not_use_when: [The question is which order a receipt should serve; prepare backorders_serve_propose.]
+    required_context: [tenant, item_id]
+    data_basis: [movement, reservation, stock_block, commitment, supply_assignment]
+    limitations: [Purchase dates are what the supplier stated; an overdue purchase is still counted and marked overdue., Waiting orders that no reservation or incoming supply covers are taken from free stock first.]
+    freshness: Read from stock, reservations, blocks, open orders and assignments at request time.
+    empty_result: No open purchase; only what is free now.
+    refusal_behavior: Only the company's own items are read.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which purchase and stated date each later quantity relies on.], does_not_prove: [That the supplier delivers on time.]}
+    unknown_when: [A purchase or order exists that was not recorded.]
+    next_steps: [Promise the customer the date shown, or prepare backorders_serve_propose when goods have arrived.]
+    examples: {use: [{scenario: A customer asks when 10 more can be delivered., reason: The read names the purchase and its date.}], do_not_use: [{scenario: Reserve stock for a waiting order., reason: Use backorders_serve_propose; a person confirms.}]}
   stock_blocks:
     kind: read
     application_tool: stock_blocks
@@ -5180,6 +5214,8 @@ agent_command_coverage:
   release_stock_block: {classification: eligible, tools: [stock_block_release_propose]}
   scrap_stock_block: {classification: eligible, tools: [stock_block_scrap_propose]}
   stock_blocks: {classification: eligible, tools: [stock_blocks]}
+  serve_backorders: {classification: eligible, tools: [backorders_serve_propose]}
+  available_to_promise: {classification: eligible, tools: [available_to_promise]}
   remove_reorder_point: {classification: eligible, tools: [reorder_point_remove_propose]}
   reorder_points: {classification: eligible, tools: [reorder_points]}
   list_targets:

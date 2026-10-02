@@ -138,6 +138,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`preview_stale_promise_closure`](#command-preview_stale_promise_closure)         | Preview stale promise closure              | Orders & fulfilment        | `stale_closure_preview`                                                                                                                                                                      | Web · MCP · Chat                        |
 | [`return_detail`](#command-return_detail)                                         | Read a returned payment                    | Orders & fulfilment        | `finance_payment_return`                                                                                                                                                                     | Web · MCP · Chat · CLI                  |
 | [`return_announcements`](#command-return_announcements)                           | Read announced returns                     | Orders & fulfilment        | `return_announcements`                                                                                                                                                                       | Web · API · MCP · Chat                  |
+| [`available_to_promise`](#command-available_to_promise)                           | Read available to promise                  | Orders & fulfilment        | `available_to_promise`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`reorder_points`](#command-reorder_points)                                       | Read reorder points                        | Orders & fulfilment        | `reorder_points`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`record_return`](#command-record_return)                                         | Record a returned payment                  | Orders & fulfilment        | `finance_payment_return_propose`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`release_reservation`](#command-release_reservation)                             | Release reservation                        | Orders & fulfilment        | `reservation_release_propose`                                                                                                                                                                | CLI · Web · API · MCP · Chat            |
@@ -145,6 +146,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`reserve`](#command-reserve)                                                     | Reserve stock                              | Orders & fulfilment        | `reservation_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`record_return_disposition`](#command-record_return_disposition)                 | Resolve arrived customer-return goods      | Orders & fulfilment        | `return_disposition_propose`                                                                                                                                                                 | CLI · Web · API · MCP · Chat            |
 | [`revise_commitment`](#command-revise_commitment)                                 | Revise commitment                          | Orders & fulfilment        | `commitment_revise_propose`                                                                                                                                                                  | Web · MCP · Chat                        |
+| [`serve_backorders`](#command-serve_backorders)                                   | Serve backorders                           | Orders & fulfilment        | `backorders_serve_propose`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
 | [`set_reorder_point`](#command-set_reorder_point)                                 | Set a reorder point                        | Orders & fulfilment        | `reorder_point_set_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`hold_party_delivery`](#command-hold_party_delivery)                             | Set party delivery hold                    | Orders & fulfilment        | `party_delivery_hold_propose`, `party_delivery_hold_release_propose`                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`withdraw_return_announcement`](#command-withdraw_return_announcement)           | Withdraw return announcement               | Orders & fulfilment        | `return_announcement_withdraw_propose`                                                                                                                                                       | Web · API · MCP · Chat                  |
@@ -4888,6 +4890,64 @@ waiting for.
 
 **See also:** command [`return_announcements`](./commands#command-return_announcements)
 
+### `available_to_promise` — Read available to promise {#command-available_to_promise}
+
+Answers from when and how much of an item can be promised, naming each open purchase and its date.
+
+**Synopsis**
+
+```text
+available_to_promise item_id
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `item`, `commitment`, `movement`, `reservation`, `stock_block`,
+`supply_assignment`, `party` · Writes: —
+
+**See also:** agent tool [`available_to_promise`](./commands#tool-available_to_promise)
+
+#### `available_to_promise` — Available to promise {#tool-available_to_promise}
+
+Read from when and how much of an item can be promised: free stock now (less reservations, blocks
+and waiting orders no supply covers), then each open purchase by its stated date with what stays
+free of it after its customer assignments, as a running total naming the purchase.
+
+**Synopsis**
+
+```text
+available_to_promise item_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query             | Kind                        | Default |
+| -------------------------- | --------------------------- | ------- |
+| `MCP available_to_promise` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Answer from when and how much of an item can be promised, naming the purchases the answer relies on.
+
+**Use when**
+
+- Someone asks whether or when an item can be promised
+- or when more arrives.
+
+**Do not use when**
+
+- The question is which order a receipt should serve; prepare backorders_serve_propose.
+
+**Parameters**
+
+| Name      | Type     | Required | Description                                        | Default |
+| --------- | -------- | -------- | -------------------------------------------------- | ------- |
+| `item_id` | `string` | yes      | Opaque identity of the operational item reference. | —       |
+
+**See also:** command [`available_to_promise`](./commands#command-available_to_promise)
+
 ### `reorder_points` — Read reorder points {#command-reorder_points}
 
 Lists the reorder points the company stated, per item and location, in the item's stock unit.
@@ -5324,6 +5384,53 @@ revision.; `inventory` — Only the reviewed reservation quantities remain alloc
 **See also:** command [`revise_commitment`](./commands#command-revise_commitment), projection
 [`commitment_register`](./views#projection-commitment_register), projection
 [`inventory`](./views#projection-inventory)
+
+### `serve_backorders` — Serve backorders {#command-serve_backorders}
+
+Reserves available stock for waiting customer orders in the serving order (assigned to the received
+purchase first, then by due date), as a person confirmed it.
+
+**Synopsis**
+
+```text
+backorders_serve_propose item_id location_id [supplier_commitment_id] [lines]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `item`, `location`, `commitment`, `movement`, `reservation`, `stock_block`,
+`supply_assignment`, `party` · Writes: `reservation`, `business_event`
+
+**See also:** agent tool [`backorders_serve_propose`](./commands#tool-backorders_serve_propose)
+
+#### `backorders_serve_propose` — Serve backorders {#tool-backorders_serve_propose}
+
+Prepare reserving what is available of an item at a location for the customer orders waiting for it.
+Serving order: the orders the named purchase (supplier_commitment_id, usually the one just received)
+is assigned to, in assignment order, then the others by due date. Without lines the available
+quantity is given out in that order; stated lines set the quantity per order. The review lists every
+waiting order and those on hold. A person confirms.
+
+**Synopsis**
+
+```text
+backorders_serve_propose item_id location_id [supplier_commitment_id] [lines]
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                     | Type     | Required | Description                                                                                  | Default |
+| ------------------------ | -------- | -------- | -------------------------------------------------------------------------------------------- | ------- |
+| `item_id`                | `string` | yes      | Opaque identity of the operational item reference.                                           | —       |
+| `location_id`            | `string` | yes      | Opaque identity of the operational or physical location.                                     | —       |
+| `supplier_commitment_id` | `string` | no       | Opaque identity of the incoming supplier commitment whose quantity is being assigned.        | —       |
+| `lines`                  | `array`  | no       | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction. | —       |
+| `lines[].commitment_id`  | `string` | yes      | Opaque identity of the obligation being reserved, held, or executed.                         | —       |
+| `lines[].quantity`       | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                      | —       |
+
+**See also:** command [`serve_backorders`](./commands#command-serve_backorders)
 
 ### `set_reorder_point` — Set a reorder point {#command-set_reorder_point}
 

@@ -225,6 +225,8 @@
     "stock_block_propose": "shipping",
     "stock_block_release_propose": "shipping",
     "stock_block_scrap_propose": "shipping",
+    "backorders_serve_propose": "shipping",
+    "available_to_promise": "shipping",
     "capability_catalog": "evidence",
     "business_journey_guide": "evidence",
     "business_journey_suggest_propose": "review",
