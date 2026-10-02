@@ -225,3 +225,13 @@ def test_the_conversation_read_scopes_places_and_counts(session):
         assert [row["id"] for row in archived["proposals"]] == [proposal_id]
     finally:
         app.dependency_overrides.clear()
+
+
+def test_the_elsewhere_count_excludes_foreign_companies(session):
+    tenant = create_tenant(session, "Counting company")
+    other = create_tenant(session, "Foreign counting company")
+    chat = create_chat_session(session, tenant.id)
+    propose_tool(session, other.id, "demo_seed", {})
+
+    assert pending_proposals_elsewhere(session, tenant.id, chat.id) == 0
+    assert pending_proposals_elsewhere(session, other.id, None) == 1
