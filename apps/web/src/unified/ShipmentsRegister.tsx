@@ -123,7 +123,7 @@ export function ShipmentsRegister({
                     <p className="text-sm" data-shipment-timing>
                       {t("Goods moved at")} {formatDateTime(row.moved_at)}
                       {row.confirmation_lag_seconds && row.recorded_at
-                        ? ` · ${t("recorded")} ${formatDateTime(row.recorded_at)} (${t("confirmation lag")} ${Math.round(row.confirmation_lag_seconds / 3600)} h)`
+                        ? ` · ${t("recorded")} ${formatDateTime(row.recorded_at)} (${t("confirmation lag")} ${row.confirmation_lag_seconds >= 3600 ? `${Math.round(row.confirmation_lag_seconds / 3600)} h` : `${Math.round(row.confirmation_lag_seconds / 60)} min`})`
                         : ""}
                     </p>
                   )}

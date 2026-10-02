@@ -17,8 +17,8 @@
   - movements carry the stated time;
   - a future time refused;
   - the lag in the read;
-  - the migration guard.
-- [x] T005 Migration `0123`, model, service, reads, refusals with translations
+  - goods cannot leave before they arrived.
+- [x] T005 Service, reads, refusals with translations (no schema; see plan)
 
 ## Phase 3: Adapters and Web (FR-003)
 
@@ -31,5 +31,5 @@
 
 ## Phase 5: Verification
 
-- [ ] T009 Full backend suite and web checks
-- [ ] T010 Review of the diff; fix findings
+- [x] T009 Full backend suite and web checks
+- [x] T010 Review of the diff; fix findings

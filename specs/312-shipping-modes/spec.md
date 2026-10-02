@@ -45,7 +45,7 @@
 
 The owner delegated these decisions to the recommended options.
 
-- Q: Is the collector's name needed, or only the mode? → A: The mode is stated, and the name is optional. The mode is a typed field because reads filter and refuse on it; the name is a stated text kept with the shipment's notice, which nothing calculates on.
+- Q: Is the collector's name needed, or only the mode? → A: The mode is stated, and the name is optional. Both are stated values kept with the shipment's notice. Nothing calculates on them, so neither is a typed field (Constitution III); the refusals check them when stated.
 - Q: Which time do a late confirmation's movements carry? → A: The stated time when the goods moved. The recording time stays on the shipment's events and the movements' business events. Future times are refused.
 - Q: Is a late confirmation a finding? → A: No. The shipment read shows the lag, and the stalled and overdue findings clear when the confirmation is recorded.
 
@@ -75,6 +75,7 @@ As an operations lead, I see when goods left and when the 3PL told us.
 ### Edge Cases
 
 - Tenant isolation: nothing crosses companies.
+- Goods stated to have left at a time before the stock that they take arrived are refused, in review and at confirmation.
 - A source-stated value is recorded as stated and never recomputed (Constitution VIII).
 - A pickup is a customer delivery only.
 - Shipments recorded without a mode read as carrier when they name a carrier, and as unknown otherwise.

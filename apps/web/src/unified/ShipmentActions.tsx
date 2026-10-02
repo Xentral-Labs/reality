@@ -48,6 +48,8 @@ export function ShipmentActions({
   const [pickup, setPickup] = useState(false);
   const [collectedBy, setCollectedBy] = useState("");
   const [movedAt, setMovedAt] = useState("");
+  // A pickup applies only where it can be offered: a customer delivery.
+  const isPickup = pickup && tool === "shipment_dispatch" && purpose === "customer_delivery";
   const [shipment, setShipment] = useState("");
   const [packageId, setPackageId] = useState("");
   const [eventType, setEventType] = useState("in_transit");
@@ -130,10 +132,10 @@ export function ShipmentActions({
         arguments_ = {
           purpose,
           counterparty_id: counterparty,
-          ...(carrier && !pickup ? { carrier } : {}),
-          ...(tracking && !pickup ? { tracking_number: tracking } : {}),
-          ...(pickup ? { delivery_mode: "pickup" } : {}),
-          ...(pickup && collectedBy ? { collected_by: collectedBy } : {}),
+          ...(carrier && !isPickup ? { carrier } : {}),
+          ...(tracking && !isPickup ? { tracking_number: tracking } : {}),
+          ...(isPickup ? { delivery_mode: "pickup" } : {}),
+          ...(isPickup && collectedBy ? { collected_by: collectedBy } : {}),
           ...(movedAt && tool !== "shipment_notice_record"
             ? { occurred_at: new Date(movedAt).toISOString() }
             : {}),
@@ -317,7 +319,7 @@ export function ShipmentActions({
                   {t("Customer collects (pickup)")}
                 </label>
               )}
-              {pickup ? (
+              {isPickup ? (
                 <Field label="Collected by" value={collectedBy} set={setCollectedBy} />
               ) : (
                 <>

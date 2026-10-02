@@ -1606,8 +1606,17 @@ def test_a_3pl_confirms_on_thursday_what_left_on_monday(session, business):
     from reality.services.shipments import shipment_explain
 
     tenant = business.tenant.id
-    _receive(session, business, business.item.id, "5", business.location.id)
     monday = core.now() - timedelta(days=3)
+    # The goods were in the warehouse before Monday.
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+        occurred_at=monday - timedelta(days=7),
+    )
     order = _order(
         session,
         business,

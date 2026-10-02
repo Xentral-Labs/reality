@@ -79849,20 +79849,6 @@
             "de": "Wann Reality diesen Eintrag angelegt hat (UTC)."
           },
           "references": []
-        },
-        {
-          "name": "delivery_mode",
-          "type": "VARCHAR",
-          "nullable": true,
-          "default": {
-            "kind": "none",
-            "value": ""
-          },
-          "meaning": {
-            "en": "How the goods go, as stated: carrier or customer pickup.",
-            "de": "Wie die Ware geht, wie angegeben: Spediteur oder Abholung durch den Kunden."
-          },
-          "references": []
         }
       ],
       "actions": ["command:record_shipment_notice", "command:record_packaged_execution"]
