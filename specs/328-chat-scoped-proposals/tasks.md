@@ -7,7 +7,7 @@
 - [x] T005 `CHAT_SESSION` context in `tools/application.py`; set in `send_chat_message`; user message sent time (FR-001, FR-002, FR-004).
 - [x] T006 `chat_proposals`, `pending_proposals_elsewhere`, `proposal_anchor`; removal archives (FR-003, FR-004, FR-006, FR-007).
 - [x] T007 `copilots_payload` returns session proposals, anchors, deciders, `pending_elsewhere` (FR-003–FR-006).
-- [x] T008 Web: anchored proposals, settled decision line, elsewhere hint, translations; browser fixtures (FR-004–FR-006, FR-009).
+- [x] T008 Web: anchored proposals, settled decision line, elsewhere hint, translations; browser proof `apps/web/scripts/chat-scoped-proposals-browser.mjs` (FR-004–FR-006, FR-009).
 - [x] T009 Docs: `chat.md`, `chat_sessions.md`, `DATA_MODEL.md`, data model reference, coverage matrix (all).
 - [ ] T010 Verify scoped suites, catalog/index gates, web build/i18n, spec/lint; CI green (all).
 

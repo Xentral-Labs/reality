@@ -37,7 +37,9 @@ See research.md.
 - **Removal**: `remove_chat_session` archives instead of deleting when the session holds a proposal.
 - **Web** (`ChatPage.tsx`): render each proposal after its anchor message (end of list when none). Pending ones keep
   the review button (`ChatDecisionList` entry, one card per proposal) or `GraphReportProposal`. Settled ones show a
-  `DecisionLine`. A compact `pending_elsewhere` link in `chatControls` opens Decisions → Pending approvals.
+  `DecisionLine`. A compact `pending_elsewhere` link directly above the history opens Decisions → Pending approvals. It is not
+  placed in `chatControls`: the standalone chat page renders its own action bar instead, so the hint would be
+  hidden there (found by the browser proof).
 
 ## Tests Before Implementation
 - Service: chat turn on the local provider links the proposal; outside a turn no link; MCP/`create_change_proposal`

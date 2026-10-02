@@ -596,18 +596,6 @@ export function ChatPage({
   const pendingElsewhere = data.pending_elsewhere || 0;
   const chatControls = (
     <div className="flex shrink-0 items-center gap-1">
-      {pendingElsewhere > 0 && (
-        <button
-          type="button"
-          data-chat-pending-elsewhere={pendingElsewhere}
-          className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-border-default px-2.5 text-xs text-fg-muted transition-colors hover:border-accent hover:text-fg-strong"
-          onClick={() => navigate({ route: "decisions", decisionsView: "pending" })}
-        >
-          <Clock3 aria-hidden="true" size={14} />
-          <span className="font-semibold text-accent">{pendingElsewhere}</span>
-          {t(pendingElsewhere === 1 ? "Other pending approval" : "Other pending approvals")}
-        </button>
-      )}
       {standaloneHistoryAvailable !== false && (
         <button
           className={
@@ -862,6 +850,22 @@ export function ChatPage({
             ))}
           </select>
         </label>
+      )}
+      {pendingElsewhere > 0 && (
+        // Spec 328: decisions made elsewhere are counted above the history, in
+        // every chat layout, and reviewed in Decisions rather than here.
+        <div className="flex w-full max-w-3xl shrink-0 justify-end self-center px-5">
+          <button
+            type="button"
+            data-chat-pending-elsewhere={pendingElsewhere}
+            className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-border-default px-2.5 text-xs text-fg-muted transition-colors hover:border-accent hover:text-fg-strong"
+            onClick={() => navigate({ route: "decisions", decisionsView: "pending" })}
+          >
+            <Clock3 aria-hidden="true" size={14} />
+            <span className="font-semibold text-accent">{pendingElsewhere}</span>
+            {t(pendingElsewhere === 1 ? "Other pending approval" : "Other pending approvals")}
+          </button>
+        </div>
       )}
       <div
         ref={messageList}
