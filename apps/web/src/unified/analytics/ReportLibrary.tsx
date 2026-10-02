@@ -77,7 +77,15 @@ export function ReportLibrary({
         }
       />
       {!read.data ? (
-        <ReadState loading={read.loading} error={read.error} retry={read.refresh} />
+        <ReadState
+          loading={read.loading}
+          error={
+            read.code === "company_membership_required"
+              ? t("An active company membership is required to use private reports.")
+              : read.error
+          }
+          retry={read.refresh}
+        />
       ) : (
         <>
           {!read.data.records.length && (

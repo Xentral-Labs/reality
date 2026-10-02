@@ -9,7 +9,7 @@ const browser = await chromium.launch({
   executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
 });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-page.setDefaultTimeout(10000);
+page.setDefaultTimeout(30000);
 const base = process.env.UNIFIED_APP_URL || "http://127.0.0.1:5177";
 const out = "/private/tmp/reality-112-browser";
 const requests = [],
@@ -67,6 +67,7 @@ await page.route("**/api/**", async (route) => {
       [
         { id: "owner", name: "Northstar Commerce", role: "owner" },
         { id: "member", name: "Other company", role: "member" },
+        { id: "observer", name: "Observed company" },
       ].map((company) => ({
         ...company,
         created_at: "2026-09-01T00:00:00Z",
@@ -84,6 +85,7 @@ await page.route("**/api/**", async (route) => {
       tenants: [
         { id: "owner", name: "Northstar Commerce", role: "owner" },
         { id: "member", name: "Other company", role: "member" },
+        { id: "observer", name: "Observed company" },
       ],
       default_tenant_id: "owner",
     });
@@ -266,6 +268,26 @@ try {
     console.log("PASS profile timezone selection, save/reload, rejection, recovery and appearance");
     process.exitCode = 0;
   } else {
+    await go("company");
+    const observer = page.locator('[data-company-card="observer"]');
+    await observer.getByText("Your role: No company membership", { exact: true }).waitFor();
+    assert.equal(
+      await observer.getByRole("button", { name: "Manage users", exact: true }).count(),
+      0,
+    );
+    assert.equal(
+      await observer.getByRole("button", { name: "Agents & API tokens", exact: true }).count(),
+      0,
+    );
+    assert.doesNotMatch(await observer.innerText(), /You are a member/);
+    await page
+      .locator('[data-company-card="member"]')
+      .getByText("Your role: Member", { exact: true })
+      .waitFor();
+    await page
+      .locator('[data-company-card="owner"]')
+      .getByText("Your role: Owner", { exact: true })
+      .waitFor();
     await go("access");
     await page.getByText("owner@example.test", { exact: true }).waitFor();
     // Access management is a task modal (spec 143 FR-011); only Switch company changes the

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
 
 from reality.mcp import auth as auth_module
 from reality.mcp.app import create_mcp_app
 from reality.mcp.auth import create_mcp_access_token
-from reality.mcp.config import MCPRuntimeSettings
+from reality.mcp.config import MCPRuntimeSettings, configured_mcp_url
 
 
 def test_sdk_supports_target_protocol_revision():
@@ -291,3 +292,61 @@ def test_manual_token_survives_authorization_outage_without_anonymous_fallback(
         record.revoked_at = auth_module.now()
         session.commit()
         assert client.post("/", json=initialize, headers=headers).status_code == 401
+
+
+def test_public_mcp_address_does_not_validate_runtime_only_configuration():
+    assert (
+        configured_mcp_url(
+            {
+                "REALITY_ENV": "production",
+                "MCP_URL": "https://mcp.example.test/",
+                "MCP_AUTHORIZATION_ISSUER": "not-an-issuer",
+                "MCP_BIND_PORT": "not-a-port",
+            }
+        )
+        == "https://mcp.example.test/"
+    )
+
+
+def test_production_runtime_uses_canonical_api_origin_as_issuer():
+    settings = MCPRuntimeSettings.from_environ(
+        {
+            "REALITY_ENV": "production",
+            "MCP_URL": "https://mcp.example.test/",
+            "API_URL": "https://api.example.test/",
+        }
+    )
+    assert settings.authorization_issuer == "https://api.example.test"
+
+
+@pytest.mark.parametrize(
+    "url", ["http://mcp.example.test/", "https://mcp.example.test/path", "invalid"]
+)
+def test_public_mcp_address_retains_production_origin_validation(url):
+    with pytest.raises(ValueError):
+        configured_mcp_url({"REALITY_ENV": "production", "MCP_URL": url})
+
+
+def test_production_runtime_rejects_insecure_api_issuer_fallback():
+    with pytest.raises(ValueError, match="HTTPS"):
+        MCPRuntimeSettings.from_environ(
+            {
+                "REALITY_ENV": "production",
+                "MCP_URL": "https://mcp.example.test/",
+                "API_URL": "http://api.example.test",
+            }
+        )
+
+
+def test_production_runtime_discovery_advertises_canonical_api_issuer():
+    settings = MCPRuntimeSettings.from_environ(
+        {
+            "REALITY_ENV": "production",
+            "MCP_URL": "https://mcp.example.test/",
+            "API_URL": "https://api.example.test",
+        }
+    )
+    with TestClient(create_mcp_app(settings=settings)) as client:
+        metadata = client.get("/.well-known/oauth-protected-resource").json()
+    assert metadata["authorization_servers"] == ["https://api.example.test"]
+    assert metadata["resource"] == "https://mcp.example.test/"

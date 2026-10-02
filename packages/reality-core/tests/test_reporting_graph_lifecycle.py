@@ -551,3 +551,51 @@ def test_a_confirmed_duplicate_names_the_copy_not_its_source(session, business, 
         if row["id"] != source["id"]
     )
     assert shown["report_id"] == copy["id"]
+
+
+@pytest.mark.parametrize("denial", ["missing", "removed", "inactive_user"])
+def test_private_library_explains_membership_without_disclosing_reports(
+    session, business, author, scheduled_owner, denial
+):
+    from sqlalchemy import select
+
+    from reality.db.core import TenantMembership
+
+    saved = save(session, business.tenant.id, author)
+    if denial == "missing":
+        session.delete(
+            session.scalar(
+                select(TenantMembership).where(
+                    TenantMembership.tenant_id == business.tenant.id,
+                    TenantMembership.user_id == author.user_id,
+                )
+            )
+        )
+    elif denial == "removed":
+        session.scalar(
+            select(TenantMembership).where(
+                TenantMembership.tenant_id == business.tenant.id,
+                TenantMembership.user_id == author.user_id,
+            )
+        ).status = "removed"
+    else:
+        scheduled_owner.status = "inactive"
+    session.flush()
+    with pytest.raises(AnalyticsError) as failure:
+        list_reports(session, business.tenant.id, author, report_kind="graph")
+    assert failure.value.code == "company_membership_required"
+    for report_id in [saved["id"], "missing-report"]:
+        with pytest.raises(NotFound, match="Report not found"):
+            get_report(session, business.tenant.id, author, report_id)
+    with pytest.raises(NotFound, match="Report not found"):
+        change_graph_report(
+            session,
+            business.tenant.id,
+            author,
+            {
+                "operation": "delete",
+                "request_id": str(uuid4()),
+                "report_id": saved["id"],
+                "expected_revision": saved["revision"],
+            },
+        )

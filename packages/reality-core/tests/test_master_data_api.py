@@ -2463,3 +2463,49 @@ def test_company_lifecycle_endpoints_require_owner_membership(
         assert session.scalar(select(Tenant.id).where(Tenant.id == target.id)) is None
     finally:
         app.dependency_overrides.clear()
+
+
+def test_company_settings_read_uses_public_mcp_address_in_production(
+    session, business, monkeypatch
+):
+    monkeypatch.setenv("REALITY_ENV", "production")
+    monkeypatch.setenv("MCP_URL", "https://mcp.runreality.ai/")
+    monkeypatch.setenv("API_URL", "https://app.runreality.ai")
+    monkeypatch.delenv("MCP_AUTHORIZATION_ISSUER", raising=False)
+    client = api_client(session)
+    try:
+        response = client.get(f"/api/tenants/{business.tenant.id}/settings/ai")
+        assert response.status_code == 200
+        assert response.json()["mcp_url"] == "https://mcp.runreality.ai/"
+        assert response.json()["copilot"]["credential_mode"] == "managed"
+        assert response.json()["tokens"] == []
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_company_ai_settings_read_preserves_owner_boundary(
+    session, company_setup_login, monkeypatch
+):
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    monkeypatch.setattr(web_module, "Session", factory)
+    monkeypatch.setattr(auth_module, "Session", factory)
+    monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
+    monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
+    target = create_tenant(session, "Owner settings boundary")
+    client = api_client(session)
+    try:
+        actor = company_setup_login(client)
+        membership = TenantMembership(
+            id=uid("mem"), tenant_id=target.id, user_id=actor.id, role="member"
+        )
+        session.add(membership)
+        session.commit()
+        denied = client.get(f"/api/tenants/{target.id}/settings/ai")
+        assert denied.status_code == 403
+        membership.role = "owner"
+        session.commit()
+        allowed = client.get(f"/api/tenants/{target.id}/settings/ai")
+        assert allowed.status_code == 200
+        assert allowed.json()["mcp_url"] == "https://mcp.example.test/"
+    finally:
+        app.dependency_overrides.clear()

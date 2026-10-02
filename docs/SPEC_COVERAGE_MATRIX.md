@@ -2080,3 +2080,13 @@ Execution evidence is recorded in spec 323; this map does not imply completion.
 | FR-004–FR-005, FR-007 | Shared nested values/closed sanitized technical disclosure; private and shipment reviews; four-language translations | `apps/web/scripts/readable-proposal-review-contract.test.mjs`; `proposal-review-browser.mjs`; Web/i18n build |
 
 Verification evidence: `specs/325-readable-proposal-reviews/quickstart.md`.
+
+## Spec 326 — Company settings access
+
+| Requirement | Implementation | Executable proof |
+|---|---|---|
+| FR-001–FR-002, DR-001–DR-002 | Public MCP URL validation separated from runtime; canonical API issuer fallback | `test_mcp_http_runtime.py`; production settings regression in `test_master_data_api.py` |
+| FR-003, FR-006 | Accurate three-state company membership presentation and translations | `unified-settings-browser.mjs`; i18n audit |
+| FR-004–FR-005, FR-006 | Shared private-library membership explanation; unchanged private detail/change denial | `test_reporting_graph_lifecycle.py`; `test_reporting_graph_surfaces.py`; `analytics-save-clarity-browser.mjs` |
+
+Verification evidence: `specs/326-company-settings-access/quickstart.md`. Completion requires green hosted CI and live deployment inspection.
