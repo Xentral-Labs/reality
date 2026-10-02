@@ -5,6 +5,7 @@ import { PageActionBar } from "./PageActionBar";
 import { CustomerHoldCard } from "./CustomerHoldCard";
 import { ReorderPoints } from "./ReorderPointCard";
 import { CustomerItemNumbers } from "./CustomerItemNumbers";
+import { SupplierItemTerms } from "./SupplierItemTerms";
 import { DeliveryRuleSection } from "./DeliveryRuleCard";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
@@ -105,6 +106,9 @@ export function MasterDataPage({
           <DeliveryRuleSection tenant={tenant} party={detail.id} name={String(detail.name)} />
           <CustomerItemNumbers key={detail.id} tenant={tenant} party={detail.id} />
         </>
+      )}
+      {family === "supplier" && (
+        <SupplierItemTerms key={detail.id} tenant={tenant} party={detail.id} />
       )}
       {family === "item" && (
         <ReorderPoints

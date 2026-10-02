@@ -498,6 +498,27 @@ export function OrderCard({
                     <p className="mt-1 break-words text-sm text-fg-muted">
                       {String(line.description || "")}
                     </p>
+                    {review.state.supplier_terms?.[String(index)] &&
+                      (review.state.supplier_terms[String(index)].below_minimum ||
+                        review.state.supplier_terms[String(index)].off_multiple) && (
+                        <p
+                          className="mt-2 rounded bg-warning-surface p-2 text-sm"
+                          data-supplier-terms
+                        >
+                          {/* Spec 310: the supplier's terms, named and never enforced. */}
+                          {t("Supplier terms")}:{" "}
+                          {review.state.supplier_terms[String(index)].minimum_quantity &&
+                            `${t("Minimum")} ${formatQuantity(review.state.supplier_terms[String(index)].minimum_quantity!)} `}
+                          {review.state.supplier_terms[String(index)].order_multiple &&
+                            `${t("Multiple of")} ${formatQuantity(review.state.supplier_terms[String(index)].order_multiple!)} `}
+                          · {t("Suggested quantity")}{" "}
+                          <strong>
+                            {formatQuantity(
+                              review.state.supplier_terms[String(index)].suggested_quantity,
+                            )}
+                          </strong>
+                        </p>
+                      )}
                     <div className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                       <p>
                         {t("Quantity")}
