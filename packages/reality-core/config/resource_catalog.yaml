@@ -140,7 +140,7 @@ resources:
     views: [orders, commitments, reservations, fulfillment_blockers, warehouse_queue]
     projections: [fulfillment_queue, fulfillment_blockers, commitment_register]
     exceptions:
-      [overdue_outgoing_customer_commitment, outgoing_commitment_due_soon, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, stale_cost_review, negative_actual_db1, order_waiting_for_completeness, backorder_against_rule]
+      [overdue_outgoing_customer_commitment, outgoing_commitment_due_soon, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, stale_cost_review, negative_actual_db1, order_waiting_for_completeness, backorder_against_rule, shipped_beyond_order]
 
   - key: delivery
     label:
@@ -780,6 +780,7 @@ labels:
       stock_in_another_location: Bestand in anderem Lager
       order_waiting_for_completeness: Auftrag wartet auf Vollständigkeit
       backorder_against_rule: Rückstand gegen Kundenregel
+      shipped_beyond_order: Mehr geliefert als bestellt
       outgoing_commitment_due_soon: Liefertermin gefährdet
       silent_source: Quelle verstummt
       source_interpretation_failure: Quelle nicht interpretierbar

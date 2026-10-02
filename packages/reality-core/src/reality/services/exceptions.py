@@ -131,6 +131,7 @@ CLASS_ORDER = {
     "stock_in_another_location": 47,
     "order_waiting_for_completeness": 48,
     "backorder_against_rule": 49,
+    "shipped_beyond_order": 50,
 }
 
 
@@ -2559,6 +2560,55 @@ def _billed_not_shipped_exceptions(
     return result
 
 
+def _shipped_beyond_order_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Spec 313: more has gone to a customer than the order now asks for.
+
+    A customer may lower a line below what was already shipped, and the revision
+    is accepted: it is what the customer said. What left beyond it is reported
+    until it comes back or the line is raised again to what was shipped. A
+    cancelled rest asks for nothing more, so a promise cancelled after part of
+    it shipped is not beyond its order.
+    """
+    result: list[OperationalException] = []
+    for commitment, line, document in _order_line_promises(
+        session, tenant_id, "customer_delivery"
+    ):
+        if commitment.status == "cancelled":
+            continue
+        shipped = _fulfilled_quantity(
+            session, tenant_id, commitment.id, "shipment"
+        ) - _fulfilled_quantity(session, tenant_id, commitment.id, "return")
+        in_force = _promise_quantity(session, tenant_id, commitment)
+        excess = shipped - in_force
+        if excess <= ZERO:
+            continue
+        result.append(
+            OperationalException(
+                _identity("shipped_beyond_order", commitment.id),
+                "shipped_beyond_order",
+                (),
+                "normal",
+                "Shipped beyond the order",
+                f"{excess.normalize():f} shipped beyond the {in_force.normalize():f} "
+                f"now ordered on {document.number}",
+                "commitment",
+                commitment.id,
+                {
+                    "ordered_quantity": Decimal(commitment.quantity),
+                    "quantity_in_force": in_force,
+                    "shipped_quantity": shipped,
+                    "excess_quantity": excess,
+                    "unit": commitment.unit or line.unit,
+                },
+                _order_line_trace(commitment, line, document),
+                commitment.due_at,
+            )
+        )
+    return result
+
+
 def _billed_not_received_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
@@ -4901,6 +4951,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "stock_in_another_location": _stock_in_another_location_exceptions,
     "order_waiting_for_completeness": _order_waiting_for_completeness_exceptions,
     "backorder_against_rule": _backorder_against_rule_exceptions,
+    "shipped_beyond_order": _shipped_beyond_order_exceptions,
     "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,

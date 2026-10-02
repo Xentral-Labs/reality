@@ -51,6 +51,7 @@ WITHOUT_A_SCENARIO = {
     "stock_in_another_location",
     "order_waiting_for_completeness",
     "backorder_against_rule",
+    "shipped_beyond_order",
     "missing_acquisition_cost",
     "unassigned_cost_component",
     "stale_cost_review",

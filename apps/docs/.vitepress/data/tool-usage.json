@@ -557,7 +557,8 @@
         "exception:order_line_item_unknown",
         "exception:order_line_price_missing",
         "exception:order_waiting_for_completeness",
-        "exception:backorder_against_rule"
+        "exception:backorder_against_rule",
+        "exception:shipped_beyond_order"
       ],
       "tools": [
         "tool:commitments_list",
@@ -26312,7 +26313,8 @@
         "exception:reorder_point_reached",
         "exception:stock_in_another_location",
         "exception:order_waiting_for_completeness",
-        "exception:backorder_against_rule"
+        "exception:backorder_against_rule",
+        "exception:shipped_beyond_order"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -27925,6 +27927,32 @@
         "view:commitments"
       ],
       "label_de": "Rückstand gegen Kundenregel",
+      "resources": ["order"]
+    },
+    {
+      "id": "exception:shipped_beyond_order",
+      "kind": "exception",
+      "key": "shipped_beyond_order",
+      "label": "Shipped beyond the order",
+      "area": "orders",
+      "summary": "More has gone to a customer than the order line now asks for. A customer may lower a line below what was already shipped, and the revision is accepted, because it is what the customer said; Reality subtracts what came back from what was shipped against the promise and reports what exceeds the quantity in force, with the order and the excess. It requests no return and issues no credit by itself. A promise cancelled after part of it shipped asks for nothing more, so its shipments are not beyond the order.",
+      "owner": "Sales",
+      "clears_through": "The excess coming back as a return, or revising the line up to what was shipped.",
+      "severity": "normal",
+      "record_type": "commitment",
+      "authority": "313/FR-002",
+      "evidence": [
+        "tests/test_shipped_beyond_order.py::test_a_line_lowered_below_what_shipped_is_reported",
+        "tests/test_shipped_beyond_order.py::test_it_clears_by_a_return_or_a_revision_up"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:commitments"
+      ],
+      "label_de": "Mehr geliefert als bestellt",
       "resources": ["order"]
     },
     {

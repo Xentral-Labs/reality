@@ -129,6 +129,7 @@ records:
         supplier_credit_not_returned: requires_presence
         billed_not_received: requires_presence
         billed_not_shipped: requires_presence
+        shipped_beyond_order: requires_presence
         units_not_comparable: requires_presence
         order_line_item_unknown: reports_absence
         order_line_price_missing: reports_absence
