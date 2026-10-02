@@ -265,7 +265,8 @@ export function DeliveryRuleSection({
     () => deliveryRules.read(tenant, party ? { party_id: party } : { document_id: order! }),
     [tenant, party, order, version],
   );
-  const answer = read.data;
+  // An answer without a rule in force is no answer; show nothing rather than break.
+  const answer = read.data?.effective ? read.data : null;
   return (
     <section className="mt-4 text-sm" data-delivery-rule-section>
       <div className="font-medium text-fg-strong">{t("Delivery rule")}</div>
@@ -280,7 +281,7 @@ export function DeliveryRuleSection({
               {answer.effective.reason ? ` · ${answer.effective.reason}` : ""}
             </span>
           </div>
-          {answer.history.length > 1 && (
+          {(answer.history || []).length > 1 && (
             <details className="mt-1">
               <summary className="text-fg-muted">{t("Earlier statements")}</summary>
               <ul className="mt-1 space-y-1">
