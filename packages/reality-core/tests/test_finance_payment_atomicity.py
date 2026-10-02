@@ -40,8 +40,13 @@ def outgoing_obligation(postgres_database, request):
             "300",
             currency="USD",
         )
-        post = core.post_supplier_invoice if supplier else core.post_sales_credit_note
-        post(session, tenant.id, document.id)
+        if supplier:
+            # Spec 309: a supplier invoice in another currency states its rate.
+            core.post_supplier_invoice(
+                session, tenant.id, document.id, exchange_rate="0.9"
+            )
+        else:
+            core.post_sales_credit_note(session, tenant.id, document.id)
         identity = tenant.id, document.id
     try:
         yield engine, *identity, request.param
