@@ -30,8 +30,7 @@ Tests come first in each phase where practical.
   - two partial payments leaving nothing in either currency;
   - an unconverted invoice refused;
   - a stale payment review;
-  - a reversal taking the difference back;
-  - company-currency balances per account.
+  - a reversal taking the difference back.
 - [x] T007 Supplier invoice and payment services, reviews, reversal, ledger reads
 
 ## Phase 4: Landed cost (FR-006)
@@ -54,7 +53,7 @@ Tests come first in each phase where practical.
 
 ## Phase 6: Web
 
-- [x] T012 Firmenwährung in the finance settings; Kurs on the supplier invoice; Gezahlt in EUR on the supplier payment; both amounts, rate and difference in posting and payment views; translations; browser fixtures
+- [x] T012 Firmenwährung in the finance settings; Kurs on the supplier invoice with its value in the review; Gezahlt in Firmenwährung on the supplier payment with rate and difference in the review; translations
 
 ## Phase 7: Stories and Guide (FR-004)
 

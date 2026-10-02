@@ -81,7 +81,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/fo
 7. **Accounts:**
    - new role `exchange_difference` in `domain/finance.py`;
    - a default account, the resource catalog and the data model;
-   - a company-currency balance per account in the ledger reads.
+   - the company amounts in the ledger entry values and posting events; a company-currency balance per account is left for later.
 8. **Landed cost:** a receipt costing whose goods part comes from a foreign invoice offers `conversion_basis` prefilled with the invoice's rate and its source record as evidence. It is confirmed through the existing spec 242 review.
 9. **Adapters:**
    - tools `company_currency_set` (reviewed) and `company_currency` (read);
