@@ -54,6 +54,6 @@ Tests come first in each phase where practical.
 
 ## Phase 7: Verification
 
-- [ ] T013 Full backend suite and web checks
-- [ ] T014 Manual check per `quickstart.md`
+- [x] T013 Full backend suite and web checks
+- [x] T014 Manual check per `quickstart.md`
 - [x] T015 Review of the diff; fix findings
