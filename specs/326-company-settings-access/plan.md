@@ -20,7 +20,7 @@ Post-design review: all rows PASS. No exceptions.
 ## Design
 1. Infrastructure configuration: `reality/mcp/config.py` public URL helper validates only MCP_URL; runtime retains listener/issuer validation and uses canonical API_URL fallback (spec265 FR-023).
 2. Shared analytics service: `require_author` gains a keyword-only list-context explanation flag; only `list_reports` requests membership-specific AnalyticsError. Details and changes retain generic NotFound.
-3. API: existing settings adapter benefits from helper correction without new business rules. Existing analytics adapter exposes structured error.
+3. API: existing settings adapter benefits from helper correction without new business rules. Its existing owner guard and platform-administrator/development-auth exceptions remain unchanged. Existing analytics adapter exposes structured error.
 4. Web: CompanySettings uses explicit three-state role presentation; ReportLibrary maps retained error code to localized explanation. Existing owner actions remain unchanged.
 5. Localization dictionaries and long-lived Web/MCP contracts describe restored semantics.
 

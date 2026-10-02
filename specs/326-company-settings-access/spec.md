@@ -26,7 +26,7 @@ An active company owner opens Agents & API tokens and AI configuration and sees 
 **Acceptance Scenarios**:
 1. Given an active owner and valid configuration, opening either view succeeds without credential disclosure.
 2. Given production HTTPS MCP/API origins without a separate issuer override, both settings reads succeed; invalid public MCP URLs remain rejected.
-3. Given a non-owner, the same protected settings read remains denied.
+3. Given an ordinary authenticated company member without owner or platform-administrator privileges, the protected settings read remains denied. Existing platform-administrator and disabled-development-auth exceptions remain unchanged.
 
 ### User Story 2 - Understand company access (Priority: P2)
 A user sees the role actually held in each company.
@@ -61,7 +61,7 @@ Revoked membership, inactive user, invalid MCP origins, explicit issuer override
 - **DR-002**: Reads MUST NOT replace or discard historical credential/permission values as a repair mechanism.
 
 ## Assumptions and Dependencies
-The user's explicit session instruction approves this narrow defect scope and authorizes final merge/deployment. Existing membership, vault, MCP and private-report contracts remain authoritative. Actual deployed failure cause is a technical research question, not a product clarification. All code changes are isolated from unrelated concurrent work.
+The user's explicit session instruction approves this narrow defect scope and authorizes final merge/deployment. Existing membership, vault, MCP and private-report contracts remain authoritative. The settings API retains its existing platform-administrator exception; this does not confer company membership or private-report authorship. Actual deployed failure cause is a technical research question, not a product clarification. All code changes are isolated from unrelated concurrent work.
 
 ## Success Criteria
 - **SC-001**: Both deployed owner settings dialogs display their configuration rather than a shared server error.
