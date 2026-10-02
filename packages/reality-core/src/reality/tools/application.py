@@ -1427,6 +1427,58 @@ def _available_to_promise(
     return available_to_promise(session, tenant_id, arguments["item_id"])
 
 
+def _customer_item_number_set(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.customer_item_numbers import (
+        UNCHECKED,
+        set_customer_item_number,
+    )
+
+    row = set_customer_item_number(
+        session,
+        tenant_id,
+        arguments["party_id"],
+        arguments["item_id"],
+        arguments["customer_item_number"],
+        arguments.get("customer_item_name", ""),
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+    return _entity_result("customer_item_number", row)
+
+
+def _customer_item_number_remove(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.customer_item_numbers import (
+        UNCHECKED,
+        remove_customer_item_number,
+    )
+
+    return remove_customer_item_number(
+        session,
+        tenant_id,
+        arguments["party_id"],
+        arguments["customer_item_number"],
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+
+
+def _customer_item_numbers(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.customer_item_numbers import customer_item_numbers
+
+    return customer_item_numbers(
+        session,
+        tenant_id,
+        party_id=arguments.get("party_id") or None,
+        item_id=arguments.get("item_id") or None,
+    )
+
+
 def _stock_count(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     from reality.services.stock_counts import record_stock_count
 
@@ -2681,6 +2733,24 @@ TOOLS = {
         False,
         _available_to_promise,
     ),
+    "customer_item_number_set": Tool(
+        "customer_item_number_set",
+        "State which of our items a customer's own article number names, with the customer's name for it.",
+        True,
+        _customer_item_number_set,
+    ),
+    "customer_item_number_remove": Tool(
+        "customer_item_number_remove",
+        "Withdraw a customer's article number; lines ordered by it keep it as stated.",
+        True,
+        _customer_item_number_remove,
+    ),
+    "customer_item_numbers": Tool(
+        "customer_item_numbers",
+        "Read a customer's own article numbers for our items, or the numbers customers use for one item.",
+        False,
+        _customer_item_numbers,
+    ),
     "stock_count": Tool(
         "stock_count",
         "Record a count of a location and post every difference as an adjustment; a loss comes off free stock first, then blocks.",
@@ -3508,6 +3578,15 @@ def create_change_proposal(
         normalized_arguments, stock_block_review = review_stock_block(
             session, tenant_id, tool_name, arguments
         )
+    customer_item_review = None
+    if tool_name in {"customer_item_number_set", "customer_item_number_remove"}:
+        from reality.services.customer_item_numbers import (
+            review_customer_item_number,
+        )
+
+        normalized_arguments, customer_item_review = review_customer_item_number(
+            session, tenant_id, tool_name, arguments
+        )
     stock_count_review = None
     if tool_name == "stock_count":
         from reality.services.stock_counts import review_stock_count
@@ -3599,6 +3678,8 @@ def create_change_proposal(
         preview["delivery_rule"] = delivery_rule_review
     if stock_count_review is not None:
         preview["stock_count"] = stock_count_review
+    if customer_item_review is not None:
+        preview["customer_item_number"] = customer_item_review
     if stock_block_review is not None:
         preview["stock_block"] = stock_block_review
     if backorder_review is not None:
@@ -4188,6 +4269,8 @@ def approve_and_execute_proposal(
         "backorders_serve",
         "delivery_rule_set",
         "stock_count",
+        "customer_item_number_set",
+        "customer_item_number_remove",
         "down_payment_invoice_record",
         "proforma_invoice_record",
         "commitment_revise",

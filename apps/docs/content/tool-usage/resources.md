@@ -9,7 +9,7 @@ the technical key stands beside each one.
 | Object                                                           | Lists | Actions | Exceptions to clear |
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
-| [Business partner](#resource-party)                              | 1     | 8       | 2                   |
+| [Business partner](#resource-party)                              | 1     | 10      | 2                   |
 | [Item](#resource-item)                                           | 5     | 11      | 6                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
@@ -77,10 +77,15 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 - [Assign party price list](./commands#command-assign_party_price_list) (`assign_party_price_list`)
 - [Create and assign pricing group](./commands#command-create_party_group) (`create_party_group`)
 - [Set party delivery hold](./commands#command-hold_party_delivery) (`hold_party_delivery`)
+- [State a customer item number](./commands#command-set_customer_item_number)
+  (`set_customer_item_number`)
+- [Withdraw a customer item number](./commands#command-remove_customer_item_number)
+  (`remove_customer_item_number`)
 - [Hand over to collection](./commands#command-record_handover) (`record_handover`)
 
 **Look up**
 
+- [Read customer item numbers](./commands#command-customer_item_numbers) (`customer_item_numbers`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 
 **Exceptions to clear**
@@ -90,12 +95,14 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 
 **Appears in processes:** [Master data and sources](./processes#process-master_data)
 
-**Underneath:** Tables: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold` ·
-Events:
+**Underneath:** Tables: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold`,
+`customer_item_number` · Events:
 [`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded),
 [`party.created`](./events#event-party-created), [`party.updated`](./events#event-party-updated),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`party.delivery_hold_released`](./events#event-party-delivery_hold_released),
+[`customer_item_number.set`](./events#event-customer_item_number-set),
+[`customer_item_number.removed`](./events#event-customer_item_number-removed),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed),
 [`party_price_list.assigned`](./events#event-party_price_list-assigned),
 [`party_group.updated`](./events#event-party_group-updated),

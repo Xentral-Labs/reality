@@ -28,7 +28,7 @@ sections:
     tables: [tenant, source_system, source_capability, source_artifact, source_stream, source_record, import_job, interpretation_outcome, interpretation_record_reference]
   - name: Master Data
     description: Operational identities and settings needed for joins and decisions.
-    tables: [accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, finance_reference, party, party_role, party_email_address, party_hold, delivery_rule, payment_term, item, location, item_reorder_point, stock_count, stock_count_line, price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
+    tables: [accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, finance_reference, party, party_role, party_email_address, party_hold, delivery_rule, customer_item_number, payment_term, item, location, item_reorder_point, stock_count, stock_count_line, price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
   - name: Evidence
     description: Normalized business documents that connect source evidence to reality.
     tables: [financial_component, document, document_line, opening_scope, opening_item_detail]
@@ -626,6 +626,19 @@ tables:
       source_record_id: {description: "The statement in force: a version of the subject's delivery-rule source stream, whose earlier versions keep every previous statement (spec 320 pattern)."}
       created_at: {}
       updated_at: {description: UTC timestamp when the rule was last restated.}
+  customer_item_number:
+    description: A customer's own article number, and name, for one of our items (spec 308); lines quoting it resolve to that item for this customer.
+    columns:
+      id: {}
+      tenant_id: {}
+      party_id: {description: The customer whose number it is.}
+      item_id: {description: Our item the number names.}
+      customer_item_number: {description: The number as the customer states it.}
+      match_key: {description: "The number upper-cased and without spaces: what order lines are matched on."}
+      customer_item_name: {description: The customer's own name for the item, as stated.}
+      source_record_id: {description: "The statement in force: a version of the number's source stream, whose earlier versions keep every previous statement and the removal (spec 320 pattern)."}
+      created_at: {}
+      updated_at: {description: UTC timestamp when the number was last restated.}
   stock_count:
     description: A count of one location as a person recorded it (spec 307); its differences are posted as adjustments linked from its lines.
     columns:

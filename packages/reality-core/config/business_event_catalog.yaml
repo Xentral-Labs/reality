@@ -38,6 +38,8 @@ events:
   - {type: stock_block.created, producer: block_stock, subject: stock_block, invalidates: [Inventory, Item supply and demand, Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
   - {type: stock_block.released, producer: release_stock_block, subject: stock_block, invalidates: [Inventory, Item supply and demand, Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
   - {type: stock_block.scrapped, producer: scrap_stock_block, subject: stock_block, invalidates: [Inventory, Item supply and demand, Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
+  - {type: customer_item_number.set, producer: set_customer_item_number, subject: customer_item_number, invalidates: [Timeline, Tenant usage]}
+  - {type: customer_item_number.removed, producer: remove_customer_item_number, subject: customer_item_number, invalidates: [Timeline, Tenant usage]}
   - {type: stock_count.posted, producer: record_stock_count, subject: stock_count, invalidates: [Inventory, Item supply and demand, Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
   - {type: delivery_rule.stated, producer: state_delivery_rule, subject: delivery_rule, invalidates: [Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
   - {type: location.created, producer: create_location, subject: location, invalidates: [Inventory, Timeline, Item supply and demand, Tenant usage]}

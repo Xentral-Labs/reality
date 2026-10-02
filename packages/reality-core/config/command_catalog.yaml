@@ -167,6 +167,8 @@ parameter_descriptions:
   is_active: Whether the record remains selectable for new operational work.
   is_default: Whether this rule is the fallback for its direction and currency.
   item_id: Opaque identity of the operational item reference.
+  customer_item_number: The customer's own article number, as the customer states it; matched ignoring case and spaces.
+  customer_item_name: The customer's own name for the item, as stated.
   remember_for_customer: Also state the number the line was ordered by as the customer's item number for the assigned item.
   stock_count_id: Opaque identity of a recorded stock count.
   rule: "How the customer or order is delivered: partial_allowed, ship_complete or no_backorders."
@@ -1151,6 +1153,30 @@ commands:
     reads: [item, commitment, movement, reservation, stock_block, supply_assignment, party]
     writes: []
     effect: Answers from when and how much of an item can be promised, naming each open purchase and its date.
+  - name: State a customer item number
+    service: set_customer_item_number
+    related_services: [review_customer_item_number, resolve_customer_item]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [party, item, customer_item_number]
+    writes: [customer_item_number, source_record, business_event]
+    effect: States which of our items a customer's own article number names, with the customer's name for it, as a new version of that number's statement stream.
+  - name: Withdraw a customer item number
+    service: remove_customer_item_number
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [party, customer_item_number]
+    writes: [customer_item_number, source_record, business_event]
+    effect: Withdraws a customer's article number; lines ordered by it keep it as stated.
+  - name: Read customer item numbers
+    service: customer_item_numbers
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [customer_item_number, party, item]
+    writes: []
+    effect: Lists a customer's own article numbers, or the numbers customers use for one item.
   - name: Record a stock count
     service: record_stock_count
     related_services: [review_stock_count, book_as_of]
@@ -5087,6 +5113,24 @@ capability_guidance:
     unknown_when: [A purchase or order exists that was not recorded.]
     next_steps: [Promise the customer the date shown, or prepare backorders_serve_propose when goods have arrived.]
     examples: {use: [{scenario: A customer asks when 10 more can be delivered., reason: The read names the purchase and its date.}], do_not_use: [{scenario: Reserve stock for a waiting order., reason: Use backorders_serve_propose; a person confirms.}]}
+  customer_item_numbers:
+    kind: read
+    application_tool: customer_item_numbers
+    purpose: Show which of our items a customer means by its own article numbers.
+    use_when: [A customer order quotes the customer's own article number, or someone asks which numbers a customer uses.]
+    do_not_use_when: [The question is a price; read the price resolution.]
+    required_context: [tenant, party_id or item_id]
+    data_basis: [customer_item_number]
+    limitations: [A number is what a person stated for the customer; Shopify orders quote our own SKU.]
+    freshness: Read from the mappings at request time.
+    empty_result: No customer item number is stated for the selection.
+    refusal_behavior: Only the company's own customers and items are read.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which item a customer number names and the customer's name for it.], does_not_prove: [That the customer still uses the number.]}
+    unknown_when: [A customer uses a number nobody stated.]
+    next_steps: [State or change a number with customer_item_number_set_propose; a person confirms.]
+    examples: {use: [{scenario: Find which item the customer means by K-4711., reason: The read names our item for that number.}], do_not_use: [{scenario: Find the customer's price., reason: Read the price resolution instead.}]}
   stock_counts:
     kind: read
     application_tool: stock_counts
@@ -5313,6 +5357,9 @@ agent_command_coverage:
   stock_blocks: {classification: eligible, tools: [stock_blocks]}
   state_delivery_rule: {classification: eligible, tools: [delivery_rule_set_propose]}
   record_stock_count: {classification: eligible, tools: [stock_count_propose]}
+  set_customer_item_number: {classification: eligible, tools: [customer_item_number_set_propose]}
+  remove_customer_item_number: {classification: eligible, tools: [customer_item_number_remove_propose]}
+  customer_item_numbers: {classification: eligible, tools: [customer_item_numbers]}
   stock_counts: {classification: eligible, tools: [stock_counts]}
   stock_count_detail: {classification: eligible, tools: [stock_count_detail]}
   delivery_rules: {classification: eligible, tools: [delivery_rules]}
