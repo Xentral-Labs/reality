@@ -17,6 +17,7 @@ Verification pending; no completion claim.
 - Browser: both fee types open payment without reduction/dunning controls; no writes. General Finance browser smoke passed with filters, paging, freshness, retry and 48 localized screenshots.
 - `make docs-build`: 11 Python reference tests, 109 Node tests, formatting and VitePress build passed.
 - `make lint spec-check`: passed.
+- `make docs-catalog-check`: passed after the local implementation commit; regeneration is identical, including Product Advisor artifacts.
 - Overall backend gate remains blocked by the pre-existing demo-baseline timeout, reproduced on unmodified `590c4d72` (see spec 317 evidence). No completion claim and no release/push.
 
 ## Review
