@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+import asyncio
+import json
+import logging
+import threading
 import time
 from collections import defaultdict, deque
+from contextlib import suppress
 from threading import Lock
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, StrictBool
+from starlette.concurrency import run_in_threadpool
 
 from reality.services.business_journeys import (
     JourneyProposalError,
@@ -44,6 +51,7 @@ _WINDOW_SECONDS = 60
 _REQUESTS_PER_WINDOW = 20
 _requests: defaultdict[str, deque[float]] = defaultdict(deque)
 _requests_lock = Lock()
+logger = logging.getLogger(__name__)
 
 
 class PublicTurn(BaseModel):
@@ -119,14 +127,94 @@ def public_catalog() -> dict[str, object]:
     return journey_catalog().public_payload()
 
 
+def _answer_public_question(payload: PublicQuestion, *, progress=None) -> dict[str, object]:
+    started_at = time.monotonic()
+    try:
+        return answer_product_question(
+            payload.question,
+            surface_language=payload.locale,
+            history=tuple(turn.model_dump() for turn in payload.history),
+            provider=journey_rewrite_provider(),
+            progress=progress,
+        )
+    finally:
+        logger.info(
+            "Product advisor request completed elapsed_ms=%d",
+            max(0, round((time.monotonic() - started_at) * 1000)),
+        )
+
+
 @router.post("/questions")
-def public_question(payload: PublicQuestion, request: Request) -> dict[str, object]:
+async def public_question(
+    payload: PublicQuestion, request: Request, stream: bool = False
+):
     _admit(request)
-    return answer_product_question(
-        payload.question,
-        surface_language=payload.locale,
-        history=tuple(turn.model_dump() for turn in payload.history),
-        provider=journey_rewrite_provider(),
+    if not stream:
+        return await run_in_threadpool(_answer_public_question, payload)
+
+    async def events():
+        queue: asyncio.Queue[dict[str, object] | None] = asyncio.Queue()
+        loop = asyncio.get_running_loop()
+        cancelled = threading.Event()
+        sequence = 0
+
+        def progress(stage: str, elapsed_ms: int) -> None:
+            nonlocal sequence
+            if cancelled.is_set():
+                raise asyncio.CancelledError
+            sequence += 1
+            loop.call_soon_threadsafe(
+                queue.put_nowait,
+                {"sequence": sequence, "stage": stage, "elapsed_ms": elapsed_ms},
+            )
+
+        async def execute() -> None:
+            nonlocal sequence
+            try:
+                answer = await asyncio.to_thread(
+                    _answer_public_question, payload, progress=progress
+                )
+                if cancelled.is_set():
+                    return
+                sequence += 1
+                await queue.put(
+                    {
+                        "sequence": sequence,
+                        "stage": "complete",
+                        "elapsed_ms": 0,
+                        "answer": answer,
+                    }
+                )
+            except asyncio.CancelledError:
+                pass
+            finally:
+                await queue.put(None)
+
+        started_at = time.monotonic()
+        task = asyncio.create_task(execute())
+        try:
+            while True:
+                event = await queue.get()
+                if event is None:
+                    break
+                if event["stage"] == "complete":
+                    event["elapsed_ms"] = max(
+                        0, round((time.monotonic() - started_at) * 1000)
+                    )
+                yield json.dumps(event, ensure_ascii=False, separators=(",", ":")) + "\n"
+        finally:
+            cancelled.set()
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
+
+    return StreamingResponse(
+        events(),
+        media_type="application/x-ndjson",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+        },
     )
 
 

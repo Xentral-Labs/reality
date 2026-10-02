@@ -34,7 +34,7 @@ test("public widget is closed by default and exposes an accessible dialog", () =
 });
 
 test("public widget asks only the public guide endpoint and keeps failure bounded", () => {
-  assert.match(widget, /\/api\/journey-guide\/questions/u);
+  assert.match(widget, /\/api\/journey-guide\/questions\?stream=true/u);
   assert.match(widget, /controller\.abort\(\)/u);
   assert.match(widget, /journey question unavailable/u);
   assert.doesNotMatch(widget, /localStorage|sessionStorage|document\.cookie/u);
@@ -126,7 +126,14 @@ test("example submission gives immediate modern loading feedback", () => {
   assert.match(widget, /pending\.setAttribute\("role", "status"\)/u);
   assert.match(widget, /typing-dots/u);
   assert.match(widget, /pending\.setAttribute\("aria-label", copy\.wait\)/u);
-  assert.doesNotMatch(widget, /pending-mark|pending-copy/u);
+  assert.match(widget, /pending-copy/u);
+  assert.match(widget, /copy\[event\.stage\]/u);
+  assert.match(widget, /Frage wird eingeordnet/u);
+  assert.match(widget, /Passende Produktquellen werden geprüft/u);
+  assert.match(widget, /Aussagen werden belegt/u);
+  assert.match(widget, /response\.body\.getReader\(\)/u);
+  assert.match(widget, /event\.stage === "complete"/u);
+  assert.match(widget, /this\.activeController\?\.abort\(\)/u);
   assert.match(widget, /@keyframes rjc-pulse/u);
   assert.match(widget, /prefers-reduced-motion/u);
   assert.match(widget, /this\.examples\?\.remove\(\)/u);

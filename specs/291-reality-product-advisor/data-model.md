@@ -55,6 +55,22 @@ Every accepted material statement has eligible evidence or is explicitly not est
 
 Composition cannot add a material statement absent from accepted claims. Public output omits internal traces. The answer is not persisted as operational authority.
 
+## AdvisoryProgressEvent
+
+- Request-scoped sequence number and enumerated stage: accepted, researching, composing, validating or complete
+- Monotonic elapsed milliseconds
+- Terminal validated AdvisoryAnswer only for the complete event
+
+Progress events contain no provider draft, partial claim, raw question, history or evidence prose. A stage is emitted only when the corresponding server work begins. Events are transient transport observations and are never operational authority.
+
+## AdvisoryTiming
+
+- Enumerated stage and monotonic duration milliseconds
+- Aggregate request duration and outcome code
+- Knowledge version and coarse intent where already public-safe
+
+Timing telemetry excludes raw question, history, answer, claim and source content. It is diagnostic metadata, not a business record.
+
 ## BuyerEvaluationCase
 
 - Stable identity and equivalent questions in representative languages

@@ -172,6 +172,113 @@ def test_provider_answer_stage_is_bounded_below_widget_timeout(monkeypatch) -> N
     assert 2 * product_advisor._BROAD_ANSWER_TIMEOUT_SECONDS < 40
 
 
+def test_product_advisor_reports_only_controlled_progress_before_validated_answer() -> None:
+    observed = []
+
+    def provider(envelope):
+        evidence = envelope["evidence"][0]
+        return {
+            "text": "Reality keeps the remaining quantity open.",
+            "claims": [
+                {
+                    "id": "claim_progress",
+                    "subject": evidence["subject"],
+                    "statement": evidence["claim_text"],
+                    "support": evidence["support"],
+                    "evidence_ids": [evidence["id"]],
+                    "limitations": evidence["limitations"],
+                    "workflow_role": "native",
+                    "tool_names": [],
+                }
+            ],
+        }
+
+    answer = answer_product_question(
+        "What if a supplier delivers too little?",
+        provider=provider,
+        progress=lambda stage, elapsed_ms: observed.append((stage, elapsed_ms)),
+    )
+
+    assert [stage for stage, _ in observed] == [
+        "accepted",
+        "researching",
+        "composing",
+        "validating",
+    ]
+    assert all(elapsed_ms >= 0 for _, elapsed_ms in observed)
+    assert all(len(event) == 2 for event in observed)
+    assert answer["text"] == "Reality keeps the remaining quantity open."
+
+
+def test_deterministic_product_advisor_skips_provider_only_progress() -> None:
+    observed = []
+
+    answer = answer_product_question(
+        "What if a supplier delivers too little?",
+        progress=lambda stage, elapsed_ms: observed.append((stage, elapsed_ms)),
+    )
+
+    assert [stage for stage, _ in observed] == ["accepted", "researching"]
+    assert answer["outcome"] == "deterministic"
+
+
+def test_invalid_provider_draft_skips_retry_when_request_budget_is_exhausted(
+    monkeypatch,
+) -> None:
+    calls = 0
+    clock = iter((0.0, 0.0, 0.0, 0.0, 0.0, 30.0))
+
+    def invalid_provider(_envelope):
+        nonlocal calls
+        calls += 1
+        return {"text": "Unsupported draft", "claims": []}
+
+    monkeypatch.setattr(product_advisor.time, "monotonic", lambda: next(clock))
+
+    answer = answer_product_question(
+        "What if a supplier delivers too little?", provider=invalid_provider
+    )
+
+    assert calls == 1
+    assert answer["outcome"] == "fallback"
+    assert "Unsupported draft" not in answer["text"]
+
+
+def test_strong_deterministic_retrieval_skips_semantic_planner() -> None:
+    plan_calls = 0
+
+    def provider(envelope):
+        evidence = envelope["evidence"][0]
+        return {
+            "text": "Reality records the received quantity and keeps the rest open.",
+            "claims": [
+                {
+                    "id": "claim_exact_retrieval",
+                    "subject": evidence["subject"],
+                    "statement": evidence["claim_text"],
+                    "support": evidence["support"],
+                    "evidence_ids": [evidence["id"]],
+                    "limitations": evidence["limitations"],
+                    "workflow_role": "native",
+                    "tool_names": [],
+                }
+            ],
+        }
+
+    def plan(_envelope):
+        nonlocal plan_calls
+        plan_calls += 1
+        return {"capability_ids": [], "search_terms": []}
+
+    provider.plan = plan
+    answer = answer_product_question(
+        "What if a supplier delivers too little?", provider=provider
+    )
+
+    assert plan_calls == 0
+    assert answer["outcome"] == "researched"
+
+
 def test_under_delivery_retrieves_exact_supplier_journey() -> None:
     evidence = retrieve_evidence("What if a supplier delivers too little?")
 
