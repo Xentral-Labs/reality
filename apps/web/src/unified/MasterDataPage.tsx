@@ -4,6 +4,7 @@ import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWo
 import { PageActionBar } from "./PageActionBar";
 import { CustomerHoldCard } from "./CustomerHoldCard";
 import { ReorderPoints } from "./ReorderPointCard";
+import { DeliveryRuleSection } from "./DeliveryRuleCard";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -97,6 +98,9 @@ export function MasterDataPage({
               .map((field) => [field.key, detail[field.key]]),
           )}
         />
+      )}
+      {family === "customer" && (
+        <DeliveryRuleSection tenant={tenant} party={detail.id} name={String(detail.name)} />
       )}
       {family === "item" && (
         <ReorderPoints

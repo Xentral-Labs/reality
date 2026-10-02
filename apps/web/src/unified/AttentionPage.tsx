@@ -17,6 +17,7 @@ import { OrderLineItemCard } from "./OrderLineItemCard";
 import { OrderCard } from "./OrderCard";
 import { StockElsewhereCard } from "./StockElsewhereCard";
 import { StockBlockCard } from "./StockBlockCard";
+import { BackorderCancelCard, DeliveryRuleCard } from "./DeliveryRuleCard";
 const severities = [
   ["critical", "Critical"],
   ["high", "High"],
@@ -78,6 +79,9 @@ function OpenExceptions({
   const [ordering, setOrdering] = useState<AttentionRow | null>(null);
   const [serving, setServing] = useState<AttentionRow | null>(null);
   const [blockingExpired, setBlockingExpired] = useState<AttentionRow | null>(null);
+  // Spec 306: lift ship complete for one order, or cancel a rest the rule forbids.
+  const [lifting, setLifting] = useState<AttentionRow | null>(null);
+  const [cancelling, setCancelling] = useState<AttentionRow | null>(null);
   const selected = detail.data?.id === exception ? detail.data : null;
   // Spec 279 FR-012: the catalog title of the class, translated; the stored title
   // only stands in for a class the catalog does not know yet.
@@ -237,6 +241,22 @@ function OpenExceptions({
                           {t("Serve from another warehouse")}
                         </button>
                       )}
+                      {selected.class_id === "order_waiting_for_completeness" && (
+                        <button
+                          className="br-btn br-btn-primary"
+                          onClick={() => setLifting(selected)}
+                        >
+                          {t("Lift the rule for this order")}
+                        </button>
+                      )}
+                      {selected.class_id === "backorder_against_rule" && (
+                        <button
+                          className="br-btn br-btn-primary"
+                          onClick={() => setCancelling(selected)}
+                        >
+                          {t("Cancel the open rest")}
+                        </button>
+                      )}
                       {selected.class_id === "reorder_point_reached" && (
                         <button
                           className="br-btn br-btn-primary"
@@ -265,6 +285,26 @@ function OpenExceptions({
       </section>
 
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
+      {lifting && (
+        <DeliveryRuleCard
+          tenant={tenant}
+          document={lifting.record_id}
+          name={`${t("Order")} ${String(lifting.trace.number || lifting.record_id)}`}
+          prefill={{ rule: "partial_allowed" }}
+          close={() => setLifting(null)}
+          settled={() => read.refresh()}
+        />
+      )}
+      {cancelling && (
+        <BackorderCancelCard
+          tenant={tenant}
+          commitment={cancelling.record_id}
+          quantity={String(cancelling.causal_values.open_quantity || "")}
+          reason={String(cancelling.trace.reason || "")}
+          close={() => setCancelling(null)}
+          settled={() => read.refresh()}
+        />
+      )}
       {blockingExpired && (
         <StockBlockCard
           tenant={tenant}
