@@ -2169,6 +2169,9 @@
     },
     "purchase_match_order_required": {
       "message": "A match is read for a purchase order."
+    },
+    "revision_beyond_shipped": {
+      "message": "A delivered line can be raised only up to what was shipped and kept."
     }
   },
   "terms": [

@@ -3513,10 +3513,18 @@ def _keeps_what_was_shipped(
         stated = decimal(quantity)
     except (ArithmeticError, ValueError, TypeError):
         return False
-    shipped = movement_quantity(
-        session, tenant_id, commitment.id, "shipment"
-    ) - movement_quantity(session, tenant_id, commitment.id, "return")
-    return commitment_quantity(session, tenant_id, commitment.id) < stated <= shipped
+    kept = _kept_quantity(session, tenant_id, commitment.id)
+    if stated > kept:
+        # More than shipped is not keeping what shipped; say so plainly.
+        raise InvalidOperation(code="revision_beyond_shipped")
+    return commitment_quantity(session, tenant_id, commitment.id) < stated
+
+
+def _kept_quantity(session: OrmSession, tenant_id: str, commitment_id: str) -> Decimal:
+    """What a customer holds of a promise: shipped, net of what came back."""
+    return movement_quantity(
+        session, tenant_id, commitment_id, "shipment"
+    ) - movement_quantity(session, tenant_id, commitment_id, "return")
 
 
 def _revision_prices_stored(session: OrmSession) -> bool:
@@ -3860,6 +3868,8 @@ def revise_commitment(
         and stated_quantity > previous_quantity
         and commitment.type == "customer_delivery"
         and commitment.document_id
+        # Spec 313: keeping what already shipped enters no new credit.
+        and commitment.status != "fulfilled"
     ):
         from reality.services.credit_exposure import hold_if_over_credit_limit
 

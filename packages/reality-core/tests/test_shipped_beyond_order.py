@@ -98,8 +98,9 @@ def test_it_clears_by_a_return_or_a_revision_up(session, business):
     # Positive control: raising beyond what shipped stays refused.
     import pytest
 
-    with pytest.raises(core.InvalidOperation):
+    with pytest.raises(core.InvalidOperation) as refused:
         core.revise_commitment(session, tenant, raised.id, quantity="7")
+    assert refused.value.code == "revision_beyond_shipped"
 
 
 def test_a_cancelled_rest_is_not_beyond_its_order(session, business):

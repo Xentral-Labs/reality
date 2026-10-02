@@ -24987,6 +24987,8 @@ Object.assign(dictionaries.de, {
   "Shipped beyond the order": "Mehr geliefert als bestellt",
   "The excess coming back as a return, or revising the line up to what was shipped.":
     "Die Mehrmenge kommt als Rücksendung zurück, oder die Position wird auf die gelieferte Menge angehoben.",
+  "A delivered line can be raised only up to what was shipped and kept.":
+    "Eine gelieferte Position kann nur bis zur gelieferten und behaltenen Menge angehoben werden.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25341,6 +25343,8 @@ Object.assign(dictionaries.nl, {
   "Shipped beyond the order": "Meer geleverd dan besteld",
   "The excess coming back as a return, or revising the line up to what was shipped.":
     "Het teveel komt terug als retour, of de regel wordt verhoogd tot wat geleverd is.",
+  "A delivered line can be raised only up to what was shipped and kept.":
+    "Een geleverde regel kan alleen worden verhoogd tot wat geleverd en behouden is.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25695,6 +25699,8 @@ Object.assign(dictionaries.es, {
   "Shipped beyond the order": "Enviado más de lo pedido",
   "The excess coming back as a return, or revising the line up to what was shipped.":
     "El exceso vuelve como devolución, o la línea se aumenta hasta lo enviado.",
+  "A delivered line can be raised only up to what was shipped and kept.":
+    "Una línea entregada solo puede aumentarse hasta lo enviado y conservado.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
