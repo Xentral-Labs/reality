@@ -831,7 +831,8 @@ class ItemReorderPoint(Base):
 
     A company statement, kept as stated in the item's stock unit. Whether it is
     reached is read from stock, reservations and supplier promises each time;
-    nothing about it is stored.
+    nothing about it is stored. Each statement is a version of one source
+    stream per item and location (spec 320); the row names the one in force.
     """
 
     __tablename__ = "item_reorder_point"
@@ -845,6 +846,10 @@ class ItemReorderPoint(Base):
             ["tenant_id", "location_id"],
             ["location.tenant_id", "location.id"],
         ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
         UniqueConstraint(
             "tenant_id",
             "item_id",
@@ -856,6 +861,9 @@ class ItemReorderPoint(Base):
             name="ck_item_reorder_point_values",
         ),
         Index("ix_item_reorder_point_location_id", "tenant_id", "location_id"),
+        Index(
+            "ix_item_reorder_point_source_record_id", "tenant_id", "source_record_id"
+        ),
     )
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
@@ -865,6 +873,7 @@ class ItemReorderPoint(Base):
     reorder_quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    source_record_id: Mapped[str] = mapped_column(String)
 
 
 class SourceSystem(Base):

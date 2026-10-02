@@ -7,6 +7,10 @@ class reads stock, reservations and supplier promises each time it is asked.
 Setting and removing are reviewed actions. The review states what the point
 was, and executing it refuses when the point has changed since, so a person
 never confirms a change to a value they did not see.
+
+Every setting and every removal is kept as a version of one source stream per
+item and location (spec 320), so what a point was stays readable after it is
+restated or withdrawn; the row names the statement in force.
 """
 
 from __future__ import annotations
@@ -17,7 +21,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from reality.db.core import Item, ItemReorderPoint, Location, now, uid
+from reality.db.core import Item, ItemReorderPoint, Location, SourceRecord, now, uid
 from reality.services.business_locks import lock_delivery_state
 from reality.services.core import (
     InvalidOperation,
@@ -27,9 +31,11 @@ from reality.services.core import (
     decimal,
     emit_business_event,
     get_tenant,
+    store_source_record,
 )
 
 ZERO = Decimal(0)
+SOURCE_SYSTEM = "internal_reorder_point"
 LIMIT = Decimal(10) ** 14
 # A review that saw no point, distinct from a call that checks nothing.
 UNCHECKED: Any = object()
@@ -61,6 +67,7 @@ def _row(point: ItemReorderPoint, item: Item, location: Location) -> dict[str, A
         "reorder_point": _plain(point.reorder_point),
         "reorder_quantity": _plain(point.reorder_quantity),
         "updated_at": point.updated_at,
+        "source_record_id": point.source_record_id,
     }
 
 
@@ -148,6 +155,36 @@ def _storable(value: Decimal) -> bool:
     return value < LIMIT and value.normalize().as_tuple().exponent >= -4
 
 
+def _state(
+    session: Session,
+    tenant_id: str,
+    item: Item,
+    location: Location,
+    values: dict[str, Any],
+    action_id: str | None,
+) -> SourceRecord:
+    """Keep one statement about the point as the next version of its stream.
+
+    The statement id makes each confirmation its own version, so restating an
+    earlier value is not taken for that earlier statement, while a replay of
+    the same confirmation is.
+    """
+    source, _, _ = store_source_record(
+        session,
+        tenant_id,
+        SOURCE_SYSTEM,
+        "reorder_point",
+        f"{item.id}@{location.id}",
+        {
+            "item_id": item.id,
+            "location_id": location.id,
+            **values,
+            "statement_id": action_id or uid("stm"),
+        },
+    )
+    return source
+
+
 def _check_expected(point: ItemReorderPoint | None, expected: Any) -> None:
     if expected is not UNCHECKED and reorder_point_values(point) != expected:
         raise InvalidOperation(code="reorder_point_changed_since_review")
@@ -174,6 +211,14 @@ def set_reorder_point(
     point = current_reorder_point(session, tenant_id, item.id, location.id)
     _check_expected(point, _expected)
     previous = reorder_point_values(point)
+    source = _state(
+        session,
+        tenant_id,
+        item,
+        location,
+        {"reorder_point": _plain(point_value), "reorder_quantity": _plain(quantity)},
+        action_id,
+    )
     if point is None:
         point = ItemReorderPoint(
             id=uid("rop"),
@@ -182,12 +227,17 @@ def set_reorder_point(
             location_id=location.id,
             reorder_point=point_value,
             reorder_quantity=quantity,
+            source_record_id=source.id,
         )
         session.add(point)
-    else:
+    elif point.source_record_id != source.id:
         point.reorder_point = point_value
         point.reorder_quantity = quantity
+        point.source_record_id = source.id
         point.updated_at = now()
+    else:
+        # The same confirmation again: it already stated this.
+        return point
     session.flush()
     emit_business_event(
         session,
@@ -202,6 +252,7 @@ def set_reorder_point(
             "reorder_quantity": _plain(quantity),
             **({"previous": previous} if previous else {}),
         },
+        source_record_id=source.id,
         action_id=action_id,
         correlation_id=action_id,
     )
@@ -228,6 +279,7 @@ def remove_reorder_point(
     if point is None:
         raise NotFound(code="reorder_point_not_found")
     _check_expected(point, _expected)
+    source = _state(session, tenant_id, item, location, {"removed": True}, action_id)
     removed = {
         "id": point.id,
         "item_id": item.id,
@@ -243,9 +295,11 @@ def remove_reorder_point(
         "reorder_point",
         removed["id"],
         {key: value for key, value in removed.items() if key != "id"},
+        source_record_id=source.id,
         action_id=action_id,
         correlation_id=action_id,
     )
+    removed["source_record_id"] = source.id
     if _commit:
         session.commit()
     return removed

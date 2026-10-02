@@ -625,6 +625,7 @@ tables:
       reorder_quantity: {description: Quantity proposed when the point is reached, in the item's stock unit.}
       created_at: {}
       updated_at: {description: UTC timestamp when the point was last restated.}
+      source_record_id: {description: "The statement in force: a version of the item and location's reorder-point source stream, whose earlier versions keep every previous setting and removal (spec 320)."}
   location:
     description: Physical or logical place relevant to stock and movement.
     columns:
