@@ -58,8 +58,12 @@ Tests come first in each phase where practical.
 ## Phase 8: Verification
 
 - [ ] T015 Full backend suite and web checks
-- [ ] T016 Manual check per `quickstart.md`
-- [ ] T017 Review of the diff; fix findings
+- [x] T016 Manual check per `quickstart.md` on an isolated stack, in German
+  - Komplettlieferung for Müller GmbH: the review listed both open orders, and the customer then showed it "am Kunden festgelegt". SO-P306-1 reported "Auftrag wartet auf Vollständigkeit", readiness named `ship_complete_incomplete`, and a shipment of the ready wheels was refused with the order named.
+  - Lifting the rule from the finding ("Teillieferung erlaubt" for the order) cleared the blocker, and the shipment was accepted.
+  - Keine Rückstände for Kleinteile AG: after 6 of 10 screws shipped, "Rückstand gegen Kundenregel" offered "Offenen Rest stornieren" with the rule's reason prefilled. The confirmed cancellation cancelled the line.
+  - Fixed during the check: the default rule's source label was untranslated.
+- [x] T017 Review of the diff; fix findings
   - A line split across movements (two warehouses, serial units) no longer fails per movement: only the shipment as a whole answers to the rule.
   - The fulfillment queue derives the rule's blocker once per order from the lines it already holds, not through readiness per line.
   - A quantity that is no number keeps the movement's own refusal.

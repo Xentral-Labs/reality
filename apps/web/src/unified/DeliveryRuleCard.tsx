@@ -23,7 +23,7 @@ const sourceLabel = (source: string) =>
       ? "stated for this order"
       : source === "customer"
         ? "stated for the customer"
-        : "default",
+        : "the default, no rule stated",
   );
 
 function useModal(busy: boolean, leave: () => void) {

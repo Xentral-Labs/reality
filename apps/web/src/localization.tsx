@@ -24762,6 +24762,7 @@ Object.assign(dictionaries.de, {
   "Ship complete": "Komplettlieferung",
   "stated for the customer": "am Kunden festgelegt",
   "stated for this order": "für diesen Auftrag festgelegt",
+  "the default, no rule stated": "Standard, keine Regel festgelegt",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -24979,6 +24980,7 @@ Object.assign(dictionaries.nl, {
   "Ship complete": "Volledig leveren",
   "stated for the customer": "vastgelegd voor de klant",
   "stated for this order": "vastgelegd voor deze order",
+  "the default, no rule stated": "standaard, geen regel vastgelegd",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25196,6 +25198,7 @@ Object.assign(dictionaries.es, {
   "Ship complete": "Entrega completa",
   "stated for the customer": "indicada para el cliente",
   "stated for this order": "indicada para este pedido",
+  "the default, no rule stated": "predeterminada, sin regla indicada",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
