@@ -1855,7 +1855,7 @@ Table `payment_return`: a customer payment that came back as a returned direct d
 - `packages/reality-core/tests/finance/test_payment_returns.py`: the record's kind, bearer, fee and reason checks and one return per payment; the `payment_fee_expense` role; a returned direct debit reversing the payment and reopening its invoice; a fee charged on as the customer's own charge recovering the company's cost; a chargeback fee as expense; a zero fee; a payment of two invoices; each refusal code; replay and tenant scope; the `payment_returned` finding with a positive control until the invoice is paid again; the invoice inspector's returned payments; a payment of 97 with a deducted payment fee of 3 settling an invoice of 100 as payment-fee expense, returning a payment refused while a fee or discount booked with it is in force and accepted once that reduction is reversed (with a plain settlement payment as control); a refund of the payment open again but not reported as an invoice; one finding per invoice after two returns; the fee leaving the payment's own cash account; an invalid return date refused with its own code; a returned payment leaving no unmatched financial event behind, with an overpayment as control.
 - `packages/reality-core/tests/finance/test_payment_return_adapters.py`: the return command through MCP (strict schema, propose then confirm, reads), Web (commercial proposal, reads, foreign company refused) and CLI (propose, list, help).
 
-## Payment returns store no forward links — Spec 318
+## Payment returns store no forward links — Spec 321
 
 `payment_return` keeps what the bank or provider stated; its ledger reversal and fee documents point back to it and are read at read time.
 

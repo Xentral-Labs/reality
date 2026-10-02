@@ -1,4 +1,4 @@
-"""Spec 297: returned direct debits, chargebacks and payment fees; spec 318 links."""
+"""Spec 297: returned direct debits, chargebacks and payment fees; spec 321 links."""
 
 import json
 from datetime import date
@@ -112,7 +112,7 @@ def test_a_payment_is_returned_once(session, business):
 
 
 def test_a_return_does_not_store_what_it_caused(session, business):
-    """Spec 318 FR-001: the reversal and fee documents point back, not forward."""
+    """Spec 321 FR-001: the reversal and fee documents point back, not forward."""
     columns = set(PaymentReturn.__table__.columns.keys())
     assert not columns & {
         "ledger_reversal_id",
@@ -739,7 +739,7 @@ def test_a_return_date_that_is_no_date_is_refused_as_such(
 
 
 def test_each_return_names_its_own_reversal_and_fee_documents(session, business):
-    """Spec 318 FR-002: the links are read from the records that hold them."""
+    """Spec 321 FR-002: the links are read from the records that hold them."""
     from reality.db.core import Document
     from reality.services.payment_returns import return_detail
 
@@ -800,7 +800,7 @@ def test_a_return_without_a_fee_names_no_fee_documents(session, business):
 def test_the_migration_drops_the_links_only_when_they_can_be_read_back(
     postgres_database, monkeypatch
 ):
-    """Spec 318 FR-003: 0110 checks every stored link, and its downgrade restores them."""
+    """Spec 321 FR-003: 0110 checks every stored link, and its downgrade restores them."""
     from types import SimpleNamespace
 
     from alembic import command
@@ -820,7 +820,7 @@ def test_the_migration_drops_the_links_only_when_they_can_be_read_back(
 
     try:
         with Session(engine) as session:
-            tenant = core.create_tenant(session, "Migration 318")
+            tenant = core.create_tenant(session, "Migration 321")
             business = SimpleNamespace(
                 tenant=tenant,
                 customer=core.create_party(session, tenant.id, "Kunde", "customer"),

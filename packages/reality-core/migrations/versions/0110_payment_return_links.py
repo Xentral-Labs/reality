@@ -1,4 +1,4 @@
-"""A payment return no longer stores what it caused; those records point back (spec 318).
+"""A payment return no longer stores what it caused; those records point back (spec 321).
 
 Revision ID: 0110_payment_return_links
 Revises: 0109_stock_block_resolution
