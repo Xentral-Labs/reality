@@ -60,3 +60,26 @@ The existing public route remains backward compatible:
 - Provider failure returns validated deterministic evidence, one clarification or not established.
 - Failed claim validation never passes raw provider prose through.
 - The canonical read tool returns the same public structure. Authorized internal and tenant context is additive through existing scoped paths.
+
+## Additive progress mode
+
+Clients may request newline-delimited JSON progress from the same route:
+
+`POST /api/journey-guide/questions?stream=true`
+
+The request body is unchanged. The response media type is `application/x-ndjson`. Each line is one JSON object with an increasing sequence number:
+
+```json
+{"sequence":1,"stage":"accepted","elapsed_ms":0}
+{"sequence":2,"stage":"researching","elapsed_ms":4}
+{"sequence":3,"stage":"composing","elapsed_ms":1210}
+{"sequence":4,"stage":"validating","elapsed_ms":6930}
+{"sequence":5,"stage":"complete","elapsed_ms":7012,"answer":{"status":"supported","text":"..."}}
+```
+
+- Allowed stages are `accepted`, `researching`, `composing`, `validating` and `complete`.
+- A non-terminal event contains no answer text, claim, source, provider output or user content.
+- A stage is omitted when that work is skipped; clients must not infer a missing product conclusion.
+- `complete.answer` is the same validated response object returned by the compatible JSON path.
+- The server ends the response after `complete`. If the client disconnects, later avoidable provider stages are cancelled or not scheduled.
+- Existing rate limits, history bounds and public evidence restrictions apply unchanged.

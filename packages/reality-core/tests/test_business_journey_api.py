@@ -1,3 +1,5 @@
+import json
+
 import httpx
 from fastapi.testclient import TestClient
 
@@ -57,6 +59,35 @@ def test_public_question_accepts_every_public_site_locale(monkeypatch) -> None:
         ]
 
     assert [response.status_code for response in responses] == [200, 200, 200, 200]
+
+
+def test_public_question_progress_stream_ends_with_compatible_validated_answer(
+    monkeypatch,
+) -> None:
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    payload = {
+        "question": "What if a supplier delivers too little?",
+        "locale": "en",
+    }
+    with TestClient(app) as client:
+        buffered = client.post("/api/journey-guide/questions", json=payload)
+        streamed = client.post(
+            "/api/journey-guide/questions?stream=true", json=payload
+        )
+
+    events = [json.loads(line) for line in streamed.text.splitlines()]
+    assert streamed.status_code == 200
+    assert streamed.headers["content-type"].startswith("application/x-ndjson")
+    assert [event["stage"] for event in events] == [
+        "accepted",
+        "researching",
+        "complete",
+    ]
+    assert [event["sequence"] for event in events] == [1, 2, 3]
+    assert all(
+        "answer" not in event and "text" not in event for event in events[:-1]
+    )
+    assert events[-1]["answer"] == buffered.json()
 
 
 def test_public_question_accepts_only_bounded_text_history(monkeypatch) -> None:

@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+import time
 import unicodedata
 from collections.abc import Callable, Iterable
 from functools import lru_cache
@@ -23,6 +24,7 @@ from reality.domain.product_advisor import (
 )
 
 AdvisorProvider = Callable[[dict[str, object]], object]
+AdvisorProgress = Callable[[str, int], None]
 Intent = Literal[
     "capability_check",
     "solution_advice",
@@ -36,6 +38,17 @@ logger = logging.getLogger(__name__)
 _PLANNER_TIMEOUT_SECONDS = 10.0
 _ANSWER_TIMEOUT_SECONDS = 12.0
 _BROAD_ANSWER_TIMEOUT_SECONDS = 14.0
+_REQUEST_BUDGET_SECONDS = 36.0
+_RETRY_RESERVE_SECONDS = 13.0
+
+
+def _report_progress(
+    observer: AdvisorProgress | None, stage: str, started_at: float
+) -> None:
+    elapsed_ms = max(0, round((time.monotonic() - started_at) * 1000))
+    logger.info("Product advisor stage=%s elapsed_ms=%d", stage, elapsed_ms)
+    if observer is not None:
+        observer(stage, elapsed_ms)
 
 _PRODUCT_TERMS = (
     "reality",
@@ -466,6 +479,18 @@ def research_evidence(question: str, *, limit: int = 18) -> tuple[EvidenceUnit, 
         for unit in [*journey_evidence, *other_evidence][:per_concern]:
             selected.setdefault(unit.id, unit)
     return tuple(selected.values())[:limit]
+
+
+def _deterministic_retrieval_is_sufficient(
+    question: str, evidence: tuple[EvidenceUnit, ...]
+) -> bool:
+    """Keep a strong exact retrieval result without paying for semantic planning."""
+    query = _expanded_tokens(question)
+    return any(
+        unit.support in {"proven", "limited", "unavailable"}
+        and len(query & _tokens(unit.search_text)) >= 4
+        for unit in evidence[:3]
+    )
 
 
 def _unique_evidence(items: Iterable[EvidenceUnit]) -> tuple[EvidenceUnit, ...]:
@@ -1032,7 +1057,10 @@ def answer_product_question(
     provider: AdvisorProvider | None = None,
     _retry_invalid_provider: bool = True,
     _evidence: tuple[EvidenceUnit, ...] | None = None,
+    progress: AdvisorProgress | None = None,
 ) -> dict[str, object]:
+    started_at = time.monotonic()
+    _report_progress(progress, "accepted", started_at)
     synthesis = _is_synthesis_question(question)
     intent = "solution_advice" if synthesis else classify_product_question(question)
     language = detect_question_language(
@@ -1058,6 +1086,7 @@ def answer_product_question(
         )
     )
     concerns = plan_product_concerns(question)
+    _report_progress(progress, "researching", started_at)
     evidence = (
         _evidence
         if _evidence is not None
@@ -1087,7 +1116,12 @@ def answer_product_question(
         )
         if evaluation is not None:
             evidence = _unique_evidence([evaluation, *evidence])[:18]
-    if _evidence is None and not adversarial and not concerns:
+    if (
+        _evidence is None
+        and not adversarial
+        and not concerns
+        and not _deterministic_retrieval_is_sufficient(question, evidence)
+    ):
         planned = _planned_evidence(
             provider,
             {
@@ -1128,7 +1162,9 @@ def answer_product_question(
         ),
     }
     try:
+        _report_progress(progress, "composing", started_at)
         candidate = provider(envelope)
+        _report_progress(progress, "validating", started_at)
         if not isinstance(candidate, dict):
             raise TypeError("Advisor provider returned no object")
         raw_claims = candidate.get("claims")
@@ -1297,7 +1333,12 @@ def answer_product_question(
         }
     except ValueError as error:
         logger.warning("Product advisor draft rejected: %s", error)
-        if _retry_invalid_provider and provider is not None:
+        remaining_budget = _REQUEST_BUDGET_SECONDS - (time.monotonic() - started_at)
+        if (
+            _retry_invalid_provider
+            and provider is not None
+            and remaining_budget >= _RETRY_RESERVE_SECONDS
+        ):
             retry_envelope = {
                 **envelope,
                 "validation_feedback": (
@@ -1320,6 +1361,7 @@ def answer_product_question(
                     provider=lambda _: revised_candidate,
                     _retry_invalid_provider=False,
                     _evidence=evidence,
+                    progress=None,
                 )
         return _deterministic_answer(
             question, evidence, language=language, intent=intent, outcome="fallback"

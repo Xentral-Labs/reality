@@ -30,6 +30,22 @@
 
 **Alternatives considered**: Prompt-only improvement was rejected because observed answers violate explicit prompt rules. Citation-existence validation was rejected because it cannot catch migration inferred from unrelated item-history evidence.
 
+## Safe progress instead of draft-token streaming
+
+**Decision**: Stream server-controlled lifecycle events and release answer text only in the terminal event after deterministic claim validation. Keep the existing buffered JSON response as the compatibility path.
+
+**Rationale**: Immediate progress makes multi-stage research understandable, but provider tokens are not trustworthy until evidence IDs, support ceilings, limitations and tool names have been validated. Lifecycle events improve responsiveness without weakening Source → Evidence → Reality.
+
+**Alternatives considered**: Raw provider-token streaming was rejected because unsupported prose could become visible and later require retraction. A browser-only rotating message was rejected because it could claim work that the server skipped or had not begun. Replacing the JSON route was rejected because existing Website, Docs, tool and test clients depend on it.
+
+## Latency reduction and telemetry
+
+**Decision**: Measure monotonic durations for deterministic retrieval, semantic planning, composition, validation and total request time without retaining public content. Skip semantic planning only when deterministic retrieval meets an explicit sufficiency rule, and skip validation retry when the shared deadline lacks enough budget.
+
+**Rationale**: The present path may serialize a planning call, an answer call and a validation retry. Measurement identifies the actual bottleneck; bounded stage elimination reduces real latency rather than only masking it.
+
+**Alternatives considered**: Adding a distributed cache or new observability dependency was rejected until measurements prove a need. Caching complete generated answers was rejected because conversation context and knowledge-version invalidation make correctness harder than the initial optimization requires.
+
 ## Deterministic ceilings and semantic checking
 
 **Decision**: Deterministically enforce visibility, identity, source authority, support ceilings, tool vocabulary and prohibited confidence transitions. An optional semantic verifier may only reject or weaken a claim.
