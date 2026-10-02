@@ -25,7 +25,9 @@ def upgrade() -> None:
 def downgrade() -> None:
     pickups = (
         op.get_bind()
-        .execute(sa.text("SELECT count(*) FROM shipment WHERE delivery_mode IS NOT NULL"))
+        .execute(
+            sa.text("SELECT count(*) FROM shipment WHERE delivery_mode IS NOT NULL")
+        )
         .scalar()
     )
     if pickups:

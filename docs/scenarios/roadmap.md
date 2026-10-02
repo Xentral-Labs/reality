@@ -37,7 +37,7 @@ spec 305.
 | 15 | 2 | [309 Foreign-Currency Purchasing](../../specs/309-foreign-currency-purchasing/spec.md) | G08, R06, I11 (implemented; supported) |
 | 16 | 2 | [310 Supplier Confirmations, Minimum Quantities and Three-Way Match](../../specs/310-purchasing-depth/spec.md) | G09, G06, G12, I01 (implemented; supported) |
 | 17 | 2 | [311 EDI Order Changes](../../specs/311-edi-order-changes/spec.md) | M04, R05 |
-| 18 | 2 | [312 Customer Pickup and Late 3PL Confirmations](../../specs/312-shipping-modes/spec.md) | D15, D12 |
+| 18 | 2 | [312 Customer Pickup and Late 3PL Confirmations](../../specs/312-shipping-modes/spec.md) | D15, D12 (implemented; supported) |
 | 19 | 2 | [313 Over-Billing and Quantity Lowered Below Delivered](../../specs/313-billing-deviations/spec.md) | A05, E07 (implemented; supported) |
 
 Some packages also cover a journey that is missing today rather than partial (D02, H08, H15, M06,

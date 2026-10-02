@@ -24998,6 +24998,13 @@ Object.assign(dictionaries.de, {
     "Eine abgeholte Sendung hat keinen Spediteur und keine Sendungsnummer.",
   "Who collected is stated for a pickup only.":
     "Wer abgeholt hat, wird nur bei einer Abholung angegeben.",
+  "Collected by": "Abgeholt von",
+  "Collected by the customer": "Vom Kunden abgeholt",
+  "confirmation lag": "Bestätigungsverzug",
+  "Customer collects (pickup)": "Kunde holt ab (Abholung)",
+  "Goods moved at": "Ware bewegt am",
+  "Goods moved at (optional)": "Ware bewegt am (optional)",
+  Pickup: "Abholung",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25363,6 +25370,13 @@ Object.assign(dictionaries.nl, {
     "Een afgehaalde zending heeft geen vervoerder of trackingnummer.",
   "Who collected is stated for a pickup only.":
     "Wie heeft afgehaald, wordt alleen bij een afhaling opgegeven.",
+  "Collected by": "Afgehaald door",
+  "Collected by the customer": "Door de klant afgehaald",
+  "confirmation lag": "bevestigingsvertraging",
+  "Customer collects (pickup)": "Klant haalt af (afhalen)",
+  "Goods moved at": "Goederen bewogen op",
+  "Goods moved at (optional)": "Goederen bewogen op (optioneel)",
+  Pickup: "Afhalen",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25727,6 +25741,13 @@ Object.assign(dictionaries.es, {
   "A collected shipment has no carrier or tracking number.":
     "Un envío recogido no tiene transportista ni número de seguimiento.",
   "Who collected is stated for a pickup only.": "Quién recogió solo se indica en una recogida.",
+  "Collected by": "Recogido por",
+  "Collected by the customer": "Recogido por el cliente",
+  "confirmation lag": "retraso de confirmación",
+  "Customer collects (pickup)": "El cliente recoge (recogida)",
+  "Goods moved at": "Mercancía movida el",
+  "Goods moved at (optional)": "Mercancía movida el (opcional)",
+  Pickup: "Recogida",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

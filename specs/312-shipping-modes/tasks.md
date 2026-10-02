@@ -10,7 +10,7 @@
 
 ## Phase 2: Pickup and stated time (FR-001, FR-002)
 
-- [ ] T004 Tests:
+- [x] T004 Tests:
   - a pickup with its collector;
   - carrier refused on a pickup;
   - pickup for customer deliveries only;
@@ -18,16 +18,16 @@
   - a future time refused;
   - the lag in the read;
   - the migration guard.
-- [ ] T005 Migration `0123`, model, service, reads, refusals with translations
+- [x] T005 Migration `0123`, model, service, reads, refusals with translations
 
 ## Phase 3: Adapters and Web (FR-003)
 
-- [ ] T006 Tool fields, MCP schemas, Web dispatch card and detail, adapter tests, catalog gates
+- [x] T006 Tool fields, MCP schemas, Web dispatch card and detail, adapter tests, catalog gates
 
 ## Phase 4: Stories and Guide (FR-004)
 
-- [ ] T007 Business stories D15 and D12
-- [ ] T008 Promote them: Guide catalog, routing check, coverage, roadmap, matrix, docs
+- [x] T007 Business stories D15 and D12
+- [x] T008 Promote them: Guide catalog, routing check, coverage, roadmap, matrix, docs
 
 ## Phase 5: Verification
 

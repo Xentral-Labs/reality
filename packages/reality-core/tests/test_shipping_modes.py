@@ -9,7 +9,10 @@ from unified_fixtures import delivery_fixture
 from reality.db.core import Movement
 from reality.services import core
 from reality.services.shipments import shipment_explain
-from reality.tools.application import approve_and_execute_proposal, create_change_proposal
+from reality.tools.application import (
+    approve_and_execute_proposal,
+    create_change_proposal,
+)
 
 
 def _dispatch(session, business, fixture, quantity="2", **extra):
@@ -66,7 +69,9 @@ def test_a_pickup_takes_no_carrier_and_is_for_customers_only(session, business):
     core.reserve(session, tenant, fixture.commitment.id)
     _refused(
         "shipment_pickup_carrier_refused",
-        lambda: _dispatch(session, business, fixture, delivery_mode="pickup", carrier="DHL"),
+        lambda: _dispatch(
+            session, business, fixture, delivery_mode="pickup", carrier="DHL"
+        ),
     )
     _refused(
         "shipment_delivery_mode_invalid",
@@ -74,7 +79,9 @@ def test_a_pickup_takes_no_carrier_and_is_for_customers_only(session, business):
     )
     _refused(
         "shipment_collector_pickup_only",
-        lambda: _dispatch(session, business, fixture, carrier="DHL", collected_by="Someone"),
+        lambda: _dispatch(
+            session, business, fixture, carrier="DHL", collected_by="Someone"
+        ),
     )
     from reality.services.shipments import record_shipment_notice
 
@@ -91,7 +98,10 @@ def test_a_pickup_takes_no_carrier_and_is_for_customers_only(session, business):
     )
     # Positive control: by carrier, as before, reads as carrier.
     output = _dispatch(session, business, fixture, carrier="DHL", tracking_number="T-1")
-    assert shipment_explain(session, tenant, output["shipment_id"])["delivery_mode"] == "carrier"
+    assert (
+        shipment_explain(session, tenant, output["shipment_id"])["delivery_mode"]
+        == "carrier"
+    )
 
 
 def test_movements_carry_when_the_goods_left(session, business):
@@ -103,7 +113,8 @@ def test_movements_carry_when_the_goods_left(session, business):
     output = _dispatch(session, business, fixture, occurred_at=left.isoformat())
 
     (movement,) = [
-        session.get(Movement, (tenant, movement_id)) for movement_id in output["movement_ids"]
+        session.get(Movement, (tenant, movement_id))
+        for movement_id in output["movement_ids"]
     ]
     assert core.utc_datetime(movement.occurred_at) == left
     detail = shipment_explain(session, tenant, output["shipment_id"])
@@ -161,3 +172,32 @@ def test_the_migration_guards_its_downgrade(postgres_database, monkeypatch):
             command.downgrade(config, "0122_purchasing_depth")
     finally:
         engine.dispose()
+
+
+def test_an_agent_records_a_pickup_through_the_strict_schema(session, business):
+    from reality.mcp.catalog import MCP_TOOL_REGISTRY
+    from reality.mcp.server import _reject_unknown_fields
+
+    fixture = delivery_fixture(session, business, quantity="1")
+    core.reserve(session, business.tenant.id, fixture.commitment.id)
+    arguments = {
+        "purpose": "customer_delivery",
+        "counterparty_id": business.customer.id,
+        "delivery_mode": "pickup",
+        "collected_by": "Fahrer Kunde",
+        "occurred_at": (core.now() - timedelta(hours=2)).isoformat(),
+        "movements": [
+            {
+                "commitment_id": fixture.commitment.id,
+                "item_id": business.item.id,
+                "from_location_id": business.location.id,
+                "quantity": "1",
+            }
+        ],
+    }
+    definition = MCP_TOOL_REGISTRY["shipment_dispatch_propose"]
+    _reject_unknown_fields(definition.input_schema, arguments)
+
+    proposed = definition.handler(session, business.tenant.id, arguments)
+
+    assert proposed["proposal_id"]

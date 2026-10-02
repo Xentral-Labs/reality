@@ -44,6 +44,10 @@ export function ShipmentActions({
   const [counterparty, setCounterparty] = useState(shipmentInput?.counterparty_id || "");
   const [carrier, setCarrier] = useState("");
   const [tracking, setTracking] = useState("");
+  // Spec 312: a customer pickup, who collected, and when the goods actually moved.
+  const [pickup, setPickup] = useState(false);
+  const [collectedBy, setCollectedBy] = useState("");
+  const [movedAt, setMovedAt] = useState("");
   const [shipment, setShipment] = useState("");
   const [packageId, setPackageId] = useState("");
   const [eventType, setEventType] = useState("in_transit");
@@ -126,8 +130,13 @@ export function ShipmentActions({
         arguments_ = {
           purpose,
           counterparty_id: counterparty,
-          ...(carrier ? { carrier } : {}),
-          ...(tracking ? { tracking_number: tracking } : {}),
+          ...(carrier && !pickup ? { carrier } : {}),
+          ...(tracking && !pickup ? { tracking_number: tracking } : {}),
+          ...(pickup ? { delivery_mode: "pickup" } : {}),
+          ...(pickup && collectedBy ? { collected_by: collectedBy } : {}),
+          ...(movedAt && tool !== "shipment_notice_record"
+            ? { occurred_at: new Date(movedAt).toISOString() }
+            : {}),
         };
         if (tool === "shipment_notice_record")
           arguments_.direction =
@@ -298,8 +307,35 @@ export function ShipmentActions({
                 }
               />
               <Field label="Counterparty ID" value={counterparty} set={setCounterparty} />
-              <Field label="Carrier" value={carrier} set={setCarrier} />
-              <Field label="Tracking number" value={tracking} set={setTracking} />
+              {tool === "shipment_dispatch" && purpose === "customer_delivery" && (
+                <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                  <input
+                    type="checkbox"
+                    checked={pickup}
+                    onChange={(e) => setPickup(e.target.checked)}
+                  />
+                  {t("Customer collects (pickup)")}
+                </label>
+              )}
+              {pickup ? (
+                <Field label="Collected by" value={collectedBy} set={setCollectedBy} />
+              ) : (
+                <>
+                  <Field label="Carrier" value={carrier} set={setCarrier} />
+                  <Field label="Tracking number" value={tracking} set={setTracking} />
+                </>
+              )}
+              {tool !== "shipment_notice_record" && (
+                <label className="text-sm">
+                  {t("Goods moved at (optional)")}
+                  <input
+                    className="br-control mt-2 w-full"
+                    type="datetime-local"
+                    value={movedAt}
+                    onChange={(e) => setMovedAt(e.target.value)}
+                  />
+                </label>
+              )}
               {tool !== "shipment_notice_record" && (
                 <label className="text-sm sm:col-span-2">
                   {t("Movement inputs (JSON)")}

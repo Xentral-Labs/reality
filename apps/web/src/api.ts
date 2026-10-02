@@ -2655,6 +2655,12 @@ export type ShipmentRow = {
   counterparty_id: string;
   created_at: string;
   source_record_id: string | null;
+  /** Spec 312: how the goods went, who collected a pickup, and when Reality learnt of it. */
+  delivery_mode?: "carrier" | "pickup" | null;
+  collected_by?: string | null;
+  moved_at?: string | null;
+  recorded_at?: string | null;
+  confirmation_lag_seconds?: number | null;
   packages: Array<{
     id: string;
     carrier: string | null;

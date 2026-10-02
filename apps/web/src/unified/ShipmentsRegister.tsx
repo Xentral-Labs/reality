@@ -88,7 +88,7 @@ export function ShipmentsRegister({
                 <td className={cell}>{t(row.direction === "inbound" ? "Incoming" : "Outgoing")}</td>
                 <td className={cell}>{t(row.purpose)}</td>
                 <td className={cell} data-localization="original">
-                  {packageRow?.carrier || "—"}
+                  {row.delivery_mode === "pickup" ? t("Pickup") : packageRow?.carrier || "—"}
                 </td>
                 <td className={cell} data-localization="original">
                   {packageRow?.tracking_number || "—"}
@@ -113,6 +113,20 @@ export function ShipmentsRegister({
                   tenant={selection.tenant}
                   target={{ kind: "shipment", id: row.id }}
                 >
+                  {row.delivery_mode === "pickup" && (
+                    <p className="text-sm" data-shipment-pickup>
+                      {t("Collected by the customer")}
+                      {row.collected_by ? `: ${row.collected_by}` : ""}
+                    </p>
+                  )}
+                  {row.moved_at && (
+                    <p className="text-sm" data-shipment-timing>
+                      {t("Goods moved at")} {formatDateTime(row.moved_at)}
+                      {row.confirmation_lag_seconds && row.recorded_at
+                        ? ` · ${t("recorded")} ${formatDateTime(row.recorded_at)} (${t("confirmation lag")} ${Math.round(row.confirmation_lag_seconds / 3600)} h)`
+                        : ""}
+                    </p>
+                  )}
                   {(row.discrepancies.external_delivery_without_warehouse_receipt ||
                     row.discrepancies.warehouse_receipt_without_external_delivery) && (
                     <p className="text-sm text-warning-text">
