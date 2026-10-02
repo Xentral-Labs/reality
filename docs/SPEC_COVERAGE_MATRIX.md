@@ -1956,3 +1956,32 @@ Table `stock_block_resolution`: one release or scrap of a stock block, appended;
 - `packages/reality-core/tests/test_stock_blocks.py`: the block stores no lifecycle state and names its receipt; a resolution refuses a zero quantity, an unknown kind, a blank reason, a scrap without its adjustment and a release with one, an unknown movement once constraints are checked, a release and a scrap as controls; block 20, release 5, scrap 3, release 12 keeps one id stating 20, lists both outcomes, shows 15, 12 and 0 open and moves to `resolved`; the open quantity bounds the next resolution; a receipt block keeps its receipt after a whole scrap, beside the scrap's own adjustment; the migration folds a spec 304 chain into its first block with one resolution per closed row, recovers a receipt a whole scrap overwrote from the creation event, and its downgrade refuses while resolutions exist.
 - `packages/reality-core/tests/test_stock_block_readers.py`: after a partial release and a partial scrap, `blocked_quantity`, inventory rows, detail positions, the inventory page, reserving, readiness, the stored queue and the oversold finding all subtract only the open quantity.
 - `packages/reality-core/tests/test_stock_block_adapters.py`: an agent releases and scraps the same block id; the read lists it under `resolved` with its stated quantity and both resolutions, `active` is empty, and the dropped `released` filter is refused with its code.
+
+## Serving backorders — Spec 305
+
+No new table: the serving order, the split of assigned supply into arrived and still to come, and available-to-promise are read-time observations.
+
+- `packages/reality-core/tests/test_backorders.py`:
+  - **Split:**
+    - A partial receipt covers the assignments in their order (3/0, 1/2, 0/3), with everything still to come before the receipt as control.
+    - A reversed or cancelled assignment leaves the order.
+  - **Serving order:**
+    - The earlier-due promise is served first, and the review reserves nothing.
+    - The assigned promise stands first once its purchase is named; without the purchase, the due-date order is the control.
+    - Stated lines are checked: not waiting here, beyond the need, beyond what is available, nothing to serve, and an invalid quantity are each refused with their code.
+    - A held promise is listed apart; blocked stock is not served; a tracked item is refused.
+  - **Confirming:**
+    - Serving reserves the confirmed lines.
+    - A confirmation after the stock changed is refused and reserves nothing.
+    - The reviewed path reserves only once a person confirms.
+  - **Available-to-promise:**
+    - Free stock and an open purchase with its assignment answer 5 now and 11 from its date.
+    - Waiting need without supply takes from free stock, with no waiting as control.
+    - Purchases follow their dates and say when they are overdue.
+    - A cancelled promise leaves the answer.
+- `packages/reality-core/tests/test_backorder_adapters.py`:
+  - The MCP schemas are strict, including each line.
+  - An agent proposes, a person confirms, and the read reflects it.
+  - The Web prepares stated lines, confirms, answers available-to-promise and refuses an empty serving with its code.
+  - Another company can neither serve nor read.
+  - The CLI asks before serving (declining withdraws the review), serves with `--yes` and answers available-to-promise.

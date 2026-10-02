@@ -1139,6 +1139,52 @@ def post_stock_block_proposal(
         raise api_error(error) from error
 
 
+class BackorderServingLine(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    commitment_id: str = Field(min_length=1, max_length=200)
+    quantity: str = Field(min_length=1, max_length=40)
+
+
+class BackorderServingProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    item_id: str = Field(min_length=1, max_length=200)
+    location_id: str = Field(min_length=1, max_length=200)
+    supplier_commitment_id: str | None = Field(default=None, max_length=200)
+    lines: list[BackorderServingLine] | None = Field(default=None, max_length=200)
+
+
+@router.post("/backorders/proposals")
+def post_backorder_serving_proposal(
+    tenant_id: str, body: BackorderServingProposal, session: DatabaseSession
+):
+    """Spec 305: prepare serving backorders; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    arguments = body.model_dump(exclude_none=True)
+    try:
+        proposal = create_change_proposal(
+            session, tenant_id, "backorders_serve", arguments, actor_type="human"
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/items/{item_id}/available-to-promise")
+def get_available_to_promise(tenant_id: str, item_id: str, session: DatabaseSession):
+    """Spec 305: free stock now, then each open purchase by its date."""
+    from reality.services.backorders import available_to_promise
+
+    try:
+        return available_to_promise(session, tenant_id, item_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 class ReorderPointProposal(ApiModel):
     model_config = ConfigDict(extra="forbid")
     operation: Literal["set", "remove"]

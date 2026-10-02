@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:69f5376ffe361934d4fabab74b2c9824ca0832f5136fa67f0feaad7391dc1611",
+  "knowledge_version": "advisor-v1:sha256:56e46574af758f6c87bba3cf6be434e5adca0d3ff34d2712f198e5d78d683cac",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -49,6 +49,10 @@
       "tools": [
         {
           "name": "stock_blocks",
+          "mode": "query"
+        },
+        {
+          "name": "available_to_promise",
           "mode": "query"
         }
       ]
@@ -517,6 +521,10 @@
         {
           "name": "reorder_points",
           "mode": "query"
+        },
+        {
+          "name": "available_to_promise",
+          "mode": "query"
         }
       ]
     },
@@ -724,6 +732,8 @@
         "evidence_command_create_party_group",
         "evidence_command_hold_party_delivery",
         "evidence_command_release_credit_holds",
+        "evidence_command_serve_backorders",
+        "evidence_command_available_to_promise",
         "evidence_command_credit_exposure",
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
@@ -792,6 +802,14 @@
         {
           "name": "release_credit_holds",
           "mode": "mutation"
+        },
+        {
+          "name": "serve_backorders",
+          "mode": "mutation"
+        },
+        {
+          "name": "available_to_promise",
+          "mode": "query"
         },
         {
           "name": "credit_exposure",
@@ -889,6 +907,8 @@
         "evidence_command_block_stock",
         "evidence_command_release_stock_block",
         "evidence_command_scrap_stock_block",
+        "evidence_command_serve_backorders",
+        "evidence_command_available_to_promise",
         "evidence_command_stock_blocks",
         "evidence_command_set_reorder_point",
         "evidence_command_remove_reorder_point",
@@ -977,6 +997,14 @@
           "mode": "mutation"
         },
         {
+          "name": "serve_backorders",
+          "mode": "mutation"
+        },
+        {
+          "name": "available_to_promise",
+          "mode": "query"
+        },
+        {
           "name": "stock_blocks",
           "mode": "query"
         },
@@ -1036,6 +1064,7 @@
         "evidence_command_record_movement",
         "evidence_command_correct_movement",
         "evidence_command_block_stock",
+        "evidence_command_serve_backorders",
         "evidence_command_stock_blocks",
         "evidence_command_set_reorder_point",
         "evidence_command_remove_reorder_point",
@@ -1082,6 +1111,10 @@
         },
         {
           "name": "block_stock",
+          "mode": "mutation"
+        },
+        {
+          "name": "serve_backorders",
           "mode": "mutation"
         },
         {
@@ -1224,6 +1257,8 @@
         "evidence_command_hold_party_delivery",
         "evidence_command_release_credit_holds",
         "evidence_command_block_stock",
+        "evidence_command_serve_backorders",
+        "evidence_command_available_to_promise",
         "evidence_command_set_reorder_point",
         "evidence_command_remove_reorder_point",
         "evidence_command_reorder_points",
@@ -1300,6 +1335,14 @@
         {
           "name": "block_stock",
           "mode": "mutation"
+        },
+        {
+          "name": "serve_backorders",
+          "mode": "mutation"
+        },
+        {
+          "name": "available_to_promise",
+          "mode": "query"
         },
         {
           "name": "set_reorder_point",
@@ -1395,6 +1438,8 @@
         "evidence_command_correct_movement",
         "evidence_command_block_stock",
         "evidence_command_scrap_stock_block",
+        "evidence_command_serve_backorders",
+        "evidence_command_available_to_promise",
         "evidence_command_month_end_billing",
         "evidence_command_announce_customer_return",
         "evidence_command_return_announcements",
@@ -1457,6 +1502,14 @@
         {
           "name": "scrap_stock_block",
           "mode": "mutation"
+        },
+        {
+          "name": "serve_backorders",
+          "mode": "mutation"
+        },
+        {
+          "name": "available_to_promise",
+          "mode": "query"
         },
         {
           "name": "month_end_billing",

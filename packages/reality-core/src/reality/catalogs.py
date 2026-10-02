@@ -16,6 +16,7 @@ from reality.action_discovery import validate_action_discovery
 from reality.config import config_text
 from reality.db.core import ROOT, Base
 from reality.services import artifacts as artifact_service_module
+from reality.services import backorders as backorder_service_module
 from reality.services import core as service_module
 from reality.services import credit_actions as credit_action_service_module
 from reality.services import credit_exposure as credit_exposure_service_module
@@ -1102,6 +1103,7 @@ def _service(name: str) -> Any:
         month_end_billing_service_module,
         reorder_point_service_module,
         stock_block_service_module,
+        backorder_service_module,
     ):
         own = getattr(module, name, None)
         if own is not None and getattr(own, "__module__", None) == module.__name__:
@@ -1305,6 +1307,7 @@ def _literal_business_events() -> set[str]:
         payment_return_service_module,
         reorder_point_service_module,
         stock_block_service_module,
+        backorder_service_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

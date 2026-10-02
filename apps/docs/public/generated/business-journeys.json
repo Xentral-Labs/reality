@@ -700,19 +700,29 @@
       "section": "Availability, reservation and backorder",
       "title": "Stock only on order (open purchase)",
       "question": "Can it be promised (available to promise)?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Can it be promised (available to promise)?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Can it be promised (available to promise)? Available to promise answers per item what is free now and, per open purchase in the order of its stated date, how much more becomes free, naming the purchase, its supplier and whether it is overdue; what a purchase's customer assignments still expect is not offered again.",
       "limitations": [
-        "An open purchase can be assigned to protect a customer promise.",
-        "There is no dated available-to-promise calculation."
+        "Purchase dates are what the supplier stated; an overdue purchase still counts and is marked overdue.",
+        "The answer is company-wide over stock locations, not per warehouse."
       ],
-      "keywords": [],
+      "keywords": [
+        "available to promise",
+        "ATP",
+        "Lieferfähigkeit",
+        "lieferbar ab"
+      ],
       "question_examples": [
         "Stock only on order (open purchase)",
-        "Can it be promised (available to promise)?"
+        "Can it be promised (available to promise)?",
+        "Nothing is in stock but a purchase is on its way; from when can we promise it?",
+        "Nichts am Lager, aber eine Bestellung läuft; ab wann können wir zusagen?"
       ],
-      "tools": [],
+      "tools": [
+        "available_to_promise",
+        "supply_coverage"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -722,19 +732,30 @@
       "section": "Availability, reservation and backorder",
       "title": "Receipt resolves backorders",
       "question": "Which commitment is served first?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Which commitment is served first?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Which commitment is served first? After a receipt, Serve backorders proposes reservations in a stated order: the orders the received purchase is assigned to, in assignment order, then the others by due date. A person may change the quantities and confirms; nothing is reserved by the receipt itself.",
       "limitations": [
-        "A receipt reserves nothing automatically.",
-        "A supply assignment names the intended customer, but there is no rule for which backorder is served first."
+        "There is no priority per customer; a person states a different split by changing the quantities.",
+        "Lot- and serial-tracked items are reserved lot by lot, not through Serve backorders."
       ],
-      "keywords": [],
+      "keywords": [
+        "backorder",
+        "serve backorders",
+        "Rückstand",
+        "Rückstände bedienen"
+      ],
       "question_examples": [
         "Receipt resolves backorders",
-        "Which commitment is served first?"
+        "Which commitment is served first?",
+        "Goods arrived and two orders are waiting; which one gets them?",
+        "Ware ist eingegangen und zwei Aufträge warten; welcher bekommt sie zuerst?"
       ],
-      "tools": [],
+      "tools": [
+        "backorders_serve_propose",
+        "shipment_receive_propose",
+        "supply_coverage"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -744,19 +765,24 @@
       "section": "Availability, reservation and backorder",
       "title": "Receipt covers only part of the backorders",
       "question": "Which remain uncovered?",
-      "status": "partial",
+      "status": "supported",
       "evidence_level": "executable",
-      "summary": "Reality evaluates: Which remain uncovered? After a partial receipt, the promises a person has reserved are covered and the rest are reported at risk.",
+      "summary": "Reality evaluates: Which remain uncovered? Supply coverage splits each assignment into what has arrived and what is still to come, in the order the assignments were made; Serve backorders reserves what arrived in that order, and the promises left short stay at risk.",
       "limitations": [
-        "A receipt does not consume supply assignments, so each backorder still counts its full assigned supply after only part arrived.",
-        "Which backorders stay uncovered is answered by the reservations a person makes."
+        "The split is a read-time observation; once a person reserves, the reservation decides."
       ],
-      "keywords": [],
+      "keywords": [
+        "partial receipt",
+        "Teillieferung Rückstand"
+      ],
       "question_examples": [
         "Receipt covers only part of the backorders",
         "Which remain uncovered?"
       ],
-      "tools": [],
+      "tools": [
+        "supply_coverage",
+        "backorders_serve_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -2670,19 +2696,23 @@
       "section": "Purchasing: demand and purchase order",
       "title": "Purchase reduced after the customer order was cancelled",
       "question": "Demand chain updated?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Demand chain updated?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Demand chain updated? Cancelling a customer order ends the supply assignments that served it, so the purchase shows the quantity as unassigned and available to promise again; reducing the purchase itself stays its own reviewed revision.",
       "limitations": [
-        "The purchase assignment can be reversed by hand with a reason.",
-        "Nothing ties the customer cancellation to the purchase reduction."
+        "The purchase is not reduced automatically; a person revises it with the supplier's statement."
       ],
       "keywords": [],
       "question_examples": [
         "Purchase reduced after the customer order was cancelled",
         "Demand chain updated?"
       ],
-      "tools": [],
+      "tools": [
+        "commitment_cancel_propose",
+        "supply_coverage",
+        "available_to_promise",
+        "commitment_revise_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -3123,19 +3153,25 @@
       "section": "Goods receipt and supplier deviations",
       "title": "Receipt for a customer-specific purchase (cross-docking)",
       "question": "Goes straight to the waiting commitment?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Goes straight to the waiting commitment?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Goes straight to the waiting commitment? A purchase assigned to a customer order puts that order first when its receipt is served, even if another order is due earlier; a person confirms the reservation.",
       "limitations": [
-        "A purchase can be assigned to the waiting customer order.",
-        "The receipt does not reserve for that order automatically."
+        "The reservation is confirmed by a person, not made by the receipt itself."
       ],
-      "keywords": [],
+      "keywords": [
+        "cross-docking",
+        "Streckengeschäft"
+      ],
       "question_examples": [
         "Receipt for a customer-specific purchase (cross-docking)",
         "Goes straight to the waiting commitment?"
       ],
-      "tools": [],
+      "tools": [
+        "supply_assign_propose",
+        "shipment_receive_propose",
+        "backorders_serve_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -5085,19 +5121,24 @@
       "section": "Combined stress stories",
       "title": "Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels",
       "question": "Cancelled demand leaves the purchase assignment.",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Cancelled demand leaves the purchase assignment.",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Cancelled demand leaves the purchase assignment. Two orders assigned to one purchase, the purchase comes short and is reduced, a person reserves the key customer first by stating the quantities, and the other order's cancellation ends its assignment and releases its reservation.",
       "limitations": [
-        "A cancelled customer order keeps its purchase assignment until someone reverses it by hand.",
-        "The combined story is not yet proven."
+        "Which customer is key is the person's decision; there is no stated customer priority."
       ],
       "keywords": [],
       "question_examples": [
         "Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels",
         "Cancelled demand leaves the purchase assignment."
       ],
-      "tools": [],
+      "tools": [
+        "supply_assign_propose",
+        "commitment_revise_propose",
+        "backorders_serve_propose",
+        "commitment_cancel_propose",
+        "supply_coverage"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

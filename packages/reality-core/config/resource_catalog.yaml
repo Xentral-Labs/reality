@@ -69,7 +69,7 @@ resources:
         stehen die Bestandslisten hier.
     synonyms: [product, SKU, stock, inventory, Produkt, Bestand, Lagerbestand, Verfügbarkeit]
     tables: [item, supply_assignment, item_reorder_point, stock_block, stock_block_resolution]
-    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand|supply_(assign|coverage)|reorder_point|stock_block"
+    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand|supply_(assign|coverage)|reorder_point|stock_block|backorder|available_to_promise"
     views: [items, inventory, supply_demand]
     projections: [inventory, item_supply_demand]
     exceptions: [units_not_comparable, reservation_exceeds_stock, item_oversold, reorder_point_reached, stock_in_another_location, missing_acquisition_cost]
@@ -578,6 +578,8 @@ labels:
       business_journey_vote_set: Stimme für Business-Journey-Vorschlag setzen
       cost_evidence: Empfangene Anschaffungskosten anzeigen
       inventory_cost: Bestand zu Anschaffungskosten anzeigen
+      serve_backorders: Rückstände bedienen
+      available_to_promise: Lieferfähigkeit anzeigen
       contribution_preview: Deckungsbeitragsvorschau prüfen
       commercial_match: Geprüfte Teilzuordnung anzeigen
       cost_query: Kosten mit Bewertungsbasis abfragen

@@ -16,6 +16,7 @@ import type { Selection } from "./routing";
 import { CostExplanation } from "./CostExplanation";
 import { MovementExplanation } from "./MovementExplanation";
 import { StockBlockCard, StockBlockList } from "./StockBlockCard";
+import { AvailableToPromise, BackorderServingCard } from "./BackorderServingCard";
 
 const states: Record<WarehouseView, [string, string][]> = {
   stock: [
@@ -100,6 +101,7 @@ export function WarehousePage({
   const stock = view === "stock";
   // Spec 304: block stock where it lies, from the row it is on.
   const [blocking, setBlocking] = useState<{ id: string; name: string; unit: string } | null>(null);
+  const [serving, setServing] = useState<{ id: string; name: string; unit: string } | null>(null);
   const [blocksVersion, setBlocksVersion] = useState(0);
   const data = read.data?.scope.view === view ? read.data : undefined;
   const warehouseActions = useContextActions(`warehouse.${view}`);
@@ -219,6 +221,18 @@ export function WarehousePage({
               item={blocking}
               prefill={{ location_id: location || undefined }}
               close={() => setBlocking(null)}
+              settled={() => {
+                read.refresh();
+                setBlocksVersion((value) => value + 1);
+              }}
+            />
+          )}
+          {serving && (
+            <BackorderServingCard
+              tenant={tenant}
+              item={serving}
+              location={location || undefined}
+              close={() => setServing(null)}
               settled={() => {
                 read.refresh();
                 setBlocksVersion((value) => value + 1);
@@ -376,7 +390,7 @@ export function WarehousePage({
                           <MovementExplanation tenant={tenant} movementId={row.id} />
                         )}
                         {stock && (
-                          <div className="mb-3">
+                          <div className="mb-3 flex flex-wrap gap-2">
                             <button
                               className="br-btn"
                               onClick={() =>
@@ -389,7 +403,26 @@ export function WarehousePage({
                             >
                               {t("Block stock")}
                             </button>
+                            <button
+                              className="br-btn"
+                              onClick={() =>
+                                setServing({
+                                  id: row.id,
+                                  name: row.name || row.item || row.id,
+                                  unit: row.unit,
+                                })
+                              }
+                            >
+                              {t("Serve backorders")}
+                            </button>
                           </div>
+                        )}
+                        {stock && entry === row.id && (
+                          <AvailableToPromise
+                            key={`${row.id}:${blocksVersion}`}
+                            tenant={tenant}
+                            item={row.id}
+                          />
                         )}
                         {stock && (
                           <CostExplanation

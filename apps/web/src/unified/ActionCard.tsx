@@ -30,6 +30,7 @@ import { formatQuantity, t } from "../localization";
 import { ReadLine } from "./ReadState";
 import { ShipmentActions } from "./ShipmentActions";
 import { CommitmentActionCard } from "./CommitmentActionCard";
+import { BackorderServingCard } from "./BackorderServingCard";
 
 function DeliveryActionCard({
   tenant,
@@ -60,6 +61,8 @@ function DeliveryActionCard({
   const dialog = useRef<HTMLDialogElement>(null);
   const requestId = useRef(crypto.randomUUID());
   const [inspection, inspect] = useState<{ kind: string; id: string } | null>(null);
+  // Spec 305: after a receipt, give the goods to the orders waiting for them.
+  const [serving, setServing] = useState(false);
   const [activeTool, setActiveTool] = useState(tool);
   const [editing, setEditing] = useState(false);
   const [proposal, setProposal] = useState<DeliveryProposal | null>(null);
@@ -852,6 +855,26 @@ function DeliveryActionCard({
             >
               {t("Check outcome")}
             </button>
+          )}
+          {proposal.status === "executed" &&
+            proposal.review?.intent.movement_type === "receipt" &&
+            !!proposal.review.intent.item_id && (
+              <button className="br-btn br-btn-primary" onClick={() => setServing(true)}>
+                {t("Serve backorders")}
+              </button>
+            )}
+          {serving && proposal.review && (
+            <BackorderServingCard
+              tenant={tenant}
+              item={{
+                id: String(proposal.review.intent.item_id),
+                name: String(proposal.review.state.case.item || proposal.review.intent.item_id),
+              }}
+              location={String(proposal.review.intent.to_location_id || "") || undefined}
+              purchase={String(proposal.review.intent.commitment_id || "") || undefined}
+              close={() => setServing(false)}
+              settled={() => window.dispatchEvent(new Event("reality:delivery-settled"))}
+            />
           )}
           {proposal.status === "executed" &&
             !["verified", "recorded"].includes(proposal.verification) && (

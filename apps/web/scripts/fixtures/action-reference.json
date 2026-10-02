@@ -572,6 +572,21 @@
       "effect": "Writes blocked stock off its location, wholly or partly, with one reasoned adjustment linked to the block."
     },
     {
+      "name": "Serve backorders",
+      "service": "serve_backorders",
+      "related_services": ["review_backorder_serving", "waiting_promises"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Reserves available stock for waiting customer orders in the serving order (assigned to the received purchase first, then by due date), as a person confirmed it."
+    },
+    {
+      "name": "Read available to promise",
+      "service": "available_to_promise",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Answers from when and how much of an item can be promised, naming each open purchase and its date."
+    },
+    {
       "name": "Read stock blocks",
       "service": "stock_blocks",
       "mode": "query",

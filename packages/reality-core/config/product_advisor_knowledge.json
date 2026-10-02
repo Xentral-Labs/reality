@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:69f5376ffe361934d4fabab74b2c9824ca0832f5136fa67f0feaad7391dc1611",
+  "knowledge_version": "advisor-v1:sha256:56e46574af758f6c87bba3cf6be434e5adca0d3ff34d2712f198e5d78d683cac",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -279,7 +279,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#B07",
-      "fingerprint": "6b9ec543d418a45a824341a1a23dc957659f36d255369fd73afb20a29fedf8e2"
+      "fingerprint": "5f5a5444a04767ea1e511d47301e7fdf15e09295638d0f03c2a53934959a20a0"
     },
     {
       "id": "source_journey_b08",
@@ -288,7 +288,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#B08",
-      "fingerprint": "5abb366703b4f2787f827fdc14ead034efb7484b9fcb2afa81d945b2fb016da5"
+      "fingerprint": "5e325b8910839d91444b32dd9a07ef41da956515852097c378fcd13ff7968b8f"
     },
     {
       "id": "source_journey_b09",
@@ -297,7 +297,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#B09",
-      "fingerprint": "904670516588d1cfef34fe7cd715a601ab508d0f77555e010a6b51735927a041"
+      "fingerprint": "0e9e4d57395c29537e408ce597069c663c16e1b28e15e5763f754ea86f6d56e4"
     },
     {
       "id": "source_journey_b10",
@@ -1053,7 +1053,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G13",
-      "fingerprint": "d8200f32926447782345ce8a4f65dadd4b9423e28b466bd90b01b637e39ffbd7"
+      "fingerprint": "c69071d1b6f2afd22598e695670baf32f07f6f1ba297c0e1455100ad869cd3d1"
     },
     {
       "id": "source_journey_g14",
@@ -1233,7 +1233,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H16",
-      "fingerprint": "e7b6c05c83bc810ae768339fa46819478ea5d3f3f2cd27a6aeaedf8829fe2eca"
+      "fingerprint": "03412a400f101b282ea498e56eb74e9aca1978eaa82853c79a7e7c9934168689"
     },
     {
       "id": "source_journey_h17",
@@ -1998,7 +1998,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#R02",
-      "fingerprint": "2e0ea5eecb974c58123b906c2ae24bd6dca57ae74f74f5584ea60e9d731f7666"
+      "fingerprint": "85ed1c7f3571cfaa8da4409429328c8fc593e300e74e01b17a43538b2f670b0a"
     },
     {
       "id": "source_journey_r03",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "9995e4e88ef302505d24065da0006e805a5ef6b57a0c199234d963bce447b329"
+      "fingerprint": "0b5340febba8806e8215bb0a3ef03f9df7bf8d1e8a94bf602ebd7dedaa0fb108"
     },
     {
       "id": "source_document_product_evaluation",
@@ -2627,54 +2627,60 @@
       "source_id": "source_journey_b07",
       "subject": "Availability, reservation and backorder",
       "title": "Stock only on order (open purchase)",
-      "search_text": "B07 Availability, reservation and backorder Stock only on order (open purchase) Can it be promised (available to promise)? Stock only on order (open purchase) Can it be promised (available to promise)?",
-      "claim_text": "Reality evaluates: Can it be promised (available to promise)?",
-      "support": "limited",
+      "search_text": "B07 Availability, reservation and backorder Stock only on order (open purchase) Can it be promised (available to promise)? available to promise ATP Lieferfähigkeit lieferbar ab Stock only on order (open purchase) Can it be promised (available to promise)? Nothing is in stock but a purchase is on its way; from when can we promise it? Nichts am Lager, aber eine Bestellung läuft; ab wann können wir zusagen?",
+      "claim_text": "Reality evaluates: Can it be promised (available to promise)? Available to promise answers per item what is free now and, per open purchase in the order of its stated date, how much more becomes free, naming the purchase, its supplier and whether it is overdue; what a purchase's customer assignments still expect is not offered again.",
+      "support": "proven",
       "limitations": [
-        "An open purchase can be assigned to protect a customer promise.",
-        "There is no dated available-to-promise calculation."
+        "Purchase dates are what the supplier stated; an overdue purchase still counts and is marked overdue.",
+        "The answer is company-wide over stock locations, not per warehouse."
       ],
       "references": [
-        "B07"
+        "B07",
+        "available_to_promise",
+        "supply_coverage"
       ],
       "language": "en",
-      "fingerprint": "f3cf92a5ddcf14efacfbd61ca9ba8e933947f5999b5a3d14e56c9e00233e32a7"
+      "fingerprint": "47e39e123ec9dc97ec75f579cded6367465fe150b9d962f4396e1c0a5962fc6f"
     },
     {
       "id": "evidence_journey_b08",
       "source_id": "source_journey_b08",
       "subject": "Availability, reservation and backorder",
       "title": "Receipt resolves backorders",
-      "search_text": "B08 Availability, reservation and backorder Receipt resolves backorders Which commitment is served first? Receipt resolves backorders Which commitment is served first?",
-      "claim_text": "Reality evaluates: Which commitment is served first?",
-      "support": "limited",
+      "search_text": "B08 Availability, reservation and backorder Receipt resolves backorders Which commitment is served first? backorder serve backorders Rückstand Rückstände bedienen Receipt resolves backorders Which commitment is served first? Goods arrived and two orders are waiting; which one gets them? Ware ist eingegangen und zwei Aufträge warten; welcher bekommt sie zuerst?",
+      "claim_text": "Reality evaluates: Which commitment is served first? After a receipt, Serve backorders proposes reservations in a stated order: the orders the received purchase is assigned to, in assignment order, then the others by due date. A person may change the quantities and confirms; nothing is reserved by the receipt itself.",
+      "support": "proven",
       "limitations": [
-        "A receipt reserves nothing automatically.",
-        "A supply assignment names the intended customer, but there is no rule for which backorder is served first."
+        "There is no priority per customer; a person states a different split by changing the quantities.",
+        "Lot- and serial-tracked items are reserved lot by lot, not through Serve backorders."
       ],
       "references": [
-        "B08"
+        "B08",
+        "backorders_serve_propose",
+        "shipment_receive_propose",
+        "supply_coverage"
       ],
       "language": "en",
-      "fingerprint": "ea651ce8a28e27669ca885585cb2495cea754ba02adc0ba938d1f60ee26a9dca"
+      "fingerprint": "e11b7ddac6f22fcadae22abc83e86bc137460a94af42b05014b9caf1152e9e5b"
     },
     {
       "id": "evidence_journey_b09",
       "source_id": "source_journey_b09",
       "subject": "Availability, reservation and backorder",
       "title": "Receipt covers only part of the backorders",
-      "search_text": "B09 Availability, reservation and backorder Receipt covers only part of the backorders Which remain uncovered? Receipt covers only part of the backorders Which remain uncovered?",
-      "claim_text": "Reality evaluates: Which remain uncovered? After a partial receipt, the promises a person has reserved are covered and the rest are reported at risk.",
-      "support": "limited",
+      "search_text": "B09 Availability, reservation and backorder Receipt covers only part of the backorders Which remain uncovered? partial receipt Teillieferung Rückstand Receipt covers only part of the backorders Which remain uncovered?",
+      "claim_text": "Reality evaluates: Which remain uncovered? Supply coverage splits each assignment into what has arrived and what is still to come, in the order the assignments were made; Serve backorders reserves what arrived in that order, and the promises left short stay at risk.",
+      "support": "proven",
       "limitations": [
-        "A receipt does not consume supply assignments, so each backorder still counts its full assigned supply after only part arrived.",
-        "Which backorders stay uncovered is answered by the reservations a person makes."
+        "The split is a read-time observation; once a person reserves, the reservation decides."
       ],
       "references": [
-        "B09"
+        "B09",
+        "supply_coverage",
+        "backorders_serve_propose"
       ],
       "language": "en",
-      "fingerprint": "ef6a11b8fa633a070f06a341cb3d83646fd2262d9bb4ee9db0d430373d95eaf7"
+      "fingerprint": "b2c62a97f8d341a35976203249d8ab825e7b147c72f63ec3b4ab63a218c9ccd5"
     },
     {
       "id": "evidence_journey_b10",
@@ -4085,17 +4091,20 @@
       "subject": "Purchasing: demand and purchase order",
       "title": "Purchase reduced after the customer order was cancelled",
       "search_text": "G13 Purchasing: demand and purchase order Purchase reduced after the customer order was cancelled Demand chain updated? Purchase reduced after the customer order was cancelled Demand chain updated?",
-      "claim_text": "Reality evaluates: Demand chain updated?",
-      "support": "limited",
+      "claim_text": "Reality evaluates: Demand chain updated? Cancelling a customer order ends the supply assignments that served it, so the purchase shows the quantity as unassigned and available to promise again; reducing the purchase itself stays its own reviewed revision.",
+      "support": "proven",
       "limitations": [
-        "The purchase assignment can be reversed by hand with a reason.",
-        "Nothing ties the customer cancellation to the purchase reduction."
+        "The purchase is not reduced automatically; a person revises it with the supplier's statement."
       ],
       "references": [
-        "G13"
+        "G13",
+        "commitment_cancel_propose",
+        "supply_coverage",
+        "available_to_promise",
+        "commitment_revise_propose"
       ],
       "language": "en",
-      "fingerprint": "ebeecd858fa4a0e8b7c1d5b9498dfdb2b3ea4d51076503d9ae5ca47378125721"
+      "fingerprint": "684ab2154542af6696bf9ce6234cf44d129d3957613a01c552fdfd42bd1820c9"
     },
     {
       "id": "evidence_journey_g14",
@@ -4417,18 +4426,20 @@
       "source_id": "source_journey_h16",
       "subject": "Goods receipt and supplier deviations",
       "title": "Receipt for a customer-specific purchase (cross-docking)",
-      "search_text": "H16 Goods receipt and supplier deviations Receipt for a customer-specific purchase (cross-docking) Goes straight to the waiting commitment? Receipt for a customer-specific purchase (cross-docking) Goes straight to the waiting commitment?",
-      "claim_text": "Reality evaluates: Goes straight to the waiting commitment?",
-      "support": "limited",
+      "search_text": "H16 Goods receipt and supplier deviations Receipt for a customer-specific purchase (cross-docking) Goes straight to the waiting commitment? cross-docking Streckengeschäft Receipt for a customer-specific purchase (cross-docking) Goes straight to the waiting commitment?",
+      "claim_text": "Reality evaluates: Goes straight to the waiting commitment? A purchase assigned to a customer order puts that order first when its receipt is served, even if another order is due earlier; a person confirms the reservation.",
+      "support": "proven",
       "limitations": [
-        "A purchase can be assigned to the waiting customer order.",
-        "The receipt does not reserve for that order automatically."
+        "The reservation is confirmed by a person, not made by the receipt itself."
       ],
       "references": [
-        "H16"
+        "H16",
+        "supply_assign_propose",
+        "shipment_receive_propose",
+        "backorders_serve_propose"
       ],
       "language": "en",
-      "fingerprint": "73bf3fa59489de3860a4d07241b2717555faf0ab5c6b099239c711646296c8db"
+      "fingerprint": "183d188e9b3a07547f835747d460845e2100a18fa9aa44237e0889844be71b13"
     },
     {
       "id": "evidence_journey_h17",
@@ -5869,17 +5880,21 @@
       "subject": "Combined stress stories",
       "title": "Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels",
       "search_text": "R02 Combined stress stories Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels Cancelled demand leaves the purchase assignment. Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels Cancelled demand leaves the purchase assignment.",
-      "claim_text": "Reality evaluates: Cancelled demand leaves the purchase assignment.",
-      "support": "limited",
+      "claim_text": "Reality evaluates: Cancelled demand leaves the purchase assignment. Two orders assigned to one purchase, the purchase comes short and is reduced, a person reserves the key customer first by stating the quantities, and the other order's cancellation ends its assignment and releases its reservation.",
+      "support": "proven",
       "limitations": [
-        "A cancelled customer order keeps its purchase assignment until someone reverses it by hand.",
-        "The combined story is not yet proven."
+        "Which customer is key is the person's decision; there is no stated customer priority."
       ],
       "references": [
-        "R02"
+        "R02",
+        "supply_assign_propose",
+        "commitment_revise_propose",
+        "backorders_serve_propose",
+        "commitment_cancel_propose",
+        "supply_coverage"
       ],
       "language": "en",
-      "fingerprint": "6b60fbc845e5418a075b32abaf1e7b0e5182754fb6b9dcf4372af475c31d268f"
+      "fingerprint": "239fea5d202ec7feacef96e4db92c95ddd9bd8e257464da8769a471c8282af07"
     },
     {
       "id": "evidence_journey_r03",
@@ -7156,6 +7171,36 @@
       ],
       "language": "en",
       "fingerprint": "5fbeb471dc898ea37d1becddfd987c61375636caaccd8017cc4855582c852d4a"
+    },
+    {
+      "id": "evidence_command_serve_backorders",
+      "source_id": "source_executable_commands",
+      "subject": "Serve backorders",
+      "title": "Serve backorders",
+      "search_text": "serve_backorders Serve backorders Reserves available stock for waiting customer orders in the serving order (assigned to the received purchase first, then by due date), as a person confirmed it. mutation",
+      "claim_text": "serve_backorders is a governed mutation command for Reserves available stock for waiting customer orders in the serving order (assigned to the received purchase first, then by due date), as a person confirmed it..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "serve_backorders"
+      ],
+      "language": "en",
+      "fingerprint": "cfd81fb658ad25a9123f2700610107c047b4880366c840bc86aa7f36f327c006"
+    },
+    {
+      "id": "evidence_command_available_to_promise",
+      "source_id": "source_executable_commands",
+      "subject": "Read available to promise",
+      "title": "Read available to promise",
+      "search_text": "available_to_promise Read available to promise Answers from when and how much of an item can be promised, naming each open purchase and its date. query",
+      "claim_text": "available_to_promise is a governed query command for Answers from when and how much of an item can be promised, naming each open purchase and its date..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "available_to_promise"
+      ],
+      "language": "en",
+      "fingerprint": "bc6e0faf002ea7f129dee8141c4af05a3d843e70d27a2cad8095c6c53eabc862"
     },
     {
       "id": "evidence_command_stock_blocks",

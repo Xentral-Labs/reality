@@ -24696,6 +24696,35 @@ Object.assign(dictionaries.de, {
   "Scrapping writes the goods off their location with one adjustment. Nothing changes before you confirm.":
     "Verschrotten bucht die Ware mit einer Bestandskorrektur aus ihrem Lagerort aus. Vor deiner Bestätigung ändert sich nichts.",
   Why: "Warum",
+  "This item was not found in this company.":
+    "Dieser Artikel wurde in dieser Firma nicht gefunden.",
+  "Lot- and serial-tracked items are reserved lot by lot; reserve them for each order instead.":
+    "Chargen- und seriennummerngeführte Artikel werden je Charge reserviert; reserviere sie stattdessen je Auftrag.",
+  "Backorders are served from an active location that holds stock.":
+    "Rückstände werden aus einem aktiven Lagerort mit Bestand bedient.",
+  "This purchase is not for this item.": "Diese Bestellung gilt nicht für diesen Artikel.",
+  "This order is not waiting for this item here.":
+    "Dieser Auftrag wartet hier nicht auf diesen Artikel.",
+  "A line cannot reserve more than its order still needs.":
+    "Eine Zeile kann nicht mehr reservieren, als ihr Auftrag noch braucht.",
+  "Together the lines reserve more than is available here.":
+    "Zusammen reservieren die Zeilen mehr, als hier verfügbar ist.",
+  "Nothing would be reserved: no stock is available here or no order is waiting.":
+    "Es würde nichts reserviert: Hier ist kein Bestand verfügbar oder kein Auftrag wartet.",
+  "Each line needs a quantity of zero or more.":
+    "Jede Zeile braucht eine Menge von null oder mehr.",
+  "Stock or orders changed after the review; review serving the backorders again.":
+    "Bestand oder Aufträge haben sich nach der Prüfung geändert; prüfe das Bedienen der Rückstände erneut.",
+  "Serve backorders": "Rückstände bedienen",
+  "Assigned to this purchase": "Dieser Bestellung zugeordnet",
+  "Available here": "Hier verfügbar",
+  "Available to promise": "Lieferfähigkeit",
+  "On hold, not served": "Gesperrt, nicht bedient",
+  "Orders this purchase is assigned to come first, then the others by due date. Nothing is reserved before you confirm.":
+    "Zuerst kommen die Aufträge, denen diese Bestellung zugeordnet ist, danach die übrigen nach Fälligkeit. Vor deiner Bestätigung wird nichts reserviert.",
+  Reserve: "Reservieren",
+  "Short now": "Jetzt fehlend",
+  "Without a date": "Ohne Termin",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -24849,6 +24878,33 @@ Object.assign(dictionaries.nl, {
   "Scrapping writes the goods off their location with one adjustment. Nothing changes before you confirm.":
     "Afschrijven boekt de goederen met één correctie uit hun locatie. Voor je bevestiging verandert er niets.",
   Why: "Waarom",
+  "This item was not found in this company.": "Dit artikel is in dit bedrijf niet gevonden.",
+  "Lot- and serial-tracked items are reserved lot by lot; reserve them for each order instead.":
+    "Artikelen met partij- of serienummerregistratie worden per partij gereserveerd; reserveer ze in plaats daarvan per order.",
+  "Backorders are served from an active location that holds stock.":
+    "Achterstanden worden bediend vanuit een actieve locatie met voorraad.",
+  "This purchase is not for this item.": "Deze inkooporder is niet voor dit artikel.",
+  "This order is not waiting for this item here.": "Deze order wacht hier niet op dit artikel.",
+  "A line cannot reserve more than its order still needs.":
+    "Een regel kan niet meer reserveren dan de order nog nodig heeft.",
+  "Together the lines reserve more than is available here.":
+    "Samen reserveren de regels meer dan hier beschikbaar is.",
+  "Nothing would be reserved: no stock is available here or no order is waiting.":
+    "Er zou niets worden gereserveerd: hier is geen voorraad beschikbaar of er wacht geen order.",
+  "Each line needs a quantity of zero or more.":
+    "Elke regel heeft een hoeveelheid van nul of meer nodig.",
+  "Stock or orders changed after the review; review serving the backorders again.":
+    "Voorraad of orders zijn na de controle gewijzigd; controleer het bedienen van de achterstanden opnieuw.",
+  "Serve backorders": "Achterstanden bedienen",
+  "Assigned to this purchase": "Aan deze inkooporder toegewezen",
+  "Available here": "Hier beschikbaar",
+  "Available to promise": "Beschikbaar om toe te zeggen",
+  "On hold, not served": "Geblokkeerd, niet bediend",
+  "Orders this purchase is assigned to come first, then the others by due date. Nothing is reserved before you confirm.":
+    "Eerst komen de orders waaraan deze inkooporder is toegewezen, daarna de andere op vervaldatum. Er wordt niets gereserveerd voordat je bevestigt.",
+  Reserve: "Reserveren",
+  "Short now": "Nu tekort",
+  "Without a date": "Zonder datum",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25003,6 +25059,32 @@ Object.assign(dictionaries.es, {
   "Scrapping writes the goods off their location with one adjustment. Nothing changes before you confirm.":
     "Desechar da de baja la mercancía de su ubicación con un ajuste. Nada cambia antes de que confirmes.",
   Why: "Por qué",
+  "This item was not found in this company.": "Este artículo no se encontró en esta empresa.",
+  "Lot- and serial-tracked items are reserved lot by lot; reserve them for each order instead.":
+    "Los artículos con lote o número de serie se reservan lote a lote; resérvalos por pedido en su lugar.",
+  "Backorders are served from an active location that holds stock.":
+    "Los pedidos pendientes se atienden desde una ubicación activa con stock.",
+  "This purchase is not for this item.": "Esta compra no es para este artículo.",
+  "This order is not waiting for this item here.": "Este pedido no espera este artículo aquí.",
+  "A line cannot reserve more than its order still needs.":
+    "Una línea no puede reservar más de lo que su pedido aún necesita.",
+  "Together the lines reserve more than is available here.":
+    "En conjunto, las líneas reservan más de lo disponible aquí.",
+  "Nothing would be reserved: no stock is available here or no order is waiting.":
+    "No se reservaría nada: no hay stock disponible aquí o ningún pedido espera.",
+  "Each line needs a quantity of zero or more.": "Cada línea necesita una cantidad de cero o más.",
+  "Stock or orders changed after the review; review serving the backorders again.":
+    "El stock o los pedidos cambiaron tras la revisión; revisa de nuevo la atención de los pedidos pendientes.",
+  "Serve backorders": "Atender pedidos pendientes",
+  "Assigned to this purchase": "Asignado a esta compra",
+  "Available here": "Disponible aquí",
+  "Available to promise": "Disponible para prometer",
+  "On hold, not served": "Retenido, no atendido",
+  "Orders this purchase is assigned to come first, then the others by due date. Nothing is reserved before you confirm.":
+    "Primero van los pedidos a los que está asignada esta compra y después los demás por fecha de vencimiento. No se reserva nada antes de que confirmes.",
+  Reserve: "Reservar",
+  "Short now": "Faltan ahora",
+  "Without a date": "Sin fecha",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

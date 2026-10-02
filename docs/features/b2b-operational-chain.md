@@ -18,6 +18,20 @@ Cancelling either promise ends its assignments without rewriting them: coverage 
 assignment whose customer or supplier commitment is cancelled, so the supplier quantity is
 unassigned again and the customer shows no protecting supply from it.
 
+Since spec 305 coverage also says how much of each assignment has arrived and how much is still to
+come. What the purchase received covers its assignments in the order they were made, and what is
+still open on it covers the rest the same way. Neither is stored.
+
+**Serving backorders.** After a receipt, Serve backorders proposes reservations for the orders
+waiting for the item at that location:
+1. The orders the received purchase is assigned to, in assignment order.
+2. The other waiting orders, by due date.
+
+A person may change the quantities and confirms; the receipt itself reserves nothing.
+
+**Available to promise.** This read names, per item, what is free now and, for each open purchase by
+its stated date, how much more becomes free.
+
 ## Mixed returned-goods disposition
 
 Search Sales for `SO-041`, then open `ITEM-012` movements in Warehouse. Five shipped units return

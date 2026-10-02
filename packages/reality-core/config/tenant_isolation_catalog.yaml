@@ -454,6 +454,8 @@ families:
       - tool:stock_block
       - tool:stock_block_release
       - tool:stock_block_scrap
+      - tool:backorders_serve
+      - tool:available_to_promise
       - tool:customer_exchange
       - tool:movement_explanation
       - tool:exceptions
