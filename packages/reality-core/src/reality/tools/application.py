@@ -1467,6 +1467,31 @@ def _customer_item_number_remove(
     )
 
 
+def _company_currency_set(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.finance.company_currency import (
+        UNCHECKED,
+        set_company_currency,
+    )
+
+    return set_company_currency(
+        session,
+        tenant_id,
+        arguments["currency"],
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+
+
+def _company_currency(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.finance.company_currency import company_currency_state
+
+    return company_currency_state(session, tenant_id)
+
+
 def _customer_item_numbers(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2734,6 +2759,18 @@ TOOLS = {
         False,
         _available_to_promise,
     ),
+    "company_currency_set": Tool(
+        "company_currency_set",
+        "State the company currency the books are kept in; refused once the company has posted anything.",
+        True,
+        _company_currency_set,
+    ),
+    "company_currency": Tool(
+        "company_currency",
+        "Read the company currency and whether the company has posted anything.",
+        False,
+        _company_currency,
+    ),
     "customer_item_number_set": Tool(
         "customer_item_number_set",
         "State which of our items a customer's own article number names, with the customer's name for it.",
@@ -3594,6 +3631,13 @@ def create_change_proposal(
         normalized_arguments, customer_item_review = review_customer_item_number(
             session, tenant_id, tool_name, arguments
         )
+    company_currency_review = None
+    if tool_name == "company_currency_set":
+        from reality.services.finance.company_currency import review_company_currency
+
+        normalized_arguments, company_currency_review = review_company_currency(
+            session, tenant_id, arguments
+        )
     stock_count_review = None
     if tool_name == "stock_count":
         from reality.services.stock_counts import review_stock_count
@@ -3687,6 +3731,8 @@ def create_change_proposal(
         preview["stock_count"] = stock_count_review
     if customer_item_review is not None:
         preview["customer_item_number"] = customer_item_review
+    if company_currency_review is not None:
+        preview["company_currency"] = company_currency_review
     if stock_block_review is not None:
         preview["stock_block"] = stock_block_review
     if backorder_review is not None:
@@ -4280,6 +4326,7 @@ def approve_and_execute_proposal(
         "stock_count",
         "customer_item_number_set",
         "customer_item_number_remove",
+        "company_currency_set",
         "down_payment_invoice_record",
         "proforma_invoice_record",
         "commitment_revise",

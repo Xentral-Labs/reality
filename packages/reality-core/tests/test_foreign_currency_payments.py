@@ -33,7 +33,9 @@ def _exchange_account(session, tenant):
     )
 
 
-def _invoice(session, business, number="USD-INV-1", gross="1000", rate="0.92", currency="USD"):
+def _invoice(
+    session, business, number="USD-INV-1", gross="1000", rate="0.92", currency="USD"
+):
     receipt = record_free_supplier_invoice(
         session,
         business.tenant.id,
@@ -80,7 +82,9 @@ def _company_open(session, tenant, invoice):
     """What is left of the invoice's company-currency value."""
     control = _entries(session, tenant, invoice)[("accounts_payable", "credit")]
     settled = Decimal(0)
-    for row in core.active_settlement_allocations(session, tenant, entry_ids={control.id}):
+    for row in core.active_settlement_allocations(
+        session, tenant, entry_ids={control.id}
+    ):
         payment = session.scalar(
             select(LedgerEntry).where(
                 LedgerEntry.tenant_id == tenant,
@@ -98,7 +102,7 @@ def test_an_invoice_is_posted_at_its_stated_rate(session, business):
 
     entries = _entries(session, tenant, invoice)
     payable = entries[("accounts_payable", "credit")]
-    assert (payable.amount, payable.currency) == (Decimal("1000"), "USD")
+    assert (payable.amount, payable.currency) == (Decimal(1000), "USD")
     assert (payable.company_amount, payable.exchange_rate) == (
         Decimal("920.00"),
         Decimal("0.92"),
@@ -109,7 +113,8 @@ def test_an_invoice_is_posted_at_its_stated_rate(session, business):
 def test_an_invoice_in_another_currency_needs_its_rate(session, business):
     _refused("exchange_rate_required", lambda: _invoice(session, business, rate=None))
     _refused(
-        "exchange_rate_invalid", lambda: _invoice(session, business, number="X", rate="-1")
+        "exchange_rate_invalid",
+        lambda: _invoice(session, business, number="X", rate="-1"),
     )
     _refused(
         "exchange_rate_not_applicable",
@@ -127,15 +132,18 @@ def test_a_payment_at_a_better_rate_realises_a_gain(session, business):
     entries = _pay(session, business, invoice, "1000", "912.40", "PAY-1")
 
     by_account = {entry.account: entry for entry in entries}
-    assert (by_account["accounts_payable"].amount, by_account["accounts_payable"].company_amount) == (
-        Decimal("1000"),
+    assert (
+        by_account["accounts_payable"].amount,
+        by_account["accounts_payable"].company_amount,
+    ) == (
+        Decimal(1000),
         Decimal("920.00"),
     )
     assert by_account["cash"].company_amount == Decimal("912.40")
     gain = by_account["exchange_difference"]
     assert (gain.debit_credit, gain.amount, gain.company_amount) == (
         "credit",
-        Decimal("0"),
+        Decimal(0),
         Decimal("7.60"),
     )
     assert core.open_invoice_amount(session, tenant, invoice) == 0
@@ -182,10 +190,21 @@ def test_a_foreign_payment_states_what_was_paid(session, business):
     invoice = _invoice(session, business)
     euro = _invoice(session, business, number="EUR-3", currency="EUR", rate=None)
 
-    _refused("paid_amount_required", lambda: _pay(session, business, invoice, "10", None, "P1"))
-    _refused("paid_amount_invalid", lambda: _pay(session, business, invoice, "10", "0", "P2"))
-    _refused("paid_amount_invalid", lambda: _pay(session, business, invoice, "10", "9.123", "P3"))
-    _refused("paid_amount_not_applicable", lambda: _pay(session, business, euro, "10", "10", "P4"))
+    _refused(
+        "paid_amount_required",
+        lambda: _pay(session, business, invoice, "10", None, "P1"),
+    )
+    _refused(
+        "paid_amount_invalid", lambda: _pay(session, business, invoice, "10", "0", "P2")
+    )
+    _refused(
+        "paid_amount_invalid",
+        lambda: _pay(session, business, invoice, "10", "9.123", "P3"),
+    )
+    _refused(
+        "paid_amount_not_applicable",
+        lambda: _pay(session, business, euro, "10", "10", "P4"),
+    )
     _refused(
         "payment_exceeds_open_invoice",
         lambda: _pay(session, business, invoice, "1000.01", "920", "P5"),
@@ -197,7 +216,13 @@ def test_a_foreign_payment_states_what_was_paid(session, business):
 def test_an_unconverted_invoice_cannot_be_paid_across_currencies(session, business):
     tenant = business.tenant.id
     document = core.create_document(
-        session, tenant, "supplier_invoice", "OLD-USD", business.supplier.id, "50", currency="USD"
+        session,
+        tenant,
+        "supplier_invoice",
+        "OLD-USD",
+        business.supplier.id,
+        "50",
+        currency="USD",
     )
     # A foreign posting from before spec 309 carries no company amount.
     core.post_ledger(
@@ -209,7 +234,10 @@ def test_an_unconverted_invoice_cannot_be_paid_across_currencies(session, busine
         currency="USD",
     )
 
-    _refused("invoice_not_converted", lambda: _pay(session, business, document.id, "50", "46", "P7"))
+    _refused(
+        "invoice_not_converted",
+        lambda: _pay(session, business, document.id, "50", "46", "P7"),
+    )
 
 
 def test_a_reviewed_payment_shows_the_difference_and_turns_stale(session, business):
@@ -228,7 +256,7 @@ def test_a_reviewed_payment_shows_the_difference_and_turns_stale(session, busine
         Decimal(exchange["payment_rate"]),
         exchange["kind"],
         Decimal(exchange["difference"]),
-    ) == (Decimal("368"), Decimal("0.93"), "loss", Decimal("4"))
+    ) == (Decimal(368), Decimal("0.93"), "loss", Decimal(4))
     # Another payment changes what is open: the review is stale.
     _pay(session, business, invoice, "100", "92.00", "PAY-4")
     with pytest.raises(core.InvalidOperation):
@@ -249,7 +277,10 @@ def test_a_reviewed_payment_shows_the_difference_and_turns_stale(session, busine
     assert executed.status == "executed"
     from reality.services.delivery_actions import delivery_proposal_detail
 
-    assert delivery_proposal_detail(session, tenant, fresh.id)["verification"] == "verified"
+    assert (
+        delivery_proposal_detail(session, tenant, fresh.id)["verification"]
+        == "verified"
+    )
 
 
 def test_reversing_a_payment_takes_its_difference_back(session, business):
@@ -270,4 +301,4 @@ def test_reversing_a_payment_takes_its_difference_back(session, business):
         if entry.account == "exchange_difference"
     ]
     assert sorted(gains) == [("credit", Decimal("7.60")), ("debit", Decimal("7.60"))]
-    assert core.open_invoice_amount(session, tenant, invoice) == Decimal("1000")
+    assert core.open_invoice_amount(session, tenant, invoice) == Decimal(1000)

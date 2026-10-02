@@ -94,10 +94,11 @@ DEFERRED = {
         set(),
     ),
     "operational_edge_workflows": (
-        "Dunning evidence, the dunning schedule, reorder points, delivery rules, customer item numbers, stock counts, collection handovers, payment returns, explicit supply allocations and customer exchanges are operational workflow records. Their reporting measures and graph grain require a separate reviewed analytics design; the operational services and UI remain available independently.",
+        "Dunning evidence, the dunning schedule, reorder points, delivery rules, customer item numbers, the company currency, stock counts, collection handovers, payment returns, explicit supply allocations and customer exchanges are operational workflow records. Their reporting measures and graph grain require a separate reviewed analytics design; the operational services and UI remain available independently.",
         {
             "collection_handover",
             "collection_handover_invoice",
+            "company_currency",
             "customer_exchange",
             "customer_item_number",
             "delivery_rule",

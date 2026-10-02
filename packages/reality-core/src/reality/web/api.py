@@ -1196,6 +1196,47 @@ class CustomerItemNumberProposal(ApiModel):
     customer_item_name: str | None = Field(default=None, max_length=500)
 
 
+class CompanyCurrencyProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    currency: str = Field(min_length=1, max_length=10)
+
+
+@router.get("/finance/company-currency")
+def get_company_currency(tenant_id: str, session: DatabaseSession):
+    """Spec 309: the company currency and whether anything is posted yet."""
+    from reality.services.finance.company_currency import company_currency_state
+
+    try:
+        get_tenant(session, tenant_id)
+        return company_currency_state(session, tenant_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/finance/company-currency/proposals")
+def post_company_currency_proposal(
+    tenant_id: str, body: CompanyCurrencyProposal, session: DatabaseSession
+):
+    """Spec 309: prepare stating the company currency; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    try:
+        proposal = create_change_proposal(
+            session,
+            tenant_id,
+            "company_currency_set",
+            body.model_dump(),
+            actor_type="human",
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.get("/customer-item-numbers")
 def get_customer_item_numbers(
     tenant_id: str,
@@ -2931,6 +2972,11 @@ class PaymentPostingWrite(ApiModel):
     effective_at: datetime | None = None
 
 
+class SupplierPaymentPostingWrite(PaymentPostingWrite):
+    # Spec 309: what was paid in the company currency for a foreign invoice.
+    paid_amount: str | None = None
+
+
 class ReturnAnnouncementWrite(ApiModel):
     commitment_id: str
     quantity: str
@@ -2994,6 +3040,11 @@ class CommitmentRevisionWrite(ApiModel):
 class InvoicePostingWrite(ApiModel):
     document_id: str
     effective_at: datetime | None = None
+
+
+class SupplierInvoicePostingWrite(InvoicePostingWrite):
+    # Spec 309: the rate a foreign supplier invoice is posted at.
+    exchange_rate: str | None = None
 
 
 class CreditNotePostingWrite(ApiModel):
@@ -4876,7 +4927,7 @@ def post_customer_payment_web(
 
 @router.post("/finance/supplier-payments", status_code=status.HTTP_201_CREATED)
 def post_supplier_payment_web(
-    tenant_id: str, body: PaymentPostingWrite, session: DatabaseSession
+    tenant_id: str, body: SupplierPaymentPostingWrite, session: DatabaseSession
 ):
     return _post_payment(post_supplier_payment, tenant_id, body, session)
 
@@ -4982,7 +5033,7 @@ def post_sales_invoice_web(
 
 @router.post("/finance/supplier-invoices/postings", status_code=status.HTTP_201_CREATED)
 def post_supplier_invoice_web(
-    tenant_id: str, body: InvoicePostingWrite, session: DatabaseSession
+    tenant_id: str, body: SupplierInvoicePostingWrite, session: DatabaseSession
 ):
     try:
         entries = post_supplier_invoice(session, tenant_id, **body.model_dump())

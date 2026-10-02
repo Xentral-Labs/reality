@@ -41,7 +41,9 @@ def _exchange_account(session, tenant):
         name="Exchange differences",
         role="exchange_difference",
     )
-    set_default_account(session, tenant, role="exchange_difference", account_id=account["id"])
+    set_default_account(
+        session, tenant, role="exchange_difference", account_id=account["id"]
+    )
 
 
 def _post(session, business, document, postings, **options):
@@ -57,7 +59,10 @@ def _post(session, business, document, postings, **options):
 
 
 def _company(entries):
-    return [(entry.account, entry.debit_credit, entry.company_amount, entry.exchange_rate) for entry in entries]
+    return [
+        (entry.account, entry.debit_credit, entry.company_amount, entry.exchange_rate)
+        for entry in entries
+    ]
 
 
 def test_the_company_currency_is_eur_until_stated(session, business):
@@ -78,11 +83,22 @@ def test_the_company_currency_is_eur_until_stated(session, business):
 
 def test_the_company_currency_cannot_change_after_a_posting(session, business):
     tenant = business.tenant.id
-    _refused("company_currency_invalid", lambda: set_company_currency(session, tenant, "EURO"))
+    _refused(
+        "company_currency_invalid",
+        lambda: set_company_currency(session, tenant, "EURO"),
+    )
     document = _document(session, business)
-    _post(session, business, document, [("inventory", "debit", "100"), ("accounts_payable", "credit", "100")])
+    _post(
+        session,
+        business,
+        document,
+        [("inventory", "debit", "100"), ("accounts_payable", "credit", "100")],
+    )
 
-    _refused("company_currency_has_postings", lambda: set_company_currency(session, tenant, "USD"))
+    _refused(
+        "company_currency_has_postings",
+        lambda: set_company_currency(session, tenant, "USD"),
+    )
     # Positive control: restating the currency in force is allowed.
     assert set_company_currency(session, tenant, "EUR")["currency"] == "EUR"
 
@@ -91,12 +107,15 @@ def test_a_company_currency_posting_carries_its_amount_twice(session, business):
     document = _document(session, business)
 
     entries = _post(
-        session, business, document, [("inventory", "debit", "100"), ("accounts_payable", "credit", "100")]
+        session,
+        business,
+        document,
+        [("inventory", "debit", "100"), ("accounts_payable", "credit", "100")],
     )
 
     assert _company(entries) == [
-        ("inventory", "debit", Decimal("100"), Decimal(1)),
-        ("accounts_payable", "credit", Decimal("100"), Decimal(1)),
+        ("inventory", "debit", Decimal(100), Decimal(1)),
+        ("accounts_payable", "credit", Decimal(100), Decimal(1)),
     ]
     _refused(
         "exchange_rate_not_applicable",
@@ -128,7 +147,12 @@ def test_a_foreign_posting_is_converted_at_the_stated_rate(session, business):
 
     company = [entry.company_amount for entry in entries]
     # 333.33 × 0.91234 = 304.11 twice; the last debit takes the remainder of 912.34.
-    assert company == [Decimal("304.11"), Decimal("304.11"), Decimal("304.12"), Decimal("912.34")]
+    assert company == [
+        Decimal("304.11"),
+        Decimal("304.11"),
+        Decimal("304.12"),
+        Decimal("912.34"),
+    ]
     assert {entry.exchange_rate for entry in entries} == {Decimal("0.91234")}
     core._ledger_group_entries(session, business.tenant.id, entries[0].posting_group_id)
 
@@ -137,7 +161,10 @@ def test_a_foreign_posting_without_a_rate_stays_unconverted(session, business):
     document = _document(session, business, "USD")
 
     entries = _post(
-        session, business, document, [("inventory", "debit", "10"), ("accounts_payable", "credit", "10")]
+        session,
+        business,
+        document,
+        [("inventory", "debit", "10"), ("accounts_payable", "credit", "10")],
     )
 
     assert {entry.company_amount for entry in entries} == {None}
@@ -169,20 +196,33 @@ def test_only_an_exchange_difference_carries_no_document_amount(session, busines
             session,
             business,
             _document(session, business, "USD", number="SI-309N"),
-            [("accounts_payable", "debit", "100"), ("cash", "credit", "100"), ("inventory", "credit", "0")],
+            [
+                ("accounts_payable", "debit", "100"),
+                ("cash", "credit", "100"),
+                ("inventory", "credit", "0"),
+            ],
             company_amounts=["92", "91.24", "0.76"],
         ),
     )
     for postings, company in (
         # Not balanced in the company currency.
-        ([("accounts_payable", "debit", "100"), ("cash", "credit", "100"), ("exchange_difference", "credit", "0")], ["92", "91.24", "0.70"]),
+        (
+            [
+                ("accounts_payable", "debit", "100"),
+                ("cash", "credit", "100"),
+                ("exchange_difference", "credit", "0"),
+            ],
+            ["92", "91.24", "0.70"],
+        ),
     ):
         _refused(
             "ledger_posting_group_must_balance",
             lambda postings=postings, company=company: _post(
                 session,
                 business,
-                _document(session, business, "USD", number=f"SI-{len(company)}-{company[-1]}"),
+                _document(
+                    session, business, "USD", number=f"SI-{len(company)}-{company[-1]}"
+                ),
                 postings,
                 company_amounts=company,
             ),
@@ -194,7 +234,11 @@ def test_only_an_exchange_difference_carries_no_document_amount(session, busines
             session,
             business,
             _document(session, business, number="SI-309Z"),
-            [("accounts_payable", "debit", "1"), ("cash", "credit", "1"), ("exchange_difference", "credit", "0")],
+            [
+                ("accounts_payable", "debit", "1"),
+                ("cash", "credit", "1"),
+                ("exchange_difference", "credit", "0"),
+            ],
         ),
     )
 
@@ -275,14 +319,23 @@ def test_the_migration_backfills_eur_and_guards_its_downgrade(
             tenant_id, supplier_id = tenant.id, supplier.id
             for currency in ("EUR", "USD"):
                 document = core.create_document(
-                    session, tenant_id, "supplier_invoice", f"SI-{currency}", supplier_id, "10", currency=currency
+                    session,
+                    tenant_id,
+                    "supplier_invoice",
+                    f"SI-{currency}",
+                    supplier_id,
+                    "10",
+                    currency=currency,
                 )
                 core.post_ledger(
                     session,
                     tenant_id,
                     document.id,
                     supplier_id,
-                    [("inventory", "debit", "10"), ("accounts_payable", "credit", "10")],
+                    [
+                        ("inventory", "debit", "10"),
+                        ("accounts_payable", "credit", "10"),
+                    ],
                     currency=currency,
                 )
         command.upgrade(config, "head")
@@ -305,7 +358,13 @@ def test_the_migration_backfills_eur_and_guards_its_downgrade(
         command.upgrade(config, "head")
         with Session(engine) as session:
             document = core.create_document(
-                session, tenant_id, "supplier_invoice", "SI-USD2", supplier_id, "10", currency="USD"
+                session,
+                tenant_id,
+                "supplier_invoice",
+                "SI-USD2",
+                supplier_id,
+                "10",
+                currency="USD",
             )
             core.post_ledger(
                 session,

@@ -221,10 +221,15 @@ def _payment_evidence(
         # Spec 309: the realised difference carries no document-currency amount.
         effect = [
             *effect,
-            ("exchange_difference", "credit" if exchange["kind"] == "gain" else "debit"),
+            (
+                "exchange_difference",
+                "credit" if exchange["kind"] == "gain" else "debit",
+            ),
         ]
         amounts.append(Decimal(0))
-    if len(snapshots) != len(effect) or len({e["id"] for e in snapshots}) != len(effect):
+    if len(snapshots) != len(effect) or len({e["id"] for e in snapshots}) != len(
+        effect
+    ):
         return None
     entries = []
     for snapshot, (expected_account, side), expected_amount in zip(

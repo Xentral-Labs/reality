@@ -160,6 +160,8 @@
     "stock_blocks": "movements",
     "state_delivery_rule": "orders",
     "record_stock_count": "movements",
+    "set_company_currency": "accounts",
+    "company_currency_state": "accounts",
     "set_customer_item_number": "orders",
     "remove_customer_item_number": "orders",
     "customer_item_numbers": "orders",

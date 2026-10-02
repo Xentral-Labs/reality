@@ -193,11 +193,54 @@ def cost_evidence(
             or component.currency != received["currency"]
         ):
             raise core.Conflict(code="receipt_cost_evidence_changed")
+        offer = _offered_conversion_basis(session, tenant_id, doc)
         return {
             **received,
             "event_sequence": _sequence(session, tenant_id),
             "component_id": component.id if component else None,
+            **({"offered_conversion_basis": offer} if offer else {}),
         }
+
+
+def _offered_conversion_basis(session: Session, tenant_id: str, doc: Document):
+    """The rate a foreign supplier invoice was posted at, as a conversion basis.
+
+    Spec 309: the invoice's stated rate is offered for its receipt costs; it
+    becomes a basis only when the owner confirms it through `conversion_basis`.
+    The invoice's own source is the evidence, and the posting time its moment.
+    """
+    from reality.db.core import LedgerEntry
+    from reality.services.core import _company_amounts_stored
+    from reality.services.finance.company_currency import company_currency
+
+    if not doc.source_record_id or not _company_amounts_stored(session):
+        return None
+    book = company_currency(session, tenant_id)
+    if doc.currency == book:
+        return None
+    entry = session.scalar(
+        select(LedgerEntry)
+        .where(
+            LedgerEntry.tenant_id == tenant_id,
+            LedgerEntry.document_id == doc.id,
+            LedgerEntry.exchange_rate.is_not(None),
+        )
+        .order_by(LedgerEntry.effective_at, LedgerEntry.id)
+        .limit(1)
+    )
+    if entry is None:
+        return None
+    return {
+        "operation": "conversion_basis",
+        "kind": "currency",
+        "from_code": doc.currency,
+        "to_code": book,
+        "numerator": format(entry.exchange_rate.normalize(), "f"),
+        "denominator": "1",
+        "effective_at": entry.effective_at.isoformat(),
+        "evidence_source_record_id": doc.source_record_id,
+        "reason": f"Exchange rate of supplier invoice {doc.number}",
+    }
 
 
 def _movement(session, tenant, identity):

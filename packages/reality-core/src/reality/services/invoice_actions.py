@@ -69,7 +69,11 @@ def preview_free_supplier_invoice(
     )
     # Spec 309: an invoice in another currency states the rate it is posted at.
     rate = core._invoice_exchange_rate(
-        session, tenant_id, "purchase", values["currency"], arguments.get("exchange_rate")
+        session,
+        tenant_id,
+        "purchase",
+        values["currency"],
+        arguments.get("exchange_rate"),
     )
     return json.loads(
         _json(

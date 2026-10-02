@@ -60,6 +60,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs             | Cross-functional           | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`cost_evidence`](#command-cost_evidence)                                         | Read received acquisition-cost evidence    | Cross-functional           | `cost_evidence_get`                                                                                                                                                                          | CLI · Web · MCP · Chat                  |
 | [`reviewed_contribution`](#command-reviewed_contribution)                         | Read reviewed commercial contribution      | Cross-functional           | `cost_contribution_get`                                                                                                                                                                      | CLI · Web · MCP · Chat                  |
+| [`company_currency_state`](#command-company_currency_state)                       | Read the company currency                  | Cross-functional           | `company_currency`                                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`month_end_billing`](#command-month_end_billing)                                 | Read the month-end billing lists           | Cross-functional           | `month_end_billing`                                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
 | [`record_notice`](#command-record_notice)                                         | Record dunning notice                      | Cross-functional           | `finance_dunning_record_propose`                                                                                                                                                             | Web · MCP · Chat                        |
 | [`propose_company_party`](#command-propose_company_party)                         | Record the company as its business partner | Cross-functional           | `company_party_record_propose`                                                                                                                                                               | Web · MCP · Chat                        |
@@ -67,6 +68,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`business_journey_vote_set`](#command-business_journey_vote_set)                 | Set a Business Journey suggestion vote     | Cross-functional           | `business_journey_vote_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
 | [`set_schedule`](#command-set_schedule)                                           | Set dunning schedule                       | Cross-functional           | `finance_dunning_schedule_set_propose`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`set_customer_item_number`](#command-set_customer_item_number)                   | State a customer item number               | Cross-functional           | `customer_item_number_set_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
+| [`set_company_currency`](#command-set_company_currency)                           | State the company currency                 | Cross-functional           | `company_currency_set_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`remove_customer_item_number`](#command-remove_customer_item_number)             | Withdraw a customer item number            | Cross-functional           | `customer_item_number_remove_propose`                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`accept_adjustment`](#command-accept_adjustment)                                 | Accept settlement reduction                | Finance                    | `finance_adjustment_propose`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`assign_component`](#command-assign_component)                                   | Assign received financial component        | Finance                    | `finance_component_assign_propose`                                                                                                                                                           | CLI · Web · MCP · Chat                  |
@@ -2554,7 +2556,7 @@ queue.
 **Synopsis**
 
 ```text
-supplier_invoice_post_propose document_id [effective_at]
+supplier_invoice_post_propose document_id [effective_at] [exchange_rate]
 ```
 
 **Reach via:** Web · MCP · Chat
@@ -2572,17 +2574,18 @@ required.
 **Synopsis**
 
 ```text
-supplier_invoice_post_propose document_id [effective_at]
+supplier_invoice_post_propose document_id [effective_at] [exchange_rate]
 ```
 
 **Access:** `propose`
 
 **Parameters**
 
-| Name           | Type     | Required | Description                                                     | Default |
-| -------------- | -------- | -------- | --------------------------------------------------------------- | ------- |
-| `document_id`  | `string` | yes      | Opaque identity of the evidence document to inspect or correct. | —       |
-| `effective_at` | `string` | no       | UTC instant from which the observation or rule takes effect.    | —       |
+| Name            | Type     | Required | Description                                                                                                                            | Default |
+| --------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `document_id`   | `string` | yes      | Opaque identity of the evidence document to inspect or correct.                                                                        | —       |
+| `effective_at`  | `string` | no       | UTC instant from which the observation or rule takes effect.                                                                           | —       |
+| `exchange_rate` | `string` | no       | The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated. | —       |
 
 **See also:** command [`post_supplier_invoice`](./commands#command-post_supplier_invoice)
 
@@ -2593,7 +2596,7 @@ Records an outgoing payment and explicitly settles a supplier invoice entry.
 **Synopsis**
 
 ```text
-supplier_payment_post_propose invoice_id amount [payment_number] [source_record_id] [effective_at]
+supplier_payment_post_propose invoice_id amount [payment_number] [source_record_id] [effective_at] [paid_amount]
 ```
 
 **Reach via:** CLI · Web · MCP · Chat
@@ -2613,20 +2616,21 @@ required.
 **Synopsis**
 
 ```text
-supplier_payment_post_propose invoice_id amount [payment_number] [source_record_id] [effective_at]
+supplier_payment_post_propose invoice_id amount [payment_number] [source_record_id] [effective_at] [paid_amount]
 ```
 
 **Access:** `propose`
 
 **Parameters**
 
-| Name               | Type     | Required | Description                                                                      | Default |
-| ------------------ | -------- | -------- | -------------------------------------------------------------------------------- | ------- |
-| `invoice_id`       | `string` | yes      | Opaque identity of the invoice evidence associated with a payment or allocation. | —       |
-| `amount`           | `string` | yes      | Monetary amount of the payment or financial observation.                         | —       |
-| `payment_number`   | `string` | no       | Human-facing payment reference used for matching and investigation.              | —       |
-| `source_record_id` | `string` | no       | Opaque identity of the immutable source record supporting this typed record.     | —       |
-| `effective_at`     | `string` | no       | UTC instant from which the observation or rule takes effect.                     | —       |
+| Name               | Type     | Required | Description                                                                                                       | Default |
+| ------------------ | -------- | -------- | ----------------------------------------------------------------------------------------------------------------- | ------- |
+| `invoice_id`       | `string` | yes      | Opaque identity of the invoice evidence associated with a payment or allocation.                                  | —       |
+| `amount`           | `string` | yes      | Monetary amount of the payment or financial observation.                                                          | —       |
+| `payment_number`   | `string` | no       | Human-facing payment reference used for matching and investigation.                                               | —       |
+| `source_record_id` | `string` | no       | Opaque identity of the immutable source record supporting this typed record.                                      | —       |
+| `effective_at`     | `string` | no       | UTC instant from which the observation or rule takes effect.                                                      | —       |
+| `paid_amount`      | `string` | no       | What was paid in the company currency for a supplier invoice in another currency, as the bank statement shows it. | —       |
 
 **See also:** command [`post_supplier_payment`](./commands#command-post_supplier_payment)
 
@@ -3643,7 +3647,7 @@ atomically without inventing a commitment or Movement.
 **Synopsis**
 
 ```text
-supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] lines
+supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] [exchange_rate] lines
 ```
 
 **Reach via:** Web · MCP · Chat
@@ -3662,7 +3666,7 @@ confirmation is required.
 **Synopsis**
 
 ```text
-supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] lines
+supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] [exchange_rate] lines
 ```
 
 **Access:** `propose`
@@ -3689,23 +3693,24 @@ order.
 
 **Parameters**
 
-| Name                   | Type     | Required | Description                                                                                  | Default |
-| ---------------------- | -------- | -------- | -------------------------------------------------------------------------------------------- | ------- |
-| `supplier_id`          | `string` | yes      | Opaque same-tenant identity of the supplier Party stated on the invoice.                     | —       |
-| `number`               | `string` | yes      | Human-facing document or transaction number; it is not internal identity.                    | —       |
-| `currency`             | `string` | yes      | ISO 4217 currency code for monetary values.                                                  | —       |
-| `gross_amount`         | `string` | yes      | Total the source states for the document; recorded as received and never calculated.         | —       |
-| `document_date`        | `string` | no       | Business date printed on or asserted by the evidence document.                               | —       |
-| `effective_at`         | `string` | no       | UTC instant from which the observation or rule takes effect.                                 | —       |
-| `lines`                | `array`  | yes      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction. | —       |
-| `lines[].item_id`      | `string` | no       | Opaque identity of the operational item reference.                                           | —       |
-| `lines[].sku`          | `string` | no       | Human-facing stock-keeping code used to find an item; internal joins use item_id.            | —       |
-| `lines[].description`  | `string` | no       | Human-readable explanation of the record or rule.                                            | —       |
-| `lines[].quantity`     | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                      | —       |
-| `lines[].unit`         | `string` | no       | Unit of measure in which the quantity is expressed.                                          | —       |
-| `lines[].unit_price`   | `string` | yes      | Decimal monetary amount for one unit before quantity multiplication.                         | —       |
-| `lines[].gross_amount` | `string` | yes      | Total the source states for the document; recorded as received and never calculated.         | —       |
-| `lines[].line_type`    | `string` | no       | Closed kind of a document line, such as goods or a charge, taken from the source statement.  | —       |
+| Name                   | Type     | Required | Description                                                                                                                            | Default |
+| ---------------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `supplier_id`          | `string` | yes      | Opaque same-tenant identity of the supplier Party stated on the invoice.                                                               | —       |
+| `number`               | `string` | yes      | Human-facing document or transaction number; it is not internal identity.                                                              | —       |
+| `currency`             | `string` | yes      | ISO 4217 currency code for monetary values.                                                                                            | —       |
+| `gross_amount`         | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                                   | —       |
+| `document_date`        | `string` | no       | Business date printed on or asserted by the evidence document.                                                                         | —       |
+| `effective_at`         | `string` | no       | UTC instant from which the observation or rule takes effect.                                                                           | —       |
+| `exchange_rate`        | `string` | no       | The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated. | —       |
+| `lines`                | `array`  | yes      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                           | —       |
+| `lines[].item_id`      | `string` | no       | Opaque identity of the operational item reference.                                                                                     | —       |
+| `lines[].sku`          | `string` | no       | Human-facing stock-keeping code used to find an item; internal joins use item_id.                                                      | —       |
+| `lines[].description`  | `string` | no       | Human-readable explanation of the record or rule.                                                                                      | —       |
+| `lines[].quantity`     | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                | —       |
+| `lines[].unit`         | `string` | no       | Unit of measure in which the quantity is expressed.                                                                                    | —       |
+| `lines[].unit_price`   | `string` | yes      | Decimal monetary amount for one unit before quantity multiplication.                                                                   | —       |
+| `lines[].gross_amount` | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                                   | —       |
+| `lines[].line_type`    | `string` | no       | Closed kind of a document line, such as goods or a charge, taken from the source statement.                                            | —       |
 
 **Verify with:** `document_register` — The supplier invoice and stated lines are retained.;
 `finance_balances` — The payable derives from posted LedgerEntries.
@@ -3951,7 +3956,7 @@ and posts its payable atomically.
 **Synopsis**
 
 ```text
-supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at]
+supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [exchange_rate]
 ```
 
 **Reach via:** Web · API · MCP · Chat
@@ -3970,40 +3975,41 @@ is required.
 **Synopsis**
 
 ```text
-supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at]
+supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [exchange_rate]
 ```
 
 **Access:** `propose`
 
 **Parameters**
 
-| Name                                  | Type      | Required | Description                                                                                                                | Default |
-| ------------------------------------- | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `order_line_id`                       | `string`  | no       | Opaque sales-order line identity linked by invoice billing evidence.                                                       | —       |
-| `quantity`                            | `string`  | no       | Decimal quantity expressed in the item's relevant unit.                                                                    | —       |
-| `lines`                               | `array`   | no       | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                               | —       |
-| `lines[].order_line_id`               | `string`  | yes      | Opaque sales-order line identity linked by invoice billing evidence.                                                       | —       |
-| `lines[].quantity`                    | `string`  | yes      | Decimal quantity expressed in the item's relevant unit.                                                                    | —       |
-| `lines[].gross_amount`                | `string`  | yes      | Total the source states for the document; recorded as received and never calculated.                                       | —       |
-| `lines[].reality_finance_v1`          | `object`  | no       | Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it. | —       |
-| `lines[].reality_finance_v1.version`  | `integer` | no       | `1`                                                                                                                        | —       |
-| `lines[].reality_finance_v1.net`      | `string`  | no       | —                                                                                                                          | —       |
-| `lines[].reality_finance_v1.tax`      | `string`  | no       | —                                                                                                                          | —       |
-| `lines[].reality_finance_v1.base`     | `string`  | no       | —                                                                                                                          | —       |
-| `lines[].reality_finance_v1.gross`    | `string`  | no       | —                                                                                                                          | —       |
-| `lines[].reality_finance_v1.currency` | `string`  | no       | ISO 4217 currency code for monetary values.                                                                                | —       |
-| `lines[].reality_finance_v1.codes`    | `object`  | no       | —                                                                                                                          | —       |
-| `gross_amount`                        | `string`  | yes      | Total the source states for the document; recorded as received and never calculated.                                       | —       |
-| `reality_finance_v1`                  | `object`  | no       | Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it. | —       |
-| `reality_finance_v1.version`          | `integer` | no       | `1`                                                                                                                        | —       |
-| `reality_finance_v1.net`              | `string`  | no       | —                                                                                                                          | —       |
-| `reality_finance_v1.tax`              | `string`  | no       | —                                                                                                                          | —       |
-| `reality_finance_v1.base`             | `string`  | no       | —                                                                                                                          | —       |
-| `reality_finance_v1.gross`            | `string`  | no       | —                                                                                                                          | —       |
-| `reality_finance_v1.currency`         | `string`  | no       | ISO 4217 currency code for monetary values.                                                                                | —       |
-| `reality_finance_v1.codes`            | `object`  | no       | —                                                                                                                          | —       |
-| `number`                              | `string`  | yes      | Human-facing document or transaction number; it is not internal identity.                                                  | —       |
-| `effective_at`                        | `string`  | no       | UTC instant from which the observation or rule takes effect.                                                               | —       |
+| Name                                  | Type      | Required | Description                                                                                                                            | Default |
+| ------------------------------------- | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `order_line_id`                       | `string`  | no       | Opaque sales-order line identity linked by invoice billing evidence.                                                                   | —       |
+| `quantity`                            | `string`  | no       | Decimal quantity expressed in the item's relevant unit.                                                                                | —       |
+| `lines`                               | `array`   | no       | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                           | —       |
+| `lines[].order_line_id`               | `string`  | yes      | Opaque sales-order line identity linked by invoice billing evidence.                                                                   | —       |
+| `lines[].quantity`                    | `string`  | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                | —       |
+| `lines[].gross_amount`                | `string`  | yes      | Total the source states for the document; recorded as received and never calculated.                                                   | —       |
+| `lines[].reality_finance_v1`          | `object`  | no       | Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.             | —       |
+| `lines[].reality_finance_v1.version`  | `integer` | no       | `1`                                                                                                                                    | —       |
+| `lines[].reality_finance_v1.net`      | `string`  | no       | —                                                                                                                                      | —       |
+| `lines[].reality_finance_v1.tax`      | `string`  | no       | —                                                                                                                                      | —       |
+| `lines[].reality_finance_v1.base`     | `string`  | no       | —                                                                                                                                      | —       |
+| `lines[].reality_finance_v1.gross`    | `string`  | no       | —                                                                                                                                      | —       |
+| `lines[].reality_finance_v1.currency` | `string`  | no       | ISO 4217 currency code for monetary values.                                                                                            | —       |
+| `lines[].reality_finance_v1.codes`    | `object`  | no       | —                                                                                                                                      | —       |
+| `gross_amount`                        | `string`  | yes      | Total the source states for the document; recorded as received and never calculated.                                                   | —       |
+| `reality_finance_v1`                  | `object`  | no       | Net and tax exactly as the invoice position states them (spec 284); compared with the stated gross, never derived from it.             | —       |
+| `reality_finance_v1.version`          | `integer` | no       | `1`                                                                                                                                    | —       |
+| `reality_finance_v1.net`              | `string`  | no       | —                                                                                                                                      | —       |
+| `reality_finance_v1.tax`              | `string`  | no       | —                                                                                                                                      | —       |
+| `reality_finance_v1.base`             | `string`  | no       | —                                                                                                                                      | —       |
+| `reality_finance_v1.gross`            | `string`  | no       | —                                                                                                                                      | —       |
+| `reality_finance_v1.currency`         | `string`  | no       | ISO 4217 currency code for monetary values.                                                                                            | —       |
+| `reality_finance_v1.codes`            | `object`  | no       | —                                                                                                                                      | —       |
+| `number`                              | `string`  | yes      | Human-facing document or transaction number; it is not internal identity.                                                              | —       |
+| `effective_at`                        | `string`  | no       | UTC instant from which the observation or rule takes effect.                                                                           | —       |
+| `exchange_rate`                       | `string`  | no       | The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated. | —       |
 
 **See also:** command [`record_supplier_invoice`](./commands#command-record_supplier_invoice)
 
@@ -8949,6 +8955,59 @@ retained inputs.
 
 **See also:** command [`reviewed_contribution`](./commands#command-reviewed_contribution)
 
+### `company_currency_state` — Read the company currency {#command-company_currency_state}
+
+Answers the company currency, EUR until stated, and whether the company has posted anything.
+
+**Synopsis**
+
+```text
+company_currency
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `company_currency`, `ledger_entry` · Writes: —
+
+**See also:** agent tool [`company_currency`](./commands#tool-company_currency)
+
+#### `company_currency` — Company currency {#tool-company_currency}
+
+Read the company currency and whether the company has posted anything yet.
+
+**Synopsis**
+
+```text
+company_currency
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query         | Kind                        | Default |
+| ---------------------- | --------------------------- | ------- |
+| `MCP company_currency` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Show the currency the company keeps its books in.
+
+**Use when**
+
+- Someone asks in which currency the books are kept
+- or before posting an invoice in another currency.
+
+**Do not use when**
+
+- The question is a rate; rates are stated per posting and payment.
+
+**Parameters**
+
+No parameters.
+
+**See also:** command [`company_currency_state`](./commands#command-company_currency_state)
+
 ### `month_end_billing` — Read the month-end billing lists {#command-month_end_billing}
 
 Lists order lines shipped and not invoiced, and invoiced and not shipped, from the findings at one
@@ -9354,6 +9413,48 @@ customer_item_number_set_propose party_id item_id customer_item_number [customer
 | `customer_item_name`   | `string` | no       | The customer's own name for the item, as stated.                                                | —       |
 
 **See also:** command [`set_customer_item_number`](./commands#command-set_customer_item_number)
+
+### `set_company_currency` — State the company currency {#command-set_company_currency}
+
+States the currency the company keeps its books in, as a new version of the company's currency
+statement; refused once the company has posted anything.
+
+**Synopsis**
+
+```text
+company_currency_set_propose currency
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `company_currency`, `ledger_entry` · Writes: `company_currency`, `source_record`,
+`business_event` · Emits: `company_currency.set`
+
+**See also:** agent tool
+[`company_currency_set_propose`](./commands#tool-company_currency_set_propose), event
+[`company_currency.set`](./events#event-company_currency-set)
+
+#### `company_currency_set_propose` — State the company currency {#tool-company_currency_set_propose}
+
+Prepare stating the company currency the books are kept in (a three-letter code; EUR until stated).
+Every ledger entry carries its amount in it beside its own. It is refused once the company has
+posted anything. A person confirms.
+
+**Synopsis**
+
+```text
+company_currency_set_propose currency
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name       | Type     | Required | Description                                 | Default |
+| ---------- | -------- | -------- | ------------------------------------------- | ------- |
+| `currency` | `string` | yes      | ISO 4217 currency code for monetary values. | —       |
+
+**See also:** command [`set_company_currency`](./commands#command-set_company_currency)
 
 ### `remove_customer_item_number` — Withdraw a customer item number {#command-remove_customer_item_number}
 

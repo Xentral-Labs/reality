@@ -2123,3 +2123,27 @@ Table `customer_item_number`: a customer's own article number, with the customer
   - An agent orders by the customer's number through the strict order schema.
 
 Spec 329 — Platform administrator own private analytics: current-authority eligibility and exact private authorship; 105 related service/API/proposal tests passed locally; complete hosted suite and all 22 PR checks passed. Four-language switcher/card browser assertions pass. PR #301 is merged and deployed; native authenticated checks confirm personal libraries and truthful admin/owner labels in both nonmember companies. Foreign private content remains protected by author/tenant predicates and regression tests. See specs/329-platform-admin-own-reports/quickstart.md for CI, deployment and live evidence.
+
+## Foreign-currency purchasing — Spec 309
+
+Table `company_currency`: the currency the company keeps its books in, EUR until stated, each statement a version of `internal_company_currency`. Columns `ledger_entry.company_amount` and `ledger_entry.exchange_rate`: every entry's amount in the company currency and the rate used; an `exchange_difference` entry carries only its company-currency amount.
+
+- `packages/reality-core/tests/test_company_currency.py`:
+  - The company currency is EUR until stated, and cannot change after a posting; restating it is the control.
+  - A company-currency posting carries its amount twice at rate 1, and refuses a rate.
+  - A foreign posting is converted at the stated rate, the last entry taking the rounding remainder; without a rate it stays unconverted.
+  - Only an exchange-difference entry carries no document amount, and every group balances in both currencies.
+  - A reversal takes back the company amounts; another company keeps its own currency; the table checks.
+  - The migration backfills EUR entries and refuses its downgrade once anything is converted.
+- `packages/reality-core/tests/test_foreign_currency_payments.py`:
+  - An invoice is posted at its stated rate and refused without one.
+  - A payment at a better rate realises a gain, at a worse rate a loss.
+  - Two partial payments leave nothing open in either currency.
+  - A foreign payment states what was paid, with its refusals and a EUR payment as control; an unconverted invoice is refused.
+  - A reviewed payment shows the difference, turns stale when the invoice changes, and verifies once confirmed.
+  - Reversing a payment takes its difference back.
+- `packages/reality-core/tests/test_foreign_currency_adapters.py`:
+  - The MCP schemas take the rate and the paid amount; an agent states the currency and pays a USD invoice in EUR.
+  - The Web reads and states the currency, and pays a USD invoice in EUR.
+  - Another company cannot read or state it; the CLI shows and states after asking.
+- `packages/reality-core/tests/test_cost_conversion_services.py::test_a_posted_invoice_rate_is_offered_as_the_conversion_basis`: the invoice rate is offered as the conversion basis and the receipt cost reads in EUR.

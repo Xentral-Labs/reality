@@ -172,7 +172,6 @@ parameter_descriptions:
   remember_for_customer: Also state the number the line was ordered by as the customer's item number for the assigned item.
   exchange_rate: The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated.
   paid_amount: What was paid in the company currency for a supplier invoice in another currency, as the bank statement shows it.
-  currency_code: A three-letter currency code.
   stock_count_id: Opaque identity of a recorded stock count.
   rule: "How the customer or order is delivered: partial_allowed, ship_complete or no_backorders."
   reviewed: What the review showed, such as the rule, point or stock in force; a confirmation after it changed is refused.
@@ -1156,6 +1155,22 @@ commands:
     reads: [item, commitment, movement, reservation, stock_block, supply_assignment, party]
     writes: []
     effect: Answers from when and how much of an item can be promised, naming each open purchase and its date.
+  - name: State the company currency
+    service: set_company_currency
+    related_services: [review_company_currency, company_currency]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [company_currency, ledger_entry]
+    writes: [company_currency, source_record, business_event]
+    effect: States the currency the company keeps its books in, as a new version of the company's currency statement; refused once the company has posted anything.
+  - name: Read the company currency
+    service: company_currency_state
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [company_currency, ledger_entry]
+    writes: []
+    effect: Answers the company currency, EUR until stated, and whether the company has posted anything.
   - name: State a customer item number
     service: set_customer_item_number
     related_services: [review_customer_item_number, resolve_customer_item]
@@ -5116,6 +5131,24 @@ capability_guidance:
     unknown_when: [A purchase or order exists that was not recorded.]
     next_steps: [Promise the customer the date shown, or prepare backorders_serve_propose when goods have arrived.]
     examples: {use: [{scenario: A customer asks when 10 more can be delivered., reason: The read names the purchase and its date.}], do_not_use: [{scenario: Reserve stock for a waiting order., reason: Use backorders_serve_propose; a person confirms.}]}
+  company_currency:
+    kind: read
+    application_tool: company_currency
+    purpose: Show the currency the company keeps its books in.
+    use_when: [Someone asks in which currency the books are kept, or before posting an invoice in another currency.]
+    do_not_use_when: [The question is a rate; rates are stated per posting and payment.]
+    required_context: [tenant]
+    data_basis: [company_currency, ledger_entry]
+    limitations: [EUR until stated; it cannot change once anything is posted.]
+    freshness: Read at request time.
+    empty_result: The company currency is EUR, the default.
+    refusal_behavior: Only the company's own currency is read.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [The company currency and whether anything is posted.], does_not_prove: [Which rate any posting used; read the posting.]}
+    unknown_when: [Never; the default is EUR.]
+    next_steps: [State another currency with company_currency_set_propose before the first posting; a person confirms.]
+    examples: {use: [{scenario: Check the books are kept in EUR before posting a USD invoice., reason: The read names the company currency.}], do_not_use: [{scenario: Find the rate of a USD invoice., reason: Read the posting; the rate is stated there.}]}
   customer_item_numbers:
     kind: read
     application_tool: customer_item_numbers
@@ -5360,6 +5393,8 @@ agent_command_coverage:
   stock_blocks: {classification: eligible, tools: [stock_blocks]}
   state_delivery_rule: {classification: eligible, tools: [delivery_rule_set_propose]}
   record_stock_count: {classification: eligible, tools: [stock_count_propose]}
+  set_company_currency: {classification: eligible, tools: [company_currency_set_propose]}
+  company_currency_state: {classification: eligible, tools: [company_currency]}
   set_customer_item_number: {classification: eligible, tools: [customer_item_number_set_propose]}
   remove_customer_item_number: {classification: eligible, tools: [customer_item_number_remove_propose]}
   customer_item_numbers: {classification: eligible, tools: [customer_item_numbers]}

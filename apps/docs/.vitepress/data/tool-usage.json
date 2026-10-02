@@ -912,6 +912,7 @@
         "cost_scope_review",
         "cost_scope_review_category",
         "ledger_entry",
+        "company_currency",
         "ledger_reversal",
         "subledger_account",
         "finance_role_destination",
@@ -939,6 +940,7 @@
         "command:update_account",
         "command:set_default_account",
         "command:reverse_ledger_posting_group",
+        "command:set_company_currency",
         "command:record_notice",
         "command:reverse_notice",
         "command:confirm_run",
@@ -966,6 +968,7 @@
         "command:reference_history",
         "command:transaction_matrix",
         "command:list_accounts",
+        "command:company_currency_state",
         "command:credit_exposure",
         "command:notices",
         "command:notice_detail",
@@ -989,6 +992,7 @@
         "event:dunning.notice_recorded",
         "event:dunning.notice_reversed",
         "event:dunning.run_confirmed",
+        "event:company_currency.set",
         "event:ledger.posted",
         "event:ledger.reversed"
       ],
@@ -7728,7 +7732,7 @@
       "summary": "Prepare this business mutation without changing state. Post supplier invoice. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "supplier_invoice_post_propose document_id [effective_at]",
+      "synopsis": "supplier_invoice_post_propose document_id [effective_at] [exchange_rate]",
       "parameters": [
         {
           "name": "document_id",
@@ -7742,6 +7746,13 @@
           "type": "string",
           "required": false,
           "description": "UTC instant from which the observation or rule takes effect.",
+          "depth": 0
+        },
+        {
+          "name": "exchange_rate",
+          "type": "string",
+          "required": false,
+          "description": "The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated.",
           "depth": 0
         }
       ],
@@ -8001,7 +8012,7 @@
       "summary": "Prepare this business mutation without changing state. Record supplier invoice. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at]",
+      "synopsis": "supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [exchange_rate]",
       "parameters": [
         {
           "name": "order_line_id",
@@ -8178,6 +8189,13 @@
           "type": "string",
           "required": false,
           "description": "UTC instant from which the observation or rule takes effect.",
+          "depth": 0
+        },
+        {
+          "name": "exchange_rate",
+          "type": "string",
+          "required": false,
+          "description": "The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated.",
           "depth": 0
         }
       ],
@@ -8796,7 +8814,7 @@
       "summary": "Prepare this business mutation without changing state. Record free supplier invoice. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] lines",
+      "synopsis": "supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] [exchange_rate] lines",
       "parameters": [
         {
           "name": "supplier_id",
@@ -8838,6 +8856,13 @@
           "type": "string",
           "required": false,
           "description": "UTC instant from which the observation or rule takes effect.",
+          "depth": 0
+        },
+        {
+          "name": "exchange_rate",
+          "type": "string",
+          "required": false,
+          "description": "The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated.",
           "depth": 0
         },
         {
@@ -9082,7 +9107,7 @@
       "summary": "Prepare this business mutation without changing state. Post supplier payment. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "supplier_payment_post_propose invoice_id amount [payment_number] [source_record_id] [effective_at]",
+      "synopsis": "supplier_payment_post_propose invoice_id amount [payment_number] [source_record_id] [effective_at] [paid_amount]",
       "parameters": [
         {
           "name": "invoice_id",
@@ -9117,6 +9142,13 @@
           "type": "string",
           "required": false,
           "description": "UTC instant from which the observation or rule takes effect.",
+          "depth": 0
+        },
+        {
+          "name": "paid_amount",
+          "type": "string",
+          "required": false,
+          "description": "What was paid in the company currency for a supplier invoice in another currency, as the bank statement shows it.",
           "depth": 0
         }
       ],
@@ -10164,6 +10196,68 @@
       "links": ["command:available_to_promise"],
       "label_de": "Available to promise",
       "resources": ["item", "order"]
+    },
+    {
+      "id": "tool:company_currency_set_propose",
+      "kind": "tool",
+      "key": "company_currency_set_propose",
+      "label": "State the company currency",
+      "area": "cross_functional",
+      "summary": "Prepare stating the company currency the books are kept in (a three-letter code; EUR until stated). Every ledger entry carries its amount in it beside its own. It is refused once the company has posted anything. A person confirms.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "company_currency_set_propose currency",
+      "parameters": [
+        {
+          "name": "currency",
+          "type": "string",
+          "required": true,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "set_company_currency",
+      "projections": [],
+      "links": ["command:set_company_currency"],
+      "label_de": "State the company currency",
+      "resources": ["accounting"]
+    },
+    {
+      "id": "tool:company_currency",
+      "kind": "tool",
+      "key": "company_currency",
+      "label": "Company currency",
+      "area": "cross_functional",
+      "summary": "Read the company currency and whether the company has posted anything yet.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "company_currency",
+      "parameters": [],
+      "guidance": {
+        "purpose": "Show the currency the company keeps its books in.",
+        "use_when": [
+          "Someone asks in which currency the books are kept",
+          "or before posting an invoice in another currency."
+        ],
+        "do_not_use_when": ["The question is a rate; rates are stated per posting and payment."],
+        "limitations": ["EUR until stated; it cannot change once anything is posted."],
+        "empty_result": "The company currency is EUR, the default.",
+        "freshness": "Read at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP company_currency",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "company_currency_state",
+      "projections": [],
+      "links": ["command:company_currency_state"],
+      "label_de": "Company currency",
+      "resources": ["accounting"]
     },
     {
       "id": "tool:customer_item_number_set_propose",
@@ -21985,6 +22079,60 @@
       "resources": ["item", "order"]
     },
     {
+      "id": "command:set_company_currency",
+      "kind": "command",
+      "key": "set_company_currency",
+      "label": "State the company currency",
+      "area": "cross_functional",
+      "summary": "States the currency the company keeps its books in, as a new version of the company's currency statement; refused once the company has posted anything.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["company_currency", "ledger_entry"],
+      "writes": ["company_currency", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_company_currency", "company_currency"],
+      "tools": ["company_currency_set_propose"],
+      "synopses": ["company_currency_set_propose currency"],
+      "events": ["company_currency.set"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:company_currency_set_propose", "event:company_currency.set"],
+      "label_de": "Firmenwährung festlegen",
+      "resources": ["accounting"]
+    },
+    {
+      "id": "command:company_currency_state",
+      "kind": "command",
+      "key": "company_currency_state",
+      "label": "Read the company currency",
+      "area": "cross_functional",
+      "summary": "Answers the company currency, EUR until stated, and whether the company has posted anything.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["company_currency", "ledger_entry"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["company_currency"],
+      "synopses": ["company_currency"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Show the currency the company keeps its books in.",
+        "use_when": [
+          "Someone asks in which currency the books are kept",
+          "or before posting an invoice in another currency."
+        ],
+        "do_not_use_when": ["The question is a rate; rates are stated per posting and payment."],
+        "limitations": ["EUR until stated; it cannot change once anything is posted."],
+        "empty_result": "The company currency is EUR, the default.",
+        "freshness": "Read at request time."
+      },
+      "links": ["tool:company_currency"],
+      "label_de": "Firmenwährung anzeigen",
+      "resources": ["accounting"]
+    },
+    {
       "id": "command:set_customer_item_number",
       "kind": "command",
       "key": "set_customer_item_number",
@@ -22754,7 +22902,7 @@
       "confirmation": null,
       "related_services": [],
       "tools": ["supplier_invoice_post_propose"],
-      "synopses": ["supplier_invoice_post_propose document_id [effective_at]"],
+      "synopses": ["supplier_invoice_post_propose document_id [effective_at] [exchange_rate]"],
       "events": [],
       "actions": [],
       "guidance": {},
@@ -22849,7 +22997,7 @@
       "related_services": [],
       "tools": ["supplier_invoice_record_propose"],
       "synopses": [
-        "supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at]"
+        "supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [reality_finance_v1] number [effective_at] [exchange_rate]"
       ],
       "events": [],
       "actions": [],
@@ -22873,7 +23021,7 @@
       "related_services": [],
       "tools": ["supplier_invoice_free_record_propose"],
       "synopses": [
-        "supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] lines"
+        "supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] [exchange_rate] lines"
       ],
       "events": [],
       "actions": [],
@@ -23828,7 +23976,7 @@
       "related_services": [],
       "tools": ["supplier_payment_post_propose"],
       "synopses": [
-        "supplier_payment_post_propose invoice_id amount [payment_number] [source_record_id] [effective_at]"
+        "supplier_payment_post_propose invoice_id amount [payment_number] [source_record_id] [effective_at] [paid_amount]"
       ],
       "events": [],
       "actions": ["post_supplier_payment"],
@@ -25570,6 +25718,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "company_currency.set",
         "customer_item_number.set",
         "customer_item_number.removed",
         "stock_count.posted",
@@ -26145,6 +26294,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "company_currency.set",
         "customer_item_number.set",
         "customer_item_number.removed",
         "stock_count.posted",
@@ -28098,6 +28248,20 @@
       "links": ["command:scrap_stock_block"],
       "label_de": "stock_block.scrapped",
       "resources": ["item"]
+    },
+    {
+      "id": "event:company_currency.set",
+      "kind": "event",
+      "key": "company_currency.set",
+      "label": "company_currency.set",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "set_company_currency",
+      "subject": "company_currency",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:set_company_currency"],
+      "label_de": "company_currency.set",
+      "resources": ["accounting"]
     },
     {
       "id": "event:customer_item_number.set",
@@ -74936,6 +75100,7 @@
         "command:update_location",
         "command:create_payment_term",
         "command:create_price_list",
+        "command:set_company_currency",
         "command:set_customer_item_number",
         "command:remove_customer_item_number",
         "command:record_stock_count",
@@ -76717,6 +76882,34 @@
             "de": "Verweis auf die ursprüngliche Quellversion, die diesen Eintrag belegt."
           },
           "references": ["source_record.id"]
+        },
+        {
+          "name": "company_amount",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "The amount in the company currency, converted at the stated rate.",
+            "de": "Der Betrag in Firmenwährung, zum angegebenen Kurs umgerechnet."
+          },
+          "references": []
+        },
+        {
+          "name": "exchange_rate",
+          "type": "NUMERIC(18, 8)",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Company-currency units per document-currency unit, as stated.",
+            "de": "Einheiten Firmenwährung je Einheit Belegwährung, wie angegeben."
+          },
+          "references": []
         }
       ],
       "actions": [

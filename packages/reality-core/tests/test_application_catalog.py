@@ -15,8 +15,8 @@ from reality.services.projections import OPERATIONAL_PROJECTIONS
 def test_split_catalog_is_complete_and_composed():
     catalog = load_application_catalog()
 
-    assert catalog["command_count"] == 153
-    assert catalog["event_count"] == 79
+    assert catalog["command_count"] == 155
+    assert catalog["event_count"] == 80
     assert catalog["projection_count"] == len(OPERATIONAL_PROJECTIONS) == 13
     assert catalog["fact_predicate_count"] == 7
     assert catalog["operational_exception_classes"] == [

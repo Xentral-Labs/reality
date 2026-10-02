@@ -459,6 +459,8 @@ families:
       - tool:delivery_rule_set
       - tool:stock_count
       - tool:customer_item_number_set
+      - tool:company_currency_set
+      - tool:company_currency
       - tool:customer_item_number_remove
       - tool:customer_item_numbers
       - tool:stock_counts

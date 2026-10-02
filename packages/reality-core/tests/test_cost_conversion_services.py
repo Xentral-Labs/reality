@@ -209,3 +209,50 @@ def test_selling_conversion_flows_through_reviewed_db2(session, business, cost_o
     assert result["db1"] == "570.0000"
     assert result["allocated_selling_cost"] == "27.0000"
     assert result["db2"] == "543.0000"
+
+
+def test_a_posted_invoice_rate_is_offered_as_the_conversion_basis(
+    session, business, cost_owner
+):
+    """Spec 309 FR-006: the invoice rate is offered, and confirmed through the review."""
+    movements = [costs.receipt(session, business), costs.receipt(session, business)]
+    source, document = foreign_evidence(session, business)
+    # Positive control: an unposted invoice offers nothing.
+    assert "offered_conversion_basis" not in cost_evidence(
+        session, business.tenant.id, document.id
+    )
+    core.post_supplier_invoice(
+        session, business.tenant.id, document.id, exchange_rate="0.9"
+    )
+
+    context = cost_evidence(session, business.tenant.id, document.id)
+    offer = context["offered_conversion_basis"]
+    assert {
+        key: offer[key]
+        for key in ("kind", "from_code", "to_code", "numerator", "denominator")
+    } == {
+        "kind": "currency",
+        "from_code": "USD",
+        "to_code": "EUR",
+        "numerator": "0.9",
+        "denominator": "1",
+    }
+    assert offer["evidence_source_record_id"] == source.id
+
+    converted = costs.execute(
+        session,
+        business,
+        cost_owner,
+        {**offer, "expected_event_sequence": context["event_sequence"]},
+    )
+    arguments = allocation.weighted(
+        session,
+        business,
+        movements,
+        document,
+        allocation_total="10",
+        conversion_basis_revision_id=converted["conversion_basis_revision_id"],
+    )
+    costs.execute(session, business, cost_owner, arguments)
+    result = receipt_cost(session, business.tenant.id, movements[0].id)
+    assert (result["known_cost"], result["currency"]) == ("2.2500", "EUR")
