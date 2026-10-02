@@ -23,4 +23,4 @@
 - [x] T012 Review final diff, publish PR, obtain green complete hosted CI, merge/deploy under explicit session authorization and verify public release endpoints.
 - [x] T013 Complete the read-only post-deployment check of both owner dialogs and membership/report presentation in the existing logged-in Chrome session. Chrome became accessible on 2026-10-02: both owner dialogs loaded successfully, absent membership was labeled correctly, and the private library explained its active-membership requirement.
 
-- [ ] T014 Add failing localized browser assertions for the access-state heading/guidance/recheck; update ReportLibrary and translations, verify browser recovery and full hosted gates (FR-004/FR-006).
+- [x] T014 Add failing localized browser assertions for the access-state heading/guidance/recheck; update ReportLibrary and translations, verify browser recovery and full hosted gates (FR-004/FR-006).
