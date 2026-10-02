@@ -1575,11 +1575,14 @@ def _order_line_item_unknown_exceptions(
     The rest of the order was interpreted; this line has no item and so no promise,
     and nothing ships for it until a person says which item the shop meant.
     """
+    from reality.services.customer_item_numbers import stated_number
     from reality.services.order_line_items import unknown_item_lines
 
     result: list[OperationalException] = []
     for row in unknown_item_lines(session, tenant_id):
         line, order = row["line"], row["order"]
+        # Spec 308: the customer's own number, so assigning can remember it.
+        quoted = stated_number(line)
         result.append(
             OperationalException(
                 _identity("order_line_item_unknown", line.id),
@@ -1602,6 +1605,7 @@ def _order_line_item_unknown_exceptions(
                     "document_line_id": line.id,
                     "document_id": order.id,
                     "source_record_id": order.source_record_id,
+                    **({"customer_item_number": quoted} if quoted else {}),
                 },
                 _document_instant(order),
             )

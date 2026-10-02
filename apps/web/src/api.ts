@@ -2539,6 +2539,8 @@ export type DeliveryRow = {
   };
 };
 export type DeliveryDetail = {
+  /** Spec 308: the customer's own number the line was ordered by. */
+  customer_item?: { customer_item_number: string; customer_item_name: string } | null;
   case: DeliveryRow & {
     blockers: Array<{
       id: string;
@@ -3056,6 +3058,41 @@ export const stockCounts = {
   ) =>
     request<StockCountProposal>(
       `/api/tenants/${encodeURIComponent(tenant)}/stock-counts/proposals`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
+};
+export type CustomerItemNumber = {
+  id: string;
+  party_id: string;
+  customer: string;
+  item_id: string;
+  item: string;
+  sku: string;
+  customer_item_number: string;
+  customer_item_name: string;
+};
+export const customerItemNumbers = {
+  list: (tenant: string, subject: { party_id: string } | { item_id: string }) =>
+    request<{ rows: CustomerItemNumber[] }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/customer-item-numbers?${new URLSearchParams(subject)}`,
+    ),
+  prepare: (
+    tenant: string,
+    body: {
+      operation: "set" | "remove";
+      party_id: string;
+      customer_item_number: string;
+      item_id?: string;
+      customer_item_name?: string;
+    },
+  ) =>
+    request<{ id: string; status: string; preview: Record<string, unknown> }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/customer-item-numbers/proposals`,
       { method: "POST", body: JSON.stringify(body) },
     ),
   confirm: (tenant: string, id: string) =>

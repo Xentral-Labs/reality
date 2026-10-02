@@ -191,6 +191,12 @@ def test_an_imported_order_resolves_known_numbers_and_keeps_unknown_lines(
         lines["K-9999"].id
     ]
 
+    # The finding carries the quoted number, so assigning can remember it.
+    from reality.services.exceptions import _order_line_item_unknown_exceptions
+
+    (finding,) = _order_line_item_unknown_exceptions(session, tenant, None)
+    assert finding.trace["customer_item_number"] == "K-9999"
+
     lamp = core.create_item(session, tenant, "LAMP-308I", "Lamp import")
     assign_line_item(
         session,
