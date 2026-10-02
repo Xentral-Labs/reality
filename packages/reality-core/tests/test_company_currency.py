@@ -310,7 +310,7 @@ def test_the_migration_backfills_eur_and_guards_its_downgrade(
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = Config("alembic.ini")
     config.set_main_option("sqlalchemy.url", postgres_database)
-    command.upgrade(config, "0114_customer_item_number")
+    command.upgrade(config, "0115_chat_scoped_proposals")
     engine = create_engine(postgres_database)
     try:
         with Session(engine) as session:
@@ -354,7 +354,7 @@ def test_the_migration_backfills_eur_and_guards_its_downgrade(
             ("USD", None, None),
         ]
         # Positive control: nothing converted yet, so the downgrade passes.
-        command.downgrade(config, "0114_customer_item_number")
+        command.downgrade(config, "0115_chat_scoped_proposals")
         command.upgrade(config, "head")
         with Session(engine) as session:
             document = core.create_document(
@@ -376,7 +376,7 @@ def test_the_migration_backfills_eur_and_guards_its_downgrade(
                 exchange_rate="0.9",
             )
         with pytest.raises(Exception, match="converted ledger entries"):
-            command.downgrade(config, "0114_customer_item_number")
+            command.downgrade(config, "0115_chat_scoped_proposals")
     finally:
         engine.dispose()
         command.upgrade(config, "head")
