@@ -1541,6 +1541,7 @@ def _order_line_item_assign(
     from reality.services.order_line_items import assign_line_item
 
     arguments["action_id"] = arguments.pop("_action_id", None)
+    arguments["remember_for_customer"] = bool(arguments.get("remember_for_customer"))
     result = assign_line_item(session, tenant_id, **arguments)
     return {
         "document_line_id": result["document_line_id"],

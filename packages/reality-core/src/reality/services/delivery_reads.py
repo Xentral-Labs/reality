@@ -325,6 +325,7 @@ def delivery_case(
     commitment = row[0]
     links = []
     document_id = commitment.document_id
+    line = None
     if commitment.document_line_id:
         line = session.scalar(
             select(DocumentLine).where(
@@ -466,8 +467,17 @@ def delivery_case(
         if commitment.item_id and commitment.location_id
         else Decimal(0)
     )
+    # Spec 308: the customer's own number the line was ordered by.
+    from reality.services.customer_item_numbers import line_customer_item
+
+    customer_item = (
+        line_customer_item(session, tenant_id, line, commitment.to_party_id)
+        if line is not None and kind == "customer_delivery"
+        else None
+    )
     return {
         "case": detail,
+        "customer_item": customer_item,
         "supply_coverage": coverage,
         "hold_reasons": sorted(HOLD_REASONS),
         "inventory": {

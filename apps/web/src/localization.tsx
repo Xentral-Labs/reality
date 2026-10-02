@@ -24868,6 +24868,8 @@ Object.assign(dictionaries.de, {
     "Der Kunde hat unter dieser Nummer keinen Artikel; wähle unseren Artikel oder lege die Nummer zuerst für den Kunden an.",
   "The customer's number names another item than the one stated.":
     "Die Nummer des Kunden bezeichnet einen anderen Artikel als den angegebenen.",
+  "This line quotes no customer item number to remember.":
+    "Diese Position nennt keine Kundenartikelnummer, die gemerkt werden könnte.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25136,6 +25138,8 @@ Object.assign(dictionaries.nl, {
     "De klant heeft onder dit nummer geen artikel; kies ons artikel of leg het nummer eerst vast voor de klant.",
   "The customer's number names another item than the one stated.":
     "Het nummer van de klant verwijst naar een ander artikel dan het opgegeven.",
+  "This line quotes no customer item number to remember.":
+    "Deze regel noemt geen klantartikelnummer om te onthouden.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25404,6 +25408,8 @@ Object.assign(dictionaries.es, {
     "El cliente no tiene ningún artículo con este número; elige nuestro artículo o indica primero el número para el cliente.",
   "The customer's number names another item than the one stated.":
     "El número del cliente corresponde a otro artículo distinto del indicado.",
+  "This line quotes no customer item number to remember.":
+    "Esta línea no indica ningún número de artículo del cliente que recordar.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

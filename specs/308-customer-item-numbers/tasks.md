@@ -23,13 +23,13 @@ Tests come first in each phase where practical.
 
 ## Phase 3: Order entry and import (FR-002, FR-005)
 
-- [ ] T006 Tests:
+- [x] T006 Tests:
   - manual entry by number, unknown and conflicting refused;
   - the import resolves by number, keeps an unknown line and reports it;
   - assigning with remember-for-customer;
   - the stated number on order, delivery and invoice reads;
   - a changed mapping leaves past lines.
-- [ ] T007 Order entry, file import, assignment and reads
+- [x] T007 Order entry, file import, assignment and reads
 
 ## Phase 4: Adapters and gates (FR-003)
 

@@ -167,6 +167,7 @@ parameter_descriptions:
   is_active: Whether the record remains selectable for new operational work.
   is_default: Whether this rule is the fallback for its direction and currency.
   item_id: Opaque identity of the operational item reference.
+  remember_for_customer: Also state the number the line was ordered by as the customer's item number for the assigned item.
   stock_count_id: Opaque identity of a recorded stock count.
   rule: "How the customer or order is delivered: partial_allowed, ship_complete or no_backorders."
   reviewed: What the review showed, such as the rule, point or stock in force; a confirmation after it changed is refused.

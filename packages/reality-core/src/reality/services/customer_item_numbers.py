@@ -304,3 +304,48 @@ def customer_item_numbers(
             query.order_by(Party.name, CustomerItemNumber.match_key)
         )
     ]
+
+
+STATED_KEYS = ("customer_item_number", "customer_article_number", "kundenartikelnummer")
+
+
+def stated_number(line: Any) -> str | None:
+    """The customer number a line was ordered by, as its payload states it."""
+    import json
+
+    try:
+        payload = json.loads(getattr(line, "payload", None) or "{}")
+    except ValueError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    lowered = {str(key).strip().lower(): value for key, value in payload.items()}
+    for key in STATED_KEYS:
+        value = lowered.get(key)
+        if value not in (None, ""):
+            return str(value).strip()
+    return None
+
+
+def line_customer_item(
+    session: Session, tenant_id: str, line: Any, party_id: str | None
+) -> dict[str, str] | None:
+    """The customer's number and name for a line, or None.
+
+    An order line states it itself; an invoice line reaches it through the
+    order line it bills. The number is shown as stated, and the name is the
+    customer's current name for it, if the number is still mapped.
+    """
+    from reality.db.core import DocumentLine
+
+    number = stated_number(line)
+    if number is None and getattr(line, "billed_document_line_id", None):
+        billed = session.get(DocumentLine, (tenant_id, line.billed_document_line_id))
+        number = stated_number(billed) if billed is not None else None
+    if number is None:
+        return None
+    mapping = resolve_customer_item(session, tenant_id, party_id, number)
+    return {
+        "customer_item_number": number,
+        "customer_item_name": mapping.customer_item_name if mapping else "",
+    }

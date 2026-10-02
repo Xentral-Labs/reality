@@ -2142,7 +2142,11 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         "Assign an item to an order line",
         "order_line_item_assign",
         _object_schema(
-            {"document_line_id": STRING, "item_id": STRING},
+            {
+                "document_line_id": STRING,
+                "item_id": STRING,
+                "remember_for_customer": {"type": "boolean"},
+            },
             required=("document_line_id", "item_id"),
         ),
     ),
