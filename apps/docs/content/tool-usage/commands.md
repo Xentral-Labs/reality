@@ -5978,9 +5978,9 @@ stock_blocks [item_id] [location_id] [status]
 
 #### `stock_blocks` — Stock blocks {#tool-stock_blocks}
 
-Read stock held back where it lies: item, location, lot or pallet, quantity, reason and who blocked
-it. Blocked stock is excluded from availability, reservation and shipping until released or
-scrapped.
+Read stock held back where it lies: item, location, lot or pallet, the quantity as blocked, what is
+still open, reason, who blocked it, and each release or scrap since. Blocked stock is excluded from
+availability, reservation and shipping until released or scrapped.
 
 **Synopsis**
 
@@ -6013,11 +6013,11 @@ List stock held back where it lies, with its reason, quantity and who blocked it
 
 **Parameters**
 
-| Name          | Type     | Required | Description                                                                                                  | Default |
-| ------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------ | ------- |
-| `item_id`     | `string` | no       | Opaque identity of the operational item reference.                                                           | —       |
-| `location_id` | `string` | no       | Opaque identity of the operational or physical location.                                                     | —       |
-| `status`      | `string` | no       | Lifecycle state to filter by, such as open, fulfilled, or withdrawn. `active`, `released`, `scrapped`, `all` | —       |
+| Name          | Type     | Required | Description                                                                                      | Default |
+| ------------- | -------- | -------- | ------------------------------------------------------------------------------------------------ | ------- |
+| `item_id`     | `string` | no       | Opaque identity of the operational item reference.                                               | —       |
+| `location_id` | `string` | no       | Opaque identity of the operational or physical location.                                         | —       |
+| `status`      | `string` | no       | Lifecycle state to filter by, such as open, fulfilled, or withdrawn. `active`, `resolved`, `all` | —       |
 
 **See also:** command [`stock_blocks`](./commands#command-stock_blocks)
 

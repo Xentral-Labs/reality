@@ -1,18 +1,25 @@
-"""Blocked stock: block, release and scrap (spec 304 FR-001, FR-003)."""
+"""Blocked stock: block, release and scrap (spec 304 FR-001, FR-003; spec 316)."""
 
 import json
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 
-from reality.db.core import BusinessEvent, Movement, StockBlock, uid
+from reality.db.core import (
+    BusinessEvent,
+    Movement,
+    StockBlock,
+    StockBlockResolution,
+    uid,
+)
 from reality.services import core
 from reality.services.stock_blocks import (
     block_stock,
     release_stock_block,
     scrap_stock_block,
+    stock_block_detail,
     stock_blocks,
 )
 
@@ -71,7 +78,6 @@ def test_the_table_refuses_nonsense(session, business):
             "location_id": business.location.id,
             "quantity": Decimal(1),
             "reason_code": "quality",
-            "status": "active",
             **overrides,
         }
         with session.begin_nested():
@@ -83,8 +89,65 @@ def test_the_table_refuses_nonsense(session, business):
         insert(quantity=Decimal(0))
     with pytest.raises(IntegrityError, match="ck_stock_block_reason"):
         insert(reason_code="feeling")
-    with pytest.raises(IntegrityError, match="ck_stock_block_status"):
-        insert(status="pending")
+    # Spec 316 DR-002: nothing about a block's later fate is stored on it.
+    columns = set(StockBlock.__table__.columns.keys())
+    assert not columns & {
+        "status",
+        "resolved_at",
+        "resolved_by",
+        "resolution_reason",
+        "previous_block_id",
+        "movement_id",
+    }
+    assert "receipt_movement_id" in columns
+
+
+def test_a_resolution_refuses_nonsense(session, business):
+    tenant = business.tenant.id
+    _stock(session, business, "20")
+    block = block_stock(
+        session, tenant, business.item.id, business.location.id, "5", "quality"
+    )
+    scrap = Movement(
+        id=uid("mov"),
+        tenant_id=tenant,
+        type="adjustment",
+        item_id=business.item.id,
+        from_location_id=business.location.id,
+        quantity=Decimal(1),
+    )
+    session.add(scrap)
+    session.flush()
+
+    def insert(**overrides):
+        values = {
+            "id": uid("sbr"),
+            "tenant_id": tenant,
+            "block_id": block.id,
+            "kind": "release",
+            "quantity": Decimal(1),
+            "reason": "passed QC",
+            **overrides,
+        }
+        with session.begin_nested():
+            session.add(StockBlockResolution(**values))
+            session.flush()
+            session.execute(text("SET CONSTRAINTS ALL IMMEDIATE"))
+
+    insert()  # positive control
+    insert(kind="scrap", movement_id=scrap.id)  # positive control
+    with pytest.raises(IntegrityError, match="ck_stock_block_resolution_quantity"):
+        insert(quantity=Decimal(0))
+    with pytest.raises(IntegrityError, match="ck_stock_block_resolution_kind"):
+        insert(kind="forgotten")
+    with pytest.raises(IntegrityError, match="ck_stock_block_resolution_reason"):
+        insert(reason=" ")
+    with pytest.raises(IntegrityError, match="ck_stock_block_resolution_movement"):
+        insert(kind="scrap")
+    with pytest.raises(IntegrityError, match="ck_stock_block_resolution_movement"):
+        insert(movement_id=scrap.id)
+    with pytest.raises(IntegrityError):
+        insert(kind="scrap", movement_id="mov_nowhere")
 
 
 def test_the_migration_refuses_to_drop_stated_blocks(postgres_database, monkeypatch):
@@ -131,9 +194,9 @@ def test_the_migration_refuses_to_drop_stated_blocks(postgres_database, monkeypa
             connection.execute(
                 text(
                     "INSERT INTO stock_block (id, tenant_id, item_id, location_id, "
-                    "quantity, reason_code, note, status, created_at, created_by) "
+                    "quantity, reason_code, note, created_at, created_by) "
                     "VALUES ('blk_m304', 'ten_m304', 'itm_m304', 'loc_m304', 5, "
-                    "'quality', '', 'active', now(), 'human')"
+                    "'quality', '', now(), 'human')"
                 )
             )
         with pytest.raises(RuntimeError, match="stock blocks exist"):
@@ -164,7 +227,7 @@ def test_a_block_holds_back_stock_without_moving_it(session, business):
     assert _movements(session, business) == before
     assert core.stock_at(session, tenant, business.item.id, business.location.id) == 20
     assert core.blocked_quantity(session, tenant, business.item.id) == 5
-    assert (block.status, block.note) == ("active", "scratches on the housing")
+    assert block.note == "scratches on the housing"
     (event,) = _events(session, business, "stock_block.created")
     assert (event["quantity"], event["reason_code"]) == ("5", "quality")
 
@@ -251,36 +314,69 @@ def test_a_lot_is_blocked_exactly(session, business):
 # --- release and scrap -----------------------------------------------------------------
 
 
-def test_a_block_is_released_partly_then_wholly(session, business):
+def _block(session, tenant, block_id):
+    session.expire_all()
+    return stock_block_detail(session, tenant, block_id)
+
+
+def test_a_block_keeps_what_was_stated_through_its_resolutions(session, business):
+    """Spec 316 US1: block 20, release 5, scrap 3, release the rest."""
     tenant = business.tenant.id
     _stock(session, business, "20")
     block = block_stock(
-        session, tenant, business.item.id, business.location.id, "5", "inspection"
+        session, tenant, business.item.id, business.location.id, "20", "quality"
     )
     before = _movements(session, business)
 
-    first = release_stock_block(session, tenant, block.id, "3", reason="passed QC")
-    assert _active(session, business) == [("2", "inspection")]
-    assert core.blocked_quantity(session, tenant, business.item.id) == 2
-    session.expire_all()
-    released = session.get(StockBlock, (tenant, block.id))
-    assert (released.status, released.quantity, released.resolution_reason) == (
-        "released",
-        Decimal("3.0000"),
-        "passed QC",
-    )
-    rest = session.get(StockBlock, (tenant, first["remainder_block_id"]))
-    assert (rest.previous_block_id, rest.quantity) == (block.id, Decimal("2.0000"))
-
-    release_stock_block(session, tenant, rest.id, reason="passed QC")
-    assert _active(session, business) == []
+    first = release_stock_block(session, tenant, block.id, "5", reason="passed QC")
+    assert first == {"block_id": block.id, "released": "5", "open_quantity": "15"}
     assert _movements(session, business) == before
+    assert core.blocked_quantity(session, tenant, business.item.id) == 15
+    assert _active(session, business) == [("20", "quality")]
+
+    scrapped = scrap_stock_block(session, tenant, block.id, "3", reason="cracked")
+    assert (scrapped["block_id"], scrapped["open_quantity"]) == (block.id, "12")
+    assert core.blocked_quantity(session, tenant, business.item.id) == 12
+    assert core.stock_at(session, tenant, business.item.id) == 17
+
+    row = _block(session, tenant, block.id)
+    assert (row["quantity"], row["open_quantity"], row["status"]) == (
+        "20",
+        "12",
+        "active",
+    )
     assert [
-        e["quantity"] for e in _events(session, business, "stock_block.released")
+        (r["kind"], r["quantity"], r["reason"], r["movement_id"])
+        for r in row["resolutions"]
     ] == [
-        "3",
-        "2",
+        ("release", "5", "passed QC", None),
+        ("scrap", "3", "cracked", scrapped["movement_id"]),
     ]
+
+    last = release_stock_block(session, tenant, block.id, reason="passed QC")
+    assert last == {"block_id": block.id, "released": "12", "open_quantity": "0"}
+    assert core.blocked_quantity(session, tenant, business.item.id) == 0
+    assert _active(session, business) == []
+    resolved = stock_blocks(session, tenant, status="resolved")
+    assert [(r["id"], r["quantity"], r["open_quantity"]) for r in resolved] == [
+        (block.id, "20", "0")
+    ]
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(StockBlock)
+            .where(StockBlock.tenant_id == tenant)
+        )
+        == 1
+    )
+    session.expire_all()
+    assert session.get(StockBlock, (tenant, block.id)).quantity == Decimal("20.0000")
+    released = _events(session, business, "stock_block.released")
+    assert [(e["quantity"], e["open_quantity"]) for e in released] == [
+        ("5", "15"),
+        ("12", "0"),
+    ]
+    assert all("remainder_block_id" not in e for e in released)
 
 
 def test_scrapping_writes_the_part_off_with_one_adjustment(session, business):
@@ -301,9 +397,47 @@ def test_scrapping_writes_the_part_off_with_one_adjustment(session, business):
         Decimal("4.0000"),
     )
     session.expire_all()
-    assert session.get(StockBlock, (tenant, block.id)).movement_id == movement.id
+    (resolution,) = session.scalars(
+        select(StockBlockResolution).where(StockBlockResolution.block_id == block.id)
+    )
+    assert (resolution.kind, resolution.movement_id) == ("scrap", movement.id)
+    assert session.get(StockBlock, (tenant, block.id)).receipt_movement_id is None
     (event,) = _events(session, business, "stock_block.scrapped")
-    assert (event["quantity"], event["movement_id"]) == ("4", movement.id)
+    assert (event["quantity"], event["movement_id"], event["open_quantity"]) == (
+        "4",
+        movement.id,
+        "1",
+    )
+
+
+def test_a_receipt_block_keeps_its_receipt_when_wholly_scrapped(session, business):
+    """Spec 316 FR-005: the receipt and the scrap are two different movements."""
+    tenant = business.tenant.id
+    receipt = core.record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+    )
+    block = block_stock(
+        session,
+        tenant,
+        business.item.id,
+        business.location.id,
+        "5",
+        "damage",
+        _movement_id=receipt.id,
+        _receipt=Decimal(5),
+    )
+
+    result = scrap_stock_block(session, tenant, block.id, reason="crushed")
+
+    row = _block(session, tenant, block.id)
+    assert row["receipt_movement_id"] == receipt.id
+    assert row["resolutions"][0]["movement_id"] == result["movement_id"]
+    assert result["movement_id"] != receipt.id
 
 
 def test_a_resolution_is_refused_with_its_reason(session, business):
@@ -319,6 +453,11 @@ def test_a_resolution_is_refused_with_its_reason(session, business):
     with pytest.raises(core.InvalidOperation) as refused:
         release_stock_block(session, tenant, block.id, reason=" ")
     assert refused.value.code == "stock_block_reason_required"
+    release_stock_block(session, tenant, block.id, "3", reason="ok")
+    # The open quantity bounds the next resolution, not the stated one.
+    with pytest.raises(core.InvalidOperation) as refused:
+        scrap_stock_block(session, tenant, block.id, "3", reason="cracked")
+    assert refused.value.code == "stock_block_quantity_exceeds_block"
     release_stock_block(session, tenant, block.id, reason="ok")
     with pytest.raises(core.InvalidOperation) as refused:
         scrap_stock_block(session, tenant, block.id, reason="late")
@@ -326,3 +465,121 @@ def test_a_resolution_is_refused_with_its_reason(session, business):
     other = core.create_tenant(session, "Other GmbH")
     with pytest.raises(core.NotFound):
         release_stock_block(session, other.id, block.id, reason="ok")
+
+
+def test_the_migration_folds_split_blocks_into_what_was_stated(
+    postgres_database, monkeypatch
+):
+    """Spec 316 FR-008: a spec 304 chain becomes one block with its resolutions."""
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import create_engine
+
+    monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+    config = Config("alembic.ini")
+    config.set_main_option("sqlalchemy.url", postgres_database)
+    command.upgrade(config, "0108_stock_block")
+    engine = create_engine(postgres_database)
+    statements = [
+        (
+            "INSERT INTO tenant (id, name, purpose, created_at) "
+            "VALUES ('ten_m316', 'Migration 316', 'business', now())"
+        ),
+        (
+            "INSERT INTO item (id, tenant_id, sku, name, unit, is_active, item_type, "
+            "tracking_type, purchase_unit, conversion_factor) VALUES ('itm_m316', "
+            "'ten_m316', 'M316', 'Lamp', 'pcs', true, 'stocked', 'none', 'pcs', 1)"
+        ),
+        (
+            "INSERT INTO location (id, tenant_id, name, type, is_active, allows_stock) "
+            "VALUES ('loc_m316', 'ten_m316', 'Hamburg', 'warehouse', true, true)"
+        ),
+        # The receipt that stated the second block, and the scrap adjustments.
+        (
+            "INSERT INTO movement (id, tenant_id, type, item_id, to_location_id, "
+            "quantity, occurred_at) VALUES ('mov_rcv', 'ten_m316', "
+            "'receipt', 'itm_m316', 'loc_m316', 40, now())"
+        ),
+        (
+            "INSERT INTO movement (id, tenant_id, type, item_id, from_location_id, "
+            "quantity, occurred_at) VALUES ('mov_scrap1', 'ten_m316', "
+            "'adjustment', 'itm_m316', 'loc_m316', 3, now())"
+        ),
+        (
+            "INSERT INTO movement (id, tenant_id, type, item_id, from_location_id, "
+            "quantity, occurred_at) VALUES ('mov_scrap2', 'ten_m316', "
+            "'adjustment', 'itm_m316', 'loc_m316', 4, now())"
+        ),
+    ]
+    columns = (
+        "id, tenant_id, item_id, location_id, quantity, reason_code, note, status, "
+        "created_at, created_by, resolved_at, resolved_by, resolution_reason, "
+        "previous_block_id, movement_id"
+    )
+    rows = [
+        # Block 20: release 5, then scrap 3, 12 still open.
+        (
+            "('blk_a', 'ten_m316', 'itm_m316', 'loc_m316', 5, 'quality', 'dented', "
+            "'released', now() - interval '3 days', 'clerk', now() - interval '2 days', "
+            "'qa', 'passed QC', NULL, NULL)"
+        ),
+        (
+            "('blk_a2', 'ten_m316', 'itm_m316', 'loc_m316', 3, 'quality', 'dented', "
+            "'scrapped', now() - interval '3 days', 'clerk', now() - interval '1 day', "
+            "'qa', 'cracked', 'blk_a', 'mov_scrap1')"
+        ),
+        (
+            "('blk_a3', 'ten_m316', 'itm_m316', 'loc_m316', 12, 'quality', 'dented', "
+            "'active', now() - interval '3 days', 'clerk', NULL, NULL, NULL, 'blk_a2', "
+            "NULL)"
+        ),
+        # A receipt block of 4, wholly scrapped: the scrap overwrote its receipt.
+        (
+            "('blk_b', 'ten_m316', 'itm_m316', 'loc_m316', 4, 'damage', '', "
+            "'scrapped', now() - interval '3 days', 'clerk', now(), 'qa', 'crushed', "
+            "NULL, 'mov_scrap2')"
+        ),
+    ]
+    statements.append(f"INSERT INTO stock_block ({columns}) VALUES " + ", ".join(rows))
+    statements.append(
+        "INSERT INTO business_event (id, tenant_id, sequence, event_type, "
+        "schema_version, subject_type, subject_id, occurred_at, recorded_at, "
+        "payload) VALUES ('evt_b', 'ten_m316', 1, 'stock_block.created', 1, "
+        "'stock_block', 'blk_b', now(), now(), "
+        '\'{"quantity": "4", "movement_id": "mov_rcv"}\')'
+    )
+    try:
+        with engine.begin() as connection:
+            for statement in statements:
+                connection.execute(text(statement))
+
+        command.upgrade(config, "head")
+
+        with engine.connect() as connection:
+            blocks = connection.execute(
+                text(
+                    "SELECT id, quantity, note, created_by, receipt_movement_id "
+                    "FROM stock_block ORDER BY id"
+                )
+            ).all()
+            resolutions = connection.execute(
+                text(
+                    "SELECT block_id, kind, quantity, reason, resolved_by, movement_id "
+                    "FROM stock_block_resolution ORDER BY block_id, resolved_at"
+                )
+            ).all()
+        assert [(b[0], b[1], b[2], b[3], b[4]) for b in blocks] == [
+            ("blk_a", Decimal("20.0000"), "dented", "clerk", None),
+            ("blk_b", Decimal("4.0000"), "", "clerk", "mov_rcv"),
+        ]
+        assert [tuple(r) for r in resolutions] == [
+            ("blk_a", "release", Decimal("5.0000"), "passed QC", "qa", None),
+            ("blk_a", "scrap", Decimal("3.0000"), "cracked", "qa", "mov_scrap1"),
+            ("blk_b", "scrap", Decimal("4.0000"), "crushed", "qa", "mov_scrap2"),
+        ]
+
+        # History is not discarded to make a downgrade possible.
+        with pytest.raises(RuntimeError, match="stock block resolutions exist"):
+            command.downgrade(config, "0108_stock_block")
+    finally:
+        engine.dispose()

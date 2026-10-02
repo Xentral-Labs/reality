@@ -154,8 +154,9 @@ derived from movements and reservations at read time, which is why the stock lis
 **Appears in processes:** [Procure to pay](./processes#process-procure_to_pay),
 [Master data and sources](./processes#process-master_data)
 
-**Underneath:** Tables: `item`, `supply_assignment`, `item_reorder_point`, `stock_block` · Events:
-[`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
+**Underneath:** Tables: `item`, `supply_assignment`, `item_reorder_point`, `stock_block`,
+`stock_block_resolution` · Events: [`item.created`](./events#event-item-created),
+[`item.updated`](./events#event-item-updated),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
 [`stock_block.created`](./events#event-stock_block-created),

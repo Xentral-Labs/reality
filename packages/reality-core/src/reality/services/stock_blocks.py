@@ -3,11 +3,13 @@
 A block names an item at a location, optionally its exact lot, handling unit
 or serial unit, a quantity and a reason. Nothing moves: the goods stay where
 they are, and every reader that reserves, ships, transfers or reports
-availability subtracts the active blocks (`core.blocked_quantity`). A block
-is released, wholly or partly, when quality clears the goods, or scrapped,
-which writes the part off with one reasoned adjustment. A partial release or
-scrap closes the row for that part and continues the rest as a new active
-row, so each row's history stays what happened to it.
+availability subtracts what blocks still hold back (`core.blocked_quantity`).
+A block is released, wholly or partly, when quality clears the goods, or
+scrapped, which writes the part off with one reasoned adjustment.
+
+The block stays as it was stated, under one id (spec 316). Each release or
+scrap is appended as its own resolution, and the open quantity, the stated
+quantity less the resolutions, is read at read time and never stored.
 """
 
 from __future__ import annotations
@@ -15,10 +17,16 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from reality.db.core import Item, Location, StockBlock, now, uid
+from reality.db.core import (
+    Item,
+    Location,
+    StockBlock,
+    StockBlockResolution,
+    uid,
+)
 from reality.services.business_locks import lock_delivery_state
 from reality.services.core import (
     InvalidOperation,
@@ -75,7 +83,40 @@ def free_to_block(
     return max(ZERO, min(at_location, at_identity))
 
 
-def _row(block: StockBlock, item: Item | None = None, location: Location | None = None):
+def _resolutions(
+    session: Session, tenant_id: str, block_ids: list[str]
+) -> dict[str, list[StockBlockResolution]]:
+    """Each block's releases and scraps, oldest first."""
+    found: dict[str, list[StockBlockResolution]] = {key: [] for key in block_ids}
+    if block_ids:
+        for resolution in session.scalars(
+            select(StockBlockResolution)
+            .where(
+                StockBlockResolution.tenant_id == tenant_id,
+                StockBlockResolution.block_id.in_(block_ids),
+            )
+            .order_by(StockBlockResolution.resolved_at, StockBlockResolution.id)
+        ):
+            found[resolution.block_id].append(resolution)
+    return found
+
+
+def _open_quantity(
+    block: StockBlock, resolutions: list[StockBlockResolution]
+) -> Decimal:
+    """The stated quantity less every release and scrap of it (spec 316)."""
+    return Decimal(block.quantity) - sum(
+        (Decimal(row.quantity) for row in resolutions), ZERO
+    )
+
+
+def _row(
+    block: StockBlock,
+    resolutions: list[StockBlockResolution],
+    item: Item | None = None,
+    location: Location | None = None,
+):
+    remaining = _open_quantity(block, resolutions)
     return {
         "id": block.id,
         "item_id": block.item_id,
@@ -87,16 +128,25 @@ def _row(block: StockBlock, item: Item | None = None, location: Location | None 
         "lot_id": block.lot_id,
         "serial_unit_id": block.serial_unit_id,
         "quantity": _plain(block.quantity),
+        "open_quantity": _plain(remaining),
+        "status": "active" if remaining > ZERO else "resolved",
         "reason_code": block.reason_code,
         "note": block.note,
-        "status": block.status,
         "created_at": block.created_at,
         "created_by": block.created_by,
-        "resolved_at": block.resolved_at,
-        "resolved_by": block.resolved_by,
-        "resolution_reason": block.resolution_reason,
-        "previous_block_id": block.previous_block_id,
-        "movement_id": block.movement_id,
+        "receipt_movement_id": block.receipt_movement_id,
+        "resolutions": [
+            {
+                "id": row.id,
+                "kind": row.kind,
+                "quantity": _plain(row.quantity),
+                "reason": row.reason,
+                "resolved_at": row.resolved_at,
+                "resolved_by": row.resolved_by,
+                "movement_id": row.movement_id,
+            }
+            for row in resolutions
+        ],
     }
 
 
@@ -108,10 +158,24 @@ def stock_blocks(
     location_id: str | None = None,
     status: str = "active",
 ) -> list[dict[str, Any]]:
-    """The company's stock blocks, active by default, newest first."""
+    """The company's stock blocks, open ones by default, newest first.
+
+    `active` holds something back still, `resolved` holds nothing back any
+    more; both are read from the resolutions, never stored (spec 316).
+    """
     get_tenant(session, tenant_id)
-    if status not in {"active", "released", "scrapped", "all"}:
+    if status not in {"active", "resolved", "all"}:
         raise InvalidOperation(code="stock_block_status_unsupported")
+    resolved = (
+        select(
+            StockBlockResolution.block_id,
+            func.sum(StockBlockResolution.quantity).label("quantity"),
+        )
+        .where(StockBlockResolution.tenant_id == tenant_id)
+        .group_by(StockBlockResolution.block_id)
+        .subquery()
+    )
+    remaining = StockBlock.quantity - func.coalesce(resolved.c.quantity, 0)
     query = (
         select(StockBlock, Item, Location)
         .join(
@@ -123,16 +187,24 @@ def stock_blocks(
             (Location.tenant_id == StockBlock.tenant_id)
             & (Location.id == StockBlock.location_id),
         )
+        .outerjoin(resolved, resolved.c.block_id == StockBlock.id)
         .where(StockBlock.tenant_id == tenant_id)
         .order_by(StockBlock.created_at.desc(), StockBlock.id)
     )
-    if status != "all":
-        query = query.where(StockBlock.status == status)
+    if status == "active":
+        query = query.where(remaining > 0)
+    elif status == "resolved":
+        query = query.where(remaining <= 0)
     if item_id:
         query = query.where(StockBlock.item_id == item_id)
     if location_id:
         query = query.where(StockBlock.location_id == location_id)
-    return [_row(*row) for row in session.execute(query)]
+    rows = session.execute(query).all()
+    resolutions = _resolutions(session, tenant_id, [block.id for block, _, _ in rows])
+    return [
+        _row(block, resolutions[block.id], item, location)
+        for block, item, location in rows
+    ]
 
 
 def validate_block(
@@ -243,9 +315,8 @@ def block_stock(
         quantity=amount,
         reason_code=reason_code,
         note=(note or "").strip(),
-        status="active",
         created_by=created_by,
-        movement_id=_movement_id,
+        receipt_movement_id=_movement_id,
     )
     session.add(block)
     session.flush()
@@ -279,15 +350,19 @@ def validate_resolution(
     block_id: str,
     quantity: Decimal | float | str | None,
     reason: str,
-) -> tuple[StockBlock, Decimal, str]:
+) -> tuple[StockBlock, Decimal, str, Decimal]:
+    """The block, the part to resolve, the stated reason and what is open."""
     block = _tenant_record(session, StockBlock, tenant_id, block_id)
-    if block.status != "active":
+    remaining = _open_quantity(
+        block, _resolutions(session, tenant_id, [block.id])[block.id]
+    )
+    if remaining <= ZERO:
         raise InvalidOperation(code="stock_block_not_active")
     stated = (reason or "").strip()
     if not stated:
         raise InvalidOperation(code="stock_block_reason_required")
     if quantity in (None, ""):
-        amount = Decimal(block.quantity)
+        amount = remaining
     else:
         try:
             amount = decimal(quantity)
@@ -295,47 +370,35 @@ def validate_resolution(
             raise InvalidOperation(code="stock_block_quantity_invalid") from error
     if amount <= ZERO or amount.normalize().as_tuple().exponent < -4:
         raise InvalidOperation(code="stock_block_quantity_invalid")
-    if amount > Decimal(block.quantity):
+    if amount > remaining:
         raise InvalidOperation(code="stock_block_quantity_exceeds_block")
-    return block, amount, stated
+    return block, amount, stated, remaining
 
 
 def _resolve(
     session: Session,
     tenant_id: str,
     block: StockBlock,
+    kind: str,
     amount: Decimal,
-    status: str,
     reason: str,
     resolved_by: str,
-) -> tuple[StockBlock, StockBlock | None]:
-    """Close the resolved part; continue the rest as a new active block."""
-    rest = Decimal(block.quantity) - amount
-    remainder = None
-    if rest > ZERO:
-        remainder = StockBlock(
-            id=uid("blk"),
-            tenant_id=tenant_id,
-            item_id=block.item_id,
-            location_id=block.location_id,
-            handling_unit_id=block.handling_unit_id,
-            lot_id=block.lot_id,
-            serial_unit_id=block.serial_unit_id,
-            quantity=rest,
-            reason_code=block.reason_code,
-            note=block.note,
-            status="active",
-            created_by=block.created_by,
-            previous_block_id=block.id,
-        )
-        session.add(remainder)
-    block.quantity = amount
-    block.status = status
-    block.resolved_at = now()
-    block.resolved_by = resolved_by
-    block.resolution_reason = reason
+    movement_id: str | None = None,
+) -> StockBlockResolution:
+    """Append one release or scrap; the block itself is never changed."""
+    resolution = StockBlockResolution(
+        id=uid("sbr"),
+        tenant_id=tenant_id,
+        block_id=block.id,
+        kind=kind,
+        quantity=amount,
+        reason=reason,
+        resolved_by=resolved_by,
+        movement_id=movement_id,
+    )
+    session.add(resolution)
     session.flush()
-    return block, remainder
+    return resolution
 
 
 def release_stock_block(
@@ -352,35 +415,33 @@ def release_stock_block(
     """Make blocked goods available again, wholly or partly; nothing moves."""
     _require_business_mutation(session, tenant_id, "release_stock_block")
     lock_delivery_state(session, tenant_id)
-    block, amount, stated = validate_resolution(
+    block, amount, stated, remaining = validate_resolution(
         session, tenant_id, block_id, quantity, reason
     )
-    released, remainder = _resolve(
-        session, tenant_id, block, amount, "released", stated, resolved_by
+    resolution = _resolve(
+        session, tenant_id, block, "release", amount, stated, resolved_by
     )
+    left = _plain(remaining - amount)
     emit_business_event(
         session,
         tenant_id,
         "stock_block.released",
         "stock_block",
-        released.id,
+        block.id,
         {
-            "item_id": released.item_id,
-            "location_id": released.location_id,
+            "item_id": block.item_id,
+            "location_id": block.location_id,
+            "resolution_id": resolution.id,
             "quantity": _plain(amount),
             "reason": stated,
-            **({"remainder_block_id": remainder.id} if remainder else {}),
+            "open_quantity": left,
         },
         action_id=action_id,
         correlation_id=action_id,
     )
     if _commit:
         session.commit()
-    return {
-        "block_id": released.id,
-        "released": _plain(amount),
-        "remainder_block_id": remainder.id if remainder else None,
-    }
+    return {"block_id": block.id, "released": _plain(amount), "open_quantity": left}
 
 
 def scrap_stock_block(
@@ -399,43 +460,46 @@ def scrap_stock_block(
 
     _require_business_mutation(session, tenant_id, "scrap_stock_block")
     lock_delivery_state(session, tenant_id)
-    block, amount, stated = validate_resolution(
+    block, amount, stated, remaining = validate_resolution(
         session, tenant_id, block_id, quantity, reason
     )
-    # The part is no longer blocked once it is written off, so the adjustment
-    # takes stock that is no longer held back by its own block.
-    scrapped, remainder = _resolve(
-        session, tenant_id, block, amount, "scrapped", stated, resolved_by
+    # The scrap is resolved first, so the adjustment takes stock its own block
+    # no longer holds back; the resolution names the adjustment it is about to
+    # write, whose key is checked when the transaction commits.
+    movement_id = uid("mov")
+    resolution = _resolve(
+        session, tenant_id, block, "scrap", amount, stated, resolved_by, movement_id
     )
     movement = record_movement(
         session,
         tenant_id,
         "adjustment",
-        scrapped.item_id,
+        block.item_id,
         amount,
-        from_location_id=scrapped.location_id,
-        handling_unit_id=scrapped.handling_unit_id,
-        lot_id=scrapped.lot_id,
-        serial_unit_id=scrapped.serial_unit_id,
+        from_location_id=block.location_id,
+        handling_unit_id=block.handling_unit_id,
+        lot_id=block.lot_id,
+        serial_unit_id=block.serial_unit_id,
         reason=f"scrap: {stated}",
         action_id=action_id,
         _commit=False,
+        _movement_id=movement_id,
     )
-    scrapped.movement_id = movement.id
-    session.flush()
+    left = _plain(remaining - amount)
     emit_business_event(
         session,
         tenant_id,
         "stock_block.scrapped",
         "stock_block",
-        scrapped.id,
+        block.id,
         {
-            "item_id": scrapped.item_id,
-            "location_id": scrapped.location_id,
+            "item_id": block.item_id,
+            "location_id": block.location_id,
+            "resolution_id": resolution.id,
             "quantity": _plain(amount),
             "reason": stated,
             "movement_id": movement.id,
-            **({"remainder_block_id": remainder.id} if remainder else {}),
+            "open_quantity": left,
         },
         action_id=action_id,
         correlation_id=action_id,
@@ -443,10 +507,10 @@ def scrap_stock_block(
     if _commit:
         session.commit()
     return {
-        "block_id": scrapped.id,
+        "block_id": block.id,
         "scrapped": _plain(amount),
         "movement_id": movement.id,
-        "remainder_block_id": remainder.id if remainder else None,
+        "open_quantity": left,
     }
 
 
@@ -462,6 +526,7 @@ def stock_block_detail(
         raise NotFound(code="stock_block_not_found")
     return _row(
         block,
+        _resolutions(session, tenant_id, [block.id])[block.id],
         session.get(Item, (tenant_id, block.item_id)),
         session.get(Location, (tenant_id, block.location_id)),
     )
@@ -523,7 +588,7 @@ def review_stock_block(
         return normalized, preview
     if tool_name not in STOCK_BLOCK_TOOLS:
         raise InvalidOperation(code="proposal_tool_not_found")
-    block, amount, stated = validate_resolution(
+    block, amount, stated, remaining = validate_resolution(
         session,
         tenant_id,
         str(arguments.get("block_id") or ""),
@@ -534,7 +599,7 @@ def review_stock_block(
         "block_id": block.id,
         "quantity": _plain(amount),
         "reason": stated,
-        "reviewed": _plain(block.quantity),
+        "reviewed": _plain(remaining),
     }
     detail = stock_block_detail(session, tenant_id, block.id)
     preview = {**detail, "resolving": _plain(amount), "reason": stated}
@@ -548,5 +613,8 @@ def check_reviewed_block(
     if reviewed is None:
         return
     block = _tenant_record(session, StockBlock, tenant_id, block_id)
-    if block.status != "active" or _plain(block.quantity) != reviewed:
+    remaining = _open_quantity(
+        block, _resolutions(session, tenant_id, [block.id])[block.id]
+    )
+    if _plain(remaining) != reviewed:
         raise InvalidOperation(code="stock_block_changed_since_review")

@@ -24679,6 +24679,7 @@ Object.assign(dictionaries.de, {
   "Block stock": "Bestand sperren",
   "Blocked after confirming": "Gesperrt nach der Bestätigung",
   "Blocked stock": "Gesperrter Bestand",
+  "{open} of {stated} still blocked": "{open} von {stated} noch gesperrt",
   "Blocked stock stays where it lies and cannot be reserved, shipped or moved until it is released or scrapped. Nothing changes before you confirm.":
     "Gesperrter Bestand bleibt, wo er liegt, und kann nicht reserviert, versendet oder bewegt werden, bis er freigegeben oder verschrottet wird. Vor deiner Bestätigung ändert sich nichts.",
   Damage: "Beschädigung",
@@ -24831,6 +24832,7 @@ Object.assign(dictionaries.nl, {
   "Block stock": "Voorraad blokkeren",
   "Blocked after confirming": "Geblokkeerd na bevestiging",
   "Blocked stock": "Geblokkeerde voorraad",
+  "{open} of {stated} still blocked": "{open} van {stated} nog geblokkeerd",
   "Blocked stock stays where it lies and cannot be reserved, shipped or moved until it is released or scrapped. Nothing changes before you confirm.":
     "Geblokkeerde voorraad blijft waar hij ligt en kan niet worden gereserveerd, verzonden of verplaatst tot hij wordt vrijgegeven of afgeschreven. Voor je bevestiging verandert er niets.",
   Damage: "Schade",
@@ -24984,6 +24986,7 @@ Object.assign(dictionaries.es, {
   "Block stock": "Bloquear stock",
   "Blocked after confirming": "Bloqueado tras confirmar",
   "Blocked stock": "Stock bloqueado",
+  "{open} of {stated} still blocked": "{open} de {stated} aún bloqueado",
   "Blocked stock stays where it lies and cannot be reserved, shipped or moved until it is released or scrapped. Nothing changes before you confirm.":
     "El stock bloqueado se queda donde está y no se puede reservar, enviar ni mover hasta que se libere o se deseche. Nada cambia antes de que confirmes.",
   Damage: "Daño",

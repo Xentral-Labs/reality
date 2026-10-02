@@ -18,7 +18,6 @@ from reality.db.core import (
     Movement,
     Reservation,
     SerialUnit,
-    StockBlock,
 )
 
 
@@ -132,12 +131,13 @@ def inventory_detail_rows(
                 reservation.handling_unit_id,
             )["reserved"] += reservation.quantity
         # Spec 304: what is held back lies in its exact bucket too.
-        blocks = select(StockBlock).where(
-            StockBlock.tenant_id == tenant_id, StockBlock.status == "active"
-        )
+        from reality.services.core import _open_stock_blocks
+
+        open_blocks = _open_stock_blocks(tenant_id)
+        blocks = select(open_blocks)
         if item_ids is not None:
-            blocks = blocks.where(StockBlock.item_id.in_(item_ids))
-        for block in session.scalars(blocks):
+            blocks = blocks.where(open_blocks.c.item_id.in_(item_ids))
+        for block in session.execute(blocks):
             bucket(
                 block.item_id,
                 block.location_id,

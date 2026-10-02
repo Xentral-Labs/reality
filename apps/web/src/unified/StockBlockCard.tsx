@@ -49,7 +49,7 @@ export function StockBlockCard({
   const [location, setLocation] = useState(prefill?.location_id || ""),
     [lot, setLot] = useState(prefill?.lot_id || ""),
     [quantity, setQuantity] = useState(
-      prefill?.quantity || (mode === "block" ? "" : block?.quantity || ""),
+      prefill?.quantity || (mode === "block" ? "" : block?.open_quantity || ""),
     ),
     [reason, setReason] = useState<StockBlockReason>(prefill?.reason || "quality"),
     [note, setNote] = useState(""),
@@ -171,7 +171,7 @@ export function StockBlockCard({
             {block && (
               <span className="text-fg-muted">
                 {" "}
-                · {block.location} · {formatQuantity(block.quantity)} {unit} ·{" "}
+                · {block.location} · {blockedQuantity(block)} {unit} ·{" "}
                 {blockReasonLabel(block.reason_code)}
               </span>
             )}
@@ -330,6 +330,14 @@ export function StockBlockCard({
   );
 }
 
+/** What a block still holds back, and what it was stated with once partly resolved. */
+function blockedQuantity(block: StockBlock) {
+  if (block.open_quantity === block.quantity) return formatQuantity(block.quantity);
+  return t("{open} of {stated} still blocked")
+    .replace("{open}", formatQuantity(block.open_quantity))
+    .replace("{stated}", formatQuantity(block.quantity));
+}
+
 /** The active blocks of the company, or of one item, with release and scrap. */
 export function StockBlockList({ tenant, item = "" }: { tenant: string; item?: string }) {
   const read = useRead(() => stockBlocks.list(tenant, item), [tenant, item]);
@@ -350,8 +358,8 @@ export function StockBlockList({ tenant, item = "" }: { tenant: string; item?: s
         {rows.map((row) => (
           <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
             <span>
-              <strong>{row.item}</strong> · {row.location} · {formatQuantity(row.quantity)}{" "}
-              {row.unit} · {blockReasonLabel(row.reason_code)}
+              <strong>{row.item}</strong> · {row.location} · {blockedQuantity(row)} {row.unit} ·{" "}
+              {blockReasonLabel(row.reason_code)}
               {row.note ? ` · ${row.note}` : ""}
             </span>
             <span className="flex gap-2">

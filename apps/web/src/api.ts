@@ -2797,13 +2797,25 @@ export type StockBlock = {
   lot_id: string | null;
   handling_unit_id: string | null;
   serial_unit_id: string | null;
+  /** As blocked; never changes (spec 316). */
   quantity: string;
+  /** Still held back: the quantity less every release and scrap. */
+  open_quantity: string;
   reason_code: StockBlockReason;
   note: string;
-  status: "active" | "released" | "scrapped";
+  status: "active" | "resolved";
   created_at: string;
   created_by: string;
-  resolution_reason: string | null;
+  receipt_movement_id: string | null;
+  resolutions: Array<{
+    id: string;
+    kind: "release" | "scrap";
+    quantity: string;
+    reason: string;
+    resolved_at: string;
+    resolved_by: string;
+    movement_id: string | null;
+  }>;
 };
 export type StockBlockProposal = {
   id: string;

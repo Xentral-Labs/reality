@@ -3900,6 +3900,42 @@ def reserved_by_identity(
     return decimal(session.scalar(query) or ZERO)
 
 
+def _open_stock_blocks(tenant_id: str):
+    """The company's stock blocks that still hold something back (spec 316).
+
+    One row per open block with its identity and `quantity`, which is the
+    stated quantity less every release and scrap of it. Every reader that
+    subtracts blocked stock selects from this; whether a block is open is
+    never stored.
+    """
+    from reality.db.core import StockBlock, StockBlockResolution
+
+    resolved = (
+        select(
+            StockBlockResolution.block_id,
+            func.sum(StockBlockResolution.quantity).label("quantity"),
+        )
+        .where(StockBlockResolution.tenant_id == tenant_id)
+        .group_by(StockBlockResolution.block_id)
+        .subquery()
+    )
+    open_quantity = StockBlock.quantity - func.coalesce(resolved.c.quantity, 0)
+    return (
+        select(
+            StockBlock.id,
+            StockBlock.item_id,
+            StockBlock.location_id,
+            StockBlock.handling_unit_id,
+            StockBlock.lot_id,
+            StockBlock.serial_unit_id,
+            open_quantity.label("quantity"),
+        )
+        .outerjoin(resolved, resolved.c.block_id == StockBlock.id)
+        .where(StockBlock.tenant_id == tenant_id, open_quantity > 0)
+        .subquery("open_stock_block")
+    )
+
+
 def blocked_quantity(
     session: OrmSession,
     tenant_id: str,
@@ -3910,25 +3946,22 @@ def blocked_quantity(
     lot_id: str | None = None,
     serial_unit_id: str | None = None,
 ) -> Decimal:
-    """What is held back by active stock blocks (spec 304).
+    """What is held back by open stock blocks (spec 304, spec 316).
 
     Available is physical less reserved less blocked, at a location and at an
     identity alike; every reader that reserves, moves or reports availability
     takes the third term from here, beside `stock_at` and `active_reserved`.
     """
-    from reality.db.core import StockBlock
-
-    query = select(func.coalesce(func.sum(StockBlock.quantity), 0)).where(
-        StockBlock.tenant_id == tenant_id,
-        StockBlock.item_id == item_id,
-        StockBlock.status == "active",
+    blocks = _open_stock_blocks(tenant_id)
+    query = select(func.coalesce(func.sum(blocks.c.quantity), 0)).where(
+        blocks.c.item_id == item_id
     )
     if location_id:
-        query = query.where(StockBlock.location_id == location_id)
+        query = query.where(blocks.c.location_id == location_id)
     for field, value in (
-        (StockBlock.handling_unit_id, handling_unit_id),
-        (StockBlock.lot_id, lot_id),
-        (StockBlock.serial_unit_id, serial_unit_id),
+        (blocks.c.handling_unit_id, handling_unit_id),
+        (blocks.c.lot_id, lot_id),
+        (blocks.c.serial_unit_id, serial_unit_id),
     ):
         if value:
             query = query.where(field == value)
@@ -3952,26 +3985,23 @@ def blocked_within_identity(
     against it. A block counts here when it names some identity and every
     field it names agrees with the movement's.
     """
-    from reality.db.core import StockBlock
-
+    blocks = _open_stock_blocks(tenant_id)
     conditions = []
     for field, value in (
-        (StockBlock.handling_unit_id, handling_unit_id),
-        (StockBlock.lot_id, lot_id),
-        (StockBlock.serial_unit_id, serial_unit_id),
+        (blocks.c.handling_unit_id, handling_unit_id),
+        (blocks.c.lot_id, lot_id),
+        (blocks.c.serial_unit_id, serial_unit_id),
     ):
         conditions.append(
             or_(field.is_(None), field == value) if value else field.is_(None)
         )
-    query = select(func.coalesce(func.sum(StockBlock.quantity), 0)).where(
-        StockBlock.tenant_id == tenant_id,
-        StockBlock.item_id == item_id,
-        StockBlock.location_id == location_id,
-        StockBlock.status == "active",
+    query = select(func.coalesce(func.sum(blocks.c.quantity), 0)).where(
+        blocks.c.item_id == item_id,
+        blocks.c.location_id == location_id,
         or_(
-            StockBlock.handling_unit_id.is_not(None),
-            StockBlock.lot_id.is_not(None),
-            StockBlock.serial_unit_id.is_not(None),
+            blocks.c.handling_unit_id.is_not(None),
+            blocks.c.lot_id.is_not(None),
+            blocks.c.serial_unit_id.is_not(None),
         ),
         *conditions,
     )
@@ -5051,6 +5081,7 @@ def _append_movement(
     validate_only: bool = False,
     unit: str | None = None,
     _correcting: Movement | None = None,
+    _movement_id: str | None = None,
 ) -> Movement | dict[str, Any]:
     if _correcting is not None and not validate_only:
         raise InvalidOperation(code="movement_projected_state_not_preview")
@@ -5370,7 +5401,8 @@ def _append_movement(
             "to_location_id": to_location_id,
         }
     movement = Movement(
-        id=uid("mov"),
+        # A stock block's scrap names its adjustment before it is written (spec 316).
+        id=_movement_id or uid("mov"),
         tenant_id=tenant_id,
         type=movement_type,
         item_id=item_id,
@@ -5543,6 +5575,7 @@ def record_movement(
     unit: str | None = None,
     action_id: str | None = None,
     _commit: bool = True,
+    _movement_id: str | None = None,
 ) -> Movement:
     _require_business_mutation(session, tenant_id, "record_movement")
     from reality.services.tenant_policy import (
@@ -5602,6 +5635,7 @@ def record_movement(
         unit=unit,
         commit=_commit,
         action_id=action_id,
+        _movement_id=_movement_id,
     )
 
 
@@ -5951,16 +5985,15 @@ def correct_movement(
             < decimal(original.quantity)
         ):
             raise InvalidOperation(code="movement_correction_later_identity_dependents")
-        from reality.db.core import StockBlock
+        from reality.db.core import StockBlockResolution
 
         # Spec 304: a correction may not take away stock a block holds back,
         # and a scrap is undone by recording the goods again, not by bringing
         # them back unblocked.
         if session.scalar(
-            select(StockBlock.id).where(
-                StockBlock.tenant_id == tenant_id,
-                StockBlock.movement_id == original.id,
-                StockBlock.status == "scrapped",
+            select(StockBlockResolution.id).where(
+                StockBlockResolution.tenant_id == tenant_id,
+                StockBlockResolution.movement_id == original.id,
             )
         ):
             raise InvalidOperation(code="movement_correction_scrap_block")
@@ -6670,18 +6703,14 @@ def inventory_rows(
             ).group_by(Reservation.item_id)
         ).all()
     )
-    from reality.db.core import StockBlock
-
     # Spec 304: what is held back is neither available nor projected.
+    blocks = _open_stock_blocks(tenant_id)
     blocked_by_item = dict(
         session.execute(
             only(
-                select(StockBlock.item_id, func.sum(StockBlock.quantity)).where(
-                    StockBlock.tenant_id == tenant_id,
-                    StockBlock.status == "active",
-                ),
-                StockBlock.item_id,
-            ).group_by(StockBlock.item_id)
+                select(blocks.c.item_id, func.sum(blocks.c.quantity)),
+                blocks.c.item_id,
+            ).group_by(blocks.c.item_id)
         ).all()
     )
     suppliers = list(

@@ -2596,7 +2596,7 @@ MCP_TOOL_CATALOG += (
     MCPToolDefinition(
         "stock_blocks",
         "Stock blocks",
-        "Read stock held back where it lies: item, location, lot or pallet, quantity, reason and who blocked it. Blocked stock is excluded from availability, reservation and shipping until released or scrapped.",
+        "Read stock held back where it lies: item, location, lot or pallet, the quantity as blocked, what is still open, reason, who blocked it, and each release or scrap since. Blocked stock is excluded from availability, reservation and shipping until released or scrapped.",
         "read",
         "Warehouse",
         _object_schema(
@@ -2605,7 +2605,7 @@ MCP_TOOL_CATALOG += (
                 "location_id": OPTIONAL_STRING,
                 "status": {
                     "type": "string",
-                    "enum": ["active", "released", "scrapped", "all"],
+                    "enum": ["active", "resolved", "all"],
                 },
             }
         ),

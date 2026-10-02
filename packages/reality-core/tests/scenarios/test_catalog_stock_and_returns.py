@@ -1115,8 +1115,13 @@ def test_a_receipt_awaiting_inspection_is_released_days_later(session, business)
         "stock_block_release",
         {"block_id": block["id"], "quantity": "10", "reason": "inspection passed"},
     )
+    # The same block still states 12 received for inspection; 2 stay open.
     (rest,) = _active_blocks(session, business)
-    assert rest["quantity"] == "2"
+    assert (rest["id"], rest["quantity"], rest["open_quantity"]) == (
+        block["id"],
+        "12",
+        "2",
+    )
     _reviewed(session, business, "reserve", {"commitment_id": commitment.id}, "h15-2")
     assert reserved_for(session, business, commitment) == 10
 

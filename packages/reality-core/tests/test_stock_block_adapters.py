@@ -1,8 +1,9 @@
-"""Spec 304 FR-001/FR-004: blocked stock behind receipts, MCP/Chat, Web and CLI."""
+"""Spec 304 FR-001/FR-004, spec 316 FR-006: blocked stock behind every adapter."""
 
 import json
 from decimal import Decimal
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
@@ -13,7 +14,7 @@ from reality.db.core import ChangeProposal, StockBlock
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, model_tool_schemas
 from reality.services import core
 from reality.services.delivery_actions import prepare_delivery_action
-from reality.services.stock_blocks import block_stock
+from reality.services.stock_blocks import block_stock, stock_blocks
 from reality.tools.application import (
     approve_and_execute_proposal,
     create_change_proposal,
@@ -36,14 +37,8 @@ def _stock(session, business, quantity):
 def _blocks(session, business, status="active"):
     session.expire_all()
     return [
-        (row.quantity, row.reason_code, row.status)
-        for row in session.scalars(
-            select(StockBlock)
-            .where(
-                StockBlock.tenant_id == business.tenant.id, StockBlock.status == status
-            )
-            .order_by(StockBlock.created_at)
-        )
+        (Decimal(row["open_quantity"]), row["reason_code"], row["status"])
+        for row in reversed(stock_blocks(session, business.tenant.id, status=status))
     ]
 
 
@@ -103,7 +98,7 @@ def test_a_reviewed_receipt_blocks_the_damaged_part(session, business):
     assert core.stock_at(session, tenant, business.item.id) == 20
     assert _blocks(session, business) == [(Decimal("5.0000"), "damage", "active")]
     (block,) = session.scalars(select(StockBlock).where(StockBlock.tenant_id == tenant))
-    assert block.movement_id is not None
+    assert block.receipt_movement_id is not None
 
 
 def test_a_receipt_cannot_block_more_than_it_brings(session, business):
@@ -186,23 +181,31 @@ def test_an_agent_blocks_releases_and_scraps_and_a_person_confirms(session, busi
     approve_and_execute_proposal(
         session, tenant, released["proposal_id"], confirmed=True
     )
-    assert _blocks(session, business) == [(Decimal("3.0000"), "quality", "active")]
+    assert _blocks(session, business) == [(Decimal(3), "quality", "active")]
 
-    (rest,) = session.scalars(
-        select(StockBlock).where(
-            StockBlock.tenant_id == tenant, StockBlock.status == "active"
-        )
-    )
+    # The same block, still stating 5, now has 3 open (spec 316).
     scrapped = MCP_TOOL_REGISTRY["stock_block_scrap_propose"].handler(
-        session, tenant, {"block_id": rest.id, "reason": "cracked"}
+        session, tenant, {"block_id": block.id, "reason": "cracked"}
     )
     approve_and_execute_proposal(
         session, tenant, scrapped["proposal_id"], confirmed=True
     )
     assert _blocks(session, business) == []
     assert core.stock_at(session, tenant, business.item.id) == 17
-    read = MCP_TOOL_REGISTRY["stock_blocks"].handler(session, tenant, {"status": "all"})
-    assert sorted(row["status"] for row in read) == ["released", "scrapped"]
+    (read,) = MCP_TOOL_REGISTRY["stock_blocks"].handler(
+        session, tenant, {"status": "resolved"}
+    )
+    assert (read["id"], read["quantity"], read["open_quantity"]) == (block.id, "5", "0")
+    assert [(row["kind"], row["quantity"]) for row in read["resolutions"]] == [
+        ("release", "2"),
+        ("scrap", "3"),
+    ]
+    assert MCP_TOOL_REGISTRY["stock_blocks"].handler(session, tenant, {}) == []
+    with pytest.raises(core.InvalidOperation) as refused:
+        MCP_TOOL_REGISTRY["stock_blocks"].handler(
+            session, tenant, {"status": "released"}
+        )
+    assert refused.value.code == "stock_block_status_unsupported"
 
 
 def test_a_release_after_the_block_changed_is_refused(session, business):

@@ -2258,10 +2258,10 @@ class StockBlock(Base):
     """Stock held back where it lies: not available, reserved, shipped or moved (spec 304).
 
     A person's statement about goods the company holds, with its reason. The
-    goods stay where they are and no movement is recorded; a release makes them
-    available again, a scrap writes them off with one reasoned adjustment. A
-    partial release or scrap closes this row for the part and continues the
-    rest as a new active row, as a reservation does.
+    goods stay where they are and no movement is recorded. The row stays as
+    stated (spec 316): each release or scrap is its own `StockBlockResolution`,
+    and what is still blocked is the stated quantity less those, read at read
+    time (`core._open_stock_blocks`).
     """
 
     __tablename__ = "stock_block"
@@ -2281,32 +2281,19 @@ class StockBlock(Base):
             ["serial_unit.tenant_id", "serial_unit.id"],
         ),
         ForeignKeyConstraint(
-            ["tenant_id", "previous_block_id"], ["stock_block.tenant_id", "stock_block.id"]
-        ),
-        ForeignKeyConstraint(
-            ["tenant_id", "movement_id"], ["movement.tenant_id", "movement.id"]
+            ["tenant_id", "receipt_movement_id"], ["movement.tenant_id", "movement.id"]
         ),
         CheckConstraint("quantity > 0", name="ck_stock_block_quantity"),
         CheckConstraint(
             "reason_code IN ('quality','damage','expiry','inspection')",
             name="ck_stock_block_reason",
         ),
-        CheckConstraint(
-            "status IN ('active','released','scrapped')", name="ck_stock_block_status"
-        ),
-        Index(
-            "ix_stock_block_item_location_status",
-            "tenant_id",
-            "item_id",
-            "location_id",
-            "status",
-        ),
+        Index("ix_stock_block_item_location", "tenant_id", "item_id", "location_id"),
         Index("ix_stock_block_location_id", "tenant_id", "location_id"),
         Index("ix_stock_block_handling_unit_id", "tenant_id", "handling_unit_id"),
         Index("ix_stock_block_lot_id", "tenant_id", "lot_id"),
         Index("ix_stock_block_serial_unit_id", "tenant_id", "serial_unit_id"),
-        Index("ix_stock_block_previous_block_id", "tenant_id", "previous_block_id"),
-        Index("ix_stock_block_movement_id", "tenant_id", "movement_id"),
+        Index("ix_stock_block_receipt_movement_id", "tenant_id", "receipt_movement_id"),
     )
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
@@ -2318,13 +2305,55 @@ class StockBlock(Base):
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     reason_code: Mapped[str] = mapped_column(String)
     note: Mapped[str] = mapped_column(Text, default="")
-    status: Mapped[str] = mapped_column(String, default="active")
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     created_by: Mapped[str] = mapped_column(String, default="human")
-    resolved_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
-    resolved_by: Mapped[str | None] = mapped_column(String, default=None)
-    resolution_reason: Mapped[str | None] = mapped_column(Text, default=None)
-    previous_block_id: Mapped[str | None] = mapped_column(default=None)
+    # The receipt that stated the block (spec 304 H08/H15), never a scrap.
+    receipt_movement_id: Mapped[str | None] = mapped_column(default=None)
+
+
+class StockBlockResolution(Base):
+    """One release or scrap of part or all of a stock block (spec 316).
+
+    Appended, never changed. A scrap names the adjustment it recorded; the
+    movement key is deferred because the resolution must stand before that
+    adjustment runs, or the adjustment would take stock still held back.
+    """
+
+    __tablename__ = "stock_block_resolution"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "block_id"], ["stock_block.tenant_id", "stock_block.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "movement_id"],
+            ["movement.tenant_id", "movement.id"],
+            deferrable=True,
+            initially="DEFERRED",
+        ),
+        CheckConstraint("quantity > 0", name="ck_stock_block_resolution_quantity"),
+        CheckConstraint(
+            "kind IN ('release','scrap')", name="ck_stock_block_resolution_kind"
+        ),
+        CheckConstraint("btrim(reason) <> ''", name="ck_stock_block_resolution_reason"),
+        CheckConstraint(
+            "(kind = 'scrap') = (movement_id IS NOT NULL)",
+            name="ck_stock_block_resolution_movement",
+        ),
+        UniqueConstraint(
+            "tenant_id", "movement_id", name="uq_stock_block_resolution_movement"
+        ),
+        Index("ix_stock_block_resolution_block_id", "tenant_id", "block_id"),
+        Index("ix_stock_block_resolution_movement_id", "tenant_id", "movement_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    block_id: Mapped[str] = mapped_column()
+    kind: Mapped[str] = mapped_column(String)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    reason: Mapped[str] = mapped_column(Text)
+    resolved_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    resolved_by: Mapped[str] = mapped_column(String, default="human")
     movement_id: Mapped[str | None] = mapped_column(default=None)
 
 

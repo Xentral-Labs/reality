@@ -105,6 +105,7 @@ DEFERRED = {
             "down_payment_offset",
             "item_reorder_point",
             "stock_block",
+            "stock_block_resolution",
             "payment_return",
             "supply_assignment",
         },
