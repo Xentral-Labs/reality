@@ -43,8 +43,8 @@ Tests come first in each phase where practical.
 
 ## Phase 5: Stories and Guide (FR-004)
 
-- [ ] T009 Business stories J02, J03 and R07
-- [ ] T010 Promote the journeys:
+- [x] T009 Business stories J02, J03 and R07
+- [x] T010 Promote the journeys:
   - the Guide catalog and Guide tests;
   - coverage and roadmap;
   - `docs/features/inventory.md`;

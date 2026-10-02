@@ -2047,3 +2047,7 @@ Tables `stock_count` and `stock_count_line`: a count of one location, and per li
   - The Web prepares, confirms and reads, and refuses an unknown item with its code.
   - Another company can neither count nor read, with the own list as control.
   - The CLI asks before recording (declining withdraws the review), records with `--yes`, and lists and shows the count.
+- `packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py`, stories:
+  - J02: a count posts its gain and its loss, each linked to its line.
+  - J03: a cycle count during operation keeps the pick after its counting time.
+  - R07: a month-end loss names three reservations, the finding raises, and none is released.

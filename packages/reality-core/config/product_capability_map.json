@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:d14f2926ef78dac328d8134283bccb1b7b900d1ac52d3cbf6b46d2f2deca699f",
+  "knowledge_version": "advisor-v1:sha256:41f2182f15d82dd2259bde7276ec64a92b8cb891aa4c24ce078bead7d9cc880f",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -688,7 +688,16 @@
         "evidence_journey_j10",
         "evidence_journey_j11"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "stock_counts",
+          "mode": "query"
+        },
+        {
+          "name": "stock_count_detail",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_resource_analytics",

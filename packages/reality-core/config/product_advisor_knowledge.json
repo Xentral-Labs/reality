@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:d14f2926ef78dac328d8134283bccb1b7b900d1ac52d3cbf6b46d2f2deca699f",
+  "knowledge_version": "advisor-v1:sha256:41f2182f15d82dd2259bde7276ec64a92b8cb891aa4c24ce078bead7d9cc880f",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1386,7 +1386,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#J02",
-      "fingerprint": "02d1b5723f2f9a04dad5ed9f1589804d9cf9520e4e144d45906f560f7d5eadd9"
+      "fingerprint": "8f1e4ad9b393439aa4fa9eddec36e9ffab901df0c8f318d18b21f868acfc0027"
     },
     {
       "id": "source_journey_j03",
@@ -1395,7 +1395,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#J03",
-      "fingerprint": "6390c17b86f4482eba94c1bdbcb0a2b723faeb14538084628d4b942e56b9792e"
+      "fingerprint": "3cc25d3c505f2c3e81b071d6fb71f43c7d9881f0983f7e6ab12c79b8a7478f54"
     },
     {
       "id": "source_journey_j04",
@@ -2043,7 +2043,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#R07",
-      "fingerprint": "357de2dd4bb8da718f3494dd395c82005a3c16688b08d5f9be2c9907b254e3fd"
+      "fingerprint": "bc9a5ac4abafa2eba20be5c8c82cea5759a28da9dd885baa3d9a7cdb3bd5b77e"
     },
     {
       "id": "source_journey_r08",
@@ -4712,35 +4712,40 @@
       "source_id": "source_journey_j02",
       "subject": "Warehouse and stock",
       "title": "Stock count with gains and losses",
-      "search_text": "J02 Warehouse and stock Stock count with gains and losses Count movements with reason? Stock count with gains and losses Count movements with reason?",
-      "claim_text": "Reality evaluates: Count movements with reason?",
-      "support": "limited",
+      "search_text": "J02 Warehouse and stock Stock count with gains and losses Count movements with reason? stock count inventory count stocktake Inventur Zählung Stock count with gains and losses Count movements with reason? We counted the warehouse; how do the differences get booked? Wir haben das Lager gezählt; wie werden die Differenzen gebucht?",
+      "claim_text": "Reality evaluates: Count movements with reason? A count of a location states, per item and lot, what was counted and when; the review shows the book at that time beside it, and one confirmation posts every gain and loss as an adjustment linked to its count line. A loss comes off free stock first, then the location's blocks.",
+      "support": "proven",
       "limitations": [
-        "Gains and losses are recorded as stock adjustments with a reason.",
-        "There is no count record comparing counted and book quantity, and a count gain is not yet proven."
+        "Items are counted by item and lot; pallets and serial units are corrected by their own movements.",
+        "There is no cycle-count planning."
       ],
       "references": [
-        "J02"
+        "J02",
+        "stock_count_propose",
+        "stock_counts",
+        "stock_count_detail"
       ],
       "language": "en",
-      "fingerprint": "e5d56667bb7ef275159530730214555a903c3315fc7316b400ebbb31741095e2"
+      "fingerprint": "143865866e11b8ae4b39c292349bab27e81f0a031cdfb228c07b385f969055f6"
     },
     {
       "id": "evidence_journey_j03",
       "source_id": "source_journey_j03",
       "subject": "Warehouse and stock",
       "title": "Cycle count of single bins during operation",
-      "search_text": "J03 Warehouse and stock Cycle count of single bins during operation Correct during open picks? Cycle count of single bins during operation Correct during open picks?",
-      "claim_text": "Reality evaluates: Correct during open picks?",
-      "support": "unavailable",
+      "search_text": "J03 Warehouse and stock Cycle count of single bins during operation Correct during open picks? cycle count count during operation permanente Inventur Stichprobeninventur Cycle count of single bins during operation Correct during open picks? Can we count one bin while picking goes on? Können wir ein Fach zählen, während weiter kommissioniert wird?",
+      "claim_text": "Reality evaluates: Correct during open picks? Each counted line keeps when it was counted, and its difference is taken against the book at that time; picks and other movements after it carry on and are not part of the difference, so the location is never frozen.",
+      "support": "proven",
       "limitations": [
-        "There are no count sessions and no picking state, so a count during open picks cannot be shown."
+        "There is no picking state; a pick is a movement once it is recorded."
       ],
       "references": [
-        "J03"
+        "J03",
+        "stock_count_propose",
+        "stock_count_detail"
       ],
       "language": "en",
-      "fingerprint": "f37e2e3c9d938dce01d29123616e1f9a5107838271bc8c0b3ce2a7a16ba81c1b"
+      "fingerprint": "adab25012fac86c09410110dbd46e9640b3d80b680a3085d236c3cde5b33d1df"
     },
     {
       "id": "evidence_journey_j04",
@@ -5978,17 +5983,19 @@
       "subject": "Combined stress stories",
       "title": "Month-end count difference uncovers three reservations",
       "search_text": "R07 Combined stress stories Month-end count difference uncovers three reservations Who is postponed, and how is it explained? Month-end count difference uncovers three reservations Who is postponed, and how is it explained?",
-      "claim_text": "Reality evaluates: Who is postponed, and how is it explained?",
-      "support": "limited",
+      "claim_text": "Reality evaluates: Who is postponed, and how is it explained? The count's review names every reservation at the location the loss leaves uncovered; after confirming, Reservation exceeds stock names them, and nothing is released by itself: who waits is a person's decision.",
+      "support": "proven",
       "limitations": [
-        "A count loss shows which reservations now compete for the stock.",
         "By design no promise is named as the one to postpone."
       ],
       "references": [
-        "R07"
+        "R07",
+        "stock_count_propose",
+        "exception_explain",
+        "reservation_release_propose"
       ],
       "language": "en",
-      "fingerprint": "3d6abd7d7a895cc91383cc48b1cc77a4a256d8e778ae55cb7e2a7a1202293a45"
+      "fingerprint": "3b54bef0ada721c94043cf7fe19edb31debc7226f5b997cc9c1f1bc3a97cb1ea"
     },
     {
       "id": "evidence_journey_r08",
