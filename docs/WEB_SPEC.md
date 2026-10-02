@@ -4,6 +4,15 @@
 
 **Simple on the surface. Fully explainable underneath.**
 
+## Company Settings Access — Spec 326
+
+Company cards distinguish Owner, Member and No company membership from the actual
+bootstrap membership role. Visibility through platform administration does not imply
+membership or owner actions. Private report library reads explain the active membership
+requirement; unauthorized report detail and changes remain non-disclosing. Owner-only
+AI/token settings display the public MCP endpoint independently of runtime listener and
+OAuth issuer validation; no credentials or permissions are changed by these reads.
+
 ## Accounts and access
 
 - The public site links to a self-hosted email/password signup. Passwords use Argon2id; verification codes and browser sessions are stored only as hashes.

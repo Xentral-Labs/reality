@@ -352,3 +352,56 @@ def test_ordinary_spacing_is_accepted():
         "RETURN l.sku, o.currency, sum(line_amount)"
     )
     assert [hop.edge for hop in query.follow] == ["contains"]
+
+
+def test_private_library_http_explains_missing_membership_for_platform_admin(
+    session, business, scheduled_owner, monkeypatch
+):
+    from fastapi.testclient import TestClient
+    from sqlalchemy import select
+
+    from reality.db.core import TenantMembership
+    from reality.services.memberships import Principal
+    from reality.web import analytics_api, api, auth
+    from reality.web.app import app
+
+    session.delete(
+        session.scalar(
+            select(TenantMembership).where(
+                TenantMembership.tenant_id == business.tenant.id,
+                TenantMembership.user_id == scheduled_owner.id,
+            )
+        )
+    )
+    session.flush()
+    monkeypatch.setattr(
+        analytics_api,
+        "principal",
+        lambda request: Principal(scheduled_owner.id, is_platform_admin=True),
+    )
+
+    def database():
+        yield session
+
+    app.dependency_overrides[api.database_session] = database
+    app.dependency_overrides[auth.database_session] = database
+    try:
+        with TestClient(app) as client:
+            response = client.get(
+                f"/api/tenants/{business.tenant.id}/analytics/graph/reports"
+            )
+            detail = client.get(
+                f"/api/tenants/{business.tenant.id}/analytics/graph/reports/missing-report"
+            )
+        assert response.status_code == 422, response.text
+        assert response.json() == {
+            "detail": {
+                "code": "company_membership_required",
+                "message": "An active company membership is required to use private reports.",
+            }
+        }
+        assert detail.status_code == 404
+        assert detail.json() == {"detail": "Report not found."}
+    finally:
+        app.dependency_overrides.pop(api.database_session, None)
+        app.dependency_overrides.pop(auth.database_session, None)

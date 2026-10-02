@@ -19,21 +19,17 @@ class MCPRuntimeSettings:
     def from_environ(
         cls, environ: Mapping[str, str] = os.environ
     ) -> MCPRuntimeSettings:
-        public_url = (environ.get("MCP_URL") or "http://localhost:8001/").strip()
-        parsed = urlparse(public_url)
-        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-            raise ValueError("MCP_URL must be an absolute HTTP URL.")
-        if parsed.path not in {"", "/"} or parsed.query or parsed.fragment:
-            raise ValueError("MCP_URL must use the origin root without an extra path.")
-        if (
-            environ.get("REALITY_ENV", "").lower() in {"production", "prod"}
-            and parsed.scheme != "https"
-        ):
-            raise ValueError("MCP_URL must use HTTPS in production.")
+        public_url = configured_mcp_url(environ)
 
         authorization_issuer = (
-            environ.get("MCP_AUTHORIZATION_ISSUER") or "http://127.0.0.1:8000"
-        ).strip().rstrip("/")
+            (
+                environ.get("MCP_AUTHORIZATION_ISSUER")
+                or environ.get("API_URL")
+                or "http://127.0.0.1:8000"
+            )
+            .strip()
+            .rstrip("/")
+        )
         issuer = urlparse(authorization_issuer)
         if issuer.scheme not in {"http", "https"} or not issuer.netloc:
             raise ValueError("MCP_AUTHORIZATION_ISSUER must be an absolute HTTP URL.")
@@ -64,6 +60,17 @@ class MCPRuntimeSettings:
 
 
 def configured_mcp_url(environ: Mapping[str, str] = os.environ) -> str:
-    """Return the exact independently configured public MCP endpoint."""
+    """Validate the public endpoint without depending on runtime-only settings."""
 
-    return MCPRuntimeSettings.from_environ(environ).public_url
+    public_url = (environ.get("MCP_URL") or "http://localhost:8001/").strip()
+    parsed = urlparse(public_url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("MCP_URL must be an absolute HTTP URL.")
+    if parsed.path not in {"", "/"} or parsed.query or parsed.fragment:
+        raise ValueError("MCP_URL must use the origin root without an extra path.")
+    if (
+        environ.get("REALITY_ENV", "").lower() in {"production", "prod"}
+        and parsed.scheme != "https"
+    ):
+        raise ValueError("MCP_URL must use HTTPS in production.")
+    return public_url.rstrip("/") + "/"

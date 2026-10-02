@@ -75,7 +75,13 @@ function server() {
   const reports = new Map();
   const proposals = new Map();
   let writes = 0;
-  return { reports, proposals, writes: () => writes, bump: () => writes++ };
+  return {
+    membershipDenied: false,
+    reports,
+    proposals,
+    writes: () => writes,
+    bump: () => writes++,
+  };
 }
 
 async function open(language = "en") {
@@ -163,6 +169,16 @@ async function open(language = "en") {
     }
     const single = path.match(/\/analytics\/graph\/reports\/(anr-[^/]+)$/);
     if (single) return reply(state.reports.get(single[1]));
+    if (path.endsWith("/analytics/graph/reports") && state.membershipDenied)
+      return reply(
+        {
+          detail: {
+            code: "company_membership_required",
+            message: "Active company membership is required for private reports.",
+          },
+        },
+        422,
+      );
     if (path.endsWith("/analytics/graph/reports"))
       return reply({
         records: [...state.reports.values()],
@@ -219,6 +235,36 @@ async function usable(locator, why) {
 
 const analytics = (view = "reports", extra = "") =>
   `${base}/app/analytics?tenant=company&analytics_view=${view}${extra}`;
+
+// Membership refusal remains understandable and retry uses current access.
+for (const [language, message] of Object.entries({
+  en: "An active company membership is required to use private reports.",
+  de: "Für private Berichte ist eine aktive Mitgliedschaft in dieser Firma erforderlich.",
+  nl: "Een actief bedrijfslidmaatschap is vereist om privérapporten te gebruiken.",
+  es: "Se necesita una membresía activa en esta empresa para usar informes privados.",
+})) {
+  const { page, context, state, errors } = await open(language);
+  try {
+    state.membershipDenied = true;
+    await page.goto(analytics("reports"));
+    await page.getByText(message, { exact: true }).waitFor();
+    assert.doesNotMatch(await page.locator("main").innerText(), /Report not found/);
+    state.membershipDenied = false;
+    await page
+      .getByRole("button", {
+        name: { en: "Retry", de: "Erneut versuchen", nl: "Opnieuw proberen", es: "Reintentar" }[
+          language
+        ],
+        exact: true,
+      })
+      .click();
+    await page.getByText(message, { exact: true }).waitFor({ state: "hidden" });
+    assert.deepEqual(errors, []);
+    assert.equal(state.writes(), 0);
+  } finally {
+    await context.close();
+  }
+}
 
 // --- US1, US2, US3, US4: a template becomes a report -----------------------------
 

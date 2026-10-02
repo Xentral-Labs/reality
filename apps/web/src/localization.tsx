@@ -13,6 +13,12 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "No company membership": "Keine Firmenmitgliedschaft",
+    "You do not have an active membership in this company. Only company owners manage users and agent tokens.":
+      "Du hast keine aktive Mitgliedschaft in dieser Firma. Nur Firmeninhaber verwalten Benutzer und Agent-Tokens.",
+    "An active company membership is required to use private reports.":
+      "Für private Berichte ist eine aktive Mitgliedschaft in dieser Firma erforderlich.",
+
     "Business Journey suggestions": "Vorschläge für Business Journeys",
     "Describe a missing business situation without customer names, contact details or secrets. Suggestions are reviewed and are not a roadmap promise.":
       "Beschreibe eine fehlende Geschäftssituation ohne Kundennamen, Kontaktdaten oder Geheimnisse. Vorschläge werden geprüft und sind keine Roadmap-Zusage.",
@@ -2119,6 +2125,12 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "No company membership": "Geen bedrijfslidmaatschap",
+    "You do not have an active membership in this company. Only company owners manage users and agent tokens.":
+      "Je hebt geen actief lidmaatschap in dit bedrijf. Alleen bedrijfseigenaren beheren gebruikers en agenttokens.",
+    "An active company membership is required to use private reports.":
+      "Een actief bedrijfslidmaatschap is vereist om privérapporten te gebruiken.",
+
     "Business Journey suggestions": "Voorstellen voor Business Journeys",
     "Describe a missing business situation without customer names, contact details or secrets. Suggestions are reviewed and are not a roadmap promise.":
       "Beschrijf een ontbrekende bedrijfssituatie zonder klantnamen, contactgegevens of geheimen. Voorstellen worden beoordeeld en zijn geen belofte voor de roadmap.",
@@ -3920,6 +3932,12 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "No company membership": "Sin membresía en la empresa",
+    "You do not have an active membership in this company. Only company owners manage users and agent tokens.":
+      "No tienes una membresía activa en esta empresa. Solo los propietarios gestionan usuarios y tokens de agentes.",
+    "An active company membership is required to use private reports.":
+      "Se necesita una membresía activa en esta empresa para usar informes privados.",
+
     "Business Journey suggestions": "Sugerencias de Business Journeys",
     "Describe a missing business situation without customer names, contact details or secrets. Suggestions are reviewed and are not a roadmap promise.":
       "Describe una situación empresarial que falte sin nombres de clientes, datos de contacto ni secretos. Las sugerencias se revisan y no son una promesa de la hoja de ruta.",

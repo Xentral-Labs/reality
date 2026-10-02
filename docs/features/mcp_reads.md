@@ -100,3 +100,12 @@ authentication can separately persist token-use telemetry. The guarantee does no
 apply to explicitly selected legacy projection reads or to other tools such as
 cached price resolution. Business actions still use their existing proposal,
 confirmation, execution, and verification contracts.
+
+## Runtime Configuration Boundary — Spec 326
+
+Settings display validates only MCP_URL as an HTTP(S) origin, requiring HTTPS in
+production. The separate MCP runtime validates its listener and authorization issuer.
+Issuer precedence is explicit MCP_AUTHORIZATION_ISSUER, canonical API_URL (spec265
+FR-023), then the local development default. Production issuer HTTPS and origin checks
+remain mandatory; unrelated runtime-only settings cannot break the owner's public
+endpoint display.

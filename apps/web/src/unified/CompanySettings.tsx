@@ -118,7 +118,14 @@ export function CompanySettings({
                       {row.id}
                     </span>
                     <span className="block text-sm text-fg-muted">
-                      {t("Your role")}: {t(row.role === "owner" ? "Owner" : "Member")}
+                      {t("Your role")}:{" "}
+                      {t(
+                        row.role === "owner"
+                          ? "Owner"
+                          : row.role === "member"
+                            ? "Member"
+                            : "No company membership",
+                      )}
                     </span>
                   </span>
                   <span className={badgeStyle}>
@@ -159,7 +166,11 @@ export function CompanySettings({
                     </div>
                   ) : (
                     <p className="text-sm text-fg-muted">
-                      {t("You are a member. Only company owners manage users and agent tokens.")}
+                      {t(
+                        row.role === "member"
+                          ? "You are a member. Only company owners manage users and agent tokens."
+                          : "You do not have an active membership in this company. Only company owners manage users and agent tokens.",
+                      )}
                     </p>
                   )}
                 </div>

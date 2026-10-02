@@ -73,7 +73,7 @@ def kind(key):
     return _graph_kind()
 
 
-def require_author(session, tenant_id, principal):
+def require_author(session, tenant_id, principal, *, explain_membership=False):
     if principal is None:
         raise AnalyticsError(
             "An authenticated user is required for private reports.",
@@ -90,6 +90,11 @@ def require_author(session, tenant_id, principal):
         )
     )
     if not active:
+        if explain_membership:
+            raise AnalyticsError(
+                "An active company membership is required to use private reports.",
+                "company_membership_required",
+            )
         raise NotFound("Report not found.")
     return principal.user_id
 
@@ -137,7 +142,7 @@ def get_report(session, tenant_id, principal, report_id, report_kind=None):
 def list_reports(
     session, tenant_id, principal, query="", limit=50, cursor=None, report_kind=None
 ):
-    owner = require_author(session, tenant_id, principal)
+    owner = require_author(session, tenant_id, principal, explain_membership=True)
     if not 1 <= limit <= 200 or len(query) > 200:
         raise AnalyticsError("Choose a valid report list limit or search.")
     statement = select(AnalyticsReport).where(
