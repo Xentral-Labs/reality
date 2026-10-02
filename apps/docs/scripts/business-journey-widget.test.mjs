@@ -94,11 +94,18 @@ test("widget resends bounded in-memory turns for coherent follow-up questions", 
   assert.doesNotMatch(widget, /localStorage|sessionStorage|document\.cookie/u);
 });
 
-test("completed answers turn the composer into an explicit conversation continuation", () => {
-  assert.match(widget, /composer-context/u);
-  assert.match(widget, /copy\.followUp/u);
+test("the header offers an explicit reset for starting a new conversation", () => {
+  assert.match(widget, /new-chat/u);
+  assert.match(widget, /copy\.newChat/u);
+  assert.match(widget, /resetConversation\(\)/u);
+  assert.match(widget, /this\.activeController\?\.abort\(\)/u);
+  assert.match(widget, /this\.history = \[\]/u);
+  assert.match(widget, /this\.conversation\.replaceChildren\(this\.examples\)/u);
+  assert.match(widget, /this\.newChatButton\.hidden = true/u);
+});
+
+test("completed answers make the composer prompt a contextual follow-up", () => {
   assert.match(widget, /copy\.followUpPlaceholder/u);
-  assert.match(widget, /this\.composerContext\.hidden = false/u);
   assert.match(widget, /this\.input\.placeholder = copy\.followUpPlaceholder/u);
 });
 
