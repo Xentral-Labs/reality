@@ -36,10 +36,13 @@ def _effective_rows(
     *,
     supplier_id: str | None = None,
     customer_id: str | None = None,
+    supplier_ids: set[str] | None = None,
 ) -> list[SupplyAssignment]:
     query = select(SupplyAssignment).where(SupplyAssignment.tenant_id == tenant_id)
     if supplier_id:
         query = query.where(SupplyAssignment.supplier_commitment_id == supplier_id)
+    if supplier_ids is not None:
+        query = query.where(SupplyAssignment.supplier_commitment_id.in_(supplier_ids))
     if customer_id:
         query = query.where(SupplyAssignment.customer_commitment_id == customer_id)
     rows = list(
@@ -118,11 +121,9 @@ def assignment_split(
     """
     if not supplier_commitment_ids:
         return {}
-    rows = [
-        row
-        for row in _effective_rows(session, tenant_id)
-        if row.supplier_commitment_id in supplier_commitment_ids
-    ]
+    rows = _effective_rows(
+        session, tenant_id, supplier_ids=set(supplier_commitment_ids)
+    )
     reversals = _reversed_quantities(session, tenant_id)
     terms = core.commitment_terms(session, tenant_id, list(supplier_commitment_ids))
     received = {
