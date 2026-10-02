@@ -124,6 +124,25 @@ def test_a_cancelled_or_reversed_assignment_leaves_the_order(session, business):
     assert _split(session, business, third) == (3, 0)
 
 
+def test_a_reduced_purchase_leaves_nothing_more_to_come(session, business):
+    purchase = _purchase(session, business, "6")
+    first, second = (_promise(session, business, "3") for _ in range(2))
+    _assign(session, business, purchase, first, "3", "reduce-1")
+    _assign(session, business, purchase, second, "3", "reduce-2")
+    _receive(session, business, purchase, "4")
+    # Positive control: while 2 are still open, they are still to come.
+    assert _split(session, business, second) == (1, 2)
+
+    core.revise_commitment(
+        session, business.tenant.id, purchase.id, quantity="4", note="Short delivery"
+    )
+
+    assert (_split(session, business, first), _split(session, business, second)) == (
+        (3, 0),
+        (1, 0),
+    )
+
+
 # --- serving backorders (FR-001) -------------------------------------------------------
 
 

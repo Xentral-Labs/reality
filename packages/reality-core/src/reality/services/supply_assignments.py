@@ -112,7 +112,9 @@ def assignment_split(
     """Spec 305: what has arrived of each assignment and what is still to come.
 
     A read-time observation, never stored: what a purchase has received covers
-    its standing assignments in the order they were made.
+    its standing assignments in the order they were made, and what is still open
+    on it covers the rest the same way. A part neither covers, after the purchase
+    was reduced, is neither arrived nor still to come.
     """
     if not supplier_commitment_ids:
         return {}
@@ -123,16 +125,23 @@ def assignment_split(
     ]
     reversals = _reversed_quantities(session, tenant_id)
     terms = core.commitment_terms(session, tenant_id, list(supplier_commitment_ids))
-    left = {
+    received = {
         identity: max(Decimal(0), terms[identity].fulfilled)
+        for identity in supplier_commitment_ids
+    }
+    still_open = {
+        identity: max(Decimal(0), terms[identity].open)
         for identity in supplier_commitment_ids
     }
     split: dict[str, tuple[Decimal, Decimal]] = {}
     for row in rows:  # _effective_rows orders them by creation
         effective = row.quantity - reversals.get(row.id, Decimal(0))
-        arrived = min(effective, left[row.supplier_commitment_id])
-        left[row.supplier_commitment_id] -= arrived
-        split[row.id] = (arrived, effective - arrived)
+        supplier = row.supplier_commitment_id
+        arrived = min(effective, received[supplier])
+        received[supplier] -= arrived
+        to_come = min(effective - arrived, still_open[supplier])
+        still_open[supplier] -= to_come
+        split[row.id] = (arrived, to_come)
     return split
 
 

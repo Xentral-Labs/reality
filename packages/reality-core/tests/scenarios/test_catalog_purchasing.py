@@ -1,4 +1,4 @@
-"""Purchasing scenarios from the catalog (G07, G14, H03, H10, H11, H12, I05, I06, I07, K05)."""
+"""Purchasing scenarios from the catalog (B07, B08, B09, G07, G13, G14, H03, H10, H11, H12, H16, I05, I06, I07, K05, R02)."""
 
 import json
 from datetime import UTC, datetime, timedelta
@@ -832,62 +832,317 @@ def test_a_receipt_without_a_purchase_order_says_why_it_arrived(session, busines
     assert core.stock_at(session, tenant, business.item.id, business.location.id) == 4
 
 
-def test_a_partial_receipt_leaves_the_assigned_backorders_as_they_were(
-    session, business
-):
-    """B09, pinned: which backorders stay uncovered is answered by reservations only.
+# --- Spec 305: serving backorders (B07, B08, B09, G13, H16, R02) ---------------------
 
-    A receipt does not consume supply assignments (spec 305 will): each customer
-    still counts its full assigned quantity as protecting supply after only part
-    of the purchase arrived.
-    """
-    tenant = business.tenant.id
-    customers = [
-        _order(
-            session, business, "sales", f"SO-B09-{n}", business.customer.id, "3", "20"
-        )[2]
-        for n in (1, 2, 3)
-    ]
-    _, _, purchase = _order(
-        session, business, "purchase", "PO-B09", business.supplier.id, "9", "10"
-    )
-    for n, customer in enumerate(customers, start=1):
-        _reviewed(
-            session,
-            business,
-            "supply_assign",
+
+def _sales(session, business, number, quantity, due):
+    _, _, _, commitments = core.create_manual_order(
+        session,
+        business.tenant.id,
+        "sales",
+        number,
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+        [
             {
-                "supplier_commitment_id": purchase.id,
-                "purpose": "customer_demand",
-                "customer_commitment_id": customer.id,
-                "quantity": "3",
-            },
-            f"b09-assign-{n}",
-        )
-    # Positive control: without stock every backorder is at risk.
-    assert {c.id for c in customers} <= _records_of(
+                "item_id": business.item.id,
+                "quantity": quantity,
+                "unit_price": "20",
+                "gross_amount": str(Decimal(quantity) * 20),
+            }
+        ],
+        str(Decimal(quantity) * 20),
+        requested_delivery_at=due,
+    )
+    return commitments[0]
+
+
+def _purchase(session, business, number, quantity, due="2026-10-12"):
+    _, _, _, commitments = core.create_manual_order(
+        session,
+        business.tenant.id,
+        "purchase",
+        number,
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": quantity,
+                "unit_price": "10",
+                "gross_amount": str(Decimal(quantity) * 10),
+            }
+        ],
+        str(Decimal(quantity) * 10),
+        requested_delivery_at=due,
+    )
+    return commitments[0]
+
+
+def _assign_to(session, business, purchase, customer, quantity, request_id):
+    _reviewed(
+        session,
+        business,
+        "supply_assign",
+        {
+            "supplier_commitment_id": purchase.id,
+            "purpose": "customer_demand",
+            "customer_commitment_id": customer.id,
+            "quantity": quantity,
+        },
+        request_id,
+    )
+
+
+def _serve(session, business, purchase=None, lines=None):
+    """Review serving backorders, then confirm it as a person; returns the review."""
+    arguments = {"item_id": business.item.id, "location_id": business.location.id}
+    if purchase:
+        arguments["supplier_commitment_id"] = purchase.id
+    if lines is not None:
+        arguments["lines"] = [
+            {"commitment_id": promise.id, "quantity": quantity}
+            for promise, quantity in lines
+        ]
+    proposal = create_change_proposal(
+        session, business.tenant.id, "backorders_serve", arguments
+    )
+    review = json.loads(proposal.output)["backorder_serving"]
+    # The review reserves nothing.
+    assert review["lines"] and all(
+        _reserved(session, business, line["commitment_id"]) == 0
+        or line["commitment_id"] in {p.id for p, _ in lines or ()}
+        for line in review["lines"]
+    )
+    approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, confirmed=True
+    )
+    return review
+
+
+def _reserved(session, business, commitment_id):
+    session.expire_all()
+    return core.commitment_terms(session, business.tenant.id, [commitment_id])[
+        commitment_id
+    ].reserved
+
+
+def _split(session, business, promise):
+    customer = supply_coverage(
+        session, business.tenant.id, customer_commitment_id=promise.id
+    )["customer"]
+    return customer["arrived"], customer["still_to_come"]
+
+
+def test_a_receipt_serves_the_earlier_due_backorder_first(session, business):
+    """B08: two orders wait; the receipt goes to the one due first, as a person confirms."""
+    tenant = business.tenant.id
+    later = _sales(session, business, "SO-B08-1", "3", "2026-10-20")
+    earlier = _sales(session, business, "SO-B08-2", "3", "2026-10-10")
+    purchase = _purchase(session, business, "PO-B08", "4")
+    # Positive control: before the goods arrive both orders are at risk.
+    assert {later.id, earlier.id} <= _records_of(
         session, tenant, "outgoing_commitment_at_risk"
     )
+    _receive_into(session, business, "TRK-B08", purchase, "4")
+    # A receipt reserves nothing by itself.
+    assert (
+        _reserved(session, business, later.id),
+        _reserved(session, business, earlier.id),
+    ) == (0, 0)
+
+    review = _serve(session, business, purchase)
+
+    assert [(line["commitment_id"], line["quantity"]) for line in review["lines"]] == [
+        (earlier.id, "3"),
+        (later.id, "1"),
+    ]
+    assert (
+        _reserved(session, business, earlier.id),
+        _reserved(session, business, later.id),
+    ) == (3, 1)
+    at_risk = _records_of(session, tenant, "outgoing_commitment_at_risk")
+    assert earlier.id not in at_risk
+    assert later.id in at_risk
+
+
+def test_a_customer_specific_purchase_goes_to_its_order(session, business):
+    """H16 (cross-docking): the assigned order is served first, though another is due earlier."""
+    assigned = _sales(session, business, "SO-H16-1", "3", "2026-10-25")
+    earlier = _sales(session, business, "SO-H16-2", "3", "2026-10-10")
+    purchase = _purchase(session, business, "PO-H16", "3")
+    _assign_to(session, business, purchase, assigned, "3", "h16-assign")
+    _receive_into(session, business, "TRK-H16", purchase, "3")
+
+    review = _serve(session, business, purchase)
+
+    assert [(line["commitment_id"], line["why"]) for line in review["lines"]] == [
+        (assigned.id, "assigned"),
+        (earlier.id, "due"),
+    ]
+    assert (
+        _reserved(session, business, assigned.id),
+        _reserved(session, business, earlier.id),
+    ) == (3, 0)
+
+
+def test_a_partial_receipt_names_the_backorders_left_uncovered(session, business):
+    """B09: a receipt of 4 against 3 + 3 + 3 covers the first fully and the second partly."""
+    tenant = business.tenant.id
+    customers = [
+        _sales(session, business, f"SO-B09-{n}", "3", "2026-10-20") for n in (1, 2, 3)
+    ]
+    purchase = _purchase(session, business, "PO-B09", "9")
+    for n, customer in enumerate(customers, start=1):
+        _assign_to(session, business, purchase, customer, "3", f"b09-assign-{n}")
+    # Positive control: before the receipt everything is still to come.
+    assert [_split(session, business, c) for c in customers] == [(0, 3)] * 3
 
     _receive_into(session, business, "TRK-B09", purchase, "4")
-    supplier = supply_coverage(session, tenant, supplier_commitment_id=purchase.id)[
-        "supplier"
-    ]
-    assert (supplier["received"], supplier["open"]) == (4, 5)
-    # The gap spec 305 closes: assigned supply is not split into arrived and to come.
-    assert [
-        supply_coverage(session, tenant, customer_commitment_id=c.id)["customer"][
-            "protecting_supply"
-        ]
-        for c in customers
-    ] == [3, 3, 3]
 
-    # Today a person answers it by reserving what arrived.
-    core.reserve(session, tenant, customers[0].id, "3")
-    core.reserve(session, tenant, customers[1].id, "1")
+    assert [_split(session, business, c) for c in customers] == [(3, 0), (1, 2), (0, 3)]
+    _serve(session, business, purchase)
+    assert [_reserved(session, business, c.id) for c in customers] == [3, 1, 0]
     at_risk = _records_of(session, tenant, "outgoing_commitment_at_risk")
     assert customers[0].id not in at_risk
     assert {customers[1].id, customers[2].id} <= at_risk
+
+
+def test_stock_only_on_order_is_promised_by_its_purchase_date(session, business):
+    """B07: no stock, one open purchase: the answer names the purchase and its date."""
+    tenant = business.tenant.id
+    # Positive control: nothing in stock and nothing on order, nothing to promise.
+    empty = run_read_tool(
+        session, tenant, "available_to_promise", {"item_id": business.item.id}
+    )
+    assert (empty["now"]["free"], empty["purchases"]) == ("0", [])
+    waiting = _sales(session, business, "SO-B07-1", "4", "2026-10-20")
+    purchase = _purchase(session, business, "PO-B07", "10", due="2026-10-12")
+    _assign_to(session, business, purchase, waiting, "4", "b07-assign")
+
+    answer = run_read_tool(
+        session, tenant, "available_to_promise", {"item_id": business.item.id}
+    )
+
+    assert answer["now"]["free"] == "0"
+    (row,) = answer["purchases"]
+    assert (row["commitment_id"], row["due_at"], row["adds"], row["total"]) == (
+        purchase.id,
+        "2026-10-12",
+        "6",
+        "6",
+    )
+    assert row["supplier"] == business.supplier.name
+
+
+def test_a_cancelled_order_frees_its_purchase_before_the_purchase_is_reduced(
+    session, business
+):
+    """G13: the cancellation ends the assignment; reducing the purchase is its own step."""
+    tenant = business.tenant.id
+    customer = _sales(session, business, "SO-G13", "4", "2026-10-20")
+    purchase = _purchase(session, business, "PO-G13", "10")
+    _assign_to(session, business, purchase, customer, "4", "g13-assign")
+    assert (
+        supply_coverage(session, tenant, supplier_commitment_id=purchase.id)[
+            "supplier"
+        ]["customer_assigned"]
+        == 4
+    )
+
+    _reviewed(
+        session,
+        business,
+        "commitment_cancel",
+        {"commitment_id": customer.id, "reason": "Customer withdrew the order"},
+        "g13-cancel",
+    )
+
+    supplier = supply_coverage(session, tenant, supplier_commitment_id=purchase.id)[
+        "supplier"
+    ]
+    assert (supplier["customer_assigned"], supplier["unassigned"]) == (0, 10)
+    assert (
+        run_read_tool(
+            session, tenant, "available_to_promise", {"item_id": business.item.id}
+        )["purchases"][0]["adds"]
+        == "10"
+    )
+    _reviewed(
+        session,
+        business,
+        "commitment_revise",
+        {
+            "commitment_id": purchase.id,
+            "quantity": "6",
+            "note": "Reduced after SO-G13 was cancelled",
+        },
+        "g13-reduce",
+    )
+    assert (
+        run_read_tool(
+            session, tenant, "available_to_promise", {"item_id": business.item.id}
+        )["purchases"][0]["adds"]
+        == "6"
+    )
+
+
+def test_two_customers_an_under_delivery_a_key_customer_and_a_cancellation(
+    session, business
+):
+    """R02: two customers wait for one purchase that comes short; the key customer is
+    reserved first by a person, the other cancels and its assignment ends."""
+    tenant = business.tenant.id
+    other = _sales(session, business, "SO-R02-1", "3", "2026-10-15")
+    key = _sales(session, business, "SO-R02-2", "3", "2026-10-20")
+    purchase = _purchase(session, business, "PO-R02", "6")
+    _assign_to(session, business, purchase, other, "3", "r02-assign-1")
+    _assign_to(session, business, purchase, key, "3", "r02-assign-2")
+    _receive_into(session, business, "TRK-R02", purchase, "4")
+    _reviewed(
+        session,
+        business,
+        "commitment_revise",
+        {
+            "commitment_id": purchase.id,
+            "quantity": "4",
+            "note": "Supplier delivers only 4",
+        },
+        "r02-short",
+    )
+    # In assignment order the other customer would be served fully first, and
+    # nothing more comes for the key customer once the purchase was reduced.
+    assert (_split(session, business, other), _split(session, business, key)) == (
+        (3, 0),
+        (1, 0),
+    )
+
+    review = _serve(session, business, purchase, lines=[(key, "3"), (other, "1")])
+
+    assert {line["commitment_id"]: line["quantity"] for line in review["lines"]} == {
+        other.id: "1",
+        key.id: "3",
+    }
+    assert (
+        _reserved(session, business, key.id),
+        _reserved(session, business, other.id),
+    ) == (3, 1)
+
+    _reviewed(
+        session,
+        business,
+        "commitment_cancel",
+        {"commitment_id": other.id, "reason": "Customer cancels the rest"},
+        "r02-cancel",
+    )
+
+    coverage = supply_coverage(session, tenant, supplier_commitment_id=purchase.id)
+    assert [item["customer_commitment_id"] for item in coverage["items"]] == [key.id]
+    assert _reserved(session, business, other.id) == 0
+    assert _split(session, business, key) == (3, 0)
+    assert key.id not in _records_of(session, tenant, "outgoing_commitment_at_risk")
 
 
 # --- O05 (spec 301) -------------------------------------------------------------------

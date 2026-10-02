@@ -47,11 +47,11 @@ Tests come first in each phase where practical.
 
 ## Phase 6: Web
 
-- [ ] T012 The serving card, "Serve backorders" after a receipt and on the warehouse row, available-to-promise in the row preview, translations, and browser fixtures
+- [x] T012 The serving card, "Serve backorders" after a receipt and on the warehouse row, available-to-promise in the row preview, translations, and browser fixtures
 
 ## Phase 7: Stories and Guide (FR-002, FR-005)
 
-- [ ] T013 Business stories for B07, B08, B09 (rewrite the pinned test), G13, H16 and R02
+- [x] T013 Business stories for B07, B08, B09 (rewrite the pinned test), G13, H16 and R02
 - [ ] T014 Promote the journeys:
   - the Guide catalog and Guide tests;
   - coverage and roadmap;
