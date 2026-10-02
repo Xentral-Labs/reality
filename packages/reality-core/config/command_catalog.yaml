@@ -2932,7 +2932,7 @@ capability_guidance:
   finance_settlement_context:
     kind: read
     application_tool: finance.settlement.context
-    purpose: Read invoice/payment-credit context and matching invoice choices; for an
+    purpose: Read payable invoice/customer-fee or payment-credit context and matching claim choices; for an
       unallocated customer payment each choice carries the reasons it is a candidate.
     use_when:
     - Prepare actual payment, credit allocation or refund.
@@ -2948,6 +2948,7 @@ capability_guidance:
     - finance_state
     limitations:
     - A read records no cash, allocation or reduction.
+    - Customer fee claims carry no inherited maturity or discount and cannot be dunned again.
     freshness: Current committed finance state.
     empty_result: An original invoice or available-credit document identity is required.
     refusal_behavior: Unknown, foreign, unsupported or reversed credit origins are unavailable.
@@ -2981,6 +2982,7 @@ capability_guidance:
     - Record actual money or allocate an existing available credit.
     do_not_use_when:
     - Initiate a bank transfer or infer a discount.
+    - Apply a noncash reduction to a customer fee claim; fees support payment and credit allocation only.
     required_context:
     - tenant, original document, mode, stated amounts and current revision; reference
       and effective time for actual cash
@@ -5070,7 +5072,7 @@ capability_guidance:
     do_not_use_when: [The return is not known yet; list them first.]
     required_context: [return_id]
     data_basis: [payment_return, document, settlement_allocation]
-    limitations: [A fee charged on is a ledger receivable but not an open item.]
+    limitations: [Customer fee charges are separate payable open items without inherited maturity or discounts and are not dunned again.]
     freshness: Read from the selected return and current open amounts.
     empty_result: Unknown and foreign identities are refused as not found.
     refusal_behavior: Cross-tenant identities disclose nothing.

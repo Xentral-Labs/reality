@@ -56,7 +56,7 @@ families:
   - key: shared_inventory_page
     description: Shared inventory observations and their paginated register exclude foreign contributions.
     classification: collection
-    authority: 315/FR-003
+    authority: 317/FR-003
     operations: [reality.services.inventory_reads:inventory_page]
     evidence:
       - id: tests/test_shared_inventory_observations.py::test_location_scope_applies_to_every_contribution

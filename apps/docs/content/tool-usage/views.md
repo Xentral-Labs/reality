@@ -777,7 +777,8 @@ Presents evidence and counts its shortest links into operational Reality.
 
 ### `open_financial_items` — Open financial items {#projection-open_financial_items}
 
-Invoice-side ledger amount minus explicit payment allocations; document status is not used as
+Canonical invoice, opening-debt and customer-fee claims minus effective allocations and reversals;
+fee charges have no inherited maturity or discount and are not dunned again. Document status is not
 payment truth.
 
 **Consumers:** Open Items, Home · **Reads:** `ledger_entry`, `settlement_allocation`, `document`,

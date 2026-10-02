@@ -8,19 +8,19 @@
 
 ## Phase 2: User Story 1
 
-- [ ] T004 [US1] [FR-001] [FR-002] [FR-003] [FR-004] Add failing comparison, revision, correction, location, filter and tenant tests in `packages/reality-core/tests/test_shared_inventory_observations.py`.
-- [ ] T005 [US1] [FR-001] [FR-002] [FR-003] [FR-004] Implement a shared position query in `packages/reality-core/src/reality/services/inventory_reads.py`; delegate from `services/core.py` and `web/read_models.py`.
-- [ ] T006 [US1] [FR-001] Verify projection equivalence in `packages/reality-core/tests/test_shared_inventory_observations.py` and document shared derivation in `docs/features/inventory.md`.
+- [x] T004 [US1] [FR-001] [FR-002] [FR-003] [FR-004] Add failing comparison, revision, correction, location, filter and tenant tests in `packages/reality-core/tests/test_shared_inventory_observations.py`.
+- [x] T005 [US1] [FR-001] [FR-002] [FR-003] [FR-004] Implement a shared position query in `packages/reality-core/src/reality/services/inventory_reads.py`; delegate from `services/core.py` and `web/read_models.py`.
+- [x] T006 [US1] [FR-001] Verify projection equivalence in `packages/reality-core/tests/test_shared_inventory_observations.py` and document shared derivation in `docs/features/inventory.md`.
 
 ## Phase 3: User Story 2
 
-- [ ] T007 [US2] [FR-005] Add projection metadata regression in `packages/reality-core/tests/test_shared_inventory_observations.py`.
-- [ ] T008 [US2] [FR-005] Correct `packages/reality-core/config/projection_catalog.yaml` and regenerate `apps/docs/content/tool-usage/`, German references and `apps/docs/.vitepress/data/tool-usage.json`.
+- [x] T007 [US2] [FR-005] Add projection metadata regression in `packages/reality-core/tests/test_shared_inventory_observations.py`.
+- [x] T008 [US2] [FR-005] Correct `packages/reality-core/config/projection_catalog.yaml` and regenerate `apps/docs/content/tool-usage/`, German references and `apps/docs/.vitepress/data/tool-usage.json`.
 
 ## Final Phase: Verification and Review
 
 - [ ] T009 Run focused and full backend tests, lint and spec policy; record evidence in `quickstart.md`.
-- [ ] T010 Run required Web and documentation gates; record evidence in `quickstart.md`.
+- [x] T010 Run required Web and documentation gates; record evidence in `quickstart.md`.
 - [ ] T011 Review final diff for scope, SQL boundaries, provenance and compatibility; record in `quickstart.md`.
 
 ## Dependencies and Parallel Work

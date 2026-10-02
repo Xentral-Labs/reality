@@ -29,6 +29,7 @@ Unify inventory calculations in one application service, retain bounded SQL pagi
 ## Project Structure
 
 - `services/inventory_reads.py`: shared SQL position query and paginated read.
+- `db/pagination.py`: storage-level pagination value object; preserve the existing Web import contract through re-export.
 - `services/core.py`: existing inventory service delegates quantity derivation, retaining movement explanation lists.
 - `web/read_models.py`: compatible forwarding adapter for inventory pagination.
 - `config/projection_catalog.yaml`: accurate inputs, outputs and descriptions.

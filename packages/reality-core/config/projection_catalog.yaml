@@ -68,7 +68,7 @@ projections:
     materialized_as: open_financial_items
     consumers: [Open Items, Home]
     reads: [ledger_entry, settlement_allocation, document, party]
-    calculation: Invoice-side ledger amount minus explicit payment allocations; document status is not used as payment truth.
+    calculation: Canonical invoice, opening-debt and customer-fee claims minus effective allocations and reversals; fee charges have no inherited maturity or discount and are not dunned again. Document status is not payment truth.
     outputs: [invoice, party, original_amount, allocated_amount, open_amount]
   - name: Payments
     service: projection_rows

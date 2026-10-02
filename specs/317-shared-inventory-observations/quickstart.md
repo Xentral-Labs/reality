@@ -13,7 +13,9 @@ Then run `make test`, `make lint spec-check`, `make web-build`, `make docs-gener
 - `make lint spec-check`: passed. Tenant-isolation catalog validates, including the paginated service's dedicated evidence family.
 - `make web-build`: passed; 451 frontend contract tests and all four translation audits passed.
 - Documentation reference unit tests: 11 passed; Docs formatting check passed. Regeneration changes only three generated Tool Usage files.
-- Full backend suite and browser smoke test: pending; no completion claim until their required results are green.
+- Inventory browser smoke: passed in English and German, including location navigation and scope.
+- Documentation: 109 Node tests and VitePress build passed; `make docs-catalog-check` passed for the inventory commit.
+- Full backend attempt: 1,357 passed, 3 skipped, then demo-baseline setup raised `JobError("handler_timeout")`. The same `test_demo_costing_profile.py` module fails with 12 setup errors both here (127.56 seconds) and on unmodified base `590c4d72` (169.44 seconds) against isolated PostgreSQL. No scheduler timeout or application policy was changed to bypass the failure. Overall verification remains incomplete; required final tasks are not marked complete.
 
 ## Review
 

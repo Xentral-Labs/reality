@@ -16,11 +16,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from reality.db.core import Commitment, Document, DocumentLine, Party
+from reality.domain.finance import FEE_RECEIVABLE_TYPES
 from reality.services import core
 
 ZERO = Decimal(0)
 AMOUNT_SCALE = Decimal("0.0001")
-RECEIVABLE_TYPES = {"sales_invoice", "opening_customer_debt"}
+RECEIVABLE_TYPES = {"sales_invoice", "opening_customer_debt", *FEE_RECEIVABLE_TYPES}
 PAYABLE_TYPES = {"supplier_invoice", "opening_supplier_debt"}
 
 

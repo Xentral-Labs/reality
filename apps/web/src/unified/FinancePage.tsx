@@ -582,6 +582,8 @@ function FinanceRegister({
                                     "supplier_invoice",
                                     "opening_customer_debt",
                                     "opening_supplier_debt",
+                                    "dunning_fee_charge",
+                                    "payment_return_fee_charge",
                                   ].includes(row.document_type) ? (
                                     <button
                                       className="br-btn"

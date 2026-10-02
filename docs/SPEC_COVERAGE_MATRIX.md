@@ -1919,7 +1919,13 @@ Table `item_reorder_point`: the stock level at which the company reorders an ite
 
 ## Blocked stock — Spec 304
 
-Shared inventory observations — spec 315 FR-001–FR-005: `packages/reality-core/tests/test_shared_inventory_observations.py` covers surface equivalence after revision and partial receipt, reservations and partial block release, location and tenant boundaries, derived filters and projection metadata. Verification pending.
+Shared inventory observations — spec 317 FR-001–FR-005: `packages/reality-core/tests/test_shared_inventory_observations.py` covers surface equivalence after revision and partial receipt, reservations and partial block release, location and tenant boundaries, derived filters and projection metadata. Verification pending.
+
+Fee open receivables — spec 318 FR-001–FR-006: `packages/reality-core/tests/finance/test_fee_open_receivables.py` covers historical fee visibility, shared/Web aging, exposure, reviewed partial payment and replay, payment/fee reversal, credit allocation, amount and tenant guards, company/zero fee exclusions, projection output and dunning/noncash-policy exclusion. Verification pending.
+
+Spec 318 FR-004/FR-006: `apps/web/scripts/fee-open-receivables-contract.test.mjs` checks fee payment actions without reduction/dunning actions and service-provided reduction eligibility in the settlement form.
+
+Spec 318 FR-004/FR-006: `apps/web/scripts/fee-open-receivables-browser.mjs` verifies both fee types open the shared payment dialog without reduction/dunning controls and without browser writes.
 
 Table `stock_block`: stock held back where it lies with its reason, excluded from availability until released or scrapped.
 

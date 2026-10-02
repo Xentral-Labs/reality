@@ -6677,9 +6677,11 @@ def inventory_rows(
         for row in session.execute(query.order_by(Item.name, Item.id))
     ]
     by_item = {row["item"].id: row for row in rows}
-    movements = select(Movement).where(
-        Movement.tenant_id == tenant_id, Movement.item_id.in_(by_item)
-    ).order_by(Movement.occurred_at.desc())
+    movements = (
+        select(Movement)
+        .where(Movement.tenant_id == tenant_id, Movement.item_id.in_(by_item))
+        .order_by(Movement.occurred_at.desc())
+    )
     for movement in session.scalars(movements):
         row = by_item[movement.item_id]
         if movement.to_location_id:
@@ -11013,7 +11015,11 @@ def _control_entry(entries: list[LedgerEntry], account: str) -> LedgerEntry:
 # the balance on this account for this document and flips its sign by the side
 # recorded here, so a supplier credit sitting on the debit side of accounts
 # payable reads as a claim on the supplier without a line of special handling.
-from reality.domain.finance import OPENING_DIRECTIONS
+from reality.domain.finance import (
+    FEE_RECEIVABLE_TYPES,
+    OPEN_ITEM_TYPES,
+    OPENING_DIRECTIONS,
+)
 
 SETTLEMENT_CONTROL = {
     **{f"opening_{kind}": control for kind, control in OPENING_DIRECTIONS.items()},
@@ -11613,16 +11619,7 @@ def _financial_open_items(
             select(Document)
             .where(
                 Document.tenant_id == tenant_id,
-                Document.type.in_(
-                    (
-                        "sales_invoice",
-                        "supplier_invoice",
-                        "opening_customer_debt",
-                        "opening_supplier_debt",
-                        # A down-payment invoice is owed like any invoice (spec 299).
-                        "down_payment_invoice",
-                    )
-                ),
+                Document.type.in_(OPEN_ITEM_TYPES),
             )
             .where(Document.id.in_(document_ids) if document_ids is not None else True)
             .where(Document.party_id.in_(party_ids) if party_ids is not None else True)
@@ -11685,7 +11682,11 @@ def _financial_open_items(
         rows.append(
             {
                 "document": document,
-                "origin": "opening" if document.id in opening_details else "invoice",
+                "origin": "opening"
+                if document.id in opening_details
+                else "fee"
+                if document.type in FEE_RECEIVABLE_TYPES
+                else "invoice",
                 "coverage_kind": opening_kinds.get(document.id),
                 "original_due_date": opening_details[document.id].original_due_date
                 if document.id in opening_details
@@ -14062,7 +14063,12 @@ def with_invoice_aging(
         term = effective_payment_term(
             row["document"], row.get("party_payment_term_id"), terms
         )
-        if row.get("origin") == "opening":
+        if row["document"].type in FEE_RECEIVABLE_TYPES:
+            # Fee issue dates do not state maturity; no existing fee source states
+            # a due date. Never inherit invoice/party terms or invent one (spec 318).
+            term = None
+            due_date = None
+        elif row.get("origin") == "opening":
             term = None
             due_date = row.get("original_due_date")
         else:
@@ -14075,6 +14081,7 @@ def with_invoice_aging(
                 "payment_term": term,
                 "discount_date": None
                 if row.get("origin") == "opening"
+                or row["document"].type in FEE_RECEIVABLE_TYPES
                 else invoice_discount_date(row["document"], term),
             }
         )

@@ -11091,10 +11091,13 @@
         }
       ],
       "guidance": {
-        "purpose": "Read invoice/payment-credit context and matching invoice choices; for an unallocated customer payment each choice carries the reasons it is a candidate.",
+        "purpose": "Read payable invoice/customer-fee or payment-credit context and matching claim choices; for an unallocated customer payment each choice carries the reasons it is a candidate.",
         "use_when": ["Prepare actual payment, credit allocation or refund."],
         "do_not_use_when": ["Determine tax or calculate a discount."],
-        "limitations": ["A read records no cash, allocation or reduction."],
+        "limitations": [
+          "A read records no cash, allocation or reduction.",
+          "Customer fee claims carry no inherited maturity or discount and cannot be dunned again."
+        ],
         "empty_result": "An original invoice or available-credit document identity is required.",
         "freshness": "Current committed finance state."
       },
@@ -11259,7 +11262,10 @@
       "guidance": {
         "purpose": "Prepare actual payment with explicit allocation/reduction, or consume existing credit.",
         "use_when": ["Record actual money or allocate an existing available credit."],
-        "do_not_use_when": ["Initiate a bank transfer or infer a discount."],
+        "do_not_use_when": [
+          "Initiate a bank transfer or infer a discount.",
+          "Apply a noncash reduction to a customer fee claim; fees support payment and credit allocation only."
+        ],
         "preconditions": [
           "Active compatible accounts, available claim/credit, current revision and explicit owner confirmation."
         ],
@@ -12295,7 +12301,9 @@
         "purpose": "Read one returned customer payment with its reason, reference, fee and reopened invoices.",
         "use_when": ["One known return needs reconciliation."],
         "do_not_use_when": ["The return is not known yet; list them first."],
-        "limitations": ["A fee charged on is a ledger receivable but not an open item."],
+        "limitations": [
+          "Customer fee charges are separate payable open items without inherited maturity or discounts and are not dunned again."
+        ],
         "empty_result": "Unknown and foreign identities are refused as not found.",
         "freshness": "Read from the selected return and current open amounts."
       },
@@ -22718,7 +22726,9 @@
         "purpose": "Read one returned customer payment with its reason, reference, fee and reopened invoices.",
         "use_when": ["One known return needs reconciliation."],
         "do_not_use_when": ["The return is not known yet; list them first."],
-        "limitations": ["A fee charged on is a ledger receivable but not an open item."],
+        "limitations": [
+          "Customer fee charges are separate payable open items without inherited maturity or discounts and are not dunned again."
+        ],
         "empty_result": "Unknown and foreign identities are refused as not found.",
         "freshness": "Read from the selected return and current open amounts."
       },
@@ -23172,10 +23182,13 @@
       "events": [],
       "actions": [],
       "guidance": {
-        "purpose": "Read invoice/payment-credit context and matching invoice choices; for an unallocated customer payment each choice carries the reasons it is a candidate.",
+        "purpose": "Read payable invoice/customer-fee or payment-credit context and matching claim choices; for an unallocated customer payment each choice carries the reasons it is a candidate.",
         "use_when": ["Prepare actual payment, credit allocation or refund."],
         "do_not_use_when": ["Determine tax or calculate a discount."],
-        "limitations": ["A read records no cash, allocation or reduction."],
+        "limitations": [
+          "A read records no cash, allocation or reduction.",
+          "Customer fee claims carry no inherited maturity or discount and cannot be dunned again."
+        ],
         "empty_result": "An original invoice or available-credit document identity is required.",
         "freshness": "Current committed finance state."
       },
@@ -23211,7 +23224,10 @@
       "guidance": {
         "purpose": "Prepare actual payment with explicit allocation/reduction, or consume existing credit.",
         "use_when": ["Record actual money or allocate an existing available credit."],
-        "do_not_use_when": ["Initiate a bank transfer or infer a discount."],
+        "do_not_use_when": [
+          "Initiate a bank transfer or infer a discount.",
+          "Apply a noncash reduction to a customer fee claim; fees support payment and credit allocation only."
+        ],
         "preconditions": [
           "Active compatible accounts, available claim/credit, current revision and explicit owner confirmation."
         ],
@@ -25084,7 +25100,7 @@
       "key": "open_financial_items",
       "label": "Open financial items",
       "area": "finance",
-      "summary": "Invoice-side ledger amount minus explicit payment allocations; document status is not used as payment truth.",
+      "summary": "Canonical invoice, opening-debt and customer-fee claims minus effective allocations and reversals; fee charges have no inherited maturity or discount and are not dunned again. Document status is not payment truth.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/open_financial_items",

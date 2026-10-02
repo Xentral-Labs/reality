@@ -846,7 +846,8 @@ def payment_page(
 def open_item_page(
     session, tenant_id: str, *, page: int = 1, size: int = DEFAULT_PAGE_SIZE
 ):
-    from reality.services.core import InvalidOperation, open_invoice_amount
+    from reality.domain.finance import OPEN_ITEM_TYPES
+    from reality.services.core import financial_open_items
 
     documents, pager = entity_page(
         session,
@@ -854,38 +855,14 @@ def open_item_page(
         tenant_id,
         page=page,
         size=size,
-        criteria=(Document.type.in_(("sales_invoice", "supplier_invoice")),),
+        criteria=(Document.type.in_(OPEN_ITEM_TYPES),),
         order_columns=(Document.document_date.desc(), Document.id.desc()),
     )
-    parties = _records_by_id(
-        session, Party, tenant_id, {row.party_id for row in documents}
+    rows = financial_open_items(
+        session, tenant_id, document_ids={row.id for row in documents}
     )
-    rows = []
-    for document in documents:
-        try:
-            open_amount = open_invoice_amount(session, tenant_id, document.id)
-        except InvalidOperation:
-            continue
-        gross = Decimal(document.gross_amount)
-        rows.append(
-            {
-                "document": document,
-                "party": parties[document.party_id].name
-                if document.party_id in parties
-                else "—",
-                "party_payment_term_id": parties[document.party_id].payment_term_id
-                if document.party_id in parties
-                else None,
-                "open": open_amount,
-                "settled": gross - open_amount,
-                "status": "paid"
-                if open_amount == ZERO
-                else "partial"
-                if open_amount < gross
-                else "open",
-            }
-        )
-    return rows, pager
+    by_id = {row["document"].id: row for row in rows}
+    return [by_id[document.id] for document in documents if document.id in by_id], pager
 
 
 # Default order of a projection register when the caller does not sort explicitly.

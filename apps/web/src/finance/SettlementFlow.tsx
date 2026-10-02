@@ -16,6 +16,7 @@ type Context = {
   revision: number;
   control_account_code: string;
   counterpart?: { state: string } | null;
+  reduction_allowed?: boolean;
   invoices?: InvoiceChoice[];
   more_invoices?: boolean;
   candidates?: InvoiceChoice[];
@@ -387,53 +388,57 @@ export function SettlementFlow({
             {mode === "payment" && (
               <>
                 {amountField("allocation", "Amount allocated to this invoice", "0")}
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={reduce}
-                    disabled={!data.counterpart || data.counterpart.state !== "active"}
-                    onChange={(e) => setReduce(e.target.checked)}
-                  />
-                  {t("Also accept a stated reduction")}
-                </label>
-                {(!data.counterpart || data.counterpart.state !== "active") && (
-                  <p className="text-sm text-fg-muted">
-                    {t(
-                      "Configure an active reduction counterpart in company account settings first.",
-                    )}
-                  </p>
-                )}
-                {reduce && (
-                  <div className="grid gap-4 rounded-lg border border-border-default p-4">
-                    {amountField("reduction", "Stated reduction amount")}
-                    <label className="grid gap-1">
-                      {t("Reduction reason")}
-                      <select className="br-control w-full" name="category">
-                        <option value="early_payment_discount">
-                          {t("Early-payment discount")}
-                        </option>
-                        <option value="agreed_deduction">{t("Agreed deduction")}</option>
-                        <option value="accepted_small_remainder">
-                          {t("Accepted small remainder")}
-                        </option>
-                        {data.side === "customer" && (
-                          <option value="payment_fee">
-                            {t("Payment fee deducted by the provider")}
-                          </option>
+                {data.reduction_allowed !== false && (
+                  <>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={reduce}
+                        disabled={!data.counterpart || data.counterpart.state !== "active"}
+                        onChange={(e) => setReduce(e.target.checked)}
+                      />
+                      {t("Also accept a stated reduction")}
+                    </label>
+                    {(!data.counterpart || data.counterpart.state !== "active") && (
+                      <p className="text-sm text-fg-muted">
+                        {t(
+                          "Configure an active reduction counterpart in company account settings first.",
                         )}
-                      </select>
-                    </label>
-                    <label className="grid gap-1">
-                      {t("Explanation")}
-                      <textarea name="reason" className="br-control w-full" required />
-                    </label>
-                    {data.side === "supplier" && (
-                      <label className="grid gap-1">
-                        {t("Supplier entitlement or agreement")}
-                        <textarea name="agreement" className="br-control w-full" required />
-                      </label>
+                      </p>
                     )}
-                  </div>
+                    {reduce && (
+                      <div className="grid gap-4 rounded-lg border border-border-default p-4">
+                        {amountField("reduction", "Stated reduction amount")}
+                        <label className="grid gap-1">
+                          {t("Reduction reason")}
+                          <select className="br-control w-full" name="category">
+                            <option value="early_payment_discount">
+                              {t("Early-payment discount")}
+                            </option>
+                            <option value="agreed_deduction">{t("Agreed deduction")}</option>
+                            <option value="accepted_small_remainder">
+                              {t("Accepted small remainder")}
+                            </option>
+                            {data.side === "customer" && (
+                              <option value="payment_fee">
+                                {t("Payment fee deducted by the provider")}
+                              </option>
+                            )}
+                          </select>
+                        </label>
+                        <label className="grid gap-1">
+                          {t("Explanation")}
+                          <textarea name="reason" className="br-control w-full" required />
+                        </label>
+                        {data.side === "supplier" && (
+                          <label className="grid gap-1">
+                            {t("Supplier entitlement or agreement")}
+                            <textarea name="agreement" className="br-control w-full" required />
+                          </label>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}

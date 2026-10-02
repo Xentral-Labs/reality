@@ -129,7 +129,7 @@ As a finance owner, I state the waiting period and fee for each of the three lev
 
 - Created as a short draft from the sales-gap roadmap; clarified with the owner on 2026-09-29.
 - Builds on spec 247 (manual notices, fee posting, reversal) and on the existing party delivery hold.
-- Known gap inherited from spec 247, found in the manual check on 2026-09-29: a posted fee (`dunning_fee_charge`) is a receivable in the ledger but not an open item, because `financial_open_items` reads invoices and opening debts only. It is therefore absent from the open-items register, aging and party balances by item, and a run never reminds a fee. Making fee charges open items touches every reader of open items and is a follow-up of its own.
+- Follow-up contract: spec 318 exposes posted dunning fees as separate payable open items through shared settlement services. Historical charges become visible without rebooking; fees remain excluded from renewed dunning and inherited maturity/discounts.
 - Builds on the capabilities and limitations recorded in `docs/scenarios/coverage.md` for the journeys in scope.
 
 ## Requirement Traceability
