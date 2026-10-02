@@ -234,6 +234,24 @@ def accept_adjustment(
             "accounts_receivable" if side == "customer" else "accounts_payable"
         )
         reduction_role = preview["counterpart_role"]
+        # Spec 309: a reduction of a converted foreign invoice is valued at the
+        # invoice rate; it realises no exchange difference.
+        control = core._tenant_record(
+            session, core.LedgerEntry, tenant_id, preview["control_entry_id"]
+        )
+        company_value = (
+            core._settled_company_value(
+                session,
+                tenant_id,
+                control,
+                amount,
+                core.open_invoice_amount(session, tenant_id, control.document_id),
+            )
+            if core._company_amounts_stored(session)
+            and control.company_amount is not None
+            and control.currency != core._book_currency(session, tenant_id)
+            else None
+        )
         entries = core.post_ledger(
             session,
             tenant_id,
@@ -248,6 +266,9 @@ def accept_adjustment(
                 reduction_role: preview["counterpart_account_id"],
             },
             currency=preview["currency"],
+            company_amounts=[company_value, company_value]
+            if company_value is not None
+            else None,
             source_record_id=source.id,
             action_id=action_id,
             _commit=False,

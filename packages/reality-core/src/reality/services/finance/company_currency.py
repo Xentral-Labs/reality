@@ -3,7 +3,9 @@
 Every ledger entry carries its amount in the company currency beside its own, so
 the company currency is read on every posting. It is EUR until the company states
 another one, and it can be stated only before the company's first posting:
-afterwards every company-currency amount already recorded would be in the old one.
+afterwards every company-currency amount already recorded would be in the old one. A
+company whose postings all carry no company value yet (made in another currency
+before spec 309) may state their currency, and they take their amount as value.
 
 A statement is reviewed and kept as a version of one source stream per company
 (spec 320 pattern); the row names the version in force.
@@ -49,9 +51,19 @@ def company_currency_state(session: Session, tenant_id: str) -> dict[str, Any]:
 
 
 def _has_postings(session: Session, tenant_id: str) -> bool:
+    """Whether a posting already carries a company-currency value.
+
+    A company whose postings all predate spec 309 in a currency other than EUR
+    carries none yet, and may still state that currency.
+    """
     return (
         session.scalar(
-            select(LedgerEntry.id).where(LedgerEntry.tenant_id == tenant_id).limit(1)
+            select(LedgerEntry.id)
+            .where(
+                LedgerEntry.tenant_id == tenant_id,
+                LedgerEntry.company_amount.is_not(None),
+            )
+            .limit(1)
         )
         is not None
     )
@@ -102,6 +114,19 @@ def set_company_currency(
         SOURCE_TYPE,
         tenant_id,
         {"currency": stated, "statement_id": action_id or uid("stm")},
+    )
+    # Postings already made in the stated currency are their own company value.
+    from sqlalchemy import update
+
+    session.execute(
+        update(LedgerEntry)
+        .where(
+            LedgerEntry.tenant_id == tenant_id,
+            LedgerEntry.currency == stated,
+            LedgerEntry.company_amount.is_(None),
+        )
+        .values(company_amount=LedgerEntry.amount, exchange_rate=1)
+        .execution_options(synchronize_session=False)
     )
     if row is None:
         row = CompanyCurrency(

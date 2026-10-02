@@ -84,7 +84,8 @@ As a buyer, I see the landed cost of a USD container in EUR, with freight and du
 - A payment of a foreign invoice without a company-currency amount is paid in the invoice currency and realises nothing. A company-currency amount against an unconverted foreign posting is refused.
 - A payment that settles more than is open in the invoice currency is refused, as today.
 - Reversing a payment reverses its exchange difference with it.
-- Changing the company currency after anything was posted is refused.
+- Changing the company currency after a posting carries a company-currency value is refused.
+- A posted part whose company-currency value would round to nothing is refused.
 
 ## Requirements *(mandatory)*
 
@@ -94,7 +95,7 @@ As a buyer, I see the landed cost of a USD container in EUR, with freight and du
 - **FR-002**: A cross-currency settlement MUST record the realised difference, per payment, and leave nothing open in either currency once fully paid.
 - **FR-003**: Every mutation this feature adds MUST use the reviewed, tenant-scoped application tools shared by Web, Chat/MCP and CLI.
 - **FR-004**: When the journeys in scope are proven by a business story, the Business Journey Guide MUST promote them with executable evidence, as specs 292 to 294 did.
-- **FR-005**: The company MUST have one company currency, stated in the finance settings, which cannot change once anything is posted.
+- **FR-005**: The company MUST have one company currency, stated in the finance settings, which cannot change once a posting carries a company-currency value. A company whose earlier postings are all in another currency may state that currency, and those postings take their amount as their value.
 - **FR-006**: The rate of a foreign supplier invoice MUST be offered as the conversion basis for its receipt costs, confirmed through the existing review.
 
 ### Domain and Architecture Requirements
