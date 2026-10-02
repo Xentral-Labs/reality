@@ -24984,6 +24984,9 @@ Object.assign(dictionaries.de, {
   "Billed more than received": "Mehr berechnet als erhalten",
   "Billed at another price": "Zu anderem Preis berechnet",
   "Units cannot be compared": "Einheiten nicht vergleichbar",
+  "Shipped beyond the order": "Mehr geliefert als bestellt",
+  "The excess coming back as a return, or revising the line up to what was shipped.":
+    "Die Mehrmenge kommt als Rücksendung zurück, oder die Position wird auf die gelieferte Menge angehoben.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25335,6 +25338,9 @@ Object.assign(dictionaries.nl, {
   "Billed more than received": "Meer gefactureerd dan ontvangen",
   "Billed at another price": "Tegen een andere prijs gefactureerd",
   "Units cannot be compared": "Eenheden niet vergelijkbaar",
+  "Shipped beyond the order": "Meer geleverd dan besteld",
+  "The excess coming back as a return, or revising the line up to what was shipped.":
+    "Het teveel komt terug als retour, of de regel wordt verhoogd tot wat geleverd is.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25686,6 +25692,9 @@ Object.assign(dictionaries.es, {
   "Billed more than received": "Facturado más de lo recibido",
   "Billed at another price": "Facturado a otro precio",
   "Units cannot be compared": "Unidades no comparables",
+  "Shipped beyond the order": "Enviado más de lo pedido",
+  "The excess coming back as a return, or revising the line up to what was shipped.":
+    "El exceso vuelve como devolución, o la línea se aumenta hasta lo enviado.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

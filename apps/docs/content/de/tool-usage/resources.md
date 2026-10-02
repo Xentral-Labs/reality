@@ -13,7 +13,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 11       | 6         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 8      | 16       | 14        |
+| [Auftrag](#resource-order)                                     | 8      | 16       | 15        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
@@ -359,6 +359,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`order_waiting_for_completeness`)
 - [Rückstand gegen Kundenregel](./exceptions#exception-backorder_against_rule)
   (`backorder_against_rule`)
+- [Mehr geliefert als bestellt](./exceptions#exception-shipped_beyond_order)
+  (`shipped_beyond_order`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay)

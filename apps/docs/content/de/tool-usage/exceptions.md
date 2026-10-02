@@ -58,6 +58,7 @@ was sie auflöst und welche Agenten-Tools sie auflisten und erklären.
 | [`stock_in_another_location`](#exception-stock_in_another_location)                       | Stock in another warehouse               | Lager & Logistik        | `normal` | Warehouse                                                                                   |
 | [`order_waiting_for_completeness`](#exception-order_waiting_for_completeness)             | Order waiting for completeness           | Aufträge & Erfüllung    | `normal` | Sales                                                                                       |
 | [`backorder_against_rule`](#exception-backorder_against_rule)                             | Backorder against the customer's rule    | Aufträge & Erfüllung    | `normal` | Sales                                                                                       |
+| [`shipped_beyond_order`](#exception-shipped_beyond_order)                                 | Shipped beyond the order                 | Aufträge & Erfüllung    | `normal` | Sales                                                                                       |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1494,6 +1495,30 @@ Before the first shipment nothing is a backorder.
 - **Nachweis:**
   `tests/test_delivery_rule_exceptions.py::test_a_rest_after_a_shipment_is_a_backorder_against_the_rule`,
   `tests/test_delivery_rule_exceptions.py::test_without_a_no_backorder_rule_a_rest_is_ordinary`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain), Sicht
+[`commitments`](./views#view-commitments)
+
+## `shipped_beyond_order` — Shipped beyond the order {#exception-shipped_beyond_order}
+
+More has gone to a customer than the order line now asks for. A customer may lower a line below what
+was already shipped, and the revision is accepted, because it is what the customer said; Reality
+subtracts what came back from what was shipped against the promise and reports what exceeds the
+quantity in force, with the order and the excess. It requests no return and issues no credit by
+itself. A promise cancelled after part of it shipped asks for nothing more, so its shipments are not
+beyond the order.
+
+- **Verantwortlich:** Sales
+- **Aufgelöst durch:** The excess coming back as a return, or revising the line up to what was
+  shipped.
+- **Schwere:** `normal`
+- **Datensatztyp:** `commitment`
+- **Spezifikation:** `313/FR-002`
+- **Nachweis:**
+  `tests/test_shipped_beyond_order.py::test_a_line_lowered_below_what_shipped_is_reported`,
+  `tests/test_shipped_beyond_order.py::test_it_clears_by_a_return_or_a_revision_up`
 
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool

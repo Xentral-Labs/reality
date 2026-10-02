@@ -129,8 +129,17 @@ def _review_commitment_revision(
     price_only = arguments.get("unit_price") is not None and all(
         arguments.get(key) is None for key in ("due_at", "quantity")
     )
-    if commitment.status != "open" and not (
-        price_only and commitment.status == "fulfilled"
+    if (
+        commitment.status != "open"
+        and not (price_only and commitment.status == "fulfilled")
+        and not core._keeps_what_was_shipped(
+            session,
+            tenant_id,
+            commitment,
+            arguments.get("due_at"),
+            arguments.get("quantity"),
+            arguments.get("unit_price"),
+        )
     ):
         raise core.InvalidOperation(code="commitment_revise_not_open")
     if arguments.get("source_record_id"):

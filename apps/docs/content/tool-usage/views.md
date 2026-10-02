@@ -724,7 +724,8 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`reorder_point_reached`](./exceptions#exception-reorder_point_reached), exception
 [`stock_in_another_location`](./exceptions#exception-stock_in_another_location), exception
 [`order_waiting_for_completeness`](./exceptions#exception-order_waiting_for_completeness), exception
-[`backorder_against_rule`](./exceptions#exception-backorder_against_rule)
+[`backorder_against_rule`](./exceptions#exception-backorder_against_rule), exception
+[`shipped_beyond_order`](./exceptions#exception-shipped_beyond_order)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

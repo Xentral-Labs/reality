@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: Approved
 
 **Language**: English
 
@@ -14,7 +14,12 @@
 
 ### Problem
 
-Price differences and under-billing are visible, but invoicing a customer for more than was shipped is not reported, and lowering a line below what was delivered is accepted without reporting the excess.
+- **A05:** a customer lowers a line below what was already shipped. The revision is accepted and closes the promise, but nothing reports that more left than the customer now wants.
+- **E07:** an invoice that differs from the order is already visible:
+  - billing more than was shipped is *Invoiced and not shipped* (spec 299);
+  - billing less is *Shipped and not billed*;
+  - another price is *Invoice price differs*.
+  - The journey still reads partial, because no story proves the three together.
 
 | Journey | Title | Status today |
 |---|---|---|
@@ -23,19 +28,29 @@ Price differences and under-billing are visible, but invoicing a customer for mo
 
 ### Scope
 
-- A sales-side 'billed more than shipped' finding.
-- Reporting the excess when a line is lowered below its delivered quantity.
+- A new finding, *Shipped beyond the order*, for a customer promise whose shipments (net of what came back) exceed the quantity in force. It names the excess. It clears when the excess comes back or the quantity is revised up to what was shipped.
+- A business story for E07 proving that over-billing, under-billing and a different price are each reported, using the existing classes.
 
 ### Non-Goals
 
-- Automatic credit notes.
+- Automatic credit notes or return requests.
+- The supplier side (over-receipt), which belongs to the structural gap "a movement must match its commitment exactly".
 - Anything that requires a document status field (Constitution II).
+
+## Clarifications
+
+### Session 2026-10-02
+
+The owner delegated these decisions to the recommended options.
+
+- Q: Is billing more than shipped a new class? → A: No. *Invoiced and not shipped* (spec 299) already reports it per order line. E07 is proven by a story with the existing classes.
+- Q: How is the excess of a lowered line reported? → A: As a new finding, *Shipped beyond the order*, on customer promises only, of normal severity. It clears through a return of the excess or a revision back up to what was shipped. The revision itself stays accepted.
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Over-Billing and Quantity Lowered Below Delivered (Priority: P1)
+### User Story 1 - Quantity Lowered Below Delivered (Priority: P1)
 
-As a controller, I see when a customer was invoiced for more than was shipped.
+As a sales clerk, I see when a customer lowered an order below what we already shipped.
 
 **Why this priority**: Rank 19 of the sales-gap roadmap: it comes up in many specialised evaluations.
 
@@ -43,25 +58,37 @@ As a controller, I see when a customer was invoiced for more than was shipped.
 
 **Acceptance Scenarios**:
 
-1. **Given** 10 shipped and 12 invoiced, **When** read, **Then** 2 are reported as billed beyond shipment.
+1. **Given** 10 shipped, **When** the customer lowers the line to 8, **Then** 2 are reported as shipped beyond the order.
+2. **Given** that finding, **When** 2 come back, or the line is revised to 10, **Then** it clears.
+
+### User Story 2 - Invoice Differs From the Order (Priority: P1)
+
+As a controller, I see every way an invoice differs from what was ordered and shipped.
+
+**Acceptance Scenarios**:
+
+1. **Given** 10 shipped and 12 invoiced, **When** read, **Then** 2 are reported as invoiced and not shipped.
+2. **Given** 10 shipped and 8 invoiced, **Then** 2 are shipped and not billed. **Given** an invoice at another price, **Then** the price difference is reported.
 
 ### Edge Cases
 
 - Tenant isolation: nothing crosses companies.
 - A source-stated value is recorded as stated and never recomputed (Constitution VIII).
+- A cancelled promise expects nothing more: shipments on it are not beyond the order, since the cancellation applies only to the open rest.
+- Quantities are compared in the promise's unit.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: Sales MUST report billing beyond shipped quantity per order line.
-- **FR-002**: Lowering a line below delivered MUST report the excess delivery.
-- **FR-003**: Every mutation this feature adds MUST use the reviewed, tenant-scoped application tools shared by Web, Chat/MCP and CLI.
+- **FR-001**: Sales MUST report billing beyond shipped quantity per order line (existing, spec 299), proven by a story.
+- **FR-002**: Lowering a line below delivered MUST report the excess delivery until it comes back or the quantity is raised again.
+- **FR-003**: Every mutation this feature adds MUST use the reviewed, tenant-scoped application tools shared by Web, Chat/MCP and CLI. This feature adds no new mutation.
 - **FR-004**: When the journeys in scope are proven by a business story, the Business Journey Guide MUST promote them with executable evidence, as specs 292 to 294 did.
 
 ### Domain and Architecture Requirements
 
-- **DR-001**: New typed fields or tables MUST be justified by repeated calculation, filtering or action on them (Constitution III) in the plan.
+- **DR-001**: New typed fields or tables MUST be justified by repeated calculation, filtering or action on them (Constitution III) in the plan. This feature adds none.
 - **DR-002**: Derived states MUST be read from Reality records at read time and never stored as a new authority.
 
 ## Success Criteria *(mandatory)*
@@ -73,17 +100,17 @@ As a controller, I see when a customer was invoiced for more than was shipped.
 
 ## Assumptions and Dependencies
 
-- Created as a short draft from the sales-gap roadmap; it must be clarified and accepted by the owner before planning.
-- Builds on the capabilities and limitations recorded in `docs/scenarios/coverage.md` for the journeys in scope.
+- Builds on commitment revisions, spec 299 *Invoiced and not shipped* and the return flows.
 
 ## Open Questions
 
-- [NEEDS CLARIFICATION: Should lowering below delivered be refused instead of reported?]
+None; see Clarifications.
 
 ## Requirement Traceability
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
-| FR-001–FR-002 | US1 | Business stories and service tests (planned) |
-| FR-003, DR-001, DR-002 | All | Adapter tests and diff review (planned) |
-| FR-004, SC-001, SC-002 | US1 | Catalog tests and Guide questions (planned) |
+| FR-002 | US1 | Story A05 and exception tests (planned) |
+| FR-001 | US2 | Story E07 (planned) |
+| FR-003, DR-001, DR-002 | All | Diff review (planned) |
+| FR-004, SC-001, SC-002 | All | Catalog tests and Guide questions (planned) |

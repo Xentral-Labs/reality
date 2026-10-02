@@ -70,6 +70,7 @@ def test_split_catalog_is_complete_and_composed():
         "stock_in_another_location",
         "order_waiting_for_completeness",
         "backorder_against_rule",
+        "shipped_beyond_order",
     ]
     assert {entry["materialized_as"] for entry in catalog["projections"]} == set(
         OPERATIONAL_PROJECTIONS

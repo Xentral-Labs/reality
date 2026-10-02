@@ -1203,3 +1203,21 @@ classes:
     evidence:
       - tests/test_delivery_rule_exceptions.py::test_a_rest_after_a_shipment_is_a_backorder_against_the_rule
       - tests/test_delivery_rule_exceptions.py::test_without_a_no_backorder_rule_a_rest_is_ordinary
+  - id: shipped_beyond_order
+    label: Shipped beyond the order
+    description: >-
+      More has gone to a customer than the order line now asks for. A customer may lower a line
+      below what was already shipped, and the revision is accepted, because it is what the
+      customer said; Reality subtracts what came back from what was shipped against the promise
+      and reports what exceeds the quantity in force, with the order and the excess. It requests
+      no return and issues no credit by itself. A promise cancelled after part of it shipped asks
+      for nothing more, so its shipments are not beyond the order.
+    owner: Sales
+    clears_through: The excess coming back as a return, or revising the line up to what was shipped.
+    severity: normal
+    derivation: shipped_beyond_order
+    record_type: commitment
+    authority: 313/FR-002
+    evidence:
+      - tests/test_shipped_beyond_order.py::test_a_line_lowered_below_what_shipped_is_reported
+      - tests/test_shipped_beyond_order.py::test_it_clears_by_a_return_or_a_revision_up

@@ -3486,6 +3486,39 @@ def commitment_terms(
     return terms
 
 
+def _keeps_what_was_shipped(
+    session: OrmSession,
+    tenant_id: str,
+    commitment: Commitment,
+    due_at: Any,
+    quantity: Any,
+    unit_price: Any,
+) -> bool:
+    """Whether a revision of a fulfilled customer promise keeps what shipped.
+
+    Spec 313: a customer who lowered a line below what had shipped may keep the
+    excess after all. Raising the quantity again, at most to what was shipped
+    net of returns, records that; the promise stays fulfilled, so it is the one
+    quantity revision a fulfilled promise takes.
+    """
+    if (
+        commitment.status != "fulfilled"
+        or commitment.type != "customer_delivery"
+        or quantity is None
+        or due_at is not None
+        or unit_price is not None
+    ):
+        return False
+    try:
+        stated = decimal(quantity)
+    except (ArithmeticError, ValueError, TypeError):
+        return False
+    shipped = movement_quantity(
+        session, tenant_id, commitment.id, "shipment"
+    ) - movement_quantity(session, tenant_id, commitment.id, "return")
+    return commitment_quantity(session, tenant_id, commitment.id) < stated <= shipped
+
+
 def _revision_prices_stored(session: OrmSession) -> bool:
     """Whether the schema has the spec 310 confirmed price.
 
@@ -3628,7 +3661,7 @@ def revise_commitment(
         and unit_price is not None
         and due_at is None
         and quantity is None
-    ):
+    ) and not _keeps_what_was_shipped(session, tenant_id, commitment, due_at, quantity, unit_price):
         raise InvalidOperation(code="commitment_revise_not_open")
     stated_due = utc_datetime(due_at) if due_at is not None else None
     if due_at is not None and stated_due is None:
