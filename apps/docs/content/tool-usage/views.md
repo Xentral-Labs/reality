@@ -1,10 +1,32 @@
-# Views, projections and actions
+# Views, projections and Web actions
 
 Where an operator looks and what they can trigger there. A view is either an authoritative register
 or a materialized projection; an action starts a business command.
 
 > Automatically generated from `workspace_catalog.yaml`, `projection_catalog.yaml`. Do not edit this
 > page by hand.
+
+## Commands, agent tools and Web actions
+
+| Kind        | Description                                                                                                                                                                           |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Commands    | Shared application operations, including reads and changes. CLI, Web and agents reach the same business services.                                                                     |
+| Agent tools | Callable agent interfaces with defined inputs and access modes. A tool can expose a command; reads, discovery and proposal governance need not map to one business command.           |
+| Web actions | Registered Web workspace interactions that start a command, with prerequisites, confirmation and a target view. This count covers registered workspace actions, not every Web button. |
+
+These counts overlap: a command, its agent tool and its Web action can describe the same capability.
+Do not add them as independent features. A command can have several agent tools or none.
+
+### Example: reserve 5 units
+
+The Web action starts the reservation command after its confirmation. The agent tool prepares a
+proposal with a commitment identity and quantity 5; explicit approval through
+proposal_approve_and_execute then reaches the same command. The service owns allocation checks.
+Quantity is optional in the agent interface; supplying 5 makes the requested quantity explicit.
+
+- Web actions: [Reserve stock](./views#action-reserve_stock) (`reserve_stock`)
+- Agent tools: [Propose reservation](./commands#tool-reservation_propose) (`reservation_propose`)
+- Commands: [Reserve stock](./commands#command-reserve) (`reserve`)
 
 ## How this query runs {#read-execution}
 
@@ -50,7 +72,7 @@ remains unknown.
 [`open_items`](./views#view-open_items), [`documents`](./views#view-documents),
 [`activity`](./views#view-activity)
 
-**Actions:** [`observe_fact`](./views#action-observe_fact)
+**Web actions:** [`observe_fact`](./views#action-observe_fact)
 
 ### `operations` — Order Operations {#workspace-operations}
 
@@ -59,7 +81,7 @@ remains unknown.
 [`fulfillment_blockers`](./views#view-fulfillment_blockers),
 [`supply_demand`](./views#view-supply_demand), [`documents`](./views#view-documents)
 
-**Actions:** [`create_manual_order`](./views#action-create_manual_order),
+**Web actions:** [`create_manual_order`](./views#action-create_manual_order),
 [`reserve_stock`](./views#action-reserve_stock),
 [`hold_commitment`](./views#action-hold_commitment),
 [`hold_document_commitments`](./views#action-hold_document_commitments),
@@ -73,7 +95,7 @@ remains unknown.
 [`supply_demand`](./views#view-supply_demand), [`commitments`](./views#view-commitments),
 [`locations`](./views#view-locations)
 
-**Actions:** [`record_movement`](./views#action-record_movement),
+**Web actions:** [`record_movement`](./views#action-record_movement),
 [`reserve_stock`](./views#action-reserve_stock),
 [`hold_commitment`](./views#action-hold_commitment),
 [`correct_movement`](./views#action-correct_movement),
@@ -86,7 +108,7 @@ remains unknown.
 [`journal`](./views#view-journal), [`documents`](./views#view-documents),
 [`parties`](./views#view-parties)
 
-**Actions:** [`post_customer_payment`](./views#action-post_customer_payment),
+**Web actions:** [`post_customer_payment`](./views#action-post_customer_payment),
 [`post_supplier_payment`](./views#action-post_supplier_payment)
 
 ### `data` — Data Management {#workspace-data}
@@ -856,9 +878,9 @@ stored result or unrelated projection refresh is used.
 
 [How this query runs](./views#read-execution)
 
-## Actions
+## Web actions
 
-| Key                                                              | Label                                 | Command                                                                     | Confirmation     | Prerequisites                                       |
+| Key                                                              | Label                                 | command                                                                     | Confirmation     | Prerequisites                                       |
 | ---------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------- | ---------------- | --------------------------------------------------- |
 | [`create_manual_order`](#action-create_manual_order)             | Create manual sales or purchase order | [`create_manual_order`](./commands#command-create_manual_order)             | `summary`        | `company_party`, `counterparty`, `location`, `item` |
 | [`observe_fact`](#action-observe_fact)                           | Observe source-supported fact         | [`observe_fact`](./commands#command-observe_fact)                           | `summary`        | `source_record`, `subject`                          |
@@ -876,7 +898,7 @@ stored result or unrelated projection refresh is used.
 
 ### `create_manual_order` — Create manual sales or purchase order {#action-create_manual_order}
 
-**Command:** [`create_manual_order`](./commands#command-create_manual_order) · **Confirmation:**
+**command:** [`create_manual_order`](./commands#command-create_manual_order) · **Confirmation:**
 `summary` · **Prerequisites:** `company_party`, `counterparty`, `location`, `item`
 
 **See also:** command [`create_manual_order`](./commands#command-create_manual_order), view
@@ -884,7 +906,7 @@ stored result or unrelated projection refresh is used.
 
 ### `observe_fact` — Observe source-supported fact {#action-observe_fact}
 
-**Command:** [`observe_fact`](./commands#command-observe_fact) · **Confirmation:** `summary` ·
+**command:** [`observe_fact`](./commands#command-observe_fact) · **Confirmation:** `summary` ·
 **Prerequisites:** `source_record`, `subject`
 
 **See also:** command [`observe_fact`](./commands#command-observe_fact), workspace
@@ -892,7 +914,7 @@ stored result or unrelated projection refresh is used.
 
 ### `post_customer_payment` — Post customer payment {#action-post_customer_payment}
 
-**Command:** [`post_customer_payment`](./commands#command-post_customer_payment) · **Confirmation:**
+**command:** [`post_customer_payment`](./commands#command-post_customer_payment) · **Confirmation:**
 `summary` · **Prerequisites:** `customer_invoice`
 
 **See also:** command [`post_customer_payment`](./commands#command-post_customer_payment), view
@@ -900,7 +922,7 @@ stored result or unrelated projection refresh is used.
 
 ### `post_supplier_payment` — Post supplier payment {#action-post_supplier_payment}
 
-**Command:** [`post_supplier_payment`](./commands#command-post_supplier_payment) · **Confirmation:**
+**command:** [`post_supplier_payment`](./commands#command-post_supplier_payment) · **Confirmation:**
 `summary` · **Prerequisites:** `supplier_invoice`
 
 **See also:** command [`post_supplier_payment`](./commands#command-post_supplier_payment), view
@@ -908,7 +930,7 @@ stored result or unrelated projection refresh is used.
 
 ### `reserve_stock` — Reserve stock {#action-reserve_stock}
 
-**Command:** [`reserve`](./commands#command-reserve) · **Confirmation:** `summary` ·
+**command:** [`reserve`](./commands#command-reserve) · **Confirmation:** `summary` ·
 **Prerequisites:** `commitment`
 
 **See also:** command [`reserve`](./commands#command-reserve), view
@@ -917,7 +939,7 @@ workspace [`warehouse`](./views#workspace-warehouse)
 
 ### `record_movement` — Record movement {#action-record_movement}
 
-**Command:** [`record_movement`](./commands#command-record_movement) · **Confirmation:** `summary` ·
+**command:** [`record_movement`](./commands#command-record_movement) · **Confirmation:** `summary` ·
 **Prerequisites:** `item`, `location`
 
 **See also:** command [`record_movement`](./commands#command-record_movement), view
@@ -925,7 +947,7 @@ workspace [`warehouse`](./views#workspace-warehouse)
 
 ### `correct_movement` — Correct movement {#action-correct_movement}
 
-**Command:** [`correct_movement`](./commands#command-correct_movement) · **Confirmation:**
+**command:** [`correct_movement`](./commands#command-correct_movement) · **Confirmation:**
 `server_preview` · **Prerequisites:** `movement`
 
 **See also:** command [`correct_movement`](./commands#command-correct_movement), view
@@ -933,7 +955,7 @@ workspace [`warehouse`](./views#workspace-warehouse)
 
 ### `hold_commitment` — Hold or release commitment {#action-hold_commitment}
 
-**Command:** [`hold_commitment`](./commands#command-hold_commitment) · **Confirmation:** `summary` ·
+**command:** [`hold_commitment`](./commands#command-hold_commitment) · **Confirmation:** `summary` ·
 **Prerequisites:** `commitment`
 
 **See also:** command [`hold_commitment`](./commands#command-hold_commitment), view
@@ -942,7 +964,7 @@ workspace [`warehouse`](./views#workspace-warehouse)
 
 ### `hold_document_commitments` — Hold or release document commitments {#action-hold_document_commitments}
 
-**Command:** [`hold_document_commitments`](./commands#command-hold_document_commitments) ·
+**command:** [`hold_document_commitments`](./commands#command-hold_document_commitments) ·
 **Confirmation:** `summary` · **Prerequisites:** `document`
 
 **See also:** command [`hold_document_commitments`](./commands#command-hold_document_commitments),
@@ -950,7 +972,7 @@ view [`documents`](./views#view-documents), workspace [`operations`](./views#wor
 
 ### `party_delivery_hold` — Set or release party delivery hold {#action-party_delivery_hold}
 
-**Command:** [`hold_party_delivery`](./commands#command-hold_party_delivery) · **Confirmation:**
+**command:** [`hold_party_delivery`](./commands#command-hold_party_delivery) · **Confirmation:**
 `summary` · **Prerequisites:** `party`
 
 **See also:** command [`hold_party_delivery`](./commands#command-hold_party_delivery), view
@@ -958,7 +980,7 @@ view [`documents`](./views#view-documents), workspace [`operations`](./views#wor
 
 ### `create_handling_unit` — Create handling unit {#action-create_handling_unit}
 
-**Command:** [`create_handling_unit`](./commands#command-create_handling_unit) · **Confirmation:**
+**command:** [`create_handling_unit`](./commands#command-create_handling_unit) · **Confirmation:**
 `summary` · **Prerequisites:** —
 
 **See also:** command [`create_handling_unit`](./commands#command-create_handling_unit), view
@@ -966,7 +988,7 @@ view [`documents`](./views#view-documents), workspace [`operations`](./views#wor
 
 ### `create_lot` — Create lot {#action-create_lot}
 
-**Command:** [`create_lot`](./commands#command-create_lot) · **Confirmation:** `summary` ·
+**command:** [`create_lot`](./commands#command-create_lot) · **Confirmation:** `summary` ·
 **Prerequisites:** `item`
 
 **See also:** command [`create_lot`](./commands#command-create_lot), view
@@ -974,7 +996,7 @@ view [`documents`](./views#view-documents), workspace [`operations`](./views#wor
 
 ### `create_serial_unit` — Create serial unit {#action-create_serial_unit}
 
-**Command:** [`create_serial_unit`](./commands#command-create_serial_unit) · **Confirmation:**
+**command:** [`create_serial_unit`](./commands#command-create_serial_unit) · **Confirmation:**
 `summary` · **Prerequisites:** `item`
 
 **See also:** command [`create_serial_unit`](./commands#command-create_serial_unit), view

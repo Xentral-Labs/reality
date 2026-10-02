@@ -1,4 +1,75 @@
 {
+  "interface_guide": {
+    "title": {
+      "en": "Commands, agent tools and Web actions",
+      "de": "Commands, Agenten-Tools und Web-Aktionen"
+    },
+    "kinds": {
+      "command": {
+        "label": {
+          "en": "Commands",
+          "de": "Commands"
+        },
+        "singular": {
+          "en": "command",
+          "de": "Command"
+        },
+        "description": {
+          "en": "Shared application operations, including reads and changes. CLI, Web and agents reach the same business services.",
+          "de": "Gemeinsame Anwendungsoperationen zum Lesen und Ändern. CLI, Web und Agenten nutzen dieselben fachlichen Services."
+        }
+      },
+      "tool": {
+        "label": {
+          "en": "Agent tools",
+          "de": "Agenten-Tools"
+        },
+        "singular": {
+          "en": "agent tool",
+          "de": "Agenten-Tool"
+        },
+        "description": {
+          "en": "Callable agent interfaces with defined inputs and access modes. A tool can expose a command; reads, discovery and proposal governance need not map to one business command.",
+          "de": "Aufrufbare Agenten-Schnittstellen mit definierten Eingaben und Zugriffsarten. Ein Tool kann einen Command zugänglich machen; Abfragen, Discovery und Vorschlagssteuerung müssen keinem einzelnen fachlichen Command zugeordnet sein."
+        }
+      },
+      "action": {
+        "label": {
+          "en": "Web actions",
+          "de": "Web-Aktionen"
+        },
+        "singular": {
+          "en": "Web action",
+          "de": "Web-Aktion"
+        },
+        "description": {
+          "en": "Registered Web workspace interactions that start a command, with prerequisites, confirmation and a target view. This count covers registered workspace actions, not every Web button.",
+          "de": "Registrierte Bedienaktionen der Web-Arbeitsbereiche, die einen Command starten, mit Voraussetzungen, Bestätigung und Zielansicht. Gezählt werden registrierte Workspace-Aktionen, nicht sämtliche Web-Buttons."
+        }
+      }
+    },
+    "counts_note": {
+      "en": "These counts overlap: a command, its agent tool and its Web action can describe the same capability. Do not add them as independent features. A command can have several agent tools or none.",
+      "de": "Diese Zahlen überschneiden sich: Ein Command, sein Agenten-Tool und seine Web-Aktion können dieselbe Fähigkeit beschreiben. Sie lassen sich nicht als unabhängige Features addieren. Ein Command kann mehrere Agenten-Tools haben oder keines."
+    },
+    "relationships_title": {
+      "en": "Shared operation and entrypoints",
+      "de": "Gemeinsame Operation und Zugänge"
+    },
+    "example": {
+      "title": {
+        "en": "Example: reserve 5 units",
+        "de": "Beispiel: 5 Stück reservieren"
+      },
+      "description": {
+        "en": "The Web action starts the reservation command after its confirmation. The agent tool prepares a proposal with a commitment identity and quantity 5; explicit approval through proposal_approve_and_execute then reaches the same command. The service owns allocation checks. Quantity is optional in the agent interface; supplying 5 makes the requested quantity explicit.",
+        "de": "Die Web-Aktion startet den Reservierungs-Command nach ihrer Bestätigung. Das Agenten-Tool bereitet einen Vorschlag mit Commitment-ID und Menge 5 vor; die ausdrückliche Freigabe über proposal_approve_and_execute führt anschließend zum selben Command. Der Service prüft die Zuteilung. Die Menge ist in der Agenten-Schnittstelle optional; mit 5 wird die gewünschte Menge ausdrücklich angegeben."
+      },
+      "action": "action:reserve_stock",
+      "command": "command:reserve",
+      "tool": "tool:reservation_propose"
+    }
+  },
   "read_mode_definitions": {
     "stored": {
       "label": {
