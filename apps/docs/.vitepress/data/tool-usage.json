@@ -298,7 +298,9 @@
         "supply_assignment",
         "item_reorder_point",
         "stock_block",
-        "stock_block_resolution"
+        "stock_block_resolution",
+        "stock_count",
+        "stock_count_line"
       ],
       "lists": [
         "view:inventory",
@@ -315,6 +317,7 @@
         "command:release_stock_block",
         "command:scrap_stock_block",
         "command:serve_backorders",
+        "command:record_stock_count",
         "command:set_reorder_point",
         "command:remove_reorder_point",
         "command:assign_supply"
@@ -322,6 +325,8 @@
       "reads": [
         "command:inventory_cost",
         "command:available_to_promise",
+        "command:stock_counts",
+        "command:stock_count_detail",
         "command:stock_blocks",
         "command:reorder_points"
       ],
@@ -347,6 +352,7 @@
         "event:stock_block.created",
         "event:stock_block.released",
         "event:stock_block.scrapped",
+        "event:stock_count.posted",
         "event:master_data.lifecycle_changed"
       ],
       "workspace_actions": []
@@ -10133,6 +10139,159 @@
       "links": ["command:available_to_promise"],
       "label_de": "Available to promise",
       "resources": ["item", "order"]
+    },
+    {
+      "id": "tool:stock_count_propose",
+      "kind": "tool",
+      "key": "stock_count_propose",
+      "label": "Count stock",
+      "area": "warehouse",
+      "summary": "Prepare a count of one location: per line the item, its lot where the item is lot-tracked, the counted quantity and optionally when it was counted (default now). The review shows the book at each counting time, the difference, how much of a loss comes from blocks, and the reservations left uncovered. Confirming records the count and posts every difference as an adjustment; movements after a counting time carry on. A person confirms.",
+      "access": "propose",
+      "group": "Warehouse",
+      "synopsis": "stock_count_propose location_id [note] lines",
+      "parameters": [
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "note",
+          "type": "string",
+          "required": false,
+          "description": "Free-text record of what the counterparty said, kept with the statement.",
+          "depth": 0
+        },
+        {
+          "name": "lines",
+          "type": "array",
+          "required": true,
+          "description": "Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.",
+          "depth": 0
+        },
+        {
+          "name": "lines[].item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].lot_id",
+          "type": "string",
+          "required": false,
+          "description": "Exact batch or lot identity to reserve or move.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].counted_quantity",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "lines[].counted_at",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "record_stock_count",
+      "projections": [],
+      "links": ["command:record_stock_count"],
+      "label_de": "Count stock",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:stock_counts",
+      "kind": "tool",
+      "key": "stock_counts",
+      "label": "Stock counts",
+      "area": "warehouse",
+      "summary": "Read the counts of a location (location_id) or of the company, newest first, with how many lines each has.",
+      "access": "read",
+      "group": "Warehouse",
+      "synopsis": "stock_counts [location_id]",
+      "parameters": [
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "List the counts taken at a location or in the company.",
+        "use_when": ["Someone asks when a location was last counted or which counts exist."],
+        "do_not_use_when": ["The question is current stock; read inventory."],
+        "limitations": [
+          "A count is what a person counted; it says nothing about locations not counted."
+        ],
+        "empty_result": "No count has been recorded for the selection.",
+        "freshness": "Read from the counts at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP stock_counts",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "stock_counts",
+      "projections": [],
+      "links": ["command:stock_counts"],
+      "label_de": "Stock counts",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:stock_count_detail",
+      "kind": "tool",
+      "key": "stock_count_detail",
+      "label": "Stock count",
+      "area": "warehouse",
+      "summary": "Read one count: each line as counted with its counting time, the book then, the difference, and the adjustments and block scraps that posted it.",
+      "access": "read",
+      "group": "Warehouse",
+      "synopsis": "stock_count_detail stock_count_id",
+      "parameters": [
+        {
+          "name": "stock_count_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of a recorded stock count.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Explain one count, line by line, and the adjustments that posted it.",
+        "use_when": ["Someone asks where an adjustment came from or what a count found."],
+        "do_not_use_when": ["The question is current stock; read inventory."],
+        "limitations": [
+          "The book shown is what the movements held at the counting time when the count was posted."
+        ],
+        "empty_result": "The count is not found.",
+        "freshness": "Read from the count and its posting event at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP stock_count_detail",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "stock_count_detail",
+      "projections": [],
+      "links": ["command:stock_count_detail"],
+      "label_de": "Stock count",
+      "resources": ["item"]
     },
     {
       "id": "tool:delivery_rule_set_propose",
@@ -21667,6 +21826,97 @@
       "resources": ["item", "order"]
     },
     {
+      "id": "command:record_stock_count",
+      "kind": "command",
+      "key": "record_stock_count",
+      "label": "Record a stock count",
+      "area": "warehouse",
+      "summary": "Records what was counted at a location and posts each difference against the book at its counting time as an adjustment; a loss comes off free stock first, then the location's blocks.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["location", "item", "lot", "movement", "stock_block", "reservation", "commitment"],
+      "writes": [
+        "stock_count",
+        "stock_count_line",
+        "movement",
+        "stock_block_resolution",
+        "source_record",
+        "business_event"
+      ],
+      "confirmation": "required",
+      "related_services": ["review_stock_count", "book_as_of"],
+      "tools": ["stock_count_propose"],
+      "synopses": ["stock_count_propose location_id [note] lines"],
+      "events": ["stock_count.posted"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:stock_count_propose", "event:stock_count.posted"],
+      "label_de": "Inventur erfassen",
+      "resources": ["item"]
+    },
+    {
+      "id": "command:stock_counts",
+      "kind": "command",
+      "key": "stock_counts",
+      "label": "Read stock counts",
+      "area": "warehouse",
+      "summary": "Lists the counts of a location or of the company, newest first.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["stock_count", "stock_count_line", "location"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["stock_counts"],
+      "synopses": ["stock_counts [location_id]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "List the counts taken at a location or in the company.",
+        "use_when": ["Someone asks when a location was last counted or which counts exist."],
+        "do_not_use_when": ["The question is current stock; read inventory."],
+        "limitations": [
+          "A count is what a person counted; it says nothing about locations not counted."
+        ],
+        "empty_result": "No count has been recorded for the selection.",
+        "freshness": "Read from the counts at request time."
+      },
+      "links": ["tool:stock_counts"],
+      "label_de": "Inventuren anzeigen",
+      "resources": ["item"]
+    },
+    {
+      "id": "command:stock_count_detail",
+      "kind": "command",
+      "key": "stock_count_detail",
+      "label": "Read a stock count",
+      "area": "warehouse",
+      "summary": "Shows one count with each line as counted, the book at its counting time, and the adjustments that posted it.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["stock_count", "stock_count_line", "source_record", "business_event", "location"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["stock_count_detail"],
+      "synopses": ["stock_count_detail stock_count_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Explain one count, line by line, and the adjustments that posted it.",
+        "use_when": ["Someone asks where an adjustment came from or what a count found."],
+        "do_not_use_when": ["The question is current stock; read inventory."],
+        "limitations": [
+          "The book shown is what the movements held at the counting time when the count was posted."
+        ],
+        "empty_result": "The count is not found.",
+        "freshness": "Read from the count and its posting event at request time."
+      },
+      "links": ["tool:stock_count_detail"],
+      "label_de": "Inventur anzeigen",
+      "resources": ["item"]
+    },
+    {
       "id": "command:state_delivery_rule",
       "kind": "command",
       "key": "state_delivery_rule",
@@ -24818,6 +25068,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "stock_count.posted",
         "delivery_rule.stated",
         "document.recorded",
         "document.corrected",
@@ -24900,6 +25151,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "stock_count.posted",
         "delivery_rule.stated",
         "document.recorded",
         "document.corrected",
@@ -24976,6 +25228,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "stock_count.posted",
         "location.created",
         "location.updated",
         "commitment.created",
@@ -25076,6 +25329,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "stock_count.posted",
         "delivery_rule.stated",
         "location.created",
         "location.updated",
@@ -25174,6 +25428,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "stock_count.posted",
         "location.created",
         "location.updated",
         "master_data.lifecycle_changed",
@@ -25263,6 +25518,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "stock_count.posted",
         "delivery_rule.stated",
         "location.updated",
         "master_data.lifecycle_changed",
@@ -25646,6 +25902,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "stock_count.posted",
         "delivery_rule.stated",
         "location.created",
         "location.updated",
@@ -27595,6 +27852,28 @@
       ],
       "links": ["command:scrap_stock_block"],
       "label_de": "stock_block.scrapped",
+      "resources": ["item"]
+    },
+    {
+      "id": "event:stock_count.posted",
+      "kind": "event",
+      "key": "stock_count.posted",
+      "label": "stock_count.posted",
+      "area": "warehouse",
+      "summary": "",
+      "producer": "record_stock_count",
+      "subject": "stock_count",
+      "invalidates": [
+        "Inventory",
+        "Item supply and demand",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Operational Exceptions",
+        "Timeline",
+        "Tenant usage"
+      ],
+      "links": ["command:record_stock_count"],
+      "label_de": "stock_count.posted",
       "resources": ["item"]
     },
     {
@@ -74384,6 +74663,7 @@
         "command:update_location",
         "command:create_payment_term",
         "command:create_price_list",
+        "command:record_stock_count",
         "command:state_delivery_rule",
         "command:record_down_payment_invoice",
         "command:record_proforma_invoice",
@@ -75965,6 +76245,7 @@
         "command:record_movement",
         "command:correct_movement",
         "command:scrap_stock_block",
+        "command:record_stock_count",
         "command:record_packaged_execution",
         "command:record_return_disposition"
       ]

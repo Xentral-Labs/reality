@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:44279e960dfe132c8870468f3a8cf3ca83506f5e5f78161729362271d0888f8f",
+  "knowledge_version": "advisor-v1:sha256:d14f2926ef78dac328d8134283bccb1b7b900d1ac52d3cbf6b46d2f2deca699f",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "32f5343959342d4c50790d781705e1acf462ae21e0a1be632ed0a25a32614efd"
+      "fingerprint": "0434f3536771319ec9b701e65efb66aa5f333ec1cfc1d4893a31077f0af6a4f6"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7207,6 +7207,51 @@
       ],
       "language": "en",
       "fingerprint": "bc6e0faf002ea7f129dee8141c4af05a3d843e70d27a2cad8095c6c53eabc862"
+    },
+    {
+      "id": "evidence_command_record_stock_count",
+      "source_id": "source_executable_commands",
+      "subject": "Record a stock count",
+      "title": "Record a stock count",
+      "search_text": "record_stock_count Record a stock count Records what was counted at a location and posts each difference against the book at its counting time as an adjustment; a loss comes off free stock first, then the location's blocks. mutation",
+      "claim_text": "record_stock_count is a governed mutation command for Records what was counted at a location and posts each difference against the book at its counting time as an adjustment; a loss comes off free stock first, then the location's blocks..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "record_stock_count"
+      ],
+      "language": "en",
+      "fingerprint": "357253a466a2e55cce17e6060d9624489033d063fef8fa02481a81bc12b04749"
+    },
+    {
+      "id": "evidence_command_stock_counts",
+      "source_id": "source_executable_commands",
+      "subject": "Read stock counts",
+      "title": "Read stock counts",
+      "search_text": "stock_counts Read stock counts Lists the counts of a location or of the company, newest first. query",
+      "claim_text": "stock_counts is a governed query command for Lists the counts of a location or of the company, newest first..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "stock_counts"
+      ],
+      "language": "en",
+      "fingerprint": "bf790b8adcdc44b102022496fd715151cf497efa69d636788cd16a3caae23a16"
+    },
+    {
+      "id": "evidence_command_stock_count_detail",
+      "source_id": "source_executable_commands",
+      "subject": "Read a stock count",
+      "title": "Read a stock count",
+      "search_text": "stock_count_detail Read a stock count Shows one count with each line as counted, the book at its counting time, and the adjustments that posted it. query",
+      "claim_text": "stock_count_detail is a governed query command for Shows one count with each line as counted, the book at its counting time, and the adjustments that posted it..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "stock_count_detail"
+      ],
+      "language": "en",
+      "fingerprint": "106c21ed5c96e7c8eefc6ebe8092646aee7669ce710832c7f2f3e2d5719e8406"
     },
     {
       "id": "evidence_command_state_delivery_rule",

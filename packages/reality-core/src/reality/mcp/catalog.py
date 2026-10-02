@@ -2693,6 +2693,53 @@ MCP_TOOL_CATALOG += (
         _read("available_to_promise"),
     ),
     MCPToolDefinition(
+        "stock_count_propose",
+        "Count stock",
+        "Prepare a count of one location: per line the item, its lot where the item is lot-tracked, the counted quantity and optionally when it was counted (default now). The review shows the book at each counting time, the difference, how much of a loss comes from blocks, and the reservations left uncovered. Confirming records the count and posts every difference as an adjustment; movements after a counting time carry on. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {
+                "location_id": STRING,
+                "note": OPTIONAL_STRING,
+                "lines": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 500,
+                    "items": _object_schema(
+                        {
+                            "item_id": STRING,
+                            "lot_id": OPTIONAL_STRING,
+                            "counted_quantity": DECIMAL_STRING,
+                            "counted_at": OPTIONAL_STRING,
+                        },
+                        required=("item_id", "counted_quantity"),
+                    ),
+                },
+            },
+            required=("location_id", "lines"),
+        ),
+        _propose("stock_count"),
+    ),
+    MCPToolDefinition(
+        "stock_counts",
+        "Stock counts",
+        "Read the counts of a location (location_id) or of the company, newest first, with how many lines each has.",
+        "read",
+        "Warehouse",
+        _object_schema({"location_id": OPTIONAL_STRING}),
+        _read("stock_counts"),
+    ),
+    MCPToolDefinition(
+        "stock_count_detail",
+        "Stock count",
+        "Read one count: each line as counted with its counting time, the book then, the difference, and the adjustments and block scraps that posted it.",
+        "read",
+        "Warehouse",
+        _object_schema({"stock_count_id": STRING}, required=("stock_count_id",)),
+        _read("stock_count_detail"),
+    ),
+    MCPToolDefinition(
         "delivery_rule_set_propose",
         "State a delivery rule",
         "Prepare stating how a customer (party_id) or one order (document_id) is delivered: partial_allowed, ship_complete (the whole order in one shipment) or no_backorders (what does not ship with the first shipment is cancelled, not delivered later), with the reason. An order's rule wins over its customer's; lifting ship complete for one order is stating partial_allowed for it. The review shows the rule now and the open orders it governs. A person confirms.",

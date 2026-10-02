@@ -557,12 +557,12 @@ def stock_counts(
 
 
 def stock_count_detail(
-    session: Session, tenant_id: str, count_id: str
+    session: Session, tenant_id: str, stock_count_id: str
 ) -> dict[str, Any]:
     """One count: its lines as counted, and what posting them recorded."""
     count = session.scalar(
         select(StockCount).where(
-            StockCount.tenant_id == tenant_id, StockCount.id == count_id
+            StockCount.tenant_id == tenant_id, StockCount.id == stock_count_id
         )
     )
     if count is None:

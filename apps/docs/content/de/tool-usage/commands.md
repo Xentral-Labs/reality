@@ -170,9 +170,12 @@ angegeben.
 | [`create_lot`](#command-create_lot)                                               | Create lot                                 | Lager & Logistik        | `lot_create_propose`                                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`create_serial_unit`](#command-create_serial_unit)                               | Create serial unit                         | Lager & Logistik        | `serial_unit_create_propose`                                                                                                                                                                 | CLI · Web · API · MCP · Chat            |
 | [`record_packaged_execution`](#command-record_packaged_execution)                 | Dispatch or receive shipment package       | Lager & Logistik        | `shipment_dispatch_propose`, `shipment_receive_propose`                                                                                                                                      | CLI · Web · API · MCP · Chat            |
+| [`stock_count_detail`](#command-stock_count_detail)                               | Read a stock count                         | Lager & Logistik        | `stock_count_detail`                                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`expired_lots`](#command-expired_lots)                                           | Read expired lots                          | Lager & Logistik        | `expired_lots`                                                                                                                                                                               | Web · API · MCP · Chat                  |
 | [`inventory_cost`](#command-inventory_cost)                                       | Read reviewed inventory acquisition costs  | Lager & Logistik        | `cost_inventory_get`                                                                                                                                                                         | CLI · Web · MCP · Chat                  |
 | [`stock_blocks`](#command-stock_blocks)                                           | Read stock blocks                          | Lager & Logistik        | `stock_blocks`                                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
+| [`stock_counts`](#command-stock_counts)                                           | Read stock counts                          | Lager & Logistik        | `stock_counts`                                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
+| [`record_stock_count`](#command-record_stock_count)                               | Record a stock count                       | Lager & Logistik        | `stock_count_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`record_movement`](#command-record_movement)                                     | Record movement                            | Lager & Logistik        | `movement_create_propose`                                                                                                                                                                    | CLI · Web · API · scenario · MCP · Chat |
 | [`record_shipment_event`](#command-record_shipment_event)                         | Record shipment event                      | Lager & Logistik        | `shipment_event_record_propose`                                                                                                                                                              | CLI · Web · API · MCP · Chat            |
 | [`record_shipment_notice`](#command-record_shipment_notice)                       | Record shipment notice                     | Lager & Logistik        | `shipment_notice_record_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
@@ -6083,6 +6086,63 @@ shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_n
 
 **Siehe auch:** Command [`record_packaged_execution`](./commands#command-record_packaged_execution)
 
+### `stock_count_detail` — Read a stock count {#command-stock_count_detail}
+
+Shows one count with each line as counted, the book at its counting time, and the adjustments that
+posted it.
+
+**Aufruf**
+
+```text
+stock_count_detail stock_count_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `stock_count`, `stock_count_line`, `source_record`, `business_event`, `location`
+· Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`stock_count_detail`](./commands#tool-stock_count_detail)
+
+#### `stock_count_detail` — Stock count {#tool-stock_count_detail}
+
+Read one count: each line as counted with its counting time, the book then, the difference, and the
+adjustments and block scraps that posted it.
+
+**Aufruf**
+
+```text
+stock_count_detail stock_count_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage         | Art                        | Standard |
+| ------------------------ | -------------------------- | -------- |
+| `MCP stock_count_detail` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Explain one count, line by line, and the adjustments that posted it.
+
+**Verwenden, wenn**
+
+- Someone asks where an adjustment came from or what a count found.
+
+**Nicht verwenden, wenn**
+
+- The question is current stock; read inventory.
+
+**Parameter**
+
+| Name             | Typ      | Pflicht | Beschreibung                               | Standard |
+| ---------------- | -------- | ------- | ------------------------------------------ | -------- |
+| `stock_count_id` | `string` | ja      | Opaque identity of a recorded stock count. | —        |
+
+**Siehe auch:** Command [`stock_count_detail`](./commands#command-stock_count_detail)
+
 ### `expired_lots` — Read expired lots {#command-expired_lots}
 
 Lists lots whose stated best-before has passed, oldest first; a lot with no stated date is absent in
@@ -6264,6 +6324,111 @@ List stock held back where it lies, with its reason, quantity and who blocked it
 | `status`      | `string` | nein    | Lifecycle state to filter by, such as open, fulfilled, or withdrawn. `active`, `resolved`, `all` | —        |
 
 **Siehe auch:** Command [`stock_blocks`](./commands#command-stock_blocks)
+
+### `stock_counts` — Read stock counts {#command-stock_counts}
+
+Lists the counts of a location or of the company, newest first.
+
+**Aufruf**
+
+```text
+stock_counts [location_id]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `stock_count`, `stock_count_line`, `location` · Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`stock_counts`](./commands#tool-stock_counts)
+
+#### `stock_counts` — Stock counts {#tool-stock_counts}
+
+Read the counts of a location (location_id) or of the company, newest first, with how many lines
+each has.
+
+**Aufruf**
+
+```text
+stock_counts [location_id]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage   | Art                        | Standard |
+| ------------------ | -------------------------- | -------- |
+| `MCP stock_counts` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+List the counts taken at a location or in the company.
+
+**Verwenden, wenn**
+
+- Someone asks when a location was last counted or which counts exist.
+
+**Nicht verwenden, wenn**
+
+- The question is current stock; read inventory.
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                             | Standard |
+| ------------- | -------- | ------- | -------------------------------------------------------- | -------- |
+| `location_id` | `string` | nein    | Opaque identity of the operational or physical location. | —        |
+
+**Siehe auch:** Command [`stock_counts`](./commands#command-stock_counts)
+
+### `record_stock_count` — Record a stock count {#command-record_stock_count}
+
+Records what was counted at a location and posts each difference against the book at its counting
+time as an adjustment; a loss comes off free stock first, then the location's blocks.
+
+**Aufruf**
+
+```text
+stock_count_propose location_id [note] lines
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `location`, `item`, `lot`, `movement`, `stock_block`, `reservation`,
+`commitment` · Schreibt: `stock_count`, `stock_count_line`, `movement`, `stock_block_resolution`,
+`source_record`, `business_event` · Erzeugt: `stock_count.posted`
+
+**Siehe auch:** Agenten-Tool [`stock_count_propose`](./commands#tool-stock_count_propose), Event
+[`stock_count.posted`](./events#event-stock_count-posted)
+
+#### `stock_count_propose` — Count stock {#tool-stock_count_propose}
+
+Prepare a count of one location: per line the item, its lot where the item is lot-tracked, the
+counted quantity and optionally when it was counted (default now). The review shows the book at each
+counting time, the difference, how much of a loss comes from blocks, and the reservations left
+uncovered. Confirming records the count and posts every difference as an adjustment; movements after
+a counting time carry on. A person confirms.
+
+**Aufruf**
+
+```text
+stock_count_propose location_id [note] lines
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                       | Typ      | Pflicht | Beschreibung                                                                                 | Standard |
+| -------------------------- | -------- | ------- | -------------------------------------------------------------------------------------------- | -------- |
+| `location_id`              | `string` | ja      | Opaque identity of the operational or physical location.                                     | —        |
+| `note`                     | `string` | nein    | Free-text record of what the counterparty said, kept with the statement.                     | —        |
+| `lines`                    | `array`  | ja      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction. | —        |
+| `lines[].item_id`          | `string` | ja      | Opaque identity of the operational item reference.                                           | —        |
+| `lines[].lot_id`           | `string` | nein    | Exact batch or lot identity to reserve or move.                                              | —        |
+| `lines[].counted_quantity` | `string` | ja      | —                                                                                            | —        |
+| `lines[].counted_at`       | `string` | nein    | —                                                                                            | —        |
+
+**Siehe auch:** Command [`record_stock_count`](./commands#command-record_stock_count)
 
 ### `record_movement` — Record movement {#command-record_movement}
 

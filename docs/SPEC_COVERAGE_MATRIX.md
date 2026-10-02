@@ -2024,3 +2024,26 @@ Table `delivery_rule`: how a customer, or one of its orders, wants to be deliver
   - The Web prepares, confirms and reads an order rule, and refuses a supplier with its code.
   - Another company can neither read nor state.
   - The CLI asks before stating (declining withdraws the review), states with `--yes` and shows the rule.
+
+## Stock counts — Spec 307
+
+Tables `stock_count` and `stock_count_line`: a count of one location, and per line the item, its lot where tracked, the counted quantity and when it was counted. The book at the counting time is read from the movements; differences are posted as adjustments linked from the lines.
+
+- `packages/reality-core/tests/test_stock_counts.py`:
+  - A gain and a loss are posted and linked to their lines, and the review records nothing.
+  - A line equal to the book posts nothing.
+  - The book is read at the counting time: a movement after it is not part of the difference (J03).
+  - A loss takes free stock first, then blocks.
+  - A loss beyond what is there now is refused.
+  - A lot is counted by its lot, and the other lot is the control; a lot-tracked item without a lot is refused.
+  - The review names the reservations a loss leaves uncovered, with a full count as control (R07).
+  - Counts are refused with their codes: no lines, an unknown item, a serial item, a negative quantity, a future time, a line twice, a location without stock. A valid count is the control.
+  - A confirmation after the book changed is refused.
+  - Another company cannot count here.
+  - The table refuses a negative quantity.
+- `packages/reality-core/tests/test_stock_count_adapters.py`:
+  - The MCP schema is strict, including each line.
+  - An agent proposes a count and a person confirms; a replay records nothing twice, and both reads show it.
+  - The Web prepares, confirms and reads, and refuses an unknown item with its code.
+  - Another company can neither count nor read, with the own list as control.
+  - The CLI asks before recording (declining withdraws the review), records with `--yes`, and lists and shows the count.
