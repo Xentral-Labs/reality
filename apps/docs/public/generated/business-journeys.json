@@ -4240,19 +4240,30 @@
       "section": "B2B specifics",
       "title": "Customer-specific prices, item numbers and names",
       "question": "Customer item number maps to our item?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Customer item number maps to our item?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Customer item number maps to our item? Per customer, a reviewed statement says which of our items the customer's own number names, with the customer's name for it. Order entry and order files resolve lines by that number; an unknown number keeps its line, reported until a person assigns an item and, if wanted, remembers the number for that customer. Order, delivery and invoice show the number the line was ordered by.",
       "limitations": [
-        "Customer-specific prices work.",
-        "Customer item numbers and names are not recorded."
+        "Numbers are matched ignoring case and spaces; there is no fuzzy matching.",
+        "Customer-specific prices come from price lists, not from the item number mapping."
       ],
-      "keywords": [],
+      "keywords": [
+        "customer item number",
+        "customer article number",
+        "Kundenartikelnummer",
+        "Kundenartikel"
+      ],
       "question_examples": [
         "Customer-specific prices, item numbers and names",
-        "Customer item number maps to our item?"
+        "Customer item number maps to our item?",
+        "Our customer orders with its own article numbers; how do they become our items?",
+        "Unser Kunde bestellt mit seinen eigenen Artikelnummern; wie werden daraus unsere Artikel?"
       ],
-      "tools": [],
+      "tools": [
+        "customer_item_number_set_propose",
+        "customer_item_numbers",
+        "order_line_item_assign_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

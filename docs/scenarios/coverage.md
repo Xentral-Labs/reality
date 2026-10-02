@@ -8,7 +8,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 137 covered, 19 partial, 0 missing, 69 gap, 3 out.
+228 scenarios: 138 covered, 18 partial, 0 missing, 69 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -24,7 +24,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | J Warehouse and stock | 6 | 1 |  | 4 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
 | L E-commerce and marketplaces | 7 |  |  | 5 |  |
-| M B2B specifics | 2 | 3 |  | 7 |  |
+| M B2B specifics | 3 | 2 |  | 7 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 3 |  |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
@@ -65,8 +65,8 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
    D17, L03, M03 (L01, M04 partial).
 8. **No framework contracts or schedule lines.** One supplier commitment per PO line; no blanket
    order or call-off. A23, G04, G05, M01.
-9. **Party roles and identity are thin.** No bill-to/payer role, party merge, customer or
-   supplier item numbers, or receivable/payable netting. L10, M10, M11, O02, O06 (M02 partial).
+9. **Party roles and identity are thin.** No bill-to/payer role, party merge,
+   supplier item numbers, or receivable/payable netting. L10, M10, M11, O02, O06.
 10. **Spec 148 trade finance is specified, not built.** Authorization/capture, chargeback,
     marketplace payout, cash on delivery, vouchers and the accounting export package.
     C09, C10, C13, C18, L03, N07, R04. A person records chargebacks and returned direct
@@ -357,7 +357,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | M01 | gap | packages/reality-core/src/reality/db/core.py (Commitment, CommitmentRevision) | There's no blanket-order or call-off relation, so "called off vs remaining" across child orders can't be represented. |
-| M02 | partial | tests/test_pricing.py::test_pricing_resolves_direct_group_default_and_quantity_tiers; tests/test_price_quote_mcp.py::test_price_quote_matches_canonical_service_and_exposes_direct_provenance | Customer-specific prices are proven, but there is no model for a customer item number or name mapped to an Item. |
+| M02 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_orders_by_its_own_item_numbers; tests/test_pricing.py::test_pricing_resolves_direct_group_default_and_quantity_tiers | Customer prices are proven; per customer a number names an item, typed and imported orders resolve it, and an unknown number waits for an assignment that can remember it (spec 308). |
 | M03 | gap | tests/test_master_data_api.py::test_api_ingests_arbitrary_source_as_unmapped | EDI messages can only be stored as unmapped sources; there are no ORDERS/ORDRSP/DESADV/INVOIC/REMADV interpreters or links between messages. |
 | M04 | partial | tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated; tests/scenarios/test_b2b_operational_integrity.py::test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly; tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record | Manual `commitment_revise` is proven; a customer ORDCHG source does not create a revision (a changed Shopify order is held for review instead). |
 | M05 | gap | db/core.py Document.ship_to_party_id | Only one ship-to per document header, so several recipients per order can't be stated. |

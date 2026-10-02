@@ -4116,23 +4116,34 @@ entries:
   section: B2B specifics
   title: Customer-specific prices, item numbers and names
   question: Customer item number maps to our item?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Customer item number maps to our item?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Customer item number maps to our item? Per customer, a reviewed statement says which of our items the customer's own number names, with the customer's name for it. Order entry and order files resolve lines by that number; an unknown number keeps its line, reported until a person assigns an item and, if wanted, remembers the number for that customer. Order, delivery and invoice show the number the line was ordered by."
   limitations:
-  - Customer-specific prices work.
-  - Customer item numbers and names are not recorded.
-  keywords: []
+  - Numbers are matched ignoring case and spaces; there is no fuzzy matching.
+  - Customer-specific prices come from price lists, not from the item number mapping.
+  keywords:
+  - customer item number
+  - customer article number
+  - Kundenartikelnummer
+  - Kundenartikel
   question_examples:
   - Customer-specific prices, item numbers and names
   - Customer item number maps to our item?
-  tools: []
+  - Our customer orders with its own article numbers; how do they become our items?
+  - Unser Kunde bestellt mit seinen eigenen Artikelnummern; wie werden daraus unsere Artikel?
+  tools:
+  - customer_item_number_set_propose
+  - customer_item_numbers
+  - order_line_item_assign_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_pricing.py::test_pricing_resolves_direct_group_default_and_quantity_tiers; tests/test_price_quote_mcp.py::test_price_quote_matches_canonical_service_and_exposes_direct_provenance
-    note: Customer-specific prices are proven, but there is no model for a customer item number or name mapped to an Item.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_orders_by_its_own_item_numbers
+    note: "K-4711 names our wheel: a typed order and an order file resolve it; K-55 is unknown, its line waits, is assigned with remember, and the next file resolves it by itself."
+  - reference: tests/test_pricing.py::test_pricing_resolves_direct_group_default_and_quantity_tiers
+    note: Customer-specific prices (spec 308 adds the item numbers and names).
 - id: M03
   section: B2B specifics
   title: EDI chain ORDERS → ORDRSP → DESADV → INVOIC → REMADV
