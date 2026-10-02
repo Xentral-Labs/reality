@@ -12,14 +12,14 @@ Tests come first in each phase where practical.
 
 ## Phase 2: Mapping (FR-001)
 
-- [ ] T004 Tests:
+- [x] T004 Tests:
   - schema checks and the migration downgrade;
   - set and restate as versions, remove;
   - resolution by customer, case and spaces;
   - the same number at another customer;
   - refusals;
   - tenant isolation.
-- [ ] T005 Migration `0114`, the model, `services/customer_item_numbers.py`, the events, the refusals with translations
+- [x] T005 Migration `0114`, the model, `services/customer_item_numbers.py`, the events, the refusals with translations
 
 ## Phase 3: Order entry and import (FR-002, FR-005)
 
