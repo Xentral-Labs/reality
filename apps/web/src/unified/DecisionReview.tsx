@@ -4,6 +4,38 @@ import { t } from "../localization";
 
 const compactFieldListClass = "space-y-1.5 text-sm";
 const regularFieldListClass = "mt-3 space-y-2 text-sm";
+const privateCarriers = new Set(["private_report_change", "requested_analysis"]);
+
+function inspectionValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(inspectionValue);
+  if (value && typeof value === "object")
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(
+          ([key]) =>
+            !privateCarriers.has(key) &&
+            !/(?:authorization|credential|password|secret|token|api[_-]?key|private[_-]?key)/i.test(
+              key,
+            ),
+        )
+        .map(([key, entry]) => [key, inspectionValue(entry)]),
+    );
+  return value;
+}
+
+export function TechnicalDetails({ value }: { value: unknown }) {
+  return (
+    <details className="mt-5 rounded-xl border border-border-default p-4" data-technical-details>
+      <summary className="cursor-pointer text-sm text-fg-muted">{t("Technical details")}</summary>
+      <pre
+        data-original-content
+        className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap break-words text-xs"
+      >
+        {JSON.stringify(inspectionValue(value), null, 2)}
+      </pre>
+    </details>
+  );
+}
 
 export function DecisionReviewHeader({
   category,
@@ -172,7 +204,7 @@ export function BusinessFieldList({
   return (
     <dl className={compact ? compactFieldListClass : regularFieldListClass}>
       {Object.entries(record)
-        .filter(([key]) => !omit.includes(key))
+        .filter(([key]) => !omit.includes(key) && !privateCarriers.has(key))
         .map(([key, value]) => (
           <div
             key={key}

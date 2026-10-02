@@ -806,6 +806,11 @@ export type ProposalDecisionPolicy = {
   human_involvement_verified: boolean;
 };
 export type ProposalReview = {
+  private_review?: {
+    state: "readable" | "hidden" | "unavailable";
+    details?: Record<string, unknown>;
+    message?: string;
+  };
   id: string;
   tool: string;
   label: string;

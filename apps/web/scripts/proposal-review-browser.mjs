@@ -23,6 +23,17 @@ const proposals = new Map(
         actor_type: "agent",
         created_at: "2026-09-22T08:00:00Z",
         decided_at: null,
+        ...(index === 2
+          ? {
+              private_review: {
+                state: "readable",
+                details: {
+                  operation: "ask",
+                  question: { from: "order", measures: ["stated_order_amount"] },
+                },
+              },
+            }
+          : {}),
         input: { reference: `TEST-${index}`, amount: "125.50" },
         preview: { effect: `Review ${tool}`, requires_confirmation: true },
         receipt: {},
@@ -100,8 +111,8 @@ const deliveryProposals = new Map(
         message: "",
         review: {
           token: `review-${id}`,
-          intent: {},
-          effect: {},
+          intent: { movements: [{ item: "Readable widget", quantity: "3" }] },
+          effect: { description: "Dispatch prepared stock" },
           state: {
             number: "SO-323",
             holds: [],
@@ -190,7 +201,11 @@ try {
     const dialog = page.getByRole("dialog");
     // A tool with a business name in the catalog is titled by it, others by their label.
     const heading =
-      proposal.tool === "payment_term_create" ? "Create payment term" : proposal.label;
+      proposal.tool === "graph.requests.create"
+        ? "Review private change"
+        : proposal.tool === "payment_term_create"
+          ? "Create payment term"
+          : proposal.label;
     await dialog.getByRole("heading", { name: heading, exact: false }).waitFor();
     const authorityMessage =
       proposal.next_step.decision_policy?.approval.authority === "company_member"
@@ -200,7 +215,12 @@ try {
           : "An authenticated company owner must approve this proposal.";
     await dialog.getByText(authorityMessage, { exact: false }).waitFor();
     assert.equal(await dialog.getByText("must approve or reject", { exact: false }).count(), 0);
-    await dialog.getByText("Stated input", { exact: true }).waitFor();
+    await dialog
+      .getByText(proposal.private_review ? "Proposed change" : "Stated input", { exact: true })
+      .waitFor();
+    assert.equal(await dialog.locator("details[open]").count(), 0);
+    await dialog.getByText("Technical details", { exact: true }).click();
+    assert.equal(await dialog.locator("details[open]").count(), 1);
     await dialog.getByText("Prepared preview", { exact: true }).waitFor();
     await dialog.getByRole("button", { name: "Confirm change", exact: true }).click();
     await dialog.getByText("Stored receipt", { exact: true }).waitFor();
@@ -215,6 +235,14 @@ try {
         ? "An authenticated company owner must approve this proposal."
         : "For company operations, an active company member must approve this proposal.";
     await dialog.getByText(message, { exact: false }).waitFor();
+    if (proposal.tool === "shipment_dispatch") {
+      await dialog.getByText("Readable widget", { exact: true }).waitFor();
+      await dialog.getByText("Dispatch prepared stock", { exact: true }).waitFor();
+      assert.equal(await dialog.locator("details[open]").count(), 0);
+      await dialog.getByText("Technical details", { exact: true }).click();
+      assert.equal(await dialog.locator("details[open]").count(), 1);
+      assert.equal(await dialog.getByText(proposal.review.token, { exact: false }).count(), 0);
+    }
     await dialog.getByRole("button", { name: "Confirm", exact: true }).click();
     await page.waitForFunction(() => !document.querySelector("dialog[open]"));
     assert.equal(proposal.status, "executed");
@@ -242,6 +270,40 @@ try {
     }
   }
   assert.equal(approvals, proposals.size + deliveryProposals.size);
+  for (const state of ["legacy", "hidden"]) {
+    const id = `private-${state}`;
+    const original = proposals.get("proposal-2");
+    const fixture = {
+      ...original,
+      id,
+      tool: "graph.reports.change",
+      status: "proposed",
+      input: { private_report_change: "gAAAAA_PRIVATE_CIPHERTEXT" },
+      confirmable: state === "legacy",
+      rejectable: true,
+    };
+    if (state === "legacy") delete fixture.private_review;
+    else
+      fixture.private_review = {
+        state: "hidden",
+        message: "This change is private. Only its original author can view its contents.",
+      };
+    proposals.set(id, fixture);
+    await page.goto(`${base}/app/decisions?tenant=company&proposal=${id}`);
+    const dialog = page.getByRole("dialog");
+    await dialog
+      .getByText("This change is private. Only its original author can view its contents.")
+      .waitFor();
+    assert.equal(
+      await dialog.getByRole("button", { name: "Confirm change", exact: true }).count(),
+      0,
+    );
+    assert.equal(await dialog.getByText("gAAAAA_PRIVATE_CIPHERTEXT", { exact: false }).count(), 0);
+    assert.equal(
+      await dialog.getByRole("button", { name: "Do not approve", exact: true }).count(),
+      1,
+    );
+  }
   assert.deepEqual(errors, []);
 } finally {
   await browser.close();

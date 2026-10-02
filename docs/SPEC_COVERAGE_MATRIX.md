@@ -2071,3 +2071,12 @@ Contract: `docs/features/proposal-decision-policy.md`.
 | 323 FR-008: compatible shared-policy Web presentation | `apps/web/scripts/proposal-decision-policy-contract.test.mjs`; `apps/web/scripts/proposal-review-browser.mjs` |
 
 Execution evidence is recorded in spec 323; this map does not imply completion.
+
+## Spec 325 — Readable proposal reviews
+
+| Requirement | Implementation | Executable proof |
+|---|---|---|
+| FR-001–FR-003, FR-006, DR-001 | Shared principal-aware proposal review; existing private analytics author boundary; Web identity forwarding | `packages/reality-core/tests/test_readable_proposal_reviews.py`; proposal parity, decision-policy and graph lifecycle suites |
+| FR-004–FR-005, FR-007 | Shared nested values/closed sanitized technical disclosure; private and shipment reviews; four-language translations | `apps/web/scripts/readable-proposal-review-contract.test.mjs`; `proposal-review-browser.mjs`; Web/i18n build |
+
+Verification evidence: `specs/325-readable-proposal-reviews/quickstart.md`.

@@ -10,6 +10,7 @@ import {
   DecisionActionBar,
   DecisionReviewHeader,
   ProposalApprovalRequirement,
+  TechnicalDetails,
 } from "./DecisionReview";
 import { proposalBusinessLabel } from "./proposalPresentation";
 
@@ -88,6 +89,13 @@ export function ProposalReviewCard({
   };
   const data = review.data;
   const content = data.status === "proposed" ? data.preview : data.receipt;
+  const privateChange =
+    Boolean(data.private_review) ||
+    data.tool === "graph.reports.change" ||
+    data.tool === "graph.requests.create" ||
+    "private_report_change" in data.input ||
+    "requested_analysis" in data.input;
+  const readablePrivate = data.private_review?.state === "readable";
   return (
     <dialog
       ref={dialog}
@@ -100,7 +108,9 @@ export function ProposalReviewCard({
     >
       <DecisionReviewHeader
         category={data.status === "proposed" ? "Decision required" : "Decision"}
-        title={proposalBusinessLabel(data.tool, data.label)}
+        title={
+          privateChange ? "Review private change" : proposalBusinessLabel(data.tool, data.label)
+        }
         close={close}
         busy={working}
         titleId="proposal-review-title"
@@ -130,9 +140,25 @@ export function ProposalReviewCard({
         </p>
       )}
       <section className="mt-5">
-        <h3 className="font-semibold">{t("Stated input")}</h3>
+        <h3 className="font-semibold">{t(privateChange ? "Proposed change" : "Stated input")}</h3>
         <div className="mt-2 rounded-xl bg-surface-muted p-4">
-          <BusinessFieldList record={data.input} />
+          {privateChange ? (
+            readablePrivate ? (
+              <BusinessFieldList
+                record={data.private_review?.details || {}}
+                omit={["proposal_id", "status", "kind"]}
+              />
+            ) : (
+              <p className="text-sm text-fg-muted">
+                {t(
+                  data.private_review?.message ||
+                    "This change is private. Only its original author can view its contents.",
+                )}
+              </p>
+            )
+          ) : (
+            <BusinessFieldList record={data.input} />
+          )}
         </div>
       </section>
       {data.status !== "proposed" && (
@@ -146,14 +172,24 @@ export function ProposalReviewCard({
           )}
         </p>
       )}
-      <section className="mt-5">
-        <h3 className="font-semibold">
-          {t(data.status === "proposed" ? "Prepared preview" : "Stored receipt")}
-        </h3>
-        <div className="mt-2 rounded-xl bg-surface-muted p-4">
-          <BusinessFieldList record={content} />
-        </div>
-      </section>
+      {(!privateChange || readablePrivate) && (
+        <section className="mt-5">
+          <h3 className="font-semibold">
+            {t(data.status === "proposed" ? "Prepared preview" : "Stored receipt")}
+          </h3>
+          <div className="mt-2 rounded-xl bg-surface-muted p-4">
+            <BusinessFieldList record={content} />
+          </div>
+        </section>
+      )}
+      {(!privateChange || readablePrivate) && (
+        <TechnicalDetails
+          value={{
+            input: privateChange ? data.private_review?.details : data.input,
+            [data.status === "proposed" ? "preview" : "receipt"]: content,
+          }}
+        />
+      )}
       {error && (
         <p role="alert" className="mt-4 text-critical-text">
           {error}
@@ -163,7 +199,11 @@ export function ProposalReviewCard({
         <DecisionActionBar
           busy={working}
           reject={data.rejectable ? () => void decide(false) : undefined}
-          confirm={data.confirmable ? () => void decide(true) : undefined}
+          confirm={
+            data.confirmable && (!privateChange || readablePrivate)
+              ? () => void decide(true)
+              : undefined
+          }
           confirmLabel="Confirm change"
         />
       )}

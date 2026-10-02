@@ -1,8 +1,10 @@
 """Seal private configuration in otherwise tenant-visible proposal records."""
 
 import json
+from typing import Any
 
 from cryptography.fernet import InvalidToken
+from sqlalchemy.orm import Session
 
 from reality.security.secrets import _master_key
 from reality.services.analytics.errors import AnalyticsError
@@ -12,6 +14,7 @@ from reality.services.analytics.reports import (
     owned,
     require_author,
 )
+from reality.services.memberships import Principal
 
 
 def prepare(session, tenant_id, principal, arguments, report_kind="graph"):
@@ -236,3 +239,11 @@ def execute_request(session, tenant_id, principal, arguments):
             "model_version": result.model_version,
         }
     return {"state": "accepted", "request": outcome["request"]}
+
+
+def preview_request(
+    session: Session, tenant_id: str, principal: Principal, arguments: dict[str, Any]
+) -> dict[str, Any]:
+    """Read the held author's question without executing or scheduling it."""
+    payload = _revealed_request(session, tenant_id, principal, arguments)
+    return {"operation": "ask", "question": payload["question"]}
