@@ -41,6 +41,10 @@ def test_record_allowlist_covers_cost_authority_and_rejects_unknown(session, bus
     # Disposable result caches and mutable publication pointers are not retained
     # authority. Keep this exact list so future cost tables require classification.
     caches = {
+        "cost_projection_generation",
+        "cost_projection_inventory",
+        "cost_projection_contribution",
+        "cost_projection_publication",
         "cost_company_contribution_result",
         "cost_company_inventory_result",
         "cost_company_publication",
@@ -54,17 +58,23 @@ def test_record_allowlist_covers_cost_authority_and_rejects_unknown(session, bus
         "cost_inventory_snapshot",
         "cost_publication",
     }
+    # Shared physical membership is inspected through its five original resources.
+    storage_aliases = {"cost_manifest_member", "cost_company_census_member"}
+    assert storage_aliases <= set(Base.metadata.tables)
+    assert not storage_aliases & set(RECORDS)
     assert caches <= set(Base.metadata.tables)
     assert not caches & set(RECORDS)
     assert {k for k in RECORDS if k.startswith("cost_")} == {
-        n for n in Base.metadata.tables if n.startswith("cost_") and n not in caches
+        n
+        for n in Base.metadata.tables
+        if n.startswith("cost_") and n not in caches | storage_aliases
     }
     for kind in [
         "tenant",
         "app_user",
         "cost_missing",
         "cost_part; SELECT 1",
-        *sorted(caches),
+        *sorted(caches | storage_aliases),
     ]:
         with pytest.raises(core.NotFound):
             cost_record(session, business.tenant.id, kind, "missing")

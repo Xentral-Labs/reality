@@ -1,0 +1,163 @@
+{
+  "base_commit": "99043eb34cdb37f83c14faa139fc3d0b6a919133",
+  "snapshot": "/private/tmp/reality-319-acceptance.gu8fby4s",
+  "scope": "HEAD plus only approved specs 316 and 319 code/fixture changes; catalog artifacts regenerated within the snapshot; unchanged files remain at the recorded baseline commit; approved documentation/specifications included; coverage copy excludes unrelated spec 323",
+  "files": [
+    {
+      "path": "apps/docs/.vitepress/data/tool-usage.json",
+      "sha256": "efdd197700523fc63f6795ea2fd8e92b77f4f0e8a3f652cf1bac94257d5fd295"
+    },
+    {
+      "path": "apps/docs/scripts/data_model_reference.py",
+      "sha256": "5af254505a76cd450dbe74d995b60062d72b0a32c6a544928a3f15094618557c"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "sha256": "fa054bb635cd8c2e0662726056249424c3618989edbdf38eac51273c4250ddea"
+    },
+    {
+      "path": "docs/DATA_MODEL.md",
+      "sha256": "d8a4e71de7358fefca4a84b76b84c6a6a8df8d2085d97edaf6aa9f063b7a86d3"
+    },
+    {
+      "path": "docs/SPEC_COVERAGE_MATRIX.md",
+      "sha256": "b33ff27af2fff42c2e0b8e64593f8e5d9bfbc222ed95a600c0ef2c7a36901fb1"
+    },
+    {
+      "path": "packages/reality-core/config/command_catalog.yaml",
+      "sha256": "8d166d33eae5bccfd22a82184b8b7c78ecd5bd1cefc0a530f710bfbc3d5dd60c"
+    },
+    {
+      "path": "packages/reality-core/config/product_advisor_knowledge.json",
+      "sha256": "a23bedb2edd65e1e206f835e8cad1763158d2696a3e0bdce13c78ca134b0760c"
+    },
+    {
+      "path": "packages/reality-core/config/product_capability_map.json",
+      "sha256": "358056f169dc7dfef15bf8d49b6a73d910b6322f1836aad0a346e04324c01df3"
+    },
+    {
+      "path": "packages/reality-core/migrations/env.py",
+      "sha256": "daf35ec8702d0181834df65de8db67c30dc1c7bc8ad69dda339f7e626efd7159"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0115_cost_projections.py",
+      "sha256": "18ac733e7a5b72c6708950592231db9699f8557cd51b5cb27cb7ec7c14b499c2"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0116_account_defaults.py",
+      "sha256": "a8c7a0a3fa84e6612d7562f81d50383638bdd7273c931c4a0d3d3f0283a5120a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/core.py",
+      "sha256": "7cc1bb6e689210a60e3b86a4873b17db50b48c2154bfdcd3c10e72d76baa8838"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/cost_projection_guards.sql",
+      "sha256": "6d9d285c707027923e11a9a2fdd5b70283e132ae6b5726a7675232c8c6fcef45"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/cost_projections.py",
+      "sha256": "a191fb739c5721ab1c14ca5a7a17cf3e70b0d376de19da8d0a7f1a14e9a726e5"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/schema_views.py",
+      "sha256": "b5c538d8aabee34426279b1b763fddaac7f093f456e2917b8f656b86f8fb7fef"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/account_deletion.py",
+      "sha256": "aba743dd86414e7125e8c1d210918383a1b3f3155ab4ee1dae6db24d43741acb"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "sha256": "672ca16b58c49766829a19b7db14d63891aac056f56e22f6c72472fd8a5786c3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/accounts.py",
+      "sha256": "4ba8d81c462ed867749d2d4a65660035285ca85b81157cda3b30d6af7286767f"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_adjustments.py",
+      "sha256": "913c259cb5680004006d4076d38f52fa3fa7914d1bdd0d88b8a40f8a9cfa7ed3"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_components.py",
+      "sha256": "05d43890444bbc5466220493a3cccb2f9e231e2f116827d07091eb78c7792f57"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_references.py",
+      "sha256": "f1f14ef3223697a764a43fcc7658ca9f95c50f74026b2c8bf72dde13bf822c44"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_settlement_flows.py",
+      "sha256": "6d626c91097a2c50a533eb0e04fc02d9d4cdc1894f1c0bbf40c5ce7717735bdc"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_source_mappings.py",
+      "sha256": "ec087d68f0bf7a1ebe3506a6cb44f453c759d4677c2ebeee031068db0004893a"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_target_mappings.py",
+      "sha256": "688a2b669cc15cb424e13feb0297ed94fd81e2db69129cb674a32e64287ec802"
+    },
+    {
+      "path": "packages/reality-core/tests/legacy_finance.py",
+      "sha256": "71cd20772ac32d65ed533df5035fbd13339b079788e2c4175559e6d0b8fbfef0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_account_default_migration.py",
+      "sha256": "e16155335a3bed58fb37b1e80487e9a222e4f9cc0ad263bd843e8637fcbc626d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_account_defaults.py",
+      "sha256": "4e029ca6051e72b622dc180fc1234091f06c597f051f718221175e335ca1f39f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_captured_report.py",
+      "sha256": "8c451cfd6ad9cae1ad7c712babad47e2ef90ad1259cb52ad11c407bf26952ac1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_generation_migration.py",
+      "sha256": "54e2b325e978486420af7154d9eb4d4d86f7f33f8e0082428dabd5f0804e28bb"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_projection_migration.py",
+      "sha256": "f2ff59548ec8872cee5ba3514e4bb26b82c79b5389977e4ec99335b83261b4c3"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_projections.py",
+      "sha256": "ba12610b68a72b253c52fc7a3521a6c40e41fee24b87d1dac84b43c757d776df"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_records.py",
+      "sha256": "b361c31782d8a3c231b386b9e2d77f66b977546a961e52405050348a578c3fb8"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_generation_migration.py",
+      "sha256": "ecae5222f4bd370f5331e092c431b75aa676c38126f59d2fb6c69da344d0c45c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_migrations.py",
+      "sha256": "6f922a6128d74307cbaec9b5bb3ae5c6372da8781969d7e8811e66aed2aced64"
+    },
+    {
+      "path": "packages/reality-core/tests/test_postgresql_integration.py",
+      "sha256": "924a3c4934ae42ff6d56ebe17ab32418cd4242a80b20c07c6acf5c880a4bcbfd"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reporting_graph_coverage.py",
+      "sha256": "5b5f0f532cc71e118576dc07d09f8cdeab554e06a367127165f070b99b5e1eab"
+    },
+    {
+      "path": "packages/reality-core/tests/test_schema_indexes.py",
+      "sha256": "3d668577b158cec452051d0a9c5b06de90bc5a6ec3b3b14e097c77038423358f"
+    },
+    {
+      "path": "specs/328-consolidate-cost-projections/spec.md",
+      "sha256": "6da78ce68e8602f092a8ff7d3b2454fdf4c29dd2d15cbd16ad599df4989ee9ba"
+    },
+    {
+      "path": "specs/329-integrate-account-defaults/spec.md",
+      "sha256": "25388e1c7b89d405d9895cdf33008d2d4201d27e925b7420a0bedad89a43a355"
+    }
+  ]
+}

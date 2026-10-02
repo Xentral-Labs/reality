@@ -74,7 +74,13 @@ class CostCompanyContributionInput(CostRecord, Base):
         UniqueConstraint("tenant_id", "manifest_id", "id"),
         UniqueConstraint("tenant_id", "manifest_id", "census_line_id"),
         _link("manifest_id", "cost_company_manifest"),
-        _link("census_line_id", "cost_company_census_line"),
+        ForeignKeyConstraint(
+            ["tenant_id", "census_line_id"],
+            [
+                "cost_company_census_member.tenant_id",
+                "cost_company_census_member.line_member_identity",
+            ],
+        ),
         _link("review_id", "cost_contribution_review"),
         _link("inventory_review_id", "cost_inventory_review"),
         CheckConstraint(

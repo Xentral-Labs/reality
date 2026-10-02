@@ -20420,12 +20420,7 @@
       "mode": "mutation",
       "adapters": ["CLI", "Web", "MCP", "Chat"],
       "reads": ["tenant", "subledger_account", "finance_role_destination", "finance_state"],
-      "writes": [
-        "subledger_account",
-        "finance_role_destination",
-        "finance_state",
-        "business_event"
-      ],
+      "writes": ["subledger_account", "finance_state", "business_event"],
       "confirmation": null,
       "related_services": [],
       "tools": ["finance_initialize_accounts_propose"],
@@ -20468,12 +20463,7 @@
       "mode": "mutation",
       "adapters": ["CLI", "Web", "MCP", "Chat"],
       "reads": ["tenant", "subledger_account", "finance_role_destination", "finance_state"],
-      "writes": [
-        "subledger_account",
-        "finance_role_destination",
-        "finance_state",
-        "business_event"
-      ],
+      "writes": ["subledger_account", "finance_state", "business_event"],
       "confirmation": null,
       "related_services": [],
       "tools": ["finance_create_account_propose"],
@@ -20516,12 +20506,7 @@
       "mode": "mutation",
       "adapters": ["CLI", "Web", "MCP", "Chat"],
       "reads": ["tenant", "subledger_account", "finance_role_destination", "finance_state"],
-      "writes": [
-        "subledger_account",
-        "finance_role_destination",
-        "finance_state",
-        "business_event"
-      ],
+      "writes": ["subledger_account", "finance_state", "business_event"],
       "confirmation": null,
       "related_services": [],
       "tools": ["finance_update_account_propose"],
@@ -20566,12 +20551,7 @@
       "mode": "mutation",
       "adapters": ["CLI", "Web", "MCP", "Chat"],
       "reads": ["tenant", "subledger_account", "finance_role_destination", "finance_state"],
-      "writes": [
-        "subledger_account",
-        "finance_role_destination",
-        "finance_state",
-        "business_event"
-      ],
+      "writes": ["subledger_account", "finance_state", "business_event"],
       "confirmation": null,
       "related_services": [],
       "tools": ["finance_set_default_account_propose"],
@@ -80393,6 +80373,20 @@
             "de": "Version zur Erkennung konkurrierender Änderungen."
           },
           "references": []
+        },
+        {
+          "name": "default_destination_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Opaque identity of the default selection; empty means this account is not selected as the default for its role.",
+            "de": "Interne Identität der Standardauswahl; leer bedeutet, dass dieses Konto nicht als Standard seiner Rolle ausgewählt ist."
+          },
+          "references": []
         }
       ],
       "actions": [
@@ -80413,8 +80407,8 @@
         "role": "accounts_receivable"
       },
       "note": {
-        "en": "The role destination maps a financial role to an account. tenant_id and account_id jointly reference the account in the same company.",
-        "de": "Das Rollenziel ordnet einer Finanzrolle ein Konto zu. tenant_id und account_id verweisen gemeinsam auf das Konto desselben Unternehmens."
+        "en": "This read-only view exposes the default selection stored on the account, preserving its opaque selection ID within the same company. It has no separate physical storage.",
+        "de": "Diese schreibgeschützte Sicht zeigt die am Konto gespeicherte Standardauswahl mit ihrer unveränderten internen Auswahl-ID im selben Unternehmen. Sie besitzt keine eigene physische Speicherung."
       },
       "derived": {
         "en": "This selects a posting destination; it neither holds a balance nor rewrites earlier postings.",
@@ -80484,12 +80478,7 @@
           "references": ["subledger_account.id"]
         }
       ],
-      "actions": [
-        "command:initialize_accounts",
-        "command:create_account",
-        "command:update_account",
-        "command:set_default_account"
-      ]
+      "actions": []
     },
     {
       "key": "ledger_reversal",

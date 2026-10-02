@@ -1,0 +1,6937 @@
+{
+  "scope": "Working-tree SQLAlchemy physical cost tables; metadata only, no live connection. Excludes compatibility views and their logical constraints.",
+  "tables": [
+    {
+      "table": "cost_attribution_part",
+      "columns": [
+        {
+          "name": "attribution_revision_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "receipt_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "amount_bucket",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "category",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "source_share",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "cost_effect",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "assignment_kind",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "conversion_basis_revision_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "amount_bucket",
+          "attribution_revision_id",
+          "category",
+          "receipt_basis_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "amount_bucket IN ('selected_basis','nonrecoverable_tax') AND assignment_kind IN ('direct','allocated')",
+        "category IN ('goods','inbound_freight','duty','other_acquisition','purchase_reduction','nonrecoverable_tax')",
+        "source_share<>0 AND cost_effect IN (-1,1)"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "attribution_revision_id"
+          ],
+          "target": "cost_attribution_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "conversion_basis_revision_id"
+          ],
+          "target": "cost_conversion_basis_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "receipt_basis_id"
+          ],
+          "target": "cost_receipt_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_attribution_revision",
+      "columns": [
+        {
+          "name": "component_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "supersedes_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "effective_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "state",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "basis",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tax_treatment",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "selected_basis_tax_inclusion",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "nonrecoverable_tax_amount",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "component_basis_id",
+          "revision",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "supersedes_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "revision>0 AND state IN ('assigned','withdrawn') AND basis IN ('net','gross','base')",
+        "tax_treatment IN ('recoverable','nonrecoverable','mixed','not_applicable','unknown') AND selected_basis_tax_inclusion IN ('included','excluded','unknown')"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "component_basis_id"
+          ],
+          "target": "cost_component_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target": "cost_attribution_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_attribution_part",
+          "columns": [
+            "tenant_id",
+            "attribution_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_attribution_revision",
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_commercial_direct_part",
+          "columns": [
+            "tenant_id",
+            "attribution_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_manifest_attribution",
+          "columns": [
+            "tenant_id",
+            "attribution_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_selling_attribution_part",
+          "columns": [
+            "tenant_id",
+            "attribution_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_captured_basis",
+      "columns": [
+        {
+          "name": "census_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "request_id",
+          "type": "VARCHAR(128)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "request_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "basis_version",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "state",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "sealed_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "contribution_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "basis_digest",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "observations",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "request_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "basis_version='captured-review-basis-v2' AND length(request_hash)=64 AND length(basis_digest)=64",
+        "inventory_count>=0 AND contribution_count>=0 AND inventory_count+contribution_count<=10",
+        "state IN ('building','sealed') AND ((state='sealed') = (sealed_at IS NOT NULL))"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target": "cost_company_census",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_captured_contribution_basis",
+          "columns": [
+            "tenant_id",
+            "basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_captured_inventory_basis",
+          "columns": [
+            "tenant_id",
+            "basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_projection_generation",
+          "columns": [
+            "tenant_id",
+            "captured_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_captured_contribution_basis",
+      "columns": [
+        {
+          "name": "basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "document_line_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "observations",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "basis_id",
+          "document_line_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "length(content_hash)=64"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "basis_id"
+          ],
+          "target": "cost_captured_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "document_line_id"
+          ],
+          "target": "document_line",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_contribution_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_projection_contribution",
+          "columns": [
+            "tenant_id",
+            "contribution_basis_member_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_captured_inventory_basis",
+      "columns": [
+        {
+          "name": "basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "item_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "observations",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "basis_id",
+          "item_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "length(content_hash)=64"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "basis_id"
+          ],
+          "target": "cost_captured_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "item_id"
+          ],
+          "target": "item",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_inventory_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_projection_inventory",
+          "columns": [
+            "tenant_id",
+            "inventory_basis_member_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_commercial_direct_part",
+      "columns": [
+        {
+          "name": "match_revision_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "attribution_revision_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_role",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "attribution_revision_id",
+          "input_role",
+          "match_revision_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "input_role IN ('service_input','shipping_input','kit_input','production_input') AND input_schema_version=1"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "attribution_revision_id"
+          ],
+          "target": "cost_attribution_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "match_revision_id"
+          ],
+          "target": "cost_commercial_match_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_commercial_inventory_part",
+      "columns": [
+        {
+          "name": "match_revision_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_member_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "original_issue_member_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "entry_movement_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "receipt_movement_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "entry_movement_basis_id",
+          "inventory_member_id",
+          "match_revision_id",
+          "receipt_movement_basis_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "quantity>0 AND input_schema_version=1"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "entry_movement_basis_id"
+          ],
+          "target": "cost_movement_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "inventory_member_id"
+          ],
+          "target": "cost_inventory_member",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "match_revision_id"
+          ],
+          "target": "cost_commercial_match_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "original_issue_member_id"
+          ],
+          "target": "cost_inventory_member",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "receipt_movement_basis_id"
+          ],
+          "target": "cost_movement_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_commercial_match_revision",
+      "columns": [
+        {
+          "name": "document_line_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "order_line_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "supersedes_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "stated_net",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "stated_quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "base_unit",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "evidence_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "goods_cost_disposition",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "profile",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "document_line_id",
+          "revision",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "supersedes_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "content_hash='building' OR length(content_hash)=64",
+        "goods_cost_disposition IN ('inventory','direct_evidence','not_applicable','unresolved')",
+        "revision>0 AND stated_quantity<>0 AND profile='commercial_v1' AND input_schema_version=1"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "document_line_id"
+          ],
+          "target": "document_line",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "order_line_id"
+          ],
+          "target": "document_line",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target": "cost_commercial_match_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_commercial_direct_part",
+          "columns": [
+            "tenant_id",
+            "match_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_commercial_inventory_part",
+          "columns": [
+            "tenant_id",
+            "match_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_commercial_match_revision",
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_company_census",
+      "columns": [
+        {
+          "name": "request_id",
+          "type": "VARCHAR(128)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "request_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "effective_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "observed_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "snapshot_identity",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "event_sequence",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "state",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "movement_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "document_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "line_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "source_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "sealed_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "request_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "input_schema_version=1 AND event_sequence>=0 AND length(request_hash)=64 AND length(content_hash)=64",
+        "movement_count>=0 AND document_count>=0 AND line_count>=0 AND source_count>=0 AND movement_count+document_count+line_count+source_count<=100000",
+        "state IN ('building','sealed') AND ((state='sealed') = (sealed_at IS NOT NULL))"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_captured_basis",
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_company_census_document",
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_company_census_line",
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_company_census_movement",
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_company_census_source",
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_company_manifest",
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_company_census_document",
+      "columns": [
+        {
+          "name": "census_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "document_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "observed_values",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "census_id",
+          "document_id",
+          "tenant_id"
+        ],
+        [
+          "census_id",
+          "id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "length(content_hash)=64"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target": "cost_company_census",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "document_id"
+          ],
+          "target": "document",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_company_census_line",
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "document_member_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_company_census_line",
+      "columns": [
+        {
+          "name": "census_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "document_line_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "observed_values",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "document_member_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "census_id",
+          "document_line_id",
+          "tenant_id"
+        ],
+        [
+          "census_id",
+          "id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "length(content_hash)=64"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "document_member_id"
+          ],
+          "target": "cost_company_census_document",
+          "target_columns": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target": "cost_company_census",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "document_line_id"
+          ],
+          "target": "document_line",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_company_contribution_input",
+          "columns": [
+            "tenant_id",
+            "census_line_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_company_census_movement",
+      "columns": [
+        {
+          "name": "census_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "movement_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "observed_values",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "census_id",
+          "id",
+          "tenant_id"
+        ],
+        [
+          "census_id",
+          "movement_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "length(content_hash)=64"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target": "cost_company_census",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "movement_id"
+          ],
+          "target": "movement",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_company_census_source",
+      "columns": [
+        {
+          "name": "census_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "source_record_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "observed_values",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "interpretation_outcome_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "census_id",
+          "id",
+          "tenant_id"
+        ],
+        [
+          "census_id",
+          "source_record_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "length(content_hash)=64"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target": "cost_company_census",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "interpretation_outcome_id"
+          ],
+          "target": "interpretation_outcome",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "source_record_id"
+          ],
+          "target": "source_record",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_company_contribution_input",
+      "columns": [
+        {
+          "name": "manifest_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "census_line_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_review_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "input_fingerprint",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "db1_state",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "db2_state",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "census_line_id",
+          "manifest_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "manifest_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "db1_state IN ('known','unknown') AND db2_state IN ('known','unknown') AND NOT (db2_state='known' AND db1_state='unknown') AND ((db1_state='known') = (review_id IS NOT NULL)) AND length(input_fingerprint)=64"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_line_id"
+          ],
+          "target": "cost_company_census_line",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "inventory_review_id"
+          ],
+          "target": "cost_inventory_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target": "cost_company_manifest",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_contribution_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_projection_contribution",
+          "columns": [
+            "tenant_id",
+            "contribution_input_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_company_inventory_input",
+      "columns": [
+        {
+          "name": "manifest_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "item_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "input_fingerprint",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "support_state",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "manifest_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "item_id",
+          "manifest_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "support_state IN ('known','unknown') AND ((support_state='known') = (review_id IS NOT NULL)) AND length(input_fingerprint)=64"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "item_id"
+          ],
+          "target": "item",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target": "cost_company_manifest",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_inventory_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_projection_inventory",
+          "columns": [
+            "tenant_id",
+            "inventory_input_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_company_manifest",
+      "columns": [
+        {
+          "name": "census_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "effective_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "knowledge_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "target_event_sequence",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_algorithm_version",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "contribution_algorithm_version",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "scope_key",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "population_digest",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "contribution_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "header_gap_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "source_gap_count",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "gap_digest",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "state",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "sealed_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "content_hash",
+          "scope_key",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "length(scope_key)=64 AND length(population_digest)=64 AND length(gap_digest)=64 AND length(content_hash)=64",
+        "state IN ('building','sealed') AND ((state='sealed') = (sealed_at IS NOT NULL))",
+        "target_event_sequence>=0 AND inventory_count>=0 AND contribution_count>=0 AND header_gap_count>=0 AND source_gap_count>=0"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "target": "cost_company_census",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_company_contribution_input",
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_company_inventory_input",
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_projection_generation",
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_component_basis",
+      "columns": [
+        {
+          "name": "component_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "interpretation_outcome_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "evidence_fingerprint",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "component_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "component_id"
+          ],
+          "target": "financial_component",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "interpretation_outcome_id"
+          ],
+          "target": "interpretation_outcome",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_attribution_revision",
+          "columns": [
+            "tenant_id",
+            "component_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_component_replacement",
+          "columns": [
+            "tenant_id",
+            "previous_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_component_replacement",
+          "columns": [
+            "tenant_id",
+            "replacement_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_manifest_component",
+          "columns": [
+            "tenant_id",
+            "component_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_component_replacement",
+      "columns": [
+        {
+          "name": "previous_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "replacement_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "previous_basis_id",
+          "tenant_id"
+        ],
+        [
+          "replacement_basis_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "previous_basis_id<>replacement_basis_id"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "previous_basis_id"
+          ],
+          "target": "cost_component_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "replacement_basis_id"
+          ],
+          "target": "cost_component_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_manifest_replacement",
+          "columns": [
+            "tenant_id",
+            "replacement_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_contribution_review",
+      "columns": [
+        {
+          "name": "revenue_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_member_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "supersedes_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "profile",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "economic_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "knowledge_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "event_sequence",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "revenue_basis_id",
+          "revision",
+          "tenant_id"
+        ],
+        [
+          "supersedes_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "revision>0 AND profile='commercial_v1' AND event_sequence>=0"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "inventory_member_id"
+          ],
+          "target": "cost_inventory_member",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "revenue_basis_id"
+          ],
+          "target": "cost_revenue_match_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target": "cost_contribution_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_captured_contribution_basis",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_company_contribution_input",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_contribution_review",
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_projection_contribution",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_selling_review_category",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_selling_review_member",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_conversion_basis_revision",
+      "columns": [
+        {
+          "name": "evidence_source_record_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "kind",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "from_code",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "to_code",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "numerator",
+          "type": "NUMERIC(28, 12)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "denominator",
+          "type": "NUMERIC(28, 12)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "effective_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "supersedes_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "from_code",
+          "kind",
+          "revision",
+          "tenant_id",
+          "to_code"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "supersedes_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "content_hash='building' OR length(content_hash)=64",
+        "revision>0 AND kind IN ('unit','currency') AND from_code<>to_code AND numerator>0 AND denominator>0 AND input_schema_version=1"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "evidence_source_record_id"
+          ],
+          "target": "source_record",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target": "cost_conversion_basis_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_attribution_part",
+          "columns": [
+            "tenant_id",
+            "conversion_basis_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_conversion_basis_revision",
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_selling_attribution_part",
+          "columns": [
+            "tenant_id",
+            "conversion_basis_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_correction_basis",
+      "columns": [
+        {
+          "name": "movement_correction_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "movement_correction_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "movement_correction_id"
+          ],
+          "target": "movement_correction",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_manifest_correction",
+          "columns": [
+            "tenant_id",
+            "correction_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_input_manifest",
+      "columns": [
+        {
+          "name": "target_event_sequence",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "effective_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "knowledge_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "algorithm_version",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "state",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "sealed_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "state IN ('sealed') AND target_event_sequence>=0"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_inventory_member",
+          "columns": [
+            "tenant_id",
+            "receipt_manifest_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_manifest_attribution",
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_manifest_component",
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_manifest_correction",
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_manifest_receipt",
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_manifest_replacement",
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_scope_review",
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_inventory_member",
+      "columns": [
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "movement_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "kind",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "receipt_manifest_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "ownership_revision_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "movement_basis_id",
+          "review_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "(kind='receipt' AND receipt_manifest_id IS NOT NULL AND ownership_revision_id IS NOT NULL) OR (kind IN ('issue','transfer','loss','supplier_return','customer_return','opening') AND receipt_manifest_id IS NULL AND ownership_revision_id IS NULL)"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "movement_basis_id"
+          ],
+          "target": "cost_movement_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "ownership_revision_id"
+          ],
+          "target": "cost_ownership_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "receipt_manifest_id"
+          ],
+          "target": "cost_input_manifest",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_inventory_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_commercial_inventory_part",
+          "columns": [
+            "tenant_id",
+            "inventory_member_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_commercial_inventory_part",
+          "columns": [
+            "tenant_id",
+            "original_issue_member_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_contribution_review",
+          "columns": [
+            "tenant_id",
+            "inventory_member_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_valuation_assessment_part",
+          "columns": [
+            "tenant_id",
+            "inventory_member_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_inventory_ownership_part",
+      "columns": [
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "movement_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "owner_party_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "evidence_source_record_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "movement_basis_id",
+          "owner_party_id",
+          "review_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "quantity>0 AND input_schema_version=1"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "evidence_source_record_id"
+          ],
+          "target": "source_record",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "movement_basis_id"
+          ],
+          "target": "cost_movement_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "owner_party_id"
+          ],
+          "target": "party",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_inventory_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_inventory_review",
+      "columns": [
+        {
+          "name": "policy_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "effective_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "target_event_sequence",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "knowledge_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "algorithm_version",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "policy_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "target_event_sequence>=0 AND input_schema_version=1 AND algorithm_version='inventory-v1'"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "policy_id"
+          ],
+          "target": "cost_policy_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_captured_inventory_basis",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_company_contribution_input",
+          "columns": [
+            "tenant_id",
+            "inventory_review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_company_inventory_input",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_inventory_member",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_inventory_ownership_part",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_projection_generation",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_projection_publication",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_valuation_assessment_revision",
+          "columns": [
+            "tenant_id",
+            "inventory_review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_manifest_attribution",
+      "columns": [
+        {
+          "name": "manifest_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "attribution_revision_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "attribution_revision_id",
+          "manifest_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "attribution_revision_id"
+          ],
+          "target": "cost_attribution_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target": "cost_input_manifest",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_manifest_component",
+      "columns": [
+        {
+          "name": "manifest_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "component_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "component_basis_id",
+          "manifest_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "component_basis_id"
+          ],
+          "target": "cost_component_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target": "cost_input_manifest",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_manifest_correction",
+      "columns": [
+        {
+          "name": "manifest_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "correction_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "correction_basis_id",
+          "manifest_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "correction_basis_id"
+          ],
+          "target": "cost_correction_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target": "cost_input_manifest",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_manifest_receipt",
+      "columns": [
+        {
+          "name": "manifest_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "receipt_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "manifest_id",
+          "receipt_basis_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target": "cost_input_manifest",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "receipt_basis_id"
+          ],
+          "target": "cost_receipt_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_manifest_replacement",
+      "columns": [
+        {
+          "name": "manifest_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "replacement_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "manifest_id",
+          "replacement_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target": "cost_input_manifest",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "replacement_id"
+          ],
+          "target": "cost_component_replacement",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_movement_basis",
+      "columns": [
+        {
+          "name": "movement_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "movement_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "movement_type",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "base_quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "base_unit",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "occurred_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "movement_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "base_quantity>0 AND movement_type IN ('receipt','shipment','transfer','return','supplier_return','adjustment','opening_stock') AND input_schema_version=1"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "movement_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "movement_id"
+          ],
+          "target": "movement",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_commercial_inventory_part",
+          "columns": [
+            "tenant_id",
+            "entry_movement_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_commercial_inventory_part",
+          "columns": [
+            "tenant_id",
+            "receipt_movement_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_inventory_member",
+          "columns": [
+            "tenant_id",
+            "movement_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_inventory_ownership_part",
+          "columns": [
+            "tenant_id",
+            "movement_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_opening_basis",
+          "columns": [
+            "tenant_id",
+            "movement_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_revenue_match_basis",
+          "columns": [
+            "tenant_id",
+            "movement_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_opening_basis",
+      "columns": [
+        {
+          "name": "movement_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "owner_party_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "evidence_source_record_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "acquisition_cost",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "movement_basis_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "acquisition_cost>=0 AND input_schema_version=1"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "evidence_source_record_id"
+          ],
+          "target": "source_record",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "movement_basis_id"
+          ],
+          "target": "cost_movement_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "owner_party_id"
+          ],
+          "target": "party",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_ownership_revision",
+      "columns": [
+        {
+          "name": "receipt_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "owner_party_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "evidence_source_record_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "covered_quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "supersedes_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "receipt_basis_id",
+          "revision",
+          "tenant_id"
+        ],
+        [
+          "supersedes_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "revision>0 AND covered_quantity>0"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "evidence_source_record_id"
+          ],
+          "target": "source_record",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "owner_party_id"
+          ],
+          "target": "party",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "receipt_basis_id"
+          ],
+          "target": "cost_receipt_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target": "cost_ownership_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_inventory_member",
+          "columns": [
+            "tenant_id",
+            "ownership_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_ownership_revision",
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_policy_revision",
+      "columns": [
+        {
+          "name": "item_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "owner_party_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "supersedes_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "method",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "base_unit",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "history_start",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "item_id",
+          "revision",
+          "tenant_id"
+        ],
+        [
+          "supersedes_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "revision>0 AND method IN ('fifo','specific')"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "item_id"
+          ],
+          "target": "item",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "owner_party_id"
+          ],
+          "target": "party",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target": "cost_policy_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_inventory_review",
+          "columns": [
+            "tenant_id",
+            "policy_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_policy_revision",
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_projection_contribution",
+      "columns": [
+        {
+          "name": "generation_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "goods_cost",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "known_direct_selling_cost",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "known_allocated_selling_cost",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "selling_complete",
+          "type": "BOOLEAN",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "contribution_basis_member_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "state",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "base_unit",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "revenue",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "direct_selling_cost",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "allocated_selling_cost",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "contribution_input_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "contribution_generation_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "db1_state",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "db2_state",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "result_fingerprint",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "projection_family",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "generation_id_family",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "contribution_generation_id_family",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "projection_family",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "projection_family <> 'cost_company_contribution_result' OR (db1_state IN ('known','unknown') AND db2_state IN ('known','unknown') AND NOT (db2_state='known' AND db1_state='unknown') AND ((db1_state='known') = (contribution_generation_id IS NOT NULL AND review_id IS NOT NULL)) AND length(result_fingerprint)=64)",
+        "projection_family <> 'cost_company_contribution_result' OR (generation_id IS NOT NULL AND contribution_input_id IS NOT NULL AND db1_state IS NOT NULL AND db2_state IS NOT NULL AND result_fingerprint IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_company_contribution_result' AND generation_id_family = 'cost_company_generation' AND contribution_generation_id_family = 'cost_contribution_generation' AND projection_family IS NOT NULL AND generation_id_family IS NOT NULL AND contribution_generation_id_family IS NOT NULL AND goods_cost IS NULL AND known_direct_selling_cost IS NULL AND known_allocated_selling_cost IS NULL AND selling_complete IS NULL AND contribution_basis_member_id IS NULL AND state IS NULL AND currency IS NULL AND base_unit IS NULL AND revenue IS NULL AND direct_selling_cost IS NULL AND allocated_selling_cost IS NULL)",
+        "projection_family <> 'cost_contribution_row' OR ((state='available_at_capture' AND currency IS NOT NULL AND base_unit IS NOT NULL AND revenue IS NOT NULL AND goods_cost IS NOT NULL) OR (state='unknown_at_capture' AND currency IS NULL AND base_unit IS NULL AND revenue IS NULL AND goods_cost IS NULL AND direct_selling_cost IS NULL AND allocated_selling_cost IS NULL))",
+        "projection_family <> 'cost_contribution_row' OR (generation_id IS NOT NULL AND contribution_basis_member_id IS NOT NULL AND state IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_contribution_row' AND generation_id_family = 'cost_generation' AND projection_family IS NOT NULL AND generation_id_family IS NOT NULL AND review_id IS NULL AND known_direct_selling_cost IS NULL AND known_allocated_selling_cost IS NULL AND selling_complete IS NULL AND contribution_input_id IS NULL AND contribution_generation_id IS NULL AND db1_state IS NULL AND db2_state IS NULL AND result_fingerprint IS NULL AND contribution_generation_id_family IS NULL)",
+        "projection_family <> 'cost_contribution_row' OR (goods_cost>=0)",
+        "projection_family <> 'cost_contribution_snapshot' OR ((known_direct_selling_cost IS NULL) = (known_allocated_selling_cost IS NULL) AND (NOT selling_complete OR known_direct_selling_cost IS NOT NULL))",
+        "projection_family <> 'cost_contribution_snapshot' OR (generation_id IS NOT NULL AND review_id IS NOT NULL AND goods_cost IS NOT NULL AND selling_complete IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_contribution_snapshot' AND generation_id_family = 'cost_contribution_generation' AND projection_family IS NOT NULL AND generation_id_family IS NOT NULL AND contribution_basis_member_id IS NULL AND state IS NULL AND currency IS NULL AND base_unit IS NULL AND revenue IS NULL AND direct_selling_cost IS NULL AND allocated_selling_cost IS NULL AND contribution_input_id IS NULL AND contribution_generation_id IS NULL AND db1_state IS NULL AND db2_state IS NULL AND result_fingerprint IS NULL AND contribution_generation_id_family IS NULL)",
+        "projection_family <> 'cost_contribution_snapshot' OR (goods_cost>=0)",
+        "projection_family IN ('cost_contribution_snapshot', 'cost_contribution_row', 'cost_company_contribution_result')"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "contribution_basis_member_id"
+          ],
+          "target": "cost_captured_contribution_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "contribution_generation_id_family",
+            "contribution_generation_id"
+          ],
+          "target": "cost_projection_generation",
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "contribution_input_id"
+          ],
+          "target": "cost_company_contribution_input",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "generation_id_family",
+            "generation_id"
+          ],
+          "target": "cost_projection_generation",
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_contribution_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_projection_generation",
+      "columns": [
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "assessment_revision_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "algorithm_version",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "completed_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "output_hash",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "captured_basis_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "kind",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "scope_key",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "state",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_count",
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "contribution_count",
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "manifest_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "algorithm_bundle",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "expected_work_count",
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "completed_work_count",
+          "type": "INTEGER",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "contribution_content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "started_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "projection_family",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "projection_family",
+          "review_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "projection_family",
+          "scope_key",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "projection_family",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "projection_family <> 'cost_company_generation' OR (expected_work_count>=0 AND completed_work_count>=0 AND completed_work_count<=expected_work_count AND inventory_count>=0 AND contribution_count>=0)",
+        "projection_family <> 'cost_company_generation' OR (length(scope_key)=64 AND length(inventory_content_hash)=64 AND length(contribution_content_hash)=64)",
+        "projection_family <> 'cost_company_generation' OR (manifest_id IS NOT NULL AND algorithm_bundle IS NOT NULL AND scope_key IS NOT NULL AND state IS NOT NULL AND expected_work_count IS NOT NULL AND completed_work_count IS NOT NULL AND inventory_count IS NOT NULL AND contribution_count IS NOT NULL AND inventory_content_hash IS NOT NULL AND contribution_content_hash IS NOT NULL AND started_at IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_company_generation' AND projection_family IS NOT NULL AND review_id IS NULL AND assessment_revision_id IS NULL AND algorithm_version IS NULL AND output_hash IS NULL AND action_id IS NULL AND captured_basis_id IS NULL AND kind IS NULL)",
+        "projection_family <> 'cost_company_generation' OR (state IN ('building','sealed') AND ((state='sealed') = (completed_at IS NOT NULL)))",
+        "projection_family <> 'cost_contribution_generation' OR (action_id IS NOT NULL AND algorithm_version IS NOT NULL AND completed_at IS NOT NULL AND output_hash IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_contribution_generation' AND projection_family IS NOT NULL AND review_id IS NULL AND assessment_revision_id IS NULL AND captured_basis_id IS NULL AND kind IS NULL AND scope_key IS NULL AND state IS NULL AND inventory_count IS NULL AND contribution_count IS NULL AND manifest_id IS NULL AND algorithm_bundle IS NULL AND expected_work_count IS NULL AND completed_work_count IS NULL AND inventory_content_hash IS NULL AND contribution_content_hash IS NULL AND started_at IS NULL)",
+        "projection_family <> 'cost_contribution_generation' OR (algorithm_version='commercial-v1' AND length(output_hash)=64)",
+        "projection_family <> 'cost_generation' OR (captured_basis_id IS NOT NULL AND kind IS NOT NULL AND algorithm_version IS NOT NULL AND scope_key IS NOT NULL AND state IS NOT NULL AND inventory_count IS NOT NULL AND contribution_count IS NOT NULL AND output_hash IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_generation' AND projection_family IS NOT NULL AND review_id IS NULL AND assessment_revision_id IS NULL AND action_id IS NULL AND manifest_id IS NULL AND algorithm_bundle IS NULL AND expected_work_count IS NULL AND completed_work_count IS NULL AND inventory_content_hash IS NULL AND contribution_content_hash IS NULL AND started_at IS NULL)",
+        "projection_family <> 'cost_generation' OR (inventory_count>=0 AND contribution_count>=0 AND inventory_count+contribution_count<=10)",
+        "projection_family <> 'cost_generation' OR (kind='captured_review_selection_v1' AND algorithm_version='captured-report-v1' AND length(scope_key)=64 AND length(output_hash)=64)",
+        "projection_family <> 'cost_generation' OR (state IN ('building','sealed') AND ((state='sealed') = (completed_at IS NOT NULL)))",
+        "projection_family <> 'cost_inventory_generation' OR (algorithm_version='inventory-v1' AND length(output_hash)=64)",
+        "projection_family <> 'cost_inventory_generation' OR (review_id IS NOT NULL AND algorithm_version IS NOT NULL AND completed_at IS NOT NULL AND output_hash IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_inventory_generation' AND projection_family IS NOT NULL AND action_id IS NULL AND captured_basis_id IS NULL AND kind IS NULL AND scope_key IS NULL AND state IS NULL AND inventory_count IS NULL AND contribution_count IS NULL AND manifest_id IS NULL AND algorithm_bundle IS NULL AND expected_work_count IS NULL AND completed_work_count IS NULL AND inventory_content_hash IS NULL AND contribution_content_hash IS NULL AND started_at IS NULL)",
+        "projection_family IN ('cost_inventory_generation', 'cost_contribution_generation', 'cost_generation', 'cost_company_generation')"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "assessment_revision_id"
+          ],
+          "target": "cost_valuation_assessment_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "captured_basis_id"
+          ],
+          "target": "cost_captured_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target": "cost_company_manifest",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_inventory_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_projection_contribution",
+          "columns": [
+            "tenant_id",
+            "contribution_generation_id_family",
+            "contribution_generation_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_projection_contribution",
+          "columns": [
+            "tenant_id",
+            "generation_id_family",
+            "generation_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_projection_inventory",
+          "columns": [
+            "tenant_id",
+            "generation_id_family",
+            "generation_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_projection_inventory",
+          "columns": [
+            "tenant_id",
+            "inventory_generation_id_family",
+            "inventory_generation_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_projection_publication",
+          "columns": [
+            "tenant_id",
+            "generation_id_family",
+            "review_id",
+            "generation_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "review_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_projection_publication",
+          "columns": [
+            "tenant_id",
+            "generation_id_family",
+            "scope_key",
+            "generation_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "scope_key",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_projection_inventory",
+      "columns": [
+        {
+          "name": "generation_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "remaining_quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "acquisition_value",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "carrying_value",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "inventory_basis_member_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "state",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "base_unit",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "method",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "owner_party_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_input_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_generation_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "result_fingerprint",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "projection_family",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "generation_id_family",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_generation_id_family",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "projection_family",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "projection_family <> 'cost_company_inventory_result' OR (generation_id IS NOT NULL AND inventory_input_id IS NOT NULL AND state IS NOT NULL AND result_fingerprint IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_company_inventory_result' AND generation_id_family = 'cost_company_generation' AND inventory_generation_id_family = 'cost_inventory_generation' AND projection_family IS NOT NULL AND generation_id_family IS NOT NULL AND inventory_generation_id_family IS NOT NULL AND remaining_quantity IS NULL AND acquisition_value IS NULL AND carrying_value IS NULL AND inventory_basis_member_id IS NULL AND currency IS NULL AND base_unit IS NULL AND method IS NULL AND owner_party_id IS NULL)",
+        "projection_family <> 'cost_company_inventory_result' OR (state IN ('known','unknown') AND ((state='known') = (inventory_generation_id IS NOT NULL)) AND length(result_fingerprint)=64)",
+        "projection_family <> 'cost_inventory_row' OR ((state='available_at_capture' AND currency IS NOT NULL AND base_unit IS NOT NULL AND method IS NOT NULL AND owner_party_id IS NOT NULL AND remaining_quantity IS NOT NULL AND acquisition_value IS NOT NULL) OR (state='unknown_at_capture' AND currency IS NULL AND base_unit IS NULL AND method IS NULL AND owner_party_id IS NULL AND remaining_quantity IS NULL AND acquisition_value IS NULL AND carrying_value IS NULL))",
+        "projection_family <> 'cost_inventory_row' OR (generation_id IS NOT NULL AND inventory_basis_member_id IS NOT NULL AND state IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_inventory_row' AND generation_id_family = 'cost_generation' AND projection_family IS NOT NULL AND generation_id_family IS NOT NULL AND inventory_input_id IS NULL AND inventory_generation_id IS NULL AND result_fingerprint IS NULL AND inventory_generation_id_family IS NULL)",
+        "projection_family <> 'cost_inventory_row' OR (remaining_quantity>=0 AND acquisition_value>=0 AND carrying_value>=0 AND carrying_value<=acquisition_value)",
+        "projection_family <> 'cost_inventory_snapshot' OR (generation_id IS NOT NULL AND remaining_quantity IS NOT NULL AND acquisition_value IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_inventory_snapshot' AND generation_id_family = 'cost_inventory_generation' AND projection_family IS NOT NULL AND generation_id_family IS NOT NULL AND inventory_basis_member_id IS NULL AND state IS NULL AND currency IS NULL AND base_unit IS NULL AND method IS NULL AND owner_party_id IS NULL AND inventory_input_id IS NULL AND inventory_generation_id IS NULL AND result_fingerprint IS NULL AND inventory_generation_id_family IS NULL)",
+        "projection_family <> 'cost_inventory_snapshot' OR (remaining_quantity>=0 AND acquisition_value>=0 AND (carrying_value IS NULL OR (carrying_value>=0 AND carrying_value<=acquisition_value)))",
+        "projection_family IN ('cost_inventory_snapshot', 'cost_inventory_row', 'cost_company_inventory_result')"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "generation_id_family",
+            "generation_id"
+          ],
+          "target": "cost_projection_generation",
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "inventory_basis_member_id"
+          ],
+          "target": "cost_captured_inventory_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "inventory_generation_id_family",
+            "inventory_generation_id"
+          ],
+          "target": "cost_projection_generation",
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "inventory_input_id"
+          ],
+          "target": "cost_company_inventory_input",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "owner_party_id"
+          ],
+          "target": "party",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_projection_publication",
+      "columns": [
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "generation_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "scope_key",
+          "type": "VARCHAR(64)",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "updated_at",
+          "type": "DATETIME",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "projection_family",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "generation_id_family",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "projection_family",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "projection_family <> 'cost_company_publication' OR (scope_key IS NOT NULL AND generation_id IS NOT NULL AND updated_at IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_company_publication' AND generation_id_family = 'cost_company_generation' AND projection_family IS NOT NULL AND generation_id_family IS NOT NULL AND review_id IS NULL)",
+        "projection_family <> 'cost_inventory_publication' OR (review_id IS NOT NULL AND generation_id IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_inventory_publication' AND generation_id_family = 'cost_inventory_generation' AND projection_family IS NOT NULL AND generation_id_family IS NOT NULL AND scope_key IS NULL AND updated_at IS NULL)",
+        "projection_family <> 'cost_publication' OR (scope_key IS NOT NULL AND generation_id IS NOT NULL AND tenant_id IS NOT NULL AND id IS NOT NULL AND projection_family = 'cost_publication' AND generation_id_family = 'cost_generation' AND projection_family IS NOT NULL AND generation_id_family IS NOT NULL AND review_id IS NULL AND updated_at IS NULL)",
+        "projection_family IN ('cost_inventory_publication', 'cost_publication', 'cost_company_publication')"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "generation_id_family",
+            "review_id",
+            "generation_id"
+          ],
+          "target": "cost_projection_generation",
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "review_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "generation_id_family",
+            "scope_key",
+            "generation_id"
+          ],
+          "target": "cost_projection_generation",
+          "target_columns": [
+            "tenant_id",
+            "projection_family",
+            "scope_key",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_inventory_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_receipt_basis",
+      "columns": [
+        {
+          "name": "movement_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "base_quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "base_unit",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "movement_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "base_quantity>0"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "movement_id"
+          ],
+          "target": "movement",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_attribution_part",
+          "columns": [
+            "tenant_id",
+            "receipt_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_manifest_receipt",
+          "columns": [
+            "tenant_id",
+            "receipt_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_ownership_revision",
+          "columns": [
+            "tenant_id",
+            "receipt_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_scope_review",
+          "columns": [
+            "tenant_id",
+            "receipt_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_revenue_match_basis",
+      "columns": [
+        {
+          "name": "document_line_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "order_line_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "movement_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "item_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "customer_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "stated_net",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "base_unit",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "invoice_date",
+          "type": "DATE",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "sales_channel",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "evidence_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "document_line_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "movement_basis_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "quantity>0 AND stated_net>=0 AND input_schema_version=1"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "customer_id"
+          ],
+          "target": "party",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "document_line_id"
+          ],
+          "target": "document_line",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "item_id"
+          ],
+          "target": "item",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "movement_basis_id"
+          ],
+          "target": "cost_movement_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "order_line_id"
+          ],
+          "target": "document_line",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_contribution_review",
+          "columns": [
+            "tenant_id",
+            "revenue_basis_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_scope_review",
+      "columns": [
+        {
+          "name": "receipt_basis_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "supersedes_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "manifest_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "receipt_basis_id",
+          "revision",
+          "tenant_id"
+        ],
+        [
+          "supersedes_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "revision>0"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "target": "cost_input_manifest",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "receipt_basis_id"
+          ],
+          "target": "cost_receipt_basis",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target": "cost_scope_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_scope_review",
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_scope_review_category",
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_scope_review_category",
+      "columns": [
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "category",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "disposition",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "category",
+          "review_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "disposition IN ('evidenced','confirmed_zero','not_applicable','unresolved')"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_scope_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_selling_attribution_part",
+      "columns": [
+        {
+          "name": "attribution_revision_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "document_line_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "category",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "source_share",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "cost_effect",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "assignment_kind",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "conversion_basis_revision_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "attribution_revision_id",
+          "category",
+          "document_line_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "assignment_kind IN ('direct','allocated')",
+        "category IN ('outbound_freight','fulfilment','packaging','payment_fee','marketplace_commission','sales_commission','other_selling')",
+        "source_share<>0 AND cost_effect IN (-1,1)"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "attribution_revision_id"
+          ],
+          "target": "cost_attribution_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "conversion_basis_revision_id"
+          ],
+          "target": "cost_conversion_basis_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "document_line_id"
+          ],
+          "target": "document_line",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_selling_review_member",
+          "columns": [
+            "tenant_id",
+            "part_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "cost_selling_review_category",
+      "columns": [
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "category",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "disposition",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "category",
+          "review_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "category IN ('outbound_freight','fulfilment','packaging','payment_fee','marketplace_commission','sales_commission','other_selling')",
+        "disposition IN ('evidenced','confirmed_zero','not_applicable','unresolved')"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_contribution_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_selling_review_member",
+      "columns": [
+        {
+          "name": "review_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "part_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "part_id",
+          "review_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "part_id"
+          ],
+          "target": "cost_selling_attribution_part",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "target": "cost_contribution_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_valuation_assessment_part",
+      "columns": [
+        {
+          "name": "assessment_revision_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "inventory_member_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "evidence_source_record_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "quantity",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "assessed_value",
+          "type": "NUMERIC(18, 4)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "currency",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "assessment_revision_id",
+          "inventory_member_id",
+          "tenant_id"
+        ],
+        [
+          "id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "quantity>0 AND assessed_value>=0 AND input_schema_version=1"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "assessment_revision_id"
+          ],
+          "target": "cost_valuation_assessment_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "evidence_source_record_id"
+          ],
+          "target": "source_record",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "inventory_member_id"
+          ],
+          "target": "cost_inventory_member",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": []
+    },
+    {
+      "table": "cost_valuation_assessment_revision",
+      "columns": [
+        {
+          "name": "inventory_review_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "revision",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "supersedes_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "kind",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "effective_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "target_event_sequence",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "knowledge_at",
+          "type": "DATETIME",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "input_schema_version",
+          "type": "INTEGER",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "introduced_event_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "action_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "reason",
+          "type": "TEXT",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "unique": [
+        [
+          "id",
+          "tenant_id"
+        ],
+        [
+          "inventory_review_id",
+          "revision",
+          "tenant_id"
+        ],
+        [
+          "supersedes_id",
+          "tenant_id"
+        ]
+      ],
+      "checks": [
+        "(kind='write_down' AND supersedes_id IS NULL) OR (kind='recovery' AND supersedes_id IS NOT NULL)",
+        "content_hash='building' OR length(content_hash)=64",
+        "revision>0 AND kind IN ('write_down','recovery') AND target_event_sequence>=0 AND input_schema_version=1"
+      ],
+      "outgoing_foreign_keys": [
+        {
+          "columns": [
+            "tenant_id",
+            "action_id"
+          ],
+          "target": "action",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "introduced_event_id"
+          ],
+          "target": "business_event",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "inventory_review_id"
+          ],
+          "target": "cost_inventory_review",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target": "cost_valuation_assessment_revision",
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "target": "tenant",
+          "target_columns": [
+            "id"
+          ]
+        }
+      ],
+      "incoming_foreign_keys": [
+        {
+          "table": "cost_projection_generation",
+          "columns": [
+            "tenant_id",
+            "assessment_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_valuation_assessment_part",
+          "columns": [
+            "tenant_id",
+            "assessment_revision_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        },
+        {
+          "table": "cost_valuation_assessment_revision",
+          "columns": [
+            "tenant_id",
+            "supersedes_id"
+          ],
+          "target_columns": [
+            "tenant_id",
+            "id"
+          ]
+        }
+      ]
+    }
+  ]
+}

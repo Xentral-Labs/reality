@@ -50,7 +50,11 @@ def test_external_agent_closure_requires_no_schema_change(
     engine = create_engine(postgres_database)
     try:
         with engine.connect() as connection:
-            context = MigrationContext.configure(connection)
+            from reality.db.schema_views import include_schema_object
+
+            context = MigrationContext.configure(
+                connection, opts={"include_object": include_schema_object}
+            )
             schema_diffs = compare_metadata(context, Base.metadata)
             flat_diffs = [
                 nested

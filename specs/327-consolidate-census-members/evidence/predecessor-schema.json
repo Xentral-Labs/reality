@@ -1,0 +1,1996 @@
+{
+  "revision": "0120_manifest_members",
+  "schema": {
+    "cost_company_census_movement": {
+      "columns": [
+        [
+          "census_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "movement_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "observed_values",
+          "JSONB",
+          false,
+          null
+        ],
+        [
+          "content_hash",
+          "VARCHAR(64)",
+          false,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_company_census_movement_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [
+        {
+          "name": "ck_census_movement_hash",
+          "sqltext": "length(content_hash::text) = 64",
+          "comment": null
+        }
+      ],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "name": "cost_company_census_movement_tenant_id_census_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "movement_id"
+          ],
+          "name": "cost_company_census_movement_tenant_id_census_id_movement_i_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "name": "cost_company_census_movement_tenant_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_company_census_movement_tenant_id_census_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_company_census",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_census_movement_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_census_movement_tenant_id_movement_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "movement_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "movement",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_company_census_movement_tenant_id_census_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_census_movement_tenant_id_census_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_census_movement_tenant_id_census_id_movement_i_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "movement_id"
+          ],
+          "duplicates_constraint": "cost_company_census_movement_tenant_id_census_id_movement_i_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_census_movement_tenant_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_census_movement_tenant_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_movement_census_id",
+          "unique": false,
+          "column_names": [
+            "census_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_movement_movement_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "movement_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    },
+    "cost_company_census_document": {
+      "columns": [
+        [
+          "census_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "document_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "observed_values",
+          "JSONB",
+          false,
+          null
+        ],
+        [
+          "content_hash",
+          "VARCHAR(64)",
+          false,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_company_census_document_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [
+        {
+          "name": "ck_census_document_hash",
+          "sqltext": "length(content_hash::text) = 64",
+          "comment": null
+        }
+      ],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "document_id"
+          ],
+          "name": "cost_company_census_document_tenant_id_census_id_document_i_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "name": "cost_company_census_document_tenant_id_census_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "name": "cost_company_census_document_tenant_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_company_census_document_tenant_id_census_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_company_census",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_census_document_tenant_id_document_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "document_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "document",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_census_document_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_company_census_document_tenant_id_census_id_document_i_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "document_id"
+          ],
+          "duplicates_constraint": "cost_company_census_document_tenant_id_census_id_document_i_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_census_document_tenant_id_census_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_census_document_tenant_id_census_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_census_document_tenant_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_census_document_tenant_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_document_census_id",
+          "unique": false,
+          "column_names": [
+            "census_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_document_document_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "document_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    },
+    "cost_company_census_line": {
+      "columns": [
+        [
+          "census_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "document_line_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "observed_values",
+          "JSONB",
+          false,
+          null
+        ],
+        [
+          "content_hash",
+          "VARCHAR(64)",
+          false,
+          null
+        ],
+        [
+          "document_member_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_company_census_line_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [
+        {
+          "name": "ck_census_line_hash",
+          "sqltext": "length(content_hash::text) = 64",
+          "comment": null
+        }
+      ],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "document_line_id"
+          ],
+          "name": "cost_company_census_line_tenant_id_census_id_document_line__key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "name": "cost_company_census_line_tenant_id_census_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "name": "cost_company_census_line_tenant_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_company_census_line_tenant_id_census_id_document_memb_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "census_id",
+            "document_member_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_company_census_document",
+          "referred_columns": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_census_line_tenant_id_census_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_company_census",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_census_line_tenant_id_document_line_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "document_line_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "document_line",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_census_line_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_company_census_line_tenant_id_census_id_document_line__key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "document_line_id"
+          ],
+          "duplicates_constraint": "cost_company_census_line_tenant_id_census_id_document_line__key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_census_line_tenant_id_census_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_census_line_tenant_id_census_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_census_line_tenant_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_census_line_tenant_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_line_census_id",
+          "unique": false,
+          "column_names": [
+            "census_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_line_census_id_document_member_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "document_member_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_line_document_line_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "document_line_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_line_document_member_id",
+          "unique": false,
+          "column_names": [
+            "document_member_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    },
+    "cost_company_census_source": {
+      "columns": [
+        [
+          "census_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "source_record_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "observed_values",
+          "JSONB",
+          false,
+          null
+        ],
+        [
+          "content_hash",
+          "VARCHAR(64)",
+          false,
+          null
+        ],
+        [
+          "interpretation_outcome_id",
+          "VARCHAR",
+          true,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_company_census_source_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [
+        {
+          "name": "ck_census_source_hash",
+          "sqltext": "length(content_hash::text) = 64",
+          "comment": null
+        }
+      ],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "name": "cost_company_census_source_tenant_id_census_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "source_record_id"
+          ],
+          "name": "cost_company_census_source_tenant_id_census_id_source_recor_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "name": "cost_company_census_source_tenant_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_company_census_source_tenant_id_census_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_company_census",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_census_source_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_census_source_tenant_id_interpretation_outcom_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "interpretation_outcome_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "interpretation_outcome",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_census_source_tenant_id_source_record_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "source_record_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "source_record",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_company_census_source_tenant_id_census_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_census_source_tenant_id_census_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_census_source_tenant_id_census_id_source_recor_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "census_id",
+            "source_record_id"
+          ],
+          "duplicates_constraint": "cost_company_census_source_tenant_id_census_id_source_recor_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_census_source_tenant_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_census_source_tenant_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_source_census_id",
+          "unique": false,
+          "column_names": [
+            "census_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_source_interpretation_outcome_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "interpretation_outcome_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_census_source_source_record_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "source_record_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    },
+    "cost_company_census": {
+      "columns": [
+        [
+          "request_id",
+          "VARCHAR(128)",
+          false,
+          null
+        ],
+        [
+          "request_hash",
+          "VARCHAR(64)",
+          false,
+          null
+        ],
+        [
+          "effective_at",
+          "TIMESTAMP",
+          false,
+          null
+        ],
+        [
+          "observed_at",
+          "TIMESTAMP",
+          false,
+          null
+        ],
+        [
+          "snapshot_identity",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "event_sequence",
+          "INTEGER",
+          false,
+          null
+        ],
+        [
+          "input_schema_version",
+          "INTEGER",
+          false,
+          null
+        ],
+        [
+          "state",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "movement_count",
+          "INTEGER",
+          false,
+          null
+        ],
+        [
+          "document_count",
+          "INTEGER",
+          false,
+          null
+        ],
+        [
+          "line_count",
+          "INTEGER",
+          false,
+          null
+        ],
+        [
+          "source_count",
+          "INTEGER",
+          false,
+          null
+        ],
+        [
+          "content_hash",
+          "VARCHAR(64)",
+          false,
+          null
+        ],
+        [
+          "sealed_at",
+          "TIMESTAMP",
+          true,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_company_census_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [
+        {
+          "name": "ck_company_census_counts",
+          "sqltext": "movement_count >= 0 AND document_count >= 0 AND line_count >= 0 AND source_count >= 0 AND (movement_count + document_count + line_count + source_count) <= 100000",
+          "comment": null
+        },
+        {
+          "name": "ck_company_census_state",
+          "sqltext": "(state::text = ANY (ARRAY['building'::character varying, 'sealed'::character varying]::text[])) AND (state::text = 'sealed'::text) = (sealed_at IS NOT NULL)",
+          "comment": null
+        },
+        {
+          "name": "ck_company_census_version",
+          "sqltext": "input_schema_version = 1 AND event_sequence >= 0 AND length(request_hash::text) = 64 AND length(content_hash::text) = 64",
+          "comment": null
+        }
+      ],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "name": "cost_company_census_tenant_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "request_id"
+          ],
+          "name": "cost_company_census_tenant_id_request_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_company_census_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_company_census_tenant_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_census_tenant_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_census_tenant_id_request_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "request_id"
+          ],
+          "duplicates_constraint": "cost_company_census_tenant_id_request_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    },
+    "cost_company_contribution_input": {
+      "columns": [
+        [
+          "manifest_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "census_line_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "review_id",
+          "VARCHAR",
+          true,
+          null
+        ],
+        [
+          "inventory_review_id",
+          "VARCHAR",
+          true,
+          null
+        ],
+        [
+          "input_fingerprint",
+          "VARCHAR(64)",
+          false,
+          null
+        ],
+        [
+          "db1_state",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "db2_state",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_company_contribution_input_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [
+        {
+          "name": "ck_company_contribution_input_shape",
+          "sqltext": "(db1_state::text = ANY (ARRAY['known'::character varying, 'unknown'::character varying]::text[])) AND (db2_state::text = ANY (ARRAY['known'::character varying, 'unknown'::character varying]::text[])) AND NOT (db2_state::text = 'known'::text AND db1_state::text = 'unknown'::text) AND (db1_state::text = 'known'::text) = (review_id IS NOT NULL) AND length(input_fingerprint::text) = 64",
+          "comment": null
+        }
+      ],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "census_line_id"
+          ],
+          "name": "cost_company_contribution_inp_tenant_id_manifest_id_census__key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "name": "cost_company_contribution_input_tenant_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        },
+        {
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "id"
+          ],
+          "name": "cost_company_contribution_input_tenant_id_manifest_id_id_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_company_contribution_inp_tenant_id_inventory_review_i_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "inventory_review_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_inventory_review",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_contribution_input_tenant_id_census_line_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "census_line_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_company_census_line",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_contribution_input_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_contribution_input_tenant_id_manifest_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_company_manifest",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_company_contribution_input_tenant_id_review_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "review_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_contribution_review",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_company_contribution_inp_tenant_id_manifest_id_census__key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "census_line_id"
+          ],
+          "duplicates_constraint": "cost_company_contribution_inp_tenant_id_manifest_id_census__key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_contribution_input_tenant_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_contribution_input_tenant_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "cost_company_contribution_input_tenant_id_manifest_id_id_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "id"
+          ],
+          "duplicates_constraint": "cost_company_contribution_input_tenant_id_manifest_id_id_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_contribution_input_census_line_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "census_line_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_contribution_input_inventory_review_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "inventory_review_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_contribution_input_manifest_id",
+          "unique": false,
+          "column_names": [
+            "manifest_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_company_contribution_input_review_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "review_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    }
+  },
+  "constraints": [
+    [
+      "cost_company_census_document",
+      "ck_census_document_hash",
+      "CHECK ((length((content_hash)::text) = 64))"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_census_id_not_null",
+      "NOT NULL census_id"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_content_hash_not_null",
+      "NOT NULL content_hash"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_document_id_not_null",
+      "NOT NULL document_id"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_id_not_null",
+      "NOT NULL id"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_observed_values_not_null",
+      "NOT NULL observed_values"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_pkey",
+      "PRIMARY KEY (tenant_id, id)"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_tenant_id_census_id_document_i_key",
+      "UNIQUE (tenant_id, census_id, document_id)"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_tenant_id_census_id_fkey",
+      "FOREIGN KEY (tenant_id, census_id) REFERENCES cost_company_census(tenant_id, id)"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_tenant_id_census_id_id_key",
+      "UNIQUE (tenant_id, census_id, id)"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_tenant_id_document_id_fkey",
+      "FOREIGN KEY (tenant_id, document_id) REFERENCES document(tenant_id, id)"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_tenant_id_fkey",
+      "FOREIGN KEY (tenant_id) REFERENCES tenant(id)"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_tenant_id_id_key",
+      "UNIQUE (tenant_id, id)"
+    ],
+    [
+      "cost_company_census_document",
+      "cost_company_census_document_tenant_id_not_null",
+      "NOT NULL tenant_id"
+    ],
+    [
+      "cost_company_census_line",
+      "ck_census_line_hash",
+      "CHECK ((length((content_hash)::text) = 64))"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_census_id_not_null",
+      "NOT NULL census_id"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_content_hash_not_null",
+      "NOT NULL content_hash"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_document_line_id_not_null",
+      "NOT NULL document_line_id"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_document_member_id_not_null",
+      "NOT NULL document_member_id"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_id_not_null",
+      "NOT NULL id"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_observed_values_not_null",
+      "NOT NULL observed_values"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_pkey",
+      "PRIMARY KEY (tenant_id, id)"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_tenant_id_census_id_document_line__key",
+      "UNIQUE (tenant_id, census_id, document_line_id)"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_tenant_id_census_id_document_memb_fkey",
+      "FOREIGN KEY (tenant_id, census_id, document_member_id) REFERENCES cost_company_census_document(tenant_id, census_id, id)"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_tenant_id_census_id_fkey",
+      "FOREIGN KEY (tenant_id, census_id) REFERENCES cost_company_census(tenant_id, id)"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_tenant_id_census_id_id_key",
+      "UNIQUE (tenant_id, census_id, id)"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_tenant_id_document_line_id_fkey",
+      "FOREIGN KEY (tenant_id, document_line_id) REFERENCES document_line(tenant_id, id)"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_tenant_id_fkey",
+      "FOREIGN KEY (tenant_id) REFERENCES tenant(id)"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_tenant_id_id_key",
+      "UNIQUE (tenant_id, id)"
+    ],
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_tenant_id_not_null",
+      "NOT NULL tenant_id"
+    ],
+    [
+      "cost_company_census_movement",
+      "ck_census_movement_hash",
+      "CHECK ((length((content_hash)::text) = 64))"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_census_id_not_null",
+      "NOT NULL census_id"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_content_hash_not_null",
+      "NOT NULL content_hash"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_id_not_null",
+      "NOT NULL id"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_movement_id_not_null",
+      "NOT NULL movement_id"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_observed_values_not_null",
+      "NOT NULL observed_values"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_pkey",
+      "PRIMARY KEY (tenant_id, id)"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_tenant_id_census_id_fkey",
+      "FOREIGN KEY (tenant_id, census_id) REFERENCES cost_company_census(tenant_id, id)"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_tenant_id_census_id_id_key",
+      "UNIQUE (tenant_id, census_id, id)"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_tenant_id_census_id_movement_i_key",
+      "UNIQUE (tenant_id, census_id, movement_id)"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_tenant_id_fkey",
+      "FOREIGN KEY (tenant_id) REFERENCES tenant(id)"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_tenant_id_id_key",
+      "UNIQUE (tenant_id, id)"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_tenant_id_movement_id_fkey",
+      "FOREIGN KEY (tenant_id, movement_id) REFERENCES movement(tenant_id, id)"
+    ],
+    [
+      "cost_company_census_movement",
+      "cost_company_census_movement_tenant_id_not_null",
+      "NOT NULL tenant_id"
+    ],
+    [
+      "cost_company_census_source",
+      "ck_census_source_hash",
+      "CHECK ((length((content_hash)::text) = 64))"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_census_id_not_null",
+      "NOT NULL census_id"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_content_hash_not_null",
+      "NOT NULL content_hash"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_id_not_null",
+      "NOT NULL id"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_observed_values_not_null",
+      "NOT NULL observed_values"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_pkey",
+      "PRIMARY KEY (tenant_id, id)"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_source_record_id_not_null",
+      "NOT NULL source_record_id"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_tenant_id_census_id_fkey",
+      "FOREIGN KEY (tenant_id, census_id) REFERENCES cost_company_census(tenant_id, id)"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_tenant_id_census_id_id_key",
+      "UNIQUE (tenant_id, census_id, id)"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_tenant_id_census_id_source_recor_key",
+      "UNIQUE (tenant_id, census_id, source_record_id)"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_tenant_id_fkey",
+      "FOREIGN KEY (tenant_id) REFERENCES tenant(id)"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_tenant_id_id_key",
+      "UNIQUE (tenant_id, id)"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_tenant_id_interpretation_outcom_fkey",
+      "FOREIGN KEY (tenant_id, interpretation_outcome_id) REFERENCES interpretation_outcome(tenant_id, id)"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_tenant_id_not_null",
+      "NOT NULL tenant_id"
+    ],
+    [
+      "cost_company_census_source",
+      "cost_company_census_source_tenant_id_source_record_id_fkey",
+      "FOREIGN KEY (tenant_id, source_record_id) REFERENCES source_record(tenant_id, id)"
+    ]
+  ],
+  "incoming": [
+    [
+      "cost_company_census_line",
+      "cost_company_census_line_tenant_id_census_id_document_memb_fkey",
+      "FOREIGN KEY (tenant_id, census_id, document_member_id) REFERENCES cost_company_census_document(tenant_id, census_id, id)"
+    ],
+    [
+      "cost_company_contribution_input",
+      "cost_company_contribution_input_tenant_id_census_line_id_fkey",
+      "FOREIGN KEY (tenant_id, census_line_id) REFERENCES cost_company_census_line(tenant_id, id)"
+    ]
+  ],
+  "triggers": [
+    [
+      "cost_company_census",
+      "guard_company_census_header",
+      "CREATE TRIGGER guard_company_census_header BEFORE DELETE OR UPDATE ON public.cost_company_census FOR EACH ROW EXECUTE FUNCTION guard_company_census()"
+    ],
+    [
+      "cost_company_census_document",
+      "guard_company_census_member",
+      "CREATE TRIGGER guard_company_census_member BEFORE INSERT OR DELETE OR UPDATE ON public.cost_company_census_document FOR EACH ROW EXECUTE FUNCTION guard_company_census()"
+    ],
+    [
+      "cost_company_census_line",
+      "guard_company_census_member",
+      "CREATE TRIGGER guard_company_census_member BEFORE INSERT OR DELETE OR UPDATE ON public.cost_company_census_line FOR EACH ROW EXECUTE FUNCTION guard_company_census()"
+    ],
+    [
+      "cost_company_census_movement",
+      "guard_company_census_member",
+      "CREATE TRIGGER guard_company_census_member BEFORE INSERT OR DELETE OR UPDATE ON public.cost_company_census_movement FOR EACH ROW EXECUTE FUNCTION guard_company_census()"
+    ],
+    [
+      "cost_company_census_source",
+      "guard_company_census_member",
+      "CREATE TRIGGER guard_company_census_member BEFORE INSERT OR DELETE OR UPDATE ON public.cost_company_census_source FOR EACH ROW EXECUTE FUNCTION guard_company_census()"
+    ]
+  ],
+  "functions": [
+    "CREATE OR REPLACE FUNCTION public.guard_company_census()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nDECLARE parent_state text;\nBEGIN\n  IF TG_TABLE_NAME = 'cost_company_census' THEN\n    IF OLD.state = 'sealed' THEN\n      RAISE EXCEPTION 'Sealed company census is immutable';\n    END IF;\n    IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;\n    RETURN NEW;\n  END IF;\n  IF TG_OP <> 'INSERT' THEN\n    RAISE EXCEPTION 'Company census members are immutable';\n  END IF;\n  SELECT state INTO parent_state FROM cost_company_census\n    WHERE tenant_id=NEW.tenant_id AND id=NEW.census_id FOR UPDATE;\n  IF parent_state IS DISTINCT FROM 'building' THEN\n    RAISE EXCEPTION 'Census member requires a building same-tenant census';\n  END IF;\n  RETURN NEW;\nEND $function$\n"
+  ],
+  "columns": {
+    "cost_company_census_movement": [
+      [
+        "census_id",
+        "character varying",
+        true
+      ],
+      [
+        "movement_id",
+        "character varying",
+        true
+      ],
+      [
+        "observed_values",
+        "jsonb",
+        true
+      ],
+      [
+        "content_hash",
+        "character varying(64)",
+        true
+      ],
+      [
+        "id",
+        "character varying",
+        true
+      ],
+      [
+        "tenant_id",
+        "character varying",
+        true
+      ]
+    ],
+    "cost_company_census_document": [
+      [
+        "census_id",
+        "character varying",
+        true
+      ],
+      [
+        "document_id",
+        "character varying",
+        true
+      ],
+      [
+        "observed_values",
+        "jsonb",
+        true
+      ],
+      [
+        "content_hash",
+        "character varying(64)",
+        true
+      ],
+      [
+        "id",
+        "character varying",
+        true
+      ],
+      [
+        "tenant_id",
+        "character varying",
+        true
+      ]
+    ],
+    "cost_company_census_line": [
+      [
+        "census_id",
+        "character varying",
+        true
+      ],
+      [
+        "document_line_id",
+        "character varying",
+        true
+      ],
+      [
+        "observed_values",
+        "jsonb",
+        true
+      ],
+      [
+        "content_hash",
+        "character varying(64)",
+        true
+      ],
+      [
+        "document_member_id",
+        "character varying",
+        true
+      ],
+      [
+        "id",
+        "character varying",
+        true
+      ],
+      [
+        "tenant_id",
+        "character varying",
+        true
+      ]
+    ],
+    "cost_company_census_source": [
+      [
+        "census_id",
+        "character varying",
+        true
+      ],
+      [
+        "source_record_id",
+        "character varying",
+        true
+      ],
+      [
+        "observed_values",
+        "jsonb",
+        true
+      ],
+      [
+        "content_hash",
+        "character varying(64)",
+        true
+      ],
+      [
+        "interpretation_outcome_id",
+        "character varying",
+        false
+      ],
+      [
+        "id",
+        "character varying",
+        true
+      ],
+      [
+        "tenant_id",
+        "character varying",
+        true
+      ]
+    ]
+  },
+  "indexes": {
+    "cost_company_census_movement": [
+      [
+        "cost_company_census_movement_pkey",
+        "CREATE UNIQUE INDEX cost_company_census_movement_pkey ON public.cost_company_census_movement USING btree (tenant_id, id)"
+      ],
+      [
+        "cost_company_census_movement_tenant_id_census_id_id_key",
+        "CREATE UNIQUE INDEX cost_company_census_movement_tenant_id_census_id_id_key ON public.cost_company_census_movement USING btree (tenant_id, census_id, id)"
+      ],
+      [
+        "cost_company_census_movement_tenant_id_census_id_movement_i_key",
+        "CREATE UNIQUE INDEX cost_company_census_movement_tenant_id_census_id_movement_i_key ON public.cost_company_census_movement USING btree (tenant_id, census_id, movement_id)"
+      ],
+      [
+        "cost_company_census_movement_tenant_id_id_key",
+        "CREATE UNIQUE INDEX cost_company_census_movement_tenant_id_id_key ON public.cost_company_census_movement USING btree (tenant_id, id)"
+      ],
+      [
+        "ix_cost_company_census_movement_census_id",
+        "CREATE INDEX ix_cost_company_census_movement_census_id ON public.cost_company_census_movement USING btree (census_id)"
+      ],
+      [
+        "ix_cost_company_census_movement_movement_id",
+        "CREATE INDEX ix_cost_company_census_movement_movement_id ON public.cost_company_census_movement USING btree (tenant_id, movement_id)"
+      ]
+    ],
+    "cost_company_census_document": [
+      [
+        "cost_company_census_document_pkey",
+        "CREATE UNIQUE INDEX cost_company_census_document_pkey ON public.cost_company_census_document USING btree (tenant_id, id)"
+      ],
+      [
+        "cost_company_census_document_tenant_id_census_id_document_i_key",
+        "CREATE UNIQUE INDEX cost_company_census_document_tenant_id_census_id_document_i_key ON public.cost_company_census_document USING btree (tenant_id, census_id, document_id)"
+      ],
+      [
+        "cost_company_census_document_tenant_id_census_id_id_key",
+        "CREATE UNIQUE INDEX cost_company_census_document_tenant_id_census_id_id_key ON public.cost_company_census_document USING btree (tenant_id, census_id, id)"
+      ],
+      [
+        "cost_company_census_document_tenant_id_id_key",
+        "CREATE UNIQUE INDEX cost_company_census_document_tenant_id_id_key ON public.cost_company_census_document USING btree (tenant_id, id)"
+      ],
+      [
+        "ix_cost_company_census_document_census_id",
+        "CREATE INDEX ix_cost_company_census_document_census_id ON public.cost_company_census_document USING btree (census_id)"
+      ],
+      [
+        "ix_cost_company_census_document_document_id",
+        "CREATE INDEX ix_cost_company_census_document_document_id ON public.cost_company_census_document USING btree (tenant_id, document_id)"
+      ]
+    ],
+    "cost_company_census_line": [
+      [
+        "cost_company_census_line_pkey",
+        "CREATE UNIQUE INDEX cost_company_census_line_pkey ON public.cost_company_census_line USING btree (tenant_id, id)"
+      ],
+      [
+        "cost_company_census_line_tenant_id_census_id_document_line__key",
+        "CREATE UNIQUE INDEX cost_company_census_line_tenant_id_census_id_document_line__key ON public.cost_company_census_line USING btree (tenant_id, census_id, document_line_id)"
+      ],
+      [
+        "cost_company_census_line_tenant_id_census_id_id_key",
+        "CREATE UNIQUE INDEX cost_company_census_line_tenant_id_census_id_id_key ON public.cost_company_census_line USING btree (tenant_id, census_id, id)"
+      ],
+      [
+        "cost_company_census_line_tenant_id_id_key",
+        "CREATE UNIQUE INDEX cost_company_census_line_tenant_id_id_key ON public.cost_company_census_line USING btree (tenant_id, id)"
+      ],
+      [
+        "ix_cost_company_census_line_census_id",
+        "CREATE INDEX ix_cost_company_census_line_census_id ON public.cost_company_census_line USING btree (census_id)"
+      ],
+      [
+        "ix_cost_company_census_line_census_id_document_member_id",
+        "CREATE INDEX ix_cost_company_census_line_census_id_document_member_id ON public.cost_company_census_line USING btree (tenant_id, census_id, document_member_id)"
+      ],
+      [
+        "ix_cost_company_census_line_document_line_id",
+        "CREATE INDEX ix_cost_company_census_line_document_line_id ON public.cost_company_census_line USING btree (tenant_id, document_line_id)"
+      ],
+      [
+        "ix_cost_company_census_line_document_member_id",
+        "CREATE INDEX ix_cost_company_census_line_document_member_id ON public.cost_company_census_line USING btree (document_member_id)"
+      ]
+    ],
+    "cost_company_census_source": [
+      [
+        "cost_company_census_source_pkey",
+        "CREATE UNIQUE INDEX cost_company_census_source_pkey ON public.cost_company_census_source USING btree (tenant_id, id)"
+      ],
+      [
+        "cost_company_census_source_tenant_id_census_id_id_key",
+        "CREATE UNIQUE INDEX cost_company_census_source_tenant_id_census_id_id_key ON public.cost_company_census_source USING btree (tenant_id, census_id, id)"
+      ],
+      [
+        "cost_company_census_source_tenant_id_census_id_source_recor_key",
+        "CREATE UNIQUE INDEX cost_company_census_source_tenant_id_census_id_source_recor_key ON public.cost_company_census_source USING btree (tenant_id, census_id, source_record_id)"
+      ],
+      [
+        "cost_company_census_source_tenant_id_id_key",
+        "CREATE UNIQUE INDEX cost_company_census_source_tenant_id_id_key ON public.cost_company_census_source USING btree (tenant_id, id)"
+      ],
+      [
+        "ix_cost_company_census_source_census_id",
+        "CREATE INDEX ix_cost_company_census_source_census_id ON public.cost_company_census_source USING btree (census_id)"
+      ],
+      [
+        "ix_cost_company_census_source_interpretation_outcome_id",
+        "CREATE INDEX ix_cost_company_census_source_interpretation_outcome_id ON public.cost_company_census_source USING btree (tenant_id, interpretation_outcome_id)"
+      ],
+      [
+        "ix_cost_company_census_source_source_record_id",
+        "CREATE INDEX ix_cost_company_census_source_source_record_id ON public.cost_company_census_source USING btree (tenant_id, source_record_id)"
+      ]
+    ]
+  }
+}

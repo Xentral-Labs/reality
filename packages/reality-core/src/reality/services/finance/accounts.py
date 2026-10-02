@@ -74,9 +74,9 @@ def list_accounts(session: Session, tenant_id: str) -> dict:
     defaults = {
         r.role: r.account_id
         for r in session.scalars(
-            select(FinanceRoleDestination).where(
-                FinanceRoleDestination.tenant_id == tenant_id
-            )
+            select(FinanceRoleDestination)
+            .where(FinanceRoleDestination.tenant_id == tenant_id)
+            .execution_options(populate_existing=True)
         )
     }
     return {
@@ -214,19 +214,22 @@ def set_default_account(
         raise InvalidOperation(
             "Default requires an active account with the matching role."
         )
-    dest = session.scalar(
-        select(FinanceRoleDestination).where(
-            FinanceRoleDestination.tenant_id == tenant_id,
-            FinanceRoleDestination.role == role,
+    previous = session.scalar(
+        select(SubledgerAccount)
+        .where(
+            SubledgerAccount.tenant_id == tenant_id,
+            SubledgerAccount.role == role,
+            SubledgerAccount.default_destination_id.is_not(None),
         )
+        .execution_options(populate_existing=True)
     )
-    if dest is None:
-        dest = FinanceRoleDestination(
-            id=uid("dest"), tenant_id=tenant_id, role=role, account_id=account_id
-        )
-        session.add(dest)
-    else:
-        dest.account_id = account_id
+    destination_id = previous.default_destination_id if previous else uid("dest")
+    if previous is not None and previous.id != account.id:
+        previous.default_destination_id = None
+        # Both uniqueness constraints are immediate. Retire the old selection
+        # before transferring its identity within the same locked transaction.
+        session.flush()
+    account.default_destination_id = destination_id
     _audit(session, tenant_id, state, account, "default", action_id)
     if _commit:
         session.commit()
@@ -250,9 +253,10 @@ def initialize_accounts(
                 # A schema from before spec 309, only in the migration tests.
                 continue
             dest = session.scalar(
-                select(FinanceRoleDestination.id).where(
-                    FinanceRoleDestination.tenant_id == tenant_id,
-                    FinanceRoleDestination.role == role,
+                select(SubledgerAccount.default_destination_id).where(
+                    SubledgerAccount.tenant_id == tenant_id,
+                    SubledgerAccount.role == role,
+                    SubledgerAccount.default_destination_id.is_not(None),
                 )
             )
             if dest is not None:
@@ -315,19 +319,12 @@ def _bootstrap_accounts(session: Session, tenant_id: str) -> None:
             role=role,
             state="active",
             revision=1,
+            default_destination_id=uid("dest"),
         )
         for role, name in BASE_ACCOUNT_ROLES.items()
     ]
     session.add_all(rows)
     session.flush()
-    session.add_all(
-        [
-            FinanceRoleDestination(
-                id=uid("dest"), tenant_id=tenant_id, role=row.role, account_id=row.id
-            )
-            for row in rows
-        ]
-    )
     session.add(FinanceState(id=uid("fin"), tenant_id=tenant_id, revision=0))
     session.flush()
 

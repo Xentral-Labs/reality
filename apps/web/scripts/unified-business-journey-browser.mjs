@@ -48,15 +48,16 @@ const choose = async (name, value) => {
   await field(name).locator(`option[value="${value}"]`).waitFor({ state: "attached" });
   await field(name).selectOption(value);
 };
-// Open items are a background projection (spec 179): poll until the worker has caught up.
+// Open items are a background projection (spec 179). Use the same bounded worker
+// wait as the live Finance rollout fixture; this is not a synchronous UI response.
 const openItem = async (query, match, ready = () => true) => {
-  for (let attempt = 0; attempt < 60; attempt++) {
+  for (let deadline = Date.now() + 120_000; Date.now() < deadline;) {
     const rows = await get(`/finance/open-items?${query}`);
     const row = rows.items?.find(match);
     if (row && ready(row)) return row;
     await page.waitForTimeout(500);
   }
-  assert.fail(`open item (${query}) did not reach the expected state within 30 s`);
+  assert.fail(`open item (${query}) did not reach the expected state within 120 s`);
 };
 const record = (proposal, family) =>
   proposal.receipt.records.find((row) => row.family === family).id;

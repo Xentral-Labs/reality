@@ -2589,6 +2589,16 @@ class SubledgerAccount(Base):
         PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "code"),
+        UniqueConstraint(
+            "tenant_id", "default_destination_id", name="uq_account_default_destination"
+        ),
+        Index(
+            "uq_account_default_role",
+            "tenant_id",
+            "role",
+            unique=True,
+            postgresql_where=text("default_destination_id IS NOT NULL"),
+        ),
         CheckConstraint("state IN ('active', 'blocked')"),
         CheckConstraint(
             "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','bad_debt_expense','dunning_fee_revenue','payment_fee_expense','customer_down_payments','exchange_difference','opening_counterpart')",
@@ -2602,6 +2612,10 @@ class SubledgerAccount(Base):
     role: Mapped[str] = mapped_column(String)
     state: Mapped[str] = mapped_column(String, default="active")
     revision: Mapped[int] = mapped_column(Integer, default=1)
+    # The retained opaque selection identity; NULL means not the role's default.
+    default_destination_id: Mapped[str | None] = mapped_column(
+        String, server_default=FetchedValue(), deferred=True
+    )
 
 
 class FinanceRoleDestination(Base):
@@ -2618,6 +2632,16 @@ class FinanceRoleDestination(Base):
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     role: Mapped[str] = mapped_column(String)
     account_id: Mapped[str] = mapped_column(String)
+
+
+# DISTINCT deliberately refuses all legacy writes: account_id must never become
+# an alternate write path to the selected account's primary key.
+FinanceRoleDestination.__table__.info["compatibility_view_sql"] = (
+    "CREATE VIEW finance_role_destination AS SELECT DISTINCT "
+    "default_destination_id AS id, tenant_id, role, id AS account_id "
+    "FROM subledger_account WHERE default_destination_id IS NOT NULL"
+)
+FinanceRoleDestination.__table__.add_is_dependent_on(SubledgerAccount.__table__)
 
 
 class FinanceState(Base):
@@ -3311,5 +3335,10 @@ def index_foreign_keys(metadata: MetaData) -> list[Index]:
             created.append(Index(_index_name(table.name, distinguishing), *columns))
     return created
 
+
+from reality.db import cost_census_members as _cost_census_members  # noqa: F401
+from reality.db import cost_manifest_members as _cost_manifest_members  # noqa: F401
+from reality.db import cost_projections as _cost_projections  # noqa: F401
+from reality.db import finance_reference_store as _finance_reference_store  # noqa: F401
 
 FOREIGN_KEY_INDEXES = index_foreign_keys(Base.metadata)

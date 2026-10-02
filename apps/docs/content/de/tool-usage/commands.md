@@ -1395,7 +1395,7 @@ finance_create_account_propose expected_revision code name role
 **Erreichbar über:** CLI · Web · MCP · Chat
 
 **Wirkung:** Liest: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
-Schreibt: `subledger_account`, `finance_role_destination`, `finance_state`, `business_event`
+Schreibt: `subledger_account`, `finance_state`, `business_event`
 
 **Siehe auch:** Agenten-Tool
 [`finance_create_account_propose`](./commands#tool-finance_create_account_propose)
@@ -1584,7 +1584,7 @@ finance_initialize_accounts_propose expected_revision
 **Erreichbar über:** CLI · Web · MCP · Chat
 
 **Wirkung:** Liest: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
-Schreibt: `subledger_account`, `finance_role_destination`, `finance_state`, `business_event`
+Schreibt: `subledger_account`, `finance_state`, `business_event`
 
 **Siehe auch:** Agenten-Tool
 [`finance_initialize_accounts_propose`](./commands#tool-finance_initialize_accounts_propose)
@@ -4128,7 +4128,7 @@ finance_set_default_account_propose expected_revision role account_id
 **Erreichbar über:** CLI · Web · MCP · Chat
 
 **Wirkung:** Liest: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
-Schreibt: `subledger_account`, `finance_role_destination`, `finance_state`, `business_event`
+Schreibt: `subledger_account`, `finance_state`, `business_event`
 
 **Siehe auch:** Agenten-Tool
 [`finance_set_default_account_propose`](./commands#tool-finance_set_default_account_propose)
@@ -4261,8 +4261,8 @@ finance_update_account_propose expected_revision account_id [code] [name] [state
 **Erreichbar über:** CLI · Web · MCP · Chat
 
 **Wirkung:** Liest: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
-Schreibt: `subledger_account`, `finance_role_destination`, `finance_state`, `business_event` ·
-Erzeugt: `finance.account_changed`
+Schreibt: `subledger_account`, `finance_state`, `business_event` · Erzeugt:
+`finance.account_changed`
 
 **Siehe auch:** Agenten-Tool
 [`finance_update_account_propose`](./commands#tool-finance_update_account_propose), Event

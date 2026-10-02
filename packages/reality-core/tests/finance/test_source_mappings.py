@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from legacy_finance import create_legacy_tenant
 from sqlalchemy import func, select
 
 from reality.db.core import LedgerEntry
@@ -405,7 +406,7 @@ def test_source_mapping_migration_preserves_ledger_and_history(
     engine = create_engine(postgres_database)
     try:
         with Session(engine) as db:
-            tenant = core.create_tenant(db, "Source mapping migration").id
+            tenant = create_legacy_tenant(db, "Source mapping migration").id
             customer = core.create_party(db, tenant, "Customer", "customer")
             doc = core.create_document(
                 db,

@@ -5,6 +5,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from legacy_finance import create_legacy_tenant
 from sqlalchemy import func, select
 
 from reality.db.core import LedgerEntry, SourceRecord
@@ -232,7 +233,7 @@ def test_additive_reduction_migration_preserves_populated_accounts(
     engine = create_engine(postgres_database)
     try:
         with Session(engine, expire_on_commit=False) as session:
-            tenant = core.create_tenant(session, "Migration claim")
+            tenant = create_legacy_tenant(session, "Migration claim")
             party = core.create_party(session, tenant.id, "Customer", "customer")
             invoice = core.create_document(
                 session,

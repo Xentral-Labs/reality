@@ -1120,7 +1120,11 @@ def _purge_tenant_records(session: OrmSession, tenant_id: str) -> None:
     platform-admin role and two confirmations of its own.
     """
     for table in reversed(Base.metadata.sorted_tables):
-        if table.name == Tenant.__tablename__ or "tenant_id" not in table.c:
+        if (
+            table.name == Tenant.__tablename__
+            or "tenant_id" not in table.c
+            or table.info.get("compatibility_view_sql")
+        ):
             continue
         session.execute(delete(table).where(table.c.tenant_id == tenant_id))
 

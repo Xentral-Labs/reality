@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from legacy_finance import create_legacy_tenant
 from sqlalchemy import func, select
 
 from reality.db.core import LedgerEntry
@@ -214,7 +215,7 @@ def test_reference_migration_preserves_postings_and_blocks_destructive_downgrade
     engine = create_engine(postgres_database)
     try:
         with Session(engine) as db:
-            tenant = core.create_tenant(db, "Preserved finance").id
+            tenant = create_legacy_tenant(db, "Preserved finance").id
             party = core.create_party(db, tenant, "Customer", "customer")
             invoice = core.create_document(
                 db,

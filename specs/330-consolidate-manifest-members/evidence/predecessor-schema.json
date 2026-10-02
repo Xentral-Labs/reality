@@ -1,0 +1,702 @@
+{
+  "revision": "0117_finance_references",
+  "schema": {
+    "cost_manifest_receipt": {
+      "columns": [
+        [
+          "manifest_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "receipt_basis_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_manifest_receipt_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "receipt_basis_id"
+          ],
+          "name": "cost_manifest_receipt_tenant_id_manifest_id_receipt_basis_i_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_manifest_receipt_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_manifest_receipt_tenant_id_manifest_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_input_manifest",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_manifest_receipt_tenant_id_receipt_basis_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "receipt_basis_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_receipt_basis",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_manifest_receipt_tenant_id_manifest_id_receipt_basis_i_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "receipt_basis_id"
+          ],
+          "duplicates_constraint": "cost_manifest_receipt_tenant_id_manifest_id_receipt_basis_i_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_manifest_receipt_manifest_id",
+          "unique": false,
+          "column_names": [
+            "manifest_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_manifest_receipt_receipt_basis_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "receipt_basis_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    },
+    "cost_manifest_component": {
+      "columns": [
+        [
+          "manifest_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "component_basis_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_manifest_component_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "component_basis_id"
+          ],
+          "name": "cost_manifest_component_tenant_id_manifest_id_component_bas_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_manifest_component_tenant_id_component_basis_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "component_basis_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_component_basis",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_manifest_component_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_manifest_component_tenant_id_manifest_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_input_manifest",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_manifest_component_tenant_id_manifest_id_component_bas_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "component_basis_id"
+          ],
+          "duplicates_constraint": "cost_manifest_component_tenant_id_manifest_id_component_bas_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_manifest_component_component_basis_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "component_basis_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_manifest_component_manifest_id",
+          "unique": false,
+          "column_names": [
+            "manifest_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    },
+    "cost_manifest_attribution": {
+      "columns": [
+        [
+          "manifest_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "attribution_revision_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_manifest_attribution_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "attribution_revision_id"
+          ],
+          "name": "cost_manifest_attribution_tenant_id_manifest_id_attribution_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_manifest_attribution_tenant_id_attribution_revision_i_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "attribution_revision_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_attribution_revision",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_manifest_attribution_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_manifest_attribution_tenant_id_manifest_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_input_manifest",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_manifest_attribution_tenant_id_manifest_id_attribution_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "attribution_revision_id"
+          ],
+          "duplicates_constraint": "cost_manifest_attribution_tenant_id_manifest_id_attribution_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_manifest_attribution_attribution_revision_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "attribution_revision_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_manifest_attribution_manifest_id",
+          "unique": false,
+          "column_names": [
+            "manifest_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    },
+    "cost_manifest_correction": {
+      "columns": [
+        [
+          "manifest_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "correction_basis_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_manifest_correction_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "correction_basis_id"
+          ],
+          "name": "cost_manifest_correction_tenant_id_manifest_id_correction_b_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_manifest_correction_tenant_id_correction_basis_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "correction_basis_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_correction_basis",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_manifest_correction_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_manifest_correction_tenant_id_manifest_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_input_manifest",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_manifest_correction_tenant_id_manifest_id_correction_b_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "correction_basis_id"
+          ],
+          "duplicates_constraint": "cost_manifest_correction_tenant_id_manifest_id_correction_b_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_manifest_correction_correction_basis_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "correction_basis_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_manifest_correction_manifest_id",
+          "unique": false,
+          "column_names": [
+            "manifest_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    },
+    "cost_manifest_replacement": {
+      "columns": [
+        [
+          "manifest_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "replacement_id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "id",
+          "VARCHAR",
+          false,
+          null
+        ],
+        [
+          "tenant_id",
+          "VARCHAR",
+          false,
+          null
+        ]
+      ],
+      "primary": {
+        "constrained_columns": [
+          "tenant_id",
+          "id"
+        ],
+        "name": "cost_manifest_replacement_pkey",
+        "comment": null,
+        "dialect_options": {
+          "postgresql_include": []
+        }
+      },
+      "checks": [],
+      "unique": [
+        {
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "replacement_id"
+          ],
+          "name": "cost_manifest_replacement_tenant_id_manifest_id_replacement_key",
+          "comment": null,
+          "dialect_options": {
+            "postgresql_include": [],
+            "postgresql_nulls_not_distinct": false
+          }
+        }
+      ],
+      "foreign": [
+        {
+          "name": "cost_manifest_replacement_tenant_id_fkey",
+          "constrained_columns": [
+            "tenant_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "tenant",
+          "referred_columns": [
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_manifest_replacement_tenant_id_manifest_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "manifest_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_input_manifest",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        },
+        {
+          "name": "cost_manifest_replacement_tenant_id_replacement_id_fkey",
+          "constrained_columns": [
+            "tenant_id",
+            "replacement_id"
+          ],
+          "referred_schema": null,
+          "referred_table": "cost_component_replacement",
+          "referred_columns": [
+            "tenant_id",
+            "id"
+          ],
+          "options": {},
+          "comment": null
+        }
+      ],
+      "indexes": [
+        {
+          "name": "cost_manifest_replacement_tenant_id_manifest_id_replacement_key",
+          "unique": true,
+          "column_names": [
+            "tenant_id",
+            "manifest_id",
+            "replacement_id"
+          ],
+          "duplicates_constraint": "cost_manifest_replacement_tenant_id_manifest_id_replacement_key",
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_manifest_replacement_manifest_id",
+          "unique": false,
+          "column_names": [
+            "manifest_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        },
+        {
+          "name": "ix_cost_manifest_replacement_replacement_id",
+          "unique": false,
+          "column_names": [
+            "tenant_id",
+            "replacement_id"
+          ],
+          "include_columns": [],
+          "dialect_options": {
+            "postgresql_include": []
+          }
+        }
+      ]
+    }
+  },
+  "incoming": [],
+  "triggers": []
+}

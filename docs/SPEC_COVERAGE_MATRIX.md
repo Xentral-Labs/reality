@@ -2060,6 +2060,27 @@ Tables `stock_count` and `stock_count_line`: a count of one location, and per li
   - J02: a count posts its gain and its loss, each linked to its line.
   - J03: a cycle count during operation keeps the pick after its counting time.
   - R07: a month-end loss names three reservations, the finding raises, and none is released.
+## Shared cost-output storage (spec 331)
+
+| Contract | Requirements | Evidence |
+|---|---|---|
+| Four typed storage tables, logical grain, mapped-field parity and shape rejection | 331 FR-001/002/005/008, DR-001/002/003/004/005 | `packages/reality-core/tests/test_cost_projections.py` |
+| Populated four-family exact-copy migration and lossless downgrade; physical guards | 331 FR-003/004/006/007/008 | `packages/reality-core/tests/test_cost_projection_migration.py` |
+
+Existing cost reporting and publication suites continue to prove behavior through the
+logical interfaces. Runtime verification is recorded in spec 331, not inferred from this map.
+
+## Account-owned default selections (spec 332)
+
+| Contract | Requirements | Evidence |
+|---|---|---|
+| Account-owned storage, retained marker transfer, repeats/stale state, tenant/role uniqueness, readonly legacy writes and metadata lifecycle | 332 FR-001/002/003/004/005/007/008 | `packages/reality-core/tests/test_account_defaults.py` |
+| Populated exact mapping/authority/schema upgrade and rollback, cross-tenant equal IDs, blocked selections, post-upgrade changes and incompatible-legacy safe abort | 332 FR-001/002/005/006/007/008 | `packages/reality-core/tests/test_account_default_migration.py` |
+
+Existing finance account, settlement, posting and PostgreSQL integration suites retain
+original financial provenance/refusal assertions. Reflected legacy fixture bootstrap
+supports pinned historical migration specimens without production compatibility writes.
+Runtime results and any red acceptance gates are recorded in spec 332 verification.
 
 ## Consistent proposal decision policy — Spec 323
 
@@ -2072,6 +2093,16 @@ Contract: `docs/features/proposal-decision-policy.md`.
 | 323 FR-008: compatible shared-policy Web presentation | `apps/web/scripts/proposal-decision-policy-contract.test.mjs`; `apps/web/scripts/proposal-review-browser.mjs` |
 
 Execution evidence is recorded in spec 323; this map does not imply completion.
+
+## Finance reference storage consolidation (spec 324)
+
+| Requirement | Implementation | Executable proof |
+|---|---|---|
+| FR-001, FR-003, FR-005, FR-007, FR-008 | `db/finance_reference_store.py`; unchanged Finance services and logical resources | `packages/reality-core/tests/test_finance_reference_store.py`; `finance/test_references.py`; `finance/test_target_mappings.py` |
+| FR-002, FR-004, FR-006, FR-010 | Typed physical keys, metadata dependencies and existing physical deletion/count services | `packages/reality-core/tests/test_finance_reference_store.py`; `finance/test_components.py`; `finance/test_source_mappings.py`; deletion/index suites |
+| FR-009, FR-010 | Frozen migration `0119_finance_references.py` | `packages/reality-core/tests/test_finance_reference_migration.py`; historical migration suites |
+
+Acceptance status is recorded in `specs/324-consolidate-finance-references/verification.md`.
 
 ## Spec 325 — Readable proposal reviews
 
@@ -2121,6 +2152,26 @@ Table `customer_item_number`: a customer's own article number, with the customer
   - Another company can neither read nor state, with the own list as control.
   - The CLI asks before stating and lists.
   - An agent orders by the customer's number through the strict order schema.
+## Spec 330 — Receipt manifest membership consolidation
+
+| Requirement | Executable coverage |
+| --- | --- |
+| FR-001–004, DR-002/003 | `packages/reality-core/tests/test_cost_manifest_members.py`: five exact interfaces, typed shape/FKs, collisions and SQL/ORM mutations |
+| FR-005–007, DR-001/003 | `packages/reality-core/tests/test_costing_services.py`, `test_costing_tools.py`, `test_cost_records.py`; historical review and received-value behavior |
+| FR-008/010, DR-001 | `packages/reality-core/tests/test_cost_manifest_member_migration.py`: all-family populated exact row/schema rollback/re-upgrade and transactional parity failure |
+| FR-009 | `packages/reality-core/tests/test_cost_manifest_members.py`: partial metadata lifecycle and once-only tenant count/purge; `test_schema_indexes.py`, `test_reporting_graph_coverage.py` |
+
+Implementation acceptance status is recorded separately in `specs/330-consolidate-manifest-members/verification.md`; these mappings do not claim that all required gates have passed.
+
+## Spec 327 — Census membership consolidation
+
+| Requirement | Executable coverage |
+| --- | --- |
+| FR-001–005, FR-010–011, DR-001–003 | `packages/reality-core/tests/test_cost_census_members.py`: exact views, typed aliases, tenant scope, guarded admission, races, metadata lifecycle and counts |
+| FR-006–009, DR-001–003 | `packages/reality-core/tests/test_cost_census_member_migration.py`: populated upgrade/downgrade, original schema/guards, incoming company inputs, parity abort and protected purge |
+| FR-005, FR-007–008 | Existing census, captured-basis, company-input and cost-record regression suites |
+
+Acceptance evidence is recorded in `specs/327-consolidate-census-members/verification.md`.
 
 Spec 329 — Platform administrator own private analytics: current-authority eligibility and exact private authorship; 105 related service/API/proposal tests passed locally; complete hosted suite and all 22 PR checks passed. Four-language switcher/card browser assertions pass. PR #301 is merged and deployed; native authenticated checks confirm personal libraries and truthful admin/owner labels in both nonmember companies. Foreign private content remains protected by author/tenant predicates and regression tests. See specs/329-platform-admin-own-reports/quickstart.md for CI, deployment and live evidence.
 

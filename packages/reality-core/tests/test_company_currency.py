@@ -310,13 +310,17 @@ def test_the_migration_backfills_eur_and_guards_its_downgrade(
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = Config("alembic.ini")
     config.set_main_option("sqlalchemy.url", postgres_database)
-    command.upgrade(config, "0115_chat_scoped_proposals")
+    command.upgrade(config, "head")
     engine = create_engine(postgres_database)
     try:
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration 309")
             supplier = core.create_party(session, tenant.id, "Supplier", "supplier")
             tenant_id, supplier_id = tenant.id, supplier.id
+        # Create canonical references with the current service, then restore the
+        # actual predecessor before posting the unconverted historical entries.
+        command.downgrade(config, "0115_chat_scoped_proposals")
+        with Session(engine) as session:
             for currency in ("EUR", "USD"):
                 document = core.create_document(
                     session,

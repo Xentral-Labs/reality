@@ -6,6 +6,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+from legacy_finance import create_legacy_tenant
 from sqlalchemy import func, select
 
 from reality.db.core import DocumentLine, LedgerEntry, SourceRecord
@@ -475,7 +476,7 @@ def test_component_migration_preserves_postings_and_guards_history(
     engine = create_engine(postgres_database)
     try:
         with Session(engine) as db:
-            tenant = core.create_tenant(db, "Component migration").id
+            tenant = create_legacy_tenant(db, "Component migration").id
             party = core.create_party(db, tenant, "Customer", "customer")
             doc = core.create_document(
                 db,

@@ -92,6 +92,20 @@ tenant/account membership; neither record duplicates a link to the other. A deli
 links directly to its invitation and stores no clear token or rendered body. Minimal
 token-free security audits outlive the 90-day terminal invitation retention window.
 
+## Finance reference storage (spec 324)
+
+`finance_reference_store` holds internal classifications and target-owned external
+account/tax references in one typed physical catalog. The original `finance_reference`
+and `accounting_target_reference` names remain separate writable filtered views.
+Disjoint kind sets identify the catalog family; partial tenant/ID uniqueness preserves
+both original identity namespaces, including equal IDs across families. All eight
+incoming relationships reference physical tenant/kind keys, with target included for
+external references. Local references have no target or timestamps. External creation
+and update times remain exact. Existing owner-confirmed services, revisions, audit,
+reviewed snapshots and permissions are unchanged. Migration 0111 supports populated
+exact rollback to both original catalog tables. This saves one physical table and
+introduces no generic Settings, registry or Fact authority.
+
 ## Finance-specific external destinations
 
 `accounting_target` owns an explicit tenant-local destination namespace.
@@ -123,3 +137,54 @@ not business authority. Owner and active company membership constrain every read
 change; `(tenant_id, owner_user_id, create_request_id)` prevents duplicate retries.
 Migration 0060 is additive and refuses destructive downgrade once reports exist.
 See [Analytics](features/analytics.md).
+
+## Shared cost output storage (spec 331)
+
+Cost results remain disposable observations of retained confirmed inputs. Four physical
+tables (`cost_projection_generation`, `cost_projection_inventory`,
+`cost_projection_contribution`, `cost_projection_publication`) replace thirteen output
+tables. Existing logical record names remain filtered, writable compatibility views;
+they hold no separate data or authority. Shared storage identity includes tenant,
+logical family and the original opaque ID. Typed tenant/family foreign keys preserve
+exact input links and separate formerly independent identity namespaces.
+
+Migration 0109 copies original values without recalculation, verifies all original
+columns in both directions before retirement, and supports lossless downgrade.
+
+## Account-owned defaults (spec 332)
+
+A SubledgerAccount may hold `default_destination_id`, the retained opaque identity of
+its tenant/role default selection. A nullable marker replaces the separate physical
+`finance_role_destination` table; no Boolean or preference registry duplicates it.
+Tenant/marker uniqueness and a partial tenant/role unique index preserve selection
+identity and at most one default. The marker moves under the existing finance lock.
+
+The old four-column relation remains a DISTINCT, read-only SQL view. It cannot be used
+to change an account primary key. Shared account services own selection writes and
+retain confirmation, finance revision/event and account revision behavior. Blocking a
+selected account preserves its selection and causes the existing resolver refusal.
+Historical LedgerEntries and invoice settlement account links remain unchanged.
+Migration 0117 validates legacy role agreement before exact-copy retirement and
+supports lossless rollback, including choices made after upgrade.
+
+### Receipt manifest membership storage
+
+Spec 330 consolidates the five receipt-cost manifest member families into the typed
+physical `cost_manifest_member` store. Each family retains its original opaque row
+namespace, tenant/manifest/target uniqueness and true composite parent/target FKs.
+The original five exact-column SQL resources remain writable filtered views. Fixed
+invoker-rights insert routing supplies the internal family; native updates/deletes
+retain existing behavior. Historical selected IDs and digest serialization remain
+unchanged. No census-style immutability/admission guard is added to receipt members.
+
+## Census membership storage (spec 327)
+
+Four retained census member families share `cost_company_census_member`. Original
+exact-column SQL interfaces, observations, hashes and tenant-qualified opaque IDs
+remain intact. Generated document and line identities preserve the incoming typed
+FKs without adding consumer fields. Physical admission locks the building census;
+member updates/deletes and sealed inserts remain refused. Migration 0119 preserves
+populated rollback, original header protection and complete FK indexes.
+
+See [verification](../specs/327-consolidate-census-members/verification.md) for
+acceptance evidence.

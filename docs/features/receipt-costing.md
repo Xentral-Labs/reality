@@ -817,3 +817,36 @@ and without storing anything.
   states it, the currency and the evidence reference). It is recorded as an
   `opening_cost_statement` SourceRecord that the opening movement points to, and the draft
   copies that amount unchanged.
+
+## Consolidated physical output storage (spec 331)
+
+The earlier per-family table descriptions name the stable logical interfaces. Migration
+0109 replaces their thirteen stored output tables with four shared typed storage tables.
+Inventory, contribution, captured diagnostic and company observations retain their own
+filtered SQL views and existing ORM/service contracts. This reduces stored tables by nine
+without rewriting source, confirmed reviews, manifests, census or captured input history.
+
+Every stored row belongs to one exact logical family. Composite tenant/family identity,
+conditional required/absent fields, typed foreign keys and family-local uniqueness preserve
+the former constraints. PostgreSQL lifecycle checks execute on shared physical storage,
+including direct writes. Sealed results, exact captured membership, publication scope,
+known/unknown values and cache-disposal protection retain their prior meaning. Current
+operational projection_row/projection_checkpoint behavior is unchanged.
+
+Compatibility views preserve old generation IDs, record kinds, SQL reporting grain and
+saved selection references. Their internal routing constants are not public model fields.
+The migration checks exact original-column parity before dropping any legacy table and
+can restore the original tables and output guards on downgrade. Application startup does
+not migrate. Schema creation for tests installs the same output guards idempotently.
+
+## Census membership storage (spec 327)
+
+Four retained census member families share `cost_company_census_member`. Original
+exact-column SQL interfaces, observations, hashes and tenant-qualified opaque IDs
+remain intact. Generated document and line identities preserve the incoming typed
+FKs without adding consumer fields. Physical admission locks the building census;
+member updates/deletes and sealed inserts remain refused. Migration 0119 preserves
+populated rollback, original header protection and complete FK indexes.
+
+See [verification](../../specs/327-consolidate-census-members/verification.md) for
+acceptance evidence.

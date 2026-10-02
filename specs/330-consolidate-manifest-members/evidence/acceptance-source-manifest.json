@@ -1,0 +1,3581 @@
+{
+  "snapshot": "/private/tmp/reality-326-acceptance",
+  "backend_files": [
+    {
+      "path": "packages/reality-core/config/action_discovery.json",
+      "sha256": "0e2efe8778fde367d8d62ef91ad8afad0082d27252997d03d56be2e20b9acb45"
+    },
+    {
+      "path": "packages/reality-core/config/business_event_catalog.yaml",
+      "sha256": "11e9f5c017969cd23919dedf2543e689e720c6fd2e8a3b54bfc32bea0e23c99f"
+    },
+    {
+      "path": "packages/reality-core/config/business_journey_catalog.yaml",
+      "sha256": "c2bd3186918e37953265b6ea1fb499931458cbe4406c4079aeeefad06a19b2ab"
+    },
+    {
+      "path": "packages/reality-core/config/command_catalog.yaml",
+      "sha256": "fdc6a15159fb702b990fe2fecb05e920eb45e0176459aebf95caca61b3f56c4f"
+    },
+    {
+      "path": "packages/reality-core/config/connector_catalog.yaml",
+      "sha256": "a7c0fe0cbcc45c9ca27ecf57bf0966577f245f7ec510b552d7ecfc76a3312320"
+    },
+    {
+      "path": "packages/reality-core/config/data_model.yaml",
+      "sha256": "4b9ff45e4e3dc9417b861ec519fa0d7ae39a5db022575cf9c03d1a7eb7ab3ab8"
+    },
+    {
+      "path": "packages/reality-core/config/fact_catalog.yaml",
+      "sha256": "056d7e160c51c870a7bddb5d45ca420e9039de146114af56db159cf1a7467ba7"
+    },
+    {
+      "path": "packages/reality-core/config/operational_exception_catalog.yaml",
+      "sha256": "56f72759d1f98a599d020cc440297fa2b13e3ba97c42f484ce72a31b035b6d81"
+    },
+    {
+      "path": "packages/reality-core/config/product_advisor_knowledge.json",
+      "sha256": "d34d94c3cb643cfcc7233f3bf8765e1592c46c5fb85ee89903be8887b69e2a18"
+    },
+    {
+      "path": "packages/reality-core/config/product_advisor_sources.yaml",
+      "sha256": "29841cd0c0790a7be141f829bcb21f18ac7446809e968d51fd068ef742b1720a"
+    },
+    {
+      "path": "packages/reality-core/config/product_capability_map.json",
+      "sha256": "87e568a1b1031016faa82c85837af08aad594159103a0893318ee7ee696e57d2"
+    },
+    {
+      "path": "packages/reality-core/config/projection_catalog.yaml",
+      "sha256": "c4fae49333fbaffa7e6944a2045ad643267bab54460095f4ef23742cd6f0226d"
+    },
+    {
+      "path": "packages/reality-core/config/reference_catalog.yaml",
+      "sha256": "04984900bdcbc6ef2f85e823d42b361bcc71febb438af43a62696c2161e53287"
+    },
+    {
+      "path": "packages/reality-core/config/refusal_ratchet.json",
+      "sha256": "858cdcc6ca9238579183e7ffc00b4b7373f07264e216fa130b94b2b976741fb4"
+    },
+    {
+      "path": "packages/reality-core/config/reporting_graph.yaml",
+      "sha256": "60282eeb9f5066bd57e794da83f2cb9fdd93ec3832a6639889bae735851d563e"
+    },
+    {
+      "path": "packages/reality-core/config/resolution_guidance.json",
+      "sha256": "eb7f355907b10211173d280412dce5a85a3bd48c90533a066dca542287b7774c"
+    },
+    {
+      "path": "packages/reality-core/config/resource_catalog.yaml",
+      "sha256": "cafc1071c2960516085da63ec072b7bde0768e527b5cd976bdae115b1eabf9c4"
+    },
+    {
+      "path": "packages/reality-core/config/service_refusals.json",
+      "sha256": "47b0ebf817583589c8db19e19074825788958f8d0ea67181acf977ebda2323eb"
+    },
+    {
+      "path": "packages/reality-core/config/tenant_isolation_catalog.yaml",
+      "sha256": "fd315eec56be837b65ff1b2faea9f50289cb297071e1afe319fbb1f82b5b43ff"
+    },
+    {
+      "path": "packages/reality-core/config/tool_catalog.json",
+      "sha256": "245ac115b600ef6a641c595c4755a0ef55c3aaf2239a05c16a40cf4ca46db80f"
+    },
+    {
+      "path": "packages/reality-core/config/workspace_catalog.yaml",
+      "sha256": "0fc981959999dac061600cd03e0991a210861442770c5172158d0c730106ffd3"
+    },
+    {
+      "path": "packages/reality-core/migrations/env.py",
+      "sha256": "daf35ec8702d0181834df65de8db67c30dc1c7bc8ad69dda339f7e626efd7159"
+    },
+    {
+      "path": "packages/reality-core/migrations/script.py.mako",
+      "sha256": "c20f6ab92d4ed36d77fbccb82bc410cd2ced42f2c162eebb43ddd45ae93dd90e"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0001_initial.py",
+      "sha256": "74b9c473608fe7c036a7e2fd19b5f7430981d63519b1893ac9e0dffa674fbf9a"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0002_settlement_allocations.py",
+      "sha256": "4c4d371b0fe1c9ad000188b1ff49385108cd198395693cc7a87e8ba834efb362"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0003_master_data_active.py",
+      "sha256": "fe4e2c71574eeb01c1aac0baf33c74fd4d7aca7bb59fa708a656a2e972985d68"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0004_master_data_source.py",
+      "sha256": "ab6a16e4bc0c8466e3f1d66aeae174a17690397be8f7fc624ad1a995e660ae87"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0005_operational_fields.py",
+      "sha256": "dd7a8ef4f1558c68d3d42aa9fc8b646eada5eef486157d13db64888bea117077"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0006_commitment_holds.py",
+      "sha256": "db7dc51249a4a0284b0485794e539fc2d2fd26c62b8b9e3e686d21e4e1298c16"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0007_party_delivery_holds.py",
+      "sha256": "b311860ce72a9849787f06cc35b688744a3b406b9558edd8b1c7dae2fbab66ce"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0008_utc_timestamps.py",
+      "sha256": "f3c50709363820393210e1a6b01cf021c3f0bf35ac8289ebf005879ccaad0aa8"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0009_payment_terms.py",
+      "sha256": "5f4380effd6898a90b9a6173ff55dcf00bf478972a678e0eccc9103db707c669"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0010_pricing.py",
+      "sha256": "82fb3fde2493192a68c8628f0eafa77fba9723e17d9c31b329a2d801e6b3af6f"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0011_source_import_idempotency.py",
+      "sha256": "a92f8a7674d6be17a73f746f456afbfce554c83df2c06739e67e206eaee861cf"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0012_business_events.py",
+      "sha256": "67bc7b878770c7dfabcd80421530e8d0b72970a5c1536949c9b8466cd895d5c0"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0013_integration_registry.py",
+      "sha256": "97e77695dafab163a10977d0cb3337c7426b56144bc7db34fb6f2b688a0d1e5b"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0014_tenant_lifecycle.py",
+      "sha256": "0ae23d652ce9f4491a16f869c469e17733201b9ec6b0d0428bc27ce398cf45cf"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0015_handling_units.py",
+      "sha256": "76ef7076360099a27c67ff2ca77395138af57cf9bba2890b58dacbe0c29bffbb"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0016_inventory_tracking_dimensions.py",
+      "sha256": "e56726f440350a24103e0a1ac054cb365360ea31731b81b72daf9a3cb41ed95e"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0017_ai_settings.py",
+      "sha256": "3a066b563eda203b010867e0f91b2635e5ffea00c18068c847bdcbe3c9aca6bd"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0018_materialized_projections.py",
+      "sha256": "87bbf4f40a5525c810373bfe6da88b0f88ec4f8b6854fa2e75de4e8df00211f8"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0019_mcp_access_tokens.py",
+      "sha256": "ac7e2e57f7d0ab91fc3d9bd630ef7246235b16c5e00107550dc075092a17bb51"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0020_scale_read_paths.py",
+      "sha256": "9f17725cac92496adfe1d23a159e93fc871b34296449f96e21aac7f235ef4da5"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0021_source_artifacts.py",
+      "sha256": "d3be86f92174edf457baa76e1f98aa7b7ae6f1ce2db3071c6c5f03449a8a4adb"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0022_mcp_tool_permissions.py",
+      "sha256": "0197a7535128c039ef92ba85960056c14615430d75b1239c1dc40b6cf86488bc"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0023_exception_terminology.py",
+      "sha256": "6ec2138fcda65de0cfffc4abe55e2371ab1ca61e388c9a7a1f4cf0aaa017af8f"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0024_user_access.py",
+      "sha256": "352d1591ee8a94d7b2cf9d0e6d57623abc76cdcfc9a5b05efb9567e9af3af40d"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0025_user_language.py",
+      "sha256": "6a3831a79a06db3c5e69b71ca29a76d66f1771dcc27ac901ba0f1433567d77a0"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0026_secret_vault.py",
+      "sha256": "e7badabab7077c3e36fd866ea7553da5de9c59ef491123936371b0b80b8c9bde"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0027_access_admission_counter.py",
+      "sha256": "19b1dc1643f714bed36f04963e1bbe8c25f6da9f0cf7e20e6fdd2dddad62964a"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0028_movement_corrections.py",
+      "sha256": "192e9f8404b34f43585b9ac5aec19764fce98484384ecfabef2b9b9c9465b0be"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0029_ledger_reversals.py",
+      "sha256": "469859477eae425da754dae0d44195bf5c0d926df443c21c76cb07fd33b0ca77"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0030_company_membership_invitations.py",
+      "sha256": "61edcd58e3f49cb07446d97813f6a659d6a4aaa8929120ec5633dcec26262683"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0031_chat_session_archiving.py",
+      "sha256": "d3ea167f03e2b3e395d5f9c6de7dfac614f9ceb90e89ebebb71b45d05b4992ea"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0032_fact_observation_identity.py",
+      "sha256": "efb2834da3a378613bb3962b4e9ab971fcd8d4dc64a2d94a36fc0704cd4b3744"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0033_interpretation_outcomes.py",
+      "sha256": "a34ea1123174f2e3e243213823f2cd04fa35d0687fa93f7789abea25324632f3"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0034_decision_attribution.py",
+      "sha256": "fbcbb3c07db5abc3593963945a63146d00faeeb402ffee317250da9925c38795"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0035_reality_gaps.py",
+      "sha256": "5fd0c99629f691742dc23c4cdd3e30f7c6221990d52ffe31b384827cf63d1db0"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0036_erp_interpretation_rules.py",
+      "sha256": "58798e955e58fa5c4c92fc44770f6839d09c16dd4dc6d0e6edb910cbb9ca85f3"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0037_invoice_order_link.py",
+      "sha256": "18589fd475fb096041438e8bf962500ea3c63f6c74e128c14f149d7431b79a5b"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0038_return_resolution.py",
+      "sha256": "109dc50b430d4bfa37c2c96817612cb17b62dd237df1e3d4901db9cdf52cfa6e"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0039_early_payment_discount.py",
+      "sha256": "06707f1a4fe18cd558bd453d514d7bdfd9d54940d1ee495c220a0ae5ae36f2f6"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0039_learning_playground.py",
+      "sha256": "c8b1553c722b5b266d2735e39a889ae06f4910ce026366c07704f3c1f4ffd341"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0040_commitment_revisions.py",
+      "sha256": "712ad326cccc100f539557b9354179a93dec2ce1af522cbabf35243617bf2e3d"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0041_playground_main_merge.py",
+      "sha256": "2d2772ed797a413412746710a6d448e55cb4993fe9bc41db0feb0cc5d97eb8fd"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0042_commitment_revision_quantity.py",
+      "sha256": "7e5f1a66c7ed7fefae7eb972230603c5c3f93d2b52273c1027e7f9e3b8d86bb9"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0043_playground_practice_companies.py",
+      "sha256": "670e0036a8cbbaaea511b57e364a498b4250265c5d5aa3bd0f5229ba05c5622f"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0043_return_announcements.py",
+      "sha256": "fcaa457307086b901be888868133b85fa040fafdeec85827642d88d3bd769d6b"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0044_playground_returns_merge.py",
+      "sha256": "4156c0d3cb6792f69304f4f61c6395a2e0eb90be6f82062d1b5ed83dc69a40dc"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0045_lot_expiry.py",
+      "sha256": "9582617e8a77a74d5a2a1a1aada57cd53b6d2d284c6d9cebfafd519239da6607"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0045_scheduled_jobs.py",
+      "sha256": "1fbb040de0aa4413033f7e80c5da69473a40f74ed789c21d9a8266e18751511f"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0046_company_setup_demo.py",
+      "sha256": "858908ea7dcdde53ad7f490cd39ba7679be281f249044a8763cfa4dff70b3e14"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0047_merge_demo_lot_expiry.py",
+      "sha256": "f92e3c4c51da9836f68c0b80afc533f2ea943044bef3f82b8b22ab892512f697"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0048_finance_accounts.py",
+      "sha256": "3741034477fcab4c219f0993d1ac14c070bd05d63ec3ed494b9041640ed9ca25"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0049_settlement_reduction_roles.py",
+      "sha256": "cad26a361c30f64869ded20b7e8c15e2edcc977ede2bedb8a228444ef484ecf7"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0050_opening_subledger.py",
+      "sha256": "f2ed438152bdd4c877cdf2da6e3fab496fb04442f6147f3e5cffe4ec02caaa29"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0051_finance_references.py",
+      "sha256": "13cc9a9bf0eb25e516be3d39ae4ca1e0e954aab57b5baf3ea1b5a0d3b469cc81"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0052_component_assignments.py",
+      "sha256": "3f8cde573a906fe929fa28002de2f0c2eb5ff9188f5a2c5f2d41220c7d96365e"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0053_source_classification.py",
+      "sha256": "264a05f16e42176c5f076425c7b90f16d867fbac958b7dcf87b86dfe243ab48b"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0054_target_mappings.py",
+      "sha256": "98aad7d527c89777b73fb8692ed4fa2fcc130ff117d8339065a9774be21485f8"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0055_demo_settlement_schedule.py",
+      "sha256": "a7f6cc0deb53f8de36736391d34a2b0bce43997d4ad831e1622cb6956dff295e"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0056_physical_shipments.py",
+      "sha256": "3645f687d851e173f0fe864839f54827c2941ae078af2ae76b1a284c6276a036"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0057_projection_jobs.py",
+      "sha256": "71104e2a0e63969e0522bb75981bd1acd127e4d2a4260af1052e5d553bbd2425"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0058_storyline.py",
+      "sha256": "d37ff49e89a6f206cb68a897fccac9a74ec6908750fa966650d2dd01975fd42c"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0059_foreign_key_indexes.py",
+      "sha256": "aff522ea2e6346b7c0e3ec4716c197712988a05521f04b6cb7d0856109ca0177"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0060_analytics_reports.py",
+      "sha256": "fe14dc0a11bfb75829b247b008ed811c1db643b3d85a7a842064dba3570707aa"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0061_source_system_addressing.py",
+      "sha256": "42383fa654c5ca9ab6ca3ab0ecc9e6471fafdc6ae52c48b568c03208381a0ff6"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0062_graph_report_model_version.py",
+      "sha256": "f2cb1e12f499f5a5f18654361ea57ec8fad592bee71d0ca2d7022c75b7bdfa51"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0063_document_date_is_a_day.py",
+      "sha256": "e4ff2ea7a566a51cedbb4f15f0370b5dbae2235dfbd40099fa017844309b748d"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0064_analysis_document_indexes.py",
+      "sha256": "8f22065c47c8460e0e6dc96e7e46ac02fb37c479e8b62acf8753d72bc325fa73"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0065_requested_analysis.py",
+      "sha256": "4d4dda5c7838c9b0f2e71dd2d7d1d601873b9f0480b4ec2113b502125465bdf0"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0066_global_search_support.py",
+      "sha256": "9a1822e894601b1a5d55ea3d54c3ddbb8bbe47279154a15e7222be6178396ebb"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0067_desktop_identity.py",
+      "sha256": "e5313d562068b45a8f61386393c20f4566374a090f097cf74fd04195579139be"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0068_tenant_event_progress.py",
+      "sha256": "1f9a0f7a32da1fc806e8d067041c4e00f49ddb577c1b1185051555219ae714e5"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0069_projection_run_per_projection.py",
+      "sha256": "850ef6c3ac4588db8ddcb270e89423aa2f5574e0210db98734e4ca0b84138cc1"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0070_projection_clock_due.py",
+      "sha256": "32b3905c28195a76a4314313f923c2467cb05d0198fc526230f8397548f3220a"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0071_receipt_costing.py",
+      "sha256": "e5328cecbc0f0c62366ed43b63259281b7781f5ab65e9f1096e10203af747fe8"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0072_inventory_costing.py",
+      "sha256": "369bc12ec9bfebb8ea1410f19ebe214eea13c4adac28b83f4d22f81d1c5aa46c"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0073_contribution_reviews.py",
+      "sha256": "edbc490ca665becd04afd5abf1007dba82eb074c6a6968956a6616ba5e988ca2"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0074_selling_costs.py",
+      "sha256": "f356564c3689a1229d08ece7aab15bac8e899fe5dd079bd9054f062f6d717f03"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0075_inventory_generations.py",
+      "sha256": "ed674a25c5d3470fc2ddb313c80c7a2ab42137bb43384e467d5ea2adaf98eee2"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0076_contribution_generations.py",
+      "sha256": "dfe3d3a66dcce52c285c545582337efa7a9cfd670eb887ce5e694842f6aa5d17"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0077_company_cost_census.py",
+      "sha256": "434f96d44925f8e1c0fa2aea4d68130ac044cb38b2bcf47ebd426e5ebe448d94"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0078_captured_cost_basis.py",
+      "sha256": "effe4a01e755cc6300add4ef6d8c751648c9f7a0193026638b7a3112ba9066af"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0079_captured_report.py",
+      "sha256": "cb36700234a28d80568e43ce36aa3d040d19166c8d645d29f4945045742a218d"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0080_company_generations.py",
+      "sha256": "e0712b689bd084bdd69b18903f76c7cb67ba9f126eb6687e88eec0ced0e91da5"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0081_inventory_specific_policy.py",
+      "sha256": "f3f02ec51559d0125c7b6dbb38a745c54d1a3891b5f6cc8de9a5ec8b86901261"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0082_inventory_returns_losses.py",
+      "sha256": "2cd69f653e6c393c93bee4aa0ccd83449371905495a047484fb70511981a6e8a"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0083_inventory_opening_basis.py",
+      "sha256": "f947c7b3f0bd91c119cfa4fca3aa520996675039738877acedaff6eaa98177d5"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0084_inventory_ownership_parts.py",
+      "sha256": "a39b602447214efb5aa8b5ce35acce4b6d62668d4f48c2150b9e1c1041372250"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0085_commercial_matching.py",
+      "sha256": "6fe6d9396078569dcb11e6c2c742512499ec1e4bccffca7c1901c42ccb2efc94"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0086_carrying_value.py",
+      "sha256": "11f88c2b6fdb67d6f5cb5e35fa7fc1b6622640374e9f5f664476c6a705d3c8db"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0087_cost_conversion.py",
+      "sha256": "a7b8fd130ceffb4c9979816e02a7f68e04765cff55382d9bb805875140afed78"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0088_tenant_scoped_keys.py",
+      "sha256": "43037a45da0cdf4e941ec7d9789fa7c5450bb4f7abf8132403acf6d492aa564d"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0089_commercial_edge_workflows.py",
+      "sha256": "b30ffcf3cb2690f1cc1506ca0c665b025a1748585a7bd93b9a94216daa41f6f7"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0090_supply_assignments.py",
+      "sha256": "5871ee974a33d9f901dd6294462577c51d559d5b5d5492759dcddb1e197057a3"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0091_schedule_recovery.py",
+      "sha256": "c2853156992925f3ce230df0c048b59937f2d81e8e407aae5b35e8946d334cc2"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0092_party_email_addresses.py",
+      "sha256": "fecbf69024a24210fd6fb2c9f63e08cf14f97f397454205f5ec701c081095160"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0093_decision_trail.py",
+      "sha256": "9463c82454637bb49beb5da7fa5fb68174be61c77363346b920a5c215f9b2897"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0094_mcp_user_authorization.py",
+      "sha256": "336893f69ba564e436c2fe412e799abf778117ac0ac5d2eb436bcdcb97839165"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0095_mcp_authorization_indexes.py",
+      "sha256": "13eb84e73b3cb103b6c4595188e494649c704239f3a7caf0dbcccf3b898b7925"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0096_engine_room_interaction.py",
+      "sha256": "8aaf27ba8f45dd4d3b410d0e8c689e4ae86e10f4bd13ab138becf4d2556aea89"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0097_chat_answer_basis.py",
+      "sha256": "85cfdb75e4e9f9cdfa82db4b1c8f2ee82b90b936bd178bbcb310319886540b2f"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0098_chat_agent_decisions.py",
+      "sha256": "270a5d1cc4cc879eda823e6412a22cb817a2a3ae5a7ad6c39f49d2a50cd2898d"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0099_payment_term_prepayment.py",
+      "sha256": "465c5fc1b874b35b94d711346c2e000c45753c464e13ea9717220ed01cd7fd3b"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0100_business_journey_proposals.py",
+      "sha256": "2897857dd88c419b6914c726c7bc089ba7913d3f65a4936a5ee7701947dc16bb"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0101_customer_exchanges.py",
+      "sha256": "67215069e280af22e70a76f2106222b8585bf61048162ac045565fc86de4200c"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0102_dunning_run.py",
+      "sha256": "cc6436f37195c366a13aa7052dcee2dc4b7972f942c4547e5dd62a31432740d3"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0103_payment_returns.py",
+      "sha256": "be62b6bcc7222c165ce605a313daf332f0b61afb96717fe0b6e3220d87884e74"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0104_line_price_optional.py",
+      "sha256": "242ea2055443a81fba3b76c525ea719a39061caab093ed67f8dfeda2ab8676d4"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0105_down_payments.py",
+      "sha256": "686dffb2e28245d9f410fe69b2f08b82aba3a2404cc06d9dcf45b270f0dd8bce"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0106_movement_stated_unit.py",
+      "sha256": "29ca22560912b994b9f829f0303d85e885e719da1d77193fdf7a2e5d588de1d5"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0107_item_reorder_point.py",
+      "sha256": "59c490730e095378c1e58e221b7bcd6856a54274ae2a1b33990236fd74d9dd0a"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0108_stock_block.py",
+      "sha256": "5929b6c0043e39a30f50944a4a401b50f4c3bd8ffc6c0c396637d833b6d99eff"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0115_cost_projections.py",
+      "sha256": "18ac733e7a5b72c6708950592231db9699f8557cd51b5cb27cb7ec7c14b499c2"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0116_account_defaults.py",
+      "sha256": "a8c7a0a3fa84e6612d7562f81d50383638bdd7273c931c4a0d3d3f0283a5120a"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0117_finance_references.py",
+      "sha256": "9fcd525dae844b1f76a2bdc9d3c5286064bef3a9467e1e69b89e44b73bd61c0b"
+    },
+    {
+      "path": "packages/reality-core/migrations/versions/0118_manifest_members.py",
+      "sha256": "eaa595052a9ebb464a55acef550a9175efe4b62d49a8c353504cb2c87df3a22c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/action_discovery.py",
+      "sha256": "c0ee1e5338c798d4b00979eb628b3f9ae12aecaccafd18581549317bca72404a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/agent/README.md",
+      "sha256": "d7e2e2205a2e44eb63418d4fe5b13d7199a5d46a9a7b51be9192d1b2ed17ef1e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/agent/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/agent/mcp_chat.py",
+      "sha256": "2a3655b3b5857f20bd8ea7297393d8238a566f22addb86d29693d8efe7e20e67"
+    },
+    {
+      "path": "packages/reality-core/src/reality/agent/provider.py",
+      "sha256": "abd58ff036c98ec7730b5b08ff5b364fb9d4ce005406a6af22109ca77ee566a5"
+    },
+    {
+      "path": "packages/reality-core/src/reality/agent/settings.py",
+      "sha256": "1ee369c0b8c401a17385cbc7004ba8d0cf9f5902c41a736562999778b58c1e1c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/agent/streaming.py",
+      "sha256": "5aa40e66bb35dd12eee488e4365b16a725f0a318b894225e3f8abb4385e92fee"
+    },
+    {
+      "path": "packages/reality-core/src/reality/benchmarks/__init__.py",
+      "sha256": "5e6a672b0d2563713480f25cb71ea3f57259b9c5c65baa3fc077d6b1c7d4443c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/benchmarks/proposal_review.py",
+      "sha256": "8cf77a02f1652587fc0f53095b34651f29bab097a9b8e7fb60ad16dacdcfc712"
+    },
+    {
+      "path": "packages/reality-core/src/reality/catalogs.py",
+      "sha256": "00bf2173a60e19e72b00b755867444d1c3511adb0ed71299e73dcccd13b8b065"
+    },
+    {
+      "path": "packages/reality-core/src/reality/cli/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/cli/app.py",
+      "sha256": "d9a8c3488fad56e7d8b6d8804ac5c2cfad2be34632a342738921eb3fd38f4579"
+    },
+    {
+      "path": "packages/reality-core/src/reality/cli/context.py",
+      "sha256": "2bdaa23bf6d3cb912ecad749ebc3610744b63f41294b117902e1e14574a61fa1"
+    },
+    {
+      "path": "packages/reality-core/src/reality/config.py",
+      "sha256": "faf0268aadd78aed870e9d44f0c93e7fc5c7c2ce6541462bedda80ced44bdb7e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/README.md",
+      "sha256": "9d92e78dca9179824938a3af7c323633cb9cb72a41654b0da5fe16c7b0b8d8d4"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/analytics.py",
+      "sha256": "aca0376ca123acc7210b9570b3954ea43c4ef60c8787b1038ee8e720ed107264"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/captured_report.py",
+      "sha256": "f7b1d89e184d1988c57d9a651741adaa16755d4d8ba3e0f87bb60f9b3ae8c88a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/company_generations.py",
+      "sha256": "c76dbf87e6dad9ffbeb7006060ce90459eb38842c653508c37c3a1dff272b950"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/company_setup.py",
+      "sha256": "a6da07f877da1e37983a14b9fcfee96d945fb94f7d236c710fdc179f44d1d943"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/components.py",
+      "sha256": "907fe95fd0fe6a24cd114a2ebff8d1363338957ae3cbf0eb8a10338e66c77f9b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/contribution.py",
+      "sha256": "2f3e21eab3825cb3441eae997bcbc5206b53083277595901fce65f67d3e9bbac"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/core.py",
+      "sha256": "0e3be9b1b6358c9e7d58980ec8821a36a0e3c93c229398bd9ccff5c3192fc2c5"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/cost_captured_basis.py",
+      "sha256": "7c08f1a329ec5203a1e8d5df0f15033aba8e9aee0caef225df1550de4855fb59"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/cost_census.py",
+      "sha256": "b892ab16b2f81c14beddeb90904fabbfe9dabc550f8c82d9e7130cfd14051ff3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/cost_generations.py",
+      "sha256": "d8cf1afba81358da808c991819fda6186dbfaae5eda9ae184f30f3bc3893809a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/cost_manifest_members.py",
+      "sha256": "b7fb04a65287e39189c523b667f370e179e65ede4394f51d07da5dc1821885e6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/cost_projection_guards.sql",
+      "sha256": "6d9d285c707027923e11a9a2fdd5b70283e132ae6b5726a7675232c8c6fcef45"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/cost_projections.py",
+      "sha256": "a191fb739c5721ab1c14ca5a7a17cf3e70b0d376de19da8d0a7f1a14e9a726e5"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/costing.py",
+      "sha256": "a17c206c84c6a56954de31c300416c1edaff90b3d5aa2fbd5356a2ecf3b2b825"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/demo_data.py",
+      "sha256": "8692a27c5801bb01e3c68f893d6c6d539b8e80cd3ce79e60060448aa1e75b9ca"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/finance_reference_store.py",
+      "sha256": "3c7a3a795132a34864c47cbed2ec4b5dde73ca30693859fd117af541e5d955dc"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/finance_references.py",
+      "sha256": "b0c3791580a9cf4a26a43c9fb66e8c5c163817d19e3cc790c8f1c378e258b365"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/interactions.py",
+      "sha256": "b7e6422e03b15082bbf3d64e07095719eaf7f46a08526756c0e2809e01579b65"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/inventory_costing.py",
+      "sha256": "eab7c0e2f392b1e812cc6cc485a0a839570f19d225240ded795705bc750fe0fb"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/mcp_authorization.py",
+      "sha256": "d3e2d30dbb110a8e84617482e5679304910b4759c0833c42295d1512aca4ea8f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/opening.py",
+      "sha256": "8a203b464d51c4c4c20e94194f2b99bdd58710af5d47a9c404179c3806ca541a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/query_order.py",
+      "sha256": "747cfc230913eddeef3d330c2afc6eb3280d430d5ee394fdcdf53f73b7aa415e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/scheduled_jobs.py",
+      "sha256": "87a7195fb93a21732d32b9f8dff4caf9e047c350bfe08b6ccc858c7426668a9a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/schema_views.py",
+      "sha256": "b5c538d8aabee34426279b1b763fddaac7f093f456e2917b8f656b86f8fb7fef"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/search.py",
+      "sha256": "02550c097b53519f3105bd1aa7474a50b3813aee32eca78b228f99b296c55d50"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/search_indexes.py",
+      "sha256": "649e45e984d992508f0f2854400fb5d86e8e1f1a1c71f93bb713da8e5e202f2c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/search_sql.py",
+      "sha256": "b5f352e272297a3cb646feec491d9c3abb1340dae6237c40afc15ab955e6166c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/source_mappings.py",
+      "sha256": "c101240c690dacd3f00883130b55aa7a269117e29d50f7d52b0262534cbda200"
+    },
+    {
+      "path": "packages/reality-core/src/reality/db/target_mappings.py",
+      "sha256": "62ffcf1db8ad8684fdbfc4f17aa3fcc0ae88c25bdf0a5d4a7decd731350943ca"
+    },
+    {
+      "path": "packages/reality-core/src/reality/demo/README.md",
+      "sha256": "90103118056dbf5f30aae607dc5ea2d22f1366998323bebba64efe12be68ac8b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/demo/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/demo/international.py",
+      "sha256": "1f602deb16dcaa0327a11e7663f3a2ceebb2d821cafa8f13458ad41da0ce672e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/demo/normal_month.py",
+      "sha256": "39ad21701f302e3935fcce8d126f8d257520ab97f7e14c7b168461e7d8214610"
+    },
+    {
+      "path": "packages/reality-core/src/reality/demo/profile_contract.py",
+      "sha256": "ee5378c472b2961abe4bcaf753cc68ce287c294447d33982f865ba78d39e271d"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/README.md",
+      "sha256": "e0251b1da2fb5dcc2f553486c458b365f8712318e8d9d49f9cc29bd0b3976811"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/business_journeys.py",
+      "sha256": "af3faa17a442cb0eb1cbdf1eb07f7473cf7403176d4dba444ecb3b93054ca21d"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/calendar.py",
+      "sha256": "df8619b18d625d9892428e6fe00c3f043b97fd83e0699333881f44ffc4833b74"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/captured_report.py",
+      "sha256": "2f28e29580986bd0866a1513cc0fb6866c3872284da1b0e2d54bd14dd0946da8"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/carrying_value.py",
+      "sha256": "8158fb21a01fa8e0a27ec4cc135fb115e164016f698434bae88676642ee56de1"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/contribution.py",
+      "sha256": "f529ddc55326b72f599f7c0efaca20ec6fe41cc581cab534f2b6ae5e98564413"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/cost_captured_basis.py",
+      "sha256": "adae27b933038c17bf158d7b99d5bc59daeb4ba4655123fa5f216270ff5f37cb"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/cost_census.py",
+      "sha256": "63ce4c76bddf9b3e277610735d85e1c9a3b575205d82e81f721ce07c8799fa79"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/cost_generation.py",
+      "sha256": "ee4d03fb24f58bdbba09f8b5e75596ea8d5bf22a54c2a1ecd1e24e0abb9496f8"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/cost_population.py",
+      "sha256": "9eac84d534253bd7284d5195ad4b08fdcfa739a9010533f6c22f23e07aeb6ba6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/cost_query.py",
+      "sha256": "71c8b22832b046ea8f3882991fab980513c333afd3cc2e342179e9c645c0026a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/cost_records.py",
+      "sha256": "b313a06558534cf756a5370941ee49e702dd3549d4039063f2980695692b8b69"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/cost_review_draft.py",
+      "sha256": "943790b2aab4f7d5e2aad52618aabbbf805a270c7b5e90e1f23d5248fc597584"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/costing.py",
+      "sha256": "d59c7c3bb6d14da408b2a1002792c3f06852c502d66c7f9ef79bfc6da9b4b3e0"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/finance.py",
+      "sha256": "37ab94c60af092dd81882cf6d25aecc57dcc2f1a7278e30dce8226a3d70ea3c3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/graph_report.py",
+      "sha256": "cfcbd73cadb2a573658cfe3f704d55db5abc9148db5554411228f79344df9f79"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/inventory_costing.py",
+      "sha256": "2a44c0d37ef311468c1ad87019785ca8e4be30812ce346dc72920f859d9261fe"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/playground.py",
+      "sha256": "2b965828ab9e22b4e8d73f458266a17b0f96d859692429ec5b6940ff680825e4"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/product_advisor.py",
+      "sha256": "3bc6c380cd37670797e7fe8e7e9871eb517863ee8c51f7cd1519e270cbdc110e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/proposal_decisions.py",
+      "sha256": "89756db2c9be5ca15e3f9ba6d31bb7ccb819f66dbff29f1b3e2095f404f75e54"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/refusals.py",
+      "sha256": "a25490b3c95af18938d612122aa2d4a0aedc93697b7b5a392380ce0130f9b5b4"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/reporting_graph.py",
+      "sha256": "91bd6d60dd60525dccd4ea542972538f54e94fdcfcb1d6ccd9e2f0987461a91f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/resolution_guidance.py",
+      "sha256": "175863ace7bfd4978fa3abb30edf24eb08b8d1dab8a88838e74cd53a4743b152"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/search.py",
+      "sha256": "44a0e282ba48db657bd487d83bc522dc7f00bc83353a502f4ea766715479cf19"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/shipments.py",
+      "sha256": "0da7d0e3a27d9f69c40c3a023590fd8b03eddf05cb5e06ffc71f9d8365e083bf"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/stock_scope.py",
+      "sha256": "1f89ca9e1baac4654394b231751c68c6417d1f3f68b3f7d727c56b89a599f79a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/supply.py",
+      "sha256": "f174cb0a1492fb33d01926ca249c90e3ee3c29b7069b69d4a02a72bd86ab5a2a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/target_mappings.py",
+      "sha256": "f5ab16c15a918774228a1978d67b0159b00c9d589e13931f24254ae0331e74ab"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/traversal.py",
+      "sha256": "b7566e56c83ee160060b2d555dc84115479fd981b239ce8878c9722a56f3e217"
+    },
+    {
+      "path": "packages/reality-core/src/reality/domain/units.py",
+      "sha256": "aad810e2ae5626b9981a0e20d5e2113e901513ba713598fb744d83fe9b69058a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/integrations/__init__.py",
+      "sha256": "c8214a854a465aee6826d85958ca69a9f2c7a01e7942d9a5989d8e1c132a1b7e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/integrations/catalog.py",
+      "sha256": "8d0873a8b6e8242a113bac6c0ad87cd085679aea8b4aba648170c2d23e068bea"
+    },
+    {
+      "path": "packages/reality-core/src/reality/integrations/demo_data.py",
+      "sha256": "a8ba12920c8d7122d86db43723594577f80d50a00943eedc070fae2973794b67"
+    },
+    {
+      "path": "packages/reality-core/src/reality/integrations/shopify/README.md",
+      "sha256": "42bd51a22dfbbf444e5d410213cccded1a5d809de596a44ed19b81ae1cc8db82"
+    },
+    {
+      "path": "packages/reality-core/src/reality/integrations/shopify/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/commands.py",
+      "sha256": "e14829cd77fe12059b2b6b707eac0dedd1418e45cc33eed3ead0e9e702f2bbe7"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/handlers/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/handlers/analysis.py",
+      "sha256": "03999449e4a9a95e5ef7edaa8ac8b6ed7196c2d5a8632c9bcffb6ec768c73558"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/handlers/company_setup.py",
+      "sha256": "7946492c560e8446c501815501fa387868b5176b2cf482e7bdda09fdc778a710"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/handlers/costing.py",
+      "sha256": "189adc7034d333d32f21e1a846ff3ec21ab82e52fa9f4eaa625b019166ceae77"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/handlers/demo_data.py",
+      "sha256": "ea058aeaad0b88e7a3fbf85f99288ae212b5b4a7f7e8c34846bd31352964b541"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/handlers/invitations.py",
+      "sha256": "d0a595a0b66dafd2ecbddeccb408978abc4428f9eec2fb6da4997e2b7781d630"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/handlers/projections.py",
+      "sha256": "2215bcb38c571c3d67bab7510961e86b02c3ba99c2f0d556d8733d9859aa1cdd"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/health.py",
+      "sha256": "a6fe5f665a4704afedb306e176958aadce696bc5326427531767cae7a064317e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/registry.py",
+      "sha256": "fc86261572ae37f9de02dc50badb5b1b5d294d7316fba253c12d150b10f098e3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/runner.py",
+      "sha256": "6fe445366dc5bbbe12640f2dbde6c3955e107dd16bf4f88b01f057cf9b86bf54"
+    },
+    {
+      "path": "packages/reality-core/src/reality/jobs/runtime.py",
+      "sha256": "d1adeea01e84d5acd085a3bb380e32ee073619e8a62e58489236c63ed0a5b0cc"
+    },
+    {
+      "path": "packages/reality-core/src/reality/mcp/__init__.py",
+      "sha256": "fc9a110f00cf98e3c209b578a287d7528e7a87e42e9f0bac4c7dd12670346005"
+    },
+    {
+      "path": "packages/reality-core/src/reality/mcp/app.py",
+      "sha256": "672b2a557c58b7bb11b760103d16f4401386cbd2022ab40ad63651e9dfe30398"
+    },
+    {
+      "path": "packages/reality-core/src/reality/mcp/auth.py",
+      "sha256": "413d2557b8c6abc9cc1849f6b0a6c03bf9b06395ec1343603f63e2bf8ec9c0ad"
+    },
+    {
+      "path": "packages/reality-core/src/reality/mcp/catalog.py",
+      "sha256": "4ce270d6d69b35f0ac39834e7a71dd7a720c2aed2bfdd768d82b9970f7dea3e2"
+    },
+    {
+      "path": "packages/reality-core/src/reality/mcp/config.py",
+      "sha256": "45f328781bd2984e38d3a6e0ac8e113b995fbc043787b94c3bd3d9540e8afbd3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/mcp/principal.py",
+      "sha256": "0925487850b411a2dc9ba7afcd556a7e96e2d8a2e52420f973addc02e2e967e8"
+    },
+    {
+      "path": "packages/reality-core/src/reality/mcp/server.py",
+      "sha256": "34ee30c60293ea0ea6eb8459b3281e0e3278dffd741413fa2e6c9994e42e91f3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/playground/__init__.py",
+      "sha256": "aaf7d15036b31d30159fba97675b46ceb53b66c051f0138823e1f21d2d0b6c50"
+    },
+    {
+      "path": "packages/reality-core/src/reality/playground/actions.py",
+      "sha256": "4c641fa413d3cd5679ba355504702d73e5c42492bad66aad8bdbf40a9227dadb"
+    },
+    {
+      "path": "packages/reality-core/src/reality/playground/catalog.py",
+      "sha256": "e52503d1dfa44a61eba6be7833e50b14889e7270ee71f4d8676b44a7ee712a35"
+    },
+    {
+      "path": "packages/reality-core/src/reality/scheduler/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/scheduler/cli.py",
+      "sha256": "bb3ffe5806a9434c9f572bfad6d71c6d028905ce2f5e6a6f7d6eab9acf08c6c6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/scheduling/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/scheduling/timing.py",
+      "sha256": "9d3e70b5a9df1b8d834804aca495c0296589fd7519a7314e3b4802a49d0375c8"
+    },
+    {
+      "path": "packages/reality-core/src/reality/security/__init__.py",
+      "sha256": "23af6aea368989bf6eb0c00e075179bf8646b1f47bcb0f0c2963a038806c646f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/security/key_provider.py",
+      "sha256": "81d8e4dc435388eb5fef4d3169aa28085ac88f213c8d3cff1381f7230b2cbc0b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/security/secrets.py",
+      "sha256": "eaa19705c350d8731df8bfe72fbb1947df55510940ebd2dea14b9476e33340d2"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/README.md",
+      "sha256": "f51544e34a5894f5bfddbc578415966b6fb10babdfdd80ccd7cc614d6ddce65b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/access_admission.py",
+      "sha256": "670145cda22c17b648639e3714df9299b5b30291ae8ef72c56c09b6cdb89f555"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/account_deletion.py",
+      "sha256": "aba743dd86414e7125e8c1d210918383a1b3f3155ab4ee1dae6db24d43741acb"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/account_policy.py",
+      "sha256": "c7e907da1a52708346e1a5b9ce04ec4edd37666fd1027a153e2ccadad937ff1c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/account_sessions.py",
+      "sha256": "41365c2defc0a1bb7a341a6867e311b9a600537b986b4e690262e6880dad7ab3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/activity_volume.py",
+      "sha256": "17bf074d5c719138c6a5f4cd406add53969311cb0ee09c20d8a4f186ec9a233d"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/ai_usage.py",
+      "sha256": "f030df22f878f4eda283d2427a1c6a42fdebb266c85c45f403c849247d97015e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/__init__.py",
+      "sha256": "6850a59023bde23f1774fb0b3a910339683b456376d331b1860eb7c3b2da42b3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/budget.py",
+      "sha256": "0b438b7815a18d5062e6ccbe1ec0d4ce004a152689a3b3e6b91b9ed25014a95d"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/captured_options.py",
+      "sha256": "ef4209dc698ebb327054d76818da679e548bd811951c05e7099250637075ed1f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/captured_relation.py",
+      "sha256": "52b2670ecf06ab1371b2240a10d2dc9999716460d29424eafede76f9237f0324"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/company_options.py",
+      "sha256": "3cd5e611c48ccec89c7224e8d2047930e91fb0ac2917dde163608f7e9a1b8457"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/compile_sql.py",
+      "sha256": "3973fb4826b2f935228c36b283d620ff50401dd6583703e92eecd63fba17872c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/contribution_aggregates.py",
+      "sha256": "5c173781b2bcdc28e4b84f301b0ac67c30b9d45111adaee48fd215853c50282b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/contribution_options.py",
+      "sha256": "dfa7fd8c9d19169d60c0c9a355b2daf5d524522b9967c3563c6792916994deec"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/contribution_relation.py",
+      "sha256": "9625a1bdc1797d9d346c35585f4324fe706afe1d17f9e87e8d0e9c4cd0113609"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/costing_relation.py",
+      "sha256": "6ddf09eb2a6cb443e011a894c73f0853b77ce788d4df65cb437922d9eaf41120"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/cypher_surface.py",
+      "sha256": "2aa25ff689c0e96e2a7f151129870a35621e3f610c6d32fbc7198442987690d6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/derivations.py",
+      "sha256": "665709237557dcddc096ffef4dda18a39ea586d9ace272894fcd1d98af447c94"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/errors.py",
+      "sha256": "80225201df79910bc5cf2c4cddf40588066182837a78554ff497c7d9ff62ae03"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/finance_relation.py",
+      "sha256": "cf622358b4c074e596e8b4235867cec4386e64a0491bdbac52dabf3fb8248a9f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/graph_model.py",
+      "sha256": "ee7c1d68445f2ef29c4d1cbcc4362a1aabc43ff740d8952d591381ce51364175"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/interpretation.py",
+      "sha256": "237607fc208338b5509a2a3632472eccd7294c15178441b33d85e81ae8d45d3a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/inventory_options.py",
+      "sha256": "f8d5f4fecf915811bb32316945960f81e94005f15be5c4b7a4bc0c52dee982ea"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/inventory_relation.py",
+      "sha256": "deaa55aad0fa2bceaf5875f9f26895ef95aac86cdf3b7603131e640146d7e8ec"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/position_relations.py",
+      "sha256": "3d3d0d146a80b7d0944d3ff5bcac0ac3508ca1bd9fd32e71672eff17bb99f1fb"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/proposals.py",
+      "sha256": "6f1f9ee3385c27507de4b181e15ec044cf09327ca81b7787fb704fd0bba8d0ef"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/reports.py",
+      "sha256": "70038eceaae3bdf892fed023ee7141ecbd2d31e158c95bf8d2906bc13b88b5fd"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/requests.py",
+      "sha256": "a3e064fa1cabd69b0ac33b24f5ceba7f8d5aaeed417ec55f22d5d1f7ec13b858"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/analytics/traversal.py",
+      "sha256": "2250ff2c59e14aa0658169d2843493913f9f05074cb5b1893691bab24f91843b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/artifacts.py",
+      "sha256": "6ea3e70fb23bf588fe2d5982afd7f104bf610a9faf0a66486e5d6b42a667ca49"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/attention_reads.py",
+      "sha256": "54c935d09685aa0b4057a73a83a67bbd1b1d76deb70aaff7fc77ee7e1bc6a2cb"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/bootstrap.py",
+      "sha256": "fb715d270bc6c0cae279e63c6b1dc607d6d94439bf58e9d6dcca69deda2fea04"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/business_journeys.py",
+      "sha256": "9e75d4886905b45325d5ee99cc6e8b8d6ac9de574a4de011df897b69fc73fb55"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/business_locks.py",
+      "sha256": "92eb48f0e1b56f381f2afc15c0729ed6e0a342e97d3757b48a08e06dce2d7e40"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/capability_catalog.py",
+      "sha256": "bef008bb3a78801aed2e7e37b0e975ddb45062798c446b30cd7793e2ceae02cf"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/captured_report.py",
+      "sha256": "3e288d1e4679bf36a03732fa9ece828402f32efa7c04f09f2b588cbb683b4b49"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/carrying_value.py",
+      "sha256": "bfff5a31967098f6ed41c35367760b7bac595bcc547137c0b188125d4ed8c2ef"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/commercial_matching.py",
+      "sha256": "259a80056ad8cc789142ce7924449f6a38bd01e5431f8f4d531d19467ea5d14b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/commitment_actions.py",
+      "sha256": "d6d9231f492585f964850f4aff0f20095d620f679e72d48c6f39e9cdc41db5b3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_generations.py",
+      "sha256": "372121a8684094a1d85e2282973cc6c3b1c83ef8ab6b030c2facf985d43d88b8"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_party.py",
+      "sha256": "8c1243c71b4e3df89c095569819777e4268f6750f6b7fd2876c1d83df4c3e0af"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/company_setup.py",
+      "sha256": "dfa22aa6509850eb34af116321496a3e78e13a7877ef5b85b43e6ffea6a805a3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/contribution.py",
+      "sha256": "6f37225ecd01604fcc8dba1a759a45b07d5ecd4cf2688d3ae7b93c53952fcd57"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/contribution_generations.py",
+      "sha256": "42394208ce483bb1d4777de83babda20b27536b061ad3082a330a302c4775a72"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/contribution_reviews.py",
+      "sha256": "b363749e072a4ee9237c146d0a51f399de79b5a682be8fdbfb5329bb9bc965b4"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/core.py",
+      "sha256": "672ca16b58c49766829a19b7db14d63891aac056f56e22f6c72472fd8a5786c3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_captured_basis.py",
+      "sha256": "ecf3a1297c61a446b2ff31ca37084ac2e0ab528fe8305daa4ebf0cf8e9b13ac6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_captured_summary.py",
+      "sha256": "146b99cfb002bb99be82d2cf930580087f47261f8a91b47091847e4651ad9377"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_census.py",
+      "sha256": "ca53de0c10b53c46cd98f825b3d14a6249d32c9607975df06b11e6af978d4a51"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_census_resolution.py",
+      "sha256": "6e5c6eba5b5db3352d0fc8fdbc66ded9fa4563c3338f963b8fd78e81f1ad0e17"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_census_storage.py",
+      "sha256": "cb0627349ccdf95756f57d8eb5c4c21737c7d5b6a287a6f5c17be469c051ac52"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_conversions.py",
+      "sha256": "34f60c7b2a537fdf1685f6c0e3dd7f0e112c4d1e514cd882ed033f001f0e684c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_query.py",
+      "sha256": "c0458d4a2a5a81bdde5101c18a9974195cc531b5e5c2dc4ec4f960c733bc3299"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_records.py",
+      "sha256": "67703121e6ec68768cb84c394a7b2ab1a7d13ea807ddd6771aa0dcd4dc334e4b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_resolution.py",
+      "sha256": "ab1431dc62406b4592d423c3bb92e01299072db8a79aeb8243939c352e182176"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_review_draft.py",
+      "sha256": "c5ff94ce7e6f0976f2591828d610332fec8641ef4adb4fc8883f547d59a0fa05"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/cost_review_relevance.py",
+      "sha256": "56cd3f72c1377acc007b54a72ee56d74e8951596028cabd37f115e608f65e0ef"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/costing.py",
+      "sha256": "1de1baa41a4108d166e4da86b3abf6b5026e424c30b68ea0cbad442623cfea85"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/credit_actions.py",
+      "sha256": "b798e398fa66c183ed1e67fd369052290747aee33a5de3e5176f101dbfd7cc23"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/credit_exposure.py",
+      "sha256": "6f1d9b20d4c7a293e49598df38a8a9715cdba51ad351b7332e584270bb123959"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/credit_hold_actions.py",
+      "sha256": "c46cb77fb73aefdb6ab15cac3eb940ef81443cbb98109c75852396f1c7211dfc"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/customer_exchange_actions.py",
+      "sha256": "667023e5cdd91f0f753293cd8ad827efce41366257813ce21b7582a32bcfbd4e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/customer_exchanges.py",
+      "sha256": "0f6cfaabafa3d30252f1429319ba3cf515885e57d1fa3d36462e87885818c5c2"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/customer_hold_actions.py",
+      "sha256": "8f594645e0f72de7268554993512df4ee15c565494e5b1364b75cc48e5662938"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/decision_attribution.py",
+      "sha256": "80a5062cbe3af37d4e0db2fe43dde7eadd06cbd60645fdbee1bd0b3637bfdba6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_actions.py",
+      "sha256": "d96baaeaabd4a7f47d6c571a65d9a9fec354286303bebb815a1e7a72a8ca8a6c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/delivery_reads.py",
+      "sha256": "967c66090a3a41bfade0f7a6abcdfce8620adc81768298cd594f2eca2d2124d8"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/demo_data.py",
+      "sha256": "8484c34fa54ed8e30fcbace1dbf05b0a625329faf12336b489596080e52555e7"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/demo_profile.py",
+      "sha256": "2f65520cb2eead3bba07fcd7a5fa0c83882acf8ad7712e3b764079842f80f92b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/desktop_identity.py",
+      "sha256": "7ebee42ebaf854e5851d06699daebffdf6a38be022d05410d4f9de56ab6eb72c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/down_payment_actions.py",
+      "sha256": "b768271594ff746e949a25af053a7ef3d77039b80abd0eb725aa5f78253ddc92"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/down_payments.py",
+      "sha256": "d116503d990f11e6e312f371ca01e69c307461674ebeed6fa27612d141eb1130"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/dunning.py",
+      "sha256": "b52dbfaca48a568d705466eb3e1739b89e97618c63a6741da99e3c872f08bb14"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/dunning_runs.py",
+      "sha256": "362b748b0f98f76f6a6217485d7cde7cc418cc4f922c7ff5347be24631c283dd"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exception_inputs.py",
+      "sha256": "e5c5cdeb39d99cf5758058316bb4acc84da7d48fe39df888d1f3782eb2d1151e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/exceptions.py",
+      "sha256": "513de9aa14eec05cabf707d3dd4def4b5100306d2492c9206a25050edc929fb0"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/file_interpreters.py",
+      "sha256": "131e0f234c0f607c514ca01a7762735fa772c54028d96287b7e7c911cfc0dcbf"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/__init__.py",
+      "sha256": "c46429b9516945034e3150daf7ea176108ef83785af1e3ec3c926ea56155c461"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/accounts.py",
+      "sha256": "4ba8d81c462ed867749d2d4a65660035285ca85b81157cda3b30d6af7286767f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/balances.py",
+      "sha256": "cfb3de72a9ce37e773380fbfc94a0c07506bd4080b64c04d6b3053aff2cd486a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/components.py",
+      "sha256": "9db7cb4f84a669c9d25c2a56dd4ab201363e89ebfbede86b5b855df82e8111e6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/credits.py",
+      "sha256": "e07320f5de60764be92e8ffc17af3de10751881c257d93e16c2c7ccf0bab6e34"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/deposits.py",
+      "sha256": "93b5bfa3b4b7ba36cee47147c57db46995b17a3c8e5b2a6022a9796b6fb6b3c6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/opening.py",
+      "sha256": "05fecca0101c1206b5335ddd7a02bf16a984d6b28c4333f476adf0b0cb3eb783"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/references.py",
+      "sha256": "8f6394c62a15ac743db1dc668b6e7baa78f725bf37af98a05c038317d02192da"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/settlement.py",
+      "sha256": "e7e570aee40be8141982af4a26cfb5e8b0e15418fd58e5f4839d3f94553d6de5"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/settlement_flows.py",
+      "sha256": "c4c339ff91dc2e729c2012456fd8386baf2b8ae2c4792d067d616255eba87ace"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/source_mappings.py",
+      "sha256": "3735b8ffa0dc9a31e864d63b06c41a87d9663e4a9f709ebb4a780a99b6134277"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/target_mappings.py",
+      "sha256": "196beaf677efdf502bfbcd4cb30cef6170288ead362d1c4950ff9bd8e1936c62"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/finance/worklists.py",
+      "sha256": "128b0e5c44a2f8e9acb50c05ec2c1026c06ae491c2efe57360a56e2f313b445b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/financial_reversal_actions.py",
+      "sha256": "baa0c63b2508ed74129c44a2f36f3d08d95455dafa66c56073e1f43e2c9de3d5"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/free_playground.py",
+      "sha256": "8850d70f1f494eb734fb966901b1d6b77e1215d2959af2b85b97f257feade7a6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/fulfillment_readiness.py",
+      "sha256": "1e76267f9d4a0cf0f487d178b66503ede380965e4fd704d611b9bf9e924b7db9"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/global_search.py",
+      "sha256": "f83f47fecfbde386427fb50e85988a918dbbdd0f73ca24c5bc593133fe244b2f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/hold_actions.py",
+      "sha256": "17fef1b0647ec743e0593965cfe4adb110759e5a6a7dbcef3860656b814d3598"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inspector_presentation.py",
+      "sha256": "f204184bc9072150deeb3b994cebb04fa229fab4a2b4c0ece7c1e6e72eeadb22"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inspector_register.py",
+      "sha256": "f6d0633b55e8e911e78949c745da269c29ddf4b0aa11e7aa0f0c42db4d9042ac"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/interaction_recorder.py",
+      "sha256": "4b8389cd50448a3c79c641650d4ba025a284923af520936e1a73754def217702"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/interactions.py",
+      "sha256": "f0bf5dde6312c62b8eec53540ef19a3b45f33524f926a04619668d2894371f1d"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_batch_generations.py",
+      "sha256": "5c13c96d17c1509331cbb1552132d5572931309e73e7cf8482573c8a6ffcfe8b"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_costing.py",
+      "sha256": "9477819dbbc7671b0c4680355f1d08417650007f0931c73f3678eaaff7691809"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_generations.py",
+      "sha256": "c8146cf0afd52201fb68dd5162057439865538464cc7a89d9f4fac45f8fc0510"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/inventory_positions.py",
+      "sha256": "02d0f973a70796c8ff9c381dd8427b0532b5dd889d72f80e74edbc92faeb7a02"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/invoice_actions.py",
+      "sha256": "fbcf0810c05ebf6612a3fd52fda801c93d8ac33bbd00d02b54a72ac6aee93977"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/invoice_billing.py",
+      "sha256": "590b847fba48352d09d21f832bbabb096da302fd6b75b67e3412121cc7f5ed51"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/item_imports.py",
+      "sha256": "21de4a51c85d5cadcca85655bd10dd6b3bc18aaa89cefb283e9bc0bf8a2baf46"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/mcp_authorization.py",
+      "sha256": "99e7a8393a18b3531ba5ab3301c4b8d82b0af187528d6b04ecd08d75bddaff8a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/memberships.py",
+      "sha256": "864d492eff7cbc67613317e5b189725aade24d448e36be204197f39dbc5f85ab"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/month_end_billing.py",
+      "sha256": "679271c65f4f8527acbf4f324b9db495226046081c1c8cf873d53373c2f7b808"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/movement_correction_actions.py",
+      "sha256": "3f4447d2b74a54da63e83764227831e96e5e923afad001e019ea783f6118fb1e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/movement_explanations.py",
+      "sha256": "c1e6062bc96718486054759919853781d31a6eff601ec017a0ef7de35e194112"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/notifications.py",
+      "sha256": "a0ba01b647335d836c1c5aecf86fba325f961f600ee3a63d4044499bd8bef95c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/opening_cost.py",
+      "sha256": "a9d2c5ac66b693c5e96210c9cdafefa4e2843a0f4de95b20fd0edf2397d1797d"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/opening_stock_actions.py",
+      "sha256": "f1fd5c7c32eaf3554fa3c7158454af6104371a83bbf5d4e0c9fb489cbf6eea33"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/operational_previews.py",
+      "sha256": "4a4b1fce2b20e013279143594a9ac5fa9c4a75930ef6406eccf7403f478ce40a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/order_actions.py",
+      "sha256": "9fa09ba0e13ffd193056d1125e58dc6cf292c297610ffae170f2101e1ddb55ed"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/order_journey.py",
+      "sha256": "fd3150564da6cbc02742e80bcd23ba73394bfc9cf942fe6868cb0dc492eff7a3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/order_line_items.py",
+      "sha256": "70cd6d258ecb5ae46008758d92f7cee8bc82d7cca6ecb9b5a8fd335217e06cb0"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_actions.py",
+      "sha256": "240c43e58652dc09a2c1576fd3fb3e8a6a8b0944721fe67d8984087edb3c6b0f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_intake.py",
+      "sha256": "eb17a33f259c17674854f928902f2057e874d09c287150b42eb93438a3069cfe"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/payment_returns.py",
+      "sha256": "5b42f79760113912adc6ea72f209e191752e6782238a857361d46caa03f7a86d"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/platform.py",
+      "sha256": "114ca8ff2831c8e6b1f40c2c0f5d9ed97b93012e77286718666d084c8e190ad5"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground.py",
+      "sha256": "ed95a8efc44536924ea08172d5c8947ca004742df69caf4025897ec4de4b86ad"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/playground_chat.py",
+      "sha256": "3f2b3afc0c6a86ae73093ceb8fa477b0493804421e5cf5d0e70b53119c7926b0"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/product_advisor.py",
+      "sha256": "62916bbaf637505e3221e7420cf27eeadf1e3d3a27b26fd2cc07f10666a78416"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projection_jobs.py",
+      "sha256": "79a8929b3ede2877e9ac8c5eb61561ad30c6ea8cc6984d48962efe847509bf46"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/projections.py",
+      "sha256": "3d3116293e988bc37d938044f6839fa8d1c0e563f87bc59535cd61ba0aa0e850"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/proposal_decisions.py",
+      "sha256": "ec44fe99d45e6e0e728767787a1aac5413b169d22c8da6a9acbfbeddf6a00413"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/proposal_reviews.py",
+      "sha256": "babb87b67a5f58e6c4e18c4d9448ffc8d13097b117c0608285552b3b6960925c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/provenance.py",
+      "sha256": "3c27c5d558df43fcaa90183eea805b2889a0bdd48022d263a6d7df17271617b1"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/read_contracts.py",
+      "sha256": "13c400ae94a7b929fb3e385d973bf18447ed07bbbe433d562bef4836a94b1e2f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reality_gaps.py",
+      "sha256": "40ac30d7602e0648640a992131fa2587a09c65cb3d1eab887b49bebce1db3653"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reference_workspace.py",
+      "sha256": "23c6e4381877cf5753f97b841565d6e796bd681bdde246a81f00d4e2b1afa90d"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/reorder_points.py",
+      "sha256": "bbc82458fb413f871c53629956dddf4c0b7c67fb6562f8b1c402a4aa9fd737d2"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/return_disposition_actions.py",
+      "sha256": "b637c0117987b53abe5c65b3603a209a977bf0dedcee4bfbe7550fd3b970816c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/return_dispositions.py",
+      "sha256": "d50913f8c2f28684039d0f4c19f0ab86b31560b0e545318415af8b7393fe26d9"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/scheduled_jobs.py",
+      "sha256": "1d67f19b95eb88ea6f61ea4b130842ece1a9d60293153052a4f8870043862339"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/selling_costs.py",
+      "sha256": "833f836a54a505422fc6f4c266f8c7d2c0c643c0f989285a2ead4e287daf0e50"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shipment_actions.py",
+      "sha256": "9544b566865922fc06b43d456f518f1ed1e9cbf422577559f60a73a512329ad6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shipments.py",
+      "sha256": "dd9ad425f1a907c8a2df8e6bca7755551bba141a37b090dde8f54a9192f8aa33"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shop_order_changes.py",
+      "sha256": "b1df2106bd4239575fd9c66df52b9e6d87e06e3f58896add4686cd73a0722279"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/shop_refunds.py",
+      "sha256": "2b1df4601585ff90162368516ec686e43d270157c4d05b469c36e9ffee5545a8"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/stock_blocks.py",
+      "sha256": "0728a39d0c389a9394a7420494a870444fa9d66251f8d895ab4cc5cea94533c2"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/storyline.py",
+      "sha256": "495b13ea00f106997a88c71ea72d501ce0da5ddf83bc6fb93133643162058e54"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/supply_assignment_actions.py",
+      "sha256": "0822b6ee809a253b7e6f0019ee8eac36dc70ba00871488283e2eaf57e5980d80"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/supply_assignments.py",
+      "sha256": "ff8d9443c24499925a6402cad6549aa2bbeb3e0125887c5880a37bc2a88df0d4"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/system_readiness.py",
+      "sha256": "cd2d706bcbfd4c6dbd80fd54bca576567e3203b33801a405a71d4b0e08d0f168"
+    },
+    {
+      "path": "packages/reality-core/src/reality/services/tenant_policy.py",
+      "sha256": "dd44ecb179878777622b2325785e644f6a2597854aef8d44d122f8a6d9aa22ba"
+    },
+    {
+      "path": "packages/reality-core/src/reality/storyline/__init__.py",
+      "sha256": "04d624b5b87bb42164d8b970ac010770bc8228bad91c976f7b9e6f74dfc3e5d6"
+    },
+    {
+      "path": "packages/reality-core/src/reality/storyline/delta.py",
+      "sha256": "dd03da156fb6dfb7fd15060ffa934cae75a56d4a360887619a8bccb48a165d86"
+    },
+    {
+      "path": "packages/reality-core/src/reality/storyline/export.py",
+      "sha256": "87fa1da9a8c09b520798908bab16c663b31a4f6760f12f6b784115b9c839ecb8"
+    },
+    {
+      "path": "packages/reality-core/src/reality/storyline/package.py",
+      "sha256": "f88ab50c4a558d6ba93220109c729a6d32e8b4bd6c6ace305eca2e3377fbdaf3"
+    },
+    {
+      "path": "packages/reality-core/src/reality/storyline/recorder.py",
+      "sha256": "d784aeb8196a4f4fef165e81b4543ed511b1e259b1622ff548fac716f3154ad5"
+    },
+    {
+      "path": "packages/reality-core/src/reality/storyline/references.py",
+      "sha256": "c1a2a6786858f8db24e67b9fc978a1889e983be64248dd3e5dca83dae9321727"
+    },
+    {
+      "path": "packages/reality-core/src/reality/telemetry/__init__.py",
+      "sha256": "10ed64e4e5fda05c7dd19b50dbeb243233f9d5e427bc7ed30b50da97262bd485"
+    },
+    {
+      "path": "packages/reality-core/src/reality/telemetry/metrics.py",
+      "sha256": "6e300834815210e3adbcbe88703327e8e76e47d75c9ef65bc35ca0f3dd988726"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tool_catalog.py",
+      "sha256": "7023f63d82d71689ec385a1eb48768504607be627ef233dc53f99e3abb2177bf"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/README.md",
+      "sha256": "ce09e96818c7064adf25119f3940c184250a5cf9af8ff33a4fe84b36895b635e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/application.py",
+      "sha256": "a8f8d8f10c7dc150dee433c8e2c78a223692a70d1bab36f98945713bfa2b9282"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/business_journeys.py",
+      "sha256": "3cf374f09aa60fb0df76613eb1bbfb5eef20b53622837cac1c490b47d046c97a"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/costing.py",
+      "sha256": "c772b3d946851663d402eea13daa5a9b88905c88c36070b1e9f0ad84088b8830"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/finance.py",
+      "sha256": "a56f758713926f37454842a76394e6f51e14b827c072a306bda30e2080dfa348"
+    },
+    {
+      "path": "packages/reality-core/src/reality/tools/graph.py",
+      "sha256": "f40d400a7a0ffd8b32df23dd77c41c638242707b0a0f28dbcc8d1176ebe86921"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/README.md",
+      "sha256": "7378a1bcdbca768b9e2d3fb6649c0bfefefa8944b8c10143497d940a8ddc2a89"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/__init__.py",
+      "sha256": "4c37c9f90bab7185c5d003c9f50de6e3022342bfdc73e4f551edfe59c9c7f04c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/analytics_api.py",
+      "sha256": "6801337aaed3f58aa1f1b82de149d446fcf6edb9777b475adcaad53d81a36994"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/api.py",
+      "sha256": "04e55020c7846f3df2a636fbba780dfd833334f01f0a3649cd4e32c0ad4bcc0c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/app.py",
+      "sha256": "779cd3741c59e53c6fa2518628740b0d74b9d931ff68cda9c25ef414e304b49f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/application_catalog.py",
+      "sha256": "2108f98018a73063e0b91648536ea6e01abd1799bfcd27d7f7caa12903dca442"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/auth.py",
+      "sha256": "c4d5cf842823b59ef6ed16c89383e4079313fd6b2414ca6679c0951aa226d26c"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/chat_stream.py",
+      "sha256": "d93a8044381b5d3e2c673b99cb8e8bef27f753ce371f7f2a982086731d591fea"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/cli_console.py",
+      "sha256": "1393cba52671dd6f5e1a576230b8d96c4e86364945df1510eeea2d2be93ac3ec"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/company_setup_api.py",
+      "sha256": "c972af2be69b5cfbbca1d8d821508717b5c20f13c9c2e3a37296ce84fa00f414"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/data_model.py",
+      "sha256": "27ca94963fbc9fb30e9d8a949abd6b605419b5247da430c998f259ca0510c3ee"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/demo_data_api.py",
+      "sha256": "e390c270cb31a5b1655bf74f06d1e6a9fd0de6bf2859167c6704880f07d2e32f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/desktop.py",
+      "sha256": "3f3a023dd8cfe76844d2a8cd3c1906798f5b2b32a3fe8872e3b113140a22e919"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/email.py",
+      "sha256": "99ecedfa9eb735fd8a464707922904d69476741d23bbe189aac99fd3cae9fe35"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/fact_reads.py",
+      "sha256": "c4be70a2b6aee19126ce638a10223dd002673f96a705c0737af31fd4cb102313"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/interactions_api.py",
+      "sha256": "f24f39579427928e120ccde75b592a47a3819091a540b7255057383a07d10bf7"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/journey_guide_api.py",
+      "sha256": "e7bf83a2b0286589b7e3cf30509013c4ea40328c3fd45b3e73e3a12aaeb644c1"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/mcp_authorization.py",
+      "sha256": "8c6e39768480e57967d8fe310a3019527aadbdb97159460c229778b72915978e"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/playground.py",
+      "sha256": "c6a62efffb3d01931819e1ed1be617ddf6447346d89953b24db5f22e1519a339"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/read_models.py",
+      "sha256": "11f44e6445a4715a40c629e1a8239305dcca116b5b0244fbd5a6b8f53024be83"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/source_reads.py",
+      "sha256": "552d43d6f6723de8627c326f2170e46e6917d695b491e8454383588908a3af40"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/storyline_api.py",
+      "sha256": "2458214ee1ed113e1335b3e4e7afdfcf2b58473f762b0784151e34c55b18bd38"
+    },
+    {
+      "path": "packages/reality-core/src/reality/web/warehouse_reads.py",
+      "sha256": "3b51f82ed1638504f9753be7ae64255fbd5a8b1ecffe36da4be23a8edb1d3d7f"
+    },
+    {
+      "path": "packages/reality-core/src/reality/worker/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/src/reality/worker/cli.py",
+      "sha256": "8a112958c6c23cd522990a0d0c80803837771b84928f75e1b9c80525f07feaa7"
+    },
+    {
+      "path": "packages/reality-core/tests/browser/live_stack.py",
+      "sha256": "1c684866c1d4bdb7dc3fa3ecf819f741b2c797ebf3549ecedbf63472b5f87dd8"
+    },
+    {
+      "path": "packages/reality-core/tests/browser/mcp_call.py",
+      "sha256": "418a8a61375811edebdee7e96b0a161826386d3a3082fc8b899a3ab697d7a1e5"
+    },
+    {
+      "path": "packages/reality-core/tests/browser/unified_business_journey.py",
+      "sha256": "b1cada3da07a572f72e9b89d40178b518bc7c9682bc95933abfb8b63a2848d65"
+    },
+    {
+      "path": "packages/reality-core/tests/browser/unified_company_setup_live.py",
+      "sha256": "b9314d83968d71f05b93b25720bcbb4630575853d5d86e760ea389ab2e168078"
+    },
+    {
+      "path": "packages/reality-core/tests/browser/unified_demo_data_payments.py",
+      "sha256": "99cbef2034e370e88f21c97dd43b102f35af55e36c2c87b3f6dc7df452722d75"
+    },
+    {
+      "path": "packages/reality-core/tests/browser/unified_engine_room.py",
+      "sha256": "516a2afd9392616ebc5be9f632a769425b48fbc45854a4d852311e6505c010ea"
+    },
+    {
+      "path": "packages/reality-core/tests/browser/unified_finance_rollout.py",
+      "sha256": "790b876213e35e55e12bc261829c267ca8e23237ef5b98198d47a7b0a7a48fb9"
+    },
+    {
+      "path": "packages/reality-core/tests/browser/unified_history_table.py",
+      "sha256": "a7c2eeb18c518c9780154d360693387870efdd3fd1f993263532c6710790aae7"
+    },
+    {
+      "path": "packages/reality-core/tests/browser/unified_item_csv_import.py",
+      "sha256": "2a5062559a03581c767e038415189f17f4568fd4536405dd9f7b3764f0b4ec9e"
+    },
+    {
+      "path": "packages/reality-core/tests/browser/unified_proposal_decisions.py",
+      "sha256": "cb34bfe2b75c685c1dd3e358e412dcb82c64a681b9733ddc7602715014f0818f"
+    },
+    {
+      "path": "packages/reality-core/tests/conftest.py",
+      "sha256": "1b5eb4fdb07e905aa8ba0d4923eabfc6ec79655d3da8c7a75ec27640c376d87c"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_accounts.py",
+      "sha256": "9a272d6816b3266039a4e869f3fa25194b4fb2bc1ea989f04c1161364181c5ad"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_active_stack_stories.py",
+      "sha256": "4cdddc118d62f2af5ae993b529d427b359b8563187194d031e2e9d0416a77ea6"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_adjustments.py",
+      "sha256": "913c259cb5680004006d4076d38f52fa3fa7914d1bdd0d88b8a40f8a9cfa7ed3"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_available_credits.py",
+      "sha256": "c2451744856df0c17174140fdefe4baf15575f54b33d6e300c4a5838116ba99b"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_commercial_edges.py",
+      "sha256": "06a109e53928f47a65ffe539d98c1d5252c21f4cb8f3a5d5c38ceaa1f2ed1ab2"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_component_boundaries.py",
+      "sha256": "ec9cee7bc8ac241b1359da30571bd35dfb6ea998a535ffca6fce0c6588feee03"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_components.py",
+      "sha256": "05d43890444bbc5466220493a3cccb2f9e231e2f116827d07091eb78c7792f57"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_credit_reads.py",
+      "sha256": "de1f2319c4faad9500cfae48920f1ac4c7245dc5b0cc31ddec340acea05af9e8"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_dunning_run_adapters.py",
+      "sha256": "88477c89c637cdb7aa7bdad23638a1c16ae2bcb779d6222113e9aa22d9f0c3ed"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_dunning_runs.py",
+      "sha256": "aab880c22a1d9a3c64d8894b788c72d85bbc16543659255cb9fe97f95d061ce6"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_matrix.py",
+      "sha256": "510e4179707189cf19396a732546c4e1ec149fb1657374949661ab77f42bdfe9"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_opening.py",
+      "sha256": "dca5ee3dd2bb7d468fac057c4ee08572d0a0068146a4cc36236fdc6c5a9d62ac"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_owner_handoff.py",
+      "sha256": "9ef1fb612d4fb3bd0954c0f4a21b51eb45212f5c5572c227119d8a6b6b705a09"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_party_balances.py",
+      "sha256": "6700bc2a7f824c584a9ca6acbcb89888d345334cd7ea2414194e553404ed774f"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_payment_reads.py",
+      "sha256": "b4f0ff9234c865e0f68d0fa4af50ff60c1681ac18ab2b2f554e782427377cb28"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_payment_return_adapters.py",
+      "sha256": "577abd38516f21cc4b7e4a13c1920a34afb8de4f7c282a024093880ecc76065b"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_payment_returns.py",
+      "sha256": "8ee72bc4df49e3984860b1178d82de2fc7d9d84966662cefb5304d95a453d9a3"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_references.py",
+      "sha256": "f1f14ef3223697a764a43fcc7658ca9f95c50f74026b2c8bf72dde13bf822c44"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_settlement_flows.py",
+      "sha256": "6d626c91097a2c50a533eb0e04fc02d9d4cdc1894f1c0bbf40c5ce7717735bdc"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_source_mappings.py",
+      "sha256": "ec087d68f0bf7a1ebe3506a6cb44f453c759d4677c2ebeee031068db0004893a"
+    },
+    {
+      "path": "packages/reality-core/tests/finance/test_target_mappings.py",
+      "sha256": "688a2b669cc15cb424e13feb0297ed94fd81e2db69129cb674a32e64287ec802"
+    },
+    {
+      "path": "packages/reality-core/tests/fixtures/business_journey_questions.yaml",
+      "sha256": "4dbe807f23275e06c6fde401ce9544d60e70439e3bd6636f62f5ff14ee7c8b7d"
+    },
+    {
+      "path": "packages/reality-core/tests/fixtures/global_search_matching.json",
+      "sha256": "882894ba785f8f54f613b148f27850e721dbf69c0f1fd4cb5e301cb8d98f097c"
+    },
+    {
+      "path": "packages/reality-core/tests/fixtures/product_advisor_buyer_cases.yaml",
+      "sha256": "db237818071d87d824c76d80dc34e382a47ad05126da4ff7b5c2105ef83f7908"
+    },
+    {
+      "path": "packages/reality-core/tests/fixtures/product_advisor_conversations.yaml",
+      "sha256": "619515aa963ed607c1e9352edc4db49552cc5cba482920ac68dfd69fc73bad83"
+    },
+    {
+      "path": "packages/reality-core/tests/legacy_finance.py",
+      "sha256": "71cd20772ac32d65ed533df5035fbd13339b079788e2c4175559e6d0b8fbfef0"
+    },
+    {
+      "path": "packages/reality-core/tests/operational_exceptions/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "packages/reality-core/tests/operational_exceptions/test_class_clock.py",
+      "sha256": "4f2087dd0e6d0bc874734f8f8bf8da6c66a05c90041dd11bd55f8a22f5d4fdfb"
+    },
+    {
+      "path": "packages/reality-core/tests/operational_exceptions/test_coverage.py",
+      "sha256": "0d456673fc278f8cf350d20592b19537b7058f17a5fc6de90263fe75c4e8843c"
+    },
+    {
+      "path": "packages/reality-core/tests/operational_exceptions/test_derivation.py",
+      "sha256": "9de36ed29df78f7b8f9f3511d8d169f0505f71399c4a8a198bdf3837998bfe48"
+    },
+    {
+      "path": "packages/reality-core/tests/operational_exceptions/test_explanation.py",
+      "sha256": "e6ccc8b75777c1c22bf9e848e91b87e61e7d89c143b660bdc4b34c06a90bd5a5"
+    },
+    {
+      "path": "packages/reality-core/tests/operational_exceptions/test_payment_differences_from_demo.py",
+      "sha256": "a2a680b76985e192640671c0e3f722e30f9159d32ee1d511b996301e9e2f511f"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/README.md",
+      "sha256": "955e26324b9fb3df55a8423761c759aeaf4f19b12c69dd2f44160511f13274eb"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_b2b_operational_chain.py",
+      "sha256": "b61e847aad9a3f3750f8e22a8cf59e654e70d33a394662bdcb7f71fce0f9de94"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_b2b_operational_chain_catalog.py",
+      "sha256": "c32717cc1619f56b600febcf0d4d55ab9288fe30832106c6fd743c0e20fbac96"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_b2b_operational_integrity.py",
+      "sha256": "1d764b1cd047b07093c476923ceb41ce9932a808a33fb22e6c1f6d011c4836ce"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_catalog_finance.py",
+      "sha256": "303d2e77c4685eabdbc1272b1e88d72cf76bb19e93683fd6e011eba07e127589"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py",
+      "sha256": "bfd1d70d70659094dff0e20416d83bb93313082863eafbbe1f421adc9237d1d9"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_catalog_purchasing.py",
+      "sha256": "5dd0f1690640cec005943d8226b9f7866060ee377459e2f7d8e9296b8ab5c471"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_catalog_sources.py",
+      "sha256": "972dc6d8dcdc5f960e2e6eb6da5af9c7ed7fe0230f82f3d06deef935759a74ed"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py",
+      "sha256": "5048f5b56c432f6e08f0857cf3d9dd4d30524c3358e4fb78571d310645848cfa"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_demo_order_to_cash.py",
+      "sha256": "ee5370c65d2315c22defe6a0b8566e20390b8782e8427d367f3365ff403e3b99"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_external_agent_audit_closure.py",
+      "sha256": "8269c112052834ab0bbd038267ec96447a522a4aec8a85bc1f5090c7d863eb1a"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_fulfillment_safety_parity.py",
+      "sha256": "339fe43d8722ffcc994c5a278baabd1c93298e12c3a04f8bb234c5e764687d09"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_international_demo.py",
+      "sha256": "821bd1a0f7f5fb82f0d9f689514a8147a8776fb92e46fda0d8aacc39d1435ba7"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_normal_month.py",
+      "sha256": "1b77b01981bfa48c9477a1878f6fc01d50c09d5e652033ab3260212780dc2976"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_order_to_cash.py",
+      "sha256": "3a70b2f92d0c8fbc65009a5c7d7071ea9db0cc470b94542043b55e674b4875b7"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_procure_to_pay.py",
+      "sha256": "1ad501a33a850b86f2053f03d0b09e7cbf0e04ec6b3bc3c78097fb8928ef322e"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_storyline_first_round.py",
+      "sha256": "804ad9579794472ca82d8b07d59219e26231b7803333bae248098e8a971abad1"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_storyline_order_to_close.py",
+      "sha256": "3d7f6f03c2ce6bcffbdec86744020174fa6ee73848d78be6a1258841d5483a2f"
+    },
+    {
+      "path": "packages/reality-core/tests/scenarios/test_storyline_purchase_to_pay.py",
+      "sha256": "c977e926e68581cbe6b24e7361dcd10e1a1b1b04cdf1bb988c2684a6666eee9a"
+    },
+    {
+      "path": "packages/reality-core/tests/tenant_isolation/__init__.py",
+      "sha256": "5584a3f48bfcb87146fbb9806d3a4f2a2405c357a6021ef93b1a8e08fe720907"
+    },
+    {
+      "path": "packages/reality-core/tests/tenant_isolation/conftest.py",
+      "sha256": "a42e36bed3708869e8a981b35375ec4491476fc374437c75f5f73c65415f14c5"
+    },
+    {
+      "path": "packages/reality-core/tests/tenant_isolation/coverage.py",
+      "sha256": "4dc6c05986c0d6badef5b2b7371ecc25899ca17256797856c86ddb341eb58590"
+    },
+    {
+      "path": "packages/reality-core/tests/tenant_isolation/test_families.py",
+      "sha256": "1419e7d4a5cf11bcef9de9653700bd3214b441e121696c5bc7f71942ed56c60b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_access_admission.py",
+      "sha256": "f6ee5930686fcafc5d79452f51b8a917e23244210051b65cadfb145990b3af97"
+    },
+    {
+      "path": "packages/reality-core/tests/test_access_application_deletion_api.py",
+      "sha256": "b6137fc87fb46f7b75269830c262a73c211dc79c78c6cd74f6d822ac3b5de894"
+    },
+    {
+      "path": "packages/reality-core/tests/test_account_default_migration.py",
+      "sha256": "e16155335a3bed58fb37b1e80487e9a222e4f9cc0ad263bd843e8637fcbc626d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_account_defaults.py",
+      "sha256": "4e029ca6051e72b622dc180fc1234091f06c597f051f718221175e335ca1f39f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_account_deletion.py",
+      "sha256": "08dab00b8c0fd290fae5ba379530c67a8e807a8aa62204333b1905c7154ce2ec"
+    },
+    {
+      "path": "packages/reality-core/tests/test_action_discovery.py",
+      "sha256": "edebd0105e32513882c5c32b4e70a4627f7f20619f239ea963c010f6300b6a54"
+    },
+    {
+      "path": "packages/reality-core/tests/test_activity_volume.py",
+      "sha256": "fa80924dfd1a7878175c91a2a1a121753368ab16f3dc3f69d12ce1f1d7e3821b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_agent_command_parity.py",
+      "sha256": "0b5e6f206ed26a2caede6e8c96696164a0e59dfc4c6c63cae54e46f0a9bcbd76"
+    },
+    {
+      "path": "packages/reality-core/tests/test_agent_discovery.py",
+      "sha256": "8958b5ea45fd8f67d31937edbd5b45909b195455f04ed44b08d28f7bfab139df"
+    },
+    {
+      "path": "packages/reality-core/tests/test_ai_mcp.py",
+      "sha256": "68aa765796bef5305c855a1742600b8baa145d3094e2ac02ddca98f92b89f0e8"
+    },
+    {
+      "path": "packages/reality-core/tests/test_ai_usage.py",
+      "sha256": "e079d2fc7ed836b68e7346c949e8989c1671c250817313ea01eea37f89456659"
+    },
+    {
+      "path": "packages/reality-core/tests/test_analysis_builder.py",
+      "sha256": "b3b518a11bb6bd84a18877b892c1e4912edefa469f62bfd2970ba182ccf21675"
+    },
+    {
+      "path": "packages/reality-core/tests/test_analysis_derivation_cost.py",
+      "sha256": "9371f6bd92b710233a01ff1f5c4fbde6f664191937357c689ddb904f4c8d580e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_analysis_finance_dates.py",
+      "sha256": "f7446301d9fcdb1b66e17da2050dacda79504623d36f2c3d8a27188373afbef5"
+    },
+    {
+      "path": "packages/reality-core/tests/test_analysis_positions_history.py",
+      "sha256": "57a41ce04407e64393eaa1148c083a840919d34fc3f17d693972a2d8ff8165bc"
+    },
+    {
+      "path": "packages/reality-core/tests/test_analysis_warehouse.py",
+      "sha256": "b2fade49b02ed9bab526f414a1d2dc18a04b9a2be6fe25d0702339f40d5572c2"
+    },
+    {
+      "path": "packages/reality-core/tests/test_anthropic_copilot.py",
+      "sha256": "ab2d9b869d8d3a35b18cb09199481af8a4608a87e614c1c77b462145d802a19d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_application_catalog.py",
+      "sha256": "79513dc4b787341e69c047a2c0836d1dd9814f6022fad41941dd1896e8c37611"
+    },
+    {
+      "path": "packages/reality-core/tests/test_application_tools.py",
+      "sha256": "6f2eb558fedada3fc901a13c59e79d25254beabe968c9c1a5e5f3e0fd102efaf"
+    },
+    {
+      "path": "packages/reality-core/tests/test_attention_reads.py",
+      "sha256": "d89a51c972a580a4561096d1a9ee9ea1402874fd95a6815c5619372421367b55"
+    },
+    {
+      "path": "packages/reality-core/tests/test_b2b_operational_chain_contracts.py",
+      "sha256": "b3a8b2a95d393af95c9cad6faf6461503f76d8c5277db4196bcef853dfca9f38"
+    },
+    {
+      "path": "packages/reality-core/tests/test_billed_not_shipped.py",
+      "sha256": "146647d238c345b8e407c43d9ef80c5fe8b1f11da2972ef5eebe1a2af00d386f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_billing_document_adapters.py",
+      "sha256": "bf836f8f324207c632c46a11958700085ceb072a9994dc8eae004288c313bdde"
+    },
+    {
+      "path": "packages/reality-core/tests/test_bootstrap.py",
+      "sha256": "3d447a81dcf54271ab0fbbe06da8b6cfad81952e6e4d954e818aa0acdbcab01a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_business_events.py",
+      "sha256": "8b3564aa0191bb09ca159d7b46a5c5778a4a00e0c6633cdc1601f6abe1270bc7"
+    },
+    {
+      "path": "packages/reality-core/tests/test_business_journey_api.py",
+      "sha256": "095b97d3632875486998be3a47ff6e206ddedeba42f829c3971cdf6f85a453e0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_business_journey_catalog.py",
+      "sha256": "3592888ff69d29de121fdbe51cbf519de5f17753728eaa676f7482e2a9981bf6"
+    },
+    {
+      "path": "packages/reality-core/tests/test_business_journey_migration.py",
+      "sha256": "da06a2fbab8255d9495cde79edd398b81da5fcb22729f28efa3ea61410987bfb"
+    },
+    {
+      "path": "packages/reality-core/tests/test_business_journey_proposals.py",
+      "sha256": "02c894a815206cd2be3312db6fef650a49358485a86428743ca473ad59d1ed96"
+    },
+    {
+      "path": "packages/reality-core/tests/test_business_journey_questions.py",
+      "sha256": "114c3848be7091486939d960bf512c1b43aaa4162065d15075ed298ced3701ab"
+    },
+    {
+      "path": "packages/reality-core/tests/test_business_journey_tools.py",
+      "sha256": "464b022d967865269370b0ee5f645eca37d4acc92e7ed4d6b1e6bf34d62b04d5"
+    },
+    {
+      "path": "packages/reality-core/tests/test_capability_catalog.py",
+      "sha256": "3d293b7ddd21c61be55610dde9ecf70c38e4e248a973e51e2b48a5b508d25763"
+    },
+    {
+      "path": "packages/reality-core/tests/test_capability_guidance.py",
+      "sha256": "fc57cdb5d3972f8a8ae654f068eb97802dc521b261dc113e057b351fb6702f60"
+    },
+    {
+      "path": "packages/reality-core/tests/test_captured_report.py",
+      "sha256": "8c451cfd6ad9cae1ad7c712babad47e2ef90ad1259cb52ad11c407bf26952ac1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_captured_report_graph.py",
+      "sha256": "c7bbcd2f6c49a32a9f5d7d9d3942d280f8bca1f899efc6486c4b162fe21aa793"
+    },
+    {
+      "path": "packages/reality-core/tests/test_captured_report_jobs.py",
+      "sha256": "8334ba1fb986646d03ca875a60801f2c55647ad7f45daf998eb2814a55c24250"
+    },
+    {
+      "path": "packages/reality-core/tests/test_captured_report_options.py",
+      "sha256": "4ba8f5b0870dc1ceeeb6e352eacf306aaeea20dd0e732fda3e754753a246a2e5"
+    },
+    {
+      "path": "packages/reality-core/tests/test_carrying_value_domain.py",
+      "sha256": "ee4f8ca4c4f6c21034476b7be45ae75b0908f262282cf9bd4e68531bcb24f354"
+    },
+    {
+      "path": "packages/reality-core/tests/test_carrying_value_migration.py",
+      "sha256": "621b29ae30e6fea4ee220506a7aa659de85248313e3fbd260095f399a2990e11"
+    },
+    {
+      "path": "packages/reality-core/tests/test_carrying_value_services.py",
+      "sha256": "6b3c0267f458a2a4e863ece248e0b06216a715c6fcdb79145e984c8df69edffb"
+    },
+    {
+      "path": "packages/reality-core/tests/test_chat.py",
+      "sha256": "5eb4bf758947c751d5c026701d1cf89e03aa4a6490a29fa65a73df97ae095b1f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_chat_confirmation.py",
+      "sha256": "c7a722ed50d367feff486520e7c41a6b6e80ee80b0875cdcf31a812edb8b84d5"
+    },
+    {
+      "path": "packages/reality-core/tests/test_chat_latency.py",
+      "sha256": "f31acf27afe900e2122ed102733eaf199aae7ef2341dcac77c6095850d91e255"
+    },
+    {
+      "path": "packages/reality-core/tests/test_chat_master_data.py",
+      "sha256": "48084b558f252d27bbc582acd682a81676ae22327034be71cd3ab0d3e248c0cb"
+    },
+    {
+      "path": "packages/reality-core/tests/test_chat_master_data_updates.py",
+      "sha256": "ba596ca435d1083a37fbd8a61506e580f88f6055841a85ff9be4badfe35a80f3"
+    },
+    {
+      "path": "packages/reality-core/tests/test_chat_mcp_business_commands.py",
+      "sha256": "d19d58b48dccb5bcabec813287e3075f21bce955bcd3561b4eabf61a5ad94726"
+    },
+    {
+      "path": "packages/reality-core/tests/test_chat_mcp_orders.py",
+      "sha256": "ab4100277da98d276c36650d8bc129cbf871e62d554b02d804a141d650668cc7"
+    },
+    {
+      "path": "packages/reality-core/tests/test_chat_scope_security.py",
+      "sha256": "4732a5c2df9d55edb2c07db22ab04540bdfb36a3fac6ece4c37f74366536f74a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_chat_streaming.py",
+      "sha256": "f23544b0af8148ca8d908d13e58b9525beb58f98959fae34b02f81ba7826b031"
+    },
+    {
+      "path": "packages/reality-core/tests/test_chat_tools.py",
+      "sha256": "49b91e453e4796c180e98a2d34c626b0075299d5d6887805ac79d894a976fcaf"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cli.py",
+      "sha256": "eade38bd3733d525cb586b33fa09acafda916ad6ca56378088654c22c6f06152"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cli_context.py",
+      "sha256": "37bc45eadb554e0900d03b5b90d121f7a5067c0709831c32cfac9312a5ba9712"
+    },
+    {
+      "path": "packages/reality-core/tests/test_clock_sensitivity.py",
+      "sha256": "751d273a68cb24970ec0e1c3002737b2abf2fd3828cbe04fea5060100d2937f8"
+    },
+    {
+      "path": "packages/reality-core/tests/test_commercial_matching_migration.py",
+      "sha256": "648ed6ef6df50a3343330ce9692eaa74c2ae2c96e6ea032e31fe72d3f2bfecfd"
+    },
+    {
+      "path": "packages/reality-core/tests/test_commercial_matching_services.py",
+      "sha256": "8ebdc130cfc8bb42d5178f29992284bbb999d28e87ab3a6fcc511ab42e61e4fc"
+    },
+    {
+      "path": "packages/reality-core/tests/test_commitment_actions.py",
+      "sha256": "f0dd1e03a5ce61f31a12f8d69b1afa697e0b83ebaad6fac2e4d6f1b2cd5ceba1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_commitment_holds.py",
+      "sha256": "daada1522dcc0fc401a2d139ed1494d5b0adf6a96040487bbf3842bd08c74c3a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_commitment_revisions.py",
+      "sha256": "cd2de15637dc2b4146b575571042bb5adec0bbc17b2230c90cc71caaf9e6acb1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_cost_publication.py",
+      "sha256": "5d7ef112bd4fb28ea53defce83db3a88f690143a67a5cdb97c72070549cc4c78"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_generation_graph.py",
+      "sha256": "d7024a8ad939bf316577c8acfb70ad36f4dddd17fa21ebdd952e8ecaecaafc07"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_generation_jobs.py",
+      "sha256": "090af3397e695260040ed95b932c786e318759f7f8313b38e244bb78e0923e08"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_generation_manifest.py",
+      "sha256": "63e61f81aec5f89662524dccc19a86888cb7a1d3b0987684fd357c874f43c19d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_generation_migration.py",
+      "sha256": "e2b2c6ec8b85942c858c94fe212a785bf373c163caa85b293cf18171d1f20bfd"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_generation_prerequisites.py",
+      "sha256": "a07be1996dedbe76a09f2314764a7c6ba023e649ec5bf7325bb967e74b955053"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_generation_reads.py",
+      "sha256": "80f5f5512a4aedc4dc43a1b741699b7d45cba08a4136642fcaac847836aa7792"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_generations.py",
+      "sha256": "f95baab5ef795e1d971c6bfda9d963f188d8a0307a08a0eae766d5d2ed04920a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_party.py",
+      "sha256": "92095011676e9687a8066a45871debfddb2323b05cf117629e1848538057fe64"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_purpose_once.py",
+      "sha256": "9b2737f42e339b695d3751cbe93783e00b465a2871645a23f9054d81dff94455"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_setup.py",
+      "sha256": "07fb22fa5749d86cd2c17e2b1202ae358723b54a80ed42299a5d2eeffbbad10b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_setup_api.py",
+      "sha256": "021707778d5e8abb1f86c3fc11a5f8a0f3ceed4b173340e576a61d69f6024c62"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_setup_initialization.py",
+      "sha256": "cf8da4142cd5f821415a633e32b4b028ca2fea15d1c03bb6da32fd3ebcbf9291"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_setup_migration.py",
+      "sha256": "f27fc7094a0c480b0d5481160c2510cc4d237b6725caf80f758c2d0f5d4777d2"
+    },
+    {
+      "path": "packages/reality-core/tests/test_company_setup_unified.py",
+      "sha256": "20694a9ac0a0b5ce021b446411b1ef6074a2589f267e4e4ec57d8f81f151914d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_consolidated_invoice_inspector.py",
+      "sha256": "5a3b9cfe8fd46f8ddb04c15c22833d4c379b6f82a8aa3acd74f4d103c959b65d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_consolidated_invoices.py",
+      "sha256": "9236da77a126c4195651ffe78008b7db69739597dd2bd5f95eb01eac1602c0a5"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution.py",
+      "sha256": "cc7f2a77ac14425c9feee720dce4549f08304c8420842f7964d2733ce277d420"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_aggregates.py",
+      "sha256": "b79cb9f14a9ffd3668b8688947b18b50fd07e5ee87d1da4771fd29b33ce4470d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_batch_review.py",
+      "sha256": "7693f214e3f4dda63b61ef55fb4d4b18adf1f93a5239a2a40171422c51cd571d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_current.py",
+      "sha256": "e6976fc26af09dd5068cd961a42beb2ae76fadb5fbfe54772fcc62f91cab1d09"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_generation_migration.py",
+      "sha256": "54e2b325e978486420af7154d9eb4d4d86f7f33f8e0082428dabd5f0804e28bb"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_generations.py",
+      "sha256": "d382433ad85ae323149fbda70a2a6d644bcc3e203604d48475cafe0dc4342034"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_graph_reporting.py",
+      "sha256": "76a7521527005612628f0151b5fc3650659b1a676602a7ee95b9d2543f6c1d60"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_migration.py",
+      "sha256": "67ef110b8a8571f6638f7ca78a5c61d55b3790b648f2f49d4dccd8ec40fc51a9"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_review_options.py",
+      "sha256": "4dd3e0470b442aa72a543b6b741211c98f26e59292667c7f629287727eb198c0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_reviews.py",
+      "sha256": "6da862e5cc25c1a96420181a4dd72b02880f00f85cfa27f75b17b5b78252baf6"
+    },
+    {
+      "path": "packages/reality-core/tests/test_contribution_services.py",
+      "sha256": "40a108af298ef8cba4945422162638b6a3d0dc65a2dd4e9b673efbf36e34f894"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_allocation.py",
+      "sha256": "ca3bc8b09997512f944502d2aa6d90c1cdae0e2801c70d3858ce3446d044b212"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_allocation_services.py",
+      "sha256": "d13ebc7fb2b1c6b50f21d96394b906088c746320187bf5a8dbadbeb77006a4d0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_captured_basis.py",
+      "sha256": "79ec33e63ee34a95856b8f70e56e58d590c97184a84d41d1e4df3b1a26d38747"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_captured_basis_migration.py",
+      "sha256": "b50496ba95e74e0c66dceb98c629409581004a5ad11b934cbcda847aed91db4b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_captured_basis_storage.py",
+      "sha256": "c8eef878cb67b825a97310b8df0842b22b75194dcfa84a660f8e3039c9efe123"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_captured_summary.py",
+      "sha256": "5a834c5bc1c1ec26262e682d5cd5da0791fc7a0f62724768cda042515fa1c143"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_census.py",
+      "sha256": "70d19cfc7bcf826ba20130e3e6b04cbde6a0aa6c68f24b746bfb43f417f455ec"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_census_migration.py",
+      "sha256": "2c2989e55b6ae70247c2f5033d6e6ea10122c75ed19321c389b46e146bbb8ec6"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_census_resolution.py",
+      "sha256": "af33ebf66ff65854556a1ff19f855d4e2e7d1da76be17a49e139e85387f6f475"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_census_serialization.py",
+      "sha256": "de4dd22bc5ffe304370b77a09f0ae892b170efc41b04e8825f66570e6a858872"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_census_storage.py",
+      "sha256": "74967774d8126adf491ea17171ae0d5ca48699d83263e6a45dbacb0f0f4fb446"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_conversion_migration.py",
+      "sha256": "289f2212aaa4012541d653a7371e17ea7a8a7e98959c337faea194a4b3e19d32"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_conversion_services.py",
+      "sha256": "809953226b94fab7527e055414ed7b5b45517d5a227448ccf20be629cf063d94"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_findings.py",
+      "sha256": "7283d5ab6b30caea354d5efa5a43712ef9a58ae68d9ce1155cec86b65038d037"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_generation.py",
+      "sha256": "edf4c2d7e90eee28c239e8ae920bba805d5a062ce3b36f80e3425419a11b642d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_manifest_member_migration.py",
+      "sha256": "0cd61752e479465037ba95ebc7ba31320586c6f0711fabf8e21883a43a8c4029"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_manifest_members.py",
+      "sha256": "00b431863eddce2d0c08f3258f4498856ab8fd03d6c734208849d6fd497f7d8b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_population.py",
+      "sha256": "d768b62e6e0ae9c683cc620a4d82eab40a8d5f9a1d11f2ab37cbcff757416273"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_projection_migration.py",
+      "sha256": "b047a4e989ce27616119d3133a74d4c9f2e8b7246d16efdb936847a3d93e5bd6"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_projections.py",
+      "sha256": "ba12610b68a72b253c52fc7a3521a6c40e41fee24b87d1dac84b43c757d776df"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_query.py",
+      "sha256": "a97d1a330fde7b233994c3fca4ed37384a257db5122148322e3164df6dac0129"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_records.py",
+      "sha256": "c9f76792d41c053bb493a15f2c635b05e0c21b461edbbaf30e3bba01518656c2"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_resolution.py",
+      "sha256": "cd1d62a0f657dad9407e95df739b04e17efd2f2e7be8e71f63de25425ea08d40"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_review_draft.py",
+      "sha256": "3b2b345c8f675fbd148ec44e44a657cb0396ea6672a47bb7eb14b0d49c3786c6"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_review_proposal_api.py",
+      "sha256": "8a3be30c66effe44f053597e5b9ccbe58aa89a0d657c62e3c5a260c10ed3763f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_cost_review_relevance.py",
+      "sha256": "201a73cdb78ac570947ea4a71a1fab61254e24f6d20522c8e30a271d77148f9d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_costing_domain.py",
+      "sha256": "4082ba1ba307018a44a81ebb67fea1791c632652bf3ba037837c0517d2392d9c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_costing_migration.py",
+      "sha256": "f80df486e01af7217ce2345a14e9790e408c225d0e0cd201176459fc4450944f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_costing_product_qualification.py",
+      "sha256": "70d2ea8890e78927e23941f9687a9e4050761187804196ff98e96802c7fb1637"
+    },
+    {
+      "path": "packages/reality-core/tests/test_costing_product_runner.py",
+      "sha256": "ce2d5226e314ab07e0636a26319e976564aacee6a4fd00e75acb36b34ee6c3e8"
+    },
+    {
+      "path": "packages/reality-core/tests/test_costing_product_workloads.py",
+      "sha256": "3504bf38dcf27d7c9787f9ba319cd2ec20291f49e36e28ceb89e254604a7cc6c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_costing_services.py",
+      "sha256": "fcd953700fa65e195b3812a8885eb197c6bb90d5d41a37577be2d46664916666"
+    },
+    {
+      "path": "packages/reality-core/tests/test_costing_spike_contract.py",
+      "sha256": "9ab2310ba64ff3b4d14ad4285a2cc650739480b683938afcc26221f74d411f6a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_costing_spike_jobs.py",
+      "sha256": "246e3008e02c052b86dc83d6cefeab95c5206a007822726822d5f85496ff4abd"
+    },
+    {
+      "path": "packages/reality-core/tests/test_costing_spike_postgres.py",
+      "sha256": "17a907dd6be1d0978d40e1eae0e0880a40f2f7d2fa62dbab5ecf41d88833f083"
+    },
+    {
+      "path": "packages/reality-core/tests/test_costing_tools.py",
+      "sha256": "1f7bf2c566c2b7827a61f3a4bf08b3f4f00b9db062cea4063015ed98e8770db8"
+    },
+    {
+      "path": "packages/reality-core/tests/test_credit_exposure.py",
+      "sha256": "e9e598d9345cfbe5e05326db6826c2cc645175db521bb5037ac85ebace016e70"
+    },
+    {
+      "path": "packages/reality-core/tests/test_credit_hold.py",
+      "sha256": "f25c1466df569ca12a92ba76cb2f27a80e8807e5fe1c624c84e7a4ed7c9d64ce"
+    },
+    {
+      "path": "packages/reality-core/tests/test_credit_hold_adapters.py",
+      "sha256": "ee3ca56da9def60f08890f4d0657934260409f838814ecdb02efa7d317a8fe19"
+    },
+    {
+      "path": "packages/reality-core/tests/test_credit_notes.py",
+      "sha256": "fd87aade0a816bcab626bbac96b7ba7afa57001fbfde3d2afb27cd5b6fde55f0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_customer_exchange_adapters.py",
+      "sha256": "30e254bbc394fb4081148e950b33478978de1a4ebfdf3c870473cf6d509fb6a4"
+    },
+    {
+      "path": "packages/reality-core/tests/test_customer_exchanges.py",
+      "sha256": "3b4db6cfc3e655762e058fdb291654cdff1a49c01478aa5e41ba041019d6aa48"
+    },
+    {
+      "path": "packages/reality-core/tests/test_daily_work_lists.py",
+      "sha256": "2b89d0e6384d886dc24f95a356c5685df411bba7a6c18b3cbeb30c2a501a8490"
+    },
+    {
+      "path": "packages/reality-core/tests/test_data_model.py",
+      "sha256": "1976be1d87f6fec1fd3c98f264811ba50a6889dadeda93f2f6a45906edb13b71"
+    },
+    {
+      "path": "packages/reality-core/tests/test_database_config.py",
+      "sha256": "6ea2edf6384265dc57588130509056087a160720fb01fd2890db59f89ed20ea7"
+    },
+    {
+      "path": "packages/reality-core/tests/test_deadline_due_soon.py",
+      "sha256": "287728efe16fb177c43a8a9654fa244b65bbb1b3a168b3aeaee99ff3168de3c6"
+    },
+    {
+      "path": "packages/reality-core/tests/test_decision_attribution.py",
+      "sha256": "9e0e4e637a5cb91b6d8bcd39de71a14a772e596980d883466487b4f35e0dfe3c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_decision_trail_details.py",
+      "sha256": "d6182b6c60921ce968e083eead6cbfe3a2bc4d73ce0392ef5fbebeaf682d129a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_decision_trail_events.py",
+      "sha256": "43e2c851dfd1ab69e5b7f75d53ddac450dfad75195e13ef8c3bfc8551c148b64"
+    },
+    {
+      "path": "packages/reality-core/tests/test_decision_trail_mcp.py",
+      "sha256": "aef64d85bd96b575981d3e516627adfe02234e07c3fcad10cc9742a46b68fdb8"
+    },
+    {
+      "path": "packages/reality-core/tests/test_decision_trail_migration.py",
+      "sha256": "6e6bf5c1f184047ae6e78e0cdfcbe1b9d80666e397f07d635e9caf3bd6e62975"
+    },
+    {
+      "path": "packages/reality-core/tests/test_decision_trail_surfaces.py",
+      "sha256": "9022e6de7b3d8b8d3872e1f862fcc4b336aa637ebef1ad47a89e16b67e64087d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_costing_profile.py",
+      "sha256": "6d12da56dbc97ac3a965e6834dc28559fed9a583aabac55103f8f0b921ae5007"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_data.py",
+      "sha256": "7b33d76fb6bbd4763220dab1f93f0f355b1f04f803147da2149552c81824eeab"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_data_api.py",
+      "sha256": "e35d387437ab13e478414f9e6e536c602cd398f36e941ff115d3db06430cd42d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_data_compatibility.py",
+      "sha256": "f0e3cf5f0ae43870cf223f007931d9ec7143ecf79cb9cd1f965057ca0c0621ee"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_data_generator.py",
+      "sha256": "9255cbbd0ab2a846302aead26afb6fde92a969edd2681e3b6e45de6346019ee7"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_data_intake.py",
+      "sha256": "fe580d6ef58ba5fd443d91c736e2711facc3c721146968891787068fab4ee334"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_data_security.py",
+      "sha256": "b59cd65b70639d6c8e58fba5bc8f18cec2a81311decdf1d4c47a61cb1eb86715"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_data_settlement_plan.py",
+      "sha256": "fcdef52a59ffd11133f07fe80023223de2b79934f13b9a0d5a2dca529f70e6e1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_data_startup.py",
+      "sha256": "495a0383d0ce2bf3906b0eec1e708ea3599cef82736436d99df566abdeecbbff"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_entrypoint_parity.py",
+      "sha256": "794e3ba471eb7dcb95db12b7f4e135bce71c70c8efc3b355beb47fcf512ae360"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_execution_profile.py",
+      "sha256": "88b5689ef37a87360d7dea7544ebbbbec643b28c3a5da709bcd846e66ff82a88"
+    },
+    {
+      "path": "packages/reality-core/tests/test_demo_profile_history.py",
+      "sha256": "778473e88a4268004fe9e66584e259de92854643db3d09ae5b80cf0ca8cfae57"
+    },
+    {
+      "path": "packages/reality-core/tests/test_desktop_http.py",
+      "sha256": "e261800e3836962ef6d95c83de3fa48cb3d6f3e922ba8ec2acf14f6cc95bfc99"
+    },
+    {
+      "path": "packages/reality-core/tests/test_desktop_identity.py",
+      "sha256": "e1e88a7ab709789a62fc63ff05eff1c73cb903efeb624dbc19ced372d9116173"
+    },
+    {
+      "path": "packages/reality-core/tests/test_desktop_identity_migration.py",
+      "sha256": "e89088e4cc02f34bf5eb94957991b108930398a3ddc67817987c98d320b0fb73"
+    },
+    {
+      "path": "packages/reality-core/tests/test_document_corrections.py",
+      "sha256": "5a17f354cce5c4995006300915b3a79d7ca6b7396a76e6a107047a699b7c3e13"
+    },
+    {
+      "path": "packages/reality-core/tests/test_documents.py",
+      "sha256": "e71f99a3ae5afa460f36b9159ee2db27e1ccf72627d5b9a5829f3d92af585008"
+    },
+    {
+      "path": "packages/reality-core/tests/test_down_payments.py",
+      "sha256": "1152c483b48f5c0e9db9ac1be8911cbfe5e0d732a947b142408b49e5d608178a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_email_delivery.py",
+      "sha256": "02dda833cdf28609cd5d94f4073dd7a3405d5ad259c234a945e913ebc63f87db"
+    },
+    {
+      "path": "packages/reality-core/tests/test_engine_room_architecture.py",
+      "sha256": "e98da3956609f7a9dc76b943101791db1177fadb4756b43d8bb4cf13584c1bdb"
+    },
+    {
+      "path": "packages/reality-core/tests/test_engine_room_channels.py",
+      "sha256": "d52074fa8a86bf077b703a640c3003a2a5a41501f37a04a6af411c71394fbc59"
+    },
+    {
+      "path": "packages/reality-core/tests/test_engine_room_migration.py",
+      "sha256": "3ffba1ffbb61a481c6a0d7b6be7895a640071623cb03031bd5a3edbaed4c94fd"
+    },
+    {
+      "path": "packages/reality-core/tests/test_engine_room_reads.py",
+      "sha256": "9e04802da15f1100ab4aed0fcc7bba98444db64f0c992bac2e5b083493cfeeef"
+    },
+    {
+      "path": "packages/reality-core/tests/test_engine_room_recording.py",
+      "sha256": "2ac37a3479ac6a0fbeb0f1b2aa2fdb9965c8d05d20540ca90033a2cbd8c8860c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_every_module_imports.py",
+      "sha256": "e9329c4af904e738cab77fd59315fc32b589743bc902b9fdf84e72997113eae9"
+    },
+    {
+      "path": "packages/reality-core/tests/test_fact_observation.py",
+      "sha256": "88c34bddd475e2de136cb62f0093839cc196d9c0ae911f23f32c18c995a573a1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_finance_payment_atomicity.py",
+      "sha256": "fef6baa18bb5c4311fc77f81e02c1e616fe73c330a9a674531b0d79b227c1e97"
+    },
+    {
+      "path": "packages/reality-core/tests/test_finance_reference_migration.py",
+      "sha256": "e13cf1a0c789f737c46e93d253a07e7d0e2bfb5add1f87bec76c095135fb7517"
+    },
+    {
+      "path": "packages/reality-core/tests/test_finance_reference_store.py",
+      "sha256": "3521beff4c430adaf874546f3c08f7d87d8ba5bb66ab077515b372f8bedb6b80"
+    },
+    {
+      "path": "packages/reality-core/tests/test_free_playground.py",
+      "sha256": "c6dc651c42e0a469b21a9168bb841f7105225c5afe7dad8305735314ea28f204"
+    },
+    {
+      "path": "packages/reality-core/tests/test_free_supplier_invoice.py",
+      "sha256": "0ba843a4e40d5e8a878d16746aee699326f471171b02530f9a8b2a0842bc462b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_fulfillment_readiness.py",
+      "sha256": "72cce3771c2ee851ad6efe1737fa3bead832c801c1842cce8ebc2b4fedaa22e3"
+    },
+    {
+      "path": "packages/reality-core/tests/test_global_search_access.py",
+      "sha256": "156d4d06731aabd0db231faef0165353eca40ab5303191e06db8677937ba41e2"
+    },
+    {
+      "path": "packages/reality-core/tests/test_global_search_benchmark.py",
+      "sha256": "44a7447dc555069e0f3c16d0bdc2d74206d195c9a13c310773dd1dc71aae3f90"
+    },
+    {
+      "path": "packages/reality-core/tests/test_global_search_matching.py",
+      "sha256": "833819e4fe0bd836b0ac7085e6ed53776805b5d170c6905f4527f44f8311a4b7"
+    },
+    {
+      "path": "packages/reality-core/tests/test_global_search_migration.py",
+      "sha256": "e806360147180212bceb9cc4ff4ae83ec6ba13782b37bd41bf0cd376be06d0c1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_global_search_service.py",
+      "sha256": "776743f3f437325d243749f17393207705b4fe1f44fa26f02cfb6309b093784a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_global_search_web.py",
+      "sha256": "2098a91a23d7949df6c15821827f893f5580428178659cb50be0c60d6c1b2601"
+    },
+    {
+      "path": "packages/reality-core/tests/test_global_search_worklists.py",
+      "sha256": "758c127d5ed8023ee9f81facfd0b640e0b17857b077a82707e7ef525ac2c385c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_handling_units.py",
+      "sha256": "ed28904fc0c7b49633e566541dfccaed3382ebe3adf8efaa3f88e00bb259f8ee"
+    },
+    {
+      "path": "packages/reality-core/tests/test_home_readiness.py",
+      "sha256": "cd270148f0308b5f0f2b82dbc617e10178cafce792a3b0909425056dc01a441a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_http_boundary.py",
+      "sha256": "174b1f4b8d84cc572185d61884430fdaf6c9bc81784b33ad827be4223883ad1c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_import_demo_files.py",
+      "sha256": "de5f26b0e17d9a945f369cf2c2c80e3b3245dfbfc553943cae506627305e5af9"
+    },
+    {
+      "path": "packages/reality-core/tests/test_incremental_derivation.py",
+      "sha256": "9cd0ea669d4efe9cd7f0e946550e03c37d3b8524cb64633f5e2a962ea7453b2e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_ingest_cost_benchmark.py",
+      "sha256": "3a71f4d044c41180c60f1496f42944d7e4ddd94bbcb345f4e65aab750838d5f2"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inspector_presentation.py",
+      "sha256": "c3349cded9329b638862d7f1f4a7d9817aabf79f9622a72f45fd0eb35e69a129"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inspector_register.py",
+      "sha256": "e63bb74ef8450f4b5493d1e3b55885b5692463d27339f9d80d390ac631a25bc7"
+    },
+    {
+      "path": "packages/reality-core/tests/test_integrations.py",
+      "sha256": "21e35f10d056c335b66c530a8cd6e27f586449eb78a618d0aa2b975dc7b0225b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_interpretation_coverage.py",
+      "sha256": "d3bb2054004ec144a5529e0f04ec2334733dd9878dd1fe31ec3a112192b42e9a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_and_fulfillment.py",
+      "sha256": "593b6c67291bf2e68f1c55de3d2590c55728e9313a0ccaa07126f63da6f267f5"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_batch_generations.py",
+      "sha256": "8ae8e3eb224a8b63cfc7952e9844f677da70192147518f9d23b198a71e2c471c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_batch_review.py",
+      "sha256": "821c376a51eb789199fad90f4503e6c3c03d4390a3148694a55f95ae138ecefb"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_costing.py",
+      "sha256": "cd0130d0dbe06605f5e28c86b298c4173c8ef09637f3771da62cb71b88c0b8b4"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_costing_migration.py",
+      "sha256": "cbc36f3a6676d9435f333b74672182453bb7dc7576d56ec1402bacd898c06161"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_costing_relation.py",
+      "sha256": "85d399a22b70482399008f6f22dbc3f10a553719156ce3cee07630d183c84552"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_costing_services.py",
+      "sha256": "42cb853f5c8fa56deec30fc9448df54248e9ae56dc6316662c1059725be6d32d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_generation_migration.py",
+      "sha256": "ecae5222f4bd370f5331e092c431b75aa676c38126f59d2fb6c69da344d0c45c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_generations.py",
+      "sha256": "72cc7392ad2d61c51cb3f624bd8add22ed82b3a9b4a07072f31cf5ae69ea9d05"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_graph_reporting.py",
+      "sha256": "2bebc817e3944313f28a82f6af8c17ba116d16f581c121cb14bfc5ac52d9c252"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_review_options.py",
+      "sha256": "2d0333b8fda2d4bca3863fece10ec6a4ec2f17aa9947cb3cedc1f5fdf10eb838"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_snapshot_selection.py",
+      "sha256": "ade561418cef0cdc2a6472f7912cddc684de727053542f1608ad59021d5b1cb9"
+    },
+    {
+      "path": "packages/reality-core/tests/test_inventory_tracking_reservations.py",
+      "sha256": "a810ab338710fcec3afb586b12f1a56004f5edcedc9192bd86513d4b94cb21d1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_invoice_billable_positions.py",
+      "sha256": "5645ddcd93490ac5b183360fb54ffc72faed2eb0cadb24de9679c67293f5b213"
+    },
+    {
+      "path": "packages/reality-core/tests/test_invoice_stated_amounts.py",
+      "sha256": "25f4bdd6463a1f02b54bc0c304e655ce544b7b2967b89c491b415cc59c19c817"
+    },
+    {
+      "path": "packages/reality-core/tests/test_item_oversold.py",
+      "sha256": "d065d55ab8a8bf9cb66444d99ccee9a2b1761d2c658d0b7b929a82bb9df7cdc3"
+    },
+    {
+      "path": "packages/reality-core/tests/test_job_history_retention.py",
+      "sha256": "56bd4fda0358b24da94b12ee8c08788b5486c853e5b36663ecb7b71021032508"
+    },
+    {
+      "path": "packages/reality-core/tests/test_job_runner_process.py",
+      "sha256": "cca8e95aa01087c254e1a8707ba3301d473f82f418c6ed0a1b8dbe5d27c27bc9"
+    },
+    {
+      "path": "packages/reality-core/tests/test_key_provider.py",
+      "sha256": "1ca81e53209acab098f3810a050bbf2f5beb0d7b7ae49dd8fe7ef0ccf9045c79"
+    },
+    {
+      "path": "packages/reality-core/tests/test_large_tenant_register_contract.py",
+      "sha256": "76953d82ad222bb6af6d1f9646e981d35649a5d7d219e4b42222f2d9ee3d8247"
+    },
+    {
+      "path": "packages/reality-core/tests/test_ledger.py",
+      "sha256": "d40bded04d344b234fc3e014ada794070a406cd202d6e8730b2829d95f890024"
+    },
+    {
+      "path": "packages/reality-core/tests/test_ledger_reversals.py",
+      "sha256": "6b5bcdc0546bc4d77585b97c6dca40de92631142a6a621c775643bd0ce42fb0e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_live_source_recovery.py",
+      "sha256": "e5802ae7be9feabe2eb8c24b500ada9f3f638b999c34be20ac499486138ade7c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_master_data_api.py",
+      "sha256": "f6a11927d5493917185ea0d745861bfd673eea66493cda28bf73d5cfedcebd8a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_master_data_parity.py",
+      "sha256": "e62950b0fef94765d20ff7753f5382ed6aabd58397e06b7b19a1280811984096"
+    },
+    {
+      "path": "packages/reality-core/tests/test_master_data_update_audit.py",
+      "sha256": "f71be541be1c9a76690d0d2ad3286428399e177e1e461b6ad03b2c6464c094b0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_materialized_projections.py",
+      "sha256": "0c81af4391580df045397eeda007db81dea1bfe983f941ec08acd6d9b8e55a11"
+    },
+    {
+      "path": "packages/reality-core/tests/test_mcp_chat.py",
+      "sha256": "66731133383348f1b605c68bfe731884ccf454d55cf8adb0c42e730e6828b056"
+    },
+    {
+      "path": "packages/reality-core/tests/test_mcp_error_codes.py",
+      "sha256": "6dddaedf4cd6edffd5754a1ea791ae59a247b2070845a07bfdd66900e58d670e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_mcp_fact_observation.py",
+      "sha256": "ca0eb8149076732364e960df6bca9b7976b3013a0a6990108413dff3b2664199"
+    },
+    {
+      "path": "packages/reality-core/tests/test_mcp_http_runtime.py",
+      "sha256": "838a89575ab2c93e4fd0e2f95450bacf269b87c5e14a6a81fdc300812515cf97"
+    },
+    {
+      "path": "packages/reality-core/tests/test_mcp_oauth_http.py",
+      "sha256": "394eb7a89a032ba5ecdc0ecc9b87b6a8b626654126bd5f3603a8ee66d9a9b0f2"
+    },
+    {
+      "path": "packages/reality-core/tests/test_mcp_oauth_migration.py",
+      "sha256": "7a9f5f131433451a85cf387c3287cf83bf72e99a8b741273bed2baa408708537"
+    },
+    {
+      "path": "packages/reality-core/tests/test_mcp_oauth_service.py",
+      "sha256": "4015d7b4626361f022e01bd02ef651dfdc3c220c04eb556771f1109abaed8602"
+    },
+    {
+      "path": "packages/reality-core/tests/test_mcp_permission_parity.py",
+      "sha256": "c1a11ce6caa3ba9f8a7a637ba809669ac1a7c7d23c5479ff765f084199c29c97"
+    },
+    {
+      "path": "packages/reality-core/tests/test_mcp_read_contract.py",
+      "sha256": "371f053c274a229d51de54b4e8d93f75df13f8a6f5c325f691429591c97252d8"
+    },
+    {
+      "path": "packages/reality-core/tests/test_mcp_read_optional_arguments.py",
+      "sha256": "0cf5634cdbe3f1690dd1926c00b7ff1b2ceb67409dd964bce02681bd44a11164"
+    },
+    {
+      "path": "packages/reality-core/tests/test_membership_invitations.py",
+      "sha256": "e5c5e1189d0a5c0e3c9a41c53528ef7f91c2c676163f364757a98f221a50804d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_migrations.py",
+      "sha256": "6f922a6128d74307cbaec9b5bb3ae5c6372da8781969d7e8811e66aed2aced64"
+    },
+    {
+      "path": "packages/reality-core/tests/test_movement_corrections.py",
+      "sha256": "b3cc266af98d2a4480e603a68bbb1e40d8fd981847c4b6f63aeabbb2a1296b89"
+    },
+    {
+      "path": "packages/reality-core/tests/test_movement_create_readiness.py",
+      "sha256": "d45042407017f6c6c332c98f935ade7da7bcb2f88f577322f3403b015ac59097"
+    },
+    {
+      "path": "packages/reality-core/tests/test_movement_explanations.py",
+      "sha256": "659a5747f802aeff70f7303cec8d536cd03a0e3b8cf398a37faff6b53909012e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_movement_reasons.py",
+      "sha256": "48544048bb14c43af0905398d82d6c64b9e2b6921965442c25f6527e2e70d5b3"
+    },
+    {
+      "path": "packages/reality-core/tests/test_multi_position_invoices.py",
+      "sha256": "c89509d0b4620e6dedf4ea1665d99cc26630c705572600ab5778ec871001938b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_multi_warehouse_adapters.py",
+      "sha256": "e8856b92ae2b123365c3a43079840be21a2e6af59ff985dedec9cb5f7c041ea4"
+    },
+    {
+      "path": "packages/reality-core/tests/test_multi_warehouse_reservations.py",
+      "sha256": "05575dcf87343fdbe0332feb0aee6bdf9fd38bdf5e8ce849882a074e9b327433"
+    },
+    {
+      "path": "packages/reality-core/tests/test_opening_cost.py",
+      "sha256": "fae3607a5d44355dcd38c13bd61369dc7fc10cf846a188b86d5d8019007bc9ca"
+    },
+    {
+      "path": "packages/reality-core/tests/test_operational_fields.py",
+      "sha256": "cfeb543b2b3861a0775d0f1d91d15e3ed83157f127402bd35e66f12ff30832f3"
+    },
+    {
+      "path": "packages/reality-core/tests/test_operational_previews.py",
+      "sha256": "a1d00609d245a9b15b466d859952b82bc1dc776d7aa3e97a932b1bc549cbe734"
+    },
+    {
+      "path": "packages/reality-core/tests/test_operational_read_performance.py",
+      "sha256": "1e484f6e0235f272d061f2d5c34815dd045fc3f6a5bfa24e24e1ead4797359bb"
+    },
+    {
+      "path": "packages/reality-core/tests/test_order_journey.py",
+      "sha256": "bc0d840500db7c236edc905297926b29201c301dc4ee03afc6f218f186892b3d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_order_line_items.py",
+      "sha256": "7294a067b3922ff5564407c6539b1eea14b2aa2a285cedf90977945c725a573d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_partial_invoicing_rebilling.py",
+      "sha256": "4e6a9dc8f6d273907dec199451f1d0f26d6d5f3838a112546593bbe06c4d1b67"
+    },
+    {
+      "path": "packages/reality-core/tests/test_party_delivery_holds.py",
+      "sha256": "961e9d0b66aba350da391e9c81a1e9960280dc345448ea7db0f40513c0656b0e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_party_email_lookup.py",
+      "sha256": "9fe83ba25653b13c312d024d64367409c9208b6b6cbc1478da9e5106a921d7c1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_payment_candidates_reference.py",
+      "sha256": "b202694ea35e40eaea9ecc34e9bbea34a95ba1f36be6f69f376beb9b2598099c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_payment_intake.py",
+      "sha256": "756762c7d47d4ff6d37c8a2eae1d1f57d2d69de6fc977be290b2559e715da29a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_payment_projection_performance.py",
+      "sha256": "e8042dda9a5416af7bfe26c32a989f0f2b62b076d6dbe81c2dc5a64daf5e184d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_payment_runs.py",
+      "sha256": "d6422954fb5e035f86fd19ee66219a5c93cee2a22fba194cef270925472d0c99"
+    },
+    {
+      "path": "packages/reality-core/tests/test_payment_term_prepayment_migration.py",
+      "sha256": "7b5a4db1fb48d47326a82413ca52c67ec3b0abcf75512a664acf8a71681b4004"
+    },
+    {
+      "path": "packages/reality-core/tests/test_payment_terms.py",
+      "sha256": "1b29c327ccf9ba4bf06c13cdaa794b8169223768d1a33f16d477d7a9d378ae36"
+    },
+    {
+      "path": "packages/reality-core/tests/test_peak_intake_benchmark.py",
+      "sha256": "5d5d6a9a5b48cdc21ed91f5fc709a7d7dc45bf67169c932374ab90b86c7b9192"
+    },
+    {
+      "path": "packages/reality-core/tests/test_platform_admin_overview.py",
+      "sha256": "fce6d0eeb62dbdfd658b488f1ff8aae0bebd98e811e99b2323b30b4897351eb6"
+    },
+    {
+      "path": "packages/reality-core/tests/test_playground_api.py",
+      "sha256": "6330a1dd4693739e97c4e123705baa026d268df2ca387e569adc73c1768774f1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_playground_chat.py",
+      "sha256": "cef6088a44aa63d7b6cb8fc12411c2054ec80b0d6af31dac4b924dfe7edeafc2"
+    },
+    {
+      "path": "packages/reality-core/tests/test_playground_free_operations.py",
+      "sha256": "f02c853358803ea9c42c06413286036e98cb4189e47b30d15fb9091a2dd7eaba"
+    },
+    {
+      "path": "packages/reality-core/tests/test_playground_master_data.py",
+      "sha256": "f9efdb03c36cd6bc297445f8a608f243354c20eac7f0d6367e9c21b628f0057f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_playground_practice_companies.py",
+      "sha256": "7598b876128556e43c0e622f094367ae5e54db59c479a533d6d489cbf15c4552"
+    },
+    {
+      "path": "packages/reality-core/tests/test_playground_release.py",
+      "sha256": "a1af42ebf1060e05dce2d6d1b1cb3fb3d4b6abff01eaebb3fab410c2145df304"
+    },
+    {
+      "path": "packages/reality-core/tests/test_playground_runs.py",
+      "sha256": "739f4fa3d68ed7671fb39720999340a86b55e11cfd4f3179841db5221d2efa68"
+    },
+    {
+      "path": "packages/reality-core/tests/test_playground_security.py",
+      "sha256": "0f765c1ef3eaf1071f5dc745c21cf0fd29b28cc51cb204495ea4b231a5af9f91"
+    },
+    {
+      "path": "packages/reality-core/tests/test_playground_shipment_recovery.py",
+      "sha256": "3053150016990b5b5286537d6b398c53983689a8b471fe755dea4ede85b218c2"
+    },
+    {
+      "path": "packages/reality-core/tests/test_playground_steps.py",
+      "sha256": "8cd2928ad6834d2ae8f542352cdfb3f9f840f6a794ec194c1fb8d5d6c9864f1e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_postgresql_integration.py",
+      "sha256": "924a3c4934ae42ff6d56ebe17ab32418cd4242a80b20c07c6acf5c880a4bcbfd"
+    },
+    {
+      "path": "packages/reality-core/tests/test_price_quote_mcp.py",
+      "sha256": "7218312e89e82189088dded0ef071dad65ea221eaa540656649af019e2a4a9b0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_pricing.py",
+      "sha256": "2cab70fbe49e88672af9ce3d53cbbbd5ae51a3065b0d76aac46e6fac43bccca6"
+    },
+    {
+      "path": "packages/reality-core/tests/test_product_advisor_claims.py",
+      "sha256": "258db3d283c7fe6ffaaa77d7a405239ddce38132329e92a3d9b01e21026a868f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_product_advisor_evaluation.py",
+      "sha256": "1533338982c9fd734ee3a8f8a8267e59b325cb1c7bdb32b8a7599b2c560dc207"
+    },
+    {
+      "path": "packages/reality-core/tests/test_product_advisor_knowledge.py",
+      "sha256": "c9a8516b722dd36b5e6d2edc62ee0c757994c6fed38ae47917f52907b21618ee"
+    },
+    {
+      "path": "packages/reality-core/tests/test_product_advisor_languages.py",
+      "sha256": "663370b14fabae1e31f4bcf3a4181373adf79518e4925aab13d083aed90ce783"
+    },
+    {
+      "path": "packages/reality-core/tests/test_product_advisor_security.py",
+      "sha256": "1d17a40ed926ea70ae09e019feea30f6f339078b22603ae03864643407e817c7"
+    },
+    {
+      "path": "packages/reality-core/tests/test_product_advisor_service.py",
+      "sha256": "69683f6cab407ef9bc6fa1b969f710ae04de1cadcb1890713edc6516c0844f1d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_proforma_invoices.py",
+      "sha256": "7c98728061c1f85ccd4208152a4e1e535c6e6697f7d0092f602278c98c0a6437"
+    },
+    {
+      "path": "packages/reality-core/tests/test_projection_job_migration.py",
+      "sha256": "b8f4a6a1fcdc46a5c12acfc070e01d778c8a95c1270f1044a313f83f62d59a13"
+    },
+    {
+      "path": "packages/reality-core/tests/test_projection_jobs.py",
+      "sha256": "df102c1a2e32424d2a2fc1d3826d31f550c15f3ce1a22ee8a6a74421783b6ec9"
+    },
+    {
+      "path": "packages/reality-core/tests/test_proposal_decision_policy.py",
+      "sha256": "fc99bcff260bd8ffd4d3eddd620cc3d19446f8557af76bb7f7568d609d21fe4b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_proposal_review_benchmark.py",
+      "sha256": "843b9f75874ea66de383388cd06f2fb9a2c919d1ce35e47529db5bc35dba881b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_proposal_review_parity.py",
+      "sha256": "54fc915221e2d37051c267653106f9a0d129954585692c3d52859ed89b61a4ad"
+    },
+    {
+      "path": "packages/reality-core/tests/test_provenance.py",
+      "sha256": "bf3b6ee7e42e69bff17584eb1169d98cf3fa07afe1e7cf63ca184bdd5718f104"
+    },
+    {
+      "path": "packages/reality-core/tests/test_purchase_unit_adapters.py",
+      "sha256": "40022c3416251e9b71ed889358a3b25d5ecc4198771f43c02d00889adad87156"
+    },
+    {
+      "path": "packages/reality-core/tests/test_purchase_units.py",
+      "sha256": "fd5e87f359866fb7a330fd2c9fc850c7826a49fabf74bb9168070e74d1c607d1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_readable_proposal_reviews.py",
+      "sha256": "ce344c4f30f6bc79efbb3d823bf791ac9dc159c5d7e3f1be1ccf7305ac4d799c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reality_gap_rules.py",
+      "sha256": "1b3e02caab61d9a73945437f413cf72260176b3c9ca5f5dc1a2848c7f8c36db8"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reality_gap_tools.py",
+      "sha256": "ea80e92ff88e073cf261e1c2394d9d7db5769f8e17c74664835f114aad38878d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reality_gaps.py",
+      "sha256": "2d833dddf167cba69798fa38a6ae4fe529b4d7f1716e0190a5915e204c6ad47d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reference_integrity.py",
+      "sha256": "fa68ccc7781d5c16b34a732ecfa075353299c14339fa12a0ea7b8d81b7b84fe9"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reference_workspace.py",
+      "sha256": "37776dc31800cd59bef09cccdc7d7699c0492a037fe3f7bd23e7399ed6dbbb01"
+    },
+    {
+      "path": "packages/reality-core/tests/test_refresh_units.py",
+      "sha256": "8ca250b1c29955e61c8f8c39a76fe0555494776005f4c390d71b8ef972f36778"
+    },
+    {
+      "path": "packages/reality-core/tests/test_refusal_gate.py",
+      "sha256": "9b4dbc09e81c820bb60e8d9a99d08e236c5e92b77224557e7a11b069cfafc43e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reorder_point_adapters.py",
+      "sha256": "63cb5419a3c0ab87b1b72cb03bf52a06384e02957754ba222c7d27700e5c8640"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reorder_point_reached.py",
+      "sha256": "46721bf3e1cb97b4bb79b3fd6fcce55759d0d3073536472619d44defe06e70da"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reorder_points.py",
+      "sha256": "c6a066dbb383c57109a1cfa6a8e7034da7ee70befd33e3dbfe84ec5ed3ce50b0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reporting_graph_coverage.py",
+      "sha256": "7b66182328d499b71a140432e1d13d36ac4dd87418522642016a827b63714002"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reporting_graph_declaration.py",
+      "sha256": "c7257cb914400f500ae41a7072475542aacf5bef1393f3617920a6809e066794"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reporting_graph_expansion.py",
+      "sha256": "aaae305ec101f81a66fbbdba207727db6a1c4a179e6cc233ab72cc34ee0671ff"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reporting_graph_isolation.py",
+      "sha256": "68b99e7997cbd7d6ec55ec5510a1a220d5d5d2b5dddeec3cdbffb4485db939f3"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reporting_graph_lifecycle.py",
+      "sha256": "f487f272d7b4d3f55dbcb298169640ee07d7f6c88798a08ad4c5636ea88b6d57"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reporting_graph_surfaces.py",
+      "sha256": "978726580b6af2a3caa5af3f363664c492eea421d7a0bfc769f5b462362e5008"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reporting_graph_tools.py",
+      "sha256": "9a9afd6ccd411f61737438822109c39905c70f0077ddeee5ae3bf13c6296cf49"
+    },
+    {
+      "path": "packages/reality-core/tests/test_reporting_graph_traversal.py",
+      "sha256": "cc72afb22237254da9fea4a2b33c00a8a46843adc8c14df97804a1ca1c9ef902"
+    },
+    {
+      "path": "packages/reality-core/tests/test_repository_layout.py",
+      "sha256": "ee6fdb308d1f5a52353abd535d2bce9d66cdb2a9860fb49a1360b3ae952513d1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_requested_analysis.py",
+      "sha256": "ac3bf07b547c674c16b5912fc74137541c475ef4d1b9fa795f921deee4dcce24"
+    },
+    {
+      "path": "packages/reality-core/tests/test_resolution_guidance.py",
+      "sha256": "869bbf6fb7e517dd5959d1fcfc50d88ce4b82e5e3a51f6f6118ba1eec0a1c620"
+    },
+    {
+      "path": "packages/reality-core/tests/test_return_announcement_adapters.py",
+      "sha256": "6d4b228fcb33329df55bdafb15d1c07fd61d32bfa17b9addc25db55e535d2349"
+    },
+    {
+      "path": "packages/reality-core/tests/test_return_announcements.py",
+      "sha256": "88dcd581470bd86514cc066e45e90d5800a9d57d772f2268a8726438cae114a8"
+    },
+    {
+      "path": "packages/reality-core/tests/test_returns.py",
+      "sha256": "2c73145cf3e5d489e3b763dddb587115d561206b0ad26eb96d9b1cd25d39f815"
+    },
+    {
+      "path": "packages/reality-core/tests/test_sandbox_read_parity.py",
+      "sha256": "c01036753d60cf7a154c906e2d5a050ff3120ab7249b2d23850e091533e5b544"
+    },
+    {
+      "path": "packages/reality-core/tests/test_scheduled_invitation_cleanup.py",
+      "sha256": "e39bdb886ccf04dfa0f105aee28cf541d3dad5655494fe21ab9f6cd051da9711"
+    },
+    {
+      "path": "packages/reality-core/tests/test_scheduled_job_migration.py",
+      "sha256": "248caec444e226b0c6f2610d1f327bd0014a69c3ca6767583998cca5bf9f97f0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_scheduled_job_recovery.py",
+      "sha256": "07bc1f3550601c86ec8edf1eb68a4f54e4476d99c5d0d1c95ae56d9c79d2faae"
+    },
+    {
+      "path": "packages/reality-core/tests/test_scheduled_job_registry.py",
+      "sha256": "1615a7672e688df17859cdefd345e01b0d5b27ea1c95d43055070842fa2d3262"
+    },
+    {
+      "path": "packages/reality-core/tests/test_scheduled_job_startup.py",
+      "sha256": "7100f4c2bc61453b48f9b92c4e40fc824ff6c636a4292fe913eb280251dff47e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_scheduled_job_timing.py",
+      "sha256": "0ef0af33db90ba11cc78c4ad3674f4feac6f0182a0a02d0beca5965fa6d4baa5"
+    },
+    {
+      "path": "packages/reality-core/tests/test_scheduled_jobs.py",
+      "sha256": "549e3e7f3377d9f4675649cc2f4689b7d8c1954103d715bd2f340a41162b64c1"
+    },
+    {
+      "path": "packages/reality-core/tests/test_scheduled_worker.py",
+      "sha256": "c1e0314ec459387885b234594241645b547f78d72b9119d4b23f169392d76239"
+    },
+    {
+      "path": "packages/reality-core/tests/test_scheduled_worker_deployment.py",
+      "sha256": "9a94dddcd0d8501cc73d249cfc77c614e79a3a035bc899af18978935ed23c38d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_schema_indexes.py",
+      "sha256": "fb5b043365cbd50a037647022ea54945c619382791def7efb39d50fb133aeab0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_selling_costs.py",
+      "sha256": "d33f6b784bcf10a07dc5b1d53a4a5c9e61828f5f5b0e8ef895c376e0ff22061e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_selling_migration.py",
+      "sha256": "135b48806acc25a0192f09c4b446a1fbff88ae4e17a60a4abe6bb4db8ad61ccf"
+    },
+    {
+      "path": "packages/reality-core/tests/test_service_refusals.py",
+      "sha256": "be42a0359aad09f2bace3f706a9eb1f17ebf04457c83cb58b56df694d5a9905b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shipment_actions.py",
+      "sha256": "f4365e2c18ec30f282807ee329bd23798566b17f2ba93a3829c870b41899eaee"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shipment_api.py",
+      "sha256": "07846fb21b299614a49d8cd9de3d4c17dc9b35b31d501591dc5534262127a171"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shipment_cli.py",
+      "sha256": "3f65ec8452045f36760354ddfcbe9fa1a046bc9bf3fc3d31fc14915731f28bae"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shipment_reads.py",
+      "sha256": "fd6fe8c8105ffebce5cd367be9af9cac2bbf49628a479eb50968d851d8024356"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shipment_returns.py",
+      "sha256": "673f2e81dc369c0b54e34235dde8c22a3cc56a7f003b9c27a0b1de630b139122"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shipment_story.py",
+      "sha256": "d6d814def32f57c0f7f7a77d91abf274a9aa5a9a6725db0b69100c5898f5b661"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shipment_tools.py",
+      "sha256": "73ca25d3b47779aa8dcc552e4ea54378acc4d31ab63846a1f83bce2a8049a588"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shipments_domain.py",
+      "sha256": "0b63da31836133724cfdbe8d2e66687fadeb1122bcfbf5d5da44cece0bb4c22a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shipments_migration.py",
+      "sha256": "deaea1a2f7317d23bd75ce2d88e3d3f809e44dfc24aef01dcba55e3eaaecbc4d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shop_line_gaps.py",
+      "sha256": "d288335b8dead78f15ccbbd544d7b2d85dbd3608413f937dba8f46a664af5174"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shop_order_change_adapters.py",
+      "sha256": "f3e69e25ccbe082718287b6130ca61a936b274bd778c53ad38464ef0ef4bb24a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shop_order_changes.py",
+      "sha256": "0faee9dc942e8a055eae27175332ce038cf16e8cf65054e6171f425431d7a943"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shop_refunds.py",
+      "sha256": "dc986a0f16112bf05d303946cc7f6554f28695adeeaf636dfbd81c0cb54ef414"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shopify_and_explain.py",
+      "sha256": "3ad9477fb86935406e143a14589ca72ea5c2ed3bc9a725135da08b54a14478cb"
+    },
+    {
+      "path": "packages/reality-core/tests/test_shopify_update_guard.py",
+      "sha256": "849cfce566015dd2ead663101939ec80369fca0cecdd62a9791107af7d1362b3"
+    },
+    {
+      "path": "packages/reality-core/tests/test_source_ingestion.py",
+      "sha256": "46a1246b7ee68c5c5a376d92553d898a018adb971dc2873915c1d499e1682fdf"
+    },
+    {
+      "path": "packages/reality-core/tests/test_source_system_addressing_migration.py",
+      "sha256": "c0c84e93fd7c7bafca1a2ed388d2face57ff6274848aa26310037c08cb06a1e0"
+    },
+    {
+      "path": "packages/reality-core/tests/test_spec_policy.py",
+      "sha256": "cb4597f15e19b2f556f7baaa7f7e694af4e3e36c2210bb52d5235b443138ebb9"
+    },
+    {
+      "path": "packages/reality-core/tests/test_stale_promises.py",
+      "sha256": "5387dc51af08b945e11272cca404a13041735e16ffc4e48f3ae1579f94ba7f97"
+    },
+    {
+      "path": "packages/reality-core/tests/test_stock_at_location.py",
+      "sha256": "8954f6e36987cf51359dd4c2d51cb56ab8c420168fdf390be3a8e2fb7ca97405"
+    },
+    {
+      "path": "packages/reality-core/tests/test_stock_block_adapters.py",
+      "sha256": "0b0968dbbebea88300ac0113e1c1329fbf0f588fa106328d6b1f007418d1ee80"
+    },
+    {
+      "path": "packages/reality-core/tests/test_stock_block_readers.py",
+      "sha256": "8efa43f523423050225be998a7041a839e2fc4c7c54f974aed973a662d9e65df"
+    },
+    {
+      "path": "packages/reality-core/tests/test_stock_blocks.py",
+      "sha256": "64eb409400770ca51cb5f2297634694228d885871508a2224c0b216f143c27c5"
+    },
+    {
+      "path": "packages/reality-core/tests/test_stock_in_another_location.py",
+      "sha256": "6172910360efd7cba297b080caaddeba4b6ce07d9a60dff28a47afd8cc6ec08d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_storyline_chat.py",
+      "sha256": "b6d9a2b779c56b4ae838486a1dc176ef5dc50a4c5c6275947e2ab508cd004fec"
+    },
+    {
+      "path": "packages/reality-core/tests/test_storyline_delta.py",
+      "sha256": "15b2bd65ca77708100acf3ca0274633999b54977acd8ee632efc4ec3b45be3fa"
+    },
+    {
+      "path": "packages/reality-core/tests/test_storyline_export.py",
+      "sha256": "93ded096b1893ba55f04d653a0206441d7af6a3eafc41b753bbe3f3ea550a316"
+    },
+    {
+      "path": "packages/reality-core/tests/test_storyline_library_api.py",
+      "sha256": "3d9d6ce712e95ee730c32c156101b9ff6308d200b87b6bc305ebbd0a84fb9a8c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_storyline_package.py",
+      "sha256": "7ec284d699fd2906772f08007c6eead4e901ae71f68869d19547941519a3f16e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_storyline_runs.py",
+      "sha256": "6bc18b01ae87d3305667fe3079a953fdc8e822b7ab11c34a34bad4dab1411e7c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_storyline_trace.py",
+      "sha256": "c81b4996228fae2816e7a0cd526d3154fe51e17efdd14a0f734aed48dddddffd"
+    },
+    {
+      "path": "packages/reality-core/tests/test_supply_assignments.py",
+      "sha256": "149c7b434f48bc732b84ed3d2eec136de53cbd74d24fb33d84419b1c48d77ab5"
+    },
+    {
+      "path": "packages/reality-core/tests/test_supply_coverage.py",
+      "sha256": "2774131681ee96f4ba34a153bb2762c0c7d86e8e91176f2185584bf6ff114c4c"
+    },
+    {
+      "path": "packages/reality-core/tests/test_telemetry.py",
+      "sha256": "f00ce84bb791d0971701dd41558dc2dff03cd329a26671b39f2980c4314b64f7"
+    },
+    {
+      "path": "packages/reality-core/tests/test_tenancy.py",
+      "sha256": "d3332df48eff30fb0bc7fc96c82614f5811797f4a3e22d4582e988b9e2400060"
+    },
+    {
+      "path": "packages/reality-core/tests/test_tenant_lifecycle.py",
+      "sha256": "ed684a7cd6381418b3408b513cd1c0bad85075337db075f076254e7e800f8c2e"
+    },
+    {
+      "path": "packages/reality-core/tests/test_tool_catalog.py",
+      "sha256": "1905c26f0d3ee3c77a4c79d38074f1ea242065cd9d7c8d079d8194a3e1ace25f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_app_api.py",
+      "sha256": "722558a893e5abef6053051480dfc500df93a2b43e5b1fb12a0ec644f7d52fdd"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_business_journey.py",
+      "sha256": "4ba7b1212d2c479fda09bb3ba08b183f803475606b111ab112fd1fa05728d5e9"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_customer_holds.py",
+      "sha256": "a983a3a79a48eb0f45c3502da8a724e96fea767960ed19943818269444a9e3de"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_customer_refund.py",
+      "sha256": "bfc0d97b344eefe19130d0e256f8a6d52f10ee07e1f8e0ad27ed7eb4243d41fa"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_delivery_actions.py",
+      "sha256": "077e45855936fc5727d0c24340f574a24ef121218d27a9264ef717fdda3d0c1b"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_delivery_holds.py",
+      "sha256": "eae2a82d09fcd64ec45a483051e69863b7f23f20f5a6d9e8ab61ed556fb50293"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_delivery_reads.py",
+      "sha256": "31d67058dc7a1b426d308a9f3c8a75a18cf66d53ce9f2b35a104940dfb0a0b23"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_facts_api.py",
+      "sha256": "aea84d47fca36597dc35fc48264bd9c004327ba13ce5643d7e8f0edeee053072"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_financial_reversal.py",
+      "sha256": "87c0b8ae29a2a936dc6c612547ce65167bef75af93ee9018a3d55d9e20800c90"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_invoice_credit.py",
+      "sha256": "300a704ef0795e0ec57355dfda12f2642d97887834446998470e6a7cf273c016"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_invoice_entry.py",
+      "sha256": "027798a992b277cc9d2ce0cca05c2b1fa8eadb8aa07942d83765e8be9a0855ca"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_item_csv_import.py",
+      "sha256": "314633c83d96e1eb3fd96ffbc7f0953349daaa7bcb693dfe0a2cdee062f70aee"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_movement_corrections.py",
+      "sha256": "2babf8868c8818f128443cb9879ffb8c68052c242176782e5ea8b25db217d0fb"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_opening_stock.py",
+      "sha256": "8dc33ed08c310e2d33ccc43df596b4c0858eac37276b9887e4314afc52224a67"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_operations_api.py",
+      "sha256": "8b618a06111e651faa9ae2d1ee124987fce5dc6c34137c8516305c4f8cb9be7a"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_order_entry.py",
+      "sha256": "9a736fc0693547c62d88de2ce19edd14d1a9e50e40d36db3a5f3f40ccc6cc25d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_orders_api.py",
+      "sha256": "4b8264bb6b4ee7f8cfb399e4f401b68ac06f984300b4a002d2bf48cadb477e62"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_payment_entry.py",
+      "sha256": "6dd19a580c7935d1285d5b2f568e665d8ed4e7cde3fc7863116bbc9d9393c54f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_receipt_release.py",
+      "sha256": "30fef0caec4be59186e46fc76e335b829846a49e1ad79e8a0e9321f0017a86fd"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_source_api.py",
+      "sha256": "322de7a12add9a52924224ff272c1ca0e000744f87dcb2ab6cc1d66747ded3ba"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_table_queries.py",
+      "sha256": "1da680676ea1fa6952e1c112ca5bb90cc6464140e86285e0cb840825f43df55d"
+    },
+    {
+      "path": "packages/reality-core/tests/test_unified_workspace_api.py",
+      "sha256": "d663939ab19dd76e180840c9cdd8aa8cd3d315ded971af404720e3a97a682b74"
+    },
+    {
+      "path": "packages/reality-core/tests/test_user_access.py",
+      "sha256": "12ebcfa1ac8ae8ace29eb1a6f12d9a3563fcb88827ac5aa5150a2b1006396ee6"
+    },
+    {
+      "path": "packages/reality-core/tests/test_verification_email_return.py",
+      "sha256": "288347a400fce0318a673aff057303948176dce920d4591677fd7c81d4a69548"
+    },
+    {
+      "path": "packages/reality-core/tests/test_web_ux_reads.py",
+      "sha256": "d091c77646ea6dddbab8bf258327a22af232f84dc3051417578bba194d7a9d4f"
+    },
+    {
+      "path": "packages/reality-core/tests/test_worker_due_discovery.py",
+      "sha256": "7d232d4d6984efb8df082fefcbbbf2f60d808abe93e8f6d0f5e02483bf4071d2"
+    },
+    {
+      "path": "packages/reality-core/tests/test_working_set.py",
+      "sha256": "6d67cacf3ef123afb592e54d5654be5ad34a0084c67fdbc52aa97373be330927"
+    },
+    {
+      "path": "packages/reality-core/tests/unified_fixtures.py",
+      "sha256": "d36840dab4fad35471dfcee1caafd4a073e9bde15971feb3f3e15677197d1f5c"
+    }
+  ]
+}
