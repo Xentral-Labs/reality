@@ -141,6 +141,7 @@ angegeben.
 | [`return_detail`](#command-return_detail)                                         | Read a returned payment                    | Aufträge & Erfüllung    | `finance_payment_return`                                                                                                                                                                     | Web · MCP · Chat · CLI                  |
 | [`return_announcements`](#command-return_announcements)                           | Read announced returns                     | Aufträge & Erfüllung    | `return_announcements`                                                                                                                                                                       | Web · API · MCP · Chat                  |
 | [`available_to_promise`](#command-available_to_promise)                           | Read available to promise                  | Aufträge & Erfüllung    | `available_to_promise`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
+| [`delivery_rules`](#command-delivery_rules)                                       | Read delivery rules                        | Aufträge & Erfüllung    | `delivery_rules`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`reorder_points`](#command-reorder_points)                                       | Read reorder points                        | Aufträge & Erfüllung    | `reorder_points`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`record_return`](#command-record_return)                                         | Record a returned payment                  | Aufträge & Erfüllung    | `finance_payment_return_propose`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`release_reservation`](#command-release_reservation)                             | Release reservation                        | Aufträge & Erfüllung    | `reservation_release_propose`                                                                                                                                                                | CLI · Web · API · MCP · Chat            |
@@ -151,6 +152,7 @@ angegeben.
 | [`serve_backorders`](#command-serve_backorders)                                   | Serve backorders                           | Aufträge & Erfüllung    | `backorders_serve_propose`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
 | [`set_reorder_point`](#command-set_reorder_point)                                 | Set a reorder point                        | Aufträge & Erfüllung    | `reorder_point_set_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`hold_party_delivery`](#command-hold_party_delivery)                             | Set party delivery hold                    | Aufträge & Erfüllung    | `party_delivery_hold_propose`, `party_delivery_hold_release_propose`                                                                                                                         | CLI · Web · API · MCP · Chat            |
+| [`state_delivery_rule`](#command-state_delivery_rule)                             | State a delivery rule                      | Aufträge & Erfüllung    | `delivery_rule_set_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`withdraw_return_announcement`](#command-withdraw_return_announcement)           | Withdraw return announcement               | Aufträge & Erfüllung    | `return_announcement_withdraw_propose`                                                                                                                                                       | Web · API · MCP · Chat                  |
 | [`correct_manual_document`](#command-correct_manual_document)                     | Correct manual document evidence           | Belege, Quellen & Facts | `document_correct_propose`, `document_lines_correct_propose`                                                                                                                                 | Web · API · MCP · Chat                  |
 | [`create_source_capability`](#command-create_source_capability)                   | Define source capability                   | Belege, Quellen & Facts | `source_capability_create_propose`, `source_capability_lifecycle_propose`                                                                                                                    | CLI · Web · API · MCP · Chat            |
@@ -4967,6 +4969,67 @@ Answer from when and how much of an item can be promised, naming the purchases t
 
 **Siehe auch:** Command [`available_to_promise`](./commands#command-available_to_promise)
 
+### `delivery_rules` — Read delivery rules {#command-delivery_rules}
+
+Shows the delivery rule in force for a customer or an order, where it comes from, and every earlier
+statement.
+
+**Aufruf**
+
+```text
+delivery_rules [party_id] [document_id]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `delivery_rule`, `source_record`, `party`, `document`, `commitment` · Schreibt:
+—
+
+**Siehe auch:** Agenten-Tool [`delivery_rules`](./commands#tool-delivery_rules)
+
+#### `delivery_rules` — Delivery rules {#tool-delivery_rules}
+
+Read the delivery rule in force for a customer (party_id) or an order (document_id): the rule,
+whether it comes from the order, the customer or the default, its reason, and every earlier
+statement.
+
+**Aufruf**
+
+```text
+delivery_rules [party_id] [document_id]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage     | Art                        | Standard |
+| -------------------- | -------------------------- | -------- |
+| `MCP delivery_rules` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Show how a customer or an order is delivered, where the rule comes from, and why.
+
+**Verwenden, wenn**
+
+- Someone asks why an order does not ship in parts
+- or whether a customer accepts backorders.
+
+**Nicht verwenden, wenn**
+
+- The question is whether an order can ship now; read its readiness
+- which names the rule as a blocker.
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                           | Standard |
+| ------------- | -------- | ------- | ---------------------------------------------------------------------- | -------- |
+| `party_id`    | `string` | nein    | Opaque identity of the customer, supplier, or other operational party. | —        |
+| `document_id` | `string` | nein    | Opaque identity of the evidence document to inspect or correct.        | —        |
+
+**Siehe auch:** Command [`delivery_rules`](./commands#command-delivery_rules)
+
 ### `reorder_points` — Read reorder points {#command-reorder_points}
 
 Lists the reorder points the company stated, per item and location, in the item's stock unit.
@@ -5563,6 +5626,53 @@ party_delivery_hold_release_propose party_id
 | `party_id` | `string` | ja      | Opaque identity of the customer, supplier, or other operational party. | —        |
 
 **Siehe auch:** Command [`hold_party_delivery`](./commands#command-hold_party_delivery)
+
+### `state_delivery_rule` — State a delivery rule {#command-state_delivery_rule}
+
+States how a customer or one order is delivered (partial allowed, ship complete or no backorders)
+with its reason, as a new version of the subject's statement stream.
+
+**Aufruf**
+
+```text
+delivery_rule_set_propose [party_id] [document_id] rule reason
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `party`, `document`, `commitment`, `delivery_rule` · Schreibt: `delivery_rule`,
+`source_record`, `business_event` · Erzeugt: `delivery_rule.stated`
+
+**Siehe auch:** Agenten-Tool
+[`delivery_rule_set_propose`](./commands#tool-delivery_rule_set_propose), Event
+[`delivery_rule.stated`](./events#event-delivery_rule-stated)
+
+#### `delivery_rule_set_propose` — State a delivery rule {#tool-delivery_rule_set_propose}
+
+Prepare stating how a customer (party_id) or one order (document_id) is delivered: partial_allowed,
+ship_complete (the whole order in one shipment) or no_backorders (what does not ship with the first
+shipment is cancelled, not delivered later), with the reason. An order's rule wins over its
+customer's; lifting ship complete for one order is stating partial_allowed for it. The review shows
+the rule now and the open orders it governs. A person confirms.
+
+**Aufruf**
+
+```text
+delivery_rule_set_propose [party_id] [document_id] rule reason
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                                                                                                 | Standard |
+| ------------- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `party_id`    | `string` | nein    | Opaque identity of the customer, supplier, or other operational party.                                                                       | —        |
+| `document_id` | `string` | nein    | Opaque identity of the evidence document to inspect or correct.                                                                              | —        |
+| `rule`        | `string` | ja      | How the customer or order is delivered: partial_allowed, ship_complete or no_backorders. `partial_allowed`, `ship_complete`, `no_backorders` | —        |
+| `reason`      | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                                                                      | —        |
+
+**Siehe auch:** Command [`state_delivery_rule`](./commands#command-state_delivery_rule)
 
 ### `withdraw_return_announcement` — Withdraw return announcement {#command-withdraw_return_announcement}
 

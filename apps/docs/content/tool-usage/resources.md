@@ -13,7 +13,7 @@ the technical key stands beside each one.
 | [Item](#resource-item)                                           | 5     | 10      | 6                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
-| [Order](#resource-order)                                         | 8     | 15      | 12                  |
+| [Order](#resource-order)                                         | 8     | 16      | 14                  |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
@@ -284,6 +284,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Set party delivery hold](./commands#command-hold_party_delivery) (`hold_party_delivery`)
 - [Release a credit hold](./commands#command-release_credit_holds) (`release_credit_holds`)
 - [Serve backorders](./commands#command-serve_backorders) (`serve_backorders`)
+- [State a delivery rule](./commands#command-state_delivery_rule) (`state_delivery_rule`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Close stale promises](./commands#command-close_stale_promises) (`close_stale_promises`)
@@ -294,6 +295,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 **Look up**
 
 - [Read available to promise](./commands#command-available_to_promise) (`available_to_promise`)
+- [Read delivery rules](./commands#command-delivery_rules) (`delivery_rules`)
 - [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 - [Read a credit exposure](./commands#command-credit_exposure) (`credit_exposure`)
 - [Read the month-end billing lists](./commands#command-month_end_billing) (`month_end_billing`)
@@ -322,15 +324,20 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`order_line_item_unknown`)
 - [Order line without a price](./exceptions#exception-order_line_price_missing)
   (`order_line_price_missing`)
+- [Order waiting for completeness](./exceptions#exception-order_waiting_for_completeness)
+  (`order_waiting_for_completeness`)
+- [Backorder against the customer's rule](./exceptions#exception-backorder_against_rule)
+  (`backorder_against_rule`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay)
 
-**Underneath:** Tables: `commitment`, `commitment_hold`, `commitment_revision`, `reservation` ·
-Events: [`order.recorded`](./events#event-order-recorded),
+**Underneath:** Tables: `commitment`, `commitment_hold`, `commitment_revision`, `reservation`,
+`delivery_rule` · Events: [`order.recorded`](./events#event-order-recorded),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
+[`delivery_rule.stated`](./events#event-delivery_rule-stated),
 [`commitment.created`](./events#event-commitment-created),
 [`commitment.cancelled`](./events#event-commitment-cancelled),
 [`commitment.revised`](./events#event-commitment-revised),

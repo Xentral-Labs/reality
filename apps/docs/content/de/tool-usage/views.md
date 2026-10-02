@@ -489,11 +489,11 @@ execution holds.
 **Hintergrundaktualisierung nach:** `payment.returned`, `commitment.fulfilled`,
 `reservation.consumed`, `fact.observed`, `source_record.interpreted`, `party.created`,
 `party.updated`, `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.updated`,
-`stock_block.created`, `stock_block.released`, `stock_block.scrapped`, `document.recorded`,
-`document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
-`promises.closed`, `document_line.item_assigned`, `exchange.recorded`, `commitment.held`,
-`commitment.hold_released`, `reservation.created`, `reservation.released`, `movement.recorded`,
-`movement.corrected`, `ledger.reversed`, `settlement.allocated`
+`stock_block.created`, `stock_block.released`, `stock_block.scrapped`, `delivery_rule.stated`,
+`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
+`commitment.revised`, `promises.closed`, `document_line.item_assigned`, `exchange.recorded`,
+`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
+`movement.recorded`, `movement.corrected`, `ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Sicht [`orders`](./views#view-orders), Sicht
 [`warehouse_queue`](./views#view-warehouse_queue), Agenten-Tool
@@ -523,10 +523,11 @@ insufficient unblocked stock at supplying locations, and active order or party d
 **Hintergrundaktualisierung nach:** `payment.returned`, `commitment.fulfilled`,
 `reservation.consumed`, `fact.observed`, `source_record.interpreted`, `party.delivery_hold_placed`,
 `party.delivery_hold_released`, `item.updated`, `stock_block.created`, `stock_block.released`,
-`stock_block.scrapped`, `document.recorded`, `document.corrected`, `commitment.created`,
-`commitment.cancelled`, `commitment.revised`, `promises.closed`, `exchange.recorded`,
-`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
-`movement.recorded`, `movement.corrected`, `ledger.reversed`, `settlement.allocated`
+`stock_block.scrapped`, `delivery_rule.stated`, `document.recorded`, `document.corrected`,
+`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
+`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `movement.recorded`, `movement.corrected`, `ledger.reversed`,
+`settlement.allocated`
 
 **Siehe auch:** Sicht [`fulfillment_blockers`](./views#view-fulfillment_blockers), Agenten-Tool
 [`fulfillment_blockers`](./commands#tool-fulfillment_blockers)
@@ -593,12 +594,12 @@ Change Proposal, and chat activity without loading business rows or querying onc
 `source_record.unmapped`, `source_record.interpreted`, `party.created`, `party.updated`,
 `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.created`, `item.updated`,
 `reorder_point.set`, `reorder_point.removed`, `stock_block.created`, `stock_block.released`,
-`stock_block.scrapped`, `location.created`, `location.updated`, `master_data.lifecycle_changed`,
-`payment_term.updated`, `payment_term.created`, `price_list.updated`, `price_list.created`,
-`price_list_entry.created`, `party_price_list.assigned`, `party_group.updated`,
-`party_group.created`, `party_group_member.added`, `party_group_price_list.assigned`,
-`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
-`commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
+`stock_block.scrapped`, `delivery_rule.stated`, `location.created`, `location.updated`,
+`master_data.lifecycle_changed`, `payment_term.updated`, `payment_term.created`,
+`price_list.updated`, `price_list.created`, `price_list_entry.created`, `party_price_list.assigned`,
+`party_group.updated`, `party_group.created`, `party_group_member.added`,
+`party_group_price_list.assigned`, `document.recorded`, `document.corrected`, `commitment.created`,
+`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
 `return.announcement_withdrawn`, `document_line.item_assigned`, `exchange.recorded`,
 `commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
 `handling_unit.created`, `lot.created`, `lot.expiry_stated`, `lot.expiry_corrected`,
@@ -665,11 +666,11 @@ restrictions.
 `source_record.interpreted`, `party.created`, `party.updated`, `party.delivery_hold_placed`,
 `party.delivery_hold_released`, `item.created`, `item.updated`, `reorder_point.set`,
 `reorder_point.removed`, `stock_block.created`, `stock_block.released`, `stock_block.scrapped`,
-`location.updated`, `master_data.lifecycle_changed`, `price_list.updated`, `price_list.created`,
-`price_list_entry.created`, `party_price_list.assigned`, `party_group.updated`,
-`party_group.created`, `party_group_member.added`, `party_group_price_list.assigned`,
-`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
-`commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
+`delivery_rule.stated`, `location.updated`, `master_data.lifecycle_changed`, `price_list.updated`,
+`price_list.created`, `price_list_entry.created`, `party_price_list.assigned`,
+`party_group.updated`, `party_group.created`, `party_group_member.added`,
+`party_group_price_list.assigned`, `document.recorded`, `document.corrected`, `commitment.created`,
+`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
 `return.announcement_withdrawn`, `document_line.item_assigned`, `exchange.recorded`,
 `commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
 `lot.expiry_stated`, `lot.expiry_corrected`, `movement.recorded`, `movement.corrected`,
@@ -726,7 +727,9 @@ Ausnahme [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), Ausn
 [`billed_not_shipped`](./exceptions#exception-billed_not_shipped), Ausnahme
 [`item_oversold`](./exceptions#exception-item_oversold), Ausnahme
 [`reorder_point_reached`](./exceptions#exception-reorder_point_reached), Ausnahme
-[`stock_in_another_location`](./exceptions#exception-stock_in_another_location)
+[`stock_in_another_location`](./exceptions#exception-stock_in_another_location), Ausnahme
+[`order_waiting_for_completeness`](./exceptions#exception-order_waiting_for_completeness), Ausnahme
+[`backorder_against_rule`](./exceptions#exception-backorder_against_rule)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 
@@ -882,13 +885,13 @@ Normalizes important evidence and reality timestamps into one chronological oper
 `fact.observed`, `source_record.received`, `source_record.unmapped`, `source_record.interpreted`,
 `party.created`, `party.updated`, `item.created`, `item.updated`, `reorder_point.set`,
 `reorder_point.removed`, `stock_block.created`, `stock_block.released`, `stock_block.scrapped`,
-`location.created`, `location.updated`, `document.recorded`, `document.corrected`,
-`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`payments.run`, `return.announced`, `return.announcement_withdrawn`, `document_line.item_assigned`,
-`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
-`reservation.released`, `handling_unit.created`, `lot.created`, `lot.expiry_stated`,
-`lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`, `movement.corrected`,
-`ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`delivery_rule.stated`, `location.created`, `location.updated`, `document.recorded`,
+`document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
+`promises.closed`, `payments.run`, `return.announced`, `return.announcement_withdrawn`,
+`document_line.item_assigned`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
+`reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
+`lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
+`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Agenten-Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose),
 Agenten-Tool [`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool

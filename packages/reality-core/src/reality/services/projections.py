@@ -448,6 +448,7 @@ DELIVERY_BLOCKER_TYPES = (
     "prepayment_attribution_ambiguous",
     "prepayment_consolidated_invoice_open",
     "prepayment_required",
+    "ship_complete_incomplete",
 )
 
 
@@ -566,6 +567,16 @@ def _open_work_rows(
         if document_ids
         else set()
     )
+    # Spec 306: an order that ships complete is read through readiness too.
+    from reality.services.delivery_rules import effective_rules
+
+    ship_complete_document_ids = {
+        identity
+        for identity, rule in effective_rules(
+            session, tenant_id, list(document_ids)
+        ).items()
+        if rule["rule"] == "ship_complete"
+    }
     source_ids = {row.source_record_id for row in documents.values()} - {None}
     sources = (
         {
@@ -849,6 +860,48 @@ def _open_work_rows(
                 blockers[blocker_key] = blocker
                 order_blockers.append(blocker)
                 blocked_orders_by_item[commitment.item_id].add(record_key)
+        if (
+            document
+            and document.id in ship_complete_document_ids
+            and any(line["blocking_reasons"] for line in lines)
+        ):
+            # Spec 306: under ship complete a ready line waits for the whole
+            # order; read from the lines already derived, once per order.
+            for line in lines:
+                if line["blocking_reasons"]:
+                    continue
+                line["blocking_reasons"] = ["ship_complete_incomplete"]
+                line["shippable_quantity"] = Decimal(0)
+                line["ready_by_location"] = []
+                blocker_key = f"{line['commitment_id']}:ship_complete_incomplete"
+                blocker = {
+                    "blocker_id": blocker_key,
+                    "blocker_type": "ship_complete_incomplete",
+                    "detail": "the order ships complete",
+                    "order_key": record_key,
+                    "document_id": document.id,
+                    "document_number": document.number,
+                    "commitment_id": line["commitment_id"],
+                    "item_id": line["item_id"],
+                    "item": line["item"],
+                    "shortage_quantity": "0",
+                    "due_at": line["due_at"],
+                    **{
+                        key: line[key]
+                        for key in (
+                            "unit",
+                            "unit_status",
+                            "quantity_basis",
+                            "document_line_unit",
+                            "unit_mismatch",
+                        )
+                        if key in line
+                    },
+                }
+                blockers[blocker_key] = blocker
+                order_blockers.append(blocker)
+                # Not counted against the item: its stock and reservation are
+                # fine, and the narrowed supply-and-demand path agrees.
         party_id = document.party_id if document else order_commitments[0].to_party_id
         party = parties.get(party_id or "")
         queue[record_key] = {

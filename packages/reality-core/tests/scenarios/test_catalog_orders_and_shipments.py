@@ -1262,3 +1262,130 @@ def test_an_order_with_many_lines_is_served_from_two_warehouses(session, busines
             ],
         )
     assert all(core.open_quantity(session, tenant, pid) == 0 for pid in promise_ids)
+
+
+# --- Spec 306: ship complete (B10) and no backorders (M06) ---------------------------
+
+
+def _state_rule(session, business, rule, reason, **subject):
+    proposal = create_change_proposal(
+        session,
+        business.tenant.id,
+        "delivery_rule_set",
+        {**subject, "rule": rule, "reason": reason},
+    )
+    executed = approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, confirmed=True
+    )
+    assert executed.status == "executed"
+
+
+def _rule_findings(session, business, class_id):
+    return {
+        row.record_id: row
+        for row in operational_exceptions(session, business.tenant.id)
+        if row.class_id == class_id
+    }
+
+
+def test_a_customer_who_refuses_partial_delivery_gets_the_whole_order_at_once(
+    session, business
+):
+    """B10: reserved goods wait, the reason is named, and the whole order ships together."""
+    tenant = business.tenant.id
+    lamp = core.create_item(session, tenant, "LAMP-B10", "Lamp B10")
+    _receive(session, business, business.item.id, "5", business.location.id)
+    _receive(session, business, lamp.id, "1", business.location.id)
+    order = _order(
+        session,
+        business,
+        "SO-B10",
+        [_line(business.item.id, "5"), _line(lamp.id, "3")],
+    )
+    bikes, lamps = order["commitment_ids"]
+    for commitment_id in (bikes, lamps):
+        reserve(session, tenant, commitment_id)
+    # Positive control: without a rule the bikes alone ship.
+    assert fulfillment_readiness(session, tenant, bikes).ship_ready
+
+    _state_rule(
+        session,
+        business,
+        "ship_complete",
+        "Customer accepts complete deliveries only",
+        party_id=business.customer.id,
+    )
+
+    readiness = fulfillment_readiness(session, tenant, bikes)
+    assert "ship_complete_incomplete" in readiness.blocker_codes
+    waiting = _rule_findings(session, business, "order_waiting_for_completeness")
+    assert waiting[order["document_id"]].trace["waiting_commitment_ids"] == [lamps]
+    try:
+        _ship(session, business, "TRK-B10-1", bikes, "5")
+    except core.InvalidOperation as error:
+        assert error.code == "shipment_ship_complete_partial"
+    else:
+        raise AssertionError("a partial shipment left for a ship-complete customer")
+
+    _receive(session, business, lamp.id, "2", business.location.id)
+    reserve(session, tenant, lamps)
+    _dispatch(
+        session,
+        business,
+        "TRK-B10-2",
+        [
+            {
+                "commitment_id": bikes,
+                "item_id": business.item.id,
+                "from_location_id": business.location.id,
+                "quantity": "5",
+            },
+            {
+                "commitment_id": lamps,
+                "item_id": lamp.id,
+                "from_location_id": business.location.id,
+                "quantity": "3",
+            },
+        ],
+    )
+    assert open_quantity(session, tenant, bikes) == 0
+    assert open_quantity(session, tenant, lamps) == 0
+    assert order["document_id"] not in _rule_findings(
+        session, business, "order_waiting_for_completeness"
+    )
+
+
+def test_a_customer_who_wants_no_backorders_has_the_rest_cancelled(session, business):
+    """M06: after a partial shipment the rest is reported and cancelled with the rule."""
+    tenant = business.tenant.id
+    _state_rule(
+        session,
+        business,
+        "no_backorders",
+        "Customer reorders instead of waiting",
+        party_id=business.customer.id,
+    )
+    _receive(session, business, business.item.id, "6", business.location.id)
+    order = _order(session, business, "SO-M06", [_line(business.item.id, "10")])
+    (bikes,) = order["commitment_ids"]
+    reserve(session, tenant, bikes)
+    # Positive control: nothing shipped, nothing is a backorder yet.
+    assert bikes not in _rule_findings(session, business, "backorder_against_rule")
+
+    _ship(session, business, "TRK-M06", bikes, "6")
+
+    finding = _rule_findings(session, business, "backorder_against_rule")[bikes]
+    assert finding.causal_values["open_quantity"] == 4
+    assert finding.trace["reason"] == "Customer reorders instead of waiting"
+    _act(
+        session,
+        business,
+        "commitment_cancel",
+        {
+            "commitment_id": bikes,
+            "reason": "No backorders by the customer's rule",
+        },
+        "m06-cancel",
+    )
+    assert record_by_id(session, Commitment, bikes).status == "cancelled"
+    assert bikes not in _rule_findings(session, business, "backorder_against_rule")

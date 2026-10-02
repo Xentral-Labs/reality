@@ -2012,6 +2012,31 @@
     },
     "backorder_serving_changed_since_review": {
       "message": "Stock or orders changed after the review; review serving the backorders again."
+    },
+    "delivery_rule_subject_required": {
+      "message": "A delivery rule is stated for exactly one customer or one order."
+    },
+    "delivery_rule_unknown": {
+      "message": "A delivery rule is partial allowed, ship complete or no backorders."
+    },
+    "delivery_rule_reason_required": {
+      "message": "State why the delivery rule applies."
+    },
+    "delivery_rule_party_not_customer": {
+      "message": "A delivery rule is stated for a customer."
+    },
+    "delivery_rule_document_not_order": {
+      "message": "A delivery rule is stated for a customer order."
+    },
+    "delivery_rule_changed_since_review": {
+      "message": "This delivery rule changed after it was reviewed; review it again."
+    },
+    "shipment_ship_complete_partial": {
+      "message": "Order {order} ships complete: {lines} open line(s) would be left behind. Ship every open line in full, or lift the rule for this order.",
+      "values": {
+        "order": "text",
+        "lines": "number"
+      }
     }
   },
   "terms": [

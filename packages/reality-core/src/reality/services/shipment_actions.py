@@ -158,6 +158,19 @@ def review_shipment_action(
             if not isinstance(movements, list) or not movements:
                 raise InvalidOperation(code="shipment_execution_movement_missing")
             expected = PURPOSES[purpose][1]
+            if purpose == "customer_delivery":
+                # Spec 306: one shipment carries a ship-complete order whole.
+                from reality.services.delivery_rules import require_delivery_rule
+
+                require_delivery_rule(
+                    session,
+                    tenant_id,
+                    [
+                        (raw.get("commitment_id"), raw.get("quantity") or 0)
+                        for raw in movements
+                        if isinstance(raw, dict)
+                    ],
+                )
             previews = []
             for raw in movements:
                 if not isinstance(raw, dict):
@@ -213,6 +226,8 @@ def review_shipment_action(
                         preview["commitment_id"],
                         proposed_quantity=Decimal(preview["quantity"]),
                         from_location_id=preview.get("from_location_id"),
+                        # The whole shipment answers to the order's rule.
+                        _delivery_rule=False,
                     )
                     if not readiness.ship_ready:
                         raise InvalidOperation(

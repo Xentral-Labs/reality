@@ -792,19 +792,32 @@
       "section": "Availability, reservation and backorder",
       "title": "Customer refuses partial delivery",
       "question": "Reserved but deliberately not shipped — why?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Reserved but deliberately not shipped — why?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Reserved but deliberately not shipped — why? A customer, or one order, states ship complete with a reason: readiness names the rule while any open line cannot ship in full, a partial shipment is refused with its code, and Order waiting for completeness names the ready and missing lines. A person can lift the rule for one order with a reason through the review.",
       "limitations": [
-        "A hold with a reason can explain why reserved goods are not shipped.",
-        "There is no ship-complete or no-partial-delivery rule."
+        "Complete means the whole order; there is no per-line or parcel-count rule (B11).",
+        "An importer recording what a source says left is not refused."
       ],
-      "keywords": [],
+      "keywords": [
+        "ship complete",
+        "complete delivery",
+        "no partial delivery",
+        "Komplettlieferung",
+        "keine Teillieferung"
+      ],
       "question_examples": [
         "Customer refuses partial delivery",
-        "Reserved but deliberately not shipped — why?"
+        "Reserved but deliberately not shipped — why?",
+        "The customer only accepts complete deliveries; can we hold the order until everything is there?",
+        "Der Kunde akzeptiert nur Komplettlieferungen; halten wir den Auftrag zurück, bis alles da ist?"
       ],
-      "tools": [],
+      "tools": [
+        "delivery_rule_set_propose",
+        "delivery_rules",
+        "fulfillment_readiness",
+        "shipment_dispatch_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -4291,19 +4304,29 @@
       "section": "B2B specifics",
       "title": "Customer rule: cancel backorders instead of delivering later",
       "question": "Remainder closed by rule with reason?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Remainder closed by rule with reason?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Remainder closed by rule with reason? A customer states no backorders with a reason: once part of an order has shipped, Backorder against the customer's rule reports each open rest and offers the reviewed cancellation with the rule as its reason. Nothing is cancelled by itself.",
       "limitations": [
-        "There is no customer rule that cancels backorders automatically.",
-        "The remainder can be closed by hand with a reason."
+        "The rest is cancelled by a person through the review, not automatically."
       ],
-      "keywords": [],
+      "keywords": [
+        "no backorders",
+        "cancel backorders",
+        "keine Rückstände",
+        "Rückstand stornieren"
+      ],
       "question_examples": [
         "Customer rule: cancel backorders instead of delivering later",
-        "Remainder closed by rule with reason?"
+        "Remainder closed by rule with reason?",
+        "The customer wants no backorders; what happens to the rest after a partial shipment?",
+        "Der Kunde will keine Rückstände; was passiert mit dem Rest nach einer Teillieferung?"
       ],
-      "tools": [],
+      "tools": [
+        "delivery_rule_set_propose",
+        "delivery_rules",
+        "commitment_cancel_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

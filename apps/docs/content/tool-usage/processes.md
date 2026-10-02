@@ -67,7 +67,11 @@ From a customer order through reservation, dispatch and invoice to the settled p
 **Can leave behind:** [Promise hold not lifted](./exceptions#exception-commitment_hold_unreleased)
 (`commitment_hold_unreleased`),
 [Party hold not lifted](./exceptions#exception-party_hold_unreleased) (`party_hold_unreleased`),
-[Credit limit exceeded](./exceptions#exception-credit_limit_exceeded) (`credit_limit_exceeded`)
+[Credit limit exceeded](./exceptions#exception-credit_limit_exceeded) (`credit_limit_exceeded`),
+[Order waiting for completeness](./exceptions#exception-order_waiting_for_completeness)
+(`order_waiting_for_completeness`),
+[Backorder against the customer's rule](./exceptions#exception-backorder_against_rule)
+(`backorder_against_rule`)
 
 ### 4. Dispatch the goods and follow the carrier
 

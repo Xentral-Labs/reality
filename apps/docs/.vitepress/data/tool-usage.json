@@ -472,7 +472,13 @@
         "Rückstand",
         "Liefersperre"
       ],
-      "tables": ["commitment", "commitment_hold", "commitment_revision", "reservation"],
+      "tables": [
+        "commitment",
+        "commitment_hold",
+        "commitment_revision",
+        "reservation",
+        "delivery_rule"
+      ],
       "lists": [
         "view:commitments",
         "view:reservations",
@@ -494,6 +500,7 @@
         "command:hold_party_delivery",
         "command:release_credit_holds",
         "command:serve_backorders",
+        "command:state_delivery_rule",
         "command:set_reorder_point",
         "command:remove_reorder_point",
         "command:close_stale_promises",
@@ -502,6 +509,7 @@
       ],
       "reads": [
         "command:available_to_promise",
+        "command:delivery_rules",
         "command:reorder_points",
         "command:credit_exposure",
         "command:month_end_billing",
@@ -519,7 +527,9 @@
         "exception:stale_cost_review",
         "exception:negative_actual_db1",
         "exception:order_line_item_unknown",
-        "exception:order_line_price_missing"
+        "exception:order_line_price_missing",
+        "exception:order_waiting_for_completeness",
+        "exception:backorder_against_rule"
       ],
       "tools": [
         "tool:commitments_list",
@@ -533,6 +543,7 @@
         "event:party.delivery_hold_placed",
         "event:reorder_point.set",
         "event:reorder_point.removed",
+        "event:delivery_rule.stated",
         "event:commitment.created",
         "event:commitment.cancelled",
         "event:commitment.revised",
@@ -1303,7 +1314,9 @@
           "exceptions": [
             "exception:commitment_hold_unreleased",
             "exception:party_hold_unreleased",
-            "exception:credit_limit_exceeded"
+            "exception:credit_limit_exceeded",
+            "exception:order_waiting_for_completeness",
+            "exception:backorder_against_rule"
           ]
         },
         {
@@ -10120,6 +10133,108 @@
       "links": ["command:available_to_promise"],
       "label_de": "Available to promise",
       "resources": ["item", "order"]
+    },
+    {
+      "id": "tool:delivery_rule_set_propose",
+      "kind": "tool",
+      "key": "delivery_rule_set_propose",
+      "label": "State a delivery rule",
+      "area": "orders",
+      "summary": "Prepare stating how a customer (party_id) or one order (document_id) is delivered: partial_allowed, ship_complete (the whole order in one shipment) or no_backorders (what does not ship with the first shipment is cancelled, not delivered later), with the reason. An order's rule wins over its customer's; lifting ship complete for one order is stating partial_allowed for it. The review shows the rule now and the open orders it governs. A person confirms.",
+      "access": "propose",
+      "group": "Orders",
+      "synopsis": "delivery_rule_set_propose [party_id] [document_id] rule reason",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "document_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the evidence document to inspect or correct.",
+          "depth": 0
+        },
+        {
+          "name": "rule",
+          "type": "string",
+          "required": true,
+          "description": "How the customer or order is delivered: partial_allowed, ship_complete or no_backorders.",
+          "depth": 0,
+          "enum": ["partial_allowed", "ship_complete", "no_backorders"]
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "state_delivery_rule",
+      "projections": [],
+      "links": ["command:state_delivery_rule"],
+      "label_de": "State a delivery rule",
+      "resources": ["order"]
+    },
+    {
+      "id": "tool:delivery_rules",
+      "kind": "tool",
+      "key": "delivery_rules",
+      "label": "Delivery rules",
+      "area": "orders",
+      "summary": "Read the delivery rule in force for a customer (party_id) or an order (document_id): the rule, whether it comes from the order, the customer or the default, its reason, and every earlier statement.",
+      "access": "read",
+      "group": "Orders",
+      "synopsis": "delivery_rules [party_id] [document_id]",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "document_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the evidence document to inspect or correct.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Show how a customer or an order is delivered, where the rule comes from, and why.",
+        "use_when": [
+          "Someone asks why an order does not ship in parts",
+          "or whether a customer accepts backorders."
+        ],
+        "do_not_use_when": [
+          "The question is whether an order can ship now; read its readiness",
+          "which names the rule as a blocker."
+        ],
+        "limitations": ["A rule is a person's statement; nothing in an order source sets it."],
+        "empty_result": "No rule is stated; partial deliveries are allowed.",
+        "freshness": "Read from the rules and their statements at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP delivery_rules",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "delivery_rules",
+      "projections": [],
+      "links": ["command:delivery_rules"],
+      "label_de": "Delivery rules",
+      "resources": ["order"]
     },
     {
       "id": "tool:reorder_points",
@@ -21552,6 +21667,63 @@
       "resources": ["item", "order"]
     },
     {
+      "id": "command:state_delivery_rule",
+      "kind": "command",
+      "key": "state_delivery_rule",
+      "label": "State a delivery rule",
+      "area": "orders",
+      "summary": "States how a customer or one order is delivered (partial allowed, ship complete or no backorders) with its reason, as a new version of the subject's statement stream.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["party", "document", "commitment", "delivery_rule"],
+      "writes": ["delivery_rule", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_delivery_rule"],
+      "tools": ["delivery_rule_set_propose"],
+      "synopses": ["delivery_rule_set_propose [party_id] [document_id] rule reason"],
+      "events": ["delivery_rule.stated"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:delivery_rule_set_propose", "event:delivery_rule.stated"],
+      "label_de": "Lieferregel festlegen",
+      "resources": ["order"]
+    },
+    {
+      "id": "command:delivery_rules",
+      "kind": "command",
+      "key": "delivery_rules",
+      "label": "Read delivery rules",
+      "area": "orders",
+      "summary": "Shows the delivery rule in force for a customer or an order, where it comes from, and every earlier statement.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["delivery_rule", "source_record", "party", "document", "commitment"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["delivery_rules"],
+      "synopses": ["delivery_rules [party_id] [document_id]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Show how a customer or an order is delivered, where the rule comes from, and why.",
+        "use_when": [
+          "Someone asks why an order does not ship in parts",
+          "or whether a customer accepts backorders."
+        ],
+        "do_not_use_when": [
+          "The question is whether an order can ship now; read its readiness",
+          "which names the rule as a blocker."
+        ],
+        "limitations": ["A rule is a person's statement; nothing in an order source sets it."],
+        "empty_result": "No rule is stated; partial deliveries are allowed.",
+        "freshness": "Read from the rules and their statements at request time."
+      },
+      "links": ["tool:delivery_rules"],
+      "label_de": "Lieferregel anzeigen",
+      "resources": ["order"]
+    },
+    {
       "id": "command:stock_blocks",
       "kind": "command",
       "key": "stock_blocks",
@@ -24646,6 +24818,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "delivery_rule.stated",
         "document.recorded",
         "document.corrected",
         "commitment.created",
@@ -24727,6 +24900,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "delivery_rule.stated",
         "document.recorded",
         "document.corrected",
         "commitment.created",
@@ -24902,6 +25076,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "delivery_rule.stated",
         "location.created",
         "location.updated",
         "master_data.lifecycle_changed",
@@ -25088,6 +25263,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "delivery_rule.stated",
         "location.updated",
         "master_data.lifecycle_changed",
         "price_list.updated",
@@ -25177,7 +25353,9 @@
         "exception:billed_not_shipped",
         "exception:item_oversold",
         "exception:reorder_point_reached",
-        "exception:stock_in_another_location"
+        "exception:stock_in_another_location",
+        "exception:order_waiting_for_completeness",
+        "exception:backorder_against_rule"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -25468,6 +25646,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "delivery_rule.stated",
         "location.created",
         "location.updated",
         "document.recorded",
@@ -26734,6 +26913,58 @@
       "resources": ["item"]
     },
     {
+      "id": "exception:order_waiting_for_completeness",
+      "kind": "exception",
+      "key": "order_waiting_for_completeness",
+      "label": "Order waiting for completeness",
+      "area": "orders",
+      "summary": "An order that ships complete, by its own rule or its customer's, where some open lines could ship now and others cannot. The ready lines wait only because of the rule: a shipment of them alone is refused, so the goods sit reserved while the customer gets nothing. Reality reads the effective delivery rule and asks readiness for every open line without the rule; when some are ready and some are not, the entry names both and where the rule comes from. An order with nothing ready is not reported here, because it waits for stock, reservations or payment, which other classes name. Nothing is shipped or lifted by the entry: completing the order clears it, or a person lifts the rule for this one order with a reason through the review, and the customer's rule stays for every other order.",
+      "owner": "Sales",
+      "clears_through": "Completing every open line, cancelling the lines that will not come, or lifting the rule for this order with a reason.",
+      "severity": "normal",
+      "record_type": "document",
+      "authority": "306/FR-005",
+      "evidence": [
+        "tests/test_delivery_rule_exceptions.py::test_an_order_waiting_only_for_completeness_is_reported",
+        "tests/test_delivery_rule_exceptions.py::test_an_order_with_nothing_ready_is_not_waiting_for_the_rule"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:documents"
+      ],
+      "label_de": "Auftrag wartet auf Vollständigkeit",
+      "resources": ["order"]
+    },
+    {
+      "id": "exception:backorder_against_rule",
+      "kind": "exception",
+      "key": "backorder_against_rule",
+      "label": "Backorder against the customer's rule",
+      "area": "orders",
+      "summary": "A customer who wants no backorders received part of an order, and a line still has an open rest. The rule says what does not ship with the first shipment is cancelled rather than delivered later; Reality reports every open rest of such an order once anything of it has shipped, with the rule and its reason. It cancels nothing: the reviewed cancellation with the rule as its reason clears the entry, and an order the customer wants completed after all can state partial allowed for itself. Before the first shipment nothing is a backorder.",
+      "owner": "Sales",
+      "clears_through": "Cancelling the rest with the rule as its reason, shipping it, or stating another rule for the order.",
+      "severity": "normal",
+      "record_type": "commitment",
+      "authority": "306/FR-005",
+      "evidence": [
+        "tests/test_delivery_rule_exceptions.py::test_a_rest_after_a_shipment_is_a_backorder_against_the_rule",
+        "tests/test_delivery_rule_exceptions.py::test_without_a_no_backorder_rule_a_rest_is_ordinary"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:commitments"
+      ],
+      "label_de": "Rückstand gegen Kundenregel",
+      "resources": ["order"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -27365,6 +27596,26 @@
       "links": ["command:scrap_stock_block"],
       "label_de": "stock_block.scrapped",
       "resources": ["item"]
+    },
+    {
+      "id": "event:delivery_rule.stated",
+      "kind": "event",
+      "key": "delivery_rule.stated",
+      "label": "delivery_rule.stated",
+      "area": "orders",
+      "summary": "",
+      "producer": "state_delivery_rule",
+      "subject": "delivery_rule",
+      "invalidates": [
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Operational Exceptions",
+        "Timeline",
+        "Tenant usage"
+      ],
+      "links": ["command:state_delivery_rule"],
+      "label_de": "delivery_rule.stated",
+      "resources": ["order"]
     },
     {
       "id": "event:location.created",
@@ -74133,6 +74384,7 @@
         "command:update_location",
         "command:create_payment_term",
         "command:create_price_list",
+        "command:state_delivery_rule",
         "command:record_down_payment_invoice",
         "command:record_proforma_invoice",
         "command:post_customer_payment",

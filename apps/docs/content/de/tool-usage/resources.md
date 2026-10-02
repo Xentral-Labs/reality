@@ -13,7 +13,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 10       | 6         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 8      | 15       | 12        |
+| [Auftrag](#resource-order)                                     | 8      | 16       | 14        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
@@ -292,6 +292,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`hold_party_delivery`)
 - [Kreditsperre freigeben](./commands#command-release_credit_holds) (`release_credit_holds`)
 - [Rückstände bedienen](./commands#command-serve_backorders) (`serve_backorders`)
+- [Lieferregel festlegen](./commands#command-state_delivery_rule) (`state_delivery_rule`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Alte Verpflichtungen schließen](./commands#command-close_stale_promises) (`close_stale_promises`)
@@ -302,6 +303,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 **Nachschlagen**
 
 - [Lieferfähigkeit anzeigen](./commands#command-available_to_promise) (`available_to_promise`)
+- [Lieferregel anzeigen](./commands#command-delivery_rules) (`delivery_rules`)
 - [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Monatsabschluss Fakturierung anzeigen](./commands#command-month_end_billing)
@@ -332,15 +334,20 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`order_line_item_unknown`)
 - [Auftragszeile ohne Preis](./exceptions#exception-order_line_price_missing)
   (`order_line_price_missing`)
+- [Auftrag wartet auf Vollständigkeit](./exceptions#exception-order_waiting_for_completeness)
+  (`order_waiting_for_completeness`)
+- [Rückstand gegen Kundenregel](./exceptions#exception-backorder_against_rule)
+  (`backorder_against_rule`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay)
 
-**Darunter:** Tabellen: `commitment`, `commitment_hold`, `commitment_revision`, `reservation` ·
-Events: [`order.recorded`](./events#event-order-recorded),
+**Darunter:** Tabellen: `commitment`, `commitment_hold`, `commitment_revision`, `reservation`,
+`delivery_rule` · Events: [`order.recorded`](./events#event-order-recorded),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
+[`delivery_rule.stated`](./events#event-delivery_rule-stated),
 [`commitment.created`](./events#event-commitment-created),
 [`commitment.cancelled`](./events#event-commitment-cancelled),
 [`commitment.revised`](./events#event-commitment-revised),

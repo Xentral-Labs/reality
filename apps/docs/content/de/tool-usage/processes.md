@@ -69,7 +69,11 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 (`commitment_hold_unreleased`),
 [Liefersperre nicht aufgehoben](./exceptions#exception-party_hold_unreleased)
 (`party_hold_unreleased`), [Kreditlimit überschritten](./exceptions#exception-credit_limit_exceeded)
-(`credit_limit_exceeded`)
+(`credit_limit_exceeded`),
+[Auftrag wartet auf Vollständigkeit](./exceptions#exception-order_waiting_for_completeness)
+(`order_waiting_for_completeness`),
+[Rückstand gegen Kundenregel](./exceptions#exception-backorder_against_rule)
+(`backorder_against_rule`)
 
 ### 4. Ware versenden und den Spediteur verfolgen
 

@@ -826,6 +826,67 @@ class Location(Base):
     allows_stock: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
+class DeliveryRule(Base):
+    """How a customer or one order wants to be delivered (spec 306).
+
+    partial_allowed, ship_complete or no_backorders, as a person stated it with
+    a reason. An order's rule wins over its customer's; without either, partial
+    deliveries are allowed. Each statement is a version of one source stream per
+    subject (spec 320 pattern); the row names the one in force. Whether an order
+    is complete is read from its promises, stock and reservations, never stored.
+    """
+
+    __tablename__ = "delivery_rule"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "document_id"],
+            ["document.tenant_id", "document.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        CheckConstraint(
+            "(party_id IS NULL) <> (document_id IS NULL)",
+            name="ck_delivery_rule_one_subject",
+        ),
+        CheckConstraint(
+            "rule IN ('partial_allowed', 'ship_complete', 'no_backorders')",
+            name="ck_delivery_rule_rule",
+        ),
+        CheckConstraint("btrim(reason) <> ''", name="ck_delivery_rule_reason"),
+        Index(
+            "uq_delivery_rule_party",
+            "tenant_id",
+            "party_id",
+            unique=True,
+            postgresql_where=text("party_id IS NOT NULL"),
+        ),
+        Index(
+            "uq_delivery_rule_document",
+            "tenant_id",
+            "document_id",
+            unique=True,
+            postgresql_where=text("document_id IS NOT NULL"),
+        ),
+        Index("ix_delivery_rule_source_record_id", "tenant_id", "source_record_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    party_id: Mapped[str | None] = mapped_column(default=None)
+    document_id: Mapped[str | None] = mapped_column(default=None)
+    rule: Mapped[str] = mapped_column(String)
+    reason: Mapped[str] = mapped_column(Text)
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class ItemReorderPoint(Base):
     """The stock level at which a company reorders an item at a location (spec 302).
 

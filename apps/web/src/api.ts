@@ -2909,6 +2909,64 @@ export const backorders = {
       `/api/tenants/${encodeURIComponent(tenant)}/items/${encodeURIComponent(item)}/available-to-promise`,
     ),
 };
+export type DeliveryRule = "partial_allowed" | "ship_complete" | "no_backorders";
+export type DeliveryRuleRead = {
+  subject: "party" | "document";
+  subject_id: string;
+  own: { rule: DeliveryRule; reason: string } | null;
+  effective: {
+    rule: DeliveryRule;
+    source: "order" | "customer" | "default";
+    reason: string;
+    subject_id: string | null;
+    source_record_id: string | null;
+  };
+  history: Array<{
+    rule: DeliveryRule;
+    reason: string;
+    source_record_id: string;
+    version: number;
+    stated_at: string;
+  }>;
+};
+export type DeliveryRuleProposal = {
+  id: string;
+  status: string;
+  preview: {
+    delivery_rule: {
+      subject: "party" | "document";
+      subject_id: string;
+      name: string;
+      current: { rule: DeliveryRule; reason: string } | null;
+      proposed: { rule: DeliveryRule; reason: string };
+      orders: Array<{
+        document_id: string;
+        number: string;
+        now: DeliveryRule;
+        after: DeliveryRule;
+      }>;
+    };
+  };
+};
+export const deliveryRules = {
+  read: (tenant: string, subject: { party_id: string } | { document_id: string }) =>
+    request<DeliveryRuleRead>(
+      `/api/tenants/${encodeURIComponent(tenant)}/delivery-rules?${new URLSearchParams(subject)}`,
+    ),
+  prepare: (
+    tenant: string,
+    body: { party_id?: string; document_id?: string; rule: DeliveryRule; reason: string },
+  ) =>
+    request<DeliveryRuleProposal>(
+      `/api/tenants/${encodeURIComponent(tenant)}/delivery-rules/proposals`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
+};
 export const deliveryActions = {
   references: (tenant: string, commitment: string, family: string, query = "") =>
     request<{ items: Array<{ id: string; label: string }>; has_more: boolean }>(

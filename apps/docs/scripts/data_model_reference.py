@@ -64,6 +64,7 @@ resolution_reason|Why the block was released or scrapped, as stated.|Warum die S
 previous_block_id|Block a partial release or scrap continued this one from.|Sperre, aus der eine Teilfreigabe oder Teilverschrottung diese fortgeführt hat.
 reorder_point|Stock level at or below which the item is reordered at the location.|Bestand, bei dessen Erreichen oder Unterschreiten der Artikel am Lagerort nachbestellt wird.
 reorder_quantity|Quantity proposed when the reorder point is reached.|Menge, die beim Erreichen des Meldebestands vorgeschlagen wird.
+rule|How the customer or order is delivered: partial allowed, ship complete or no backorders.|Wie der Kunde oder Auftrag beliefert wird: Teillieferung erlaubt, Komplettlieferung oder keine Rückstände.
 updated_at|UTC timestamp of the last change.|UTC-Zeitpunkt der letzten Änderung.
 amount|Amount recorded for this entry, in its currency.|Für diesen Eintrag erfasster Betrag in seiner Währung.
 due_at|Date stated for the promise; see original versus revised values above.|Genannter Zusagetermin; ursprünglicher und geänderter Wert werden oben unterschieden.

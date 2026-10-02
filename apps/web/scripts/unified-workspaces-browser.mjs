@@ -163,6 +163,14 @@ await page.route("**/api/**", async (route) => {
   if (path.includes("/suggestions/")) return reply({ items: [], allow_custom: true });
   // Spec 302: an item's reorder points, none stated in this fixture.
   if (path.endsWith("/reorder-points")) return reply({ rows: [] });
+  if (path.endsWith("/delivery-rules"))
+    return reply({
+      subject: "party",
+      subject_id: "",
+      own: null,
+      effective: { rule: "partial_allowed", source: "default", reason: "", subject_id: null },
+      history: [],
+    });
   return reply({ detail: "Fixture endpoint unavailable" }, 404);
 });
 const base = process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177";

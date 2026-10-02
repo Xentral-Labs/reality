@@ -1185,6 +1185,56 @@ def get_available_to_promise(tenant_id: str, item_id: str, session: DatabaseSess
         raise api_error(error) from error
 
 
+class DeliveryRuleProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    party_id: str | None = Field(default=None, max_length=200)
+    document_id: str | None = Field(default=None, max_length=200)
+    rule: Literal["partial_allowed", "ship_complete", "no_backorders"]
+    reason: str = Field(min_length=1, max_length=2000)
+
+
+@router.get("/delivery-rules")
+def get_delivery_rules(
+    tenant_id: str,
+    session: DatabaseSession,
+    party_id: str | None = Query(default=None, max_length=200),
+    document_id: str | None = Query(default=None, max_length=200),
+):
+    """Spec 306: the delivery rule in force for a customer or an order."""
+    from reality.services.delivery_rules import delivery_rules
+
+    try:
+        return delivery_rules(
+            session, tenant_id, party_id=party_id, document_id=document_id
+        )
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/delivery-rules/proposals")
+def post_delivery_rule_proposal(
+    tenant_id: str, body: DeliveryRuleProposal, session: DatabaseSession
+):
+    """Spec 306: prepare a delivery rule; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    try:
+        proposal = create_change_proposal(
+            session,
+            tenant_id,
+            "delivery_rule_set",
+            body.model_dump(exclude_none=True),
+            actor_type="human",
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 class ReorderPointProposal(ApiModel):
     model_config = ConfigDict(extra="forbid")
     operation: Literal["set", "remove"]

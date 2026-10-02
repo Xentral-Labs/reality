@@ -24725,6 +24725,44 @@ Object.assign(dictionaries.de, {
   Reserve: "Reservieren",
   "Short now": "Jetzt fehlend",
   "Without a date": "Ohne Termin",
+  "A delivery rule is stated for exactly one customer or one order.":
+    "Eine Lieferregel gilt für genau einen Kunden oder einen Auftrag.",
+  "A delivery rule is partial allowed, ship complete or no backorders.":
+    "Eine Lieferregel ist „Teillieferung erlaubt“, „Komplettlieferung“ oder „Keine Rückstände“.",
+  "State why the delivery rule applies.": "Gib an, warum die Lieferregel gilt.",
+  "A delivery rule is stated for a customer.": "Eine Lieferregel gilt für einen Kunden.",
+  "A delivery rule is stated for a customer order.":
+    "Eine Lieferregel gilt für einen Kundenauftrag.",
+  "This delivery rule changed after it was reviewed; review it again.":
+    "Diese Lieferregel hat sich nach der Prüfung geändert; prüfe sie erneut.",
+  "Order {order} ships complete: {lines} open line(s) would be left behind. Ship every open line in full, or lift the rule for this order.":
+    "Auftrag {order} wird komplett geliefert: {lines} offene Position(en) blieben zurück. Liefere alle offenen Positionen vollständig oder hebe die Regel für diesen Auftrag auf.",
+  "Order waiting for completeness": "Auftrag wartet auf Vollständigkeit",
+  "Backorder against the customer's rule": "Rückstand gegen Kundenregel",
+  "Completing every open line, cancelling the lines that will not come, or lifting the rule for this order with a reason.":
+    "Alle offenen Positionen vervollständigen, nicht mehr kommende Positionen stornieren oder die Regel für diesen Auftrag mit Begründung aufheben.",
+  "Cancelling the rest with the rule as its reason, shipping it, or stating another rule for the order.":
+    "Den Rest mit der Regel als Begründung stornieren, ihn liefern oder für den Auftrag eine andere Regel festlegen.",
+  "The order ships complete; other lines are not ready":
+    "Der Auftrag wird komplett geliefert; andere Positionen sind nicht bereit",
+  "An order's rule wins over its customer's. Ship complete holds every line back until the whole order can ship; no backorders reports what stays open after a shipment for cancelling. Nothing changes before you confirm.":
+    "Die Regel eines Auftrags geht der des Kunden vor. Komplettlieferung hält jede Position zurück, bis der ganze Auftrag versandbereit ist; „Keine Rückstände“ meldet, was nach einer Sendung offen bleibt, zum Stornieren. Vor deiner Bestätigung ändert sich nichts.",
+  "Cancel the open rest": "Offenen Rest stornieren",
+  "Change delivery rule": "Lieferregel ändern",
+  "Delivery rule": "Lieferregel",
+  "Delivery rule for the customer": "Lieferregel für den Kunden",
+  "Delivery rule for this order": "Lieferregel für diesen Auftrag",
+  "Earlier statements": "Frühere Angaben",
+  "Lift the rule for this order": "Regel für diesen Auftrag aufheben",
+  "No backorders": "Keine Rückstände",
+  "No backorders by the customer's rule": "Keine Rückstände laut Kundenregel",
+  "No rule stated": "Keine Regel festgelegt",
+  "Open orders it governs": "Betroffene offene Aufträge",
+  "Partial delivery allowed": "Teillieferung erlaubt",
+  "Ship complete": "Komplettlieferung",
+  "stated for the customer": "am Kunden festgelegt",
+  "stated for this order": "für diesen Auftrag festgelegt",
+  "the default, no rule stated": "Standard, keine Regel festgelegt",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -24905,6 +24943,44 @@ Object.assign(dictionaries.nl, {
   Reserve: "Reserveren",
   "Short now": "Nu tekort",
   "Without a date": "Zonder datum",
+  "A delivery rule is stated for exactly one customer or one order.":
+    "Een leveringsregel geldt voor precies één klant of één order.",
+  "A delivery rule is partial allowed, ship complete or no backorders.":
+    "Een leveringsregel is ‘deellevering toegestaan’, ‘volledig leveren’ of ‘geen nalevering’.",
+  "State why the delivery rule applies.": "Geef aan waarom de leveringsregel geldt.",
+  "A delivery rule is stated for a customer.": "Een leveringsregel geldt voor een klant.",
+  "A delivery rule is stated for a customer order.":
+    "Een leveringsregel geldt voor een klantorder.",
+  "This delivery rule changed after it was reviewed; review it again.":
+    "Deze leveringsregel is na de controle gewijzigd; controleer haar opnieuw.",
+  "Order {order} ships complete: {lines} open line(s) would be left behind. Ship every open line in full, or lift the rule for this order.":
+    "Order {order} wordt volledig geleverd: {lines} open regel(s) zouden achterblijven. Lever alle open regels volledig of hef de regel voor deze order op.",
+  "Order waiting for completeness": "Order wacht op volledigheid",
+  "Backorder against the customer's rule": "Nalevering tegen de klantregel",
+  "Completing every open line, cancelling the lines that will not come, or lifting the rule for this order with a reason.":
+    "Alle open regels volledig maken, regels die niet meer komen annuleren of de regel voor deze order met een reden opheffen.",
+  "Cancelling the rest with the rule as its reason, shipping it, or stating another rule for the order.":
+    "De rest annuleren met de regel als reden, hem leveren of een andere regel voor de order vastleggen.",
+  "The order ships complete; other lines are not ready":
+    "De order wordt volledig geleverd; andere regels zijn niet klaar",
+  "An order's rule wins over its customer's. Ship complete holds every line back until the whole order can ship; no backorders reports what stays open after a shipment for cancelling. Nothing changes before you confirm.":
+    "De regel van een order gaat voor die van de klant. Volledig leveren houdt elke regel vast tot de hele order kan worden verzonden; ‘geen nalevering’ meldt wat na een zending openstaat om te annuleren. Er verandert niets voordat je bevestigt.",
+  "Cancel the open rest": "Openstaande rest annuleren",
+  "Change delivery rule": "Leveringsregel wijzigen",
+  "Delivery rule": "Leveringsregel",
+  "Delivery rule for the customer": "Leveringsregel voor de klant",
+  "Delivery rule for this order": "Leveringsregel voor deze order",
+  "Earlier statements": "Eerdere vermeldingen",
+  "Lift the rule for this order": "Regel voor deze order opheffen",
+  "No backorders": "Geen nalevering",
+  "No backorders by the customer's rule": "Geen nalevering volgens de klantregel",
+  "No rule stated": "Geen regel vastgelegd",
+  "Open orders it governs": "Betrokken open orders",
+  "Partial delivery allowed": "Deellevering toegestaan",
+  "Ship complete": "Volledig leveren",
+  "stated for the customer": "vastgelegd voor de klant",
+  "stated for this order": "vastgelegd voor deze order",
+  "the default, no rule stated": "standaard, geen regel vastgelegd",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25085,6 +25161,44 @@ Object.assign(dictionaries.es, {
   Reserve: "Reservar",
   "Short now": "Faltan ahora",
   "Without a date": "Sin fecha",
+  "A delivery rule is stated for exactly one customer or one order.":
+    "Una regla de entrega se indica para exactamente un cliente o un pedido.",
+  "A delivery rule is partial allowed, ship complete or no backorders.":
+    "Una regla de entrega es «entrega parcial permitida», «entrega completa» o «sin pendientes».",
+  "State why the delivery rule applies.": "Indica por qué se aplica la regla de entrega.",
+  "A delivery rule is stated for a customer.": "Una regla de entrega se indica para un cliente.",
+  "A delivery rule is stated for a customer order.":
+    "Una regla de entrega se indica para un pedido de cliente.",
+  "This delivery rule changed after it was reviewed; review it again.":
+    "Esta regla de entrega cambió tras la revisión; revísala de nuevo.",
+  "Order {order} ships complete: {lines} open line(s) would be left behind. Ship every open line in full, or lift the rule for this order.":
+    "El pedido {order} se entrega completo: quedarían {lines} línea(s) abiertas. Envía todas las líneas abiertas completas o levanta la regla para este pedido.",
+  "Order waiting for completeness": "Pedido a la espera de estar completo",
+  "Backorder against the customer's rule": "Pendiente contra la regla del cliente",
+  "Completing every open line, cancelling the lines that will not come, or lifting the rule for this order with a reason.":
+    "Completar todas las líneas abiertas, cancelar las que no llegarán o levantar la regla para este pedido con un motivo.",
+  "Cancelling the rest with the rule as its reason, shipping it, or stating another rule for the order.":
+    "Cancelar el resto con la regla como motivo, enviarlo o indicar otra regla para el pedido.",
+  "The order ships complete; other lines are not ready":
+    "El pedido se entrega completo; otras líneas no están listas",
+  "An order's rule wins over its customer's. Ship complete holds every line back until the whole order can ship; no backorders reports what stays open after a shipment for cancelling. Nothing changes before you confirm.":
+    "La regla de un pedido prevalece sobre la del cliente. La entrega completa retiene cada línea hasta que todo el pedido pueda enviarse; «sin pendientes» indica lo que queda abierto tras un envío para cancelarlo. Nada cambia antes de que confirmes.",
+  "Cancel the open rest": "Cancelar el resto abierto",
+  "Change delivery rule": "Cambiar regla de entrega",
+  "Delivery rule": "Regla de entrega",
+  "Delivery rule for the customer": "Regla de entrega del cliente",
+  "Delivery rule for this order": "Regla de entrega de este pedido",
+  "Earlier statements": "Indicaciones anteriores",
+  "Lift the rule for this order": "Levantar la regla para este pedido",
+  "No backorders": "Sin pendientes",
+  "No backorders by the customer's rule": "Sin pendientes según la regla del cliente",
+  "No rule stated": "Sin regla indicada",
+  "Open orders it governs": "Pedidos abiertos afectados",
+  "Partial delivery allowed": "Entrega parcial permitida",
+  "Ship complete": "Entrega completa",
+  "stated for the customer": "indicada para el cliente",
+  "stated for this order": "indicada para este pedido",
+  "the default, no rule stated": "predeterminada, sin regla indicada",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

@@ -1985,3 +1985,42 @@ No new table: the serving order, the split of assigned supply into arrived and s
   - The Web prepares stated lines, confirms, answers available-to-promise and refuses an empty serving with its code.
   - Another company can neither serve nor read.
   - The CLI asks before serving (declining withdraws the review), serves with `--yes` and answers available-to-promise.
+
+## Delivery rules — Spec 306
+
+Table `delivery_rule`: how a customer, or one of its orders, wants to be delivered (partial allowed, ship complete, no backorders). Every statement is a version of the subject's source stream.
+
+- `packages/reality-core/tests/test_delivery_rules.py`:
+  - Without a statement partial delivery is allowed.
+  - A customer rule applies to its orders and an order rule wins, while the customer's other orders still follow the customer.
+  - Every statement is a version of its stream, and the history lists them newest first.
+  - Each statement is refused with its code: no subject or both, an unknown rule, a blank reason, a supplier, a purchase order. The customer and its order are the controls.
+  - Another company can neither state nor read.
+  - The table refuses an unknown rule, a blank reason and a missing subject.
+- `packages/reality-core/tests/test_delivery_rule_shipments.py`:
+  - Readiness waits for the whole order under ship complete, with no rule as control, and a part of a line is incomplete too.
+  - Every person-facing shipment path refuses a partial order: a packaged dispatch of one line, a single shipment, and both lines with one partly. The whole order ships.
+  - A lifted order ships in parts while the customer's other orders wait.
+  - Cancelled and shipped lines count as complete.
+  - An importer recording what left is not refused.
+  - The fulfillment queue names the rule, with no rule as control.
+- `packages/reality-core/tests/test_delivery_rule_exceptions.py`:
+  - An order waiting only for completeness is reported with its ready and waiting lines and where the rule comes from. No rule is the control, and completing the order clears it.
+  - An order with nothing ready is not waiting for the rule.
+  - A rest after a shipment is a backorder against a no-backorder rule, line by line. Nothing shipped is the control, and cancelling clears it.
+  - Without the rule a rest is ordinary.
+  - Review round: a corrected shipment is no shipment, and an order kept back by a hold is not waiting for the rule.
+- Review round in `test_delivery_rule_shipments.py`:
+  - A line split across two warehouses ships complete in one shipment.
+  - A single-line order ships complete as one shipment, and a part of it is refused.
+  - A quantity that is no number keeps the movement's own refusal.
+- Review round in `test_delivery_rule_adapters.py`:
+  - Executing the same confirmation again states nothing.
+  - The isolation test has its own-company positive control.
+- `packages/reality-core/tests/test_delivery_rule_adapters.py`:
+  - The MCP schema is strict.
+  - An agent proposes a customer rule, and the review shows the open orders it governs. A person confirms, a replay states nothing twice, and the read names the customer as the source.
+  - A rule changed after its review is refused.
+  - The Web prepares, confirms and reads an order rule, and refuses a supplier with its code.
+  - Another company can neither read nor state.
+  - The CLI asks before stating (declining withdraws the review), states with `--yes` and shows the rule.

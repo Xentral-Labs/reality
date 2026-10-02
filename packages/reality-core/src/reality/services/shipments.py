@@ -281,8 +281,15 @@ def record_packaged_execution(
     commit: bool = True,
 ) -> dict[str, Any]:
     if purpose == "customer_delivery":
+        from reality.services.delivery_rules import require_delivery_rule
         from reality.services.fulfillment_readiness import fulfillment_readiness
 
+        # Spec 306: one shipment carries a ship-complete order whole.
+        require_delivery_rule(
+            session,
+            tenant_id,
+            [(row.get("commitment_id"), row.get("quantity") or 0) for row in movements],
+        )
         for movement_arguments in movements:
             commitment_id = movement_arguments.get("commitment_id")
             if not commitment_id:
@@ -299,6 +306,8 @@ def record_packaged_execution(
                 commitment_id,
                 proposed_quantity=proposed_quantity,
                 from_location_id=movement_arguments.get("from_location_id"),
+                # The whole shipment answers to the order's rule, checked above.
+                _delivery_rule=False,
             )
             if not readiness.ship_ready:
                 raise InvalidOperation(

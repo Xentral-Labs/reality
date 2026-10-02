@@ -56,6 +56,8 @@ was sie auflöst und welche Agenten-Tools sie auflisten und erklären.
 | [`item_oversold`](#exception-item_oversold)                                               | Item oversold                            | Bereichsübergreifend    | `high`   | Order fulfilment, with purchasing for the supply                                            |
 | [`reorder_point_reached`](#exception-reorder_point_reached)                               | Reorder point reached                    | Aufträge & Erfüllung    | `normal` | Purchasing                                                                                  |
 | [`stock_in_another_location`](#exception-stock_in_another_location)                       | Stock in another warehouse               | Lager & Logistik        | `normal` | Warehouse                                                                                   |
+| [`order_waiting_for_completeness`](#exception-order_waiting_for_completeness)             | Order waiting for completeness           | Aufträge & Erfüllung    | `normal` | Sales                                                                                       |
+| [`backorder_against_rule`](#exception-backorder_against_rule)                             | Backorder against the customer's rule    | Aufträge & Erfüllung    | `normal` | Sales                                                                                       |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1441,6 +1443,57 @@ is.
   `tests/test_stock_in_another_location.py::test_stock_elsewhere_is_named_when_home_cannot_cover_the_rest`,
   `tests/test_stock_in_another_location.py::test_reserving_there_through_the_review_clears_it`,
   `tests/test_stock_in_another_location.py::test_a_transfer_through_the_review_clears_it`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain), Sicht
+[`commitments`](./views#view-commitments)
+
+## `order_waiting_for_completeness` — Order waiting for completeness {#exception-order_waiting_for_completeness}
+
+An order that ships complete, by its own rule or its customer's, where some open lines could ship
+now and others cannot. The ready lines wait only because of the rule: a shipment of them alone is
+refused, so the goods sit reserved while the customer gets nothing. Reality reads the effective
+delivery rule and asks readiness for every open line without the rule; when some are ready and some
+are not, the entry names both and where the rule comes from. An order with nothing ready is not
+reported here, because it waits for stock, reservations or payment, which other classes name.
+Nothing is shipped or lifted by the entry: completing the order clears it, or a person lifts the
+rule for this one order with a reason through the review, and the customer's rule stays for every
+other order.
+
+- **Verantwortlich:** Sales
+- **Aufgelöst durch:** Completing every open line, cancelling the lines that will not come, or
+  lifting the rule for this order with a reason.
+- **Schwere:** `normal`
+- **Datensatztyp:** `document`
+- **Spezifikation:** `306/FR-005`
+- **Nachweis:**
+  `tests/test_delivery_rule_exceptions.py::test_an_order_waiting_only_for_completeness_is_reported`,
+  `tests/test_delivery_rule_exceptions.py::test_an_order_with_nothing_ready_is_not_waiting_for_the_rule`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain), Sicht
+[`documents`](./views#view-documents)
+
+## `backorder_against_rule` — Backorder against the customer's rule {#exception-backorder_against_rule}
+
+A customer who wants no backorders received part of an order, and a line still has an open rest. The
+rule says what does not ship with the first shipment is cancelled rather than delivered later;
+Reality reports every open rest of such an order once anything of it has shipped, with the rule and
+its reason. It cancels nothing: the reviewed cancellation with the rule as its reason clears the
+entry, and an order the customer wants completed after all can state partial allowed for itself.
+Before the first shipment nothing is a backorder.
+
+- **Verantwortlich:** Sales
+- **Aufgelöst durch:** Cancelling the rest with the rule as its reason, shipping it, or stating
+  another rule for the order.
+- **Schwere:** `normal`
+- **Datensatztyp:** `commitment`
+- **Spezifikation:** `306/FR-005`
+- **Nachweis:**
+  `tests/test_delivery_rule_exceptions.py::test_a_rest_after_a_shipment_is_a_backorder_against_the_rule`,
+  `tests/test_delivery_rule_exceptions.py::test_without_a_no_backorder_rule_a_rest_is_ordinary`
 
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool

@@ -22,6 +22,7 @@ from reality.services import credit_actions as credit_action_service_module
 from reality.services import credit_exposure as credit_exposure_service_module
 from reality.services import credit_hold_actions as credit_hold_service_module
 from reality.services import customer_exchanges as customer_exchange_service_module
+from reality.services import delivery_rules as delivery_rule_service_module
 from reality.services import demo_data as demo_data_service_module
 from reality.services import down_payments as down_payment_service_module
 from reality.services import dunning as dunning_service_module
@@ -136,6 +137,8 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "item_oversold",
     "reorder_point_reached",
     "stock_in_another_location",
+    "order_waiting_for_completeness",
+    "backorder_against_rule",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays
@@ -1104,6 +1107,7 @@ def _service(name: str) -> Any:
         reorder_point_service_module,
         stock_block_service_module,
         backorder_service_module,
+        delivery_rule_service_module,
     ):
         own = getattr(module, name, None)
         if own is not None and getattr(own, "__module__", None) == module.__name__:
@@ -1308,6 +1312,7 @@ def _literal_business_events() -> set[str]:
         reorder_point_service_module,
         stock_block_service_module,
         backorder_service_module,
+        delivery_rule_service_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

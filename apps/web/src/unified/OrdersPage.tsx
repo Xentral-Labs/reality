@@ -25,6 +25,7 @@ import { SourceBadge } from "./SourceBadge";
 import { formatDateTime, formatMoney, formatNumber, formatQuantity, t } from "../localization";
 import { ReadState } from "./ReadState";
 import { InlineInspector, PreviewButton, TablePreview } from "./InlinePreview";
+import { DeliveryRuleSection } from "./DeliveryRuleCard";
 import { RegisterPager } from "./WarehousePage";
 import { useRead } from "./useCompanyContext";
 import type { Selection } from "./routing";
@@ -87,6 +88,7 @@ function lineBlockerExplanation(line: FulfillmentQueueRow["lines"][number], code
     prepayment_attribution_ambiguous: "Prepayment cannot be attributed unambiguously",
     commitment_hold: "Commitment is on hold",
     party_delivery_hold: "Customer delivery is on hold",
+    ship_complete_incomplete: "The order ships complete; other lines are not ready",
   };
   return t(labels[code] || code);
 }
@@ -768,11 +770,18 @@ export function OrdersPage({
                               target={{ kind: "document", id: row.id }}
                               supplement={(detail) =>
                                 view === "customer-orders" ? (
-                                  <DocumentContributionExplanations
-                                    tenant={tenant}
-                                    detail={detail}
-                                    source="billed_invoice_lines"
-                                  />
+                                  <>
+                                    <DeliveryRuleSection
+                                      tenant={tenant}
+                                      document={row.id}
+                                      name={row.number || row.id}
+                                    />
+                                    <DocumentContributionExplanations
+                                      tenant={tenant}
+                                      detail={detail}
+                                      source="billed_invoice_lines"
+                                    />
+                                  </>
                                 ) : null
                               }
                             >

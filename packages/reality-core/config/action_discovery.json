@@ -158,6 +158,8 @@
     "release_stock_block": "movements",
     "scrap_stock_block": "movements",
     "stock_blocks": "movements",
+    "state_delivery_rule": "orders",
+    "delivery_rules": "orders",
     "serve_backorders": "movements",
     "available_to_promise": "movements",
     "create_location": "references",
