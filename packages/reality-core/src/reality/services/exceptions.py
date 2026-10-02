@@ -3700,7 +3700,8 @@ def _order_waiting_for_completeness_exceptions(
             )
             (ready if readiness.ship_ready else waiting).append(row)
             held = held or bool(
-                {"commitment_hold", "party_delivery_hold"} & set(readiness.blocker_codes)
+                {"commitment_hold", "party_delivery_hold"}
+                & set(readiness.blocker_codes)
             )
         # A hold keeps the order back by itself; the hold classes name it.
         if not ready or not waiting or held:

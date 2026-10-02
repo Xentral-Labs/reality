@@ -363,7 +363,6 @@ def test_a_single_line_order_ships_complete_as_one_shipment(session, business):
 
 
 def test_a_quantity_that_is_no_number_keeps_its_own_refusal(session, business, lamp):
-    tenant = business.tenant.id
     _, (bikes, _) = _order(
         session, business, "SO-306-NAN", [(business.item, "5"), (lamp, "3")]
     )
