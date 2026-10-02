@@ -61,6 +61,7 @@ export function SettingsPage({
           <PersonalPreferences user={user} updateUser={updateUser} />
         ) : (
           <CompanySettings
+            platformAdmin={user.is_platform_admin === true}
             company={company}
             companies={companies}
             switchCompany={switchCompany}

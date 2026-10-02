@@ -6,11 +6,12 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 
 from pydantic import ValidationError
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from reality.db.analytics import AnalyticsReport
-from reality.db.core import AppUser, TenantMembership, now, uid
+from reality.db.core import AppUser, Tenant, TenantMembership, now, uid
 from reality.services.analytics.errors import AnalyticsError, fingerprint
 from reality.services.core import NotFound
 from reality.services.memberships import Principal
@@ -73,20 +74,44 @@ def kind(key):
     return _graph_kind()
 
 
-def require_author(session, tenant_id, principal, *, explain_membership=False):
+def require_author(
+    session: Session,
+    tenant_id: str,
+    principal: Principal | None,
+    *,
+    explain_membership: bool = False,
+) -> str:
     if principal is None:
         raise AnalyticsError(
             "An authenticated user is required for private reports.",
             "user_context_required",
         )
-    active = session.scalar(
+    # Eligibility is current account authority; it never replaces authorship.
+    membership = (
         select(TenantMembership.id)
-        .join(AppUser, AppUser.id == TenantMembership.user_id)
         .where(
             TenantMembership.tenant_id == tenant_id,
             TenantMembership.user_id == principal.user_id,
             TenantMembership.status == "active",
+        )
+        .exists()
+    )
+    business_company = (
+        select(Tenant.id)
+        .where(
+            Tenant.id == tenant_id,
+            Tenant.purpose == "business",
+            Tenant.archived_at.is_(None),
+        )
+        .exists()
+    )
+    active = session.scalar(
+        select(AppUser.id).where(
+            AppUser.id == principal.user_id,
             AppUser.status == "active",
+            or_(
+                membership, and_(AppUser.is_platform_admin.is_(True), business_company)
+            ),
         )
     )
     if not active:

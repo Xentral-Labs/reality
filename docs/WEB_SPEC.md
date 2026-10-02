@@ -3527,3 +3527,9 @@ These projections do not change stored proposals, execution, rejection authority
 tokens or replay. Verification: `specs/325-readable-proposal-reviews/quickstart.md`.
 
 Private report membership refusal is an access status with localized owner/switch-company guidance and an explicit access recheck. It does not use the technical loading-error heading or generic Retry action; actual read failures retain those controls (spec 326 FR-004).
+
+## Platform Administrator Private Analytics (spec 329)
+
+An active platform administrator may use their own private reports and requested analyses in every visible, nonarchived business company without company membership. Current persisted account status/admin authority is checked by the same service used for interactive reads, shared tools, deferred admission, collection and worker execution. This eligibility never bypasses the selected company or exact report/request/proposal author. Other users' private reports, questions and sealed proposals remain inaccessible, including to company owners and platform administrators. Ordinary nonmembers retain the membership-required access state. No membership is created and delegated tool permissions, confirmation authorities and owner administration are unchanged.
+
+The company switcher and company cards show actual Owner/Member roles where held; otherwise an explicit authenticated administrator sees Platform admin access. Visibility or absent membership alone never implies admin authority. Access labels and explanatory copy are localized in all four supported languages.

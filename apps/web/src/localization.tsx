@@ -13,6 +13,9 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Platform admin access": "Zugang als Plattformadmin",
+    "You can access this company as a platform administrator. Private reports remain personal to their author.":
+      "Du kannst als Plattformadministrator auf diese Firma zugreifen. Private Berichte bleiben persönlich für ihren Autor.",
     "Company membership required": "Firmenmitgliedschaft erforderlich",
     "Check access again": "Zugriff erneut prüfen",
     "Ask a company owner to add you as a member, or switch to a company you belong to.":
@@ -2129,6 +2132,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Platform admin access": "Toegang als platformbeheerder",
+    "You can access this company as a platform administrator. Private reports remain personal to their author.":
+      "Je hebt als platformbeheerder toegang tot dit bedrijf. Privérapporten blijven persoonlijk voor hun auteur.",
     "Company membership required": "Bedrijfslidmaatschap vereist",
     "Check access again": "Toegang opnieuw controleren",
     "Ask a company owner to add you as a member, or switch to a company you belong to.":
@@ -3940,6 +3946,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Platform admin access": "Acceso como administrador de la plataforma",
+    "You can access this company as a platform administrator. Private reports remain personal to their author.":
+      "Puedes acceder a esta empresa como administrador de la plataforma. Los informes privados siguen siendo personales para su autor.",
     "Company membership required": "Se requiere membresía en la empresa",
     "Check access again": "Comprobar acceso de nuevo",
     "Ask a company owner to add you as a member, or switch to a company you belong to.":
