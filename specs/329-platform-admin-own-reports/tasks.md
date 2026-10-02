@@ -14,8 +14,8 @@
 
 ## Verification and Release
 - [x] T007 Update docs/WEB_SPEC.md and spec coverage; reconcile older spec membership prerequisites with spec329 (FR-001–FR-006).
-- [ ] T008 Run complete related service/API/proposal suites, browser journeys, frontend contracts/build/i18n, lint/spec/docs gates; review privacy and current-authority regression evidence.
-- [ ] T009 Publish PR, require full green hosted CI, merge/deploy and perform read-only live admin/library/switcher checks; record final evidence.
+- [x] T008 Run complete related service/API/proposal suites, browser journeys, frontend contracts/build/i18n, lint/spec/docs gates; review privacy and current-authority regression evidence.
+- [x] T009 Publish PR, require full green hosted CI, merge/deploy and perform read-only live admin/library/switcher checks; record final evidence.
 
 ## Requirement Coverage
 FR-001: T003/T004/T008/T009. FR-002: T003/T004/T008. FR-003: T003/T004/T008. FR-004: T005/T006/T008/T009. FR-005: T003/T004/T006/T008. FR-006: T005/T006/T008. DR-001: T007/T008 diff/schema review. DR-002: T003/T004/T008.
