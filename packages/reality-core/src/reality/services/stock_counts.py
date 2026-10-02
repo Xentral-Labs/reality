@@ -82,7 +82,7 @@ def _moment(value: Any, default: datetime) -> datetime:
         moment = value
     else:
         try:
-            moment = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            moment = datetime.fromisoformat(str(value))
         except ValueError:
             raise InvalidOperation(code="stock_count_time_invalid") from None
     if moment.tzinfo is None:
