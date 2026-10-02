@@ -35,3 +35,12 @@ No migration or stored-payload mutation. Private views reuse existing author che
 confirmation/rejection/execution boundaries remain owned by the existing services.
 Diff reviewed for carrier/receipt privacy and legacy rollout protection. New receipt and
 identity-forwarding checks protect the Web adapter. Unrelated concurrent changes preserved.
+
+## Publication preparation
+
+Rebased specs 323 and 325 onto current main in a separate clean worktree; preserved
+new main coverage sections and regenerated derived catalog data. Rechecked the combined
+release: 88 scoped backend tests passed, 2 skipped; 458 Web contracts passed; Web build,
+four-language audit, lint, spec policy, generated catalog check and proposal review
+browser proof passed. Concurrent uncommitted storage work remains in the original
+worktree and is excluded from this branch. Hosted CI and deployment tracked on the PR.
