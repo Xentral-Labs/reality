@@ -4965,7 +4965,7 @@ Answer from when and how much of an item can be promised, naming the purchases t
 | --------- | -------- | ------- | -------------------------------------------------- | -------- |
 | `item_id` | `string` | ja      | Opaque identity of the operational item reference. | —        |
 
-**Siehe auch:** Geschäftsaktion [`available_to_promise`](./commands#command-available_to_promise)
+**Siehe auch:** Command [`available_to_promise`](./commands#command-available_to_promise)
 
 ### `reorder_points` — Read reorder points {#command-reorder_points}
 
@@ -5451,7 +5451,7 @@ backorders_serve_propose item_id location_id [supplier_commitment_id] [lines]
 | `lines[].commitment_id`  | `string` | ja      | Opaque identity of the obligation being reserved, held, or executed.                         | —        |
 | `lines[].quantity`       | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                      | —        |
 
-**Siehe auch:** Geschäftsaktion [`serve_backorders`](./commands#command-serve_backorders)
+**Siehe auch:** Command [`serve_backorders`](./commands#command-serve_backorders)
 
 ### `set_reorder_point` — Set a reorder point {#command-set_reorder_point}
 
