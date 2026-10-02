@@ -24870,6 +24870,12 @@ Object.assign(dictionaries.de, {
     "Die Nummer des Kunden bezeichnet einen anderen Artikel als den angegebenen.",
   "This line quotes no customer item number to remember.":
     "Diese Position nennt keine Kundenartikelnummer, die gemerkt werden könnte.",
+  "Customer item no.": "Kundenartikelnr.",
+  "Customer item numbers": "Kundenartikelnummern",
+  "Customer's name for it": "Bezeichnung beim Kunden",
+  "No customer item numbers stated.": "Keine Kundenartikelnummern hinterlegt.",
+  "nothing stated": "nichts hinterlegt",
+  "Remember for this customer": "Für diesen Kunden merken",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25140,6 +25146,12 @@ Object.assign(dictionaries.nl, {
     "Het nummer van de klant verwijst naar een ander artikel dan het opgegeven.",
   "This line quotes no customer item number to remember.":
     "Deze regel noemt geen klantartikelnummer om te onthouden.",
+  "Customer item no.": "Klantartikelnr.",
+  "Customer item numbers": "Klantartikelnummers",
+  "Customer's name for it": "Benaming bij de klant",
+  "No customer item numbers stated.": "Geen klantartikelnummers vastgelegd.",
+  "nothing stated": "niets vastgelegd",
+  "Remember for this customer": "Onthouden voor deze klant",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25410,6 +25422,12 @@ Object.assign(dictionaries.es, {
     "El número del cliente corresponde a otro artículo distinto del indicado.",
   "This line quotes no customer item number to remember.":
     "Esta línea no indica ningún número de artículo del cliente que recordar.",
+  "Customer item no.": "N.º de artículo del cliente",
+  "Customer item numbers": "Números de artículo del cliente",
+  "Customer's name for it": "Denominación del cliente",
+  "No customer item numbers stated.": "No hay números de artículo del cliente registrados.",
+  "nothing stated": "nada registrado",
+  "Remember for this customer": "Recordar para este cliente",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

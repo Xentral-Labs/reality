@@ -60,6 +60,14 @@ export function DeliveryCase({
               <p className="mt-2 text-fg-muted">
                 {detail.item} · {detail.location}
               </p>
+              {data.customer_item && (
+                <p className="mt-1 text-sm text-fg-muted" data-customer-item>
+                  {t("Customer item no.")} {data.customer_item.customer_item_number}
+                  {data.customer_item.customer_item_name
+                    ? ` · ${data.customer_item.customer_item_name}`
+                    : ""}
+                </p>
+              )}
             </div>
             <button className="br-btn" onClick={() => setTarget({ kind: "commitment", id })}>
               {t("Explain")}

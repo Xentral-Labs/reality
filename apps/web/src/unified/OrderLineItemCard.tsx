@@ -20,11 +20,14 @@ type Review = {
 export function OrderLineItemCard({
   tenant,
   documentLineId,
+  customerItemNumber = "",
   close,
   settled,
 }: {
   tenant: string;
   documentLineId: string;
+  /** Spec 308: the customer number the line quotes, if any. */
+  customerItemNumber?: string;
   close: () => void;
   settled: () => void;
 }) {
@@ -62,12 +65,14 @@ export function OrderLineItemCard({
     }
   };
 
+  const [remember, setRemember] = useState(Boolean(customerItemNumber));
   const prepare = () =>
     run(async () => {
       setProposal(
         await deliveryActions.prepare(tenant, requestId.current, "order_line_item_assign", {
           document_line_id: documentLineId,
           item_id: itemId,
+          ...(remember && customerItemNumber ? { remember_for_customer: true } : {}),
         }),
       );
     });
@@ -131,6 +136,19 @@ export function OrderLineItemCard({
               ))}
             </select>
           </label>
+          {customerItemNumber && (
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(event) => {
+                  setRemember(event.target.checked);
+                  requestId.current = crypto.randomUUID();
+                }}
+              />
+              {t("Remember for this customer")} ({customerItemNumber})
+            </label>
+          )}
           <p className="text-sm text-fg-muted">
             {t("Preparing a review changes nothing; confirming creates the delivery promise.")}
           </p>

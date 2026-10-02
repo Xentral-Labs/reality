@@ -341,14 +341,32 @@ export function OrderCard({
                     {t("Line")} {index + 1}
                   </legend>
                   <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_1fr]">
-                    <ReferenceSelect
-                      tenant={tenant}
-                      kind="items"
-                      label="Item"
-                      value={line.item_id}
-                      seed={seeds[line.item_id]}
-                      change={(id) => lineChange(index, { item_id: id })}
-                    />
+                    <div className="min-w-0">
+                      <ReferenceSelect
+                        tenant={tenant}
+                        kind="items"
+                        label="Item"
+                        value={line.item_id}
+                        seed={seeds[line.item_id]}
+                        change={(id) => lineChange(index, { item_id: id })}
+                      />
+                      {direction === "sales" && (
+                        <label className="mt-2 block text-sm">
+                          {/* Spec 308: or the customer's own article number. */}
+                          {t("Customer item no.")}
+                          <input
+                            className="br-control mt-1 w-full"
+                            aria-label={`${t("Customer item no.")} · ${t("Line")} ${index + 1}`}
+                            value={String(line.customer_item_number ?? "")}
+                            onChange={(event) =>
+                              lineChange(index, {
+                                customer_item_number: event.target.value || undefined,
+                              })
+                            }
+                          />
+                        </label>
+                      )}
+                    </div>
                     {(
                       [
                         ["quantity", "Quantity"],

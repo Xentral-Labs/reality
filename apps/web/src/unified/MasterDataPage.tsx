@@ -4,6 +4,7 @@ import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWo
 import { PageActionBar } from "./PageActionBar";
 import { CustomerHoldCard } from "./CustomerHoldCard";
 import { ReorderPoints } from "./ReorderPointCard";
+import { CustomerItemNumbers } from "./CustomerItemNumbers";
 import { DeliveryRuleSection } from "./DeliveryRuleCard";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
@@ -100,7 +101,10 @@ export function MasterDataPage({
         />
       )}
       {family === "customer" && (
-        <DeliveryRuleSection tenant={tenant} party={detail.id} name={String(detail.name)} />
+        <>
+          <DeliveryRuleSection tenant={tenant} party={detail.id} name={String(detail.name)} />
+          <CustomerItemNumbers tenant={tenant} party={detail.id} />
+        </>
       )}
       {family === "item" && (
         <ReorderPoints

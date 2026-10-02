@@ -76,6 +76,7 @@ function OpenExceptions({
   );
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const [assigning, setAssigning] = useState("");
+  const [assigningNumber, setAssigningNumber] = useState("");
   const [ordering, setOrdering] = useState<AttentionRow | null>(null);
   const [serving, setServing] = useState<AttentionRow | null>(null);
   const [blockingExpired, setBlockingExpired] = useState<AttentionRow | null>(null);
@@ -220,7 +221,10 @@ function OpenExceptions({
                       {selected.class_id === "order_line_item_unknown" && (
                         <button
                           className="br-btn br-btn-primary"
-                          onClick={() => setAssigning(selected.record_id)}
+                          onClick={() => {
+                            setAssigning(selected.record_id);
+                            setAssigningNumber(String(selected.trace.customer_item_number || ""));
+                          }}
                         >
                           {t("Assign item")}
                         </button>
@@ -362,6 +366,7 @@ function OpenExceptions({
         <OrderLineItemCard
           tenant={tenant}
           documentLineId={assigning}
+          customerItemNumber={assigningNumber}
           close={() => setAssigning("")}
           settled={() => {
             detail.refresh();
