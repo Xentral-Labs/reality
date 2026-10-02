@@ -58,7 +58,12 @@ def test_the_mcp_proposal_schema_is_strict():
         if tool["function"]["name"] == "order_line_item_assign_propose"
     )
     assert schema["additionalProperties"] is False
-    assert set(schema["properties"]) == {"document_line_id", "item_id"}
+    # Spec 308 adds the optional remember-for-customer flag.
+    assert set(schema["properties"]) == {
+        "document_line_id",
+        "item_id",
+        "remember_for_customer",
+    }
     assert set(schema["required"]) == {"document_line_id", "item_id"}
 
 
