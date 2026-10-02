@@ -1570,7 +1570,10 @@ def test_frontend_copilot_requires_explicit_proposal_approval(session, business)
             f"/api/tenants/{business.tenant.id}/copilot",
             params={"session_id": session_id},
         )
-        assert refreshed.json()["proposals"] == []
+        # Spec 328: the executed proposal stays in the conversation that made it.
+        assert [
+            (row["id"], row["status"]) for row in refreshed.json()["proposals"]
+        ] == [(proposal["id"], "executed")]
         # Delivery receipts are recovered by proposal identity; approval adds no duplicate chat notice.
         assert len(refreshed.json()["messages"]) == len(workbench.json()["messages"])
     finally:

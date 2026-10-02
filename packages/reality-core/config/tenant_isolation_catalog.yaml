@@ -171,6 +171,7 @@ families:
       - reality.services.core:aging_register
       - reality.services.core:business_events
       - reality.services.core:chat_messages
+      - reality.services.core:chat_proposals
       - reality.services.core:chat_sessions
       - reality.services.core:chat_suggestions
       - reality.services.core:change_proposals
@@ -243,6 +244,7 @@ families:
       - reality.services.core:change_proposal_count
       - reality.services.core:chat_session_count
       - reality.services.core:chat_message_counts
+      - reality.services.core:pending_proposals_elsewhere
       - reality.services.core:fulfilled_quantity
       - reality.services.core:movement_quantity
       - reality.services.core:movement_quantity_resolving
