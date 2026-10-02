@@ -12,7 +12,7 @@ Tests come first in each phase where practical.
 
 ## Phase 2: Count record and posting (FR-001, FR-002, FR-005)
 
-- [ ] T004 Tests:
+- [x] T004 Tests:
   - schema checks and the migration downgrade;
   - book as of the counting time;
   - gain and loss;
@@ -23,7 +23,7 @@ Tests come first in each phase where practical.
   - the review's reservations;
   - a replayed confirmation;
   - tenant isolation.
-- [ ] T005 Migration `0113`, the models, `services/stock_counts.py`, the event, the refusals with translations
+- [x] T005 Migration `0113`, the models, `services/stock_counts.py`, the event, the refusals with translations
 
 ## Phase 3: Adapters and gates (FR-003)
 

@@ -24763,6 +24763,29 @@ Object.assign(dictionaries.de, {
   "stated for the customer": "am Kunden festgelegt",
   "stated for this order": "für diesen Auftrag festgelegt",
   "the default, no rule stated": "Standard, keine Regel festgelegt",
+  "A count is taken at an active location that holds stock.":
+    "Eine Inventur wird an einem aktiven Lagerort mit Bestand gezählt.",
+  "A count needs at least one counted line.":
+    "Eine Inventur braucht mindestens eine gezählte Zeile.",
+  "Only stocked items are counted.": "Gezählt werden nur lagergeführte Artikel.",
+  "Serial-tracked items are not counted here; correct them unit by unit.":
+    "Seriennummerngeführte Artikel werden hier nicht gezählt; korrigiere sie Stück für Stück.",
+  "A lot-tracked item is counted by its lot.":
+    "Ein chargengeführter Artikel wird je Charge gezählt.",
+  "This lot does not belong to this item, or the item is not lot-tracked.":
+    "Diese Charge gehört nicht zu diesem Artikel, oder der Artikel ist nicht chargengeführt.",
+  "A counted quantity is zero or more, with at most four decimals.":
+    "Eine gezählte Menge ist null oder mehr, mit höchstens vier Nachkommastellen.",
+  "The counting time is not a valid date and time.":
+    "Der Zählzeitpunkt ist kein gültiges Datum mit Uhrzeit.",
+  "A count cannot be dated in the future.": "Eine Inventur kann nicht in der Zukunft liegen.",
+  "Each item and lot is counted once per count.":
+    "Jeder Artikel und jede Charge wird je Inventur einmal gezählt.",
+  "The loss is more than the location holds now; goods left after the count. Count again.":
+    "Der Fehlbestand ist größer als der jetzige Bestand am Lagerort; nach der Zählung ist Ware abgegangen. Zähle erneut.",
+  "Stock at the counting time changed after the review; review the count again.":
+    "Der Bestand zum Zählzeitpunkt hat sich nach der Prüfung geändert; prüfe die Inventur erneut.",
+  "This count was not found.": "Diese Inventur wurde nicht gefunden.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -24981,6 +25004,28 @@ Object.assign(dictionaries.nl, {
   "stated for the customer": "vastgelegd voor de klant",
   "stated for this order": "vastgelegd voor deze order",
   "the default, no rule stated": "standaard, geen regel vastgelegd",
+  "A count is taken at an active location that holds stock.":
+    "Een telling vindt plaats op een actieve locatie met voorraad.",
+  "A count needs at least one counted line.": "Een telling heeft minstens één getelde regel nodig.",
+  "Only stocked items are counted.": "Alleen voorraadartikelen worden geteld.",
+  "Serial-tracked items are not counted here; correct them unit by unit.":
+    "Artikelen met serienummer worden hier niet geteld; corrigeer ze per stuk.",
+  "A lot-tracked item is counted by its lot.":
+    "Een artikel met partijregistratie wordt per partij geteld.",
+  "This lot does not belong to this item, or the item is not lot-tracked.":
+    "Deze partij hoort niet bij dit artikel, of het artikel heeft geen partijregistratie.",
+  "A counted quantity is zero or more, with at most four decimals.":
+    "Een getelde hoeveelheid is nul of meer, met hoogstens vier decimalen.",
+  "The counting time is not a valid date and time.":
+    "Het teltijdstip is geen geldige datum en tijd.",
+  "A count cannot be dated in the future.": "Een telling kan niet in de toekomst liggen.",
+  "Each item and lot is counted once per count.":
+    "Elk artikel en elke partij wordt per telling één keer geteld.",
+  "The loss is more than the location holds now; goods left after the count. Count again.":
+    "Het tekort is groter dan wat de locatie nu heeft; na de telling zijn goederen vertrokken. Tel opnieuw.",
+  "Stock at the counting time changed after the review; review the count again.":
+    "De voorraad op het teltijdstip is na de controle gewijzigd; controleer de telling opnieuw.",
+  "This count was not found.": "Deze telling is niet gevonden.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25199,6 +25244,27 @@ Object.assign(dictionaries.es, {
   "stated for the customer": "indicada para el cliente",
   "stated for this order": "indicada para este pedido",
   "the default, no rule stated": "predeterminada, sin regla indicada",
+  "A count is taken at an active location that holds stock.":
+    "Un recuento se hace en una ubicación activa con stock.",
+  "A count needs at least one counted line.": "Un recuento necesita al menos una línea contada.",
+  "Only stocked items are counted.": "Solo se cuentan artículos con stock.",
+  "Serial-tracked items are not counted here; correct them unit by unit.":
+    "Los artículos con número de serie no se cuentan aquí; corrígelos unidad por unidad.",
+  "A lot-tracked item is counted by its lot.": "Un artículo con lote se cuenta por lote.",
+  "This lot does not belong to this item, or the item is not lot-tracked.":
+    "Este lote no pertenece a este artículo o el artículo no se gestiona por lotes.",
+  "A counted quantity is zero or more, with at most four decimals.":
+    "Una cantidad contada es cero o más, con un máximo de cuatro decimales.",
+  "The counting time is not a valid date and time.":
+    "La hora del recuento no es una fecha y hora válidas.",
+  "A count cannot be dated in the future.": "Un recuento no puede fecharse en el futuro.",
+  "Each item and lot is counted once per count.":
+    "Cada artículo y lote se cuenta una vez por recuento.",
+  "The loss is more than the location holds now; goods left after the count. Count again.":
+    "La pérdida supera lo que hay ahora en la ubicación; salió mercancía después del recuento. Vuelve a contar.",
+  "Stock at the counting time changed after the review; review the count again.":
+    "El stock en la hora del recuento cambió tras la revisión; revisa el recuento de nuevo.",
+  "This count was not found.": "No se encontró este recuento.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

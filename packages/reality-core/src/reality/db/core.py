@@ -887,6 +887,82 @@ class DeliveryRule(Base):
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class StockCount(Base):
+    """A count of one location (spec 307): what a person counted, as stated.
+
+    The count is kept as one version of its source stream; its lines carry what
+    was counted and when. The book quantity at the counting time is read from
+    the movements, never stored; the adjustments that posted the differences
+    are linked from the lines.
+    """
+
+    __tablename__ = "stock_count"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "location_id"],
+            ["location.tenant_id", "location.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        Index("ix_stock_count_location_id", "tenant_id", "location_id"),
+        Index("uq_stock_count_source", "tenant_id", "source_record_id", unique=True),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    location_id: Mapped[str] = mapped_column()
+    note: Mapped[str] = mapped_column(Text, default="")
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class StockCountLine(Base):
+    """One counted item, and its lot where tracked, with when it was counted."""
+
+    __tablename__ = "stock_count_line"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "stock_count_id"],
+            ["stock_count.tenant_id", "stock_count.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "lot_id"],
+            ["lot.tenant_id", "lot.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "movement_id"],
+            ["movement.tenant_id", "movement.id"],
+        ),
+        CheckConstraint(
+            "counted_quantity >= 0", name="ck_stock_count_line_counted_quantity"
+        ),
+        Index(
+            "uq_stock_count_line_item_lot",
+            "tenant_id",
+            "stock_count_id",
+            "item_id",
+            text("coalesce(lot_id, '')"),
+            unique=True,
+        ),
+        Index("ix_stock_count_line_movement_id", "tenant_id", "movement_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    stock_count_id: Mapped[str] = mapped_column()
+    item_id: Mapped[str] = mapped_column()
+    lot_id: Mapped[str | None] = mapped_column(default=None)
+    counted_quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    counted_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    movement_id: Mapped[str | None] = mapped_column(default=None)
+
+
 class ItemReorderPoint(Base):
     """The stock level at which a company reorders an item at a location (spec 302).
 
