@@ -664,11 +664,22 @@ def review_existing(
 def delivery_proposal_detail(
     session: Session, tenant_id: str, proposal_id: str
 ) -> dict[str, Any]:
+    from reality.services.proposal_reviews import proposal_next_step
+
+    proposal = get_delivery_proposal(session, tenant_id, proposal_id)
+    return {
+        **_delivery_proposal_detail(session, tenant_id, proposal),
+        "next_step": proposal_next_step(proposal),
+    }
+
+
+def _delivery_proposal_detail(
+    session: Session, tenant_id: str, proposal: ChangeProposal
+) -> dict[str, Any]:
+    proposal_id = proposal.id
     from decimal import Decimal
 
     from reality.db.core import BusinessEvent, Movement, Reservation
-
-    proposal = get_delivery_proposal(session, tenant_id, proposal_id)
     from reality.services.shipment_actions import (
         is_shipment_action,
         shipment_proposal_detail,

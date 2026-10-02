@@ -4084,14 +4084,14 @@ capability_guidance:
   proposal_approve_and_execute:
     kind: confirm
     purpose: Apply one exact prepared mutation after an explicit authorized decision through a single-use Reality execution boundary.
-    use_when: [An authorized person or agent explicitly decides the exact pending proposal preview.]
+    use_when: [A permissioned caller submits an explicit authorized decision on the exact pending proposal preview.]
     do_not_use_when:
       - Approval is inferred from model output, credentials, connection, or prior similar decisions.
       - The proposal is executing, rejected, unknown, foreign, or no longer matches the intended action.
     required_context: [change_proposal]
     preconditions: [The proposal belongs to the selected tenant, remains proposed, and approved is explicitly true.]
     confirmation: explicit_decision
-    principal_semantics: The authenticated caller makes an explicit decision on the exact preview; operations that require a Reality user principal are refused unless the confirming adapter supplies that authenticated principal.
+    principal_semantics: Read next_step.decision_policy for the action-specific approval authority and existing contextual exceptions; required_principal is a compatibility summary. Confirmation access and approved=true do not verify human involvement or grant autonomous agent delegation. Operations requiring an authenticated principal representing a Reality user are refused unless the confirming adapter supplies it. Approval-only owner or private-author requirements do not become rejection requirements.
     idempotency: {mode: single_use_replay, guidance: An executed replay returns the stored receipt without executing again; never retry an executing proposal blindly.}
     retry_behavior: Retry only after a transport failure by reading proposal_execution_status; an executed result is replay-safe and an executing result requires reconciliation.
     unknown_behavior: Executing means the effect may be in progress or committed without a delivered response; reconcile by proposal ID and do not execute again.

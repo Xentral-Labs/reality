@@ -5,7 +5,12 @@ import { DecisionLine } from "./DecisionLine";
 import { ActionCard } from "./ActionCard";
 import { ReadState } from "./ReadState";
 import { useRead } from "./useCompanyContext";
-import { BusinessFieldList, DecisionActionBar, DecisionReviewHeader } from "./DecisionReview";
+import {
+  BusinessFieldList,
+  DecisionActionBar,
+  DecisionReviewHeader,
+  ProposalApprovalRequirement,
+} from "./DecisionReview";
 import { proposalBusinessLabel } from "./proposalPresentation";
 
 export function ProposalReviewCard({
@@ -118,12 +123,7 @@ export function ProposalReviewCard({
           />
         </p>
       )}
-      {data.next_step.required_principal === "authenticated_active_owner" && (
-        <p className="mt-4 rounded-xl bg-surface-muted p-4 text-sm">
-          {t("Owner decision required")}.{" "}
-          {t("An authenticated company owner must approve or reject this finance proposal.")}
-        </p>
-      )}
+      <ProposalApprovalRequirement nextStep={data.next_step} />
       {data.message && (
         <p role="alert" className="mt-4 rounded-xl bg-surface-muted p-4">
           {t(data.message)}

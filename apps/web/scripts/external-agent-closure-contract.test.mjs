@@ -21,7 +21,9 @@ test("web review and MCP catalogs retain the shared application identities", () 
   assert.ok(proposalReview.includes("api.proposalReview"));
   assert.ok(proposalReview.includes("api.approveProposal"));
   assert.ok(proposalReview.includes("api.rejectProposal"));
-  assert.ok(proposalReview.includes("authenticated_active_owner"));
+  const decisionReview = read("apps", "web", "src", "unified", "DecisionReview.tsx");
+  assert.ok(proposalReview.includes("ProposalApprovalRequirement"));
+  assert.ok(decisionReview.includes("authenticated_active_owner"));
   assert.ok(proposalReview.includes("next_step.reconciliation_read"));
   assert.ok(dunning.includes("authenticated company owner"));
   assert.ok(dunning.includes("dunning notice read"));

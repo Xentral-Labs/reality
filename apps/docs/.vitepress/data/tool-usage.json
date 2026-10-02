@@ -3673,7 +3673,7 @@
       "guidance": {
         "purpose": "Apply one exact prepared mutation after an explicit authorized decision through a single-use Reality execution boundary.",
         "use_when": [
-          "An authorized person or agent explicitly decides the exact pending proposal preview."
+          "A permissioned caller submits an explicit authorized decision on the exact pending proposal preview."
         ],
         "do_not_use_when": [
           "Approval is inferred from model output, credentials, connection, or prior similar decisions.",

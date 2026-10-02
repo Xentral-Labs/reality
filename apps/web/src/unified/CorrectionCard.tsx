@@ -490,6 +490,7 @@ export function CorrectionCard({
           </p>
           {proposal.status === "proposed" && !uncertain && (
             <DecisionActionBar
+              nextStep={proposal.next_step}
               busy={busy || !proposal.review}
               reject={() =>
                 run(async () => {

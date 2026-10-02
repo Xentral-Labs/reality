@@ -153,7 +153,11 @@ export function OrderLineItemCard({
             </dl>
           )}
           {proposal.status === "proposed" && (
-            <DecisionActionBar busy={busy} confirm={() => void confirm()}>
+            <DecisionActionBar
+              nextStep={proposal.next_step}
+              busy={busy}
+              confirm={() => void confirm()}
+            >
               <button className="br-btn" disabled={busy} onClick={close}>
                 {t("Cancel")}
               </button>

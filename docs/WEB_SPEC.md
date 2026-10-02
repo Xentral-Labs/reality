@@ -623,15 +623,24 @@ the warehouse meaning of issuing goods where needed.
 Proposal preparation returns a structured next step shared by Web and MCP. It names the stored
 proposal, the server-side review read, the required confirming principal, explicit-confirmation
 requirements, `proposal_execution_status` for lost-response reconciliation and authoritative
-verification reads. This metadata describes the decision boundary; it never grants an agent
-approval authority. Owner-governed finance and costing remain owner decisions. Ordinary mutating
-actions, including a free supplier invoice, require an authorized human but do not acquire a new
-owner-only rule.
+verification reads. The additive `decision_policy` separates approval authority, rejection
+requirements, explicit authorized decision and permitted confirmation paths. Preparation,
+review and execution use the same approval policy; specialized service checks retain their
+existing transaction boundaries. Credit-hold release correctly describes owner approval.
+Metadata never grants approval authority. Owner-governed finance and costing remain owner
+approvals; ordinary actions do not acquire an owner-only restriction.
 
-Explicit rejection uses the same tenant-scoped proposal lifecycle. The controlled rejection
-surface requires a true human decision, is excluded from default model-selected tools, has no
-business effect and returns stable rejected state on replay. Executing or executed proposals are
-reconciled rather than rewritten.
+`required_principal` remains a deprecated compatibility summary. Its historical
+`authorized_human` label is neither a company role nor proof of human involvement.
+Built-in Chat cannot settle proposals. External MCP retains permissioned explicit
+confirmation; token identity and an approval boolean do not establish a human decision.
+No autonomous agent delegation is granted. See the [decision policy contract](features/proposal-decision-policy.md).
+
+Explicit rejection uses the same tenant-scoped proposal lifecycle, separately from approval
+requirements. Existing action-context rejection does not inherit approval-only owner or
+private-author restrictions. The controlled rejection surface requires an explicit authorized
+decision, is excluded from built-in Chat tools, has no business effect and returns stable
+rejected state on replay. Executing or executed proposals are reconciled rather than rewritten.
 
 Progressive disclosure in workspace navigation is the rule, not a reflex. A workspace
 lists five Views and two Actions directly and keeps the rest behind its searchable

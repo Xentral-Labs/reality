@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { deliveryActions, type ProposalReview } from "../api";
+import { ReadLine } from "./ReadState";
+import { ProposalApprovalRequirement } from "./DecisionReview";
 import { formatMoney, t } from "../localization";
 
 // Spec 298: an order held for credit is released by an owner with a stated reason.
@@ -13,7 +16,12 @@ type Review = {
     exposure: { currency: string; credit_limit: string; exposure: string; excess: string };
   };
 };
-type Prepared = { id: string; review: Review };
+type Prepared = {
+  id: string;
+  status?: string;
+  review: Review;
+  next_step?: ProposalReview["next_step"];
+};
 
 async function call<T>(url: string, body: unknown): Promise<T> {
   const response = await fetch(url, {
@@ -30,12 +38,14 @@ async function call<T>(url: string, body: unknown): Promise<T> {
 
 export function CreditHoldRelease({
   tenant,
-  order,
+  order = "",
+  proposalId,
   close,
   settled,
 }: {
   tenant: string;
-  order: string;
+  order?: string;
+  proposalId?: string;
   close: () => void;
   settled: () => void;
 }) {
@@ -47,6 +57,7 @@ export function CreditHoldRelease({
   const [error, setError] = useState("");
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [done, setDone] = useState(false);
+  const [retry, retryReview] = useState(0);
 
   useEffect(() => {
     const node = dialog.current;
@@ -57,6 +68,29 @@ export function CreditHoldRelease({
       previous?.focus();
     };
   }, []);
+
+  useEffect(() => {
+    if (!proposalId) return;
+    let active = true;
+    setBusy(true);
+    deliveryActions
+      .review(tenant, proposalId)
+      .then((value) => {
+        if (active) {
+          setPrepared(value as unknown as Prepared);
+          setDone(value.status === "executed" && value.verification === "verified");
+        }
+      })
+      .catch((failure) => {
+        if (active) setError(failure.message);
+      })
+      .finally(() => {
+        if (active) setBusy(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [tenant, proposalId, retry]);
 
   async function prepare(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -118,6 +152,14 @@ export function CreditHoldRelease({
         <p role="status" className="rounded-lg bg-positive-surface p-4 font-medium">
           {t("The credit hold is released; the order can be reserved and shipped.")}
         </p>
+      ) : prepared?.status && prepared.status !== "proposed" ? (
+        <p role="status">
+          {t(
+            prepared.status === "rejected"
+              ? "Rejected"
+              : "Execution outcome is being checked. Do not repeat the action.",
+          )}
+        </p>
       ) : state ? (
         <>
           <p className="mb-3">
@@ -132,9 +174,13 @@ export function CreditHoldRelease({
               </li>
             ))}
           </ul>
-          <p className="mb-4 text-sm text-fg-muted">
-            {t("Only a company owner can confirm this release.")}
-          </p>
+          {prepared?.next_step ? (
+            <ProposalApprovalRequirement nextStep={prepared.next_step} />
+          ) : (
+            <p className="mb-4 text-sm text-fg-muted">
+              {t("Only a company owner can confirm this release.")}
+            </p>
+          )}
           <div className="flex gap-2">
             <button className="br-btn" disabled={busy} onClick={() => void confirm()}>
               {t("Confirm")}
@@ -144,6 +190,16 @@ export function CreditHoldRelease({
             </button>
           </div>
         </>
+      ) : proposalId ? (
+        <div>
+          {busy ? (
+            <ReadLine />
+          ) : (
+            <button className="br-btn" onClick={() => retryReview((value) => value + 1)}>
+              {t("Retry")}
+            </button>
+          )}
+        </div>
       ) : (
         <form className="grid gap-4" onSubmit={prepare}>
           <label>

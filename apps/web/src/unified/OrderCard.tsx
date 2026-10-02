@@ -589,6 +589,7 @@ export function OrderCard({
           )}
           {proposal.status === "proposed" && !uncertain ? (
             <DecisionActionBar
+              nextStep={proposal.next_step}
               busy={busy || !review}
               reject={() =>
                 run(async () => {

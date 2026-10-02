@@ -402,6 +402,7 @@ export function PaymentCard({
           <div className="flex flex-wrap gap-3">
             {proposal.status === "proposed" && !uncertain && (
               <DecisionActionBar
+                nextStep={proposal.next_step}
                 busy={busy || !review}
                 reject={() =>
                   run(async () => {

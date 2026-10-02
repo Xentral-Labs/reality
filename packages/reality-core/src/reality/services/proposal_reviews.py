@@ -92,10 +92,11 @@ def proposal_routing(proposal: ChangeProposal) -> dict[str, str]:
 
 def proposal_next_step(proposal: ChangeProposal) -> dict[str, Any]:
     """Describe the existing decision boundary without granting decision authority."""
-    arguments = _stored_object(proposal.input) or {}
+    stored_arguments = _stored_object(proposal.input)
+    arguments = stored_arguments or {}
     tool = proposal.type.removeprefix("tool:")
     from reality.catalogs import runtime_application_catalog_section
-    from reality.tools.finance import FINANCE_COMMANDS
+    from reality.services.proposal_decisions import resolve_decision_policy
 
     guidance = runtime_application_catalog_section("capability_guidance")
     verification_reads: list[str] = []
@@ -108,16 +109,15 @@ def proposal_next_step(proposal: ChangeProposal) -> dict[str, Any]:
             if isinstance(read, dict) and read.get("name")
         ]
         break
-    required_principal = "authorized_human"
-    if tool in FINANCE_COMMANDS or tool == "cost.change":
-        required_principal = "authenticated_active_owner"
-    elif "_delivery_review" in arguments:
-        required_principal = "authenticated_active_member"
+    policy = resolve_decision_policy(
+        tool, arguments, available=stored_arguments is not None
+    )
     return {
         "review_required": True,
         "review_read": "proposal_review",
         "decision_handoff": "proposal-review",
-        "required_principal": required_principal,
+        "required_principal": policy.required_principal,
+        "decision_policy": policy.as_dict(),
         "explicit_confirmation": True,
         "confirmation_tool": "proposal_approve_and_execute",
         "reconciliation_read": "proposal_execution_status",

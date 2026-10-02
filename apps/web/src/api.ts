@@ -786,6 +786,25 @@ export type CopilotProposal = {
 };
 export type ProposalReviewKind =
   "import" | "reference" | "analytics_report" | "delivery" | "common" | "retired";
+export type ProposalDecisionPolicy = {
+  approval: {
+    authority:
+      | "company_owner"
+      | "company_member"
+      | "private_report_author"
+      | "account_user"
+      | "action_context"
+      | "unavailable";
+    conditions: string[];
+    exceptions: string[];
+  };
+  rejection: { authority: "action_context" };
+  explicit_authorized_decision: boolean;
+  confirmation_channels: ("web" | "external_mcp" | "trusted_local_cli")[];
+  built_in_chat_can_confirm: boolean;
+  autonomous_agent_delegation: boolean;
+  human_involvement_verified: boolean;
+};
 export type ProposalReview = {
   id: string;
   tool: string;
@@ -801,6 +820,7 @@ export type ProposalReview = {
   preview: Record<string, unknown>;
   receipt: Record<string, unknown>;
   next_step: {
+    decision_policy?: ProposalDecisionPolicy;
     review_required: boolean;
     required_principal:
       "authorized_human" | "authenticated_active_member" | "authenticated_active_owner";
@@ -2704,6 +2724,7 @@ export const shipmentApi = {
 };
 
 export type DeliveryProposal = {
+  next_step?: ProposalReview["next_step"];
   movement_type?: string;
   id: string;
   tool: string;

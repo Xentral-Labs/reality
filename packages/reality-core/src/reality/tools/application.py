@@ -156,16 +156,15 @@ from reality.services.tenant_policy import (
 )
 
 ToolHandler = Callable[[Session, str, dict[str, Any]], Any]
-MEMBERSHIP_MUTATION_TOOLS = {
-    "member_invite",
-    "invitation_resend",
-    "invitation_revoke",
-    "member_remove",
-}
-ACCOUNT_MUTATION_TOOLS = MEMBERSHIP_MUTATION_TOOLS | {
-    "business_journey_proposal_create",
-    "business_journey_vote_set",
-}
+from reality.domain.proposal_decisions import (
+    ACCOUNT_MUTATION_TOOLS,
+    MEMBERSHIP_MUTATION_TOOLS,
+    REFERENCE_MUTATION_TOOLS,
+)
+from reality.services.proposal_decisions import (
+    require_decision_authority,
+    resolve_decision_policy,
+)
 
 
 @dataclass(frozen=True)
@@ -3961,23 +3960,14 @@ def approve_and_execute_proposal(
     )
     if candidate is None:
         raise NotFound(code="proposal_not_found")
-    if candidate.type == "tool:cost.change":
-        from reality.services.costing import _owner
-
-        if not confirmed:
-            raise InvalidOperation(code="cost_decision_confirmation_required")
-        _owner(session, tenant_id, confirming_principal)
-    if candidate.type == "tool:credit_hold_release":
-        import os
-
-        from reality.services.memberships import require_owner
-
-        # Spec 298 FR-004: only an owner releases a credit decision.
-        if confirming_principal is not None:
-            require_owner(session, tenant_id, confirming_principal)
-        elif os.environ.get("REALITY_AUTH_MODE") != "disabled":
-            raise InvalidOperation(code="company_owner_access_required")
-    if candidate.type == "tool:graph.reports.change":
+    authority_policy = resolve_decision_policy(
+        candidate.type.removeprefix("tool:"), json.loads(candidate.input)
+    )
+    require_decision_authority(
+        session, tenant_id, authority_policy, confirming_principal,
+        phase="preflight", confirmed=confirmed,
+    )
+    if "report_author" in authority_policy.checks:
         from reality.services.analytics.proposals import reveal
 
         reveal(session, tenant_id, confirming_principal, json.loads(candidate.input))
@@ -3987,10 +3977,9 @@ def approve_and_execute_proposal(
             raise AnalyticsError(
                 "Explicit confirmation is required for a private report change."
             )
-    if "_delivery_review" in json.loads(candidate.input):
-        from reality.services.delivery_actions import require_delivery_principal
-
-        require_delivery_principal(session, tenant_id, confirming_principal)
+    require_decision_authority(
+        session, tenant_id, authority_policy, confirming_principal, phase="locked"
+    )
     if candidate.status == "executed":
         return candidate
     require_proposal_decision(session, tenant_id, proposal_id, "proposal_execute")
@@ -4007,10 +3996,9 @@ def approve_and_execute_proposal(
     if tool is None or not tool.mutating:
         raise InvalidOperation(code="proposal_mutation_tool_invalid")
     arguments = json.loads(candidate.input)
-    if tool_name in MEMBERSHIP_MUTATION_TOOLS and confirming_principal is None:
-        raise InvalidOperation(code="membership_change_owner_required")
-    if tool_name in ACCOUNT_MUTATION_TOOLS and confirming_principal is None:
-        raise InvalidOperation(code="account_confirmation_required")
+    require_decision_authority(
+        session, tenant_id, authority_policy, confirming_principal, phase="identity"
+    )
 
     from reality.db.core import Tenant
     from reality.services.delivery_actions import REVIEW_KEY, eligible, validate_review
@@ -4034,14 +4022,9 @@ def approve_and_execute_proposal(
         raise InvalidOperation(code="review_confirmation_required")
 
     if tool_name in FINANCE_COMMANDS:
-        import os
-
-        from reality.services.memberships import require_owner
-
-        if confirming_principal is not None:
-            require_owner(session, tenant_id, confirming_principal)
-        elif os.environ.get("REALITY_AUTH_MODE") != "disabled":
-            raise InvalidOperation(code="account_change_owner_required")
+        require_decision_authority(
+            session, tenant_id, authority_policy, confirming_principal, phase="execution"
+        )
         try:
             if tool_name in {
                 ADJUSTMENT_COMMAND,
@@ -4130,7 +4113,9 @@ def approve_and_execute_proposal(
 
         try:
             lock_delivery_state(session, tenant_id)
-            require_delivery_principal(session, tenant_id, confirming_principal)
+            require_decision_authority(
+                session, tenant_id, authority_policy, confirming_principal, phase="locked"
+            )
             from reality.services.delivery_actions import assert_no_unresolved_action
 
             assert_no_unresolved_action(
@@ -4145,24 +4130,17 @@ def approve_and_execute_proposal(
             _undecide(proposal)
             session.commit()
             raise
-    if tool_name in {
-        "party_create",
-        "item_create",
-        "location_create",
-        "party_update",
-        "item_update",
-        "location_update",
-    }:
+    if tool_name in REFERENCE_MUTATION_TOOLS:
         from reality.services.business_locks import lock_delivery_state
         from reality.services.core import _assert_update_revision
 
         try:
             lock_delivery_state(session, tenant_id)
             session.expire_all()
-            from reality.services.delivery_actions import require_delivery_principal
-
             if tenant and tenant.purpose != "playground":
-                require_delivery_principal(session, tenant_id, confirming_principal)
+                require_decision_authority(
+                    session, tenant_id, authority_policy, confirming_principal, phase="reference"
+                )
             if tool_name.endswith("_update"):
                 for record in arguments["records"]:
                     _assert_update_revision(
@@ -4228,14 +4206,14 @@ def approve_and_execute_proposal(
     from reality.playground.actions import MASTER_TOOLS
     from reality.services.tenant_policy import master_tool_execution
 
-    if tool_name == "graph.requests.create":
+    if "request_author" in authority_policy.checks:
         from reality.services.analytics.proposals import execute_request
 
         with executing_proposal(tenant_id, proposal.id):
             result = execute_request(
                 session, tenant_id, confirming_principal, arguments
             )
-    elif tool_name == "graph.reports.change":
+    elif "report_author" in authority_policy.checks:
         from reality.services.analytics.proposals import execute_change
 
         try:
