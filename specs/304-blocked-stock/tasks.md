@@ -54,9 +54,11 @@
 
 ## Phase 7: Verification
 
-- [ ] T014 Full backend suite and web checks
-- [ ] T015 Manual check per `quickstart.md`
-- [ ] T016 Review of the diff; fix findings
+- [x] T014 Full backend suite and web checks (5314 passed, 10 skipped; tsc, build, test:i18n 451/451, i18n audit, browser suite)
+- [x] T015 Manual check per `quickstart.md` on an isolated stack, in German
+  - Blocking, partial release, scrap, receipt with "Davon gesperrt" and the expired-lot block all behaved as specified.
+  - Fixed: the block list and dialog lost their padding under `.register-surface`, and the Block button was clipped in the Details cell (now in the row preview). The expired-stock hint now names blocking.
+- [x] T016 Review of the diff; fix findings
   - A receipt blocks at most what it receives (`stock_block_exceeds_receipt`).
   - Correcting a receipt whose stock is blocked is refused (`movement_correction_takes_blocked_stock`), and the correction preview shows blocked stock.
   - A scrap cannot be corrected (`movement_correction_scrap_block`).
