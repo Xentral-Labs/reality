@@ -478,7 +478,7 @@ def test_the_migration_guards_its_downgrade(postgres_database, monkeypatch):
     engine = create_engine(postgres_database)
     try:
         # Positive control: nothing stated, so the downgrade and upgrade pass.
-        command.downgrade(config, "0116_company_currency")
+        command.downgrade(config, "0121_census_members")
         command.upgrade(config, "head")
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration 310")
@@ -486,7 +486,7 @@ def test_the_migration_guards_its_downgrade(postgres_database, monkeypatch):
             item = core.create_item(session, tenant.id, "M310", "Item 310")
             set_supplier_item_terms(session, tenant.id, supplier.id, item.id, "5")
         with pytest.raises(Exception, match="supplier item terms"):
-            command.downgrade(config, "0116_company_currency")
+            command.downgrade(config, "0121_census_members")
     finally:
         engine.dispose()
         command.upgrade(config, "head")

@@ -19,7 +19,7 @@ Tests come first in each phase where practical.
   - "invoice price differs" compares against it;
   - the review shows both;
   - the migration and downgrade.
-- [x] T005 Migration `0117`, `revise_commitment`, `commitment_terms`, the review, the guided invoice and the exception
+- [x] T005 Migration `0122`, `revise_commitment`, `commitment_terms`, the review, the guided invoice and the exception
 
 ## Phase 3: Supplier terms (FR-005)
 

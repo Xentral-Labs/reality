@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:c46b22bbda9a8bbdf0826392c99e9d7422859be27fad4f07682c1f2a60bee055",
+  "knowledge_version": "advisor-v1:sha256:ebeabc3a1d6661b63256126f67062d5b452026b0226fcdc18abc56b03a0dacc4",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -536,6 +536,14 @@
           "mode": "query"
         },
         {
+          "name": "supplier_item_terms",
+          "mode": "query"
+        },
+        {
+          "name": "purchase_match",
+          "mode": "query"
+        },
+        {
           "name": "available_to_promise",
           "mode": "query"
         }
@@ -635,7 +643,12 @@
         "evidence_journey_i11",
         "evidence_journey_i12"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "purchase_match",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_time_and_period",
@@ -756,6 +769,9 @@
         "evidence_command_release_credit_holds",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
+        "evidence_command_set_supplier_item_terms",
+        "evidence_command_remove_supplier_item_terms",
+        "evidence_command_supplier_item_terms",
         "evidence_command_set_customer_item_number",
         "evidence_command_remove_customer_item_number",
         "evidence_command_customer_item_numbers",
@@ -836,6 +852,18 @@
         },
         {
           "name": "available_to_promise",
+          "mode": "query"
+        },
+        {
+          "name": "set_supplier_item_terms",
+          "mode": "mutation"
+        },
+        {
+          "name": "remove_supplier_item_terms",
+          "mode": "mutation"
+        },
+        {
+          "name": "supplier_item_terms",
           "mode": "query"
         },
         {
@@ -956,6 +984,10 @@
         "evidence_command_scrap_stock_block",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
+        "evidence_command_set_supplier_item_terms",
+        "evidence_command_remove_supplier_item_terms",
+        "evidence_command_supplier_item_terms",
+        "evidence_command_purchase_match",
         "evidence_command_set_customer_item_number",
         "evidence_command_customer_item_numbers",
         "evidence_command_record_stock_count",
@@ -1054,6 +1086,22 @@
         },
         {
           "name": "available_to_promise",
+          "mode": "query"
+        },
+        {
+          "name": "set_supplier_item_terms",
+          "mode": "mutation"
+        },
+        {
+          "name": "remove_supplier_item_terms",
+          "mode": "mutation"
+        },
+        {
+          "name": "supplier_item_terms",
+          "mode": "query"
+        },
+        {
+          "name": "purchase_match",
           "mode": "query"
         },
         {
@@ -1346,6 +1394,7 @@
         "evidence_command_block_stock",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
+        "evidence_command_purchase_match",
         "evidence_command_record_stock_count",
         "evidence_command_state_delivery_rule",
         "evidence_command_delivery_rules",
@@ -1432,6 +1481,10 @@
         },
         {
           "name": "available_to_promise",
+          "mode": "query"
+        },
+        {
+          "name": "purchase_match",
           "mode": "query"
         },
         {
@@ -1542,6 +1595,7 @@
         "evidence_command_scrap_stock_block",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
+        "evidence_command_purchase_match",
         "evidence_command_record_stock_count",
         "evidence_command_month_end_billing",
         "evidence_command_announce_customer_return",
@@ -1612,6 +1666,10 @@
         },
         {
           "name": "available_to_promise",
+          "mode": "query"
+        },
+        {
+          "name": "purchase_match",
           "mode": "query"
         },
         {
@@ -2599,6 +2657,7 @@
         "evidence_command_reverse_ledger_posting_group",
         "evidence_command_hold_document_commitments",
         "evidence_command_release_credit_holds",
+        "evidence_command_purchase_match",
         "evidence_command_state_delivery_rule",
         "evidence_command_delivery_rules",
         "evidence_command_credit_exposure",
@@ -2771,6 +2830,10 @@
         {
           "name": "release_credit_holds",
           "mode": "mutation"
+        },
+        {
+          "name": "purchase_match",
+          "mode": "query"
         },
         {
           "name": "state_delivery_rule",
