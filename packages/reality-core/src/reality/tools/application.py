@@ -1415,6 +1415,7 @@ def _backorders_serve(
         arguments["location_id"],
         arguments["lines"],
         supplier_commitment_id=arguments.get("supplier_commitment_id") or None,
+        reviewed=arguments.get("reviewed"),
         action_id=arguments.get("_action_id"),
     )
 

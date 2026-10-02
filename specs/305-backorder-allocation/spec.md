@@ -93,7 +93,11 @@ As a sales clerk, I ask when an item can be promised and see the purchase and da
 - A confirmation after the stock or the promises changed since the review is refused, like other reviewed delivery actions.
 - A purchase that is overdue still appears in available-to-promise with its stated date, marked overdue.
 - Blocked stock (spec 304) is not available to serve.
-- A promise in another unit (spec 301) is served in its held stock unit.
+- A promise in another unit (spec 301) is served in its held stock unit. A promise recorded before spec 301 and still held in its line's unit is not served and not counted in available-to-promise; it is named apart.
+- Due dates are the stated ones, revisions included.
+- A promise under a hold, or whose customer is under a delivery hold, is listed apart and not served.
+- Supply still to come counts for a promise only up to what it still needs; once it is reserved or delivered, the rest of its assignment is promisable again.
+- Lot- and serial-tracked items are not served by this step; they are reserved lot by lot.
 
 ## Requirements *(mandatory)*
 

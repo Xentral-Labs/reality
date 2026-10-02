@@ -469,3 +469,134 @@ def test_a_person_confirms_the_reviewed_serving(session, business):
         ].reserved
         == 3
     )
+
+
+# --- review round (T017) ---------------------------------------------------------------
+
+
+def test_a_revised_due_date_moves_the_promise_and_the_purchase(session, business):
+    later = _promise(session, business, "3", due="2026-11-01")
+    other = _promise(session, business, "3", due="2026-10-20")
+    _stock(session, business, "3")
+    # Positive control: by the original dates the other promise comes first.
+    assert _lines(_review(session, business)[1])[0][0] == other.id
+
+    core.revise_commitment(session, business.tenant.id, later.id, "2026-10-05")
+
+    _, preview = _review(session, business)
+    assert (preview["lines"][0]["commitment_id"], preview["lines"][0]["due_at"]) == (
+        later.id,
+        "2026-10-05",
+    )
+    purchase = _purchase(session, business, "4", due="2026-10-12")
+    core.revise_commitment(session, business.tenant.id, purchase.id, "2030-01-30")
+    (row,) = _atp(session, business)["purchases"]
+    assert (row["due_at"], row["overdue"]) == ("2030-01-30", False)
+
+
+def test_a_reserved_promise_does_not_hold_back_its_assigned_supply(session, business):
+    from reality.services.backorders import serve_backorders
+
+    customer = _promise(session, business, "3")
+    purchase = _purchase(session, business, "10")
+    _assign(session, business, purchase, customer, "3", "atp-reserved")
+    assert _atp(session, business)["purchases"][0]["adds"] == "7"
+    # Other stock arrives and serves the customer by due date.
+    _stock(session, business, "3")
+    normalized, _ = _review(session, business)
+    serve_backorders(
+        session,
+        business.tenant.id,
+        business.item.id,
+        business.location.id,
+        normalized["lines"],
+        reviewed=normalized["reviewed"],
+    )
+
+    answer = _atp(session, business)
+    assert (answer["now"]["free"], answer["purchases"][0]["adds"]) == ("0", "10")
+
+
+def test_a_hold_placed_after_the_review_refuses_the_confirmation(session, business):
+    from reality.services.backorders import serve_backorders
+
+    first = _promise(session, business, "3", due="2026-10-15")
+    _promise(session, business, "3", due="2026-10-16")
+    _stock(session, business, "6")
+    normalized, _ = _review(session, business)
+    # Positive control: an unchanged review confirms.
+    unchanged, _ = _review(session, business)
+    assert unchanged["reviewed"] == normalized["reviewed"]
+
+    core.hold_commitment(session, business.tenant.id, first.id, "customer_request")
+
+    try:
+        serve_backorders(
+            session,
+            business.tenant.id,
+            business.item.id,
+            business.location.id,
+            normalized["lines"],
+            reviewed=normalized["reviewed"],
+        )
+    except core.InvalidOperation as error:
+        assert error.code == "backorder_serving_changed_since_review"
+    else:
+        raise AssertionError("a confirmation after a new hold was executed")
+
+
+def test_a_customer_under_a_delivery_hold_is_not_served_ahead(session, business):
+    held = _promise(session, business, "3", due="2026-10-10")
+    _stock(session, business, "3")
+    core.hold_party_delivery(
+        session, business.tenant.id, business.customer.id, "collection"
+    )
+
+    try:
+        _review(session, business)
+    except core.InvalidOperation as error:
+        assert error.code == "backorder_serving_nothing_to_serve"
+    else:
+        raise AssertionError("a customer under a delivery hold was served")
+    from reality.services.backorders import waiting_promises
+
+    waiting, on_hold = waiting_promises(
+        session, business.tenant.id, business.item.id, business.location.id
+    )
+    assert (
+        waiting,
+        [(row["commitment_id"], row["hold_reason"]) for row in on_hold],
+    ) == (
+        [],
+        [(held.id, "party_delivery_hold")],
+    )
+
+
+def test_a_purchase_held_in_its_line_unit_is_left_out(session, business):
+    _, _, lines, commitments = core.create_manual_order(
+        session,
+        business.tenant.id,
+        "purchase",
+        "PO-305-CTN",
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "5",
+                "unit_price": "10",
+                "gross_amount": "50",
+            }
+        ],
+        "50",
+    )
+    (purchase,) = commitments
+    assert _atp(session, business)["purchases"][0]["commitment_id"] == purchase.id
+    # Recorded before spec 301: the promise says nothing and its line is in cartons.
+    purchase.unit = None
+    lines[0].unit = "ctn"
+    session.commit()
+
+    answer = _atp(session, business)
+    assert (answer["purchases"], answer["not_in_stock_unit"]) == ([], [purchase.id])

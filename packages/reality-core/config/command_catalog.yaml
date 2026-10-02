@@ -167,6 +167,7 @@ parameter_descriptions:
   is_active: Whether the record remains selectable for new operational work.
   is_default: Whether this rule is the fallback for its direction and currency.
   item_id: Opaque identity of the operational item reference.
+  reviewed: What a review showed (available stock, waiting promises and holds); a confirmation after any of it changed is refused.
   item_type: Operational classification such as product, service, or charge.
   job_id: Opaque identity of the queued source-processing job.
   lead_time_days: Expected calendar days required before supply becomes available.

@@ -28,7 +28,10 @@ export function BackorderServingCard({
   settled: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
-    alive = useRef(true);
+    alive = useRef(true),
+    // The review still open on the server, and which prepare is the latest.
+    open = useRef<string | null>(null),
+    latest = useRef(0);
   const [place, setPlace] = useState(location || ""),
     [proposal, setProposal] = useState<BackorderServingProposal | null>(null),
     [quantities, setQuantities] = useState<Record<string, string>>({}),
@@ -50,9 +53,11 @@ export function BackorderServingCard({
     node?.showModal();
     return () => {
       alive.current = false;
+      void withdraw();
       node?.close();
       previous?.focus();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -65,11 +70,15 @@ export function BackorderServingCard({
       if (alive.current) setBusy(false);
     }
   };
+  // Only a review nobody confirmed is withdrawn; a refused one is already closed.
   const withdraw = async () => {
-    if (proposal && !done) await api.rejectProposal(tenant, proposal.id, null);
+    const id = open.current;
+    open.current = null;
+    if (id) await api.rejectProposal(tenant, id, null).catch(() => undefined);
   };
   const prepare = (lines?: Array<{ commitment_id: string; quantity: string }>) =>
     run(async () => {
+      const mine = ++latest.current;
       await withdraw();
       const value = await backorders.prepare(tenant, {
         item_id: item.id,
@@ -77,7 +86,12 @@ export function BackorderServingCard({
         ...(purchase ? { supplier_commitment_id: purchase } : {}),
         ...(lines ? { lines } : {}),
       });
-      if (!alive.current) return;
+      if (!alive.current || mine !== latest.current) {
+        // Superseded or closed meanwhile: nothing may stay open on the server.
+        void api.rejectProposal(tenant, value.id, null).catch(() => undefined);
+        return;
+      }
+      open.current = value.id;
       setProposal(value);
       setEdited(false);
       setQuantities(
@@ -92,13 +106,21 @@ export function BackorderServingCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [place]);
   const leave = () => {
-    void withdraw().catch(() => undefined);
+    void withdraw();
     close();
   };
   const confirm = () =>
     run(async () => {
       if (!proposal) return;
-      await backorders.confirm(tenant, proposal.id);
+      // Once confirmed it is executed or refused, never left to withdraw.
+      open.current = null;
+      try {
+        await backorders.confirm(tenant, proposal.id);
+      } catch (reason) {
+        // A refused confirmation closed this review; offer to review again.
+        if (alive.current) setEdited(true);
+        throw reason;
+      }
       if (!alive.current) return;
       setDone(true);
       settled();
@@ -142,6 +164,8 @@ export function BackorderServingCard({
             disabled={busy || done}
             value={place}
             onChange={(e) => {
+              latest.current++;
+              void withdraw();
               setProposal(null);
               setPlace(e.target.value);
             }}

@@ -157,6 +157,47 @@ def test_another_company_cannot_serve_or_read(session, business, monkeypatch):
     assert read.status_code == 404, read.text
     assert _reserved(session, business, promise) == 0
 
+    # Foreign identities inside the company's own request are refused too.
+    foreign_item = core.create_item(session, other.id, "SECRET-305", "Secret lamp")
+    foreign_place = core.create_location(session, other.id, "Secret store")
+    foreign_party = core.create_party(session, other.id, "Secret AG", "customer")
+    foreign_company = core.create_party(session, other.id, "Other GmbH", "company")
+    foreign_promise = core.create_commitment(
+        session,
+        other.id,
+        "customer_delivery",
+        foreign_company.id,
+        foreign_party.id,
+        foreign_item.id,
+        foreign_place.id,
+        "3",
+        "2026-10-15",
+    )
+    prefix = f"/api/tenants/{business.tenant.id}"
+    own = {"item_id": business.item.id, "location_id": business.location.id}
+    for body, code in (
+        (
+            {**own, "lines": [{"commitment_id": foreign_promise.id, "quantity": "1"}]},
+            "backorder_serving_line_not_waiting",
+        ),
+        (
+            {**own, "location_id": foreign_place.id},
+            "backorder_serving_location_not_stock",
+        ),
+        ({**own, "item_id": foreign_item.id}, "backorder_serving_item_not_found"),
+    ):
+        refused = client.post(f"{prefix}/backorders/proposals", json=body)
+        assert refused.status_code in {400, 409, 422}, refused.text
+        assert code in refused.text
+        assert "Secret" not in refused.text
+    purchase = client.post(
+        f"{prefix}/backorders/proposals",
+        json={**own, "supplier_commitment_id": foreign_promise.id},
+    )
+    assert purchase.status_code == 404, purchase.text
+    assert "Secret" not in purchase.text
+    assert _reserved(session, business, promise) == 0
+
 
 def test_the_cli_serves_after_asking(session, business, monkeypatch):
     factory = sessionmaker(session.bind, expire_on_commit=False)

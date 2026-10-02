@@ -62,3 +62,9 @@ Tests come first in each phase where practical.
 - [ ] T015 Full backend suite and web checks
 - [ ] T016 Manual check per `quickstart.md`
 - [ ] T017 Review of the diff; fix findings
+  - Serving order and available-to-promise read revised due dates.
+  - Supply still to come is capped at what each promise still needs, so a reserved or delivered promise no longer holds back its purchase.
+  - The confirmation compares what the review showed (available stock, waiting needs, holds) under the delivery lock and refuses any change.
+  - Customers under a delivery hold and promises held in their line's unit are listed apart.
+  - The card withdraws superseded, closed and location-changed reviews and offers to review again after a refused confirmation.
+  - The isolation test sends foreign items, locations, promises and purchases inside the company's own request.

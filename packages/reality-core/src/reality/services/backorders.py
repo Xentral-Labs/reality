@@ -16,11 +16,13 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from reality.db.core import Commitment, Item, Location, Party
+from reality.db.core import Commitment, DocumentLine, Item, Location, Party
+from reality.domain.units import promise_held_unit
 from reality.services.core import (
     InvalidOperation,
     _tenant_record,
     active_commitment_hold,
+    active_party_delivery_hold,
     active_reserved,
     blocked_quantity,
     commitment_terms,
@@ -83,6 +85,31 @@ def free_at(
     )
 
 
+def _held_elsewhere(
+    session: Session, tenant_id: str, rows: list[Commitment], item: Item
+) -> set[str]:
+    """Promises held in their line's unit (recorded before spec 301), not in stock units."""
+    line_ids = {row.document_line_id for row in rows if row.document_line_id}
+    lines = (
+        {
+            line.id: line
+            for line in session.scalars(
+                select(DocumentLine).where(
+                    DocumentLine.tenant_id == tenant_id, DocumentLine.id.in_(line_ids)
+                )
+            )
+        }
+        if line_ids
+        else {}
+    )
+    return {
+        row.id
+        for row in rows
+        if promise_held_unit(row.unit, lines.get(row.document_line_id or ""), item.unit)
+        != item.unit
+    }
+
+
 def waiting_promises(
     session: Session,
     tenant_id: str,
@@ -125,6 +152,8 @@ def waiting_promises(
         if row.location_id == location_id or row.id in assigned_order
     ]
     terms = commitment_terms(session, tenant_id, [row.id for row in candidates])
+    item = _tenant_record(session, Item, tenant_id, item_id)
+    other_unit = _held_elsewhere(session, tenant_id, candidates, item)
     parties = {
         party.id: party.name
         for party in session.scalars(
@@ -143,7 +172,8 @@ def waiting_promises(
         key=lambda row: (
             0 if row.id in assigned_order else 1,
             assigned_order.get(row.id, 0),
-            row.due_at or far,
+            # The stated date, revisions included.
+            terms[row.id].due_at or far,
             row.created_at,
             row.id,
         ),
@@ -154,16 +184,34 @@ def waiting_promises(
         entry = {
             "commitment_id": row.id,
             "customer": parties.get(row.to_party_id or "", ""),
-            "due_at": _day(row.due_at),
+            "due_at": _day(terms[row.id].due_at),
             "need": need,
             "why": "assigned" if row.id in assigned_order else "due",
         }
         hold = active_commitment_hold(session, tenant_id, row.id)
         if hold:
             held.append({**entry, "hold_reason": hold.reason_code})
+        elif row.to_party_id and active_party_delivery_hold(
+            session, tenant_id, row.to_party_id
+        ):
+            # Reserving is allowed but shipping is not; it is not served ahead.
+            held.append({**entry, "hold_reason": "party_delivery_hold"})
+        elif row.id in other_unit:
+            held.append({**entry, "hold_reason": "held_in_line_unit"})
         else:
             waiting.append(entry)
     return waiting, held
+
+
+def _fingerprint(
+    available: Decimal, waiting: list[dict[str, Any]], held: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """What the person saw: a confirmation after any of it changed is refused."""
+    return {
+        "available": _plain(available),
+        "waiting": [[row["commitment_id"], _plain(row["need"])] for row in waiting],
+        "held": [row["commitment_id"] for row in held],
+    }
 
 
 def review_backorder_serving(
@@ -226,6 +274,7 @@ def review_backorder_serving(
             for identity, amount in quantities.items()
             if amount > 0
         ],
+        "reviewed": _fingerprint(available, waiting, held),
     }
     preview = {
         "item": item.name,
@@ -248,9 +297,27 @@ def serve_backorders(
     lines: list[dict[str, Any]],
     *,
     supplier_commitment_id: str | None = None,
+    reviewed: dict[str, Any] | None = None,
     action_id: str | None = None,
 ) -> dict[str, Any]:
-    """Reserve the confirmed lines; refuse all of them if one no longer fits."""
+    """Reserve the confirmed lines; refuse all of them if anything changed.
+
+    Under the delivery lock, the stock, the waiting promises and the holds are
+    read again and compared with what the review showed.
+    """
+    from reality.services.business_locks import lock_delivery_state
+
+    lock_delivery_state(session, tenant_id)
+    if reviewed is not None:
+        item, location = _place(session, tenant_id, item_id, location_id)
+        waiting, held = waiting_promises(
+            session, tenant_id, item.id, location.id, supplier_commitment_id
+        )
+        current = _fingerprint(
+            free_at(session, tenant_id, item.id, location.id), waiting, held
+        )
+        if current != reviewed:
+            raise InvalidOperation(code="backorder_serving_changed_since_review")
     try:
         normalized, _ = review_backorder_serving(
             session,
@@ -329,7 +396,15 @@ def available_to_promise(
             )
         )
     )
+    # A promise still held in its line's unit cannot be added to stock units.
+    other_unit = _held_elsewhere(session, tenant_id, promises, item)
+    promises = [row for row in promises if row.id not in other_unit]
     terms = commitment_terms(session, tenant_id, [row.id for row in promises])
+    need = {
+        row.id: max(ZERO, terms[row.id].open - terms[row.id].reserved)
+        for row in promises
+        if row.type == "customer_delivery"
+    }
     purchases = sorted(
         (
             row
@@ -337,7 +412,7 @@ def available_to_promise(
             if row.type == "supplier_delivery" and terms[row.id].open > 0
         ),
         key=lambda row: (
-            row.due_at or datetime.max.replace(tzinfo=UTC),
+            terms[row.id].due_at or datetime.max.replace(tzinfo=UTC),
             row.created_at,
             row.id,
         ),
@@ -349,10 +424,16 @@ def available_to_promise(
     for row in _effective_rows(session, tenant_id):
         if (
             row.supplier_commitment_id not in open_purchases
-            or not row.customer_commitment_id
+            or row.customer_commitment_id not in need
         ):
             continue
-        still = split.get(row.id, (ZERO, ZERO))[1]
+        # Supply still to come counts for a promise only up to what it still
+        # needs: once it is reserved or delivered, the rest is free again.
+        still = min(
+            split.get(row.id, (ZERO, ZERO))[1],
+            need[row.customer_commitment_id]
+            - to_come_for.get(row.customer_commitment_id, ZERO),
+        )
         to_come_for[row.customer_commitment_id] = (
             to_come_for.get(row.customer_commitment_id, ZERO) + still
         )
@@ -360,16 +441,7 @@ def available_to_promise(
             to_come_of.get(row.supplier_commitment_id, ZERO) + still
         )
     uncovered = sum(
-        (
-            max(
-                ZERO,
-                terms[row.id].open
-                - terms[row.id].reserved
-                - to_come_for.get(row.id, ZERO),
-            )
-            for row in promises
-            if row.type == "customer_delivery"
-        ),
+        (max(ZERO, value - to_come_for.get(key, ZERO)) for key, value in need.items()),
         ZERO,
     )
     physical = stock_at(session, tenant_id, item.id)
@@ -392,6 +464,7 @@ def available_to_promise(
     rows = []
     for row in purchases:
         open_quantity = terms[row.id].open
+        due_at = terms[row.id].due_at
         assigned = min(open_quantity, to_come_of.get(row.id, ZERO))
         adds = open_quantity - assigned
         total += adds
@@ -399,8 +472,8 @@ def available_to_promise(
             {
                 "commitment_id": row.id,
                 "supplier": parties.get(row.from_party_id or "", ""),
-                "due_at": _day(row.due_at),
-                "overdue": bool(row.due_at and row.due_at < today),
+                "due_at": _day(due_at),
+                "overdue": bool(due_at and due_at < today),
                 "open": _plain(open_quantity),
                 "assigned_to_come": _plain(assigned),
                 "adds": _plain(adds),
@@ -419,4 +492,5 @@ def available_to_promise(
             "free": _plain(free),
         },
         "purchases": rows,
+        "not_in_stock_unit": sorted(other_unit),
     }
