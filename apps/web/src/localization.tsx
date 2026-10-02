@@ -24876,6 +24876,7 @@ Object.assign(dictionaries.de, {
   "No customer item numbers stated.": "Keine Kundenartikelnummern hinterlegt.",
   "nothing stated": "nichts hinterlegt",
   "Remember for this customer": "Für diesen Kunden merken",
+  "Replaces": "Ersetzt",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25152,6 +25153,7 @@ Object.assign(dictionaries.nl, {
   "No customer item numbers stated.": "Geen klantartikelnummers vastgelegd.",
   "nothing stated": "niets vastgelegd",
   "Remember for this customer": "Onthouden voor deze klant",
+  "Replaces": "Vervangt",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25428,6 +25430,7 @@ Object.assign(dictionaries.es, {
   "No customer item numbers stated.": "No hay números de artículo del cliente registrados.",
   "nothing stated": "nada registrado",
   "Remember for this customer": "Recordar para este cliente",
+  "Replaces": "Sustituye a",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

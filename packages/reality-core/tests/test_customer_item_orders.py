@@ -100,13 +100,16 @@ def test_an_unknown_or_conflicting_number_is_refused_in_entry(session, business)
     )
 
 
-def _import(session, business, tmp_path, monkeypatch, rows, order_id="EDI-308"):
+def _import(
+    session, business, tmp_path, monkeypatch, rows, order_id="EDI-308", skus=None
+):
     monkeypatch.setenv("REALITY_ARTIFACT_DIR", str(tmp_path / "artifacts"))
-    path = tmp_path / "orders.csv"
+    path = tmp_path / f"{order_id}.csv"
     columns = [
         "order_id",
         "line_id",
         "party_name",
+        *(["sku"] if skus else []),
         "customer_item_number",
         "name",
         "quantity",
@@ -123,6 +126,7 @@ def _import(session, business, tmp_path, monkeypatch, rows, order_id="EDI-308"):
                     order_id,
                     str(index),
                     business.customer.name,
+                    *([skus[index - 1]] if skus else []),
                     number,
                     f"Kundenposition {number}",
                     quantity,
@@ -213,6 +217,52 @@ def test_an_imported_order_resolves_known_numbers_and_keeps_unknown_lines(
     assert unknown_item_lines(session, tenant) == []
 
 
+def test_a_file_line_stating_our_item_has_its_number_checked(
+    session, business, tmp_path, monkeypatch
+):
+    lamp = core.create_item(session, business.tenant.id, "LAMP-308F", "Lamp file")
+    _map(session, business)
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        _import(
+            session,
+            business,
+            tmp_path,
+            monkeypatch,
+            [("K-4711", "1")],
+            order_id="EDI-308C",
+            skus=[lamp.sku],
+        )
+    assert refused.value.code == "customer_item_number_conflicts_with_item"
+    session.rollback()
+    # Positive control: our item and the customer's number agree.
+    _import(
+        session,
+        business,
+        tmp_path,
+        monkeypatch,
+        [("K-4711", "1")],
+        order_id="EDI-308D",
+        skus=[business.item.sku],
+    )
+    assert unknown_item_lines(session, business.tenant.id) == []
+
+
+def test_a_line_without_item_or_number_is_still_refused(
+    session, business, tmp_path, monkeypatch
+):
+    with pytest.raises(core.InvalidOperation, match="Unknown SKU"):
+        _import(
+            session,
+            business,
+            tmp_path,
+            monkeypatch,
+            [("", "1")],
+            order_id="EDI-308E",
+            skus=[" "],
+        )
+
+
 def test_remembering_needs_a_number_on_the_line(
     session, business, tmp_path, monkeypatch
 ):
@@ -299,3 +349,96 @@ def test_a_changed_mapping_leaves_past_lines_as_stated(session, business):
         business.item.id,
         "K-4711",
     )
+
+
+def test_remembering_shows_a_remap_and_refuses_one_made_since_the_review(
+    session, business, tmp_path, monkeypatch
+):
+    from reality.services.delivery_actions import prepare_delivery_action
+    from reality.tools.application import approve_and_execute_proposal
+
+    tenant = business.tenant.id
+    lamp = core.create_item(session, tenant, "LAMP-308R", "Lamp remap")
+    _import(
+        session, business, tmp_path, monkeypatch, [("K-7", "1")], order_id="EDI-308R"
+    )
+    (row,) = unknown_item_lines(session, tenant)
+    arguments = {
+        "document_line_id": row["line"].id,
+        "item_id": business.item.id,
+        "remember_for_customer": True,
+    }
+    # Positive control: nothing is mapped yet, so nothing is replaced.
+    first = prepare_delivery_action(
+        session, tenant, "order_line_item_assign", arguments, request_id="r-1"
+    )
+    review = json.loads(first.input)["_delivery_review"]
+    assert review["effect"]["remembers"]["replaces"] is None
+
+    _map(session, business, number="K-7", item=lamp, name="Lampe")
+
+    with pytest.raises(core.InvalidOperation) as refused:
+        approve_and_execute_proposal(
+            session, tenant, first.id, review_token=review["token"], confirmed=True
+        )
+    assert refused.value.code == "review_delivery_changed"
+    session.rollback()
+    second = prepare_delivery_action(
+        session, tenant, "order_line_item_assign", arguments, request_id="r-2"
+    )
+    replaces = json.loads(second.input)["_delivery_review"]["effect"]["remembers"][
+        "replaces"
+    ]
+    assert replaces["item_id"] == lamp.id
+
+
+def test_a_correction_that_does_not_state_the_number_keeps_it(session, business):
+    from reality.services.core import (
+        correct_manual_document_lines,
+        manual_document_line_snapshot,
+    )
+
+    tenant = business.tenant.id
+    document, (line,) = core.create_manual_document_with_lines(
+        session,
+        tenant,
+        "sales_invoice",
+        "RE-308-7",
+        business.customer.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "1",
+                "unit_price": "10",
+                "gross_amount": "10",
+                "customer_item_number": "K-4711",
+            }
+        ],
+        "10",
+    )[:2]
+    snapshot = manual_document_line_snapshot(session, tenant, document.id)
+    # As the web form sends it: the line's columns, the number unstated.
+    unchanged = {
+        key: value
+        for key, value in snapshot["lines"][0].items()
+        if key != "customer_item_number"
+    }
+
+    result = correct_manual_document_lines(
+        session,
+        tenant,
+        document.id,
+        expected_revision=snapshot["revision"],
+        lines=[{**unchanged, "customer_item_number": None}],
+    )
+    assert result["changed"] is False
+    # Positive control: a real correction still keeps the stated number.
+    correct_manual_document_lines(
+        session,
+        tenant,
+        document.id,
+        expected_revision=snapshot["revision"],
+        lines=[{**unchanged, "description": "Corrected"}],
+    )
+    session.refresh(line)
+    assert json.loads(line.payload)["customer_item_number"] == "K-4711"

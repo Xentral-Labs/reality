@@ -4509,32 +4509,33 @@ Record a manual order as Source and Document Evidence with derived Commitments.
 
 **Parameters**
 
-| Name                          | Type     | Required | Description                                                                                                                 | Default |
-| ----------------------------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `direction`                   | `string` | yes      | Business flow direction, such as sales or purchase, incoming or outgoing. `sales`, `purchase`                               | —       |
-| `number`                      | `string` | yes      | Human-facing document or transaction number; it is not internal identity.                                                   | —       |
-| `company_party_id`            | `string` | yes      | Opaque identity of the tenant's company Party in an order flow.                                                             | —       |
-| `counterparty_id`             | `string` | yes      | Opaque identity of the customer or supplier Party in an order flow.                                                         | —       |
-| `location_id`                 | `string` | yes      | Opaque identity of the operational or physical location.                                                                    | —       |
-| `lines`                       | `array`  | yes      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                | —       |
-| `lines[].item_id`             | `string` | yes      | Opaque identity of the operational item reference.                                                                          | —       |
-| `lines[].quantity`            | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                     | —       |
-| `lines[].unit`                | `string` | yes      | Unit of measure in which the quantity is expressed.                                                                         | —       |
-| `lines[].unit_price`          | `string` | yes      | Decimal monetary amount for one unit before quantity multiplication.                                                        | —       |
-| `lines[].gross_amount`        | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                        | —       |
-| `lines[].description`         | `string` | no       | Human-readable explanation of the record or rule.                                                                           | —       |
-| `lines[].promised_at`         | `string` | no       | UTC instant by which the line's quantity is promised; it becomes the due time of the derived Commitment.                    | —       |
-| `lines[].line_type`           | `string` | no       | Closed kind of a document line, such as goods or a charge, taken from the source statement.                                 | `item`  |
-| `lines[].price_list_entry_id` | `string` | no       | Opaque identity of the price tier the line price came from, when a list price was applied; provenance, not a recalculation. | —       |
-| `gross_amount`                | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                        | —       |
-| `currency`                    | `string` | no       | ISO 4217 currency code for monetary values.                                                                                 | `EUR`   |
-| `document_date`               | `string` | no       | Business date printed on or asserted by the evidence document.                                                              | —       |
-| `ordered_at`                  | `string` | no       | UTC instant at which an order was placed in its source context.                                                             | —       |
-| `requested_delivery_at`       | `string` | no       | UTC instant by which the customer or operation requests delivery.                                                           | —       |
-| `customer_reference`          | `string` | no       | Reference supplied by the customer for matching and communication.                                                          | —       |
-| `sales_channel`               | `string` | no       | Operational sales-channel reference used for repeated routing or pricing decisions.                                         | —       |
-| `payment_term_code`           | `string` | no       | Tenant-scoped code of the payment condition to apply.                                                                       | —       |
-| `ship_to_party_id`            | `string` | no       | Opaque identity of the party receiving the physical delivery.                                                               | —       |
+| Name                           | Type     | Required | Description                                                                                                                 | Default |
+| ------------------------------ | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `direction`                    | `string` | yes      | Business flow direction, such as sales or purchase, incoming or outgoing. `sales`, `purchase`                               | —       |
+| `number`                       | `string` | yes      | Human-facing document or transaction number; it is not internal identity.                                                   | —       |
+| `company_party_id`             | `string` | yes      | Opaque identity of the tenant's company Party in an order flow.                                                             | —       |
+| `counterparty_id`              | `string` | yes      | Opaque identity of the customer or supplier Party in an order flow.                                                         | —       |
+| `location_id`                  | `string` | yes      | Opaque identity of the operational or physical location.                                                                    | —       |
+| `lines`                        | `array`  | yes      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                | —       |
+| `lines[].item_id`              | `string` | no       | Opaque identity of the operational item reference.                                                                          | —       |
+| `lines[].quantity`             | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                     | —       |
+| `lines[].unit`                 | `string` | yes      | Unit of measure in which the quantity is expressed.                                                                         | —       |
+| `lines[].unit_price`           | `string` | yes      | Decimal monetary amount for one unit before quantity multiplication.                                                        | —       |
+| `lines[].gross_amount`         | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                        | —       |
+| `lines[].description`          | `string` | no       | Human-readable explanation of the record or rule.                                                                           | —       |
+| `lines[].promised_at`          | `string` | no       | UTC instant by which the line's quantity is promised; it becomes the due time of the derived Commitment.                    | —       |
+| `lines[].line_type`            | `string` | no       | Closed kind of a document line, such as goods or a charge, taken from the source statement.                                 | `item`  |
+| `lines[].price_list_entry_id`  | `string` | no       | Opaque identity of the price tier the line price came from, when a list price was applied; provenance, not a recalculation. | —       |
+| `lines[].customer_item_number` | `string` | no       | The customer's own article number, as the customer states it; matched ignoring case and spaces.                             | —       |
+| `gross_amount`                 | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                        | —       |
+| `currency`                     | `string` | no       | ISO 4217 currency code for monetary values.                                                                                 | `EUR`   |
+| `document_date`                | `string` | no       | Business date printed on or asserted by the evidence document.                                                              | —       |
+| `ordered_at`                   | `string` | no       | UTC instant at which an order was placed in its source context.                                                             | —       |
+| `requested_delivery_at`        | `string` | no       | UTC instant by which the customer or operation requests delivery.                                                           | —       |
+| `customer_reference`           | `string` | no       | Reference supplied by the customer for matching and communication.                                                          | —       |
+| `sales_channel`                | `string` | no       | Operational sales-channel reference used for repeated routing or pricing decisions.                                         | —       |
+| `payment_term_code`            | `string` | no       | Tenant-scoped code of the payment condition to apply.                                                                       | —       |
+| `ship_to_party_id`             | `string` | no       | Opaque identity of the party receiving the physical delivery.                                                               | —       |
 
 **Verify with:** `document_register` — Document Evidence links to its immutable source.;
 `commitment_register` — Promised quantities exist as Commitments rather than document status.

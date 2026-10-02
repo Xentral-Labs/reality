@@ -2832,6 +2832,7 @@ class ManualDocumentLineWrite(ApiModel):
     line_type: str = "item"
     price_list_entry_id: str | None = None
     billed_document_line_id: str | None = None
+    customer_item_number: str | None = None
 
 
 class ManualDocumentWrite(ApiModel):

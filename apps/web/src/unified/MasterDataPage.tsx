@@ -103,7 +103,7 @@ export function MasterDataPage({
       {family === "customer" && (
         <>
           <DeliveryRuleSection tenant={tenant} party={detail.id} name={String(detail.name)} />
-          <CustomerItemNumbers tenant={tenant} party={detail.id} />
+          <CustomerItemNumbers key={detail.id} tenant={tenant} party={detail.id} />
         </>
       )}
       {family === "item" && (

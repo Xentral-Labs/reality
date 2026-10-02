@@ -56,4 +56,4 @@ Tests come first in each phase where practical.
 
 - [ ] T013 Full backend suite and web checks
 - [ ] T014 Manual check per `quickstart.md`
-- [ ] T015 Review of the diff; fix findings
+- [x] T015 Review of the diff; fix findings

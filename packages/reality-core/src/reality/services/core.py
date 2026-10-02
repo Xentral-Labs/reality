@@ -8601,6 +8601,13 @@ def correct_manual_document_lines(
         )
         for index, raw in enumerate(lines, start=1)
     ]
+    # Spec 308: the number a line was ordered by stays as stated unless the
+    # correction states another one.
+    for raw, row in zip(lines, normalized, strict=True):
+        if raw.get("customer_item_number") is None and row["id"] in stored_by_id:
+            row["customer_item_number"] = _stored_manual_line(
+                stored_by_id[row["id"]]
+            )["customer_item_number"]
     entries_to_validate = [
         row
         for row in normalized

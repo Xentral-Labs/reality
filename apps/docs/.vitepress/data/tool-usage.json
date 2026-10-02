@@ -5782,7 +5782,7 @@
         {
           "name": "lines[].item_id",
           "type": "string",
-          "required": true,
+          "required": false,
           "description": "Opaque identity of the operational item reference.",
           "depth": 1
         },
@@ -5842,6 +5842,13 @@
           "type": "string",
           "required": false,
           "description": "Opaque identity of the price tier the line price came from, when a list price was applied; provenance, not a recalculation.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].customer_item_number",
+          "type": "string",
+          "required": false,
+          "description": "The customer's own article number, as the customer states it; matched ignoring case and spaces.",
           "depth": 1
         },
         {

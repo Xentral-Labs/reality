@@ -15,6 +15,12 @@ type Review = {
     item_sku: string;
     quantity: string;
   };
+  effect: {
+    remembers?: {
+      customer_item_number: string;
+      replaces: { item_sku: string } | null;
+    };
+  };
 };
 
 export function OrderLineItemCard({
@@ -168,6 +174,19 @@ export function OrderLineItemCard({
               <dd>{review.state.item_sku}</dd>
               <dt className="text-fg-muted">{t("Quantity")}</dt>
               <dd>{formatQuantity(review.state.quantity)}</dd>
+              {review.effect.remembers && (
+                <>
+                  <dt className="text-fg-muted">{t("Remember for this customer")}</dt>
+                  <dd data-remembers>
+                    {review.effect.remembers.customer_item_number} → {review.state.item_sku}
+                    {review.effect.remembers.replaces && (
+                      <span className="block text-fg-muted">
+                        {t("Replaces")} {review.effect.remembers.replaces.item_sku}
+                      </span>
+                    )}
+                  </dd>
+                </>
+              )}
             </dl>
           )}
           {proposal.status === "proposed" && (

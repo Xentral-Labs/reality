@@ -370,6 +370,31 @@ def review_item_assignment(
         if not state["customer_item_number"]:
             raise core.InvalidOperation(code="order_line_item_no_customer_number")
         intent["remember_for_customer"] = True
+        from reality.services.customer_item_numbers import (
+            mapping_values,
+            resolve_customer_item,
+        )
+
+        # What the number names now is part of the review: a confirmation
+        # after it changed is stale, and a remap is shown, never silent.
+        current = mapping_values(
+            resolve_customer_item(
+                session, tenant_id, state["to_party_id"], state["customer_item_number"]
+            )
+        )
+        if current:
+            named = session.get(Item, (tenant_id, current["item_id"]))
+            current["item_sku"] = named.sku if named else current["item_id"]
+        state["customer_mapping"] = current
+    remembers = (
+        {
+            "customer_item_number": state["customer_item_number"],
+            "item_id": state["item_id"],
+            "replaces": state["customer_mapping"],
+        }
+        if intent.get("remember_for_customer")
+        else None
+    )
     return {
         "version": 1,
         "tool": "order_line_item_assign",
@@ -382,6 +407,7 @@ def review_item_assignment(
             "location_id": state["location_id"],
             "money_moves": False,
             "creates": ["commitment"],
+            **({"remembers": remembers} if remembers else {}),
         },
         "token": hashlib.sha256(
             _json([tenant_id, "order_line_item_assign", intent, state]).encode()

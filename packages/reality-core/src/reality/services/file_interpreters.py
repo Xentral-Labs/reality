@@ -498,19 +498,27 @@ def interpret_artifact(
             for row in order_rows:
                 sku = str(_value(row, "sku", "") or "").strip()
                 quoted = str(_value(row, "customer_item_number", "") or "").strip()
-                if sku:
+                from reality.services.customer_item_numbers import (
+                    resolve_customer_item,
+                )
+
+                mapping = (
+                    resolve_customer_item(session, tenant_id, customer.id, quoted)
+                    if quoted
+                    else None
+                )
+                if sku or not quoted:
                     item = _item(session, tenant_id, sku)
+                    # Spec 308: our item is kept, and a number the customer
+                    # mapped to another item is refused, as in order entry.
+                    if mapping is not None and mapping.item_id != item.id:
+                        raise InvalidOperation(
+                            code="customer_item_number_conflicts_with_item"
+                        )
                 else:
                     # Spec 308: the customer's number names the item; an
                     # unknown number keeps the line without one, reported by
                     # order_line_item_unknown until a person assigns it.
-                    from reality.services.customer_item_numbers import (
-                        resolve_customer_item,
-                    )
-
-                    mapping = resolve_customer_item(
-                        session, tenant_id, customer.id, quoted
-                    )
                     item = (
                         session.get(Item, (tenant_id, mapping.item_id))
                         if mapping
