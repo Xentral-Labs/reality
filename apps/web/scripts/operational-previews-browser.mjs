@@ -338,6 +338,14 @@ await page.route("**/api/**", async (route) => {
         : {}),
     });
   }
+  if (path.endsWith("/delivery-rules"))
+    return reply({
+      subject: "document",
+      subject_id: "",
+      own: null,
+      effective: { rule: "partial_allowed", source: "default", reason: "", subject_id: null },
+      history: [],
+    });
   return reply({ detail: "Fixture unavailable" }, 404);
 });
 
@@ -354,7 +362,9 @@ try {
       const preview = page.locator("[data-inline-inspector]");
       await preview.getByText(/P12 · Original extra-long/).waitFor();
       assert.equal(await preview.getByText("Correction", { exact: true }).count(), 0);
-      assert.equal(await preview.locator("section").count(), 4);
+      // Four record sections, plus the order's delivery rule (spec 306).
+      assert.equal(await preview.locator("section:not([data-delivery-rule-section])").count(), 4);
+      await preview.locator("[data-delivery-rule-section]").getByRole("button").waitFor();
       assert.ok(
         requests.some(
           (r) =>
