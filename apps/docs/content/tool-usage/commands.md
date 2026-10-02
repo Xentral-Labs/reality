@@ -7,6 +7,28 @@ all reach the same operation.
 > Automatically generated from `command_catalog.yaml`, `reality/mcp/catalog.py`. Do not edit this
 > page by hand.
 
+## Commands, agent tools and Web actions
+
+| Kind        | Description                                                                                                                                                                           |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Commands    | Shared application operations, including reads and changes. CLI, Web and agents reach the same business services.                                                                     |
+| Agent tools | Callable agent interfaces with defined inputs and access modes. A tool can expose a command; reads, discovery and proposal governance need not map to one business command.           |
+| Web actions | Registered Web workspace interactions that start a command, with prerequisites, confirmation and a target view. This count covers registered workspace actions, not every Web button. |
+
+These counts overlap: a command, its agent tool and its Web action can describe the same capability.
+Do not add them as independent features. A command can have several agent tools or none.
+
+### Example: reserve 5 units
+
+The Web action starts the reservation command after its confirmation. The agent tool prepares a
+proposal with a commitment identity and quantity 5; explicit approval through
+proposal_approve_and_execute then reaches the same command. The service owns allocation checks.
+Quantity is optional in the agent interface; supplying 5 makes the requested quantity explicit.
+
+- Web actions: [Reserve stock](./views#action-reserve_stock) (`reserve_stock`)
+- Agent tools: [Propose reservation](./commands#tool-reservation_propose) (`reservation_propose`)
+- Commands: [Reserve stock](./commands#command-reserve) (`reserve`)
+
 | Key                                                                               | Label                                      | Area                       | Agent tools                                                                                                                                                                                  | Reach via                               |
 | --------------------------------------------------------------------------------- | ------------------------------------------ | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
 | [`business_journey_proposal_create`](#command-business_journey_proposal_create)   | Suggest a Business Journey                 | Agent governance           | `business_journey_suggest_propose`                                                                                                                                                           | Web · API · MCP · Chat                  |
@@ -2364,7 +2386,7 @@ customer_payment_post_propose invoice_id amount [payment_number] [source_record_
 `document`, `ledger_entry`, `settlement_allocation`
 
 **See also:** agent tool
-[`customer_payment_post_propose`](./commands#tool-customer_payment_post_propose), action
+[`customer_payment_post_propose`](./commands#tool-customer_payment_post_propose), Web action
 [`post_customer_payment`](./views#action-post_customer_payment)
 
 #### `customer_payment_post_propose` — Post customer payment {#tool-customer_payment_post_propose}
@@ -2570,7 +2592,7 @@ supplier_payment_post_propose invoice_id amount [payment_number] [source_record_
 `document`, `ledger_entry`, `settlement_allocation`
 
 **See also:** agent tool
-[`supplier_payment_post_propose`](./commands#tool-supplier_payment_post_propose), action
+[`supplier_payment_post_propose`](./commands#tool-supplier_payment_post_propose), Web action
 [`post_supplier_payment`](./views#action-post_supplier_payment)
 
 #### `supplier_payment_post_propose` — Post supplier payment {#tool-supplier_payment_post_propose}
@@ -4432,7 +4454,7 @@ order_create_propose direction number company_party_id counterparty_id location_
 `source_record`, `document`, `document_line`, `commitment`, `business_event` · Emits:
 `order.recorded`
 
-**See also:** agent tool [`order_create_propose`](./commands#tool-order_create_propose), action
+**See also:** agent tool [`order_create_propose`](./commands#tool-order_create_propose), Web action
 [`create_manual_order`](./views#action-create_manual_order), event
 [`order.recorded`](./events#event-order-recorded)
 
@@ -4526,8 +4548,8 @@ commitment_hold_release_propose commitment_id
 `commitment.held`
 
 **See also:** agent tool [`commitment_hold_propose`](./commands#tool-commitment_hold_propose), agent
-tool [`commitment_hold_release_propose`](./commands#tool-commitment_hold_release_propose), action
-[`hold_commitment`](./views#action-hold_commitment), event
+tool [`commitment_hold_release_propose`](./commands#tool-commitment_hold_release_propose), Web
+action [`hold_commitment`](./views#action-hold_commitment), event
 [`commitment.held`](./events#event-commitment-held)
 
 #### `commitment_hold_propose` — Hold commitment {#tool-commitment_hold_propose}
@@ -4590,7 +4612,7 @@ document_hold_release_propose document_id
 **Effect:** Reads: `document`, `commitment`, `commitment_hold` · Writes: `commitment_hold`
 
 **See also:** agent tool [`document_hold_propose`](./commands#tool-document_hold_propose), agent
-tool [`document_hold_release_propose`](./commands#tool-document_hold_release_propose), action
+tool [`document_hold_release_propose`](./commands#tool-document_hold_release_propose), Web action
 [`hold_document_commitments`](./views#action-hold_document_commitments)
 
 #### `document_hold_propose` — Hold document commitments {#tool-document_hold_propose}
@@ -5093,7 +5115,7 @@ reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial
 **Effect:** Reads: `commitment`, `movement`, `reservation`, `item`, `location`, `handling_unit`,
 `lot`, `serial_unit` · Writes: `reservation` · Emits: `reservation.created`
 
-**See also:** agent tool [`reservation_propose`](./commands#tool-reservation_propose), action
+**See also:** agent tool [`reservation_propose`](./commands#tool-reservation_propose), Web action
 [`reserve_stock`](./views#action-reserve_stock), event
 [`reservation.created`](./events#event-reservation-created)
 
@@ -5363,8 +5385,8 @@ party_delivery_hold_release_propose party_id
 
 **See also:** agent tool
 [`party_delivery_hold_propose`](./commands#tool-party_delivery_hold_propose), agent tool
-[`party_delivery_hold_release_propose`](./commands#tool-party_delivery_hold_release_propose), action
-[`party_delivery_hold`](./views#action-party_delivery_hold), event
+[`party_delivery_hold_release_propose`](./commands#tool-party_delivery_hold_release_propose), Web
+action [`party_delivery_hold`](./views#action-party_delivery_hold), event
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed)
 
 #### `party_delivery_hold_propose` — Place party delivery hold {#tool-party_delivery_hold_propose}
@@ -5563,7 +5585,7 @@ movement_correction_propose movement_id reason [replacement]
 `commitment`, `business_event` · Emits: `movement.corrected`
 
 **See also:** agent tool
-[`movement_correction_propose`](./commands#tool-movement_correction_propose), action
+[`movement_correction_propose`](./commands#tool-movement_correction_propose), Web action
 [`correct_movement`](./views#action-correct_movement), event
 [`movement.corrected`](./events#event-movement-corrected)
 
@@ -5607,7 +5629,7 @@ handling_unit_create_propose [nve] [source_record_id]
 `business_event` · Emits: `handling_unit.created`
 
 **See also:** agent tool
-[`handling_unit_create_propose`](./commands#tool-handling_unit_create_propose), action
+[`handling_unit_create_propose`](./commands#tool-handling_unit_create_propose), Web action
 [`create_handling_unit`](./views#action-create_handling_unit), event
 [`handling_unit.created`](./events#event-handling_unit-created)
 
@@ -5649,7 +5671,7 @@ lot_create_propose item_id lot_number [expires_at] [source_record_id]
 **Effect:** Reads: `tenant`, `item`, `source_record`, `lot` · Writes: `lot`, `business_event` ·
 Emits: `lot.created`
 
-**See also:** agent tool [`lot_create_propose`](./commands#tool-lot_create_propose), action
+**See also:** agent tool [`lot_create_propose`](./commands#tool-lot_create_propose), Web action
 [`create_lot`](./views#action-create_lot), event [`lot.created`](./events#event-lot-created)
 
 #### `lot_create_propose` — Create lot {#tool-lot_create_propose}
@@ -5692,7 +5714,7 @@ serial_unit_create_propose item_id serial_number [lot_id] [source_record_id]
 `business_event` · Emits: `serial_unit.created`
 
 **See also:** agent tool [`serial_unit_create_propose`](./commands#tool-serial_unit_create_propose),
-action [`create_serial_unit`](./views#action-create_serial_unit), event
+Web action [`create_serial_unit`](./views#action-create_serial_unit), event
 [`serial_unit.created`](./events#event-serial_unit-created)
 
 #### `serial_unit_create_propose` — Create serial unit {#tool-serial_unit_create_propose}
@@ -6016,7 +6038,7 @@ movement_create_propose movement_type item_id quantity [from_location_id] [to_lo
 `movement`, `reservation`, `commitment`, `action`, `business_event` · Emits: `commitment.fulfilled`,
 `reservation.consumed`, `movement.recorded`
 
-**See also:** agent tool [`movement_create_propose`](./commands#tool-movement_create_propose),
+**See also:** agent tool [`movement_create_propose`](./commands#tool-movement_create_propose), Web
 action [`record_movement`](./views#action-record_movement), event
 [`commitment.fulfilled`](./events#event-commitment-fulfilled), event
 [`reservation.consumed`](./events#event-reservation-consumed), event
@@ -6693,7 +6715,7 @@ fact_observe_propose source_record_id subject_type subject_id predicate value ob
 **Effect:** Reads: `tenant`, `source_record`, `commitment` · Writes: `fact`, `business_event` ·
 Emits: `fact.observed`
 
-**See also:** agent tool [`fact_observe_propose`](./commands#tool-fact_observe_propose), action
+**See also:** agent tool [`fact_observe_propose`](./commands#tool-fact_observe_propose), Web action
 [`observe_fact`](./views#action-observe_fact), event [`fact.observed`](./events#event-fact-observed)
 
 #### `fact_observe_propose` — Propose Fact observation {#tool-fact_observe_propose}

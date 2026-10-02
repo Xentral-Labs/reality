@@ -1,10 +1,34 @@
-# Sichten, Projections und Aktionen
+# Sichten, Projections und Web-Aktionen
 
 Wo jemand hinschaut und was er dort auslösen kann. Eine Sicht ist entweder ein autoritatives
 Register oder eine materialisierte Projection; eine Aktion startet eine Geschäftsaktion.
 
 > Automatisch aus `workspace_catalog.yaml`, `projection_catalog.yaml` erzeugt. Diese Seite nicht von
 > Hand bearbeiten.
+
+## Commands, Agenten-Tools und Web-Aktionen
+
+| Art           | Beschreibung                                                                                                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Commands      | Gemeinsame Anwendungsoperationen zum Lesen und Ändern. CLI, Web und Agenten nutzen dieselben fachlichen Services.                                                                                                                    |
+| Agenten-Tools | Aufrufbare Agenten-Schnittstellen mit definierten Eingaben und Zugriffsarten. Ein Tool kann einen Command zugänglich machen; Abfragen, Discovery und Vorschlagssteuerung müssen keinem einzelnen fachlichen Command zugeordnet sein. |
+| Web-Aktionen  | Registrierte Bedienaktionen der Web-Arbeitsbereiche, die einen Command starten, mit Voraussetzungen, Bestätigung und Zielansicht. Gezählt werden registrierte Workspace-Aktionen, nicht sämtliche Web-Buttons.                       |
+
+Diese Zahlen überschneiden sich: Ein Command, sein Agenten-Tool und seine Web-Aktion können dieselbe
+Fähigkeit beschreiben. Sie lassen sich nicht als unabhängige Features addieren. Ein Command kann
+mehrere Agenten-Tools haben oder keines.
+
+### Beispiel: 5 Stück reservieren
+
+Die Web-Aktion startet den Reservierungs-Command nach ihrer Bestätigung. Das Agenten-Tool bereitet
+einen Vorschlag mit Commitment-ID und Menge 5 vor; die ausdrückliche Freigabe über
+proposal_approve_and_execute führt anschließend zum selben Command. Der Service prüft die Zuteilung.
+Die Menge ist in der Agenten-Schnittstelle optional; mit 5 wird die gewünschte Menge ausdrücklich
+angegeben.
+
+- Web-Aktionen: [Reserve stock](./views#action-reserve_stock) (`reserve_stock`)
+- Agenten-Tools: [Propose reservation](./commands#tool-reservation_propose) (`reservation_propose`)
+- Commands: [Bestand reservieren](./commands#command-reserve) (`reserve`)
 
 ## So wird diese Abfrage ausgeführt {#read-execution}
 
@@ -53,7 +77,7 @@ bedeuten nicht, dass es keine Geschäftsdaten gibt. Die Aktualität externer Que
 [`open_items`](./views#view-open_items), [`documents`](./views#view-documents),
 [`activity`](./views#view-activity)
 
-**Aktionen:** [`observe_fact`](./views#action-observe_fact)
+**Web-Aktionen:** [`observe_fact`](./views#action-observe_fact)
 
 ### `operations` — Order Operations {#workspace-operations}
 
@@ -62,7 +86,7 @@ bedeuten nicht, dass es keine Geschäftsdaten gibt. Die Aktualität externer Que
 [`fulfillment_blockers`](./views#view-fulfillment_blockers),
 [`supply_demand`](./views#view-supply_demand), [`documents`](./views#view-documents)
 
-**Aktionen:** [`create_manual_order`](./views#action-create_manual_order),
+**Web-Aktionen:** [`create_manual_order`](./views#action-create_manual_order),
 [`reserve_stock`](./views#action-reserve_stock),
 [`hold_commitment`](./views#action-hold_commitment),
 [`hold_document_commitments`](./views#action-hold_document_commitments),
@@ -76,7 +100,7 @@ bedeuten nicht, dass es keine Geschäftsdaten gibt. Die Aktualität externer Que
 [`supply_demand`](./views#view-supply_demand), [`commitments`](./views#view-commitments),
 [`locations`](./views#view-locations)
 
-**Aktionen:** [`record_movement`](./views#action-record_movement),
+**Web-Aktionen:** [`record_movement`](./views#action-record_movement),
 [`reserve_stock`](./views#action-reserve_stock),
 [`hold_commitment`](./views#action-hold_commitment),
 [`correct_movement`](./views#action-correct_movement),
@@ -89,7 +113,7 @@ bedeuten nicht, dass es keine Geschäftsdaten gibt. Die Aktualität externer Que
 [`journal`](./views#view-journal), [`documents`](./views#view-documents),
 [`parties`](./views#view-parties)
 
-**Aktionen:** [`post_customer_payment`](./views#action-post_customer_payment),
+**Web-Aktionen:** [`post_customer_payment`](./views#action-post_customer_payment),
 [`post_supplier_payment`](./views#action-post_supplier_payment)
 
 ### `data` — Data Management {#workspace-data}
@@ -888,9 +912,9 @@ stored result or unrelated projection refresh is used.
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-## Aktionen
+## Web-Aktionen
 
-| Schlüssel                                                        | Bezeichnung                           | Geschäftsaktion                                                             | Bestätigung      | Voraussetzungen                                     |
+| Schlüssel                                                        | Bezeichnung                           | Command                                                                     | Bestätigung      | Voraussetzungen                                     |
 | ---------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------- | ---------------- | --------------------------------------------------- |
 | [`create_manual_order`](#action-create_manual_order)             | Create manual sales or purchase order | [`create_manual_order`](./commands#command-create_manual_order)             | `summary`        | `company_party`, `counterparty`, `location`, `item` |
 | [`observe_fact`](#action-observe_fact)                           | Observe source-supported fact         | [`observe_fact`](./commands#command-observe_fact)                           | `summary`        | `source_record`, `subject`                          |
@@ -908,112 +932,109 @@ stored result or unrelated projection refresh is used.
 
 ### `create_manual_order` — Create manual sales or purchase order {#action-create_manual_order}
 
-**Geschäftsaktion:** [`create_manual_order`](./commands#command-create_manual_order) ·
-**Bestätigung:** `summary` · **Voraussetzungen:** `company_party`, `counterparty`, `location`,
-`item`
+**Command:** [`create_manual_order`](./commands#command-create_manual_order) · **Bestätigung:**
+`summary` · **Voraussetzungen:** `company_party`, `counterparty`, `location`, `item`
 
-**Siehe auch:** Geschäftsaktion [`create_manual_order`](./commands#command-create_manual_order),
-Sicht [`documents`](./views#view-documents), Arbeitsbereich
-[`operations`](./views#workspace-operations)
+**Siehe auch:** Command [`create_manual_order`](./commands#command-create_manual_order), Sicht
+[`documents`](./views#view-documents), Arbeitsbereich [`operations`](./views#workspace-operations)
 
 ### `observe_fact` — Observe source-supported fact {#action-observe_fact}
 
-**Geschäftsaktion:** [`observe_fact`](./commands#command-observe_fact) · **Bestätigung:** `summary`
-· **Voraussetzungen:** `source_record`, `subject`
+**Command:** [`observe_fact`](./commands#command-observe_fact) · **Bestätigung:** `summary` ·
+**Voraussetzungen:** `source_record`, `subject`
 
-**Siehe auch:** Geschäftsaktion [`observe_fact`](./commands#command-observe_fact), Arbeitsbereich
+**Siehe auch:** Command [`observe_fact`](./commands#command-observe_fact), Arbeitsbereich
 [`company`](./views#workspace-company)
 
 ### `post_customer_payment` — Post customer payment {#action-post_customer_payment}
 
-**Geschäftsaktion:** [`post_customer_payment`](./commands#command-post_customer_payment) ·
-**Bestätigung:** `summary` · **Voraussetzungen:** `customer_invoice`
+**Command:** [`post_customer_payment`](./commands#command-post_customer_payment) · **Bestätigung:**
+`summary` · **Voraussetzungen:** `customer_invoice`
 
-**Siehe auch:** Geschäftsaktion [`post_customer_payment`](./commands#command-post_customer_payment),
-Sicht [`payments`](./views#view-payments), Arbeitsbereich [`finance`](./views#workspace-finance)
+**Siehe auch:** Command [`post_customer_payment`](./commands#command-post_customer_payment), Sicht
+[`payments`](./views#view-payments), Arbeitsbereich [`finance`](./views#workspace-finance)
 
 ### `post_supplier_payment` — Post supplier payment {#action-post_supplier_payment}
 
-**Geschäftsaktion:** [`post_supplier_payment`](./commands#command-post_supplier_payment) ·
-**Bestätigung:** `summary` · **Voraussetzungen:** `supplier_invoice`
+**Command:** [`post_supplier_payment`](./commands#command-post_supplier_payment) · **Bestätigung:**
+`summary` · **Voraussetzungen:** `supplier_invoice`
 
-**Siehe auch:** Geschäftsaktion [`post_supplier_payment`](./commands#command-post_supplier_payment),
-Sicht [`payments`](./views#view-payments), Arbeitsbereich [`finance`](./views#workspace-finance)
+**Siehe auch:** Command [`post_supplier_payment`](./commands#command-post_supplier_payment), Sicht
+[`payments`](./views#view-payments), Arbeitsbereich [`finance`](./views#workspace-finance)
 
 ### `reserve_stock` — Reserve stock {#action-reserve_stock}
 
-**Geschäftsaktion:** [`reserve`](./commands#command-reserve) · **Bestätigung:** `summary` ·
+**Command:** [`reserve`](./commands#command-reserve) · **Bestätigung:** `summary` ·
 **Voraussetzungen:** `commitment`
 
-**Siehe auch:** Geschäftsaktion [`reserve`](./commands#command-reserve), Sicht
+**Siehe auch:** Command [`reserve`](./commands#command-reserve), Sicht
 [`reservations`](./views#view-reservations), Arbeitsbereich
 [`operations`](./views#workspace-operations), Arbeitsbereich
 [`warehouse`](./views#workspace-warehouse)
 
 ### `record_movement` — Record movement {#action-record_movement}
 
-**Geschäftsaktion:** [`record_movement`](./commands#command-record_movement) · **Bestätigung:**
-`summary` · **Voraussetzungen:** `item`, `location`
+**Command:** [`record_movement`](./commands#command-record_movement) · **Bestätigung:** `summary` ·
+**Voraussetzungen:** `item`, `location`
 
-**Siehe auch:** Geschäftsaktion [`record_movement`](./commands#command-record_movement), Sicht
+**Siehe auch:** Command [`record_movement`](./commands#command-record_movement), Sicht
 [`movements`](./views#view-movements), Arbeitsbereich [`warehouse`](./views#workspace-warehouse)
 
 ### `correct_movement` — Correct movement {#action-correct_movement}
 
-**Geschäftsaktion:** [`correct_movement`](./commands#command-correct_movement) · **Bestätigung:**
+**Command:** [`correct_movement`](./commands#command-correct_movement) · **Bestätigung:**
 `server_preview` · **Voraussetzungen:** `movement`
 
-**Siehe auch:** Geschäftsaktion [`correct_movement`](./commands#command-correct_movement), Sicht
+**Siehe auch:** Command [`correct_movement`](./commands#command-correct_movement), Sicht
 [`movements`](./views#view-movements), Arbeitsbereich [`warehouse`](./views#workspace-warehouse)
 
 ### `hold_commitment` — Hold or release commitment {#action-hold_commitment}
 
-**Geschäftsaktion:** [`hold_commitment`](./commands#command-hold_commitment) · **Bestätigung:**
-`summary` · **Voraussetzungen:** `commitment`
+**Command:** [`hold_commitment`](./commands#command-hold_commitment) · **Bestätigung:** `summary` ·
+**Voraussetzungen:** `commitment`
 
-**Siehe auch:** Geschäftsaktion [`hold_commitment`](./commands#command-hold_commitment), Sicht
+**Siehe auch:** Command [`hold_commitment`](./commands#command-hold_commitment), Sicht
 [`commitments`](./views#view-commitments), Arbeitsbereich
 [`operations`](./views#workspace-operations), Arbeitsbereich
 [`warehouse`](./views#workspace-warehouse)
 
 ### `hold_document_commitments` — Hold or release document commitments {#action-hold_document_commitments}
 
-**Geschäftsaktion:** [`hold_document_commitments`](./commands#command-hold_document_commitments) ·
+**Command:** [`hold_document_commitments`](./commands#command-hold_document_commitments) ·
 **Bestätigung:** `summary` · **Voraussetzungen:** `document`
 
-**Siehe auch:** Geschäftsaktion
-[`hold_document_commitments`](./commands#command-hold_document_commitments), Sicht
-[`documents`](./views#view-documents), Arbeitsbereich [`operations`](./views#workspace-operations)
+**Siehe auch:** Command [`hold_document_commitments`](./commands#command-hold_document_commitments),
+Sicht [`documents`](./views#view-documents), Arbeitsbereich
+[`operations`](./views#workspace-operations)
 
 ### `party_delivery_hold` — Set or release party delivery hold {#action-party_delivery_hold}
 
-**Geschäftsaktion:** [`hold_party_delivery`](./commands#command-hold_party_delivery) ·
-**Bestätigung:** `summary` · **Voraussetzungen:** `party`
+**Command:** [`hold_party_delivery`](./commands#command-hold_party_delivery) · **Bestätigung:**
+`summary` · **Voraussetzungen:** `party`
 
-**Siehe auch:** Geschäftsaktion [`hold_party_delivery`](./commands#command-hold_party_delivery),
-Sicht [`parties`](./views#view-parties), Arbeitsbereich [`operations`](./views#workspace-operations)
+**Siehe auch:** Command [`hold_party_delivery`](./commands#command-hold_party_delivery), Sicht
+[`parties`](./views#view-parties), Arbeitsbereich [`operations`](./views#workspace-operations)
 
 ### `create_handling_unit` — Create handling unit {#action-create_handling_unit}
 
-**Geschäftsaktion:** [`create_handling_unit`](./commands#command-create_handling_unit) ·
-**Bestätigung:** `summary` · **Voraussetzungen:** —
+**Command:** [`create_handling_unit`](./commands#command-create_handling_unit) · **Bestätigung:**
+`summary` · **Voraussetzungen:** —
 
-**Siehe auch:** Geschäftsaktion [`create_handling_unit`](./commands#command-create_handling_unit),
-Sicht [`movements`](./views#view-movements), Arbeitsbereich
-[`warehouse`](./views#workspace-warehouse)
+**Siehe auch:** Command [`create_handling_unit`](./commands#command-create_handling_unit), Sicht
+[`movements`](./views#view-movements), Arbeitsbereich [`warehouse`](./views#workspace-warehouse)
 
 ### `create_lot` — Create lot {#action-create_lot}
 
-**Geschäftsaktion:** [`create_lot`](./commands#command-create_lot) · **Bestätigung:** `summary` ·
+**Command:** [`create_lot`](./commands#command-create_lot) · **Bestätigung:** `summary` ·
 **Voraussetzungen:** `item`
 
-**Siehe auch:** Geschäftsaktion [`create_lot`](./commands#command-create_lot), Sicht
+**Siehe auch:** Command [`create_lot`](./commands#command-create_lot), Sicht
 [`movements`](./views#view-movements), Arbeitsbereich [`warehouse`](./views#workspace-warehouse)
 
 ### `create_serial_unit` — Create serial unit {#action-create_serial_unit}
 
-**Geschäftsaktion:** [`create_serial_unit`](./commands#command-create_serial_unit) ·
-**Bestätigung:** `summary` · **Voraussetzungen:** `item`
+**Command:** [`create_serial_unit`](./commands#command-create_serial_unit) · **Bestätigung:**
+`summary` · **Voraussetzungen:** `item`
 
-**Siehe auch:** Geschäftsaktion [`create_serial_unit`](./commands#command-create_serial_unit), Sicht
+**Siehe auch:** Command [`create_serial_unit`](./commands#command-create_serial_unit), Sicht
 [`movements`](./views#view-movements), Arbeitsbereich [`warehouse`](./views#workspace-warehouse)

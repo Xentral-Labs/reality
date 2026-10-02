@@ -703,6 +703,37 @@ test("ERP professionals can run a truthful parallel pilot before enabling action
   }
 });
 
+test("technical interface guide shares labels and actual operation links", () => {
+  const model = JSON.parse(
+    fs.readFileSync(path.join(docsRoot, ".vitepress/data/tool-usage.json"), "utf8"),
+  );
+  const guide = model.interface_guide;
+  assert.ok(guide, "generated interface guide missing");
+  assert.equal(guide.kinds.action.label.en, "Web actions");
+  assert.equal(guide.kinds.action.label.de, "Web-Aktionen");
+  const byId = new Map(model.entries.map((entry) => [entry.id, entry]));
+  for (const kind of ["action", "command", "tool"])
+    assert.equal(byId.get(guide.example[kind]).kind, kind);
+  assert.equal(byId.get(guide.example.tool).access, "propose");
+  assert.equal(byId.get(guide.example.action).command, byId.get(guide.example.command).key);
+  const component = fs.readFileSync(
+    path.join(docsRoot, ".vitepress/theme/components/ToolUsage.vue"),
+    "utf8",
+  );
+  assert.match(component, /model\.value\?\.interface_guide/u);
+  assert.ok(component.includes("data-interface-guide"));
+  assert.ok(component.includes("data-operation-relationships"));
+  assert.doesNotMatch(component, /kind_action:\s*"(?:Actions|Aktionen)"/u);
+  for (const locale of ["en", "de"]) {
+    const prefix = locale === "de" ? "de/" : "";
+    const manual = fs
+      .readFileSync(path.join(contentRoot, prefix, "tool-usage/commands.md"), "utf8")
+      .replace(/\s+/gu, " ");
+    assert.ok(manual.includes(guide.counts_note[locale]));
+    assert.ok(manual.includes(guide.example.description[locale]));
+  }
+});
+
 test("the Tool Usage reference is generated, bilingual and written like manual pages", () => {
   const pages = [
     "resources.md",
@@ -752,7 +783,7 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
     "## Workspaces",
     "## Views",
     "## Projections",
-    "## Actions",
+    "## Web actions",
     "{#view-inventory}",
     "{#projection-inventory}",
     "{#action-reserve_stock}",
