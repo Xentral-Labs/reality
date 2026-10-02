@@ -149,6 +149,7 @@ def _blocker_detail(code: str, result: FulfillmentReadiness) -> str:
         "insufficient_stock": "Physical stock is below the open delivery quantity.",
         "commitment_hold": "The delivery commitment has an active hold.",
         "party_delivery_hold": "The customer has an active delivery hold.",
+        "ship_complete_incomplete": "The order ships complete, and not every open line can ship its whole quantity yet.",
     }.get(code, code.replace("_", " "))
 
 
@@ -166,6 +167,8 @@ def _blocker_links(code: str, result: FulfillmentReadiness) -> list[dict[str, st
         ]
     if code == "party_delivery_hold":
         return [{"kind": "party_hold", "id": row} for row in result.party_hold_ids]
+    if code == "ship_complete_incomplete" and result.order_id:
+        return [{"kind": "document", "id": result.order_id}]
     return [{"kind": "commitment", "id": result.commitment_id}]
 
 
@@ -222,6 +225,7 @@ def fulfillment_readiness(
     *,
     proposed_quantity: Decimal | None = None,
     from_location_id: str | None = None,
+    _delivery_rule: bool = True,
 ) -> FulfillmentReadiness:
     """Derive payment readiness for one customer-delivery commitment.
 
@@ -340,6 +344,15 @@ def fulfillment_readiness(
     )
     if order is None or order.type != "sales_order":
         raise InvalidOperation(code="customer_delivery_order_not_found")
+    if _delivery_rule:
+        # Spec 306: under ship complete a line is ready only with the whole
+        # order, every open line in full.
+        from reality.services.delivery_rules import order_ships_complete
+
+        if not order_ships_complete(
+            session, tenant_id, order.id, commitment.id, checked_quantity, open_quantity
+        ):
+            operational_blockers.append("ship_complete_incomplete")
     term = (
         session.scalar(
             select(PaymentTerm).where(
@@ -589,6 +602,10 @@ def require_paid_prepayment(
     readiness = fulfillment_readiness(
         session, tenant_id, commitment_id, proposed_quantity=Decimal(str(quantity))
     )
+    # Spec 306: the order's ship-complete rule binds the same paths.
+    from reality.services.delivery_rules import require_delivery_rule
+
+    require_delivery_rule(session, tenant_id, [(commitment_id, quantity)])
     payment = [code for code in readiness.blocker_codes if code in PAYMENT_BLOCKERS]
     if payment:
         raise InvalidOperation(

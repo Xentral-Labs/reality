@@ -2030,6 +2030,13 @@
     },
     "delivery_rule_changed_since_review": {
       "message": "This delivery rule changed after it was reviewed; review it again."
+    },
+    "shipment_ship_complete_partial": {
+      "message": "Order {order} ships complete: {lines} open line(s) would be left behind. Ship every open line in full, or lift the rule for this order.",
+      "values": {
+        "order": "text",
+        "lines": "number"
+      }
     }
   },
   "terms": [

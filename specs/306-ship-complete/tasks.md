@@ -22,13 +22,13 @@ Tests come first in each phase where practical.
 
 ## Phase 3: Readiness and shipments (FR-002)
 
-- [ ] T006 Tests:
+- [x] T006 Tests:
   - readiness blocker under ship complete, with no rule as control;
   - every shipment path refuses a partial shipment and accepts a complete one;
   - a lifted order ships in parts;
   - importers are not refused;
   - cancelled and fulfilled lines count as complete.
-- [ ] T007 Readiness blocker, `require_delivery_rule` on every person-facing path, the queue label
+- [x] T007 Readiness blocker, `require_delivery_rule` on every person-facing path, the queue label
 
 ## Phase 4: Findings (FR-005)
 

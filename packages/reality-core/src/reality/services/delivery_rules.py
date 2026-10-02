@@ -328,3 +328,101 @@ def delivery_rules(
         "effective": effective,
         "history": history,
     }
+
+
+def _open_lines(session: Session, tenant_id: str, order_id: str) -> dict[str, Any]:
+    """The order's customer promises that still have something to ship."""
+    from reality.services.core import commitment_terms
+
+    promises = list(
+        session.scalars(
+            select(Commitment).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.document_id == order_id,
+                Commitment.type == "customer_delivery",
+                Commitment.status == "open",
+            )
+        )
+    )
+    terms = commitment_terms(session, tenant_id, [row.id for row in promises])
+    return {row.id: terms[row.id].open for row in promises if terms[row.id].open > 0}
+
+
+def order_ships_complete(
+    session: Session,
+    tenant_id: str,
+    order_id: str,
+    commitment_id: str,
+    checked_quantity: Any,
+    open_quantity: Any,
+) -> bool:
+    """Whether a line may ship as checked under its order's rule.
+
+    Only ship complete restricts: the line ships its whole open quantity, and
+    every other open line of the order is ready to ship its whole open
+    quantity too. Cancelled and fulfilled lines have nothing left to wait for.
+    """
+    if effective_rules(session, tenant_id, [order_id])[order_id]["rule"] != (
+        "ship_complete"
+    ):
+        return True
+    if checked_quantity < open_quantity:
+        return False
+    from reality.services.fulfillment_readiness import fulfillment_readiness
+
+    return all(
+        fulfillment_readiness(
+            session, tenant_id, identity, _delivery_rule=False
+        ).ship_ready
+        for identity in _open_lines(session, tenant_id, order_id)
+        if identity != commitment_id
+    )
+
+
+def require_delivery_rule(
+    session: Session, tenant_id: str, movements: list[tuple[str, Any]]
+) -> None:
+    """A shipment a person records keeps every order's ship-complete rule.
+
+    The movements of one shipment are taken together: under ship complete each
+    order in it must carry every open line with its whole open quantity.
+    Importers record what a source states and do not come through here.
+    """
+    from decimal import Decimal
+
+    shipped: dict[str, Decimal] = {}
+    for commitment_id, quantity in movements:
+        if commitment_id:
+            shipped[commitment_id] = shipped.get(commitment_id, Decimal(0)) + Decimal(
+                str(quantity)
+            )
+    orders = {
+        document_id
+        for document_id in session.scalars(
+            select(Commitment.document_id).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.id.in_(set(shipped)),
+                Commitment.type == "customer_delivery",
+                Commitment.document_id.is_not(None),
+            )
+        )
+    }
+    rules = effective_rules(session, tenant_id, list(orders))
+    for order_id in sorted(orders):
+        if rules[order_id]["rule"] != "ship_complete":
+            continue
+        left = [
+            identity
+            for identity, quantity in _open_lines(session, tenant_id, order_id).items()
+            if shipped.get(identity, Decimal(0)) < quantity
+        ]
+        if left:
+            number = session.scalar(
+                select(Document.number).where(
+                    Document.tenant_id == tenant_id, Document.id == order_id
+                )
+            )
+            raise InvalidOperation(
+                code="shipment_ship_complete_partial",
+                values={"order": number or order_id, "lines": len(left)},
+            )

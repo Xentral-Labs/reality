@@ -448,6 +448,7 @@ DELIVERY_BLOCKER_TYPES = (
     "prepayment_attribution_ambiguous",
     "prepayment_consolidated_invoice_open",
     "prepayment_required",
+    "ship_complete_incomplete",
 )
 
 
@@ -566,6 +567,16 @@ def _open_work_rows(
         if document_ids
         else set()
     )
+    # Spec 306: an order that ships complete is read through readiness too.
+    from reality.services.delivery_rules import effective_rules
+
+    ship_complete_document_ids = {
+        identity
+        for identity, rule in effective_rules(
+            session, tenant_id, list(document_ids)
+        ).items()
+        if rule["rule"] == "ship_complete"
+    }
     source_ids = {row.source_record_id for row in documents.values()} - {None}
     sources = (
         {
@@ -754,7 +765,8 @@ def _open_work_rows(
                 reasons.append(("insufficient_stock", "physical stock is insufficient"))
             payment_readiness = (
                 fulfillment_readiness(session, tenant_id, commitment.id)
-                if commitment.document_id in prepayment_document_ids
+                if commitment.document_id
+                in prepayment_document_ids | ship_complete_document_ids
                 else None
             )
             if payment_readiness is not None:
@@ -762,7 +774,9 @@ def _open_work_rows(
                 reasons.extend(
                     (
                         blocker,
-                        " ".join(
+                        "the order ships complete"
+                        if blocker == "ship_complete_incomplete"
+                        else " ".join(
                             (
                                 f"required {payment_readiness.required_amount}",
                                 f"{payment_readiness.currency}; received",
