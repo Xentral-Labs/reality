@@ -178,11 +178,13 @@ export function PaymentCard({
 
   const review = proposal?.review;
   const chosen = invoices.data?.items.find((r) => r.document_id === draft.invoice_id);
+  // Shown for a supplier invoice in another currency than the company's; optional,
+  // since a payment from an account in the invoice currency states no amount.
   const foreign =
     activeTool === "supplier_payment_post" &&
-    !!chosen &&
-    !!book.data &&
-    chosen.currency !== book.data.currency;
+    !!book.data?.currency &&
+    !!draft.invoice_id &&
+    (!chosen || chosen.currency !== book.data.currency);
   const money = (value: string, currency: string) => formatMoney(value, currency, 4);
   const field = (label: string, key: string, required = true) => (
     <label className="block text-sm">
@@ -310,6 +312,7 @@ export function PaymentCard({
                 field(
                   `${t("Paid in company currency")} (${book.data?.currency ?? ""})`,
                   "paid_amount",
+                  false,
                 )}
               {field(t("Payment reference"), "payment_number", false)}
               {field(t("Effective time (UTC ISO, optional)"), "effective_at", false)}

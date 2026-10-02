@@ -371,3 +371,47 @@ def test_concurrent_payment_and_reversal_do_not_bypass_review(postgres_database)
             assert session.scalar(select(func.count()).select_from(LedgerEntry)) == 6
     finally:
         engine.dispose()
+
+
+def test_a_reversal_reviewed_before_company_amounts_still_verifies(session, business):
+    """Spec 309: 0115 gave existing entries a company amount; a reversal whose
+    review and event were stored without one stays verified."""
+    _, ig, _ = fixture(session, business, "supplier")
+    p = prepare(session, business, ig)
+    confirm(session, business, p)
+    assert (
+        delivery_proposal_detail(session, business.tenant.id, p.id)["verification"]
+        == "verified"
+    )
+
+    def strip(rows):
+        return [
+            {
+                k: v
+                for k, v in row.items()
+                if k not in {"company_amount", "exchange_rate"}
+            }
+            for row in rows
+        ]
+
+    stored = json.loads(p.input)
+    preview = stored["_delivery_review"]["state"]["preview"]
+    assert "company_amount" in preview["original_entries"][0]
+    preview["original_entries"] = strip(preview["original_entries"])
+    p.input = json.dumps(stored)
+    event = session.scalar(
+        select(BusinessEvent).where(
+            BusinessEvent.action_id == p.id,
+            BusinessEvent.event_type == "ledger.reversed",
+        )
+    )
+    payload = json.loads(event.payload)
+    payload["original_entries"] = strip(payload["original_entries"])
+    payload["reversing_entries"] = strip(payload["reversing_entries"])
+    event.payload = json.dumps(payload)
+    session.commit()
+
+    assert (
+        delivery_proposal_detail(session, business.tenant.id, p.id)["verification"]
+        == "verified"
+    )

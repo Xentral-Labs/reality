@@ -23,6 +23,23 @@ from reality.db.core import (
 from reality.services import core
 from reality.services.order_actions import _json
 
+_COMPANY_KEYS = ("company_amount", "exchange_rate")
+
+
+def _as_stored(values: list[dict], stored: list[dict]) -> list[dict]:
+    """Entry values as a snapshot taken before spec 309 recorded them.
+
+    Migration 0115 gave existing entries their company amount; a reversal
+    reviewed before it stored entries without one, and stays verifiable.
+    """
+    known = {row.get("id"): row for row in stored if isinstance(row, dict)}
+    return [
+        {k: v for k, v in value.items() if k not in _COMPANY_KEYS}
+        if not any(key in known.get(value["id"], {}) for key in _COMPANY_KEYS)
+        else value
+        for value in values
+    ]
+
 
 def _reversal_choices(
     session: Session, tenant_id: str, query: str = "", page: int = 1
@@ -451,19 +468,24 @@ def _reversal_evidence(
         return None
     originals = [core._ledger_entry_values(e) for e in original]
     inverses = [core._ledger_entry_values(e) for e in inverse]
-    if json.loads(_json(originals)) != json.loads(
-        _json(preview["original_entries"])
-    ) or json.loads(_json(payload.get("original_entries"))) != json.loads(
-        _json(originals)
+    if json.loads(
+        _json(_as_stored(originals, preview["original_entries"]))
+    ) != json.loads(_json(preview["original_entries"])) or json.loads(
+        _json(payload.get("original_entries"))
+    ) != json.loads(
+        _json(_as_stored(originals, payload.get("original_entries") or []))
     ):
         return None
     if sorted(payload.get("affected_allocation_ids", [])) != sorted(
         a["id"] for a in preview["affected_allocations"]
     ):
         return None
-    if json.loads(
-        _json(sorted(payload.get("reversing_entries", []), key=lambda e: e["id"]))
-    ) != json.loads(_json(inverses)):
+    stored_inverses = sorted(
+        payload.get("reversing_entries", []), key=lambda e: e["id"]
+    )
+    if json.loads(_json(stored_inverses)) != json.loads(
+        _json(_as_stored(inverses, stored_inverses))
+    ):
         return None
     signature = lambda e: (e.account, e.party_id, e.currency, e.amount, e.debit_credit)
     expected = Counter(

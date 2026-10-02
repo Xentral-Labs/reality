@@ -9231,6 +9231,8 @@ def _company_amounts(
         converted = [decimal(value) for value in stated]
         if len(converted) != len(amounts) or any(value < ZERO for value in converted):
             raise InvalidOperation(code="ledger_company_amounts_invalid")
+        if any(value == ZERO and amount for value, amount in zip(converted, amounts, strict=True)):
+            raise InvalidOperation(code="exchange_value_too_small")
         rates: list[Decimal | None] = [
             (value / amount).quantize(Decimal("0.00000001")) if amount else None
             for value, amount in zip(converted, amounts, strict=True)
@@ -9240,6 +9242,8 @@ def _company_amounts(
         if rate <= ZERO:
             raise InvalidOperation(code="exchange_rate_invalid")
         converted = [_round_cents(amount * rate) for amount in amounts]
+        if any(value <= ZERO for value in converted):
+            raise InvalidOperation(code="exchange_value_too_small")
         # The last entry of each side takes the rounding remainder, so the
         # group balances in the company currency too.
         total = _round_cents(
@@ -10068,9 +10072,11 @@ def _invoice_exchange_rate(
         raise InvalidOperation(code="exchange_rate_required")
     try:
         stated = decimal(rate)
+        exact = stated == stated.quantize(Decimal("0.00000001"))
     except (ArithmeticError, ValueError, TypeError) as error:
         raise InvalidOperation(code="exchange_rate_invalid") from error
-    if stated <= ZERO or stated != stated.quantize(Decimal("0.00000001")):
+    # Numeric(18, 8): at most ten integer digits.
+    if stated <= ZERO or not exact or stated >= Decimal("1e10"):
         raise InvalidOperation(code="exchange_rate_invalid")
     return stated
 
@@ -10873,6 +10879,46 @@ def _preview_invoice_payment(
     }
 
 
+def _settled_company_value(
+    session: OrmSession,
+    tenant_id: str,
+    control: LedgerEntry,
+    amount: Decimal,
+    opened: Decimal,
+) -> Decimal:
+    """The company-currency value of settling `amount` of a converted invoice.
+
+    A part is valued at the invoice rate; the part that settles the rest takes
+    what is left of the invoice's value, so nothing remains through rounding.
+    An earlier settlement without a company amount of its own (a reduction or
+    credit posted in the invoice currency) counts at the invoice rate.
+    """
+    rate = decimal(control.exchange_rate)
+    if amount != opened:
+        value = _round_cents(amount * rate)
+    else:
+        settled = ZERO
+        for row in active_settlement_allocations(
+            session, tenant_id, entry_ids={control.id}
+        ):
+            other_id = (
+                row.payment_ledger_entry_id
+                if row.invoice_ledger_entry_id == control.id
+                else row.invoice_ledger_entry_id
+            )
+            other = _tenant_record(session, LedgerEntry, tenant_id, other_id)
+            share = decimal(row.amount)
+            settled += (
+                _round_cents(decimal(other.company_amount) * share / decimal(other.amount))
+                if other.company_amount is not None and other.amount
+                else _round_cents(share * rate)
+            )
+        value = decimal(control.company_amount) - settled
+    if value <= ZERO:
+        raise InvalidOperation(code="exchange_value_too_small")
+    return value
+
+
 def _payment_exchange(
     session: OrmSession,
     tenant_id: str,
@@ -10910,30 +10956,17 @@ def _payment_exchange(
             raise InvalidOperation(code="paid_amount_invalid") from error
         if paid <= ZERO or paid != _round_cents(paid):
             raise InvalidOperation(code="paid_amount_invalid")
-    if amount == opened:
-        settled = ZERO
-        for row in active_settlement_allocations(
-            session, tenant_id, entry_ids={control.id}
-        ):
-            other_id = (
-                row.payment_ledger_entry_id
-                if row.invoice_ledger_entry_id == control.id
-                else row.invoice_ledger_entry_id
-            )
-            other = _tenant_record(session, LedgerEntry, tenant_id, other_id)
-            if other.company_amount is None:
-                raise InvalidOperation(code="invoice_not_converted")
-            settled += _round_cents(
-                decimal(other.company_amount) * decimal(row.amount) / decimal(other.amount)
-            )
-        value = decimal(control.company_amount) - settled
-    else:
-        value = _round_cents(amount * decimal(control.exchange_rate))
+    value = _settled_company_value(session, tenant_id, control, amount, opened)
     if not stated:
         # Paid in the invoice currency, from an account in it: valued at the
         # invoice rate, so nothing is realised yet.
         paid = value
     difference = value - paid
+    if difference:
+        # Refuse in the review, not at confirmation, when nowhere takes it.
+        from reality.services.finance.accounts import resolve_account
+
+        resolve_account(session, tenant_id, "exchange_difference")
     return {
         "company_currency": book,
         "paid_in": "company_currency" if stated else "invoice_currency",

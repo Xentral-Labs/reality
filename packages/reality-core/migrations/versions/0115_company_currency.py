@@ -67,6 +67,36 @@ def upgrade() -> None:
         "UPDATE ledger_entry SET company_amount = amount, exchange_rate = 1 "
         "WHERE currency = 'EUR'"
     )
+    # Companies whose accounts were set up have a destination for every role;
+    # they get the exchange-difference account too, as setting up would give it.
+    op.execute(
+        """
+        INSERT INTO subledger_account (id, tenant_id, code, name, role, state, revision)
+        SELECT 'acc_' || substr(md5(d.tenant_id || '/exchange_difference'), 1, 10),
+               d.tenant_id, 'exchange_difference', 'Realised exchange differences',
+               'exchange_difference', 'active', 1
+        FROM finance_role_destination d
+        WHERE d.role = 'customer_reduction'
+          AND NOT EXISTS (
+            SELECT 1 FROM subledger_account a
+            WHERE a.tenant_id = d.tenant_id
+              AND (a.role = 'exchange_difference' OR a.code = 'exchange_difference')
+          )
+        """
+    )
+    op.execute(
+        """
+        INSERT INTO finance_role_destination (id, tenant_id, role, account_id)
+        SELECT 'dest_' || substr(md5(a.tenant_id || '/exchange_difference'), 1, 10),
+               a.tenant_id, 'exchange_difference', a.id
+        FROM subledger_account a
+        WHERE a.role = 'exchange_difference'
+          AND NOT EXISTS (
+            SELECT 1 FROM finance_role_destination d
+            WHERE d.tenant_id = a.tenant_id AND d.role = 'exchange_difference'
+          )
+        """
+    )
     op.create_check_constraint(
         "ck_ledger_entry_company_amount",
         "ledger_entry",

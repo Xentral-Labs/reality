@@ -2137,6 +2137,9 @@
     "paid_amount_invalid": {
       "message": "The amount paid must be a positive number."
     },
+    "exchange_value_too_small": {
+      "message": "The amount is too small to have a value in the company currency."
+    },
     "invoice_not_converted": {
       "message": "This invoice was posted without an exchange rate and cannot be paid in another currency."
     }
