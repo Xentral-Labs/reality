@@ -19,9 +19,9 @@
 
 ## Final Phase: Verification and Review
 
-- [ ] T009 Run focused and full backend tests, lint and spec policy; record evidence in `quickstart.md`.
+- [x] T009 Run focused and full backend tests, lint and spec policy; record evidence in `quickstart.md`.
 - [x] T010 Run required Web and documentation gates; record evidence in `quickstart.md`.
-- [ ] T011 Review final diff for scope, SQL boundaries, provenance and compatibility; record in `quickstart.md`.
+- [x] T011 Review final diff for scope, SQL boundaries, provenance and compatibility; record in `quickstart.md`. Human PR review and merge approval remain separate.
 
 ## Dependencies and Parallel Work
 

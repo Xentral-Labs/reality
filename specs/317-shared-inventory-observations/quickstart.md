@@ -19,6 +19,12 @@ Then run `make test`, `make lint spec-check`, `make web-build`, `make docs-gener
 
 ## Review
 
+### Final verification
+
+Full CI on `f9ccedc1`, run [36974152614](https://github.com/Xentral-Labs/reality/actions/runs/36974152614): all four backend shards passed (1,249 + 1,299 + 1,617 + 1,177 = 5,342 passed; 10 skipped). Spec policy, frontend, documentation, seven browser-script shards and six live-browser stories passed. The local full attempt started before the setup expectation correction and stopped at that same stale assertion after 3,318 passed and 3 skipped; the corrected setup regression separately passed. The complete current-commit CI is the full-suite evidence, not the interrupted local run. Lint/spec and catalog reproducibility also passed locally after rebasing onto `7b0c41f6`.
+
+Final diff self-review found no schema expansion, changed deadlines, historical rewrite or change to `services/exceptions.py`. Temporary PostgreSQL test data was removed after local checks. Human PR review and merge authorization remain pending in PR #279. No deployment or merge is claimed.
+
 ### Verification-blocker remediation
 
 Profiling reproduced the timeout: 26,000 SQL round-trips, 166.9 seconds in profile creation, 89.6 seconds cumulatively in 79 cost decisions, and only 5.7 seconds rebuilding projections. Batch retained input identities within `_inputs`; retain all tenant predicates, validation order, hashes and source values, with no cross-call cache or changed deadline. The new query-count test failed before the refactor (2 movement-basis reads instead of 1). Final inventory-cost integrity and canonical demo module run: 65 passed in 191.55 seconds, including completed setup under the unchanged 120-second limit. Full backend verification still follows.

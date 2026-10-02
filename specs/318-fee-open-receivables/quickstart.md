@@ -4,7 +4,7 @@ Run new fee regressions first and record their failures. Verify both fee types, 
 
 Run focused finance, credit exposure, projection and adapter coverage; then full backend, lint/spec, Web and documentation gates. Regenerate references and verify reproducibility. Review no schema expansion, historical rebooking or changes to `services/exceptions.py`.
 
-Verification pending; no completion claim.
+Implementation and automated verification complete; human PR review and merge authorization pending.
 
 ## Evidence (2026-10-02)
 
@@ -25,5 +25,7 @@ Verification pending; no completion claim.
 - First CI round: all three other backend shards, seven browser-script shards, six live-browser stories, frontend, docs and spec policy passed. Only the stale setup expectation failed; a fresh complete CI run follows the test correction.
 
 ## Review
+
+Final CI on `f9ccedc1`, run [36974152614](https://github.com/Xentral-Labs/reality/actions/runs/36974152614): 5,342 backend tests passed, 10 skipped, no failures across four shards. Frontend, docs, spec policy, all seven fixture-browser shards (including fee payment), and all six live-browser stories passed. The earlier local full run stopped at its already-loaded stale setup expectation after 3,318 passed; it is not represented as green. The corrected focused setup regression and complete fresh CI both passed. No implementation changed after this complete CI; the final commit records evidence only.
 
 Reviewed reuse of immutable fee/control entries, source links, effective allocations/reversals, tenant/currency/amount guards, cash/credit-only settlement eligibility, absent unstated maturity and unchanged dunning/noncash-reduction eligibility. Projection version 6 invalidates old snapshots for historical fee visibility; no migration/rebooking is performed. `services/exceptions.py` remains untouched.

@@ -1917,15 +1917,17 @@ Table `item_reorder_point`: the stock level at which the company reorders an ite
 - `packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py`: stories D02 (six at home and forty in Munich for a line of ten: home reserves six, the finding points at Munich for four, reserved there through the review; ready, two parcels from their own warehouses fulfil the promise, no reservation left), B06 (all stock in Munich: home reserves nothing, the finding names Munich 40, the reviewed transfer moves five home and clears it, then the order reserves and ships at home) and A02 (twelve lines, half stocked in Munich: exactly those lines are named and reserved there, all lines ready, each warehouse ships its own lines in one parcel).
 - Review round (spec 303 T017), `test_multi_warehouse_reservations.py`: the queue offers each warehouse its ready part, home first; a fulfilled promise releases what it still holds elsewhere; a transfer that takes reserved stock is warned, one that does not as control; a promise without a warehouse reads the company's stock and lacks only its reservation, as before.
 
-## Blocked stock — Spec 304
+## Shared inventory observations and fee open receivables — Specs 317/318
 
-Shared inventory observations — spec 317 FR-001–FR-005: `packages/reality-core/tests/test_shared_inventory_observations.py` covers surface equivalence after revision and partial receipt, reservations and partial block release, location and tenant boundaries, derived filters and projection metadata. Verification pending.
+Shared inventory observations — spec 317 FR-001–FR-005: `packages/reality-core/tests/test_shared_inventory_observations.py` covers surface equivalence after revision and partial receipt, reservations and partial block release, location and tenant boundaries, derived filters and projection metadata. Complete backend, Web, browser and documentation verification passed; see spec 317 `quickstart.md`.
 
-Fee open receivables — spec 318 FR-001–FR-006: `packages/reality-core/tests/finance/test_fee_open_receivables.py` covers historical fee visibility, shared/Web aging, exposure, reviewed partial payment and replay, payment/fee reversal, credit allocation, amount and tenant guards, company/zero fee exclusions, projection output and dunning/noncash-policy exclusion. Verification pending.
+Fee open receivables — spec 318 FR-001–FR-006: `packages/reality-core/tests/finance/test_fee_open_receivables.py` covers historical fee visibility, shared/Web aging, exposure, reviewed partial payment and replay, payment/fee reversal, credit allocation, amount and tenant guards, company/zero fee exclusions, projection output and dunning/noncash-policy exclusion. `test_company_setup_initialization.py` retains the existing historical fee in canonical seeded projections. Complete verification passed; see spec 318 `quickstart.md`.
 
 Spec 318 FR-004/FR-006: `apps/web/scripts/fee-open-receivables-contract.test.mjs` checks fee payment actions without reduction/dunning actions and service-provided reduction eligibility in the settlement form.
 
 Spec 318 FR-004/FR-006: `apps/web/scripts/fee-open-receivables-browser.mjs` verifies both fee types open the shared payment dialog without reduction/dunning controls and without browser writes.
+
+## Blocked stock — Spec 304
 
 Table `stock_block`: stock held back where it lies with its reason, excluded from availability until released or scrapped.
 

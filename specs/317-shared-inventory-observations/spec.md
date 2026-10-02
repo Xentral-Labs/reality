@@ -3,7 +3,7 @@
 **Feature Branch**: `codex/journey-consistency`
 **Created**: 2026-10-02
 **Language**: English
-**Status**: Implemented; overall backend verification in progress
+**Status**: Implemented and verified; human PR review pending
 **Input**: Fix the reviewed inventory derivation and projection catalog gaps. The owner approved this scope on 2026-10-02.
 
 ## Context and Intent
