@@ -2243,13 +2243,13 @@ Exception class `shipped_beyond_order`, derived at read time: a customer promise
 
 ## Customer pickup and late 3PL confirmations — Spec 312
 
-Column `shipment.delivery_mode` (`carrier`, `pickup`): how the goods go, as stated. Who collected is a stated value in the shipment's notice event. Shipment movements carry the stated `occurred_at`; the shipment read derives the confirmation lag.
+The delivery mode (`carrier`, `pickup`) and who collected are stated values in the shipment's notice event; no column. Shipment movements carry the stated `occurred_at`; the shipment read derives the confirmation lag.
 
 - `packages/reality-core/tests/test_shipping_modes.py`:
   - A customer collects and says who; the promise is fulfilled.
   - A pickup takes no carrier and is for customers only; a carrier shipment as the control reads as carrier.
   - Movements carry when the goods left, and the read shows the lag.
   - A future time is refused, and no stated time shows no lag.
-  - The migration guards its downgrade; an agent records a pickup through the strict schema.
+  - Goods cannot leave before they arrived, in review and at confirmation; an agent records a pickup through the strict schema.
 - `packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py`: stories D15 (pickup at the counter) and D12 (a 3PL confirms on Thursday what left on Monday).
 - `packages/reality-core/tests/test_shipment_reads.py::test_paged_shipment_register_has_bounded_query_cost`: one more bounded read for the page's notices.

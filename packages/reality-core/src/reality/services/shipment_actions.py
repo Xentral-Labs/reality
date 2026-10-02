@@ -150,6 +150,25 @@ def review_shipment_action(
             raise InvalidOperation(code="shipment_counterparty_role_mismatch")
         state["counterparty"] = {"id": party.id, "roles": roles}
         state["direction"] = direction
+        # Spec 312: the review refuses what the confirmation would refuse.
+        from reality.services.shipments import (
+            _check_moved_at,
+            _check_stock_at_moved_time,
+            _delivery_mode,
+        )
+
+        _delivery_mode(
+            purpose,
+            intent.get("carrier"),
+            intent.get("tracking_number"),
+            intent.get("delivery_mode"),
+            intent.get("collected_by"),
+        )
+        _check_moved_at(intent.get("occurred_at"))
+        if tool in {"shipment_dispatch", "shipment_receive"}:
+            _check_stock_at_moved_time(
+                session, tenant_id, intent.get("movements") or [], intent.get("occurred_at")
+            )
         if tool in {"shipment_dispatch", "shipment_receive"}:
             unknown = set(arguments) - SHIPMENT_EXECUTION_FIELDS
             if unknown:

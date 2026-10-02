@@ -80,10 +80,7 @@ def record_shipment_notice(
     delivery_mode, collected_by = _delivery_mode(
         purpose, carrier, tracking_number, delivery_mode, collected_by
     )
-    stated_at = utc_datetime(occurred_at)
-    if stated_at is not None and stated_at > now() + timedelta(minutes=5):
-        # Spec 312: when the goods moved is a past fact, never a plan.
-        raise InvalidOperation(code="shipment_occurred_at_future")
+    _check_moved_at(occurred_at)
     _record(session, Party, tenant_id, counterparty_id)
     role = required_party_role(purpose)
     if not session.scalar(
@@ -106,7 +103,6 @@ def record_shipment_notice(
         purpose=purpose,
         counterparty_id=counterparty_id,
         source_record_id=source_record_id,
-        **({"delivery_mode": delivery_mode} if delivery_mode else {}),
     )
     session.add(shipment)
     session.flush()
@@ -160,6 +156,45 @@ def record_shipment_notice(
 
 
 DELIVERY_MODES = ("carrier", "pickup")
+
+
+def _check_moved_at(occurred_at: Any) -> datetime | None:
+    """A stated time when goods moved: a past fact, never a plan (spec 312)."""
+    stated = utc_datetime(occurred_at)
+    if stated is not None and stated > now() + timedelta(minutes=5):
+        raise InvalidOperation(code="shipment_occurred_at_future")
+    return stated
+
+
+def _check_stock_at_moved_time(
+    session: Session,
+    tenant_id: str,
+    movements: list[dict[str, Any]],
+    occurred_at: Any,
+) -> None:
+    """Goods stated to have left at a past time were there at that time.
+
+    A late confirmation dates the movements back; an outbound movement before
+    the stock it takes arrived would leave the book negative in between, which
+    costing and counts replay in time order. Refused rather than recorded.
+    """
+    stated = utc_datetime(occurred_at)
+    if stated is None:
+        return
+    from reality.services.stock_counts import book_as_of
+
+    taken: dict[tuple[str, str, str | None], Decimal] = {}
+    for raw in movements:
+        if not isinstance(raw, dict) or not raw.get("from_location_id"):
+            continue
+        key = (str(raw.get("item_id")), str(raw["from_location_id"]), raw.get("lot_id"))
+        try:
+            taken[key] = taken.get(key, Decimal(0)) + Decimal(str(raw.get("quantity")))
+        except (ArithmeticError, ValueError):
+            continue
+    for (item_id, location_id, lot_id), quantity in taken.items():
+        if book_as_of(session, tenant_id, item_id, location_id, lot_id, stated) < quantity:
+            raise InvalidOperation(code="shipment_occurred_before_stock")
 
 
 def _delivery_mode(
@@ -327,6 +362,7 @@ def record_packaged_execution(
     collected_by: str | None = None,
     commit: bool = True,
 ) -> dict[str, Any]:
+    _check_stock_at_moved_time(session, tenant_id, movements, occurred_at)
     if purpose == "customer_delivery":
         from reality.services.delivery_rules import require_delivery_rule
         from reality.services.fulfillment_readiness import fulfillment_readiness

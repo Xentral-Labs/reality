@@ -25005,6 +25005,8 @@ Object.assign(dictionaries.de, {
   "Goods moved at": "Ware bewegt am",
   "Goods moved at (optional)": "Ware bewegt am (optional)",
   Pickup: "Abholung",
+  "The goods were not there at the stated time; record the receipt that brought them first.":
+    "Die Ware war zum angegebenen Zeitpunkt nicht da; erfasse zuerst den Wareneingang, der sie gebracht hat.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25377,6 +25379,8 @@ Object.assign(dictionaries.nl, {
   "Goods moved at": "Goederen bewogen op",
   "Goods moved at (optional)": "Goederen bewogen op (optioneel)",
   Pickup: "Afhalen",
+  "The goods were not there at the stated time; record the receipt that brought them first.":
+    "De goederen waren er niet op het opgegeven tijdstip; leg eerst de ontvangst vast die ze bracht.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25748,6 +25752,8 @@ Object.assign(dictionaries.es, {
   "Goods moved at": "Mercancía movida el",
   "Goods moved at (optional)": "Mercancía movida el (opcional)",
   Pickup: "Recogida",
+  "The goods were not there at the stated time; record the receipt that brought them first.":
+    "La mercancía no estaba en el momento indicado; registra primero la entrada que la trajo.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

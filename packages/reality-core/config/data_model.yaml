@@ -67,7 +67,6 @@ tables:
       counterparty_id: {}
       source_record_id: {}
       created_at: {}
-      delivery_mode: {description: "How the goods go, as stated: carrier, or pickup by the customer (spec 312); null when not stated."}
   shipment_package:
     description: A package with stated carrier and tracking reference.
     columns:

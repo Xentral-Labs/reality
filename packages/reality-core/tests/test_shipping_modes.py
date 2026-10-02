@@ -41,6 +41,19 @@ def _dispatch(session, business, fixture, quantity="2", **extra):
     return json.loads(executed.output)
 
 
+def _stock_since(session, business, days=10, quantity="10"):
+    """Stock that arrived well before any stated shipment time."""
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "receipt",
+        business.item.id,
+        quantity,
+        to_location_id=business.location.id,
+        occurred_at=core.now() - timedelta(days=days),
+    )
+
+
 def _refused(code, call):
     with pytest.raises((core.InvalidOperation, core.NotFound)) as refused:
         call()
@@ -108,6 +121,7 @@ def test_movements_carry_when_the_goods_left(session, business):
     tenant = business.tenant.id
     fixture = delivery_fixture(session, business, quantity="2")
     core.reserve(session, tenant, fixture.commitment.id)
+    _stock_since(session, business)
     left = core.now() - timedelta(days=3)
 
     output = _dispatch(session, business, fixture, occurred_at=left.isoformat())
@@ -140,46 +154,13 @@ def test_a_future_time_is_refused_and_no_time_has_no_lag(session, business):
     assert (detail["moved_at"], detail["confirmation_lag_seconds"]) == (None, None)
 
 
-def test_the_migration_guards_its_downgrade(postgres_database, monkeypatch):
-    from alembic import command
-    from alembic.config import Config
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import Session
-
-    from reality.services.shipments import record_shipment_notice
-
-    monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
-    config = Config("alembic.ini")
-    config.set_main_option("sqlalchemy.url", postgres_database)
-    command.upgrade(config, "head")
-    engine = create_engine(postgres_database)
-    try:
-        # Positive control: nothing stated, so the downgrade and upgrade pass.
-        command.downgrade(config, "0122_purchasing_depth")
-        command.upgrade(config, "head")
-        with Session(engine) as session:
-            tenant = core.create_tenant(session, "Migration 312")
-            customer = core.create_party(session, tenant.id, "Kunde", "customer")
-            record_shipment_notice(
-                session,
-                tenant.id,
-                direction="outbound",
-                purpose="customer_delivery",
-                counterparty_id=customer.id,
-                delivery_mode="pickup",
-            )
-        with pytest.raises(Exception, match="delivery mode"):
-            command.downgrade(config, "0122_purchasing_depth")
-    finally:
-        engine.dispose()
-
-
 def test_an_agent_records_a_pickup_through_the_strict_schema(session, business):
     from reality.mcp.catalog import MCP_TOOL_REGISTRY
     from reality.mcp.server import _reject_unknown_fields
 
     fixture = delivery_fixture(session, business, quantity="1")
     core.reserve(session, business.tenant.id, fixture.commitment.id)
+    _stock_since(session, business)
     arguments = {
         "purpose": "customer_delivery",
         "counterparty_id": business.customer.id,
@@ -201,3 +182,43 @@ def test_an_agent_records_a_pickup_through_the_strict_schema(session, business):
     proposed = definition.handler(session, business.tenant.id, arguments)
 
     assert proposed["proposal_id"]
+
+
+def test_goods_cannot_leave_before_they_arrived(session, business):
+    """A late confirmation cannot date a shipment before its stock came in."""
+    from reality.services.delivery_actions import prepare_delivery_action
+
+    tenant = business.tenant.id
+    fixture = delivery_fixture(session, business, quantity="2")
+    core.reserve(session, tenant, fixture.commitment.id)
+    # The fixture's stock was received now; a shipment a week ago had nothing.
+    week_ago = (core.now() - timedelta(days=7)).isoformat()
+    _refused(
+        "shipment_occurred_before_stock",
+        lambda: _dispatch(session, business, fixture, occurred_at=week_ago),
+    )
+    # The review refuses it too, and a pickup on a supplier return.
+    _refused(
+        "shipment_occurred_before_stock",
+        lambda: prepare_delivery_action(
+            session,
+            tenant,
+            "shipment_dispatch",
+            {
+                "purpose": "customer_delivery",
+                "counterparty_id": business.customer.id,
+                "occurred_at": week_ago,
+                "movements": [
+                    {
+                        "commitment_id": fixture.commitment.id,
+                        "item_id": business.item.id,
+                        "from_location_id": business.location.id,
+                        "quantity": "2",
+                    }
+                ],
+            },
+            request_id="moved-early",
+        ),
+    )
+    # Positive control: now, after the receipt, the stock is there.
+    _dispatch(session, business, fixture, occurred_at=core.now().isoformat())

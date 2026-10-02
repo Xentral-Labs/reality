@@ -2187,6 +2187,9 @@
     },
     "shipment_collector_pickup_only": {
       "message": "Who collected is stated for a pickup only."
+    },
+    "shipment_occurred_before_stock": {
+      "message": "The goods were not there at the stated time; record the receipt that brought them first."
     }
   },
   "terms": [

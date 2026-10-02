@@ -4,8 +4,7 @@
 
 ## Summary
 
-- `shipment.delivery_mode` (nullable: `carrier`, `pickup`), migration `0123`. A pickup refuses a carrier and a tracking number and is allowed for customer deliveries only.
-- The collector's name is a stated value in the shipment's `shipment.notice_recorded` event payload.
+- The delivery mode (`carrier`, `pickup`) and the collector's name are stated values in the shipment's `shipment.notice_recorded` event payload. No column: nothing calculates on them. A pickup refuses a carrier and a tracking number and is allowed for customer deliveries only.
 - `record_packaged_execution` passes the stated `occurred_at` to every movement and refuses a future one.
 - `shipment_explain` and the shipment reads add:
   - `delivery_mode`;
@@ -18,7 +17,7 @@
 
 **Language/Version**: Python 3.12, TypeScript (React)
 
-**Storage**: PostgreSQL; migration `0123_shipment_delivery_mode`
+**Storage**: no schema change
 
 **Testing**:
 - shipment service, tool, adapter and story tests;
@@ -37,24 +36,23 @@
 |---|---|---|
 | I. Source → Evidence → Reality | PASS | The stated time and collector are kept as stated. |
 | II. Reality is the operational authority | PASS | No document status. |
-| III. Proven schema only | PASS | The mode is checked on every dispatch (carrier refusal), filtered in reads and shown. The collector is not typed. |
+| III. Proven schema only | PASS | No new column; mode and collector are stated values with the notice. |
 | IV. Tenant and service boundaries | PASS | One shipment service behind every adapter. |
 | V. Specification and test evidence | PASS | Tests first. |
 | VI. Explainable Web product | PASS | The shipment shows mode, collector, times and lag. |
-| VII. Simplicity and storage discipline | PASS | One nullable column. |
+| VII. Simplicity and storage discipline | PASS | No schema. |
 | VIII. Received values are recorded, never recomputed | PASS | Stated times and names are kept; the lag is derived at read time. |
 
 ## Design
 
-1. **Schema:** migration `0123`.
-   - `shipment.delivery_mode` with a check on `carrier` and `pickup`.
-   - The model uses FetchedValue, deferred and `eager_defaults` False.
+1. **No schema.**
 2. **Service:** `record_shipment_notice` and `record_packaged_execution` take `delivery_mode` and `collected_by`.
    - Refusals:
      - `shipment_pickup_customer_only`;
      - `shipment_pickup_carrier_refused`;
      - `shipment_delivery_mode_invalid`;
-     - `shipment_occurred_at_future`.
+     - `shipment_occurred_at_future`;
+     - `shipment_occurred_before_stock`, for goods stated to leave before the stock arrived, in review and at confirmation.
    - The stated `occurred_at` is passed to each `record_movement`.
 3. **Reads:** `shipment_explain` and `_details` add mode, collector, moved and recorded times and the lag.
 4. **Adapters:**
@@ -69,4 +67,4 @@
 
 ## Rollback
 
-The downgrade refuses while pickups are recorded.
+Nothing is stored beyond the notice payload and the movements' stated time.
