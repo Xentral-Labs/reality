@@ -39,7 +39,7 @@ Tests come first in each phase where practical.
 
 ## Phase 4: Web
 
-- [ ] T008 "Inventur" on the warehouse stock view, the counting card, the count list, translations, browser fixtures
+- [x] T008 "Inventur" on the warehouse stock view, the counting card, the count list, translations, browser fixtures
 
 ## Phase 5: Stories and Guide (FR-004)
 

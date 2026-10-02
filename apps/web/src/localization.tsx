@@ -24786,6 +24786,19 @@ Object.assign(dictionaries.de, {
   "Stock at the counting time changed after the review; review the count again.":
     "Der Bestand zum Zählzeitpunkt hat sich nach der Prüfung geändert; prüfe die Inventur erneut.",
   "This count was not found.": "Diese Inventur wurde nicht gefunden.",
+  Book: "Buchbestand",
+  Counted: "Gezählt",
+  Difference: "Differenz",
+  "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Nothing is posted before you confirm.":
+    "Trage ein, was du gezählt hast; leere Artikel werden nicht gezählt. Jede Differenz wird gegen den Bestand zum Zählzeitpunkt gebucht, der Betrieb am Lagerort läuft also weiter. Ein Fehlbestand geht zuerst zulasten des freien, dann des gesperrten Bestands. Vor deiner Bestätigung wird nichts gebucht.",
+  "In stock": "Im Bestand",
+  "in stock after": "Bestand danach",
+  "Nothing is released by the count; decide who waits.":
+    "Die Inventur gibt nichts frei; entscheide, wer wartet.",
+  "Of which from blocked stock": "Davon aus gesperrtem Bestand",
+  "No longer covered after this count": "Nach dieser Inventur nicht mehr gedeckt",
+  "Stock count": "Inventur",
+  "Stock counts": "Inventuren",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25026,6 +25039,19 @@ Object.assign(dictionaries.nl, {
   "Stock at the counting time changed after the review; review the count again.":
     "De voorraad op het teltijdstip is na de controle gewijzigd; controleer de telling opnieuw.",
   "This count was not found.": "Deze telling is niet gevonden.",
+  Book: "Boekvoorraad",
+  Counted: "Geteld",
+  Difference: "Verschil",
+  "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Nothing is posted before you confirm.":
+    "Vul in wat je hebt geteld; lege artikelen worden niet geteld. Elk verschil wordt geboekt tegen de voorraad op het teltijdstip, dus het werk op de locatie loopt door. Een tekort gaat eerst ten koste van vrije, daarna van geblokkeerde voorraad. Er wordt niets geboekt voordat je bevestigt.",
+  "In stock": "Op voorraad",
+  "in stock after": "voorraad daarna",
+  "Nothing is released by the count; decide who waits.":
+    "De telling geeft niets vrij; beslis wie wacht.",
+  "Of which from blocked stock": "Waarvan uit geblokkeerde voorraad",
+  "No longer covered after this count": "Na deze telling niet meer gedekt",
+  "Stock count": "Voorraadtelling",
+  "Stock counts": "Voorraadtellingen",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25265,6 +25291,19 @@ Object.assign(dictionaries.es, {
   "Stock at the counting time changed after the review; review the count again.":
     "El stock en la hora del recuento cambió tras la revisión; revisa el recuento de nuevo.",
   "This count was not found.": "No se encontró este recuento.",
+  Book: "Stock contable",
+  Counted: "Contado",
+  Difference: "Diferencia",
+  "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Nothing is posted before you confirm.":
+    "Introduce lo que contaste; los artículos vacíos no se cuentan. Cada diferencia se registra contra el stock en la hora del recuento, así que el trabajo en la ubicación continúa. Una pérdida sale primero del stock libre y luego del bloqueado. No se registra nada antes de que confirmes.",
+  "In stock": "En stock",
+  "in stock after": "stock después",
+  "Nothing is released by the count; decide who waits.":
+    "El recuento no libera nada; decide quién espera.",
+  "Of which from blocked stock": "De ello del stock bloqueado",
+  "No longer covered after this count": "Ya no cubierto tras este recuento",
+  "Stock count": "Recuento de stock",
+  "Stock counts": "Recuentos de stock",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
