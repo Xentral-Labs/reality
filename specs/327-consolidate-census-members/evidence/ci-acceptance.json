@@ -1,0 +1,162 @@
+{
+  "source_commit": "c76e5bfd06990032b87e2cdaec80ffae817f8175",
+  "source_base": "10cd775d",
+  "quality_run": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891",
+  "installer_run": "https://github.com/Xentral-Labs/reality/actions/runs/37047527980",
+  "shards": [
+    {
+      "shard": "0",
+      "collected": 1296,
+      "passed": 1293,
+      "skipped": 3,
+      "xml_sha256": "fe0d293e6a0e4d2a918c91952919ff4944e8f84a860d3ecf79307cc7117e8d01"
+    },
+    {
+      "shard": "1",
+      "collected": 1342,
+      "passed": 1338,
+      "skipped": 4,
+      "xml_sha256": "5183ab3d12137dd3e7c73eeffe11d20f1ab2974602da85dbb5663722ddf706c1"
+    },
+    {
+      "shard": "2",
+      "collected": 1764,
+      "passed": 1763,
+      "skipped": 1,
+      "xml_sha256": "263985ac974d79817c43726c7bee08ba3086b92041e8591cdd6e51b0184a85ec"
+    },
+    {
+      "shard": "3",
+      "collected": 1197,
+      "passed": 1195,
+      "skipped": 2,
+      "xml_sha256": "5ad03b17bafb1ff3f36a0e75b0676681c4510a7661b4a1ae2dccee708084acc8"
+    }
+  ],
+  "unique_cases": 5599,
+  "passed": 5589,
+  "skipped": 10,
+  "failed": 0,
+  "checks": [
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110976925517",
+      "name": "backend-quality",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527980/job/110972722636",
+      "name": "end-to-end",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972591691",
+      "name": "backend-tests (1)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972591736",
+      "name": "backend-tests (3)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972591634",
+      "name": "backend-tests (2)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972591620",
+      "name": "backend-tests (0)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527980/job/110972529524",
+      "name": "script",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529683",
+      "name": "live-browser (finance-rollout, tests/browser/unified_finance_rollout.py)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529480",
+      "name": "browser-scripts (4)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529660",
+      "name": "browser-scripts (5)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529560",
+      "name": "live-browser (history-table, tests/browser/unified_history_table.py)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529784",
+      "name": "live-browser (item-csv-import, tests/browser/unified_item_csv_import.py)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529540",
+      "name": "live-browser (business-journey, tests/browser/unified_business_journey.py)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529691",
+      "name": "browser-scripts (7)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529610",
+      "name": "browser-scripts (6)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529636",
+      "name": "live-browser (engine-room, tests/browser/unified_engine_room.py)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529632",
+      "name": "live-browser (company-setup-live, tests/browser/unified_company_setup_live.py)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529547",
+      "name": "browser-scripts (3)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529381",
+      "name": "docs-quality",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529569",
+      "name": "browser-scripts (2)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529533",
+      "name": "browser-scripts (1)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529131",
+      "name": "frontend-quality",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529492",
+      "name": "backend-changes",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Xentral-Labs/reality/actions/runs/37047527891/job/110972529396",
+      "name": "spec-policy",
+      "state": "SUCCESS"
+    }
+  ]
+}

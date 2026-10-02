@@ -29,3 +29,12 @@ turn it directly into implementation tasks.
   contract lives in [payment_matching.md](../features/payment_matching.md).
 - [Deterministic external-system simulator](integration-simulator.md): provider-shaped
   webhooks, pull APIs and files that prove the full integration boundary.
+
+## Storage assessments
+
+- [Table storage overview](table-storage-overview.md): complete repository inventory, fifteen physical tables saved by accepted specs 316/319/324/326 and retained boundaries.
+- [Settings assessment](settings-storage-consolidation.md): preference scope and reuse of existing account storage.
+- [Mapping/reference assessment](mapping-storage-consolidation.md): retained decision grains and the subsequently implemented shared catalog.
+- [Remaining cost storage assessment](cost-storage-consolidation.md): historical 47-table inventory and the accepted receipt-manifest membership follow-up (current costing storage: 43 physical tables).
+
+- [Census membership assessment](census-storage-consolidation.md): four-family inventory, two incoming typed links, immutable capture lifecycle and a proposed three-table saving requiring separate specification and PostgreSQL proof.

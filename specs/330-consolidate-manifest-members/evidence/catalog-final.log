@@ -1,0 +1,27 @@
+PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-catalog-reference.py
+content/tool-usage/commands.md 23948ms
+content/tool-usage/events.md 464ms
+content/tool-usage/exceptions.md 3949ms
+content/tool-usage/index.md 1739ms (unchanged)
+content/tool-usage/processes.md 1243ms
+content/tool-usage/resources.md 2100ms
+content/tool-usage/views.md 2003ms
+content/de/tool-usage/commands.md 19569ms
+content/de/tool-usage/events.md 322ms
+content/de/tool-usage/exceptions.md 3361ms
+content/de/tool-usage/index.md 669ms (unchanged)
+content/de/tool-usage/processes.md 663ms
+content/de/tool-usage/resources.md 1910ms
+content/de/tool-usage/views.md 1362ms
+content/storylines/index.md 441ms
+content/de/storylines/index.md 287ms
+content/public/storylines/first-round.storyline.yaml 802ms
+content/public/storylines/order-to-close.storyline.yaml 1091ms
+content/public/storylines/purchase-to-pay.storyline.yaml 450ms
+content/public/storylines/storyline.schema.json 519ms
+.vitepress/data/tool-usage.json 10409ms
+PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-journey-guide.py
+Generated Business Journey Guide: 228 journeys
+PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-product-advisor-knowledge.py
+Generated Product Advisor knowledge: 234 sources, 378 evidence units, 39 capability routes
+git diff --exit-code -- apps/docs/content/tool-usage apps/docs/content/de/tool-usage apps/docs/content/storylines apps/docs/content/de/storylines apps/docs/content/public/storylines apps/docs/.vitepress/data packages/reality-core/config/product_advisor_knowledge.json packages/reality-core/config/product_capability_map.json

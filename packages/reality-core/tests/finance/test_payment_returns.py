@@ -811,7 +811,9 @@ def test_the_migration_drops_the_links_only_when_they_can_be_read_back(
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = Config("alembic.ini")
     config.set_main_option("sqlalchemy.url", postgres_database)
-    command.upgrade(config, "0109_stock_block_resolution")
+    # Build the business history through current shared services, then restore
+    # the actual predecessor. Account defaults now use a later account column.
+    command.upgrade(config, "head")
     engine = create_engine(postgres_database)
     links = ("ledger_reversal_id", "fee_document_id", "fee_charge_document_id")
 
@@ -837,6 +839,8 @@ def test_the_migration_drops_the_links_only_when_they_can_be_read_back(
             session.commit()
         stated = {key: receipt[key] for key in links}
         assert all(stated.values())
+        command.downgrade(config, "0109_stock_block_resolution")
+        assert set(links) <= columns()
 
         def store(values):
             with engine.begin() as connection:

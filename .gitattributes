@@ -1,0 +1,3 @@
+
+# Preserve verbatim pytest evidence, including traceback whitespace.
+specs/*/evidence/*.log whitespace=-blank-at-eol

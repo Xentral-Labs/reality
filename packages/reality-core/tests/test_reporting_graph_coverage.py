@@ -25,6 +25,11 @@ from reality.services.analytics.graph_model import (
 # Tables that are not business data. Named rather than pattern-matched, so adding
 # one is a decision somebody makes and not a regex that quietly widens.
 INFRASTRUCTURE = {
+    # Shared storage backs existing filtered logical cost reporting interfaces.
+    "cost_projection_generation",
+    "cost_projection_inventory",
+    "cost_projection_contribution",
+    "cost_projection_publication",
     "tenant",
     "app_user",
     "user_session",
@@ -123,6 +128,7 @@ DEFERRED = {
             "cost_captured_contribution_basis",
             "cost_captured_inventory_basis",
             "cost_company_census",
+            "cost_company_census_member",
             "cost_company_census_document",
             "cost_company_census_line",
             "cost_company_census_movement",
@@ -169,6 +175,8 @@ DEFERRED = {
             "cost_component_replacement",
             "cost_correction_basis",
             "cost_input_manifest",
+            # Physical storage of the same deferred receipt-manifest memberships.
+            "cost_manifest_member",
             "cost_manifest_attribution",
             "cost_manifest_component",
             "cost_manifest_correction",
@@ -191,6 +199,8 @@ DEFERRED = {
             "finance_state",
             "finance_role_destination",
             "finance_reference",
+            # Shared physical catalog behind the same deferred Finance resources.
+            "finance_reference_store",
             "component_assignment_revision",
             "component_assignment_part",
             "accounting_target",

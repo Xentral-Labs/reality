@@ -372,20 +372,18 @@ def test_migration_schema_parity_and_empty_round_trip(postgres_database, monkeyp
     }
     try:
         inspector = inspect(engine)
+        from reality.db.cost_projections import STORAGE, VIEW_DEFAULTS
+
+        assert names <= set(inspector.get_view_names())
+        assert not names & set(inspector.get_table_names())
         for name in names:
-            model = Base.metadata.tables[name]
-            assert {
-                row["name"]: row["nullable"] for row in inspector.get_columns(name)
-            } == {col.name: col.nullable for col in model.columns}
-            assert {
-                tuple(row["constrained_columns"])
-                for row in inspector.get_foreign_keys(name)
-            } == {tuple(f.column_keys) for f in model.foreign_key_constraints}
-            assert {
-                row["name"]
-                for row in inspector.get_indexes(name)
-                if not row.get("duplicates_constraint")
-            } == {index.name for index in model.indexes}
+            assert {row["name"] for row in inspector.get_columns(name)} == set(
+                Base.metadata.tables[name].c.keys()
+            ) | set(VIEW_DEFAULTS[name])
+        for name in STORAGE:
+            assert {row["name"]: row["nullable"] for row in inspector.get_columns(name)} == {
+                col.name: col.nullable for col in Base.metadata.tables[name].columns
+            }
         command.downgrade(config, "0078_captured_cost_basis")
         assert not names & set(inspect(engine).get_table_names())
         command.upgrade(config, "0079_captured_report")

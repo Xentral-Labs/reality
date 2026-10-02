@@ -2,6 +2,7 @@
 
 import pytest
 from conftest import record_by_id
+from legacy_finance import create_legacy_tenant
 from sqlalchemy import func, select
 
 from reality.db.core import LedgerEntry
@@ -377,7 +378,7 @@ def test_target_migration_preserves_ledger_and_refuses_history_loss(
     engine = create_engine(postgres_database)
     try:
         with Session(engine) as db:
-            tenant = core.create_tenant(db, "Target migration").id
+            tenant = create_legacy_tenant(db, "Target migration").id
             customer = core.create_party(db, tenant, "Customer", "customer")
             doc = core.create_document(
                 db,

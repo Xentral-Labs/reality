@@ -786,28 +786,28 @@ commands:
     mode: mutation
     adapters: [CLI, Web, MCP, Chat]
     reads: [tenant, subledger_account, finance_role_destination, finance_state]
-    writes: [subledger_account, finance_role_destination, finance_state, business_event]
+    writes: [subledger_account, finance_state, business_event]
     effect: Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes.
   - name: Create operational account
     service: create_account
     mode: mutation
     adapters: [CLI, Web, MCP, Chat]
     reads: [tenant, subledger_account, finance_role_destination, finance_state]
-    writes: [subledger_account, finance_role_destination, finance_state, business_event]
+    writes: [subledger_account, finance_state, business_event]
     effect: Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes.
   - name: Update operational account
     service: update_account
     mode: mutation
     adapters: [CLI, Web, MCP, Chat]
     reads: [tenant, subledger_account, finance_role_destination, finance_state]
-    writes: [subledger_account, finance_role_destination, finance_state, business_event]
+    writes: [subledger_account, finance_state, business_event]
     effect: Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes.
   - name: Set operational account default
     service: set_default_account
     mode: mutation
     adapters: [CLI, Web, MCP, Chat]
     reads: [tenant, subledger_account, finance_role_destination, finance_state]
-    writes: [subledger_account, finance_role_destination, finance_state, business_event]
+    writes: [subledger_account, finance_state, business_event]
     effect: Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes.
   - name: Read operational transaction matrix
     service: transaction_matrix

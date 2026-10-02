@@ -1,0 +1,4 @@
+cd packages/reality-core && ../../.venv/bin/ruff check .
+All checks passed!
+python3 scripts/check_spec_policy.py
+Spec policy passed.

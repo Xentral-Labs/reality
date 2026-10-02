@@ -1385,7 +1385,7 @@ finance_create_account_propose expected_revision code name role
 **Reach via:** CLI · Web · MCP · Chat
 
 **Effect:** Reads: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
-Writes: `subledger_account`, `finance_role_destination`, `finance_state`, `business_event`
+Writes: `subledger_account`, `finance_state`, `business_event`
 
 **See also:** agent tool
 [`finance_create_account_propose`](./commands#tool-finance_create_account_propose)
@@ -1574,7 +1574,7 @@ finance_initialize_accounts_propose expected_revision
 **Reach via:** CLI · Web · MCP · Chat
 
 **Effect:** Reads: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
-Writes: `subledger_account`, `finance_role_destination`, `finance_state`, `business_event`
+Writes: `subledger_account`, `finance_state`, `business_event`
 
 **See also:** agent tool
 [`finance_initialize_accounts_propose`](./commands#tool-finance_initialize_accounts_propose)
@@ -4110,7 +4110,7 @@ finance_set_default_account_propose expected_revision role account_id
 **Reach via:** CLI · Web · MCP · Chat
 
 **Effect:** Reads: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
-Writes: `subledger_account`, `finance_role_destination`, `finance_state`, `business_event`
+Writes: `subledger_account`, `finance_state`, `business_event`
 
 **See also:** agent tool
 [`finance_set_default_account_propose`](./commands#tool-finance_set_default_account_propose)
@@ -4243,8 +4243,7 @@ finance_update_account_propose expected_revision account_id [code] [name] [state
 **Reach via:** CLI · Web · MCP · Chat
 
 **Effect:** Reads: `tenant`, `subledger_account`, `finance_role_destination`, `finance_state` ·
-Writes: `subledger_account`, `finance_role_destination`, `finance_state`, `business_event` · Emits:
-`finance.account_changed`
+Writes: `subledger_account`, `finance_state`, `business_event` · Emits: `finance.account_changed`
 
 **See also:** agent tool
 [`finance_update_account_propose`](./commands#tool-finance_update_account_propose), event

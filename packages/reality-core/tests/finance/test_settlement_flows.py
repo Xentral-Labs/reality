@@ -8,10 +8,10 @@ from sqlalchemy import func, select
 
 from reality.db.core import (
     Document,
-    FinanceRoleDestination,
     LedgerEntry,
     SettlementAllocation,
     SourceRecord,
+    SubledgerAccount,
 )
 from reality.services import core
 from reality.services.finance.accounts import initialize_accounts, list_accounts
@@ -343,9 +343,9 @@ def test_supplier_reduction_requires_agreement_and_combined_limit(session, busin
 def test_payment_diagnostics_name_missing_cash_account_role(session, business):
     tenant = business.tenant.id
     invoice = invoice_for(session, business, "customer")
-    session.query(FinanceRoleDestination).filter_by(
-        tenant_id=tenant, role="cash"
-    ).delete()
+    session.query(SubledgerAccount).filter_by(tenant_id=tenant, role="cash").update(
+        {"default_destination_id": None}
+    )
     session.flush()
 
     with pytest.raises(
@@ -366,9 +366,9 @@ def test_payment_without_reduction_does_not_require_reduction_account(
 ):
     tenant = business.tenant.id
     invoice = invoice_for(session, business, "customer")
-    session.query(FinanceRoleDestination).filter_by(
+    session.query(SubledgerAccount).filter_by(
         tenant_id=tenant, role="customer_reduction"
-    ).delete()
+    ).update({"default_destination_id": None})
     session.flush()
 
     proposal = propose(

@@ -1,0 +1,182 @@
+PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-catalog-reference.py
+content/tool-usage/commands.md 4255ms
+content/tool-usage/events.md 63ms
+content/tool-usage/exceptions.md 662ms
+content/tool-usage/index.md 99ms (unchanged)
+content/tool-usage/processes.md 73ms
+content/tool-usage/resources.md 210ms
+content/tool-usage/views.md 299ms
+content/de/tool-usage/commands.md 2576ms
+content/de/tool-usage/events.md 107ms
+content/de/tool-usage/exceptions.md 362ms
+content/de/tool-usage/index.md 53ms (unchanged)
+content/de/tool-usage/processes.md 99ms
+content/de/tool-usage/resources.md 201ms
+content/de/tool-usage/views.md 243ms
+content/storylines/index.md 31ms
+content/de/storylines/index.md 60ms
+content/public/storylines/first-round.storyline.yaml 115ms
+content/public/storylines/order-to-close.storyline.yaml 78ms
+content/public/storylines/purchase-to-pay.storyline.yaml 119ms
+content/public/storylines/storyline.schema.json 63ms
+.vitepress/data/tool-usage.json 1753ms
+PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-journey-guide.py
+Generated Business Journey Guide: 228 journeys
+PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-product-advisor-knowledge.py
+Generated Product Advisor knowledge: 234 sources, 388 evidence units, 39 capability routes
+PYTHONPATH=packages/reality-core/src .venv/bin/python -m unittest discover -s apps/docs/scripts -p 'test_*_reference.py'
+..............
+----------------------------------------------------------------------
+Ran 14 tests in 12.418s
+
+OK
+cd apps/docs && npm run format:check && npm run test && npm run build
+
+> reality-product-docs@0.1.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> reality-product-docs@0.1.0 test
+> node --test scripts/*.test.mjs
+
+✔ every declared analytics detail renders in both languages (211.21625ms)
+✔ search and unknown selection render safe empty states (10.261167ms)
+✔ analytics documentation includes all graph categories, templates and semantic rules (53.613042ms)
+✔ analytics explorer is a sibling tab with stable links and both guide entries (2.13825ms)
+✔ explorer uses English names while preserving localized explanatory text (0.975792ms)
+✔ generated guide accounts for all canonical journeys without internal evidence (2.97975ms)
+✔ guide provides filters, expandable details and a deterministic question fallback (0.259041ms)
+✔ Docs Ask Reality uses the same public answer service as the website widget (2.078542ms)
+✔ Docs Ask Reality clears submitted questions and renders readable structured answers (0.451459ms)
+✔ the accessible question label does not duplicate the visible example prompt (0.258166ms)
+✔ Docs Ask Reality shows cited journey IDs and titles in a compact table (0.111125ms)
+✔ Docs renders additive advisor sources as safe links (0.116666ms)
+✔ question answering and catalog browsing are presented as separate tasks (0.110167ms)
+✔ both editions distinguish capability coverage from demo cases (0.119292ms)
+✔ Docs mounts one localized public Ask Reality launcher outside dedicated guide routes (2.423875ms)
+✔ public widget is closed by default and exposes an accessible dialog (0.238625ms)
+✔ public widget asks only the public guide endpoint and keeps failure bounded (0.372542ms)
+✔ public widget provides localized capability copy and guide citations (0.137ms)
+✔ guide citations preserve the chat and open details in a new tab (0.247875ms)
+✔ widget uses a readable desktop panel and mobile bottom sheet (0.305375ms)
+✔ widget uses compact readable conversation typography (0.308875ms)
+✔ widget keeps ephemeral turns and renders provider text without HTML injection (0.235334ms)
+✔ widget resends bounded in-memory turns for coherent follow-up questions (2.796667ms)
+✔ the header offers an explicit reset for starting a new conversation (0.43875ms)
+✔ completed answers make the composer prompt a contextual follow-up (1.491083ms)
+✔ empty chat offers localized examples and citations explain journey IDs (0.225917ms)
+✔ answers render readable headings, paragraphs and bullet lists safely (0.141209ms)
+✔ new answers open at their beginning instead of forcing the reader to the end (0.240959ms)
+✔ example submission gives immediate modern loading feedback (1.115167ms)
+✔ citations use a compact accessible table instead of large badges (0.243458ms)
+✔ advisor sources are rendered as safe additive public links (0.237375ms)
+✔ data model covers core records with bilingual meanings and valid actions (5.551292ms)
+✔ model preserves semantic boundaries and exact authority links (0.448625ms)
+✔ model entry is linked in both handbooks and supports readable navigation (1.085792ms)
+✔ Fact example preserves the actual text value and composite account scope is explained (0.155541ms)
+✔ ERP reference covers master data, pricing, shipping and finance with valid groups (0.315791ms)
+✔ stored fields use a semantic table with visible metadata and local scrolling (3.843125ms)
+✔ all explorer tabs share visual primitives and a consistent header (0.795292ms)
+✔ /private/tmp/reality-327-pr/apps/docs/content/getting-started/demo-data.md inventories the canonical demo (19.735542ms)
+✔ /private/tmp/reality-327-pr/apps/docs/content/de/getting-started/demo-data.md inventories the canonical demo (2.69725ms)
+✔ the demo catalog uses one compact responsive table grid (2.942667ms)
+✔ live MCP verifier compares names, required fields, enums and nested shapes (162.165792ms)
+✔ generated MCP reference preserves canonical enums and nested required fields (25.3105ms)
+✔ contribution agent playbook maps common DB1 and DB2 situations to governed tools (0.832875ms)
+✔ contribution margin is a first-class bilingual business resource (13.912458ms)
+✔ operational recap emphasizes record types rather than calculated balances (0.934667ms)
+✔ closing agent recap is bilingual, linked and honest about its illustrative scope (4.558584ms)
+✔ inventory walkthrough separates explicit records, automatic effects and derived balances (5.135541ms)
+✔ original timed learning paths retain model, operator and integration progression (5.917625ms)
+✔ the original product journey retains a bounded illustrative case (1.780042ms)
+✔ MCP onboarding clearly requires one human browser setup before agent access (1.015583ms)
+✔ missing-information guidance separates facts, warnings and actions (0.589ms)
+✔ content inventory covers the complete reader journey (17.671625ms)
+✔ navigation and search expose all required areas (0.432916ms)
+✔ configuration exposes every product language with localized theme and search copy (0.214791ms)
+✔ translated locales mirror the canonical Markdown page inventory (47.359333ms)
+✔ translated pages preserve Markdown table structure (12.348417ms)
+✔ each translated edition contains native reader and search language markers (7.39ms)
+✔ book-length guide explains the operational model through worked business cases (1.834584ms)
+✔ the contribution chapter is directly available in both handbook sidebars (0.171542ms)
+✔ ERP handbook explains the complete contribution bridge in both languages (2.276958ms)
+✔ ERP handbook compares the complete demo contribution portfolio in both languages (0.579291ms)
+✔ the ERP practical book is a first-class navigation section (0.296458ms)
+✔ the learning journey positions ERP professionals as accountable Process Owners (1.112041ms)
+✔ technical guidance gives code-grounded ERP extension paths (0.7615ms)
+✔ ERP customization separates implementation work from Reality Core development (0.569458ms)
+✔ ERP professionals can run a truthful parallel pilot before enabling actions (5.772542ms)
+✔ technical interface guide shares labels and actual operation links (73.503459ms)
+✔ the Tool Usage reference is generated, bilingual and written like manual pages (88.377542ms)
+✔ translated guide editions preserve canonical technical vocabulary (0.891ms)
+✔ Fact guidance defines the safe write boundary with a complete example (0.249292ms)
+✔ agent capability guidance defines selection, confirmation, and verification (0.279917ms)
+✔ MCP connection guidance is bilingual, discoverable, and matches current authentication (0.500667ms)
+✔ the blog is a bilingual publishing surface with an editorial desk behind it (2.610708ms)
+✔ unfinished blog drafts stay out of the index and the feeds (3.448666ms)
+✔ every blog page offers the feed as the way to follow new writing (1.296334ms)
+✔ reader analytics stays opt-in and out of local and CI builds (0.465333ms)
+✔ one written voice governs both editions and the German stays informal (1.368167ms)
+✔ the configured documentation logo is shipped from the public directory (0.2575ms)
+✔ relative Markdown links resolve inside public documentation (49.356083ms)
+✔ public guidance labels claims and provides recovery content (18.343459ms)
+✔ documentation homes teach Source to Evidence to Reality before the product overview (0.551584ms)
+✔ theme contracts preserve narrow-screen and keyboard usability (1.068166ms)
+✔ documentation does not leak custom-container markup into rendered text (23.1775ms)
+✔ the open reference core declares and explains its MIT license (5.775083ms)
+✔ commercial services are linked without restricting MIT use (0.961541ms)
+✔ handbook teaches the business model before integration details (1.626875ms)
+✔ the shared order example reconciles stock, allocations and fulfilment (0.9545ms)
+✔ the closing summary connects shared records, tools and the limits of the journal metaphor (0.878583ms)
+✔ the docs dark ground matches the product rather than the VitePress default (2.349041ms)
+✔ Product discovery uses the configured app origin in both Docs editions (3.619375ms)
+✔ Docs has an independent container and health route (0.293833ms)
+✔ Compose runs Docs without business-service dependencies (0.869958ms)
+✔ DOCS_URL is additive and existing surface URL names remain intact (2.932375ms)
+✔ Docs builds every public surface link from APP_URL and SITE_URL (1.782333ms)
+✔ deployment guidance explains configurable Docs navigation URLs (0.753042ms)
+✔ repository quality gates own the Docs surface (0.688209ms)
+✔ Docs serves feeds from a configurable public origin (0.353208ms)
+✔ self-hosted analytics is a separate optional stack, never a runtime dependency (0.736875ms)
+✔ en/ home links resolve to real pages with canonical directory handling (4.341333ms)
+✔ en/ home prioritizes learning and has one final product action (10.555084ms)
+✔ de/ home links resolve to real pages with canonical directory handling (2.083459ms)
+✔ de/ home prioritizes learning and has one final product action (1.020792ms)
+✔ the installer README and the script agree on the one-line command and the commands (1.480042ms)
+✔ the install options index lists every option in both languages (0.430041ms)
+✔ the one-line setup page carries the exact command, flags and control commands (0.433625ms)
+✔ the Docker Compose page names the shipped files, the published images and the modes (1.33325ms)
+✔ the environment reference documents every installer variable that the example declares (0.383042ms)
+✔ the sidebar exposes the install options in every docs locale (0.387667ms)
+✔ every catalog read describes its actual execution mode (3.561625ms)
+✔ inventory modes follow the adapter and response format, not the business name (0.457708ms)
+✔ both published languages explain modes, freshness and concrete query variants (33.339916ms)
+✔ both technical editions render the shared guide and real example (50.7885ms)
+✔ mapped entry details render explicit relationships and unmapped tools retain purpose (61.173459ms)
+ℹ tests 114
+ℹ suites 0
+ℹ pass 114
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1654.078959
+
+> reality-product-docs@0.1.0 build
+> vitepress build .
+
+
+  vitepress v1.6.4
+
+- building client + server bundles...
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[32m✓[0m building client + server bundles...
+- rendering pages...
+[32m✓[0m rendering pages...
+build complete in 12.87s.

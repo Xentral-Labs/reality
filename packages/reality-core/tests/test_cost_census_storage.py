@@ -351,7 +351,7 @@ def test_full_verification_detects_member_corruption(scheduled_database):
         # Privileged corruption injection; normal SQL mutation is separately refused.
         session.execute(
             text(
-                "ALTER TABLE cost_company_census_line DISABLE TRIGGER guard_company_census_member"
+                "ALTER TABLE cost_company_census_member DISABLE TRIGGER guard_company_census_member"
             )
         )
         session.execute(
@@ -362,7 +362,7 @@ def test_full_verification_detects_member_corruption(scheduled_database):
         )
         session.execute(
             text(
-                "ALTER TABLE cost_company_census_line ENABLE TRIGGER guard_company_census_member"
+                "ALTER TABLE cost_company_census_member ENABLE TRIGGER guard_company_census_member"
             )
         )
         session.commit()

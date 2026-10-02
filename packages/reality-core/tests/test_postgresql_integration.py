@@ -19,7 +19,6 @@ from reality.db.core import (
     Base,
     BusinessEvent,
     CompanyInvitation,
-    FinanceRoleDestination,
     FinanceState,
     ImportJob,
     InterpretationRule,
@@ -128,7 +127,7 @@ def test_reality_gap_register_is_bounded_at_erp_scale() -> None:
                 delete(RealityGapEntry).where(RealityGapEntry.tenant_id == tenant.id)
             )
             session.execute(delete(RealityGap).where(RealityGap.tenant_id == tenant.id))
-            for model in (FinanceRoleDestination, FinanceState, SubledgerAccount):
+            for model in (FinanceState, SubledgerAccount):
                 session.execute(delete(model).where(model.tenant_id == tenant.id))
             session.execute(delete(Tenant).where(Tenant.id == tenant.id))
             session.commit()
@@ -263,7 +262,7 @@ def test_reality_gap_replay_resumes_ten_thousand_sources_without_duplicates() ->
                 delete(RealityGapEntry).where(RealityGapEntry.tenant_id == tenant.id)
             )
             session.execute(delete(RealityGap).where(RealityGap.tenant_id == tenant.id))
-            for model in (FinanceRoleDestination, FinanceState, SubledgerAccount):
+            for model in (FinanceState, SubledgerAccount):
                 session.execute(delete(model).where(model.tenant_id == tenant.id))
             session.execute(delete(Tenant).where(Tenant.id == tenant.id))
             session.commit()
@@ -515,7 +514,7 @@ def test_concurrent_invite_and_accept_converge_on_one_identity() -> None:
             delete(TenantMembership).where(TenantMembership.tenant_id == ids[0])
         )
         session.execute(delete(AppUser).where(AppUser.id.in_((ids[1], ids[2]))))
-        for model in (FinanceRoleDestination, FinanceState, SubledgerAccount):
+        for model in (FinanceState, SubledgerAccount):
             session.execute(delete(model).where(model.tenant_id == ids[0]))
         session.execute(delete(Tenant).where(Tenant.id == ids[0]))
         session.commit()
@@ -623,7 +622,7 @@ def test_concurrent_accept_and_owner_action_serialize_without_deadlock(
             delete(TenantMembership).where(TenantMembership.tenant_id == ids[0])
         )
         session.execute(delete(AppUser).where(AppUser.id.in_((ids[1], ids[2]))))
-        for model in (FinanceRoleDestination, FinanceState, SubledgerAccount):
+        for model in (FinanceState, SubledgerAccount):
             session.execute(delete(model).where(model.tenant_id == ids[0]))
         session.execute(delete(Tenant).where(Tenant.id == ids[0]))
         session.commit()
@@ -691,7 +690,7 @@ def test_concurrent_delivery_claim_uses_skip_locked_once() -> None:
             delete(TenantMembership).where(TenantMembership.tenant_id == ids[0])
         )
         session.execute(delete(AppUser).where(AppUser.id == ids[1]))
-        for model in (FinanceRoleDestination, FinanceState, SubledgerAccount):
+        for model in (FinanceState, SubledgerAccount):
             session.execute(delete(model).where(model.tenant_id == ids[0]))
         session.execute(delete(Tenant).where(Tenant.id == ids[0]))
         session.commit()
@@ -792,7 +791,7 @@ def test_concurrent_remove_and_reinvite_preserve_one_membership_identity() -> No
             delete(TenantMembership).where(TenantMembership.tenant_id == ids[0])
         )
         session.execute(delete(AppUser).where(AppUser.id.in_((ids[1], ids[2]))))
-        for model in (FinanceRoleDestination, FinanceState, SubledgerAccount):
+        for model in (FinanceState, SubledgerAccount):
             session.execute(delete(model).where(model.tenant_id == ids[0]))
         session.execute(delete(Tenant).where(Tenant.id == ids[0]))
         session.commit()
@@ -898,7 +897,7 @@ def test_remove_does_not_interrupt_authorized_in_flight_work_but_next_read_denie
             delete(TenantMembership).where(TenantMembership.tenant_id == ids[0])
         )
         session.execute(delete(AppUser).where(AppUser.id.in_((ids[1], ids[2]))))
-        for model in (FinanceRoleDestination, FinanceState, SubledgerAccount):
+        for model in (FinanceState, SubledgerAccount):
             session.execute(delete(model).where(model.tenant_id == ids[0]))
         session.execute(delete(Tenant).where(Tenant.id == ids[0]))
         session.commit()

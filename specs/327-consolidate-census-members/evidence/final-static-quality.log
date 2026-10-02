@@ -1,0 +1,31 @@
+cd packages/reality-core && ../../.venv/bin/ruff check .
+All checks passed!
+python3 scripts/check_spec_policy.py
+Spec policy passed.
+PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-catalog-reference.py
+content/tool-usage/commands.md 2354ms
+content/tool-usage/events.md 58ms
+content/tool-usage/exceptions.md 280ms
+content/tool-usage/index.md 92ms (unchanged)
+content/tool-usage/processes.md 83ms
+content/tool-usage/resources.md 162ms
+content/tool-usage/views.md 169ms
+content/de/tool-usage/commands.md 1784ms
+content/de/tool-usage/events.md 39ms
+content/de/tool-usage/exceptions.md 304ms
+content/de/tool-usage/index.md 43ms (unchanged)
+content/de/tool-usage/processes.md 63ms
+content/de/tool-usage/resources.md 224ms
+content/de/tool-usage/views.md 170ms
+content/storylines/index.md 32ms
+content/de/storylines/index.md 29ms
+content/public/storylines/first-round.storyline.yaml 52ms
+content/public/storylines/order-to-close.storyline.yaml 62ms
+content/public/storylines/purchase-to-pay.storyline.yaml 49ms
+content/public/storylines/storyline.schema.json 58ms
+.vitepress/data/tool-usage.json 1189ms
+PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-journey-guide.py
+Generated Business Journey Guide: 228 journeys
+PYTHONPATH=packages/reality-core/src .venv/bin/python apps/docs/scripts/generate-product-advisor-knowledge.py
+Generated Product Advisor knowledge: 234 sources, 388 evidence units, 39 capability routes
+git diff --exit-code -- apps/docs/content/tool-usage apps/docs/content/de/tool-usage apps/docs/content/storylines apps/docs/content/de/storylines apps/docs/content/public/storylines apps/docs/.vitepress/data packages/reality-core/config/product_advisor_knowledge.json packages/reality-core/config/product_capability_map.json

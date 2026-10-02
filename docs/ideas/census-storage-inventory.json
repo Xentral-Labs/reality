@@ -1,0 +1,752 @@
+{
+  "scope": "Repository metadata only; no live rows or deployed DDL inspected",
+  "tables": [
+    {
+      "table": "cost_company_census_movement",
+      "columns": [
+        {
+          "name": "census_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "movement_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "observed_values",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "constraints": [
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "movement_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "PrimaryKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "movement_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "CheckConstraint",
+          "name": "ck_census_movement_hash",
+          "columns": [],
+          "sql": "length(content_hash)=64"
+        }
+      ],
+      "outgoing_fks": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "targets": [
+            "cost_company_census.tenant_id",
+            "cost_company_census.id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "movement_id"
+          ],
+          "targets": [
+            "movement.tenant_id",
+            "movement.id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "targets": [
+            "tenant.id"
+          ]
+        }
+      ],
+      "incoming_fks": [],
+      "indexes": [
+        {
+          "name": "ix_cost_company_census_movement_census_id",
+          "columns": [
+            "census_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_cost_company_census_movement_movement_id",
+          "columns": [
+            "tenant_id",
+            "movement_id"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "table": "cost_company_census_document",
+      "columns": [
+        {
+          "name": "census_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "document_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "observed_values",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "constraints": [
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "document_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "document_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "PrimaryKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "CheckConstraint",
+          "name": "ck_census_document_hash",
+          "columns": [],
+          "sql": "length(content_hash)=64"
+        }
+      ],
+      "outgoing_fks": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "targets": [
+            "cost_company_census.tenant_id",
+            "cost_company_census.id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "document_id"
+          ],
+          "targets": [
+            "document.tenant_id",
+            "document.id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "targets": [
+            "tenant.id"
+          ]
+        }
+      ],
+      "incoming_fks": [
+        {
+          "table": "cost_company_census_line",
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "document_member_id"
+          ],
+          "targets": [
+            "cost_company_census_document.tenant_id",
+            "cost_company_census_document.census_id",
+            "cost_company_census_document.id"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_cost_company_census_document_census_id",
+          "columns": [
+            "census_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_cost_company_census_document_document_id",
+          "columns": [
+            "tenant_id",
+            "document_id"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "table": "cost_company_census_line",
+      "columns": [
+        {
+          "name": "census_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "document_line_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "observed_values",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "document_member_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "constraints": [
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "document_line_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "document_member_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "document_line_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "PrimaryKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "CheckConstraint",
+          "name": "ck_census_line_hash",
+          "columns": [],
+          "sql": "length(content_hash)=64"
+        }
+      ],
+      "outgoing_fks": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "document_member_id"
+          ],
+          "targets": [
+            "cost_company_census_document.tenant_id",
+            "cost_company_census_document.census_id",
+            "cost_company_census_document.id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "targets": [
+            "cost_company_census.tenant_id",
+            "cost_company_census.id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "document_line_id"
+          ],
+          "targets": [
+            "document_line.tenant_id",
+            "document_line.id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "targets": [
+            "tenant.id"
+          ]
+        }
+      ],
+      "incoming_fks": [
+        {
+          "table": "cost_company_contribution_input",
+          "columns": [
+            "tenant_id",
+            "census_line_id"
+          ],
+          "targets": [
+            "cost_company_census_line.tenant_id",
+            "cost_company_census_line.id"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_cost_company_census_line_census_id",
+          "columns": [
+            "census_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_cost_company_census_line_document_member_id",
+          "columns": [
+            "document_member_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_cost_company_census_line_census_id_document_member_id",
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "document_member_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_cost_company_census_line_document_line_id",
+          "columns": [
+            "tenant_id",
+            "document_line_id"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    {
+      "table": "cost_company_census_source",
+      "columns": [
+        {
+          "name": "census_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "source_record_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "observed_values",
+          "type": "JSONB",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "content_hash",
+          "type": "VARCHAR(64)",
+          "nullable": false,
+          "primary_key": false
+        },
+        {
+          "name": "interpretation_outcome_id",
+          "type": "VARCHAR",
+          "nullable": true,
+          "primary_key": false
+        },
+        {
+          "name": "tenant_id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        },
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "nullable": false,
+          "primary_key": true
+        }
+      ],
+      "constraints": [
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id",
+            "source_record_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "PrimaryKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "UniqueConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "interpretation_outcome_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id",
+            "source_record_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "ForeignKeyConstraint",
+          "name": null,
+          "columns": [
+            "tenant_id"
+          ],
+          "sql": null
+        },
+        {
+          "type": "CheckConstraint",
+          "name": "ck_census_source_hash",
+          "columns": [],
+          "sql": "length(content_hash)=64"
+        }
+      ],
+      "outgoing_fks": [
+        {
+          "columns": [
+            "tenant_id",
+            "census_id"
+          ],
+          "targets": [
+            "cost_company_census.tenant_id",
+            "cost_company_census.id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "interpretation_outcome_id"
+          ],
+          "targets": [
+            "interpretation_outcome.tenant_id",
+            "interpretation_outcome.id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id",
+            "source_record_id"
+          ],
+          "targets": [
+            "source_record.tenant_id",
+            "source_record.id"
+          ]
+        },
+        {
+          "columns": [
+            "tenant_id"
+          ],
+          "targets": [
+            "tenant.id"
+          ]
+        }
+      ],
+      "incoming_fks": [],
+      "indexes": [
+        {
+          "name": "ix_cost_company_census_source_census_id",
+          "columns": [
+            "census_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_cost_company_census_source_interpretation_outcome_id",
+          "columns": [
+            "tenant_id",
+            "interpretation_outcome_id"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_cost_company_census_source_source_record_id",
+          "columns": [
+            "tenant_id",
+            "source_record_id"
+          ],
+          "unique": false
+        }
+      ]
+    }
+  ]
+}

@@ -63,6 +63,7 @@ def test_cache_migration_foreign_keys_and_rollback(postgres_database, monkeypatc
 
 
 def test_cache_downgrade_refuses_unfinished_worker_run(postgres_database, monkeypatch):
+    from legacy_finance import create_legacy_tenant
     from sqlalchemy.orm import Session
 
     from reality.db.core import AppUser
@@ -75,7 +76,7 @@ def test_cache_downgrade_refuses_unfinished_worker_run(postgres_database, monkey
     engine = create_engine(postgres_database)
     try:
         with Session(engine) as session:
-            tenant = core.create_tenant(session, "Migration job")
+            tenant = create_legacy_tenant(session, "Migration job")
             actor = AppUser(
                 id="cache-worker-owner",
                 email="cache-worker@example.test",

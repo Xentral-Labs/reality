@@ -686,8 +686,8 @@ for key, name, en, de, example, note_en, note_de, derived_en, derived_de, relate
         "Which account is the default destination for this posting role?",
         "Welches Konto ist das Standardziel dieser Buchungsrolle?",
         {"role": "accounts_receivable"},
-        "The role destination maps a financial role to an account. tenant_id and account_id jointly reference the account in the same company.",
-        "Das Rollenziel ordnet einer Finanzrolle ein Konto zu. tenant_id und account_id verweisen gemeinsam auf das Konto desselben Unternehmens.",
+        "This read-only view exposes the default selection stored on the account, preserving its opaque selection ID within the same company. It has no separate physical storage.",
+        "Diese schreibgeschützte Sicht zeigt die am Konto gespeicherte Standardauswahl mit ihrer unveränderten internen Auswahl-ID im selben Unternehmen. Sie besitzt keine eigene physische Speicherung.",
         "This selects a posting destination; it neither holds a balance nor rewrites earlier postings.",
         "Das wählt ein Buchungsziel aus; es hält keinen Saldo und schreibt keine früheren Buchungen um.",
         ["subledger_account", "ledger_entry"],
@@ -808,6 +808,10 @@ OVERRIDES["shipment_event", "occurred_at"] = bilingual(
 OVERRIDES["finance_role_destination", "tenant_id"] = OVERRIDES[
     "ledger_entry", "tenant_id"
 ]
+OVERRIDES["subledger_account", "default_destination_id"] = bilingual(
+    "Opaque identity of the default selection; empty means this account is not selected as the default for its role.",
+    "Interne Identität der Standardauswahl; leer bedeutet, dass dieses Konto nicht als Standard seiner Rolle ausgewählt ist.",
+)
 # Extend the original overview links as related objects become covered.
 for definition in RECORDS:
     additions = {

@@ -74,7 +74,11 @@ def _sole_owned_tenant_ids(session: OrmSession, user_id: str) -> list[str]:
 def _tenant_record_count(session: OrmSession, tenant_id: str) -> int:
     total = 0
     for table in Base.metadata.sorted_tables:
-        if table.name == Tenant.__tablename__ or "tenant_id" not in table.c:
+        if (
+            table.name == Tenant.__tablename__
+            or "tenant_id" not in table.c
+            or table.info.get("compatibility_view_sql")
+        ):
             continue
         total += (
             session.scalar(

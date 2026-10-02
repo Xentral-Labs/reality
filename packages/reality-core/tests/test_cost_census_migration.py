@@ -28,7 +28,8 @@ def test_migration_parity_and_empty_upgrade_downgrade(postgres_database, monkeyp
     engine = create_engine(postgres_database)
     try:
         inspector = inspect(engine)
-        for table in TABLES:
+        assert TABLES - {"cost_company_census"} <= set(inspector.get_view_names())
+        for table in ("cost_company_census", "cost_company_census_member"):
             assert {
                 tuple(f["constrained_columns"])
                 for f in inspector.get_foreign_keys(table)
@@ -45,7 +46,9 @@ def test_migration_parity_and_empty_upgrade_downgrade(postgres_database, monkeyp
                 if not index.get("duplicates_constraint")
             } == {index.name for index in Base.metadata.tables[table].indexes}
         command.downgrade(config, "0076_contribution_generations")
-        assert not TABLES & set(inspect(engine).get_table_names())
+        assert not (TABLES | {"cost_company_census_member"}) & set(
+            inspect(engine).get_table_names()
+        )
         command.upgrade(config, "0077_company_cost_census")
         assert TABLES <= set(inspect(engine).get_table_names())
     finally:
