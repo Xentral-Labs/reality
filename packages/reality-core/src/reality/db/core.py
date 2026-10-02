@@ -2907,7 +2907,16 @@ class ChangeProposal(Base):
             ["mcp_access_token.tenant_id", "mcp_access_token.id"],
             name="fk_action_decided_via_token",
         ),
+        ForeignKeyConstraint(
+            ["tenant_id", "chat_session_id"],
+            ["chat_session.tenant_id", "chat_session.id"],
+            name="fk_action_chat_session",
+        ),
+        Index("ix_action_tenant_chat_session", "tenant_id", "chat_session_id"),
     )
+    # Historical-schema tests insert proposals on revisions without
+    # `chat_session_id`; no RETURNING for the server-side fetched column.
+    __mapper_args__: ClassVar[dict[str, Any]] = {"eager_defaults": False}
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     type: Mapped[str] = mapped_column(String)
@@ -2929,6 +2938,11 @@ class ChangeProposal(Base):
     decided_via_token_id: Mapped[str | None] = mapped_column(String, default=None)
     # A built-in Chat confirmation observes an agent channel, not a human identity.
     decided_via_channel: Mapped[str | None] = mapped_column(String(16), default=None)
+    # The conversation whose turn made this proposal (spec 328). Set once, inside a
+    # chat turn only; null for MCP, CLI, services and everything made before.
+    chat_session_id: Mapped[str | None] = mapped_column(
+        String, server_default=FetchedValue(), deferred=True
+    )
 
 
 # Transitional import alias for older adapters. New domain code uses

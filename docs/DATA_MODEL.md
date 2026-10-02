@@ -38,7 +38,7 @@ All business tables have `id`, `tenant_id`, `created_at`.
 | fact | immutable source-supported observation, not operational state | opaque subject identity, cataloged predicate, canonical value, observed_at, recorded_at (when Reality wrote it, independent of business time), source_record_id, tenant-scoped retry fingerprint |
 | interpretation outcome | immutable audit of one terminal source-processing attempt | source_record_id, import_job_id, attempt, classification, interpreter identity/version, safe reason, completed_at |
 | interpretation record reference | produced or recognized identity from one successful interpretation | interpretation_outcome_id, controlled record type, opaque record ID |
-| change proposal (`action` physical table) | audit of a prepared change, its approval decision, and execution | tool type, proposer, status, created/executed time, input/output JSON |
+| change proposal (`action` physical table) | audit of a prepared change, its approval decision, and execution | tool type, proposer, status, created/executed time, input/output JSON, optional originating chat session (spec 328) |
 | chat session | retained tenant conversation, active or archived for presentation | title, created/updated time, archived_at? |
 | chat message | durable message in one tenant conversation | chat_session_id, role, content, created_at |
 

@@ -25,4 +25,6 @@ Allow multiple persistent conversations per tenant.
   in the session list.
 - message history
 - composer
-- structured action result/confirmation cards where relevant
+- structured action result/confirmation cards where relevant, limited to the proposals this
+  conversation made and placed after the answer that made them (spec 328); other pending
+  approvals appear only as a count linking to Decisions

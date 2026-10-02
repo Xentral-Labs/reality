@@ -91,3 +91,14 @@ test("decision reviews share chrome, structured values and action hierarchy", ()
   ])
     assert.match(source(name), /DecisionActionBar/u, `${name} bypasses the shared action bar`);
 });
+
+test("Chat shows only its own proposals, where they were made (spec 328)", () => {
+  const chat = source("ChatPage.tsx");
+  assert.match(chat, /proposal\.after_message_id/u);
+  assert.match(chat, /renderProposals\(anchored\.get\(message\.id\)/u);
+  assert.match(chat, /renderProposals\(unanchored\)/u);
+  assert.match(chat, /<DecisionLine/u);
+  assert.match(chat, /data-chat-pending-elsewhere/u);
+  assert.match(chat, /route: "decisions", decisionsView: "pending"/u);
+  assert.doesNotMatch(chat, /data\.proposals\.filter/u);
+});
