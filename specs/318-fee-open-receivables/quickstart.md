@@ -15,6 +15,7 @@ Verification pending; no completion claim.
 - Focused fee/settlement/return/dunning/credit-exposure/shared-inventory run: 134 passed.
 - Web contract regression: 2 failed before adapter changes, then 2 passed. Full `make web-build`: passed with 453 tests and four translation audits.
 - Browser: both fee types open payment without reduction/dunning controls; no writes. General Finance browser smoke passed with filters, paging, freshness, retry and 48 localized screenshots.
+- The fee browser proof is registered in the CI fixture suite. A registration regression failed first and then passed. Its ten-second estimate adds at most two seconds to the existing seven-shard estimated budget; balancing remains checked, with no change to any runtime/setup deadline.
 - `make docs-build`: 11 Python reference tests, 109 Node tests, formatting and VitePress build passed.
 - `make lint spec-check`: passed.
 - `make docs-catalog-check`: passed after the local implementation commit; regeneration is identical, including Product Advisor artifacts.

@@ -2,6 +2,13 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+test("fee payment browser proof runs in the CI fixture suite", async () => {
+  const suite = JSON.parse(
+    await readFile(new URL("./browser-suite.json", import.meta.url), "utf8"),
+  );
+  assert.ok(suite.scripts.includes("fee-open-receivables-browser.mjs"));
+});
+
 test("fee claims expose payment but not reduction or renewed dunning actions", async () => {
   const page = await readFile(new URL("../src/unified/FinancePage.tsx", import.meta.url), "utf8");
   const payment = page
