@@ -19,6 +19,10 @@ Then run `make test`, `make lint spec-check`, `make web-build`, `make docs-gener
 
 ## Review
 
+### Main integration (2026-10-02)
+
+Rebased onto `cd009334`, retaining main's immutable stock-block declarations and resolution records. The shared query consumes `_open_stock_blocks`, so partial release/scrap is subtracted once and no removed status field is read. Projection metadata names `stock_block_resolution`. Spec 317 is now occupied by main's reservation measurement; this inventory spec moved to free number 319, with authority and documentation references updated. Focused shared inventory, stock-block readers/operations, multi-warehouse reservation and catalog tests: 95 passed. Lint/spec passed; generated references updated. Fresh post-rebase full CI remains pending and prior complete-CI evidence below is historical, not evidence for this new base.
+
 ### Final verification
 
 Full CI on `f9ccedc1`, run [36974152614](https://github.com/Xentral-Labs/reality/actions/runs/36974152614): all four backend shards passed (1,249 + 1,299 + 1,617 + 1,177 = 5,342 passed; 10 skipped). Spec policy, frontend, documentation, seven browser-script shards and six live-browser stories passed. The local full attempt started before the setup expectation correction and stopped at that same stale assertion after 3,318 passed and 3 skipped; the corrected setup regression separately passed. The complete current-commit CI is the full-suite evidence, not the interrupted local run. Lint/spec and catalog reproducibility also passed locally after rebasing onto `7b0c41f6`.

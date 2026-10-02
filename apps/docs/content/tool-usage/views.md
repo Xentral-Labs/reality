@@ -464,7 +464,7 @@ execution holds.
 
 **Consumers:** MCP, Copilot, Operations · **Reads:** `business_event`, `document`, `source_record`,
 `party`, `item`, `commitment`, `commitment_hold`, `party_hold`, `reservation`, `movement`,
-`stock_block`
+`stock_block`, `stock_block_resolution`
 
 **Outputs:** `order_key`, `source_system`, `external_order_id`, `party`, `due_at`, `priority`,
 `ship_ready`, `blocking_reasons`, `lines`
@@ -497,7 +497,8 @@ Emits one rebuildable blocker row per open commitment and reason, including rese
 insufficient unblocked stock at supplying locations, and active order or party delivery holds.
 
 **Consumers:** MCP, Copilot, Operational Exceptions · **Reads:** `business_event`, `document`,
-`item`, `commitment`, `commitment_hold`, `party_hold`, `reservation`, `movement`, `stock_block`
+`item`, `commitment`, `commitment_hold`, `party_hold`, `reservation`, `movement`, `stock_block`,
+`stock_block_resolution`
 
 **Outputs:** `blocker_id`, `blocker_type`, `order_key`, `commitment_id`, `item_id`,
 `shortage_quantity`, `due_at`
@@ -525,10 +526,10 @@ insufficient unblocked stock at supplying locations, and active order or party d
 ### `item_supply_demand` — Item supply and demand {#projection-item_supply_demand}
 
 Materializes physical, allocated, effective outstanding incoming, open-demand, uncovered-demand and
-affected-order quantities per item; available and projected stock exclude active blocks.
+affected-order quantities per item; available and projected stock exclude remaining blocks.
 
 **Consumers:** MCP, Copilot, Inventory · **Reads:** `business_event`, `item`, `commitment`,
-`reservation`, `movement`, `stock_block`
+`reservation`, `movement`, `stock_block`, `stock_block_resolution`
 
 **Outputs:** `item_id`, `sku`, `physical`, `reserved`, `available`, `incoming`,
 `open_customer_demand`, `uncovered_demand`, `projected`, `blocked_order_count`
@@ -599,11 +600,12 @@ Change Proposal, and chat activity without loading business rows or querying onc
 ### `inventory` — Inventory {#projection-inventory}
 
 Shared inventory observation; available is physical movement balance minus active reservations and
-active blocks, and projected adds correction-aware effective outstanding supplier promises after
+remaining blocks, and projected adds correction-aware effective outstanding supplier promises after
 revisions and cancellation.
 
 **Consumers:** Home, Inventory, Chat, CLI · **Reads:** `item`, `location`, `movement`,
-`reservation`, `commitment`, `commitment_revision`, `movement_correction`, `stock_block`
+`reservation`, `commitment`, `commitment_revision`, `movement_correction`, `stock_block`,
+`stock_block_resolution`
 
 **Outputs:** `physical`, `reserved`, `blocked`, `available`, `incoming`, `projected`
 

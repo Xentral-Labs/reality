@@ -1,4 +1,4 @@
-"""Spec 317: one inventory observation across services, Web and projections."""
+"""Spec 319: one inventory observation across services, Web and projections."""
 
 from decimal import Decimal
 

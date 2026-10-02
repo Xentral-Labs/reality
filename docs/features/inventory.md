@@ -1,6 +1,6 @@
 # Feature: Inventory
 
-## Shared inventory observations (spec 317)
+## Shared inventory observations (spec 319)
 
 Web inventory pagination, the application inventory service and the Inventory
 projection use `services/inventory_reads.py` for the same tenant-scoped SQL

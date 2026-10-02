@@ -24484,7 +24484,8 @@
         "party_hold",
         "reservation",
         "movement",
-        "stock_block"
+        "stock_block",
+        "stock_block_resolution"
       ],
       "outputs": [
         "order_key",
@@ -24561,7 +24562,8 @@
         "party_hold",
         "reservation",
         "movement",
-        "stock_block"
+        "stock_block",
+        "stock_block_resolution"
       ],
       "outputs": [
         "blocker_id",
@@ -24584,7 +24586,7 @@
       "key": "item_supply_demand",
       "label": "Item supply and demand",
       "area": "warehouse",
-      "summary": "Materializes physical, allocated, effective outstanding incoming, open-demand, uncovered-demand and affected-order quantities per item; available and projected stock exclude active blocks.",
+      "summary": "Materializes physical, allocated, effective outstanding incoming, open-demand, uncovered-demand and affected-order quantities per item; available and projected stock exclude remaining blocks.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/item_supply_demand",
@@ -24624,7 +24626,15 @@
       "service": "projection_rows",
       "related_services": [],
       "consumers": ["MCP", "Copilot", "Inventory"],
-      "reads": ["business_event", "item", "commitment", "reservation", "movement", "stock_block"],
+      "reads": [
+        "business_event",
+        "item",
+        "commitment",
+        "reservation",
+        "movement",
+        "stock_block",
+        "stock_block_resolution"
+      ],
       "outputs": [
         "item_id",
         "sku",
@@ -24775,7 +24785,7 @@
       "key": "inventory",
       "label": "Inventory",
       "area": "warehouse",
-      "summary": "Shared inventory observation; available is physical movement balance minus active reservations and active blocks, and projected adds correction-aware effective outstanding supplier promises after revisions and cancellation.",
+      "summary": "Shared inventory observation; available is physical movement balance minus active reservations and remaining blocks, and projected adds correction-aware effective outstanding supplier promises after revisions and cancellation.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/inventory",
@@ -24819,7 +24829,8 @@
         "commitment",
         "commitment_revision",
         "movement_correction",
-        "stock_block"
+        "stock_block",
+        "stock_block_resolution"
       ],
       "outputs": ["physical", "reserved", "blocked", "available", "incoming", "projected"],
       "views": ["inventory"],
