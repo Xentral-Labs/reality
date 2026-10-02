@@ -123,3 +123,20 @@ back means leaving it out of the run, and it reappears in the next preview. That
 correct — it is unpaid, and this queue reports what is unresolved until somebody resolves it —
 and it is mildly annoying every week for an invoice under dispute. Reality also does not move
 money; a run records that the company paid.
+
+## Confirmations, supplier terms and the three-way match (spec 310)
+
+- A supplier's confirmation is a revision of the purchase promise: quantity, date and,
+  for a purchase, the unit price in the order line's unit. The latest confirmed price is
+  the agreed price; the guided supplier invoice takes it, and *Invoice price differs*
+  compares against it.
+- Per supplier and item, a minimum order quantity and an order multiple can be stated
+  (`supplier_item_terms`). A purchase review names an order below them and suggests the
+  next valid quantity; the order is never refused.
+- A cancellation charge is a supplier invoice with a `charge` line naming the cancelled
+  purchase line. Charge lines bill no goods: they are left out of *Billed and not received*
+  and the price comparison.
+- `purchase_match` answers per purchase line whether the quantity in force was received
+  (net of returns) and billed (net of credits) at the agreed price, or names each
+  difference. It is derived at read time.
+

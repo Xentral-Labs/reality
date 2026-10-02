@@ -8,7 +8,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 141 covered, 16 partial, 0 missing, 68 gap, 3 out.
+228 scenarios: 145 covered, 12 partial, 0 missing, 68 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -18,9 +18,9 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | D Shipment, split and merge | 5 | 3 |  | 11 |  |
 | E Customer invoice and credit | 11 | 1 |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
-| G Purchase demand and order | 9 | 3 |  | 5 |  |
+| G Purchase demand and order | 12 |  |  | 5 |  |
 | H Receipt and supplier deviations | 14 |  |  | 5 |  |
-| I Supplier invoice and payment | 11 | 1 |  |  |  |
+| I Supplier invoice and payment | 12 |  |  |  |  |
 | J Warehouse and stock | 6 | 1 |  | 4 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
 | L E-commerce and marketplaces | 7 |  |  | 5 |  |
@@ -255,13 +255,13 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | G03 | covered | tests/scenarios/test_b2b_operational_chain.py::test_supply_and_return_reconciliations_are_exact | Asserts 10 = 6 customer + 2 stock + 2 unassigned for PO-010. |
 | G04 | gap | src/reality/db/core.py `uq_commitment_document_line_type` | Only one supplier_delivery commitment is allowed per PO line, so several schedule lines per line cannot be represented. |
 | G05 | gap | — | No framework agreement or call-off concept exists. |
-| G06 | partial | tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt | Surplus shows up as stock or unassigned supply; MOQ and pack size are not modelled or tested. |
+| G06 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_minimum_and_a_pack_size_are_named_and_the_surplus_is_stock | Minimum and multiple per supplier and item are named in the review; the surplus stays free stock (spec 310). |
 | G07 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported | Purchase price list with a 10-unit tier; the order line takes the tier entry; the guided supplier invoice is kept as stated with no finding; a second invoice at the single-unit tier recorded through document_create is reported as invoice_price_differs. |
 | G08 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_usd_purchase_is_invoiced_at_its_stated_rate | A USD purchase keeps its currency; its invoice is posted at the stated rate with both amounts on every entry (spec 309). |
-| G09 | partial | tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated, ::test_one_statement_can_restate_both | Confirmed quantity/date are revisions against the original; a confirmed *price* cannot be stated. |
+| G09 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_supplier_confirms_less_later_and_dearer_and_is_billed_as_confirmed | A confirmation restates quantity, date and price; the invoice follows the confirmed price (spec 310). |
 | G10 | gap | — | No acknowledgement expectation, so an unconfirmed PO is never flagged (only overdue after the due date). |
 | G11 | covered | tests/test_commitment_revisions.py::test_a_new_date_never_erases_the_old_one, ::test_the_date_in_force_is_the_latest_stated | Append-only revisions; the latest one is in force. |
-| G12 | partial | tests/scenarios/test_international_demo.py::test_purchases_cover_the_whole_chain (S09 cancelled) | Cancellation before receipt works; cancellation cost or supplier refusal cannot be recorded. |
+| G12 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_purchase_cancelled_after_production_records_the_suppliers_charge | The cancellation charge is a supplier invoice against the cancelled line, without purchase findings (spec 310). |
 | G13 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_cancelled_order_frees_its_purchase_before_the_purchase_is_reduced | Cancelling the order ends its assignment, so all 10 of the purchase are unassigned and promisable; the reviewed revision to 6 then reduces the purchase (spec 305). |
 | G14 | covered | tests/scenarios/test_catalog_purchasing.py::test_two_suppliers_purchases_together_protect_one_customer_promise | 6 + 4 from two suppliers protect a demand of 10. Defect found: protection could reach 11 of 10; fixed in #201. |
 | G15 | gap | specs/242-inventory-cost-contribution/spec.md (drop shipping only listed as edge case) | No drop-ship commitment type or supplier-to-customer link. |
@@ -296,7 +296,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 
 | ID | Status | Evidence | Note |
 |---|---|---|---|
-| I01 | partial | tests/scenarios/test_storyline_purchase_to_pay.py; tests/operational_exceptions/test_derivation.py::test_received_but_not_yet_billed_is_not_reported | A match shows only as no findings; no positive "matched" answer and no clean three-way test. |
+| I01 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_purchase_receipt_and_invoice_that_agree_are_matched | A positive three-way match per purchase line, and the difference where it is not (spec 310). |
 | I02 | covered | tests/operational_exceptions/test_derivation.py::test_received_but_not_yet_billed_is_not_reported; tests/scenarios/test_storyline_purchase_to_pay.py (billed_not_received raised/cleared) | |
 | I03 | covered | tests/scenarios/test_storyline_purchase_to_pay.py::test_the_default_path_raises_and_clears_every_finding_by_rule | `invoice_price_differs` on the supplier invoice remains at month end. |
 | I04 | covered | tests/operational_exceptions/test_derivation.py::test_billed_not_received | Billed 6, received 0, clears on receipt. |
