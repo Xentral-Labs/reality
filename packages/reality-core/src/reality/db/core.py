@@ -952,6 +952,8 @@ class StockCountLine(Base):
             unique=True,
         ),
         Index("ix_stock_count_line_movement_id", "tenant_id", "movement_id"),
+        Index("ix_stock_count_line_item_id", "tenant_id", "item_id"),
+        Index("ix_stock_count_line_lot_id", "tenant_id", "lot_id"),
     )
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)

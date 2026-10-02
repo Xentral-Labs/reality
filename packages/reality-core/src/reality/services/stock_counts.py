@@ -32,7 +32,6 @@ from reality.db.core import (
     Movement,
     Party,
     Reservation,
-    SourceRecord,
     StockBlock,
     StockCount,
     StockCountLine,
@@ -86,7 +85,8 @@ def _moment(value: Any, default: datetime) -> datetime:
         except ValueError:
             raise InvalidOperation(code="stock_count_time_invalid") from None
     if moment.tzinfo is None:
-        moment = moment.replace(tzinfo=UTC)
+        # A clock time without its offset could be hours off; picks would leak in.
+        raise InvalidOperation(code="stock_count_time_needs_offset")
     if moment > default:
         raise InvalidOperation(code="stock_count_time_in_future")
     return moment.astimezone(UTC)
@@ -100,7 +100,20 @@ def book_as_of(
     lot_id: str | None,
     at: datetime,
 ) -> Decimal:
-    """What the movements up to `at` hold of an item, and its lot, at a location."""
+    """What the movements up to `at` hold of an item, and its lot, at a location.
+
+    A corrected movement and its compensation are left out, wherever in time
+    the correction was made: the original never happened as recorded. Its
+    replacement, if any, counts at its own time like every movement.
+    """
+    from reality.db.core import MovementCorrection
+
+    corrected = select(MovementCorrection.original_movement_id).where(
+        MovementCorrection.tenant_id == tenant_id
+    )
+    compensating = select(MovementCorrection.compensating_movement_id).where(
+        MovementCorrection.tenant_id == tenant_id
+    )
     totals = []
     for column in (Movement.to_location_id, Movement.from_location_id):
         query = select(func.coalesce(func.sum(Movement.quantity), 0)).where(
@@ -108,6 +121,8 @@ def book_as_of(
             Movement.item_id == item_id,
             column == location_id,
             Movement.occurred_at <= at,
+            Movement.id.not_in(corrected),
+            Movement.id.not_in(compensating),
         )
         if lot_id:
             query = query.where(Movement.lot_id == lot_id)
@@ -171,6 +186,23 @@ def _lines(
     return lines
 
 
+def _check_time(
+    session: Session, tenant_id: str, location_id: str, line: dict[str, Any]
+) -> None:
+    """A counting time before the goods first came here is a mistyped date."""
+    query = select(func.min(Movement.occurred_at)).where(
+        Movement.tenant_id == tenant_id,
+        Movement.item_id == line["item"].id,
+        (Movement.to_location_id == location_id)
+        | (Movement.from_location_id == location_id),
+    )
+    if line["lot_id"]:
+        query = query.where(Movement.lot_id == line["lot_id"])
+    first = session.scalar(query)
+    if first is not None and line["counted_at"] < first:
+        raise InvalidOperation(code="stock_count_time_before_stock")
+
+
 def _open_blocks(
     session: Session, tenant_id: str, item_id: str, location_id: str, lot_id: str | None
 ) -> list[tuple[StockBlock, Decimal]]:
@@ -209,6 +241,7 @@ def _assess(
     assessed = []
     for line in lines:
         item = line["item"]
+        _check_time(session, tenant_id, location.id, line)
         book = book_as_of(
             session, tenant_id, item.id, location.id, line["lot_id"], line["counted_at"]
         )
@@ -253,9 +286,12 @@ def _uncovered(
     for item_id, entry in by_item.items():
         if entry["difference"] >= 0:
             continue
+        # Here, at this location: what is still free to serve a reservation
+        # after the count, blocked stock not counted as serving anyone.
         physical_after = (
             stock_by_identity(session, tenant_id, item_id, location.id)
             + entry["difference"]
+            - blocked_quantity(session, tenant_id, item_id, location.id)
         )
         reserved = active_reserved(session, tenant_id, item_id, location.id)
         if reserved <= physical_after:
@@ -320,6 +356,14 @@ def _line_view(line: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _reviewed_line(line: dict[str, Any]) -> list[str]:
+    return [
+        _plain(line["book"]),
+        _plain(line["from_free"]),
+        _plain(line["from_blocks"]),
+    ]
+
+
 def review_stock_count(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -345,7 +389,8 @@ def review_stock_count(
             }
             for line in assessed
         ],
-        "reviewed": [_plain(line["book"]) for line in assessed],
+        # What the person saw: the book, and where a loss would come from.
+        "reviewed": [_reviewed_line(line) for line in assessed],
     }
     preview = {
         "location_id": location.id,
@@ -364,7 +409,7 @@ def record_stock_count(
     lines: list[dict[str, Any]],
     note: str = "",
     *,
-    reviewed: list[str] | None = None,
+    reviewed: list[list[str]] | None = None,
     action_id: str | None = None,
     _commit: bool = True,
 ) -> StockCount:
@@ -409,9 +454,9 @@ def record_stock_count(
         if existing is not None:
             return existing
     assessed = _assess(session, tenant_id, location, checked)
-    if reviewed is not None and [_plain(line["book"]) for line in assessed] != list(
-        reviewed
-    ):
+    if reviewed is not None and [_reviewed_line(line) for line in assessed] != [
+        list(row) for row in reviewed
+    ]:
         raise InvalidOperation(code="stock_count_changed_since_review")
     count = StockCount(
         id=count_id,
@@ -441,6 +486,8 @@ def record_stock_count(
                 lot_id=line["lot_id"],
                 reason=reason,
                 action_id=action_id,
+                # Dated when it was counted, so a later count of that time sees it.
+                occurred_at=line["counted_at"],
                 _commit=False,
             )
         elif line["difference"] < 0:
@@ -455,6 +502,7 @@ def record_stock_count(
                     lot_id=line["lot_id"],
                     reason=reason,
                     action_id=action_id,
+                    occurred_at=line["counted_at"],
                     _commit=False,
                 )
             rest = line["from_blocks"]
@@ -471,6 +519,7 @@ def record_stock_count(
                     taken,
                     reason=reason,
                     action_id=action_id,
+                    _occurred_at=line["counted_at"],
                     _commit=False,
                 )
                 scrapped.append(result["movement_id"])
@@ -559,7 +608,15 @@ def stock_counts(
 def stock_count_detail(
     session: Session, tenant_id: str, stock_count_id: str
 ) -> dict[str, Any]:
-    """One count: its lines as counted, and what posting them recorded."""
+    """One count: its lines as counted, and the movements that posted them.
+
+    Each line is read from what was recorded: the counted quantity, and the
+    adjustment and block scraps the posting wrote. The difference is what those
+    movements moved, and the book is the counted quantity less it. A movement
+    corrected since is shown as such; nothing here is taken from a stored figure.
+    """
+    from reality.db.core import BusinessEvent, MovementCorrection
+
     count = session.scalar(
         select(StockCount).where(
             StockCount.tenant_id == tenant_id, StockCount.id == stock_count_id
@@ -568,14 +625,6 @@ def stock_count_detail(
     if count is None:
         raise NotFound(code="stock_count_not_found")
     location = _tenant_record(session, Location, tenant_id, count.location_id)
-    event = session.scalar(
-        select(SourceRecord.payload).where(
-            SourceRecord.tenant_id == tenant_id,
-            SourceRecord.id == count.source_record_id,
-        )
-    )
-    from reality.db.core import BusinessEvent
-
     posted = session.scalar(
         select(BusinessEvent.payload).where(
             BusinessEvent.tenant_id == tenant_id,
@@ -583,7 +632,83 @@ def stock_count_detail(
             BusinessEvent.subject_id == count.id,
         )
     )
-    lines = json.loads(posted)["lines"] if posted else []
+    # The event says which scraps the posting wrote for which line.
+    posted_lines = json.loads(posted)["lines"] if posted else []
+    scraps_of = {
+        entry["line_id"]: entry.get("scrap_movement_ids", []) for entry in posted_lines
+    }
+    # Lines in the order they were counted, as the posting listed them.
+    position = {entry["line_id"]: index for index, entry in enumerate(posted_lines)}
+    rows = sorted(
+        session.scalars(
+            select(StockCountLine).where(
+                StockCountLine.tenant_id == tenant_id,
+                StockCountLine.stock_count_id == count.id,
+            )
+        ),
+        key=lambda row: (position.get(row.id, len(position)), row.id),
+    )
+    movement_ids = {row.movement_id for row in rows if row.movement_id} | {
+        identity for ids in scraps_of.values() for identity in ids
+    }
+    movements = {
+        row.id: row
+        for row in session.scalars(
+            select(Movement).where(
+                Movement.tenant_id == tenant_id, Movement.id.in_(movement_ids)
+            )
+        )
+    }
+    corrected = set(
+        session.scalars(
+            select(MovementCorrection.original_movement_id).where(
+                MovementCorrection.tenant_id == tenant_id,
+                MovementCorrection.original_movement_id.in_(movement_ids),
+            )
+        )
+    )
+    items = {
+        item.id: item
+        for item in session.scalars(
+            select(Item).where(
+                Item.tenant_id == tenant_id, Item.id.in_({row.item_id for row in rows})
+            )
+        )
+    }
+    lines = []
+    for row in rows:
+        moved = ZERO
+        own = movements.get(row.movement_id or "")
+        if own is not None:
+            moved += (
+                own.quantity if own.to_location_id == location.id else -own.quantity
+            )
+        scrap_ids = scraps_of.get(row.id, [])
+        moved -= sum(
+            (
+                movements[identity].quantity
+                for identity in scrap_ids
+                if identity in movements
+            ),
+            ZERO,
+        )
+        item = items[row.item_id]
+        lines.append(
+            {
+                "line_id": row.id,
+                "item_id": item.id,
+                "item": item.name,
+                "unit": item.unit,
+                "lot_id": row.lot_id,
+                "counted_at": row.counted_at.isoformat(),
+                "counted": _plain(row.counted_quantity),
+                "difference": _plain(moved),
+                "book": _plain(row.counted_quantity - moved),
+                "movement_id": row.movement_id,
+                "scrap_movement_ids": scrap_ids,
+                "corrected": bool({row.movement_id, *scrap_ids} & corrected - {None}),
+            }
+        )
     return {
         "id": count.id,
         "location_id": location.id,
@@ -591,6 +716,5 @@ def stock_count_detail(
         "note": count.note,
         "created_at": count.created_at,
         "source_record_id": count.source_record_id,
-        "statement": json.loads(event) if event else None,
         "lines": lines,
     }

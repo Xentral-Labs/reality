@@ -30,6 +30,6 @@
 
 The block part of a loss is the scrap's own resolution and adjustment, linked from the line by the reason and the `stock_count.posted` event.
 
-**Event:** `stock_count.posted`, with each line's book, counted, difference and movements.
+**Event:** `stock_count.posted`, the history of the posting, naming each line's movements. The detail reads each line from the line and its movements, and reads from the event only which block scraps belong to the line.
 
 **Read at read time, never stored:** the book quantity, the difference, and the reservations left uncovered.

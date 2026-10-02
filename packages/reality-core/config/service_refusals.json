@@ -2079,6 +2079,12 @@
     },
     "stock_count_not_found": {
       "message": "This count was not found."
+    },
+    "stock_count_time_needs_offset": {
+      "message": "A counting time needs its time-zone offset, for example 2026-10-02T10:00:00+02:00."
+    },
+    "stock_count_time_before_stock": {
+      "message": "The counting time is before the goods first came to this location; check the date."
     }
   },
   "terms": [

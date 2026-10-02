@@ -72,6 +72,12 @@ As a warehouse clerk, I count a shelf and post the differences with one confirma
 - A counting time in the future is refused, and so is one before the item's first movement at the location.
 - A loss that would take stock below zero now, because goods left after the count, is refused with its code.
 - The same item and lot twice in one count is refused.
+- A count's adjustments are dated at their counting time, so a second count of the same time sees them and posts nothing again.
+- A counting time needs its time-zone offset; a clock time alone is refused.
+- A corrected movement and its compensation are not part of the book at any time.
+- A confirmation after the book, or where a loss would come from, changed since the review is refused.
+- The reservations named are those at the counted location; Reservation exceeds stock judges the item across locations.
+- Recorded limitation: the web counts the items of the page in view, untracked ones; lot-tracked items are counted lot by lot through Chat, MCP or the CLI.
 
 ## Requirements *(mandatory)*
 

@@ -29,7 +29,8 @@ export function StockCountCard({
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     alive = useRef(true),
-    open = useRef<string | null>(null);
+    open = useRef<string | null>(null),
+    working = useRef(false);
   const [counted, setCounted] = useState<Record<string, string>>({}),
     [note, setNote] = useState(""),
     [proposal, setProposal] = useState<StockCountProposal | null>(null),
@@ -55,6 +56,9 @@ export function StockCountCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const run = async (action: () => Promise<void>) => {
+    // A second click while the first request runs would leave a review behind.
+    if (working.current) return;
+    working.current = true;
     setBusy(true);
     setError("");
     try {
@@ -62,6 +66,7 @@ export function StockCountCard({
     } catch (failure) {
       if (alive.current) setError(t((failure as Error).message));
     } finally {
+      working.current = false;
       if (alive.current) setBusy(false);
     }
   };
@@ -69,7 +74,6 @@ export function StockCountCard({
     .filter((row) => (counted[row.id] ?? "").trim() !== "")
     .map((row) => ({ item_id: row.id, counted_quantity: counted[row.id].trim() }));
   const prepare = () =>
-    !busy &&
     run(async () => {
       const value = await stockCounts.prepare(tenant, {
         location_id: location.id,
@@ -95,8 +99,9 @@ export function StockCountCard({
   const confirm = () =>
     run(async () => {
       if (!proposal) return;
-      open.current = null;
       await stockCounts.confirm(tenant, proposal.id);
+      // Confirmed: nothing to withdraw any more.
+      open.current = null;
       if (!alive.current) return;
       setDone(true);
       settled();
@@ -123,7 +128,7 @@ export function StockCountCard({
       </header>
       <div className="mb-5 rounded-lg bg-surface-muted p-3 text-sm text-fg-muted">
         {t(
-          "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Nothing is posted before you confirm.",
+          "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Lot-tracked items are counted lot by lot through Chat or the CLI. Nothing is posted before you confirm.",
         )}
       </div>
       {!proposal && (
@@ -219,7 +224,7 @@ export function StockCountCard({
           {!!review.uncovered.length && (
             <div className="rounded-lg border border-border-default p-3" data-stock-count-uncovered>
               <div className="font-medium text-fg-strong">
-                {t("No longer covered after this count")}
+                {t("No longer covered at this location after this count")}
               </div>
               {review.uncovered.map((entry) => (
                 <div key={entry.item_id} className="mt-2">

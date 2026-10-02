@@ -1,6 +1,7 @@
 """Spec 307: stock counts record what was counted and post the differences."""
 
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 
 import pytest
 from sqlalchemy import select, text
@@ -183,7 +184,9 @@ def test_a_loss_takes_free_stock_first_then_blocks(session, business):
     )
     assert core.stock_at(session, tenant, business.item.id) == 3
     assert core.blocked_quantity(session, tenant, business.item.id) == 3
-    assert block.id
+    assert core.blocked_quantity(session, tenant, business.item.id) < Decimal(
+        block.quantity
+    )
 
 
 def test_a_loss_beyond_what_is_there_now_is_refused(session, business):
@@ -361,7 +364,7 @@ def test_a_confirmation_after_the_book_changed_is_refused(session, business):
 def test_another_company_cannot_count_here(session, business):
     other = core.create_tenant(session, "Other GmbH")
 
-    with pytest.raises((core.InvalidOperation, core.NotFound)):
+    with pytest.raises((core.InvalidOperation, core.NotFound)) as refused:
         review_stock_count(
             session,
             other.id,
@@ -370,6 +373,8 @@ def test_another_company_cannot_count_here(session, business):
                 "lines": [{"item_id": business.item.id, "counted_quantity": "1"}],
             },
         )
+    # Not disclosed: the location is unknown to the other company.
+    assert refused.value.code == "stock_count_location_not_stock"
 
 
 def test_the_tables_refuse_what_no_count_can_say(session, business):
@@ -385,3 +390,158 @@ def test_the_tables_refuse_what_no_count_can_say(session, business):
             text("UPDATE stock_count_line SET counted_quantity = -1 WHERE id = :id"),
             {"id": line.id},
         )
+
+
+# --- review round (T013) ---------------------------------------------------------------
+
+
+def test_the_same_sheet_counted_twice_posts_its_loss_once(session, business):
+    tenant = business.tenant.id
+    counted_at = datetime.now(UTC) - timedelta(hours=1)
+    _stock(session, business, business.item, "20", at=counted_at - timedelta(days=1))
+    line = {
+        "item_id": business.item.id,
+        "counted_quantity": "17",
+        "counted_at": counted_at.isoformat(),
+    }
+    _post(session, business, [line])
+
+    _, again = _post(session, business, [line])
+
+    # The first count's adjustment is dated at its counting time, so the
+    # second sees the book it left: nothing more is posted.
+    assert again["lines"][0]["difference"] == "0"
+    assert core.stock_at(session, tenant, business.item.id) == 17
+
+
+def test_a_counting_time_before_the_goods_came_is_refused(session, business):
+    received = datetime.now(UTC) - timedelta(days=10)
+    _stock(session, business, business.item, "20", at=received)
+
+    _refused(
+        "stock_count_time_before_stock",
+        lambda: _review(
+            session,
+            business,
+            [
+                {
+                    "item_id": business.item.id,
+                    "counted_quantity": "17",
+                    "counted_at": (received - timedelta(days=365)).isoformat(),
+                }
+            ],
+        ),
+    )
+    # Positive control: a time after the receipt is accepted.
+    assert _review(
+        session,
+        business,
+        [
+            {
+                "item_id": business.item.id,
+                "counted_quantity": "17",
+                "counted_at": (received + timedelta(hours=1)).isoformat(),
+            }
+        ],
+    )
+
+
+def test_a_counting_time_without_its_offset_is_refused(session, business):
+    _stock(session, business, business.item, "5")
+
+    _refused(
+        "stock_count_time_needs_offset",
+        lambda: _review(
+            session,
+            business,
+            [
+                {
+                    "item_id": business.item.id,
+                    "counted_quantity": "4",
+                    "counted_at": "2026-10-02T10:00:00",
+                }
+            ],
+        ),
+    )
+
+
+def test_a_block_placed_after_the_review_refuses_the_confirmation(session, business):
+    tenant = business.tenant.id
+    _stock(session, business, business.item, "10")
+    normalized, preview = _review(
+        session, business, [{"item_id": business.item.id, "counted_quantity": "7"}]
+    )
+    assert preview["lines"][0]["from_blocks"] == "0"
+
+    block_stock(session, tenant, business.item.id, business.location.id, "8", "quality")
+
+    _refused(
+        "stock_count_changed_since_review",
+        lambda: record_stock_count(session, tenant, **normalized),
+    )
+
+
+def test_a_corrected_movement_is_not_in_the_book(session, business):
+    tenant = business.tenant.id
+    counted_at = datetime.now(UTC) - timedelta(hours=1)
+    _stock(session, business, business.item, "5", at=counted_at - timedelta(days=1))
+    wrong = _stock(
+        session, business, business.item, "10", at=counted_at - timedelta(hours=2)
+    )
+    core.correct_movement(session, tenant, wrong.id, reason="Booked twice")
+
+    assert (
+        book_as_of(
+            session, tenant, business.item.id, business.location.id, None, counted_at
+        )
+        == 5
+    )
+
+
+def test_the_block_part_of_a_loss_cites_the_count(session, business):
+    from reality.db.core import StockBlockResolution
+
+    tenant = business.tenant.id
+    _stock(session, business, business.item, "10")
+    block = block_stock(
+        session, tenant, business.item.id, business.location.id, "4", "quality"
+    )
+
+    count, _ = _post(
+        session,
+        business,
+        [{"item_id": business.item.id, "counted_quantity": "3"}],
+        note="Month end",
+    )
+
+    (resolution,) = session.scalars(
+        select(StockBlockResolution).where(StockBlockResolution.block_id == block.id)
+    )
+    assert (resolution.kind, resolution.quantity) == ("scrap", 1)
+    assert resolution.reason == f"count {count.id}: Month end"
+    detail = stock_count_detail(session, tenant, count.id)
+    assert (detail["lines"][0]["difference"], detail["lines"][0]["book"]) == (
+        "-7",
+        "10",
+    )
+
+
+def test_replaying_the_same_confirmation_records_nothing_twice(session, business):
+    from reality.tools.application import create_change_proposal
+
+    tenant = business.tenant.id
+    _stock(session, business, business.item, "10")
+    lines = [{"item_id": business.item.id, "counted_quantity": "8"}]
+    proposal = create_change_proposal(
+        session,
+        tenant,
+        "stock_count",
+        {"location_id": business.location.id, "lines": lines},
+    )
+    normalized, _ = _review(session, business, lines)
+
+    first = record_stock_count(session, tenant, **normalized, action_id=proposal.id)
+    again = record_stock_count(session, tenant, **normalized, action_id=proposal.id)
+
+    assert first.id == again.id
+    assert core.stock_at(session, tenant, business.item.id) == 8

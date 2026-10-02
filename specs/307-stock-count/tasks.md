@@ -54,4 +54,13 @@ Tests come first in each phase where practical.
 
 - [ ] T011 Full backend suite and web checks
 - [ ] T012 Manual check per `quickstart.md`
-- [ ] T013 Review of the diff; fix findings
+- [x] T013 Review of the diff; fix findings
+  - The count's adjustments are dated at the counting time, so the same sheet counted twice posts its loss once.
+  - A counting time before the goods first came, or without its offset, is refused.
+  - The stale check compares where a loss would come from, not only the book.
+  - Corrected movements and their compensations leave the book.
+  - The reservations named are per location and leave blocked stock out.
+  - The detail reads lines from the records and their movements.
+  - The web card guards double clicks, withdraws after a failed confirmation, and says how lot-tracked items are counted.
+  - Indexes on `(tenant_id, item_id)` and `(tenant_id, lot_id)`.
+  - Tests for each of these, plus the replay and the block resolution's citation.

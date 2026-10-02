@@ -24789,16 +24789,21 @@ Object.assign(dictionaries.de, {
   Book: "Buchbestand",
   Counted: "Gezählt",
   Difference: "Differenz",
-  "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Nothing is posted before you confirm.":
-    "Trage ein, was du gezählt hast; leere Artikel werden nicht gezählt. Jede Differenz wird gegen den Bestand zum Zählzeitpunkt gebucht, der Betrieb am Lagerort läuft also weiter. Ein Fehlbestand geht zuerst zulasten des freien, dann des gesperrten Bestands. Vor deiner Bestätigung wird nichts gebucht.",
+  "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Lot-tracked items are counted lot by lot through Chat or the CLI. Nothing is posted before you confirm.":
+    "Trage ein, was du gezählt hast; leere Artikel werden nicht gezählt. Jede Differenz wird gegen den Bestand zum Zählzeitpunkt gebucht, der Betrieb am Lagerort läuft also weiter. Ein Fehlbestand geht zuerst zulasten des freien, dann des gesperrten Bestands. Chargengeführte Artikel werden je Charge über Chat oder CLI gezählt. Vor deiner Bestätigung wird nichts gebucht.",
   "In stock": "Im Bestand",
   "in stock after": "Bestand danach",
   "Nothing is released by the count; decide who waits.":
     "Die Inventur gibt nichts frei; entscheide, wer wartet.",
   "Of which from blocked stock": "Davon aus gesperrtem Bestand",
-  "No longer covered after this count": "Nach dieser Inventur nicht mehr gedeckt",
+  "No longer covered at this location after this count":
+    "Nach dieser Inventur an diesem Lagerort nicht mehr gedeckt",
   "Stock count": "Inventur",
   "Stock counts": "Inventuren",
+  "A counting time needs its time-zone offset, for example 2026-10-02T10:00:00+02:00.":
+    "Ein Zählzeitpunkt braucht seine Zeitzonen-Angabe, zum Beispiel 2026-10-02T10:00:00+02:00.",
+  "The counting time is before the goods first came to this location; check the date.":
+    "Der Zählzeitpunkt liegt vor dem ersten Zugang der Ware an diesem Lagerort; prüfe das Datum.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25042,16 +25047,21 @@ Object.assign(dictionaries.nl, {
   Book: "Boekvoorraad",
   Counted: "Geteld",
   Difference: "Verschil",
-  "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Nothing is posted before you confirm.":
-    "Vul in wat je hebt geteld; lege artikelen worden niet geteld. Elk verschil wordt geboekt tegen de voorraad op het teltijdstip, dus het werk op de locatie loopt door. Een tekort gaat eerst ten koste van vrije, daarna van geblokkeerde voorraad. Er wordt niets geboekt voordat je bevestigt.",
+  "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Lot-tracked items are counted lot by lot through Chat or the CLI. Nothing is posted before you confirm.":
+    "Vul in wat je hebt geteld; lege artikelen worden niet geteld. Elk verschil wordt geboekt tegen de voorraad op het teltijdstip, dus het werk op de locatie loopt door. Een tekort gaat eerst ten koste van vrije, daarna van geblokkeerde voorraad. Artikelen met partijregistratie worden per partij geteld via Chat of de CLI. Er wordt niets geboekt voordat je bevestigt.",
   "In stock": "Op voorraad",
   "in stock after": "voorraad daarna",
   "Nothing is released by the count; decide who waits.":
     "De telling geeft niets vrij; beslis wie wacht.",
   "Of which from blocked stock": "Waarvan uit geblokkeerde voorraad",
-  "No longer covered after this count": "Na deze telling niet meer gedekt",
+  "No longer covered at this location after this count":
+    "Na deze telling op deze locatie niet meer gedekt",
   "Stock count": "Voorraadtelling",
   "Stock counts": "Voorraadtellingen",
+  "A counting time needs its time-zone offset, for example 2026-10-02T10:00:00+02:00.":
+    "Een teltijdstip heeft zijn tijdzone nodig, bijvoorbeeld 2026-10-02T10:00:00+02:00.",
+  "The counting time is before the goods first came to this location; check the date.":
+    "Het teltijdstip ligt vóór de eerste ontvangst van de goederen op deze locatie; controleer de datum.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25294,16 +25304,21 @@ Object.assign(dictionaries.es, {
   Book: "Stock contable",
   Counted: "Contado",
   Difference: "Diferencia",
-  "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Nothing is posted before you confirm.":
-    "Introduce lo que contaste; los artículos vacíos no se cuentan. Cada diferencia se registra contra el stock en la hora del recuento, así que el trabajo en la ubicación continúa. Una pérdida sale primero del stock libre y luego del bloqueado. No se registra nada antes de que confirmes.",
+  "Enter what you counted; items left empty are not counted. Each difference is posted against the stock at the counting time, so work at the location can carry on. A loss comes off free stock first, then blocked stock. Lot-tracked items are counted lot by lot through Chat or the CLI. Nothing is posted before you confirm.":
+    "Introduce lo que contaste; los artículos vacíos no se cuentan. Cada diferencia se registra contra el stock en la hora del recuento, así que el trabajo en la ubicación continúa. Una pérdida sale primero del stock libre y luego del bloqueado. Los artículos con lote se cuentan lote a lote por Chat o la CLI. No se registra nada antes de que confirmes.",
   "In stock": "En stock",
   "in stock after": "stock después",
   "Nothing is released by the count; decide who waits.":
     "El recuento no libera nada; decide quién espera.",
   "Of which from blocked stock": "De ello del stock bloqueado",
-  "No longer covered after this count": "Ya no cubierto tras este recuento",
+  "No longer covered at this location after this count":
+    "Ya no cubierto en esta ubicación tras este recuento",
   "Stock count": "Recuento de stock",
   "Stock counts": "Recuentos de stock",
+  "A counting time needs its time-zone offset, for example 2026-10-02T10:00:00+02:00.":
+    "Una hora de recuento necesita su zona horaria, por ejemplo 2026-10-02T10:00:00+02:00.",
+  "The counting time is before the goods first came to this location; check the date.":
+    "La hora del recuento es anterior a la primera entrada de la mercancía en esta ubicación; revisa la fecha.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

@@ -6403,10 +6403,10 @@ stock_count_propose location_id [note] lines
 #### `stock_count_propose` — Count stock {#tool-stock_count_propose}
 
 Prepare a count of one location: per line the item, its lot where the item is lot-tracked, the
-counted quantity and optionally when it was counted (default now). The review shows the book at each
-counting time, the difference, how much of a loss comes from blocks, and the reservations left
-uncovered. Confirming records the count and posts every difference as an adjustment; movements after
-a counting time carry on. A person confirms.
+counted quantity and optionally when it was counted (ISO 8601 with its offset, default now). The
+review shows the book at each counting time, the difference, how much of a loss comes from blocks,
+and the reservations left uncovered. Confirming records the count and posts every difference as an
+adjustment; movements after a counting time carry on. A person confirms.
 
 **Aufruf**
 

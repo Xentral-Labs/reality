@@ -80,6 +80,12 @@ def upgrade() -> None:
         "stock_count_line",
         ["tenant_id", "movement_id"],
     )
+    op.create_index(
+        "ix_stock_count_line_item_id", "stock_count_line", ["tenant_id", "item_id"]
+    )
+    op.create_index(
+        "ix_stock_count_line_lot_id", "stock_count_line", ["tenant_id", "lot_id"]
+    )
 
 
 def downgrade() -> None:

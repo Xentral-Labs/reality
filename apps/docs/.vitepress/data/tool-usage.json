@@ -10146,7 +10146,7 @@
       "key": "stock_count_propose",
       "label": "Count stock",
       "area": "warehouse",
-      "summary": "Prepare a count of one location: per line the item, its lot where the item is lot-tracked, the counted quantity and optionally when it was counted (default now). The review shows the book at each counting time, the difference, how much of a loss comes from blocks, and the reservations left uncovered. Confirming records the count and posts every difference as an adjustment; movements after a counting time carry on. A person confirms.",
+      "summary": "Prepare a count of one location: per line the item, its lot where the item is lot-tracked, the counted quantity and optionally when it was counted (ISO 8601 with its offset, default now). The review shows the book at each counting time, the difference, how much of a loss comes from blocks, and the reservations left uncovered. Confirming records the count and posts every difference as an adjustment; movements after a counting time carry on. A person confirms.",
       "access": "propose",
       "group": "Warehouse",
       "synopsis": "stock_count_propose location_id [note] lines",
