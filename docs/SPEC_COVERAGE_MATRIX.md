@@ -2122,4 +2122,4 @@ Table `customer_item_number`: a customer's own article number, with the customer
   - The CLI asks before stating and lists.
   - An agent orders by the customer's number through the strict order schema.
 
-Spec 329 — Platform administrator own private analytics: current-authority eligibility and exact private authorship; service/API/deferred-worker tests in reporting lifecycle/surfaces, requested analysis and proposal-policy modules; localized switcher/card browser assertions. Verification pending; see specs/329-platform-admin-own-reports/quickstart.md.
+Spec 329 — Platform administrator own private analytics: current-authority eligibility and exact private authorship; 105 related service/API/proposal tests passed locally; complete hosted suite and all 22 PR checks passed. Four-language switcher/card browser assertions pass. PR #301 is merged and deployed; native authenticated checks confirm personal libraries and truthful admin/owner labels in both nonmember companies. Foreign private content remains protected by author/tenant predicates and regression tests. See specs/329-platform-admin-own-reports/quickstart.md for CI, deployment and live evidence.
