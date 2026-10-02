@@ -242,8 +242,13 @@ def initialize_accounts(
     _commit: bool = True,
 ) -> dict:
     _mutation(session, tenant_id, expected_revision)
+    from reality.services.core import _company_amounts_stored
+
     with session.begin_nested():
         for role, label in ACCOUNT_ROLES.items():
+            if role == "exchange_difference" and not _company_amounts_stored(session):
+                # A schema from before spec 309, only in the migration tests.
+                continue
             dest = session.scalar(
                 select(FinanceRoleDestination.id).where(
                     FinanceRoleDestination.tenant_id == tenant_id,

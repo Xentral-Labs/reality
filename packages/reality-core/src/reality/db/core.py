@@ -2591,7 +2591,7 @@ class SubledgerAccount(Base):
         UniqueConstraint("tenant_id", "code"),
         CheckConstraint("state IN ('active', 'blocked')"),
         CheckConstraint(
-            "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','bad_debt_expense','dunning_fee_revenue','payment_fee_expense','customer_down_payments','opening_counterpart')",
+            "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','bad_debt_expense','dunning_fee_revenue','payment_fee_expense','customer_down_payments','exchange_difference','opening_counterpart')",
             name="ck_subledger_account_role",
         ),
     )
@@ -2630,6 +2630,9 @@ class FinanceState(Base):
 
 class LedgerEntry(Base):
     __tablename__ = "ledger_entry"
+    # The spec 309 columns are left out of an INSERT that does not set them, so
+    # schemas from before them keep working in the historical migration tests.
+    __mapper_args__: ClassVar[dict[str, Any]] = {"eager_defaults": False}
     __table_args__ = (
         PrimaryKeyConstraint("tenant_id", "id"),
         ForeignKeyConstraint(
@@ -2647,6 +2650,14 @@ class LedgerEntry(Base):
         ForeignKeyConstraint(
             ["tenant_id", "account_id"],
             ["subledger_account.tenant_id", "subledger_account.id"],
+        ),
+        CheckConstraint(
+            "company_amount IS NULL OR company_amount >= 0",
+            name="ck_ledger_entry_company_amount",
+        ),
+        CheckConstraint(
+            "exchange_rate IS NULL OR exchange_rate > 0",
+            name="ck_ledger_entry_exchange_rate",
         ),
     )
     id: Mapped[str] = mapped_column(String)
@@ -2681,6 +2692,34 @@ class LedgerEntry(Base):
     effective_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     document_id: Mapped[str | None] = mapped_column()
     source_record_id: Mapped[str | None] = mapped_column()
+    # Spec 309: the amount in the company currency and the rate used; null for a
+    # foreign entry posted before the company currency existed (unconverted).
+    company_amount: Mapped[Decimal | None] = mapped_column(
+        Numeric(18, 4), server_default=FetchedValue(), deferred=True
+    )
+    exchange_rate: Mapped[Decimal | None] = mapped_column(
+        Numeric(18, 8), server_default=FetchedValue(), deferred=True
+    )
+
+
+class CompanyCurrency(Base):
+    """The currency the company keeps its books in (spec 309); absent means EUR."""
+
+    __tablename__ = "company_currency"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        CheckConstraint("currency ~ '^[A-Z]{3}$'", name="ck_company_currency_code"),
+        Index("ix_company_currency_source_record_id", "tenant_id", "source_record_id"),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
+    currency: Mapped[str] = mapped_column(String(3))
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class LedgerReversal(Base):

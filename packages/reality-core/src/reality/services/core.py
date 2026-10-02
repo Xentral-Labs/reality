@@ -9045,8 +9045,20 @@ def post_ledger(
     effective_at: datetime | None = None,
     action_id: str | None = None,
     account_ids: dict[str, str] | None = None,
+    exchange_rate: Decimal | str | None = None,
+    company_amounts: list[Decimal | str] | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
+    """Post one balanced group in one currency.
+
+    Spec 309: every entry also carries its amount in the company currency. In the
+    company currency that is the amount itself at rate 1. A foreign group is
+    converted at the stated `exchange_rate`, or carries the stated
+    `company_amounts` (a payment, whose two sides were paid and settled at
+    different rates). A foreign group with neither stays unconverted, as every
+    foreign posting did before. Only an `exchange_difference` entry may have no
+    amount in the group's currency: it carries the realised difference alone.
+    """
     _require_business_mutation(session, tenant_id, "post_ledger")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
@@ -9057,22 +9069,27 @@ def post_ledger(
     _tenant_record(session, Party, tenant_id, party_id)
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
+    if any(side not in {"debit", "credit"} for _, side, _ in postings):
+        raise InvalidOperation(code="ledger_posting_group_must_balance")
+    amounts = [
+        decimal(amount)
+        if role == "exchange_difference" and decimal(amount) == ZERO
+        else positive(amount, "amount")
+        for role, _, amount in postings
+    ]
     debit = sum(
-        (positive(amount, "amount") for _, side, amount in postings if side == "debit"),
+        (a for a, (_, side, _) in zip(amounts, postings, strict=True) if side == "debit"),
         ZERO,
     )
     credit = sum(
-        (
-            positive(amount, "amount")
-            for _, side, amount in postings
-            if side == "credit"
-        ),
+        (a for a, (_, side, _) in zip(amounts, postings, strict=True) if side == "credit"),
         ZERO,
     )
-    if debit != credit or any(
-        side not in {"debit", "credit"} for _, side, _ in postings
-    ):
+    if debit != credit:
         raise InvalidOperation(code="ledger_posting_group_must_balance")
+    converted, rates = _company_amounts(
+        session, tenant_id, currency, postings, amounts, exchange_rate, company_amounts
+    )
     from reality.services.finance.accounts import resolve_account
 
     resolved = {
@@ -9091,14 +9108,21 @@ def post_ledger(
             account_id=resolved[account].id,
             account_record=resolved[account],
             party_id=party_id,
-            amount=positive(amount, "amount"),
+            amount=amount,
             currency=currency,
             debit_credit=side,
             effective_at=posting_time,
             document_id=document_id,
             source_record_id=source_record_id,
+            **(
+                {"company_amount": company_amount, "exchange_rate": rate}
+                if company_amount is not None
+                else {}
+            ),
         )
-        for account, side, amount in postings
+        for (account, side, _), amount, company_amount, rate in zip(
+            postings, amounts, converted, rates, strict=True
+        )
     ]
     session.add_all(entries)
     emit_business_event(
@@ -9118,9 +9142,24 @@ def post_ledger(
                     "account_id": entry.account_id,
                     "side": entry.debit_credit,
                     "amount": entry.amount,
+                    **(
+                        {
+                            "company_amount": company_amount,
+                            "exchange_rate": rate,
+                        }
+                        if company_amount is not None
+                        else {}
+                    ),
                 }
-                for entry in entries
+                for entry, company_amount, rate in zip(
+                    entries, converted, rates, strict=True
+                )
             ],
+            **(
+                {"company_currency": _book_currency(session, tenant_id)}
+                if converted and converted[0] is not None
+                else {}
+            ),
         },
         source_record_id=source_record_id,
         occurred_at=posting_time,
@@ -9130,6 +9169,103 @@ def post_ledger(
     if _commit:
         session.commit()
     return entries
+
+
+CENT = Decimal("0.01")
+
+
+def _company_amounts_stored(session: OrmSession) -> bool:
+    """Whether the schema has the spec 309 columns.
+
+    Only the historical migration tests run the services on a schema from before
+    them; there every posting stays unconverted, as it was then.
+    """
+    known = session.info.get("reality_company_amounts")
+    if known is None:
+        from sqlalchemy import inspect as sa_inspect
+
+        known = sa_inspect(session.connection()).has_table("company_currency")
+        session.info["reality_company_amounts"] = known
+    return known
+
+
+def _book_currency(session: OrmSession, tenant_id: str) -> str | None:
+    if not _company_amounts_stored(session):
+        return None
+    from reality.services.finance.company_currency import company_currency
+
+    return company_currency(session, tenant_id)
+
+
+def _round_cents(value: Decimal) -> Decimal:
+    from decimal import ROUND_HALF_UP
+
+    return value.quantize(CENT, rounding=ROUND_HALF_UP)
+
+
+def _company_amounts(
+    session: OrmSession,
+    tenant_id: str,
+    currency: str,
+    postings: list[tuple[str, str, Any]],
+    amounts: list[Decimal],
+    exchange_rate: Decimal | str | None,
+    stated: list[Decimal | str] | None,
+) -> tuple[list[Decimal | None], list[Decimal | None]]:
+    """Each entry's amount in the company currency and the rate it carries."""
+    book = _book_currency(session, tenant_id)
+    if book is None:
+        if ZERO in amounts:
+            raise InvalidOperation(code="ledger_posting_group_must_balance")
+        return [None] * len(amounts), [None] * len(amounts)
+    if ZERO in amounts and (currency == book or stated is None):
+        # Only a converted foreign group can carry a difference alone.
+        raise InvalidOperation(code="ledger_posting_group_must_balance")
+    if currency == book:
+        if exchange_rate is not None and decimal(exchange_rate) != 1:
+            raise InvalidOperation(code="exchange_rate_not_applicable")
+        if stated is not None and [decimal(v) for v in stated] != amounts:
+            raise InvalidOperation(code="exchange_rate_not_applicable")
+        return list(amounts), [Decimal(1)] * len(amounts)
+    if stated is not None:
+        converted = [decimal(value) for value in stated]
+        if len(converted) != len(amounts) or any(value < ZERO for value in converted):
+            raise InvalidOperation(code="ledger_company_amounts_invalid")
+        rates: list[Decimal | None] = [
+            (value / amount).quantize(Decimal("0.00000001")) if amount else None
+            for value, amount in zip(converted, amounts, strict=True)
+        ]
+    elif exchange_rate is not None:
+        rate = decimal(exchange_rate)
+        if rate <= ZERO:
+            raise InvalidOperation(code="exchange_rate_invalid")
+        converted = [_round_cents(amount * rate) for amount in amounts]
+        # The last entry of each side takes the rounding remainder, so the
+        # group balances in the company currency too.
+        total = _round_cents(
+            sum((a for a, p in zip(amounts, postings, strict=True) if p[1] == "debit"), ZERO)
+            * rate
+        )
+        for side in ("debit", "credit"):
+            indexes = [i for i, p in enumerate(postings) if p[1] == side]
+            if indexes:
+                rest = sum((converted[i] for i in indexes[:-1]), ZERO)
+                converted[indexes[-1]] = total - rest
+        rates = [rate] * len(amounts)
+    else:
+        return [None] * len(amounts), [None] * len(amounts)
+    sides = {
+        side: sum(
+            (v for v, p in zip(converted, postings, strict=True) if p[1] == side), ZERO
+        )
+        for side in ("debit", "credit")
+    }
+    if sides["debit"] != sides["credit"]:
+        raise InvalidOperation(code="ledger_posting_group_must_balance")
+    for value, amount, (role, _, _) in zip(converted, amounts, postings, strict=True):
+        if amount == ZERO and (role != "exchange_difference" or value <= ZERO):
+            raise InvalidOperation(code="ledger_posting_group_must_balance")
+    return converted, rates
 
 
 @dataclass(frozen=True)
@@ -9154,7 +9290,27 @@ def _ledger_entry_values(entry: LedgerEntry) -> dict[str, Any]:
         "effective_at": entry.effective_at.isoformat(),
         "document_id": entry.document_id,
         "source_record_id": entry.source_record_id,
+        **(
+            {
+                "company_amount": str(decimal(entry.company_amount)),
+                "exchange_rate": str(decimal(entry.exchange_rate))
+                if entry.exchange_rate is not None
+                else None,
+            }
+            if _entry_converted(entry)
+            else {}
+        ),
     }
+
+
+def _entry_converted(entry: LedgerEntry) -> bool:
+    """Whether an entry carries a company-currency amount (spec 309)."""
+    from sqlalchemy import inspect as sa_inspect
+
+    owner = sa_inspect(entry).session
+    if owner is not None and not _company_amounts_stored(owner):
+        return False
+    return entry.company_amount is not None
 
 
 def _ledger_group_entries(
@@ -9187,6 +9343,19 @@ def _ledger_group_entries(
         raise InvalidOperation(code="ledger_posting_group_not_balanced")
     if len({entry.currency for entry in entries}) != 1:
         raise InvalidOperation(code="ledger_posting_group_currency_mixed")
+    company = (
+        [entry.company_amount for entry in entries]
+        if _company_amounts_stored(session)
+        else [None]
+    )
+    if None not in company and sum(
+        (
+            decimal(value) if entry.debit_credit == "debit" else -decimal(value)
+            for entry, value in zip(entries, company, strict=True)
+        ),
+        ZERO,
+    ):
+        raise InvalidOperation(code="ledger_posting_group_not_balanced")
     if len({entry.party_id for entry in entries}) != 1:
         raise InvalidOperation(code="ledger_posting_group_party_mixed")
     return entries
@@ -9423,6 +9592,17 @@ def reverse_ledger_posting_group(
                 effective_at=reversed_at,
                 document_id=None,
                 source_record_id=None,
+                # Spec 309: the inverse takes back the company-currency value too,
+                # so a reversed payment takes its exchange difference back.
+                **(
+                    {
+                        "company_amount": entry.company_amount,
+                        "exchange_rate": entry.exchange_rate,
+                    }
+                    if _company_amounts_stored(session)
+                    and entry.company_amount is not None
+                    else {}
+                ),
             )
             for entry in entries
         ]
@@ -9548,6 +9728,7 @@ def record_supplier_invoice(
     effective_at: datetime | None = None,
     action_id: str | None = None,
     reality_finance_v1: dict[str, Any] | None = None,
+    exchange_rate: Decimal | str | None = None,
 ) -> dict[str, Any]:
     """Record received supplier invoice evidence and its payable atomically."""
     _require_business_mutation(session, tenant_id, "record_supplier_invoice")
@@ -9557,6 +9738,7 @@ def record_supplier_invoice(
             "gross_amount": gross_amount,
             "number": number,
             "effective_at": effective_at,
+            **({"exchange_rate": exchange_rate} if exchange_rate is not None else {}),
         }
         if order_line_id is not None or quantity is not None:
             raise InvalidOperation(code="invoice_lines_or_order_line_exclusive")
@@ -9576,6 +9758,7 @@ def record_supplier_invoice(
         finance_detail=reality_finance_v1,
         effective_at=effective_at,
         action_id=action_id,
+        exchange_rate=exchange_rate,
     )
 
 
@@ -9843,7 +10026,58 @@ def _preview_down_payment_offsets(
 def _preview_order_invoice(
     session: OrmSession, tenant_id: str, direction: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
-    """Validate stated invoice evidence without creating financial records."""
+    """Validate stated invoice evidence without creating financial records.
+
+    Spec 309: a supplier invoice in another currency than the company currency
+    states the exchange rate it is posted at; the creation carries the rate and
+    the invoice's value in the company currency.
+    """
+    rate = arguments.get("exchange_rate")
+    creation = _preview_order_invoice_stated(
+        session,
+        tenant_id,
+        direction,
+        {key: value for key, value in arguments.items() if key != "exchange_rate"},
+    )
+    stated = _invoice_exchange_rate(
+        session, tenant_id, direction, creation["currency"], rate
+    )
+    if stated is not None:
+        creation["exchange_rate"] = stated
+        creation["company_amount"] = _round_cents(
+            decimal(creation["gross_amount"]) * stated
+        )
+    return creation
+
+
+def _invoice_exchange_rate(
+    session: OrmSession,
+    tenant_id: str,
+    direction: str,
+    currency: str,
+    rate: Any,
+) -> Decimal | None:
+    """The stated rate of an invoice, required exactly when it is foreign."""
+    book = _book_currency(session, tenant_id)
+    foreign = book is not None and currency != book
+    if direction != "purchase" or not foreign:
+        if rate is not None:
+            raise InvalidOperation(code="exchange_rate_not_applicable")
+        return None
+    if rate is None or str(rate).strip() == "":
+        raise InvalidOperation(code="exchange_rate_required")
+    try:
+        stated = decimal(rate)
+    except (ArithmeticError, ValueError, TypeError) as error:
+        raise InvalidOperation(code="exchange_rate_invalid") from error
+    if stated <= ZERO or stated != stated.quantize(Decimal("0.00000001")):
+        raise InvalidOperation(code="exchange_rate_invalid")
+    return stated
+
+
+def _preview_order_invoice_stated(
+    session: OrmSession, tenant_id: str, direction: str, arguments: dict[str, Any]
+) -> dict[str, Any]:
     if "lines" in arguments:
         required = {"lines", "gross_amount", "number"}
         if not required <= arguments.keys() or arguments.keys() - required - {
@@ -9886,7 +10120,7 @@ def _preview_order_invoice(
                 raise InvalidOperation(code="invoice_positions_not_distinct")
             seen.add(selection["order_line_id"])
             previews.append(
-                _preview_order_invoice(
+                _preview_order_invoice_stated(
                     session,
                     tenant_id,
                     direction,
@@ -10160,6 +10394,11 @@ def _record_multi_order_invoice(
             document.id,
             effective_at=effective,
             action_id=action_id,
+            **(
+                {"exchange_rate": creation["exchange_rate"]}
+                if "exchange_rate" in creation
+                else {}
+            ),
             _commit=False,
         )
         offset_entries, offsets = _post_down_payment_offsets(
@@ -10230,6 +10469,7 @@ def _record_order_invoice(
     delivery_guard: dict[str, Any] | None = None,
     finance_detail: dict[str, Any] | None = None,
     down_payment_offsets: list[dict[str, Any]] | None = None,
+    exchange_rate: Decimal | str | None = None,
 ) -> dict[str, Any]:
     from reality.services.tenant_policy import require_decision_finance
 
@@ -10238,6 +10478,9 @@ def _record_order_invoice(
     stated = (
         {"reality_finance_v1": finance_detail} if finance_detail is not None else {}
     )
+    if exchange_rate is not None and credit:
+        raise InvalidOperation(code="exchange_rate_not_applicable")
+    rate_argument = {"exchange_rate": exchange_rate} if exchange_rate is not None else {}
     if down_payment_offsets is not None:
         if credit:
             raise InvalidOperation(code="invoice_fields_invalid")
@@ -10272,6 +10515,7 @@ def _record_order_invoice(
             "effective_at": effective_at,
             **stated,
             **offset_arguments,
+            **rate_argument,
         },
         action_id,
     )
@@ -10305,6 +10549,7 @@ def _record_order_invoice(
                     "effective_at": effective_at,
                     **stated,
                     **offset_arguments,
+                    **rate_argument,
                 },
             )
         order = _tenant_record(session, Document, tenant_id, line.document_id)
@@ -10389,6 +10634,11 @@ def _record_order_invoice(
             document.id,
             effective_at=effective_at,
             action_id=action_id,
+            **(
+                {"exchange_rate": creation["exchange_rate"]}
+                if creation and "exchange_rate" in creation
+                else {}
+            ),
             _commit=False,
         )
         offset_entries, offsets = _post_down_payment_offsets(
@@ -10544,6 +10794,7 @@ def _preview_invoice_payment(
         "payment_number",
         "source_record_id",
         "effective_at",
+        "paid_amount",
     }:
         raise InvalidOperation(code="payment_fields_invalid")
     invoice = _tenant_record(session, Document, tenant_id, arguments["invoice_id"])
@@ -10589,6 +10840,16 @@ def _preview_invoice_payment(
     if source_id:
         _tenant_record(session, SourceRecord, tenant_id, source_id)
     effective = utc_datetime(arguments.get("effective_at"))
+    exchange = _payment_exchange(
+        session,
+        tenant_id,
+        direction,
+        invoice,
+        control,
+        amount,
+        opened,
+        arguments.get("paid_amount"),
+    )
     return {
         "creation": {
             "direction": direction,
@@ -10600,9 +10861,76 @@ def _preview_invoice_payment(
             "payment_number": reference,
             "source_record_id": source_id,
             "effective_at": effective,
+            **({"paid_amount": exchange["paid_amount"]} if exchange else {}),
         },
         "open_before": opened,
         "open_after": opened - amount,
+        **({"exchange": exchange} if exchange else {}),
+    }
+
+
+def _payment_exchange(
+    session: OrmSession,
+    tenant_id: str,
+    direction: str,
+    invoice: Document,
+    control: LedgerEntry,
+    amount: Decimal,
+    opened: Decimal,
+    paid_amount: Any,
+) -> dict[str, Any] | None:
+    """What a supplier payment across currencies realises (spec 309).
+
+    The payment settles `amount` of the invoice in the invoice currency and
+    states what was paid for it in the company currency. The payable side carries
+    the invoice's company-currency value of that part: the amount at the invoice
+    rate, or, for the payment that settles the rest, what is left of the
+    invoice's value, so nothing remains through rounding. The difference to what
+    was paid is the realised exchange difference.
+    """
+    book = _book_currency(session, tenant_id)
+    if book is None or direction != "supplier" or invoice.currency == book:
+        if paid_amount is not None:
+            raise InvalidOperation(code="paid_amount_not_applicable")
+        return None
+    if control.company_amount is None:
+        raise InvalidOperation(code="invoice_not_converted")
+    if paid_amount is None or str(paid_amount).strip() == "":
+        raise InvalidOperation(code="paid_amount_required")
+    try:
+        paid = decimal(paid_amount)
+    except (ArithmeticError, ValueError, TypeError) as error:
+        raise InvalidOperation(code="paid_amount_invalid") from error
+    if paid <= ZERO or paid != _round_cents(paid):
+        raise InvalidOperation(code="paid_amount_invalid")
+    if amount == opened:
+        settled = ZERO
+        for row in active_settlement_allocations(
+            session, tenant_id, entry_ids={control.id}
+        ):
+            other_id = (
+                row.payment_ledger_entry_id
+                if row.invoice_ledger_entry_id == control.id
+                else row.invoice_ledger_entry_id
+            )
+            other = _tenant_record(session, LedgerEntry, tenant_id, other_id)
+            if other.company_amount is None:
+                raise InvalidOperation(code="invoice_not_converted")
+            settled += _round_cents(
+                decimal(other.company_amount) * decimal(row.amount) / decimal(other.amount)
+            )
+        value = decimal(control.company_amount) - settled
+    else:
+        value = _round_cents(amount * decimal(control.exchange_rate))
+    difference = value - paid
+    return {
+        "company_currency": book,
+        "paid_amount": paid,
+        "payment_rate": (paid / amount).quantize(Decimal("0.00000001")),
+        "invoice_rate": decimal(control.exchange_rate),
+        "invoice_value": value,
+        "difference": abs(difference),
+        "kind": "gain" if difference > 0 else "loss" if difference < 0 else "none",
     }
 
 
@@ -10977,6 +11305,7 @@ def post_supplier_invoice(
     *,
     effective_at: datetime | None = None,
     action_id: str | None = None,
+    exchange_rate: Decimal | str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     _require_business_mutation(session, tenant_id, "post_supplier_invoice")
@@ -10985,6 +11314,10 @@ def post_supplier_invoice(
         raise InvalidOperation(code="supplier_invoice_document_type_invalid")
     if account_balance(session, tenant_id, "accounts_payable", document.id) != ZERO:
         raise InvalidOperation(code="supplier_invoice_already_posted")
+    # Spec 309: an invoice in another currency is posted at its stated rate.
+    exchange_rate = _invoice_exchange_rate(
+        session, tenant_id, "purchase", document.currency, exchange_rate
+    )
     return post_ledger(
         session,
         tenant_id,
@@ -10998,6 +11331,7 @@ def post_supplier_invoice(
         source_record_id=document.source_record_id,
         effective_at=effective_at,
         action_id=action_id,
+        exchange_rate=exchange_rate,
         _commit=_commit,
     )
 
@@ -11012,6 +11346,7 @@ def post_supplier_payment(
     source_record_id: str | None = None,
     effective_at: datetime | None = None,
     action_id: str | None = None,
+    paid_amount: Decimal | str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     _require_business_mutation(session, tenant_id, "post_supplier_payment")
@@ -11031,6 +11366,7 @@ def post_supplier_payment(
                 if source_record_id is not None
                 else {}
             ),
+            **({"paid_amount": paid_amount} if paid_amount is not None else {}),
         },
         action_id,
     )
@@ -11048,6 +11384,7 @@ def post_supplier_payment(
                 "payment_number": payment_number,
                 "source_record_id": source_record_id,
                 "effective_at": effective_at,
+                **({"paid_amount": paid_amount} if paid_amount is not None else {}),
             },
         )
         source_record_id = preview["creation"]["source_record_id"]
@@ -11071,6 +11408,7 @@ def post_supplier_payment(
             source_record_id=source_record_id,
             effective_at=effective_at,
             action_id=action_id,
+            _exchange=preview.get("exchange"),
             _commit=False,
         )
         allocate_settlement(
@@ -11099,6 +11437,7 @@ def record_supplier_payment(
     effective_at: datetime | None = None,
     action_id: str | None = None,
     _control_account_id: str | None = None,
+    _exchange: dict[str, Any] | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     _require_business_mutation(session, tenant_id, "record_supplier_payment")
@@ -11122,7 +11461,22 @@ def record_supplier_payment(
             tenant_id,
             payment.id,
             party_id,
-            [("accounts_payable", "debit", amount), ("cash", "credit", amount)],
+            [
+                ("accounts_payable", "debit", amount),
+                ("cash", "credit", amount),
+                # Spec 309: the realised difference, in the company currency alone.
+                *(
+                    [
+                        (
+                            "exchange_difference",
+                            "credit" if _exchange["kind"] == "gain" else "debit",
+                            ZERO,
+                        )
+                    ]
+                    if _exchange and _exchange["kind"] != "none"
+                    else []
+                ),
+            ],
             account_ids={"accounts_payable": _control_account_id}
             if _control_account_id
             else None,
@@ -11130,6 +11484,13 @@ def record_supplier_payment(
             source_record_id=source_record_id,
             effective_at=effective_at,
             action_id=action_id,
+            company_amounts=[
+                _exchange["invoice_value"],
+                _exchange["paid_amount"],
+                *([_exchange["difference"]] if _exchange["kind"] != "none" else []),
+            ]
+            if _exchange
+            else None,
             _commit=False,
         )
     if _commit:

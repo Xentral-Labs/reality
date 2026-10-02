@@ -170,6 +170,9 @@ parameter_descriptions:
   customer_item_number: The customer's own article number, as the customer states it; matched ignoring case and spaces.
   customer_item_name: The customer's own name for the item, as stated.
   remember_for_customer: Also state the number the line was ordered by as the customer's item number for the assigned item.
+  exchange_rate: The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated.
+  paid_amount: What was paid in the company currency for a supplier invoice in another currency, as the bank statement shows it.
+  currency_code: A three-letter currency code.
   stock_count_id: Opaque identity of a recorded stock count.
   rule: "How the customer or order is delivered: partial_allowed, ship_complete or no_backorders."
   reviewed: What the review showed, such as the rule, point or stock in force; a confirmation after it changed is refused.

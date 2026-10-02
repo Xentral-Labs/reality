@@ -2109,6 +2109,39 @@
     },
     "order_line_item_no_customer_number": {
       "message": "This line quotes no customer item number to remember."
+    },
+    "company_currency_invalid": {
+      "message": "State the company currency as a three-letter code."
+    },
+    "company_currency_has_postings": {
+      "message": "The company currency cannot change after the first posting."
+    },
+    "company_currency_changed_since_review": {
+      "message": "The company currency changed since this review. Review it again."
+    },
+    "exchange_rate_required": {
+      "message": "State the exchange rate for an invoice in another currency than the company currency."
+    },
+    "exchange_rate_not_applicable": {
+      "message": "An amount in the company currency takes no exchange rate."
+    },
+    "exchange_rate_invalid": {
+      "message": "An exchange rate must be a positive number."
+    },
+    "ledger_company_amounts_invalid": {
+      "message": "Each entry needs one company-currency amount that is not negative."
+    },
+    "paid_amount_required": {
+      "message": "State what was paid in the company currency for an invoice in another currency."
+    },
+    "paid_amount_not_applicable": {
+      "message": "An invoice in the company currency is paid in its own currency."
+    },
+    "paid_amount_invalid": {
+      "message": "The amount paid must be a positive number."
+    },
+    "invoice_not_converted": {
+      "message": "This invoice was posted without an exchange rate and cannot be paid in another currency."
     }
   },
   "terms": [
