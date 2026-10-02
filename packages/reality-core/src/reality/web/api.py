@@ -75,6 +75,7 @@ from reality.services.core import (
     change_proposals,
     chat_message_counts,
     chat_messages,
+    chat_proposals,
     chat_sessions,
     chat_suggestions,
     close_stale_promises,
@@ -128,6 +129,7 @@ from reality.services.core import (
     party_detail,
     party_groups,
     payment_terms,
+    pending_proposals_elsewhere,
     permanently_delete_tenant,
     post_customer_payment,
     post_customer_refund,
@@ -144,6 +146,7 @@ from reality.services.core import (
     price_list_entries,
     price_lists,
     process_pending_import_jobs,
+    proposal_anchor,
     record_corrected_document_source,
     record_movement,
     release_commitment_hold,
@@ -216,7 +219,6 @@ from reality.services.reality_gaps import (
 )
 from reality.tools.application import (
     approve_and_execute_proposal,
-    proposals_awaiting_approval,
     reject_proposal,
 )
 from reality.web.read_models import (
@@ -7116,10 +7118,16 @@ def copilots_payload(
         raise NotFound(code="chat_session_not_found")
     active = active or (conversations[0] if conversations else None)
     messages = chat_messages(session, tenant_id, active.id) if active else []
-    proposals = (
-        proposals_awaiting_approval(session, tenant_id)
-        if active and not archived
-        else []
+    # Spec 328: a conversation shows what its own turns proposed, decided or not;
+    # the company's other pending decisions are only counted.
+    proposals = chat_proposals(session, tenant_id, active.id) if active else []
+    deciders = decision_maker_names(
+        session, tenant_id, [row.decided_by_user_id for row in proposals]
+    )
+    from reality.services.decision_attribution import decision_attributions
+
+    attributions = decision_attributions(
+        session, tenant_id, [row.id for row in proposals]
     )
     settings = session.get(AISettings, tenant_id)
     ai_configured = bool(
@@ -7155,11 +7163,19 @@ def copilots_payload(
         ],
         "proposals": [
             {
-                **_proposal_payload(row),
+                **_proposal_payload(
+                    row,
+                    deciders.get(row.decided_by_user_id),
+                    attributions.get(row.id, {}).get("decider"),
+                ),
                 "preview": json.loads(row.output),
+                "after_message_id": proposal_anchor(messages, row),
             }
             for row in proposals
         ],
+        "pending_elsewhere": pending_proposals_elsewhere(
+            session, tenant_id, active.id if active else None
+        ),
         "suggestions": chat_suggestions(session, tenant_id),
         # The client needs this to tell "no conversations at all" apart from
         # "none active", so archived work stays reachable after the last chat is hidden.

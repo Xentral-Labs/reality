@@ -104,14 +104,18 @@ than the API.
   session.
 - **FR-003**: The conversation read MUST return only proposals linked to the requested session, in every state
   (proposed, executed, rejected, failed), for active and archived conversations.
-- **FR-004**: The conversation read MUST give the web enough to place each proposal in the message history:
-  after the last message of that session created at or before the proposal, derived at read time and never stored.
+- **FR-004**: The conversation read MUST name, for each proposal, the message it follows: the last message of that
+  session before the first user message sent after the proposal was created (the answer of the turn that created
+  it), or the last message when no later user message exists. It is derived at read time and never stored. A user
+  message MUST carry the time it was sent, so a proposal made during a turn falls between that turn's question and
+  any later question.
 - **FR-005**: A settled proposal shown in a conversation MUST show its outcome and decision time and MUST NOT offer
   approval. A pending one MUST open the existing review.
 - **FR-006**: The conversation read MUST include the number of pending proposals of the company that are not
   linked to that session. The web MUST show it as a compact link to Pending approvals, outside the message history,
   and MUST hide it when the number is zero.
-- **FR-007**: Archiving, restoring or removing a conversation MUST NOT change, delete or settle a proposal.
+- **FR-007**: Archiving, restoring or removing a conversation MUST NOT change, delete or settle a proposal. A
+  conversation that holds a proposal is not empty: removing it archives it.
 - **FR-008**: Tenant scope, approval rights, exact confirmation, replay protection, decision attribution and the
   private-review rules of spec 325 MUST stay unchanged.
 - **FR-009**: New web text MUST be translated into all four existing languages.

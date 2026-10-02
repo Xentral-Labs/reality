@@ -13,6 +13,7 @@ import { AllowanceNotice, ChatComposer } from "./ChatComposer";
 import {
   Archive,
   ArchiveRestore,
+  CheckCircle2,
   ChevronLeft,
   Clock3,
   History,
@@ -36,24 +37,35 @@ import { messageContext } from "./context";
 import { GraphReportProposal } from "./analytics/GraphReportProposal";
 const compactFrame = "flex h-[min(720px,75dvh)] min-w-0 flex-col gap-4";
 const fullFrame = "mx-auto flex h-[calc(100dvh-152px)] min-h-[500px] max-w-5xl flex-col gap-4";
-import { useEffect, useRef, useState, useId, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, useId, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { currentCorrelation, APIError, api, deliveryApi, type CopilotProposal } from "../api";
+import {
+  currentCorrelation,
+  APIError,
+  api,
+  deliveryApi,
+  type CopilotData,
+  type CopilotProposal,
+} from "../api";
 import { t, formatDateTime } from "../localization";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import type { Selection } from "./routing";
 import { proposalBusinessLabel } from "./proposalPresentation";
+import { DecisionLine } from "./DecisionLine";
 
 function ChatDecisionList({
   proposals,
+  tenant,
   open,
 }: {
   proposals: CopilotProposal[];
+  tenant: string;
   open: (proposal: CopilotProposal) => void;
 }) {
   const headingId = useId();
+  const pending = proposals.filter((proposal) => proposal.status === "proposed").length;
   return (
     <section
       data-chat-decision-list
@@ -62,8 +74,14 @@ function ChatDecisionList({
     >
       <div className="border-b border-border-default bg-surface-muted px-4 py-3">
         <h2 id={headingId} className="text-sm font-semibold text-fg-strong">
-          <span className="mr-1.5 text-accent">{proposals.length}</span>
-          {t(proposals.length === 1 ? "Proposal to review" : "Proposals to review")}
+          {pending ? (
+            <>
+              <span className="mr-1.5 text-accent">{pending}</span>
+              {t(pending === 1 ? "Proposal to review" : "Proposals to review")}
+            </>
+          ) : (
+            t(proposals.length === 1 ? "Decided proposal" : "Decided proposals")
+          )}
         </h2>
       </div>
       <ul className="divide-y divide-border-default">
@@ -71,18 +89,41 @@ function ChatDecisionList({
           <li
             key={proposal.id}
             data-chat-decision={proposal.id}
+            data-chat-decision-status={proposal.status}
             className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-surface-muted"
           >
-            <Clock3 aria-hidden="true" className="shrink-0 text-accent" size={18} />
+            {proposal.status === "proposed" ? (
+              <Clock3 aria-hidden="true" className="shrink-0 text-accent" size={18} />
+            ) : (
+              <CheckCircle2 aria-hidden="true" className="shrink-0 text-fg-muted" size={18} />
+            )}
             <div className="min-w-0 flex-1">
               <h3 className="font-semibold text-fg-strong">
                 {t(proposalBusinessLabel(proposal.tool, proposal.review_label))}
               </h3>
-              <p className="mt-0.5 text-sm text-fg-muted">{t("Pending")}</p>
+              {proposal.status === "proposed" && (
+                <p className="mt-0.5 text-sm text-fg-muted">{t("Pending")}</p>
+              )}
+              {proposal.status !== "proposed" && (
+                // Spec 328: a decided proposal stays where it was made, with its outcome.
+                <p className="mt-0.5 text-sm text-fg-muted">
+                  <DecisionLine
+                    tenant={tenant}
+                    decision={{
+                      id: proposal.id,
+                      outcome: proposal.status,
+                      decided_at: proposal.decided_at,
+                      decider: proposal.decider || { kind: "unknown" },
+                    }}
+                  />
+                </p>
+              )}
             </div>
-            <button className="br-btn min-h-9 shrink-0 px-3" onClick={() => open(proposal)}>
-              {t("Review")}
-            </button>
+            {proposal.status === "proposed" && (
+              <button className="br-btn min-h-9 shrink-0 px-3" onClick={() => open(proposal)}>
+                {t("Review")}
+              </button>
+            )}
           </li>
         ))}
       </ul>
@@ -499,8 +540,74 @@ export function ChatPage({
       setChangingSession(false);
     }
   };
+  // Spec 328: each proposal of this conversation follows the answer of the turn
+  // that made it; one whose message is not shown (yet) closes the history.
+  const shownMessages = new Set(data.messages.map((message) => message.id));
+  const anchored = new Map<string, CopilotData["proposals"]>();
+  const unanchored: CopilotData["proposals"] = [];
+  for (const proposal of data.proposals) {
+    const anchor = proposal.after_message_id;
+    if (anchor && shownMessages.has(anchor))
+      anchored.set(anchor, [...(anchored.get(anchor) || []), proposal]);
+    else unanchored.push(proposal);
+  }
+  const renderProposals = (proposals: CopilotData["proposals"]) => {
+    const reports = proposals.filter((proposal) => proposal.tool === "graph.reports.change");
+    const decisions = proposals.filter((proposal) => proposal.tool !== "graph.reports.change");
+    return (
+      <>
+        {reports.map((proposal) => (
+          <GraphReportProposal
+            key={proposal.id}
+            tenant={selection.tenant}
+            id={proposal.id}
+            refresh={refresh}
+            open={() =>
+              navigate({
+                route: "analytics",
+                analyticsView: "graph",
+                analyticsProposal: proposal.id,
+                proposal: "",
+              })
+            }
+            openReport={(reportId) =>
+              navigate({
+                route: "analytics",
+                analyticsView: "graph",
+                analyticsReport: reportId,
+                analyticsProposal: "",
+                proposal: "",
+              })
+            }
+          />
+        ))}
+        {!!decisions.length && (
+          <ChatDecisionList
+            proposals={decisions}
+            tenant={selection.tenant}
+            open={(proposal) =>
+              navigate({ proposal: proposal.id, importProposal: "", analyticsProposal: "" })
+            }
+          />
+        )}
+      </>
+    );
+  };
+  const pendingElsewhere = data.pending_elsewhere || 0;
   const chatControls = (
     <div className="flex shrink-0 items-center gap-1">
+      {pendingElsewhere > 0 && (
+        <button
+          type="button"
+          data-chat-pending-elsewhere={pendingElsewhere}
+          className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-border-default px-2.5 text-xs text-fg-muted transition-colors hover:border-accent hover:text-fg-strong"
+          onClick={() => navigate({ route: "decisions", decisionsView: "pending" })}
+        >
+          <Clock3 aria-hidden="true" size={14} />
+          <span className="font-semibold text-accent">{pendingElsewhere}</span>
+          {t(pendingElsewhere === 1 ? "Other pending approval" : "Other pending approvals")}
+        </button>
+      )}
       {standaloneHistoryAvailable !== false && (
         <button
           className={
@@ -806,119 +913,86 @@ export function ChatPage({
             ? [{ id: "", role: "assistant" as const, content: visibleReply.text, created_at: "" }]
             : []),
         ].map((message) => (
-          <article
-            key={message.id || `pending-${message.role}`}
-            data-chat-pending={message.id ? undefined : ""}
-            data-chat-role={message.role}
-            className="reality-chat-message"
-          >
-            <p className="sr-only">
-              {message.role === "user" ? t("You") : "Reality"}{" "}
-              {message.created_at && (
-                <time className="ml-2">{formatDateTime(message.created_at)}</time>
-              )}
-            </p>
-            {message.role === "user" && analysisMessageContext(message.content) && (
-              <details className="mb-2 text-xs text-fg-muted">
-                <summary>
-                  {t("Analysis context")}: {analysisMessageContext(message.content)!.label}
-                </summary>
-                {analysisMessageContext(message.content)!.question && (
-                  <pre className="mt-2 overflow-auto whitespace-pre-wrap">
-                    {JSON.stringify(analysisMessageContext(message.content)!.question, null, 2)}
-                  </pre>
+          <Fragment key={message.id || `pending-${message.role}`}>
+            <article
+              key={message.id || `pending-${message.role}`}
+              data-chat-pending={message.id ? undefined : ""}
+              data-chat-role={message.role}
+              className="reality-chat-message"
+            >
+              <p className="sr-only">
+                {message.role === "user" ? t("You") : "Reality"}{" "}
+                {message.created_at && (
+                  <time className="ml-2">{formatDateTime(message.created_at)}</time>
                 )}
-              </details>
-            )}
-            {messageContext(message.content).context && (
-              <button
-                className="mb-3 text-xs text-accent underline"
-                onClick={() =>
-                  navigate({
-                    route: "orders-deliveries",
-                    ordersView: "deliveries",
-                    commitment: messageContext(message.content).context!.id,
-                  })
-                }
-              >
-                {t("Selected delivery")} · {messageContext(message.content).context!.label}
-              </button>
-            )}
-            <div data-original-content className="space-y-3 overflow-x-auto break-words">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                skipHtml
-                disallowedElements={["img"]}
-                components={{
-                  a: ({ children, href }) => {
-                    if (href?.startsWith("/app/work?")) {
-                      const link = new URL(href, location.origin);
-                      if (
-                        link.searchParams.get("tenant") === selection.tenant &&
-                        link.searchParams.get("commitment")
-                      )
-                        return (
-                          <button
-                            className="text-accent underline"
-                            onClick={() =>
-                              navigate({
-                                route: "orders-deliveries",
-                                ordersView: "deliveries",
-                                commitment: link.searchParams.get("commitment")!,
-                              })
-                            }
-                          >
-                            {children}
-                          </button>
-                        );
-                    }
-                    return <span>{children}</span>;
-                  },
-                }}
-              >
-                {messageContext(message.content).text}
-              </ReactMarkdown>
-            </div>
-            {message.id && message.role === "assistant" && renderMessageEvidence?.(message.id)}
-          </article>
+              </p>
+              {message.role === "user" && analysisMessageContext(message.content) && (
+                <details className="mb-2 text-xs text-fg-muted">
+                  <summary>
+                    {t("Analysis context")}: {analysisMessageContext(message.content)!.label}
+                  </summary>
+                  {analysisMessageContext(message.content)!.question && (
+                    <pre className="mt-2 overflow-auto whitespace-pre-wrap">
+                      {JSON.stringify(analysisMessageContext(message.content)!.question, null, 2)}
+                    </pre>
+                  )}
+                </details>
+              )}
+              {messageContext(message.content).context && (
+                <button
+                  className="mb-3 text-xs text-accent underline"
+                  onClick={() =>
+                    navigate({
+                      route: "orders-deliveries",
+                      ordersView: "deliveries",
+                      commitment: messageContext(message.content).context!.id,
+                    })
+                  }
+                >
+                  {t("Selected delivery")} · {messageContext(message.content).context!.label}
+                </button>
+              )}
+              <div data-original-content className="space-y-3 overflow-x-auto break-words">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  skipHtml
+                  disallowedElements={["img"]}
+                  components={{
+                    a: ({ children, href }) => {
+                      if (href?.startsWith("/app/work?")) {
+                        const link = new URL(href, location.origin);
+                        if (
+                          link.searchParams.get("tenant") === selection.tenant &&
+                          link.searchParams.get("commitment")
+                        )
+                          return (
+                            <button
+                              className="text-accent underline"
+                              onClick={() =>
+                                navigate({
+                                  route: "orders-deliveries",
+                                  ordersView: "deliveries",
+                                  commitment: link.searchParams.get("commitment")!,
+                                })
+                              }
+                            >
+                              {children}
+                            </button>
+                          );
+                      }
+                      return <span>{children}</span>;
+                    },
+                  }}
+                >
+                  {messageContext(message.content).text}
+                </ReactMarkdown>
+              </div>
+              {message.id && message.role === "assistant" && renderMessageEvidence?.(message.id)}
+            </article>
+            {message.id && renderProposals(anchored.get(message.id) || [])}
+          </Fragment>
         ))}
-        {data.proposals
-          .filter((proposal) => proposal.tool === "graph.reports.change")
-          .map((proposal) => (
-            <GraphReportProposal
-              key={proposal.id}
-              tenant={selection.tenant}
-              id={proposal.id}
-              refresh={refresh}
-              open={() =>
-                navigate({
-                  route: "analytics",
-                  analyticsView: "graph",
-                  analyticsProposal: proposal.id,
-                  proposal: "",
-                })
-              }
-              openReport={(reportId) =>
-                navigate({
-                  route: "analytics",
-                  analyticsView: "graph",
-                  analyticsReport: reportId,
-                  analyticsProposal: "",
-                  proposal: "",
-                })
-              }
-            />
-          ))}
-        {!!data.proposals.filter((proposal) => proposal.tool !== "graph.reports.change").length && (
-          <ChatDecisionList
-            proposals={data.proposals.filter(
-              (proposal) => proposal.tool !== "graph.reports.change",
-            )}
-            open={(proposal) =>
-              navigate({ proposal: proposal.id, importProposal: "", analyticsProposal: "" })
-            }
-          />
-        )}
+        {renderProposals(unanchored)}
       </div>
       {sending && (
         <div

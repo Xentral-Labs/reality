@@ -53,9 +53,17 @@ retains every message, can be reversed, and never changes a pending or decided C
 Proposal. A Chat Session with zero durable messages is the narrow exception: it contains no
 conversation history, so removal permanently deletes only that empty container rather than
 polluting the archive. The shared tenant-scoped service derives emptiness from Chat Messages;
-the browser never infers it from the default title. Tenant-wide proposals are reviewed in the
-Exceptions workspace under Pending approvals and Decision history; the empty Chat state does
-not display orphaned proposals.
+the browser never infers it from the default title. A conversation that holds a proposal is
+not empty, so removing it archives it.
+
+A conversation shows only the proposals its own turns made (spec 328). `send_chat_message`
+sets `CHAT_SESSION` for the turn and `create_change_proposal` records it as
+`action.chat_session_id`; MCP, CLI, service and older proposals carry none and appear in no
+conversation. Each proposal follows the answer of the turn that made it (`after_message_id`,
+derived at read time) and stays there once decided, showing its decision line. Pending
+decisions made elsewhere are only counted (`pending_elsewhere`) and linked from the chat
+controls to Decisions → Pending approvals, where every pending and decided proposal of the
+company is reviewed.
 
 ## Demo library
 

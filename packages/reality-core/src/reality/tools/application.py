@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
+from contextvars import ContextVar
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
@@ -3491,6 +3492,12 @@ for _name in FINANCE_COMMANDS:
     )
 
 
+#: The conversation whose turn is running, set by `send_chat_message` for the
+#: duration of one chat turn (spec 328). A proposal made meanwhile records it;
+#: MCP, CLI and service callers leave it unset, so their proposals belong to no chat.
+CHAT_SESSION: ContextVar[str | None] = ContextVar("chat_session", default=None)
+
+
 def create_change_proposal(
     session: Session,
     tenant_id: str,
@@ -3879,6 +3886,8 @@ def create_change_proposal(
         input=json.dumps(normalized_arguments, sort_keys=True),
         output=json.dumps(preview, sort_keys=True, default=str),
     )
+    if chat_session_id := CHAT_SESSION.get():
+        proposal.chat_session_id = chat_session_id
     if delivery_review:
         proposal.output = json.dumps(_json_value(delivery_review), sort_keys=True)
     session.add(proposal)

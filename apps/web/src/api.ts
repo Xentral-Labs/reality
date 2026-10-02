@@ -886,7 +886,11 @@ export type CopilotData = {
   sessions: CopilotSession[];
   active_session_id: string | null;
   messages: CopilotMessage[];
-  proposals: CopilotProposal[];
+  // Spec 328: this conversation's own proposals, each placed after the message it
+  // follows, and only a count of the company's other pending decisions. Both
+  // optional fields are absent from an older API.
+  proposals: (CopilotProposal & { after_message_id?: string | null })[];
+  pending_elsewhere?: number;
   suggestions: CopilotSuggestion[];
   has_archived: boolean;
 };

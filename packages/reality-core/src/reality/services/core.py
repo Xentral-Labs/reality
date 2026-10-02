@@ -5,7 +5,7 @@ import json
 import logging
 import os
 import time
-from collections.abc import Callable, Collection, Iterable, Iterator
+from collections.abc import Callable, Collection, Iterable, Iterator, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -6981,7 +6981,20 @@ def remove_chat_session(session: OrmSession, tenant_id: str, session_id: str) ->
     )
     if chat_session is None:
         raise NotFound(code="chat_session_not_found")
-    if chat_message_counts(session, tenant_id, (session_id,)).get(session_id, 0):
+    # A turn can fail after its proposal was committed; the proposal still
+    # belongs to this conversation, so it is not empty (spec 328).
+    holds_proposal = session.scalar(
+        select(ChangeProposal.id)
+        .where(
+            ChangeProposal.tenant_id == tenant_id,
+            ChangeProposal.chat_session_id == session_id,
+        )
+        .limit(1)
+    )
+    if (
+        chat_message_counts(session, tenant_id, (session_id,)).get(session_id, 0)
+        or holds_proposal
+    ):
         chat_session.archived_at = chat_session.archived_at or now()
     else:
         session.delete(chat_session)
@@ -7121,6 +7134,63 @@ def chat_messages(
             .order_by(ChatMessage.created_at)
         )
     )
+
+
+def chat_proposals(
+    session: OrmSession, tenant_id: str, session_id: str
+) -> list[ChangeProposal]:
+    """The proposals this conversation's turns made, in every state (spec 328).
+
+    Decided ones stay: the conversation is the record of what was proposed there.
+    """
+    get_chat_session(session, tenant_id, session_id)
+    return list(
+        session.scalars(
+            select(ChangeProposal)
+            .where(
+                ChangeProposal.tenant_id == tenant_id,
+                ChangeProposal.chat_session_id == session_id,
+            )
+            .order_by(ChangeProposal.created_at, ChangeProposal.id)
+        )
+    )
+
+
+def pending_proposals_elsewhere(
+    session: OrmSession, tenant_id: str, session_id: str | None
+) -> int:
+    """Pending proposals of the company that this conversation did not make."""
+    elsewhere = ChangeProposal.chat_session_id.is_(None)
+    if session_id:
+        elsewhere = or_(elsewhere, ChangeProposal.chat_session_id != session_id)
+    return int(
+        session.scalar(
+            select(func.count())
+            .select_from(ChangeProposal)
+            .where(
+                ChangeProposal.tenant_id == tenant_id,
+                ChangeProposal.status == "proposed",
+                elsewhere,
+            )
+        )
+        or 0
+    )
+
+
+def proposal_anchor(
+    messages: Sequence[ChatMessage], proposal: ChangeProposal
+) -> str | None:
+    """The message a proposal follows: the answer of the turn that made it.
+
+    That is the last message before the first question sent after the proposal,
+    or the last message when nothing was asked since. Derived, never stored.
+    """
+    anchor = None
+    for row in messages:
+        if row.role == "user" and row.created_at > proposal.created_at:
+            break
+        anchor = row.id
+    return anchor
 
 
 def chat_suggestions(session: OrmSession, tenant_id: str) -> list[dict[str, object]]:
@@ -7299,6 +7369,41 @@ def send_chat_message(
     timezone: str = "UTC",
     on_event: Callable[[dict[str, Any]], None] | None = None,
 ) -> tuple[ChatMessage, ChatMessage]:
+    # Spec 328: whatever this turn proposes belongs to this conversation. The
+    # composite foreign key keeps a foreign session from ever being linked.
+    from reality.tools.application import CHAT_SESSION
+
+    token = CHAT_SESSION.set(session_id)
+    try:
+        return _chat_turn(
+            session,
+            tenant_id,
+            session_id,
+            message,
+            actor_user_id=actor_user_id,
+            context_commitment_id=context_commitment_id,
+            language=language,
+            locale=locale,
+            timezone=timezone,
+            on_event=on_event,
+        )
+    finally:
+        CHAT_SESSION.reset(token)
+
+
+def _chat_turn(
+    session: OrmSession,
+    tenant_id: str,
+    session_id: str,
+    message: str,
+    *,
+    actor_user_id: str | None,
+    context_commitment_id: str | None,
+    language: str,
+    locale: str,
+    timezone: str,
+    on_event: Callable[[dict[str, Any]], None] | None,
+) -> tuple[ChatMessage, ChatMessage]:
     _require_business_mutation(session, tenant_id, "send_chat_message")
     turn_outcome = "fallback"
     turn_started = time.perf_counter()
@@ -7333,6 +7438,9 @@ def send_chat_message(
         session_id=session_id,
         role="user",
         content=stored_message,
+        # When it was sent, not when the turn ended: a proposal made during the
+        # turn then lies between its question and its answer (spec 328).
+        created_at=now(),
     )
     from reality.agent.settings import configured_api_key, has_configured_api_key
 
