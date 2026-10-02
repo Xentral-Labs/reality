@@ -191,10 +191,6 @@ def test_a_foreign_payment_states_what_was_paid(session, business):
     euro = _invoice(session, business, number="EUR-3", currency="EUR", rate=None)
 
     _refused(
-        "paid_amount_required",
-        lambda: _pay(session, business, invoice, "10", None, "P1"),
-    )
-    _refused(
         "paid_amount_invalid", lambda: _pay(session, business, invoice, "10", "0", "P2")
     )
     _refused(
@@ -302,3 +298,17 @@ def test_reversing_a_payment_takes_its_difference_back(session, business):
     ]
     assert sorted(gains) == [("credit", Decimal("7.60")), ("debit", Decimal("7.60"))]
     assert core.open_invoice_amount(session, tenant, invoice) == Decimal(1000)
+
+
+def test_a_payment_in_the_invoice_currency_realises_nothing(session, business):
+    """Paid from an account in the invoice currency: valued at the invoice rate."""
+    tenant = business.tenant.id
+    invoice = _invoice(session, business)
+
+    entries = _pay(session, business, invoice, "250", None, "PAY-6")
+
+    assert sorted((e.account, e.company_amount) for e in entries) == [
+        ("accounts_payable", Decimal("230.00")),
+        ("cash", Decimal("230.00")),
+    ]
+    assert core.open_invoice_amount(session, tenant, invoice) == Decimal(750)

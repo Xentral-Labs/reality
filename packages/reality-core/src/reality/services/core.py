@@ -10861,7 +10861,11 @@ def _preview_invoice_payment(
             "payment_number": reference,
             "source_record_id": source_id,
             "effective_at": effective,
-            **({"paid_amount": exchange["paid_amount"]} if exchange else {}),
+            **(
+                {"paid_amount": exchange["paid_amount"]}
+                if exchange and exchange["paid_in"] == "company_currency"
+                else {}
+            ),
         },
         "open_before": opened,
         "open_after": opened - amount,
@@ -10889,20 +10893,23 @@ def _payment_exchange(
     was paid is the realised exchange difference.
     """
     book = _book_currency(session, tenant_id)
+    stated = paid_amount is not None and str(paid_amount).strip() != ""
     if book is None or direction != "supplier" or invoice.currency == book:
-        if paid_amount is not None:
+        if stated:
             raise InvalidOperation(code="paid_amount_not_applicable")
         return None
     if control.company_amount is None:
-        raise InvalidOperation(code="invoice_not_converted")
-    if paid_amount is None or str(paid_amount).strip() == "":
-        raise InvalidOperation(code="paid_amount_required")
-    try:
-        paid = decimal(paid_amount)
-    except (ArithmeticError, ValueError, TypeError) as error:
-        raise InvalidOperation(code="paid_amount_invalid") from error
-    if paid <= ZERO or paid != _round_cents(paid):
-        raise InvalidOperation(code="paid_amount_invalid")
+        if stated:
+            raise InvalidOperation(code="invoice_not_converted")
+        # A foreign invoice from before spec 309 is paid as it always was.
+        return None
+    if stated:
+        try:
+            paid = decimal(paid_amount)
+        except (ArithmeticError, ValueError, TypeError) as error:
+            raise InvalidOperation(code="paid_amount_invalid") from error
+        if paid <= ZERO or paid != _round_cents(paid):
+            raise InvalidOperation(code="paid_amount_invalid")
     if amount == opened:
         settled = ZERO
         for row in active_settlement_allocations(
@@ -10922,9 +10929,14 @@ def _payment_exchange(
         value = decimal(control.company_amount) - settled
     else:
         value = _round_cents(amount * decimal(control.exchange_rate))
+    if not stated:
+        # Paid in the invoice currency, from an account in it: valued at the
+        # invoice rate, so nothing is realised yet.
+        paid = value
     difference = value - paid
     return {
         "company_currency": book,
+        "paid_in": "company_currency" if stated else "invoice_currency",
         "paid_amount": paid,
         "payment_rate": (paid / amount).quantize(Decimal("0.00000001")),
         "invoice_rate": decimal(control.exchange_rate),

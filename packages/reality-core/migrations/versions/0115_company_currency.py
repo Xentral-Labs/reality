@@ -98,6 +98,15 @@ def downgrade() -> None:
             f"{converted} converted ledger entries and {stated} company currencies "
             "exist; they cannot be removed."
         )
+    # Exchange-difference accounts nothing was posted to go with their role.
+    op.execute(
+        "DELETE FROM finance_role_destination WHERE role = 'exchange_difference'"
+    )
+    op.execute(
+        "DELETE FROM subledger_account a WHERE a.role = 'exchange_difference' "
+        "AND NOT EXISTS (SELECT 1 FROM ledger_entry e WHERE e.tenant_id = a.tenant_id "
+        "AND e.account_id = a.id)"
+    )
     op.drop_constraint("ck_ledger_entry_exchange_rate", "ledger_entry", type_="check")
     op.drop_constraint("ck_ledger_entry_company_amount", "ledger_entry", type_="check")
     op.drop_column("ledger_entry", "exchange_rate")

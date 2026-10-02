@@ -72,7 +72,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/fo
    - It is required when the invoice currency differs from the company currency, and refused when it is the same.
    - It is shown in the review and kept in the posting event.
 5. **Supplier payment:** `post_supplier_payment` and `supplier_payment_post` take `paid_amount`.
-   - It is required for a foreign invoice and refused for an unconverted one.
+   - Without it, a foreign invoice is paid in its own currency at the invoice rate, so payment runs keep working. With it, an unconverted invoice is refused.
    - The payable side is the invoice's company-currency value of the settled part: settled amount × invoice rate, rounded to cents. A payment that settles the rest of the invoice takes the remaining company-currency value instead.
    - The cash side is `paid_amount`, and the difference goes to `exchange_difference`.
    - The review shows the payment rate, the invoice rate and the difference.

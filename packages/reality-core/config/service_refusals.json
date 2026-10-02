@@ -2131,9 +2131,6 @@
     "ledger_company_amounts_invalid": {
       "message": "Each entry needs one company-currency amount that is not negative."
     },
-    "paid_amount_required": {
-      "message": "State what was paid in the company currency for an invoice in another currency."
-    },
     "paid_amount_not_applicable": {
       "message": "An invoice in the company currency is paid in its own currency."
     },

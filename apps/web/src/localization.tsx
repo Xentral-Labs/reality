@@ -24923,8 +24923,6 @@ Object.assign(dictionaries.de, {
   "An exchange rate must be a positive number.": "Ein Kurs muss eine positive Zahl sein.",
   "Each entry needs one company-currency amount that is not negative.":
     "Jede Buchungszeile braucht einen nicht negativen Betrag in Firmenwährung.",
-  "State what was paid in the company currency for an invoice in another currency.":
-    "Gib an, was für eine Rechnung in Fremdwährung in Firmenwährung gezahlt wurde.",
   "An invoice in the company currency is paid in its own currency.":
     "Eine Rechnung in Firmenwährung wird in ihrer eigenen Währung gezahlt.",
   "The amount paid must be a positive number.": "Der gezahlte Betrag muss eine positive Zahl sein.",
@@ -25233,8 +25231,6 @@ Object.assign(dictionaries.nl, {
   "An exchange rate must be a positive number.": "Een wisselkoers moet een positief getal zijn.",
   "Each entry needs one company-currency amount that is not negative.":
     "Elke boekingsregel heeft een niet-negatief bedrag in bedrijfsvaluta nodig.",
-  "State what was paid in the company currency for an invoice in another currency.":
-    "Geef op wat voor een factuur in vreemde valuta in bedrijfsvaluta is betaald.",
   "An invoice in the company currency is paid in its own currency.":
     "Een factuur in bedrijfsvaluta wordt in haar eigen valuta betaald.",
   "The amount paid must be a positive number.": "Het betaalde bedrag moet een positief getal zijn.",
@@ -25543,8 +25539,6 @@ Object.assign(dictionaries.es, {
   "An exchange rate must be a positive number.": "Un tipo de cambio debe ser un número positivo.",
   "Each entry needs one company-currency amount that is not negative.":
     "Cada línea necesita un importe no negativo en la moneda de la empresa.",
-  "State what was paid in the company currency for an invoice in another currency.":
-    "Indica lo pagado en la moneda de la empresa por una factura en otra moneda.",
   "An invoice in the company currency is paid in its own currency.":
     "Una factura en la moneda de la empresa se paga en su propia moneda.",
   "The amount paid must be a positive number.": "El importe pagado debe ser un número positivo.",

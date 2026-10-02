@@ -95,7 +95,13 @@ def supplier_invoice(
         payment_term_code=term_code,
     )
     if post:
-        post_supplier_invoice(session, business.tenant.id, invoice.id)
+        # Spec 309: an invoice in another currency is posted at a stated rate.
+        post_supplier_invoice(
+            session,
+            business.tenant.id,
+            invoice.id,
+            **({"exchange_rate": "0.9"} if currency != "EUR" else {}),
+        )
     return invoice
 
 
