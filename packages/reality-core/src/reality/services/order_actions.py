@@ -95,6 +95,24 @@ def review_order(
                     },
                 }
             )
+    # Spec 310: a purchase below the supplier's minimum or off its order
+    # multiple is named, with the next quantity that meets them; never refused.
+    supplier_terms = {}
+    if creation.get("direction") == "purchase":
+        from reality.services.supplier_item_terms import order_terms_check
+
+        for index, line in enumerate(creation["lines"]):
+            if not line.get("item_id"):
+                continue
+            check = order_terms_check(
+                session,
+                tenant_id,
+                creation["document"]["party_id"],
+                line["item_id"],
+                Decimal(str(line["quantity"])),
+            )
+            if check is not None:
+                supplier_terms[str(index)] = check
     state = json.loads(
         _json(
             {
@@ -102,6 +120,7 @@ def review_order(
                 "references": references,
                 "items": items,
                 "commercial": commercial,
+                **({"supplier_terms": supplier_terms} if supplier_terms else {}),
             }
         )
     )

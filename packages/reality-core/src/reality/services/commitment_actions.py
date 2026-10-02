@@ -117,6 +117,7 @@ def _review_commitment_revision(
         "stated_at",
         "source_record_id",
         "retained_allocations",
+        "unit_price",
     }
     if set(arguments) - allowed or "commitment_id" not in arguments:
         raise core.InvalidOperation(code="commitment_revision_fields_invalid")
@@ -141,7 +142,20 @@ def _review_commitment_revision(
         if arguments.get("quantity") is not None
         else None
     )
-    if stated_due is None and stated_quantity is None:
+    stated_price = None
+    if arguments.get("unit_price") is not None:
+        # Spec 310: a supplier confirms a price; a customer promise takes none.
+        if commitment.type != "supplier_delivery":
+            raise core.InvalidOperation(code="commitment_price_purchase_only")
+        if not commitment.document_line_id:
+            raise core.InvalidOperation(code="commitment_price_needs_order_line")
+        try:
+            stated_price = core.decimal(arguments["unit_price"])
+        except (ArithmeticError, ValueError, TypeError) as error:
+            raise core.InvalidOperation(code="commitment_price_invalid") from error
+        if stated_price < 0 or stated_price != stated_price.quantize(Decimal("0.0001")):
+            raise core.InvalidOperation(code="commitment_price_invalid")
+    if stated_due is None and stated_quantity is None and stated_price is None:
         raise core.InvalidOperation(code="revision_needs_date_or_quantity")
     terms = core.commitment_terms(session, tenant_id, {commitment.id})[commitment.id]
     reservations = list(
@@ -207,6 +221,8 @@ def _review_commitment_revision(
     }
     if stated_quantity is not None:
         intent["quantity"] = str(stated_quantity)
+    if stated_price is not None:
+        intent["unit_price"] = format(stated_price.normalize(), "f")
     if normalized_selected is not None:
         intent["retained_allocations"] = normalized_selected
     state = {
@@ -218,6 +234,22 @@ def _review_commitment_revision(
         "active_reserved": str(allocated),
         "eligible_retained_allocations": choices,
     }
+    if stated_price is not None:
+        line = core._tenant_record(
+            session, core.DocumentLine, tenant_id, commitment.document_line_id
+        )
+        agreed = core.agreed_line_prices(session, tenant_id, [line])[line.id]
+        state["price"] = {
+            "unit": line.unit,
+            "ordered_unit_price": (
+                format(core.decimal(line.unit_price).normalize(), "f")
+                if line.unit_price is not None
+                else None
+            ),
+            "agreed_unit_price": (
+                format(agreed.normalize(), "f") if agreed is not None else None
+            ),
+        }
     retained = (
         sum((Decimal(value["quantity"]) for value in normalized_selected), Decimal(0))
         if normalized_selected is not None
@@ -228,6 +260,11 @@ def _review_commitment_revision(
         "retained_reservation_quantity": str(retained),
         "released_reservation_quantity": str(max(Decimal(0), allocated - retained)),
         "selection_required": selection_required,
+        **(
+            {"confirmed_unit_price": format(stated_price.normalize(), "f")}
+            if stated_price is not None
+            else {}
+        ),
         "document_changes": False,
         "movement_changes": False,
     }

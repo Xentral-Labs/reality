@@ -833,13 +833,15 @@ def _invoice_lines(
     """The invoice lines billing one order line, credit notes excluded.
 
     Credit note lines reference the same order line and mean the opposite, so a
-    class about billing must not count them.
+    class about billing must not count them. A charge line naming the order line
+    (a supplier's cancellation cost, spec 310) bills no goods of it either.
     """
     invoices = [
         line
         for line in _billing_lines(session, tenant_id, order_line_id)
         if _referencing_document_type(session, tenant_id, line)
         in {"sales_invoice", "supplier_invoice"}
+        and line.line_type != "charge"
     ]
     released = _released_invoice_ids(
         session, tenant_id, {line.document_id for line in invoices}
@@ -2794,19 +2796,37 @@ def _invoice_price_differs_exceptions(
         )
         .order_by(DocumentLine.id)
     ).all()
+    # Spec 310: a purchase line's agreed price is the one the supplier confirmed
+    # last, else the price ordered.
+    from reality.services.core import agreed_line_prices
+
+    agreed_prices = agreed_line_prices(
+        session,
+        tenant_id,
+        {
+            agreed.id: agreed
+            for _, _, agreed, order in rows
+            if order.type == "purchase_order"
+        }.values(),
+    )
     for line, document, agreed, order in rows:
         # A credit note names the same order line and is not a bill, so it is not
         # something an agreed price can be compared against.
         if document.type not in {"sales_invoice", "supplier_invoice"}:
             continue
+        # A charge billed for an order line (a cancellation cost, spec 310) is
+        # not the line's goods and has no agreed price.
+        if line.line_type == "charge":
+            continue
         # A price per box and a price per piece are not the same figure, so a
         # pair recorded in different units is left alone rather than compared.
         if not _prices_comparable(line, agreed):
             continue
+        agreed_price = agreed_prices.get(agreed.id, agreed.unit_price)
         # A price nobody stated is not a difference (spec 314).
-        if line.unit_price is None or agreed.unit_price is None:
+        if line.unit_price is None or agreed_price is None:
             continue
-        difference = Decimal(line.unit_price) - Decimal(agreed.unit_price)
+        difference = Decimal(line.unit_price) - Decimal(agreed_price)
         if difference == ZERO:
             continue
         result.append(
@@ -2822,7 +2842,7 @@ def _invoice_price_differs_exceptions(
                 "document_line",
                 line.id,
                 {
-                    "agreed_unit_price": Decimal(agreed.unit_price),
+                    "agreed_unit_price": Decimal(agreed_price),
                     "billed_unit_price": Decimal(line.unit_price),
                     "unit_price_difference": difference,
                     "unit": line.unit,

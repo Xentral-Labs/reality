@@ -3486,6 +3486,90 @@ def commitment_terms(
     return terms
 
 
+def _revision_prices_stored(session: OrmSession) -> bool:
+    """Whether the schema has the spec 310 confirmed price.
+
+    Only the historical migration tests run the services on a schema from
+    before it; there no price was ever confirmed.
+    """
+    known = session.info.get("reality_revision_prices")
+    if known is None:
+        from sqlalchemy import inspect as sa_inspect
+
+        known = any(
+            column["name"] == "unit_price"
+            for column in sa_inspect(session.connection()).get_columns(
+                "commitment_revision"
+            )
+        )
+        session.info["reality_revision_prices"] = known
+    return known
+
+
+def confirmed_unit_prices(
+    session: OrmSession, tenant_id: str, commitment_ids: Iterable[str]
+) -> dict[str, Decimal]:
+    """The latest unit price a supplier confirmed per promise, where one was."""
+    ids = set(commitment_ids)
+    if not ids or not _revision_prices_stored(session):
+        return {}
+    confirmed: dict[str, Decimal] = {}
+    for commitment_id, price in session.execute(
+        select(CommitmentRevision.commitment_id, CommitmentRevision.unit_price)
+        .where(
+            CommitmentRevision.tenant_id == tenant_id,
+            CommitmentRevision.commitment_id.in_(ids),
+            CommitmentRevision.unit_price.is_not(None),
+        )
+        .order_by(CommitmentRevision.stated_at, CommitmentRevision.id)
+    ):
+        confirmed[commitment_id] = decimal(price)
+    return confirmed
+
+
+def agreed_line_prices(
+    session: OrmSession, tenant_id: str, lines: Iterable[DocumentLine]
+) -> dict[str, Decimal | None]:
+    """The price agreed for each purchase line: the confirmed one, else as ordered.
+
+    A line's promises share its price; the latest confirmation on any of them
+    is the price in force for the line (spec 310).
+    """
+    lines = list(lines)
+    if not lines:
+        return {}
+    promises = {
+        commitment_id: line_id
+        for commitment_id, line_id in session.execute(
+            select(Commitment.id, Commitment.document_line_id).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.document_line_id.in_({line.id for line in lines}),
+                Commitment.type == "supplier_delivery",
+            )
+        )
+    }
+    agreed: dict[str, Decimal | None] = {
+        line.id: decimal(line.unit_price) if line.unit_price is not None else None
+        for line in lines
+    }
+    stated: dict[str, tuple[datetime, str, Decimal]] = {}
+    if promises and _revision_prices_stored(session):
+        for revision in session.scalars(
+            select(CommitmentRevision).where(
+                CommitmentRevision.tenant_id == tenant_id,
+                CommitmentRevision.commitment_id.in_(set(promises)),
+                CommitmentRevision.unit_price.is_not(None),
+            )
+        ):
+            line_id = promises[revision.commitment_id]
+            key = (utc_datetime(revision.stated_at), revision.id)
+            if line_id not in stated or key > stated[line_id][:2]:
+                stated[line_id] = (*key, decimal(revision.unit_price))
+    for line_id, (_, _, price) in stated.items():
+        agreed[line_id] = price
+    return agreed
+
+
 def commitment_quantity(
     session: OrmSession, tenant_id: str, commitment_id: str
 ) -> Decimal:
@@ -3521,9 +3605,13 @@ def revise_commitment(
     source_record_id: str | None = None,
     retained_allocations: list[dict[str, Any]] | None = None,
     action_id: str | None = None,
+    unit_price: Decimal | float | str | None = None,
     _commit: bool = True,
 ) -> CommitmentRevision:
     """Record that the other side now says a promise is due on another day.
+
+    Spec 310: a supplier may also confirm another unit price, in the order
+    line's unit; the latest one stated is the agreed price from then on.
 
     This is not a correction. A correction says the record was wrong; this says
     the record was right and the world moved, which is the ordinary event in
@@ -3557,7 +3645,21 @@ def revise_commitment(
     stated_quantity = (
         positive(quantity, "revised quantity") if quantity is not None else None
     )
-    if stated_due is None and stated_quantity is None:
+    stated_price = None
+    if unit_price is not None:
+        if commitment.type != "supplier_delivery":
+            raise InvalidOperation(code="commitment_price_purchase_only")
+        if not commitment.document_line_id:
+            raise InvalidOperation(code="commitment_price_needs_order_line")
+        try:
+            stated_price = decimal(unit_price)
+        except (ArithmeticError, ValueError, TypeError) as error:
+            raise InvalidOperation(code="commitment_price_invalid") from error
+        if stated_price < ZERO or stated_price != stated_price.quantize(
+            Decimal("0.0001")
+        ):
+            raise InvalidOperation(code="commitment_price_invalid")
+    if stated_due is None and stated_quantity is None and stated_price is None:
         raise InvalidOperation(code="revision_needs_date_or_quantity")
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
@@ -3641,6 +3743,7 @@ def revise_commitment(
         stated_at=utc_datetime(stated_at) or now(),
         note=note.strip(),
         source_record_id=source_record_id,
+        **({"unit_price": stated_price} if stated_price is not None else {}),
     )
     session.add(revision)
     if reconcile_allocations:
@@ -3710,6 +3813,11 @@ def revise_commitment(
             "commitment_revision_id": revision.id,
             "due_at": stated_due.isoformat() if stated_due else None,
             "quantity": str(stated_quantity) if stated_quantity is not None else None,
+            **(
+                {"unit_price": format(stated_price.normalize(), "f")}
+                if stated_price is not None
+                else {}
+            ),
             "originally_due_at": (
                 commitment.due_at.isoformat() if commitment.due_at else None
             ),
@@ -10243,6 +10351,11 @@ def _preview_order_invoice_stated(
             raise InvalidOperation(code="invoice_delivery_guard_sales_only")
         _validate_invoice_delivery_guard(session, tenant_id, line, quantity, guard)
     effective = utc_datetime(arguments.get("effective_at"))
+    agreed_price = (
+        agreed_line_prices(session, tenant_id, [line])[line.id]
+        if direction == "purchase"
+        else line.unit_price
+    )
     document, lines = _preview_manual_document_input(
         session,
         tenant_id,
@@ -10254,7 +10367,8 @@ def _preview_order_invoice_stated(
                 "item_id": line.item_id,
                 "quantity": quantity,
                 "unit": line.unit,
-                "unit_price": line.unit_price,
+                # Spec 310: a purchase line is billed at the price agreed last.
+                "unit_price": agreed_price,
                 "gross_amount": amount,
                 "billed_document_line_id": line.id,
                 "reality_finance_v1": stated,
@@ -10281,7 +10395,7 @@ def _preview_order_invoice_stated(
         "party_id": order.party_id,
         "item_id": line.item_id,
         "unit": line.unit,
-        "unit_price": line.unit_price,
+        "unit_price": agreed_price,
         "effective_at": effective,
         "document": document,
         "lines": lines,
@@ -10604,6 +10718,11 @@ def _record_order_invoice(
             action_id=action_id,
             _commit=False,
         )
+        billed_price = (
+            creation["unit_price"]
+            if creation is not None and direction == "purchase"
+            else line.unit_price
+        )
         document, lines = create_manual_document_with_lines(
             session,
             tenant_id,
@@ -10615,9 +10734,10 @@ def _record_order_invoice(
                     "item_id": line.item_id,
                     "quantity": str(quantity),
                     "unit": line.unit,
-                    # An order line without a stated price bills without one too.
-                    "unit_price": str(line.unit_price)
-                    if line.unit_price is not None
+                    # An order line without a stated price bills without one too;
+                    # a purchase line bills at the price agreed last (spec 310).
+                    "unit_price": str(billed_price)
+                    if billed_price is not None
                     else None,
                     "gross_amount": str(gross_amount),
                     "billed_document_line_id": line.id,

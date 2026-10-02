@@ -1879,7 +1879,14 @@ class CommitmentRevision(Base):
             ["tenant_id", "source_record_id"],
             ["source_record.tenant_id", "source_record.id"],
         ),
+        CheckConstraint(
+            "unit_price IS NULL OR unit_price >= 0",
+            name="ck_commitment_revision_unit_price",
+        ),
     )
+    # The spec 310 price is left out of an INSERT that does not set it, so
+    # schemas from before it keep working in the historical migration tests.
+    __mapper_args__: ClassVar[dict[str, Any]] = {"eager_defaults": False}
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     commitment_id: Mapped[str] = mapped_column()
@@ -1892,6 +1899,53 @@ class CommitmentRevision(Base):
     note: Mapped[str] = mapped_column(Text, default="")
     source_record_id: Mapped[str | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    # Spec 310: the unit price the supplier confirmed, in the order line's unit.
+    unit_price: Mapped[Decimal | None] = mapped_column(
+        Numeric(18, 4), server_default=FetchedValue(), deferred=True
+    )
+
+
+class SupplierItemTerms(Base):
+    """A supplier's minimum order quantity and order multiple for an item (spec 310).
+
+    Both in the item's purchase unit. Each statement is a version of one source
+    stream per supplier and item (spec 320 pattern); the row names the one in
+    force. Order review names a quantity that falls short of them.
+    """
+
+    __tablename__ = "supplier_item_terms"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(["tenant_id", "party_id"], ["party.tenant_id", "party.id"]),
+        ForeignKeyConstraint(["tenant_id", "item_id"], ["item.tenant_id", "item.id"]),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint(
+            "tenant_id", "party_id", "item_id", name="uq_supplier_item_terms_item"
+        ),
+        CheckConstraint(
+            "minimum_quantity IS NOT NULL OR order_multiple IS NOT NULL",
+            name="ck_supplier_item_terms_stated",
+        ),
+        CheckConstraint(
+            "(minimum_quantity IS NULL OR minimum_quantity > 0) "
+            "AND (order_multiple IS NULL OR order_multiple > 0)",
+            name="ck_supplier_item_terms_positive",
+        ),
+        Index("ix_supplier_item_terms_item_id", "tenant_id", "item_id"),
+        Index("ix_supplier_item_terms_source_record_id", "tenant_id", "source_record_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    party_id: Mapped[str] = mapped_column()
+    item_id: Mapped[str] = mapped_column()
+    minimum_quantity: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
+    order_multiple: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class SupplyAssignment(Base):
