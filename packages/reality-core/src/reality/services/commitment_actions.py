@@ -254,6 +254,9 @@ def _review_commitment_revision(
         "active_reserved": str(allocated),
         "eligible_retained_allocations": choices,
     }
+    if commitment.status == "fulfilled" and commitment.type == "customer_delivery":
+        # Spec 313: what the raise is bounded by, so a return since makes it stale.
+        state["kept"] = str(core._kept_quantity(session, tenant_id, commitment.id))
     if stated_price is not None:
         line = core._tenant_record(
             session, core.DocumentLine, tenant_id, commitment.document_line_id

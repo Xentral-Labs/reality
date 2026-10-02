@@ -2603,10 +2603,26 @@ def _shipped_beyond_order_exceptions(
                     "unit": commitment.unit or line.unit,
                 },
                 _order_line_trace(commitment, line, document),
-                commitment.due_at,
+                _lowered_at(session, tenant_id, commitment),
             )
         )
     return result
+
+
+def _lowered_at(session: Session, tenant_id: str, commitment: Commitment):
+    """When the quantity in force was last stated, else the promise's due date."""
+    from reality.db.core import CommitmentRevision
+
+    return (
+        session.scalar(
+            select(func.max(CommitmentRevision.stated_at)).where(
+                CommitmentRevision.tenant_id == tenant_id,
+                CommitmentRevision.commitment_id == commitment.id,
+                CommitmentRevision.quantity.is_not(None),
+            )
+        )
+        or commitment.due_at
+    )
 
 
 def _billed_not_received_exceptions(

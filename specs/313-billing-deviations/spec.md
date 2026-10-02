@@ -77,6 +77,8 @@ As a controller, I see every way an invoice differs from what was ordered and sh
 - A source-stated value is recorded as stated and never recomputed (Constitution VIII).
 - A cancelled promise expects nothing more: shipments on it are not beyond the order, since the cancellation applies only to the open rest.
 - Quantities are compared in the promise's unit.
+- An excess that was shipped and not invoiced is both *Shipped beyond the order* and *Shipped and not billed*: the goods left and are unbilled until they come back, are kept and invoiced, or are credited.
+- Raising a delivered line above what shipped is refused with its own reason; keeping what shipped enters no new credit hold.
 
 ## Requirements *(mandatory)*
 
