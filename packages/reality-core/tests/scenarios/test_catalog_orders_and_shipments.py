@@ -1551,3 +1551,101 @@ def test_a_customer_lowers_a_line_below_what_already_shipped(session, business):
         for row in operational_exceptions(session, tenant, as_of=AS_OF)
         if row.class_id == "shipped_beyond_order"
     }
+
+
+def _dispatch_as(session, business, promise, quantity, **extra):
+    proposal = create_change_proposal(
+        session,
+        business.tenant.id,
+        "shipment_dispatch",
+        {
+            "purpose": "customer_delivery",
+            "counterparty_id": business.customer.id,
+            "movements": [
+                {
+                    "commitment_id": promise,
+                    "item_id": business.item.id,
+                    "from_location_id": business.location.id,
+                    "quantity": quantity,
+                }
+            ],
+            **extra,
+        },
+    )
+    return json.loads(_confirm(session, business.tenant.id, proposal).output)
+
+
+def test_a_customer_collects_the_order_at_the_counter(session, business):
+    """D15: a pickup is a delivery of its own kind, with who collected."""
+    from reality.services.shipments import shipment_explain
+
+    tenant = business.tenant.id
+    _receive(session, business, business.item.id, "3", business.location.id)
+    order = _order(session, business, "SO-D15", [_line(business.item.id, "3")])
+    (promise,) = order["commitment_ids"]
+    reserve(session, tenant, promise)
+
+    shipped = _dispatch_as(
+        session,
+        business,
+        promise,
+        "3",
+        delivery_mode="pickup",
+        collected_by="Frau Weber",
+    )
+
+    detail = shipment_explain(session, tenant, shipped["shipment_id"])
+    assert (detail["delivery_mode"], detail["collected_by"]) == ("pickup", "Frau Weber")
+    assert record_by_id(session, Commitment, promise).status == "fulfilled"
+
+
+def test_a_3pl_confirms_on_thursday_what_left_on_monday(session, business):
+    """D12: the movements carry Monday, the shipment shows when Reality was told."""
+    from datetime import timedelta
+
+    from reality.services.shipments import shipment_explain
+
+    tenant = business.tenant.id
+    _receive(session, business, business.item.id, "5", business.location.id)
+    monday = core.now() - timedelta(days=3)
+    order = _order(
+        session,
+        business,
+        "SO-D12",
+        [
+            _line(
+                business.item.id,
+                "5",
+                promised_at=(monday + timedelta(hours=1)).isoformat(),
+            )
+        ],
+    )
+    (promise,) = order["commitment_ids"]
+    reserve(session, tenant, promise)
+    overdue = {
+        row.record_id
+        for row in operational_exceptions(session, tenant, as_of=core.now())
+        if row.class_id == "overdue_outgoing_customer_commitment"
+    }
+    assert promise in overdue
+
+    shipped = _dispatch_as(
+        session,
+        business,
+        promise,
+        "5",
+        carrier="3PL Nord",
+        tracking_number="3PL-D12",
+        occurred_at=monday.isoformat(),
+    )
+
+    movement = record_by_id(session, Movement, shipped["movement_ids"][0])
+    assert core.utc_datetime(movement.occurred_at) == monday
+    detail = shipment_explain(session, tenant, shipped["shipment_id"])
+    assert detail["moved_at"] == monday
+    assert detail["confirmation_lag_seconds"] >= 3 * 24 * 3600 - 60
+    assert promise not in {
+        row.record_id
+        for row in operational_exceptions(session, tenant, as_of=core.now())
+        if row.class_id == "overdue_outgoing_customer_commitment"
+    }

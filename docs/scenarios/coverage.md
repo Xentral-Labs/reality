@@ -8,14 +8,14 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 147 covered, 10 partial, 0 missing, 68 gap, 3 out.
+228 scenarios: 149 covered, 8 partial, 0 missing, 68 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 16 |  |  | 8 |  |
 | B Availability and reservation | 12 |  |  | 6 |  |
 | C Payment and release | 14 |  |  | 4 |  |
-| D Shipment, split and merge | 5 | 3 |  | 11 |  |
+| D Shipment, split and merge | 7 | 1 |  | 11 |  |
 | E Customer invoice and credit | 12 |  |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
 | G Purchase demand and order | 12 |  |  | 5 |  |
@@ -202,10 +202,10 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | D09 | gap | same as D08 | Same as D08. Also, a return Movement has no reason; only ReturnAnnouncement carries one. |
 | D10 | gap | packages/reality-core/src/reality/services/core.py (fulfilment derives only from own stock `shipment` Movements) | No drop-ship path: a commitment cannot be fulfilled without a movement out of own stock. |
 | D11 | gap | same as D10 | Same as D10: no supplier-direct fulfilment path to combine with own stock. |
-| D12 | partial | tests/operational_exceptions/test_derivation.py::test_order_stalled, ::test_lag_classes_clear_through_reality, ::test_a_backdated_shipment_cannot_drag_the_norm | The lag shows as order_stalled and clears on shipment. No test separates when the goods left from when the 3PL confirmed it. |
+| D12 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_3pl_confirms_on_thursday_what_left_on_monday | Movements carry when the goods left; the shipment shows when it was recorded and the lag, and overdue clears (spec 312). |
 | D13 | gap | packages/reality-core/src/reality/db/core.py Shipment/ShipmentEvent (no slot/appointment field) | There is no booked delivery slot record, only movement occurred_at and carrier events. |
 | D14 | gap | db/core.py Shipment/Document (no customs or export-proof link) | Export evidence could only sit in a lossless payload; nothing typed links it to the shipment. |
-| D15 | partial | tests/test_inventory_and_fulfillment.py::test_partial_shipments_derive_fulfillment_and_consume_reservations | Fulfilment without carrier or package works, but pickup is not recorded or tested as a mode of its own. |
+| D15 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_collects_the_order_at_the_counter | A pickup is a stated delivery mode with who collected, without carrier (spec 312). |
 | D16 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_free_replacement_ships_without_an_order_and_explains_itself | Free replacement recorded as an advance customer exchange against the announced faulty unit: a document-less zero-amount promise is reserved, shipped and explained; only the original unbilled order line is reported (positive control). |
 | D17 | gap | packages/reality-core/src/reality/services/core.py SOURCE_INTERPRETERS (no shipment interpreter) | No shipment source is interpreted, so nothing holds an early confirmation and links it later. |
 | D18 | partial | tests/test_shipment_actions.py::test_receive_confirmation_replays_one_atomic_package; tests/test_unified_delivery_actions.py::test_same_preparation_and_confirmation_have_one_effect | Replaying a proposal is idempotent. A duplicate shipment report from a source is never ingested, so that case is untested. |

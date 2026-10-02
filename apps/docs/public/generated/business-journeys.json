@@ -1678,19 +1678,29 @@
       "section": "Picking, shipment, split and merge",
       "title": "3PL confirms shipments late",
       "question": "Is the lag visible and later closed?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Is the lag visible and later closed?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the lag visible and later closed? A shipment confirmed late states when the goods actually moved; its movements carry that time, while the shipment keeps when Reality was told and shows the confirmation lag between them. Overdue and stalled findings raised in the meantime clear as soon as the confirmation is recorded.",
       "limitations": [
-        "A late confirmation shows as a stalled order and clears when the shipment is recorded.",
-        "When the goods left and when the 3PL confirmed it are not told apart."
+        "3PL messages are not interpreted from a source; the confirmation is recorded through the reviewed shipment tool.",
+        "A late confirmation is shown, not reported as a finding of its own."
       ],
-      "keywords": [],
+      "keywords": [
+        "late confirmation",
+        "3PL lag",
+        "Fulfillment-Dienstleister",
+        "verspätete Bestätigung"
+      ],
       "question_examples": [
         "3PL confirms shipments late",
-        "Is the lag visible and later closed?"
+        "Is the lag visible and later closed?",
+        "Our warehouse partner confirms shipments days later; which date counts?",
+        "Unser Logistikdienstleister bestätigt Sendungen erst Tage später; welches Datum zählt?"
       ],
-      "tools": [],
+      "tools": [
+        "shipment_dispatch_propose",
+        "shipment_explain"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -1742,19 +1752,28 @@
       "section": "Picking, shipment, split and merge",
       "title": "Customer pickup",
       "question": "Fulfilled without a carrier?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Fulfilled without a carrier?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Fulfilled without a carrier? A shipment states pickup as its delivery mode and, optionally, who collected; it takes no carrier or tracking number, and the promise is fulfilled by the pickup like any delivery.",
       "limitations": [
-        "Delivery without a carrier or parcel works.",
-        "Pickup is not recorded as a delivery mode of its own."
+        "Who collected is free text; it is not a person record."
       ],
-      "keywords": [],
+      "keywords": [
+        "customer pickup",
+        "collection",
+        "Abholung",
+        "Selbstabholer"
+      ],
       "question_examples": [
         "Customer pickup",
-        "Fulfilled without a carrier?"
+        "Fulfilled without a carrier?",
+        "A customer collects the goods at our warehouse; how do we record that?",
+        "Ein Kunde holt die Ware im Lager ab; wie erfassen wir das?"
       ],
-      "tools": [],
+      "tools": [
+        "shipment_dispatch_propose",
+        "shipment_explain"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

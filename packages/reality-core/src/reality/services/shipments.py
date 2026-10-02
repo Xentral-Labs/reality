@@ -162,7 +162,6 @@ def record_shipment_notice(
 DELIVERY_MODES = ("carrier", "pickup")
 
 
-
 def _delivery_mode(
     purpose: str,
     carrier: str | None,
@@ -178,7 +177,9 @@ def _delivery_mode(
     if mode == "pickup":
         if purpose != "customer_delivery":
             raise InvalidOperation(code="shipment_pickup_customer_only")
-        if (carrier and carrier.strip()) or (tracking_number and tracking_number.strip()):
+        if (carrier and carrier.strip()) or (
+            tracking_number and tracking_number.strip()
+        ):
             raise InvalidOperation(code="shipment_pickup_carrier_refused")
     elif name is not None:
         raise InvalidOperation(code="shipment_collector_pickup_only")
@@ -562,7 +563,11 @@ def _details(
             None,
         )
         if notice is None:
-            return {"moved_at": None, "recorded_at": None, "confirmation_lag_seconds": None}
+            return {
+                "moved_at": None,
+                "recorded_at": None,
+                "confirmation_lag_seconds": None,
+            }
         moved = utc_datetime(notice.occurred_at)
         recorded = utc_datetime(notice.recorded_at)
         return {
