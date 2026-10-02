@@ -17,7 +17,7 @@ Tests come first in each phase where practical.
 
 ## Phase 3: Serving backorders (FR-001, FR-004)
 
-- [ ] T006 Tests:
+- [x] T006 Tests:
   - serving order (assigned first, then due date, then promised);
   - stated lines and their refusals;
   - held promises listed apart;
@@ -25,16 +25,16 @@ Tests come first in each phase where practical.
   - stale confirmation refused;
   - blocked stock not served;
   - positive controls.
-- [ ] T007 `services/backorders.py` (`waiting_promises`, `review_backorder_serving`, `serve_backorders`), the tool, the proposal review, and the refusals with translations
+- [x] T007 `services/backorders.py` (`waiting_promises`, `review_backorder_serving`, `serve_backorders`), the tool, the proposal review, and the refusals with translations
 
 ## Phase 4: Available-to-promise (FR-003)
 
-- [ ] T008 Tests:
+- [x] T008 Tests:
   - free now with and without waiting need;
   - purchases by date with their assignments;
   - overdue purchase;
   - a cancelled promise leaves the answer.
-- [ ] T009 `available_to_promise` and its read tool
+- [x] T009 `available_to_promise` and its read tool
 
 ## Phase 5: Adapters and gates
 

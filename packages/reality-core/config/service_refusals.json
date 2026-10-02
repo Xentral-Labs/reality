@@ -1982,6 +1982,36 @@
     },
     "movement_correction_scrap_block": {
       "message": "This adjustment scrapped blocked stock; record the goods again instead of correcting it."
+    },
+    "backorder_serving_item_not_found": {
+      "message": "This item was not found in this company."
+    },
+    "backorder_serving_tracked_item": {
+      "message": "Lot- and serial-tracked items are reserved lot by lot; reserve them for each order instead."
+    },
+    "backorder_serving_location_not_stock": {
+      "message": "Backorders are served from an active location that holds stock."
+    },
+    "backorder_serving_purchase_not_for_item": {
+      "message": "This purchase is not for this item."
+    },
+    "backorder_serving_line_not_waiting": {
+      "message": "This order is not waiting for this item here."
+    },
+    "backorder_serving_line_exceeds_need": {
+      "message": "A line cannot reserve more than its order still needs."
+    },
+    "backorder_serving_exceeds_available": {
+      "message": "Together the lines reserve more than is available here."
+    },
+    "backorder_serving_nothing_to_serve": {
+      "message": "Nothing would be reserved: no stock is available here or no order is waiting."
+    },
+    "backorder_serving_line_quantity_invalid": {
+      "message": "Each line needs a quantity of zero or more."
+    },
+    "backorder_serving_changed_since_review": {
+      "message": "Stock or orders changed after the review; review serving the backorders again."
     }
   },
   "terms": [

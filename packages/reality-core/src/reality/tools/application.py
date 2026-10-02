@@ -1403,6 +1403,30 @@ def _stock_block_resolve(scrap: bool) -> ToolHandler:
     return handler
 
 
+def _backorders_serve(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.backorders import serve_backorders
+
+    return serve_backorders(
+        session,
+        tenant_id,
+        arguments["item_id"],
+        arguments["location_id"],
+        arguments["lines"],
+        supplier_commitment_id=arguments.get("supplier_commitment_id") or None,
+        action_id=arguments.get("_action_id"),
+    )
+
+
+def _available_to_promise(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.backorders import available_to_promise
+
+    return available_to_promise(session, tenant_id, arguments["item_id"])
+
+
 def _reorder_points(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2582,6 +2606,18 @@ TOOLS = {
         True,
         _stock_block_resolve(True),
     ),
+    "backorders_serve": Tool(
+        "backorders_serve",
+        "Reserve arrived stock for waiting customer orders in the serving order: assigned first, then by due date.",
+        True,
+        _backorders_serve,
+    ),
+    "available_to_promise": Tool(
+        "available_to_promise",
+        "Read from when and how much of an item can be promised: free stock now, then each open purchase with its date.",
+        False,
+        _available_to_promise,
+    ),
     "reorder_points": Tool(
         "reorder_points",
         "Read the reorder points of the company, of one item or of one location.",
@@ -3365,6 +3401,13 @@ def create_change_proposal(
         normalized_arguments = proposal_arguments(session, tenant_id, arguments)
     if tool_name in FINANCE_COMMANDS:
         normalized_arguments = validate_finance_request(tool_name, arguments)
+    backorder_review = None
+    if tool_name == "backorders_serve":
+        from reality.services.backorders import review_backorder_serving
+
+        normalized_arguments, backorder_review = review_backorder_serving(
+            session, tenant_id, arguments
+        )
     stock_block_review = None
     if tool_name in {"stock_block", "stock_block_release", "stock_block_scrap"}:
         from reality.services.stock_blocks import review_stock_block
@@ -3447,6 +3490,8 @@ def create_change_proposal(
         preview["reorder_point"] = reorder_review
     if stock_block_review is not None:
         preview["stock_block"] = stock_block_review
+    if backorder_review is not None:
+        preview["backorder_serving"] = backorder_review
     if tool_name == DUNNING_SCHEDULE_COMMAND:
         from reality.services.dunning_runs import _stated_levels, schedule
 
@@ -4050,6 +4095,7 @@ def approve_and_execute_proposal(
         "stock_block",
         "stock_block_release",
         "stock_block_scrap",
+        "backorders_serve",
         "down_payment_invoice_record",
         "proforma_invoice_record",
         "commitment_revise",
