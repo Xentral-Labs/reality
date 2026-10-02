@@ -321,8 +321,9 @@ def test_shipment_member_guidance_and_execution_agree(session, business):
     assert json.loads(executed.output)["shipment_id"]
 
 
+@pytest.mark.parametrize("admin_outsider", [False, True])
 def test_private_report_requires_original_author_but_rejection_does_not(
-    session, business, scheduled_owner
+    session, business, scheduled_owner, admin_outsider
 ):
     from uuid import uuid4
 
@@ -330,6 +331,8 @@ def test_private_report_requires_original_author_but_rejection_does_not(
     from reality.services.analytics.reports import caller, list_reports
     from reality.tools.application import create_change_proposal
 
+    scheduled_owner.is_platform_admin = admin_outsider
+    session.flush()
     author, _ = _member(session, business.tenant.id)
     principal = Principal(author.id)
     with caller(principal):

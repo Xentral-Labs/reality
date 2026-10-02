@@ -354,8 +354,9 @@ def test_ordinary_spacing_is_accepted():
     assert [hop.edge for hop in query.follow] == ["contains"]
 
 
-def test_private_library_http_explains_missing_membership_for_platform_admin(
-    session, business, scheduled_owner, monkeypatch
+@pytest.mark.parametrize("persisted_admin", [False, True])
+def test_private_library_http_uses_persisted_admin_not_claimed_flag(
+    session, business, scheduled_owner, monkeypatch, persisted_admin
 ):
     from fastapi.testclient import TestClient
     from sqlalchemy import select
@@ -365,6 +366,7 @@ def test_private_library_http_explains_missing_membership_for_platform_admin(
     from reality.web import analytics_api, api, auth
     from reality.web.app import app
 
+    scheduled_owner.is_platform_admin = persisted_admin
     session.delete(
         session.scalar(
             select(TenantMembership).where(
@@ -393,13 +395,17 @@ def test_private_library_http_explains_missing_membership_for_platform_admin(
             detail = client.get(
                 f"/api/tenants/{business.tenant.id}/analytics/graph/reports/missing-report"
             )
-        assert response.status_code == 422, response.text
-        assert response.json() == {
-            "detail": {
-                "code": "company_membership_required",
-                "message": "An active company membership is required to use private reports.",
+        if persisted_admin:
+            assert response.status_code == 200, response.text
+            assert response.json()["records"] == []
+        else:
+            assert response.status_code == 422, response.text
+            assert response.json() == {
+                "detail": {
+                    "code": "company_membership_required",
+                    "message": "An active company membership is required to use private reports.",
+                }
             }
-        }
         assert detail.status_code == 404
         assert detail.json() == {"detail": "Report not found."}
     finally:

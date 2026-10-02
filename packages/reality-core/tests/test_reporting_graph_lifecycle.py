@@ -599,3 +599,213 @@ def test_private_library_explains_membership_without_disclosing_reports(
                 "expected_revision": saved["revision"],
             },
         )
+
+
+def _nonmember_admin(session, scheduled_owner):
+    from sqlalchemy import delete
+
+    from reality.db.core import TenantMembership
+
+    scheduled_owner.is_platform_admin = True
+    session.execute(
+        delete(TenantMembership).where(TenantMembership.user_id == scheduled_owner.id)
+    )
+    session.flush()
+    return Principal(scheduled_owner.id, is_platform_admin=False)
+
+
+def test_platform_admin_owns_reports_without_creating_membership(
+    session, business, scheduled_owner
+):
+    from sqlalchemy import func, select
+
+    from reality.db.core import TenantMembership
+
+    admin = _nonmember_admin(session, scheduled_owner)
+    saved = save(session, business.tenant.id, admin)
+    assert (
+        get_report(session, business.tenant.id, admin, saved["id"])["id"] == saved["id"]
+    )
+    for operation in ["rename", "duplicate", "delete"]:
+        changed = change_graph_report(
+            session,
+            business.tenant.id,
+            admin,
+            {
+                "operation": operation,
+                "request_id": str(uuid4()),
+                "report_id": saved["id"],
+                "expected_revision": saved["revision"],
+                **({"name": "Admin private report"} if operation != "delete" else {}),
+            },
+        )
+        if operation == "rename":
+            saved = changed
+    records = list_reports(session, business.tenant.id, admin, report_kind="graph")[
+        "records"
+    ]
+    assert len(records) == 1 and records[0]["name"] == "Admin private report"
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(TenantMembership)
+            .where(TenantMembership.user_id == admin.user_id)
+        )
+        == 0
+    )
+
+
+@pytest.mark.parametrize("revocation", ["administrator", "account"])
+def test_private_admin_access_uses_current_persisted_authority(
+    session, business, scheduled_owner, revocation
+):
+    from sqlalchemy import update
+
+    from reality.db.core import AppUser
+
+    admin = _nonmember_admin(session, scheduled_owner)
+    saved = save(session, business.tenant.id, admin)
+    values = (
+        {"is_platform_admin": False}
+        if revocation == "administrator"
+        else {"status": "inactive"}
+    )
+    session.execute(
+        update(AppUser)
+        .where(AppUser.id == admin.user_id)
+        .values(**values)
+        .execution_options(synchronize_session=False)
+    )
+    with pytest.raises(AnalyticsError):
+        list_reports(
+            session,
+            business.tenant.id,
+            Principal(admin.user_id, True),
+            report_kind="graph",
+        )
+    with pytest.raises(NotFound):
+        get_report(session, business.tenant.id, admin, saved["id"])
+
+
+def test_admin_cannot_read_change_or_preview_another_authors_report(
+    session, business, author, scheduled_owner
+):
+    from reality.db.core import AppUser, uid
+    from reality.services.analytics.proposals import preview
+
+    foreign = save(session, business.tenant.id, author)
+    user = AppUser(
+        id=uid("usr"),
+        email=f"{uid('mail')}@example.test",
+        password_hash="unused",
+        status="active",
+        is_platform_admin=True,
+    )
+    session.add(user)
+    session.flush()
+    admin = Principal(user.id)
+    held = _propose(
+        session,
+        business,
+        author,
+        operation="rename",
+        report_id=foreign["id"],
+        expected_revision=foreign["revision"],
+        name="Private rename",
+        question=None,
+    )
+    assert (
+        list_reports(session, business.tenant.id, admin, report_kind="graph")["records"]
+        == []
+    )
+    with pytest.raises(NotFound):
+        get_report(session, business.tenant.id, admin, foreign["id"])
+    for operation in ["rename", "duplicate", "delete"]:
+        with pytest.raises(NotFound):
+            change_graph_report(
+                session,
+                business.tenant.id,
+                admin,
+                {
+                    "operation": operation,
+                    "request_id": str(uuid4()),
+                    "report_id": foreign["id"],
+                    "expected_revision": foreign["revision"],
+                    **({"name": "Forbidden"} if operation != "delete" else {}),
+                },
+            )
+    with pytest.raises((AnalyticsError, NotFound)):
+        preview(session, business.tenant.id, admin, held.id)
+
+
+@pytest.mark.parametrize("tenant_state", ["missing", "archived", "playground"])
+def test_admin_fallback_requires_visible_business_company(
+    session, business, scheduled_owner, tenant_state
+):
+    from reality.db.core import now
+
+    admin = _nonmember_admin(session, scheduled_owner)
+    tenant_id = business.tenant.id
+    if tenant_state == "missing":
+        tenant_id = "missing-company"
+    elif tenant_state == "archived":
+        business.tenant.archived_at = now()
+    else:
+        from reality.db.core import Tenant, uid
+
+        practice = Tenant(
+            id=uid("ten"), name="Other user's practice", purpose="playground"
+        )
+        session.add(practice)
+        tenant_id = practice.id
+    session.flush()
+    with pytest.raises(AnalyticsError):
+        list_reports(session, tenant_id, admin, report_kind="graph")
+
+
+def test_admin_own_report_stays_scoped_to_selected_company(
+    session, business, scheduled_owner
+):
+    from reality.services.core import create_tenant
+
+    admin = _nonmember_admin(session, scheduled_owner)
+    saved = save(session, business.tenant.id, admin)
+    other = create_tenant(session, "Another accessible company", _commit=False)
+    assert list_reports(session, other.id, admin, report_kind="graph")["records"] == []
+    with pytest.raises(NotFound):
+        get_report(session, other.id, admin, saved["id"])
+    with pytest.raises(NotFound):
+        change_graph_report(
+            session,
+            other.id,
+            admin,
+            {
+                "operation": "delete",
+                "request_id": str(uuid4()),
+                "report_id": saved["id"],
+                "expected_revision": saved["revision"],
+            },
+        )
+
+
+def test_nonmember_admin_confirms_only_their_own_private_proposal(
+    session, business, scheduled_owner
+):
+    from reality.services.analytics.proposals import preview
+    from reality.tools.application import approve_and_execute_proposal
+
+    admin = _nonmember_admin(session, scheduled_owner)
+    held = _propose(session, business, admin)
+    assert preview(session, business.tenant.id, admin, held.id)["operation"] == "create"
+    executed = approve_and_execute_proposal(
+        session, business.tenant.id, held.id, confirming_principal=admin, confirmed=True
+    )
+    assert executed.status == "executed"
+    assert (
+        len(
+            list_reports(session, business.tenant.id, admin, report_kind="graph")[
+                "records"
+            ]
+        )
+        == 1
+    )

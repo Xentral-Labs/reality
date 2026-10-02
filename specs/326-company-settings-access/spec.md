@@ -80,3 +80,7 @@ The user's explicit session instruction approves this narrow defect scope and au
 | FR-006 | Four-language browser scenarios and i18n audit | T005, T006, T009, T011 |
 | DR-001 | Schema diff review and existing migrations CI | T002, T011, T012 |
 | DR-002 | Settings regression performs reads only and no data repair | T003, T004, T012 |
+
+## Supersession
+
+Spec 329 supersedes only the platform-administrator membership prerequisite for that administrator’s own private analytics. Ordinary nonmembers retain FR-004 membership refusal. Private ownership, current active identity, confirmation and tenant boundaries remain enforced. The admin access label introduced in spec329 distinguishes this access from actual membership.

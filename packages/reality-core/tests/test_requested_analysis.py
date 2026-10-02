@@ -182,9 +182,14 @@ def test_the_same_request_twice_finds_its_own_run(
     assert session.query(AnalysisRequest).count() == 1
 
 
+@pytest.mark.parametrize("access", ["member", "admin"])
 def test_the_worker_answers_and_the_asker_collects(
-    session, business, asker, monkeypatch
+    session, business, asker, monkeypatch, access
 ):
+    if access == "admin":
+        asker.is_platform_admin = True
+        session.query(TenantMembership).filter_by(user_id=asker.id).delete()
+        session.flush()
     core.create_document(
         session,
         business.tenant.id,
@@ -435,3 +440,60 @@ def test_requesting_cannot_be_executed_without_a_confirmation(session, business)
 
     with pytest.raises(InvalidOperation, match="confirmation"):
         TOOLS["graph.requests.create"].handler(session, business.tenant.id, {})
+
+
+@pytest.mark.parametrize("revocation", ["administrator", "account"])
+def test_deferred_admin_authority_is_rechecked_before_execution(
+    session, business, asker, monkeypatch, revocation
+):
+    from reality.jobs.handlers.analysis import AnalysisConfig, run_requested_analysis
+    from reality.jobs.registry import JobContext, JobError
+    from reality.services.core import NotFound
+
+    asker.is_platform_admin = True
+    session.query(TenantMembership).filter_by(user_id=asker.id).delete()
+    session.flush()
+    _defer(monkeypatch)
+    accepted = ask(
+        session,
+        business.tenant.id,
+        question=question(),
+        user_id=asker.id,
+        request_id="admin-revoked",
+    )["request"]
+    if revocation == "administrator":
+        asker.is_platform_admin = False
+    else:
+        asker.status = "inactive"
+    session.flush()
+    with pytest.raises(NotFound):
+        collect(session, business.tenant.id, accepted["id"], user_id=asker.id)
+    with pytest.raises(JobError) as failure:
+        run_requested_analysis(
+            session,
+            JobContext(
+                business.tenant.id, asker.id, "admin-run", None, datetime.now(UTC)
+            ),
+            AnalysisConfig(analysis_request_id=accepted["id"]),
+        )
+    assert failure.value.code == "not_authorized"
+
+
+def test_platform_admin_cannot_collect_another_requesters_private_question(
+    session, business, asker, monkeypatch
+):
+    outsider = member(session, business.tenant.id)
+    outsider.is_platform_admin = True
+    session.query(TenantMembership).filter_by(user_id=outsider.id).delete()
+    session.flush()
+    _defer(monkeypatch)
+    accepted = ask(
+        session,
+        business.tenant.id,
+        question=question(),
+        user_id=asker.id,
+        request_id="foreign-private-question",
+    )["request"]
+    assert listing(session, business.tenant.id, user_id=outsider.id)["items"] == []
+    with pytest.raises(core.NotFound):
+        collect(session, business.tenant.id, accepted["id"], user_id=outsider.id)

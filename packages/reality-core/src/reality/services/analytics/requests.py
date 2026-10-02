@@ -22,11 +22,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from reality.db.analytics import AnalysisRequest
-from reality.db.core import TenantMembership
 from reality.domain.traversal import Traversal
+from reality.services.analytics.errors import AnalyticsError
 from reality.services.analytics.graph_model import reporting_graph
+from reality.services.analytics.reports import require_author
 from reality.services.analytics.traversal import TraversalRefused, run_traversal
 from reality.services.core import InvalidOperation, NotFound
+from reality.services.memberships import Principal
 
 #: The refusals that mean "too much of this company to hold in one request", and
 #: only those. Every other code is a statement about the question itself.
@@ -40,16 +42,10 @@ def _member(session: Session, tenant_id: str, user_id: str | None) -> str:
     """Whoever may ask a question interactively may ask it deferred, and no more."""
     if not user_id:
         raise InvalidOperation("A requested analysis needs a signed-in requester.")
-    membership = session.scalar(
-        select(TenantMembership).where(
-            TenantMembership.tenant_id == tenant_id,
-            TenantMembership.user_id == user_id,
-            TenantMembership.status == "active",
-        )
-    )
-    if membership is None:
-        raise NotFound("Company not found.")
-    return user_id
+    try:
+        return require_author(session, tenant_id, Principal(user_id))
+    except (AnalyticsError, NotFound) as error:
+        raise NotFound("Company not found.") from error
 
 
 def ask(

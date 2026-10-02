@@ -1,3 +1,4 @@
+import { companyAccessLabel } from "./companyAccess";
 import { LogoMark } from "../components/LogoMark";
 import { useEffect, useId, useRef } from "react";
 import { Check, ChevronDown, Plus, Settings } from "lucide-react";
@@ -14,12 +15,14 @@ const simulationLabels = {
 
 export function CompanySwitcher({
   company,
+  platformAdmin = false,
   companies,
   selection,
   navigate,
   switchCompany,
 }: {
   company: Tenant;
+  platformAdmin?: boolean;
   companies: Tenant[];
   selection: Selection;
   navigate: (changes: Partial<Selection>) => void;
@@ -111,6 +114,9 @@ export function CompanySwitcher({
                   {row.sandbox_run_id && (
                     <span className="company-sandbox-badge shrink-0">{t("Sandbox")}</span>
                   )}
+                </span>
+                <span className="block text-xs text-fg-muted">
+                  {companyAccessLabel(row, platformAdmin)}
                 </span>
                 {row.sandbox_run_id && (
                   <span className="block text-xs text-fg-muted">{t("Practice company")}</span>

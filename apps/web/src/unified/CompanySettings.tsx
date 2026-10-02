@@ -1,3 +1,4 @@
+import { companyAccessLabel, hasPlatformCompanyAccess } from "./companyAccess";
 import { PageActionBar } from "./PageActionBar";
 import { api, type Bootstrap, type Tenant } from "../api";
 import { t } from "../localization";
@@ -33,6 +34,7 @@ const companyStyles = {
 };
 export function CompanySettings({
   company,
+  platformAdmin = false,
   companies,
   switchCompany,
   manageCompany,
@@ -42,6 +44,7 @@ export function CompanySettings({
   setCreating,
 }: {
   company: Tenant;
+  platformAdmin?: boolean;
   companies: Tenant[];
   switchCompany: (id: string) => void;
   openSimulation: (id: string) => void;
@@ -118,14 +121,7 @@ export function CompanySettings({
                       {row.id}
                     </span>
                     <span className="block text-sm text-fg-muted">
-                      {t("Your role")}:{" "}
-                      {t(
-                        row.role === "owner"
-                          ? "Owner"
-                          : row.role === "member"
-                            ? "Member"
-                            : "No company membership",
-                      )}
+                      {t("Your role")}: {companyAccessLabel(row, platformAdmin)}
                     </span>
                   </span>
                   <span className={badgeStyle}>
@@ -169,7 +165,9 @@ export function CompanySettings({
                       {t(
                         row.role === "member"
                           ? "You are a member. Only company owners manage users and agent tokens."
-                          : "You do not have an active membership in this company. Only company owners manage users and agent tokens.",
+                          : hasPlatformCompanyAccess(row, platformAdmin)
+                            ? "You can access this company as a platform administrator. Private reports remain personal to their author."
+                            : "You do not have an active membership in this company. Only company owners manage users and agent tokens.",
                       )}
                     </p>
                   )}

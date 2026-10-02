@@ -353,6 +353,7 @@ export function Shell({
                   <div className="shell-brand flex min-w-0 items-center gap-2">
                     <div className="shell-company min-w-0 flex-1">
                       <CompanySwitcher
+                        platformAdmin={user.is_platform_admin === true}
                         company={company}
                         companies={companies}
                         selection={selection}

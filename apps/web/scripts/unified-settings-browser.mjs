@@ -359,6 +359,33 @@ try {
             });
           }
         }
+    // Platform administration explains visibility without creating membership.
+    user.is_platform_admin = true;
+    for (const [language, label] of Object.entries({
+      en: "Platform admin access",
+      de: "Zugang als Plattformadmin",
+      nl: "Toegang als platformbeheerder",
+      es: "Acceso como administrador de la plataforma",
+    })) {
+      user.language = language;
+      user.locale = { en: "en-GB", de: "de-DE", nl: "nl-NL", es: "es-ES" }[language];
+      await go("company");
+      const card = page.locator('[data-company-card="observer"]');
+      await card.getByText(new RegExp(label)).waitFor();
+      assert.equal(await card.locator('[data-company-actions="observer"] button').count(), 0);
+      await page.locator(".company-switcher-trigger").click();
+      await page
+        .locator('[data-company-option="observer"]')
+        .getByText(label, { exact: true })
+        .waitFor();
+      await page
+        .locator('[data-company-option="owner"]')
+        .getByText({ en: "Owner", de: "Eigentümer", nl: "Eigenaar", es: "Propietario" }[language], {
+          exact: true,
+        })
+        .waitFor();
+      await page.keyboard.press("Escape");
+    }
     assert.ok(
       requests.every(
         (r) => r.method === "GET" || (r.method === "PUT" && r.path === "/api/auth/profile"),

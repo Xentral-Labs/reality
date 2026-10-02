@@ -2121,3 +2121,5 @@ Table `customer_item_number`: a customer's own article number, with the customer
   - Another company can neither read nor state, with the own list as control.
   - The CLI asks before stating and lists.
   - An agent orders by the customer's number through the strict order schema.
+
+Spec 329 — Platform administrator own private analytics: current-authority eligibility and exact private authorship; service/API/deferred-worker tests in reporting lifecycle/surfaces, requested analysis and proposal-policy modules; localized switcher/card browser assertions. Verification pending; see specs/329-platform-admin-own-reports/quickstart.md.
