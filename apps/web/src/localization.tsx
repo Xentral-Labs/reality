@@ -24715,6 +24715,16 @@ Object.assign(dictionaries.de, {
     "Jede Zeile braucht eine Menge von null oder mehr.",
   "Stock or orders changed after the review; review serving the backorders again.":
     "Bestand oder Aufträge haben sich nach der Prüfung geändert; prüfe das Bedienen der Rückstände erneut.",
+  "Serve backorders": "Rückstände bedienen",
+  "Assigned to this purchase": "Dieser Bestellung zugeordnet",
+  "Available here": "Hier verfügbar",
+  "Available to promise": "Lieferfähigkeit",
+  "On hold, not served": "Gesperrt, nicht bedient",
+  "Orders this purchase is assigned to come first, then the others by due date. Nothing is reserved before you confirm.":
+    "Zuerst kommen die Aufträge, denen diese Bestellung zugeordnet ist, danach die übrigen nach Fälligkeit. Vor deiner Bestätigung wird nichts reserviert.",
+  Reserve: "Reservieren",
+  "Short now": "Jetzt fehlend",
+  "Without a date": "Ohne Termin",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -24885,6 +24895,16 @@ Object.assign(dictionaries.nl, {
     "Elke regel heeft een hoeveelheid van nul of meer nodig.",
   "Stock or orders changed after the review; review serving the backorders again.":
     "Voorraad of orders zijn na de controle gewijzigd; controleer het bedienen van de achterstanden opnieuw.",
+  "Serve backorders": "Achterstanden bedienen",
+  "Assigned to this purchase": "Aan deze inkooporder toegewezen",
+  "Available here": "Hier beschikbaar",
+  "Available to promise": "Beschikbaar om toe te zeggen",
+  "On hold, not served": "Geblokkeerd, niet bediend",
+  "Orders this purchase is assigned to come first, then the others by due date. Nothing is reserved before you confirm.":
+    "Eerst komen de orders waaraan deze inkooporder is toegewezen, daarna de andere op vervaldatum. Er wordt niets gereserveerd voordat je bevestigt.",
+  Reserve: "Reserveren",
+  "Short now": "Nu tekort",
+  "Without a date": "Zonder datum",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25055,6 +25075,16 @@ Object.assign(dictionaries.es, {
   "Each line needs a quantity of zero or more.": "Cada línea necesita una cantidad de cero o más.",
   "Stock or orders changed after the review; review serving the backorders again.":
     "El stock o los pedidos cambiaron tras la revisión; revisa de nuevo la atención de los pedidos pendientes.",
+  "Serve backorders": "Atender pedidos pendientes",
+  "Assigned to this purchase": "Asignado a esta compra",
+  "Available here": "Disponible aquí",
+  "Available to promise": "Disponible para prometer",
+  "On hold, not served": "Retenido, no atendido",
+  "Orders this purchase is assigned to come first, then the others by due date. Nothing is reserved before you confirm.":
+    "Primero van los pedidos a los que está asignada esta compra y después los demás por fecha de vencimiento. No se reserva nada antes de que confirmes.",
+  Reserve: "Reservar",
+  "Short now": "Faltan ahora",
+  "Without a date": "Sin fecha",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

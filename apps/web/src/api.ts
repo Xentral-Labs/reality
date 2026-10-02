@@ -2842,6 +2842,73 @@ export const stockBlocks = {
       { method: "POST", body: JSON.stringify({ confirmed: true }) },
     ),
 };
+export type BackorderLine = {
+  commitment_id: string;
+  customer: string;
+  due_at: string | null;
+  need: string;
+  quantity: string;
+  why: "assigned" | "due";
+  hold_reason?: string;
+};
+export type BackorderServingProposal = {
+  id: string;
+  status: string;
+  preview: {
+    backorder_serving: {
+      item: string;
+      unit: string;
+      location: string;
+      available: string;
+      reserving: string;
+      free_after: string;
+      lines: BackorderLine[];
+      held: BackorderLine[];
+    };
+  };
+};
+export type AvailableToPromise = {
+  item_id: string;
+  item: string;
+  unit: string;
+  now: {
+    physical: string;
+    reserved: string;
+    blocked: string;
+    waiting_uncovered: string;
+    free: string;
+  };
+  purchases: Array<{
+    commitment_id: string;
+    supplier: string;
+    due_at: string | null;
+    overdue: boolean;
+    open: string;
+    assigned_to_come: string;
+    adds: string;
+    total: string;
+  }>;
+};
+export const backorders = {
+  prepare: (
+    tenant: string,
+    body: {
+      item_id: string;
+      location_id: string;
+      supplier_commitment_id?: string;
+      lines?: Array<{ commitment_id: string; quantity: string }>;
+    },
+  ) =>
+    request<BackorderServingProposal>(
+      `/api/tenants/${encodeURIComponent(tenant)}/backorders/proposals`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  confirm: (tenant: string, id: string) => stockBlocks.confirm(tenant, id),
+  promise: (tenant: string, item: string) =>
+    request<AvailableToPromise>(
+      `/api/tenants/${encodeURIComponent(tenant)}/items/${encodeURIComponent(item)}/available-to-promise`,
+    ),
+};
 export const deliveryActions = {
   references: (tenant: string, commitment: string, family: string, query = "") =>
     request<{ items: Array<{ id: string; label: string }>; has_more: boolean }>(
