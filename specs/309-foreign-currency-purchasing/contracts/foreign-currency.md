@@ -25,7 +25,7 @@
 ## Supplier payment
 
 `supplier_payment_post` takes an optional `paid_amount` (a decimal string, company currency).
-- It is required for an invoice in a foreign currency (`paid_amount_required`).
+- Without it, a foreign invoice is paid in its own currency, valued at the invoice rate, and nothing is realised.
 - It is refused for an invoice in the company currency (`paid_amount_not_applicable`).
 - It is refused for an unconverted foreign invoice (`invoice_not_converted`).
 - It must be positive (`paid_amount_invalid`).

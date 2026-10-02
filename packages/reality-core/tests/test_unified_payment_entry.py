@@ -44,9 +44,11 @@ def obligation(session, business, direction="customer"):
         "300",
         currency="USD",
     )
-    (post_supplier_invoice if supplier else post_sales_invoice)(
-        session, business.tenant.id, doc.id
-    )
+    if supplier:
+        # Spec 309: a supplier invoice in another currency states its rate.
+        post_supplier_invoice(session, business.tenant.id, doc.id, exchange_rate="0.9")
+    else:
+        post_sales_invoice(session, business.tenant.id, doc.id)
     return doc
 
 

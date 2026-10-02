@@ -530,7 +530,26 @@ def _invoice_evidence(
         or post.get("currency") != creation["currency"]
     ):
         return None
-    if canonical(sorted(post.get("entries", []), key=lambda e: e["id"])) != canonical(
+    # Spec 309: the company-currency amount and rate are compared as numbers; the
+    # rest of each posted entry as it was.
+    posted_entries = post.get("entries", [])
+    by_id = {e.id: e for e in entries}
+    for stated_entry in posted_entries:
+        entry = by_id.get(stated_entry.get("id"))
+        if entry is None or (
+            "company_amount" in stated_entry
+            and (
+                entry.company_amount is None
+                or Decimal(str(stated_entry["company_amount"])) != entry.company_amount
+                or Decimal(str(stated_entry["exchange_rate"])) != entry.exchange_rate
+            )
+        ):
+            return None
+    posted_entries = [
+        {k: v for k, v in e.items() if k not in {"company_amount", "exchange_rate"}}
+        for e in posted_entries
+    ]
+    if canonical(sorted(posted_entries, key=lambda e: e["id"])) != canonical(
         sorted(
             [
                 {

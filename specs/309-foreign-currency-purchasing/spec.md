@@ -27,6 +27,7 @@ A purchase keeps its currency, but nothing converts it into the company's curren
 - **Company currency:** a company currency in the finance settings, EUR by default. It can be changed only while the company has posted nothing.
 - **Invoice rate:** a supplier invoice in a foreign currency is posted with the exchange rate a person states. Every ledger entry keeps its amount in the document currency and also carries its amount in the company currency and the rate used.
 - **Paying in company currency:** a payment of a foreign invoice states both the amount it settles in the invoice currency and what was paid in the company currency, as a bank statement shows them. The payment's rate follows from these two stated amounts and is never recomputed.
+- **Paying in the invoice currency:** a payment without a company-currency amount is paid from an account in the invoice currency, as payment runs do today. It is valued at the invoice rate and realises nothing.
 - **Realised difference:** the difference between the invoice's company-currency value of the settled part and what was paid is posted to an exchange-difference account, as a gain or a loss.
   - Partial payments at different rates each realise their own difference.
   - The last payment settles what is left of the invoice's company-currency value, so nothing remains through rounding.
@@ -80,7 +81,7 @@ As a buyer, I see the landed cost of a USD container in EUR, with freight and du
 - Tenant isolation: nothing crosses companies.
 - A source-stated value is recorded as stated and never recomputed (Constitution VIII). The stated rate and both stated payment amounts are kept as stated.
 - A posting in the company currency carries the same amount twice and a rate of 1.
-- A payment of a foreign invoice without a company-currency amount is refused, and so is one against an unconverted foreign posting.
+- A payment of a foreign invoice without a company-currency amount is paid in the invoice currency and realises nothing. A company-currency amount against an unconverted foreign posting is refused.
 - A payment that settles more than is open in the invoice currency is refused, as today.
 - Reversing a payment reverses its exchange difference with it.
 - Changing the company currency after anything was posted is refused.
