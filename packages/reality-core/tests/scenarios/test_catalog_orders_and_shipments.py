@@ -1511,3 +1511,43 @@ def test_a_customer_orders_by_its_own_item_numbers(
         .where(Commitment.tenant_id == tenant, Document.number == "EDI-M02B")
     )
     assert later.item_id == lamp.id
+
+
+def test_a_customer_lowers_a_line_below_what_already_shipped(session, business):
+    """A05: the revision stands, the excess is reported until it is settled."""
+    tenant = business.tenant.id
+    _receive(session, business, business.item.id, "10", business.location.id)
+    order = _order(session, business, "SO-A05", [_line(business.item.id, "10")])
+    (promise,) = order["commitment_ids"]
+    reserve(session, tenant, promise)
+    _ship(session, business, "TRK-A05", promise, "6")
+
+    _act(
+        session,
+        business,
+        "commitment_revise",
+        {"commitment_id": promise, "quantity": "4", "note": "Customer needs only 4"},
+        "a05-lower",
+    )
+
+    finding = {
+        row.record_id: row
+        for row in operational_exceptions(session, tenant, as_of=AS_OF)
+        if row.class_id == "shipped_beyond_order"
+    }[promise]
+    assert finding.causal_values["excess_quantity"] == 2
+    assert record_by_id(session, Commitment, promise).status == "fulfilled"
+
+    # The customer keeps the two after all: the line is raised to what shipped.
+    _act(
+        session,
+        business,
+        "commitment_revise",
+        {"commitment_id": promise, "quantity": "6", "note": "Customer keeps 6"},
+        "a05-keep",
+    )
+    assert promise not in {
+        row.record_id
+        for row in operational_exceptions(session, tenant, as_of=AS_OF)
+        if row.class_id == "shipped_beyond_order"
+    }

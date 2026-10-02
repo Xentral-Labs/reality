@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:ebeabc3a1d6661b63256126f67062d5b452026b0226fcdc18abc56b03a0dacc4",
+  "knowledge_version": "advisor-v1:sha256:6b1f170ec10eb887e59340204ecd324b134416d4c2adb2cfa066d3ca2f1a4bba",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -45,7 +45,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#A05",
-      "fingerprint": "3575d49a2a696b30183899f3a35f0688e231b14cb8d1b8ab38cd31418d8b9d48"
+      "fingerprint": "437ce7bdeec1a4be1a123b12a5932118e02d6c43ccca97815f43766a4a8cbbd6"
     },
     {
       "id": "source_journey_a06",
@@ -774,7 +774,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E07",
-      "fingerprint": "8cce839440014d5f8aebc7934c917ca2621472ae5de43268ccfb2aa5ab78648d"
+      "fingerprint": "2bbc0b82f3dfed5a53ed440da75d5f25e9501c250a042b2bfd2b1153ee1f73c5"
     },
     {
       "id": "source_journey_e08",
@@ -2185,18 +2185,19 @@
       "source_id": "source_journey_a05",
       "subject": "Order intake and order changes",
       "title": "Customer lowers the quantity below the delivered quantity",
-      "search_text": "A05 Order intake and order changes Customer lowers the quantity below the delivered quantity Is the revision refused or does it demand a return? Customer lowers the quantity below the delivered quantity Is the revision refused or does it demand a return?",
-      "claim_text": "Reality evaluates: Is the revision refused or does it demand a return?",
-      "support": "limited",
+      "search_text": "A05 Order intake and order changes Customer lowers the quantity below the delivered quantity Is the revision refused or does it demand a return? lowered below delivered over-delivery Mehrlieferung Menge reduziert Customer lowers the quantity below the delivered quantity Is the revision refused or does it demand a return? The customer reduced the order to 4 but we already shipped 6; what happens? Der Kunde reduziert auf 4, wir haben aber schon 6 geliefert; was passiert?",
+      "claim_text": "Reality evaluates: Is the revision refused or does it demand a return? The revision is accepted, because it is what the customer said, and Shipped beyond the order reports what left beyond the new quantity. It clears when the excess comes back as a return, or when the line is raised again to what was shipped because the customer keeps it.",
+      "support": "proven",
       "limitations": [
-        "Lowering the quantity below what was delivered is accepted and closes the line; it is neither refused nor turned into a return request.",
-        "The excess delivery is not reported."
+        "No return request or credit note is created by itself."
       ],
       "references": [
-        "A05"
+        "A05",
+        "commitment_revise_propose",
+        "exceptions_list"
       ],
       "language": "en",
-      "fingerprint": "23e948100725f64aa139b03de9e33b0ed3003b364403aac9d91901829fe4ca54"
+      "fingerprint": "660531758bd6ee539ce83d20eb0e7770c46ade93182e1646b89b68d742e63564"
     },
     {
       "id": "evidence_journey_a06",
@@ -3577,18 +3578,19 @@
       "source_id": "source_journey_e07",
       "subject": "Customer invoice and credit note",
       "title": "Invoice differs from the order (quantity/price)",
-      "search_text": "E07 Customer invoice and credit note Invoice differs from the order (quantity/price) Is the difference visible? Invoice differs from the order (quantity/price) Is the difference visible?",
-      "claim_text": "Reality evaluates: Is the difference visible?",
-      "support": "limited",
+      "search_text": "E07 Customer invoice and credit note Invoice differs from the order (quantity/price) Is the difference visible? invoice differs from order over-billing under-billing Rechnung weicht ab Invoice differs from the order (quantity/price) Is the difference visible? We invoiced 12 but shipped only 10; does Reality show that? Wir haben 12 berechnet, aber nur 10 geliefert; zeigt Reality das?",
+      "claim_text": "Reality evaluates: Is the difference visible? Each way an invoice differs from the order line is reported: billing more than was shipped as Invoiced and not shipped, billing less as Shipped and not billed, and another price as Invoice price differs, each with the quantities or prices compared.",
+      "support": "proven",
       "limitations": [
-        "Price differences and under-billing are visible.",
-        "Invoicing a customer for more than was shipped is not reported."
+        "Differences are reported, never corrected by themselves; a credit note or a further invoice settles them."
       ],
       "references": [
-        "E07"
+        "E07",
+        "exceptions_list",
+        "exception_explain"
       ],
       "language": "en",
-      "fingerprint": "3e6bacb26c7260b29a4ba2a73a28fe26ba54e347f9a4ebbdc824f706f04d8233"
+      "fingerprint": "4e261a2d98d15d9538933996615cd6cd91472c1631ca3d4d45be0c2452ffcb84"
     },
     {
       "id": "evidence_journey_e08",

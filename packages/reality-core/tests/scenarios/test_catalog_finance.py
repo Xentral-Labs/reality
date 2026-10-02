@@ -1981,3 +1981,88 @@ def test_a_30_percent_down_payment_holds_the_shipment_until_the_rest_is_paid(
     assert readiness.ship_ready and readiness.received_amount == Decimal("1000.00")
     _reviewed(session, business, *_dispatch(business, commitment, "10"), "C14-ship")
     assert core.fulfilled_quantity(session, tenant, commitment.id) == 10
+
+
+# --- E07 ---------------------------------------------------------------------
+
+
+def test_an_invoice_that_differs_from_the_order_is_reported_each_way(session, business):
+    """E07: billed more, billed less and billed at another price are each reported."""
+    from reality.services.exceptions import operational_exceptions
+
+    tenant = business.tenant.id
+    _, _document, lines, promises = _sales_order(
+        session,
+        business,
+        "SO-E07",
+        [
+            _order_line(business, "12", "10", "120"),
+            _order_line(business, "10", "10", "100"),
+            _order_line(business, "10", "10", "100"),
+        ],
+        "320",
+    )
+    core.record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "30",
+        to_location_id=business.location.id,
+    )
+    for promise in promises:
+        core.record_movement(
+            session,
+            tenant,
+            "shipment",
+            business.item.id,
+            "10",
+            from_location_id=business.location.id,
+            commitment_id=promise.id,
+        )
+    over, under, priced = lines
+    # Positive control: shipped and not yet billed is the ordinary state.
+    before = {
+        (row.class_id, row.record_id)
+        for row in operational_exceptions(
+            session, tenant, as_of=datetime(2027, 1, 31, tzinfo=UTC)
+        )
+    }
+    assert ("billed_not_shipped", over.id) not in before
+
+    _invoice_line(session, business, over.id, "12", "120", "RE-E07-1")
+    _invoice_line(session, business, under.id, "8", "80", "RE-E07-2")
+    core.create_manual_document_with_lines(
+        session,
+        tenant,
+        "sales_invoice",
+        "RE-E07-3",
+        business.customer.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "10",
+                "unit_price": "11",
+                "gross_amount": "110",
+                "billed_document_line_id": priced.id,
+            }
+        ],
+        "110",
+    )
+
+    found = {
+        (row.class_id, row.record_id): row
+        for row in operational_exceptions(
+            session, tenant, as_of=datetime(2027, 1, 31, tzinfo=UTC)
+        )
+    }
+    assert (
+        found[("billed_not_shipped", over.id)].causal_values["unshipped_quantity"] == 2
+    )
+    assert ("shipped_not_billed", under.id) in found
+    assert any(
+        class_id == "invoice_price_differs"
+        and row.causal_values["agreed_unit_price"] == Decimal(10)
+        and row.causal_values["billed_unit_price"] == Decimal(11)
+        for (class_id, _), row in found.items()
+    )

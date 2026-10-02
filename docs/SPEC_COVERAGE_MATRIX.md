@@ -2229,3 +2229,14 @@ Column `commitment_revision.unit_price`: a supplier's confirmed unit price, the 
   - G06: the minimum and pack size are named, and the surplus stays free stock.
   - G12: a purchase cancelled after production records the supplier's charge without findings.
   - I01: a purchase, receipt and invoice that agree are matched; the short line names its difference.
+
+## Over-billing and quantity lowered below delivered — Spec 313
+
+Exception class `shipped_beyond_order`, derived at read time: a customer promise whose shipments, net of returns, exceed the quantity in force.
+
+- `packages/reality-core/tests/test_shipped_beyond_order.py`:
+  - A line lowered below what shipped is reported, with part of the order shipped as the control.
+  - It clears by a return of the excess or by raising the line to what shipped; raising beyond what shipped stays refused.
+  - A cancelled rest is not beyond its order; another company sees nothing.
+- `packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_lowers_a_line_below_what_already_shipped` (A05).
+- `packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_invoice_that_differs_from_the_order_is_reported_each_way` (E07).

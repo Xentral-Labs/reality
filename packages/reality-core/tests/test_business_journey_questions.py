@@ -118,11 +118,11 @@ def test_server_derives_status_from_provider_citations() -> None:
             "text": "Reality supports the standard case, with documented limitations.",
             "status": "supported",
             # A journey that is still partial: the provider's claim must not win.
-            "citations": ["E07"],
+            "citations": ["M04"],
         }
 
     answer = answer_public_question(
-        _catalog(), "Is a difference between invoice and order visible?", provider=provider
+        _catalog(), "Can an EDI order change be applied?", provider=provider
     )
 
     assert answer.outcome == "provider"
@@ -176,8 +176,8 @@ def test_provider_cannot_upgrade_a_mixed_capability_answer() -> None:
         return {
             "text": "Reality supports some return flows, with documented limitations.",
             "status": "partial",
-            # F02 is supported, E07 partial: the answer may not claim more.
-            "citations": ["F02", "E07"],
+            # F02 is supported, M04 partial: the answer may not claim more.
+            "citations": ["F02", "M04"],
         }
 
     answer = answer_public_question(
@@ -186,13 +186,13 @@ def test_provider_cannot_upgrade_a_mixed_capability_answer() -> None:
 
     assert answer.outcome == "provider"
     assert answer.status == "partial"
-    assert answer.citations == ("F02", "E07")
+    assert answer.citations == ("F02", "M04")
 
 
 def test_published_ids_named_in_prose_are_added_to_citations() -> None:
     def provider(_envelope):
         return {
-            "text": "Partial returns use F02; a differing invoice is E07.",
+            "text": "Partial returns use F02; an EDI order change is M04.",
             "status": "partial",
             "citations": ["F02"],
         }
@@ -203,7 +203,7 @@ def test_published_ids_named_in_prose_are_added_to_citations() -> None:
 
     assert answer.outcome == "provider"
     assert answer.status == "partial"
-    assert answer.citations == ("F02", "E07")
+    assert answer.citations == ("F02", "M04")
 
 
 @pytest.mark.parametrize(
