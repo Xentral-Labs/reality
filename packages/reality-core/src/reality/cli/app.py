@@ -1174,6 +1174,40 @@ def customer_item_remove_command(
     con.print("✓ Customer item number withdrawn")
 
 
+company_currency_app = typer.Typer(
+    help="The company currency the books are kept in (spec 309)."
+)
+finance_app.add_typer(company_currency_app, name="company-currency")
+
+
+@company_currency_app.command("show")
+def company_currency_show_command(tenant: str | None = None):
+    """The company currency and whether anything is posted yet."""
+    from reality.services.finance.company_currency import company_currency_state
+
+    with Session() as s:
+        selected = selected_tenant(s, tenant)
+        state = company_currency_state(s, selected.id)
+    con.print_json(data=state, default=str)
+
+
+@company_currency_app.command("set")
+def company_currency_set_command(
+    currency: str,
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm the company currency; refused once anything is posted."""
+    _stock_block_change(
+        "company_currency_set",
+        {"currency": currency},
+        tenant,
+        yes,
+        preview_key="company_currency",
+    )
+    con.print("✓ Company currency stated")
+
+
 _COUNT_LINE = typer.Option(
     None, "--line", help="ITEM_ID[:LOT_ID]=QUANTITY; repeat per counted line"
 )
@@ -1994,13 +2028,21 @@ def finance_pay_supplier(
     invoice_id: str,
     amount: str,
     number: str | None = typer.Option(None, "--number"),
+    paid: str | None = typer.Option(
+        None, "--paid", help="What was paid in the company currency (spec 309)"
+    ),
     tenant: str | None = None,
 ):
     with Session() as s:
         try:
             selected = selected_tenant(s, tenant)
             entries = post_supplier_payment(
-                s, selected.id, invoice_id, amount, payment_number=number
+                s,
+                selected.id,
+                invoice_id,
+                amount,
+                payment_number=number,
+                paid_amount=paid,
             )
             open_amount = open_invoice_amount(s, selected.id, invoice_id)
         except (NotFound, InvalidOperation) as error:

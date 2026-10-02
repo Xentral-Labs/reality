@@ -227,6 +227,8 @@
     "stock_block_scrap_propose": "shipping",
     "delivery_rule_set_propose": "shipping",
     "stock_count_propose": "shipping",
+    "company_currency_set_propose": "payments",
+    "company_currency": "payments",
     "customer_item_number_set_propose": "shipping",
     "customer_item_number_remove_propose": "shipping",
     "customer_item_numbers": "shipping",

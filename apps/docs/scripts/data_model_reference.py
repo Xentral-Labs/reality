@@ -66,6 +66,8 @@ reorder_point|Stock level at or below which the item is reordered at the locatio
 reorder_quantity|Quantity proposed when the reorder point is reached.|Menge, die beim Erreichen des Meldebestands vorgeschlagen wird.
 customer_item_number|The customer's own article number, as the customer states it.|Die Artikelnummer des Kunden, wie der Kunde sie angibt.
 match_key|The number upper-cased and without spaces, what lines are matched on.|Die Nummer in Großbuchstaben ohne Leerzeichen, nach der Positionen abgeglichen werden.
+company_amount|The amount in the company currency, converted at the stated rate.|Der Betrag in Firmenwährung, zum angegebenen Kurs umgerechnet.
+exchange_rate|Company-currency units per document-currency unit, as stated.|Einheiten Firmenwährung je Einheit Belegwährung, wie angegeben.
 customer_item_name|The customer's own name for the item, as stated.|Die Bezeichnung des Kunden für den Artikel, wie angegeben.
 counted_quantity|What was counted, in the item's stock unit, as stated.|Gezählte Menge in der Lagereinheit des Artikels, wie angegeben.
 counted_at|When it was counted; the book is read from the movements up to this time.|Wann gezählt wurde; der Buchbestand wird aus den Bewegungen bis zu diesem Zeitpunkt gelesen.

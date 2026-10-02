@@ -34,7 +34,7 @@ sections:
     tables: [financial_component, document, document_line, opening_scope, opening_item_detail]
   - name: Reality
     description: Obligations, allocations, physical events, financial events, and observations.
-    tables: [component_assignment_revision, component_assignment_part, subledger_account, finance_role_destination, finance_state, commitment, commitment_hold, reservation, stock_block, stock_block_resolution, handling_unit, lot, serial_unit, movement, ledger_entry, ledger_reversal, settlement_allocation, fact, business_event]
+    tables: [component_assignment_revision, component_assignment_part, subledger_account, finance_role_destination, finance_state, commitment, commitment_hold, reservation, stock_block, stock_block_resolution, handling_unit, lot, serial_unit, movement, ledger_entry, company_currency, ledger_reversal, settlement_allocation, fact, business_event]
   - name: Interaction
     description: Auditable Change Proposals, approvals, executions, and chat history.
     tables: [secret, secret_audit_event, ai_settings, mcp_access_token, action, chat_session, chat_message, playground_run, playground_step, storyline_trace_entry, storyline_package, interaction]
@@ -943,6 +943,16 @@ tables:
       effective_at: {description: UTC timestamp at which the posting takes economic effect.}
       document_id: {description: Evidence document supporting the posting.}
       source_record_id: {}
+      company_amount: {description: "The amount in the company currency (spec 309); the amount itself in the company currency, converted at the stated rate otherwise, null for a foreign entry from before spec 309. An exchange difference carries only this."}
+      exchange_rate: {description: "Company-currency units per document-currency unit used for the company amount; 1 in the company currency."}
+  company_currency:
+    description: The currency the company keeps its books in (spec 309); absent means EUR. It cannot change once anything is posted.
+    columns:
+      tenant_id: {}
+      currency: {description: The three-letter currency code.}
+      source_record_id: {description: "The statement in force: a version of the company's currency source stream (spec 320 pattern)."}
+      created_at: {}
+      updated_at: {description: UTC timestamp when the currency was last stated.}
   ledger_reversal:
     description: Tenant-scoped correction evidence linking one immutable original posting group to its exact inverse group.
     columns:

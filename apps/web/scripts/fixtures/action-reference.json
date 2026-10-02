@@ -587,6 +587,21 @@
       "effect": "Answers from when and how much of an item can be promised, naming each open purchase and its date."
     },
     {
+      "name": "State the company currency",
+      "service": "set_company_currency",
+      "related_services": ["review_company_currency", "company_currency"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "States the currency the company keeps its books in, as a new version of the company's currency statement; refused once the company has posted anything."
+    },
+    {
+      "name": "Read the company currency",
+      "service": "company_currency_state",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Answers the company currency, EUR until stated, and whether the company has posted anything."
+    },
+    {
       "name": "State a customer item number",
       "service": "set_customer_item_number",
       "related_services": ["review_customer_item_number", "resolve_customer_item"],

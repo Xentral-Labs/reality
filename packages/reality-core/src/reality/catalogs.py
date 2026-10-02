@@ -48,6 +48,7 @@ from reality.services import stock_blocks as stock_block_service_module
 from reality.services import stock_counts as stock_count_service_module
 from reality.services import supply_assignments as supply_assignment_service_module
 from reality.services.finance import accounts as finance_account_service_module
+from reality.services.finance import company_currency as company_currency_service_module
 from reality.services.finance import components as finance_component_service_module
 from reality.services.finance import opening as finance_opening_service_module
 from reality.services.finance import references as finance_reference_service_module
@@ -1112,6 +1113,7 @@ def _service(name: str) -> Any:
         delivery_rule_service_module,
         stock_count_service_module,
         customer_item_service_module,
+        company_currency_service_module,
     ):
         own = getattr(module, name, None)
         if own is not None and getattr(own, "__module__", None) == module.__name__:
@@ -1319,6 +1321,7 @@ def _literal_business_events() -> set[str]:
         delivery_rule_service_module,
         stock_count_service_module,
         customer_item_service_module,
+        company_currency_service_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

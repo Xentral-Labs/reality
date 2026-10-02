@@ -48,9 +48,7 @@ def upgrade() -> None:
             ["tenant_id", "source_record_id"],
             ["source_record.tenant_id", "source_record.id"],
         ),
-        sa.CheckConstraint(
-            "currency ~ '^[A-Z]{3}$'", name="ck_company_currency_code"
-        ),
+        sa.CheckConstraint("currency ~ '^[A-Z]{3}$'", name="ck_company_currency_code"),
     )
     op.create_index(
         "ix_company_currency_source_record_id",
@@ -92,7 +90,9 @@ def downgrade() -> None:
         )
         .scalar()
     )
-    stated = op.get_bind().execute(sa.text("SELECT count(*) FROM company_currency")).scalar()
+    stated = (
+        op.get_bind().execute(sa.text("SELECT count(*) FROM company_currency")).scalar()
+    )
     if converted or stated:
         raise RuntimeError(
             f"{converted} converted ledger entries and {stated} company currencies "

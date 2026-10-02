@@ -18,7 +18,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 8        | 3         |
-| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 15       | 3         |
+| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 16       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 5        | 8         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 13       | 2         |
@@ -640,6 +640,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Standardkonto festlegen](./commands#command-set_default_account) (`set_default_account`)
 - [Buchung stornieren](./commands#command-reverse_ledger_posting_group)
   (`reverse_ledger_posting_group`)
+- [Firmenwährung festlegen](./commands#command-set_company_currency) (`set_company_currency`)
 - [Mahnung erfassen](./commands#command-record_notice) (`record_notice`)
 - [Mahnung stornieren](./commands#command-reverse_notice) (`reverse_notice`)
 - [Mahnlauf bestätigen](./commands#command-confirm_run) (`confirm_run`)
@@ -671,6 +672,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Verlauf der Finanzreferenz](./commands#command-reference_history) (`reference_history`)
 - [Buchungsmatrix anzeigen](./commands#command-transaction_matrix) (`transaction_matrix`)
 - [Operative Konten anzeigen](./commands#command-list_accounts) (`list_accounts`)
+- [Firmenwährung anzeigen](./commands#command-company_currency_state) (`company_currency_state`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Mahnungen anzeigen](./commands#command-notices) (`notices`)
 - [Mahnung anzeigen](./commands#command-notice_detail) (`notice_detail`)
@@ -705,8 +707,8 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 `cost_input_manifest`, `cost_manifest_attribution`, `cost_manifest_component`,
 `cost_manifest_correction`, `cost_manifest_receipt`, `cost_manifest_replacement`,
 `cost_receipt_basis`, `cost_scope_review`, `cost_scope_review_category`, `ledger_entry`,
-`ledger_reversal`, `subledger_account`, `finance_role_destination`, `accounting_target`,
-`accounting_target_reference`, `finance_target_mapping_revision`,
+`company_currency`, `ledger_reversal`, `subledger_account`, `finance_role_destination`,
+`accounting_target`, `accounting_target_reference`, `finance_target_mapping_revision`,
 `source_classification_mapping_revision`, `financial_component`, `component_assignment_revision`,
 `component_assignment_part`, `finance_reference`, `opening_scope`, `opening_item_detail` · Events:
 [`cost.attributed`](./events#event-cost-attributed),
@@ -719,6 +721,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 [`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
 [`dunning.notice_reversed`](./events#event-dunning-notice_reversed),
 [`dunning.run_confirmed`](./events#event-dunning-run_confirmed),
+[`company_currency.set`](./events#event-company_currency-set),
 [`ledger.posted`](./events#event-ledger-posted), [`ledger.reversed`](./events#event-ledger-reversed)
 
 ## Deckungsbeitrag {#resource-contribution}

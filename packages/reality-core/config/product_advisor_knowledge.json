@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:7fbee8e289794a683281fe45f05dd4744d05879b55d23f78c4a49f9cdfef28a0",
+  "knowledge_version": "advisor-v1:sha256:6bca3a126cc8a4d51a0f6bd621b26cee5fcb01617095c00fa22ddc5469a8681b",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "88991210ed466217e6126c52fe767b03968a12f48dc0c106685c0e22999ab135"
+      "fingerprint": "4b0d926028b4de955eb2076d777e73e49889ac4b725ca52e8985d1cd611ec6ef"
     },
     {
       "id": "source_document_product_evaluation",
@@ -7217,6 +7217,36 @@
       ],
       "language": "en",
       "fingerprint": "bc6e0faf002ea7f129dee8141c4af05a3d843e70d27a2cad8095c6c53eabc862"
+    },
+    {
+      "id": "evidence_command_set_company_currency",
+      "source_id": "source_executable_commands",
+      "subject": "State the company currency",
+      "title": "State the company currency",
+      "search_text": "set_company_currency State the company currency States the currency the company keeps its books in, as a new version of the company's currency statement; refused once the company has posted anything. mutation",
+      "claim_text": "set_company_currency is a governed mutation command for States the currency the company keeps its books in, as a new version of the company's currency statement; refused once the company has posted anything..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "set_company_currency"
+      ],
+      "language": "en",
+      "fingerprint": "1caec7de6ccb3075cce0e7b7e7f7472997958d59918521bad67d2b2e39f4a635"
+    },
+    {
+      "id": "evidence_command_company_currency_state",
+      "source_id": "source_executable_commands",
+      "subject": "Read the company currency",
+      "title": "Read the company currency",
+      "search_text": "company_currency_state Read the company currency Answers the company currency, EUR until stated, and whether the company has posted anything. query",
+      "claim_text": "company_currency_state is a governed query command for Answers the company currency, EUR until stated, and whether the company has posted anything..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "company_currency_state"
+      ],
+      "language": "en",
+      "fingerprint": "bb852c49a2072099a2c647a685eef2b424fbbb0cceadc08391295e03c93909c2"
     },
     {
       "id": "evidence_command_set_customer_item_number",
