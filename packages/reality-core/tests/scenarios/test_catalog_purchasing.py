@@ -1489,7 +1489,7 @@ def _usd_purchase(session, business, number, quantity, price, supplier=None):
 
 
 def _usd_invoice(session, business, line, quantity, gross, number, rate):
-    _, receipt = _reviewed(
+    proposal, receipt = _reviewed(
         session,
         business,
         "supplier_invoice_record",
@@ -1508,6 +1508,15 @@ def _usd_invoice(session, business, line, quantity, gross, number, rate):
             "exchange_rate": rate,
         },
         number,
+    )
+    from reality.services.delivery_actions import delivery_proposal_detail
+
+    # The recorded invoice proves itself against its review.
+    assert (
+        delivery_proposal_detail(session, business.tenant.id, proposal.id)[
+            "verification"
+        ]
+        == "verified"
     )
     return {row["family"]: row["id"] for row in receipt["records"]}
 
