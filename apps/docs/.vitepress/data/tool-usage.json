@@ -2520,7 +2520,7 @@
       "summary": "Prepare one outgoing package and its exact physical Movements; execution requires explicit confirmation.",
       "access": "propose",
       "group": "Operations",
-      "synopsis": "shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at]",
+      "synopsis": "shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]",
       "parameters": [
         {
           "name": "purpose",
@@ -2640,6 +2640,20 @@
           "required": false,
           "description": "UTC instant at which the physical or business event occurred.",
           "depth": 0
+        },
+        {
+          "name": "delivery_mode",
+          "type": "string",
+          "required": false,
+          "description": "How the goods go, as stated, carrier or pickup; a pickup takes no carrier or tracking number.",
+          "depth": 0
+        },
+        {
+          "name": "collected_by",
+          "type": "string",
+          "required": false,
+          "description": "Who collected a pickup, as stated; optional free text.",
+          "depth": 0
         }
       ],
       "guidance": {},
@@ -2659,7 +2673,7 @@
       "summary": "Prepare one incoming package and its exact physical Movements; execution requires explicit confirmation.",
       "access": "propose",
       "group": "Operations",
-      "synopsis": "shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at]",
+      "synopsis": "shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]",
       "parameters": [
         {
           "name": "purpose",
@@ -2800,6 +2814,20 @@
           "type": "string",
           "required": false,
           "description": "UTC instant at which the physical or business event occurred.",
+          "depth": 0
+        },
+        {
+          "name": "delivery_mode",
+          "type": "string",
+          "required": false,
+          "description": "How the goods go, as stated, carrier or pickup; a pickup takes no carrier or tracking number.",
+          "depth": 0
+        },
+        {
+          "name": "collected_by",
+          "type": "string",
+          "required": false,
+          "description": "Who collected a pickup, as stated; optional free text.",
           "depth": 0
         }
       ],
@@ -24709,8 +24737,8 @@
       "related_services": ["record_movement"],
       "tools": ["shipment_dispatch_propose", "shipment_receive_propose"],
       "synopses": [
-        "shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at]",
-        "shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at]"
+        "shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]",
+        "shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]"
       ],
       "events": [],
       "actions": [],
@@ -79819,6 +79847,20 @@
           "meaning": {
             "en": "When Reality created this record (UTC).",
             "de": "Wann Reality diesen Eintrag angelegt hat (UTC)."
+          },
+          "references": []
+        },
+        {
+          "name": "delivery_mode",
+          "type": "VARCHAR",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "How the goods go, as stated: carrier or customer pickup.",
+            "de": "Wie die Ware geht, wie angegeben: Spediteur oder Abholung durch den Kunden."
           },
           "references": []
         }

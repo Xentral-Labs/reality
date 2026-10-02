@@ -2172,6 +2172,21 @@
     },
     "revision_beyond_shipped": {
       "message": "A delivered line can be raised only up to what was shipped and kept."
+    },
+    "shipment_occurred_at_future": {
+      "message": "When the goods moved cannot lie in the future."
+    },
+    "shipment_delivery_mode_invalid": {
+      "message": "A shipment goes by carrier or is collected by the customer."
+    },
+    "shipment_pickup_customer_only": {
+      "message": "Only a customer delivery can be collected."
+    },
+    "shipment_pickup_carrier_refused": {
+      "message": "A collected shipment has no carrier or tracking number."
+    },
+    "shipment_collector_pickup_only": {
+      "message": "Who collected is stated for a pickup only."
     }
   },
   "terms": [

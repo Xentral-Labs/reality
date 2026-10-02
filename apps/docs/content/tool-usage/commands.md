@@ -5982,8 +5982,8 @@ Atomically records one physical package and its exact existing Movement effects.
 **Synopsis**
 
 ```text
-shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at]
-shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at]
+shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]
+shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]
 ```
 
 **Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
@@ -6004,7 +6004,7 @@ confirmation.
 **Synopsis**
 
 ```text
-shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at]
+shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]
 ```
 
 **Access:** `propose`
@@ -6030,6 +6030,8 @@ shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_
 | `tracking_number`              | `string` | no       | Carrier-assigned package reference used for operational lookup; it is not internal identity.                                                                      | —       |
 | `source_record_id`             | `string` | no       | Opaque identity of the immutable source record supporting this typed record.                                                                                      | —       |
 | `occurred_at`                  | `string` | no       | UTC instant at which the physical or business event occurred.                                                                                                     | —       |
+| `delivery_mode`                | `string` | no       | How the goods go, as stated, carrier or pickup; a pickup takes no carrier or tracking number.                                                                     | —       |
+| `collected_by`                 | `string` | no       | Who collected a pickup, as stated; optional free text.                                                                                                            | —       |
 
 **See also:** command [`record_packaged_execution`](./commands#command-record_packaged_execution)
 
@@ -6041,7 +6043,7 @@ confirmation.
 **Synopsis**
 
 ```text
-shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at]
+shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]
 ```
 
 **Access:** `propose`
@@ -6070,6 +6072,8 @@ shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_n
 | `tracking_number`              | `string` | no       | Carrier-assigned package reference used for operational lookup; it is not internal identity.                                                                                                                              | —       |
 | `source_record_id`             | `string` | no       | Opaque identity of the immutable source record supporting this typed record.                                                                                                                                              | —       |
 | `occurred_at`                  | `string` | no       | UTC instant at which the physical or business event occurred.                                                                                                                                                             | —       |
+| `delivery_mode`                | `string` | no       | How the goods go, as stated, carrier or pickup; a pickup takes no carrier or tracking number.                                                                                                                             | —       |
+| `collected_by`                 | `string` | no       | Who collected a pickup, as stated; optional free text.                                                                                                                                                                    | —       |
 
 **See also:** command [`record_packaged_execution`](./commands#command-record_packaged_execution)
 

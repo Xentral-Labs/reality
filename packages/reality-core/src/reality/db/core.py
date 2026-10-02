@@ -2173,7 +2173,14 @@ class Shipment(Base):
             "ix_shipment_tenant_purpose_created", "tenant_id", "purpose", "created_at"
         ),
         Index("ix_shipment_tenant_counterparty", "tenant_id", "counterparty_id"),
+        CheckConstraint(
+            "delivery_mode IS NULL OR delivery_mode IN ('carrier', 'pickup')",
+            name="ck_shipment_delivery_mode",
+        ),
     )
+    # The spec 312 mode is left out of an INSERT that does not set it, so
+    # schemas from before it keep working in the historical migration tests.
+    __mapper_args__: ClassVar[dict[str, Any]] = {"eager_defaults": False}
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     direction: Mapped[str] = mapped_column(String)
@@ -2181,6 +2188,10 @@ class Shipment(Base):
     counterparty_id: Mapped[str] = mapped_column()
     source_record_id: Mapped[str | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    # Spec 312: how the goods go, as stated: a carrier, or the customer collects.
+    delivery_mode: Mapped[str | None] = mapped_column(
+        String, server_default=FetchedValue(), deferred=True
+    )
 
 
 class ShipmentPackage(Base):

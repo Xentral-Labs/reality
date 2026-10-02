@@ -76,6 +76,8 @@ parameter_descriptions:
   price_list_entry_id: Opaque identity of the price tier the line price came from, when a list price was applied; provenance, not a recalculation.
   invoice_line_id: Opaque identity of the invoice line this credit line refers back to.
   carrier: Carrier name stated for a physical package; it is descriptive and not an internal identity.
+  delivery_mode: How the goods go, as stated, carrier or pickup; a pickup takes no carrier or tracking number.
+  collected_by: Who collected a pickup, as stated; optional free text.
   commit: Internal transaction-control flag used when a service participates in a larger atomic operation.
   purpose: Closed business purpose that determines the shipment's counterparty role and compatible Movement type.
   reporter_type: Closed attribution for who stated a shipment observation, such as company, counterparty, or carrier.

@@ -64,6 +64,7 @@ resolution_reason|Why the block was released or scrapped, as stated.|Warum die S
 previous_block_id|Block a partial release or scrap continued this one from.|Sperre, aus der eine Teilfreigabe oder Teilverschrottung diese fortgeführt hat.
 reorder_point|Stock level at or below which the item is reordered at the location.|Bestand, bei dessen Erreichen oder Unterschreiten der Artikel am Lagerort nachbestellt wird.
 reorder_quantity|Quantity proposed when the reorder point is reached.|Menge, die beim Erreichen des Meldebestands vorgeschlagen wird.
+delivery_mode|How the goods go, as stated: carrier or customer pickup.|Wie die Ware geht, wie angegeben: Spediteur oder Abholung durch den Kunden.
 customer_item_number|The customer's own article number, as the customer states it.|Die Artikelnummer des Kunden, wie der Kunde sie angibt.
 match_key|The number upper-cased and without spaces, what lines are matched on.|Die Nummer in Großbuchstaben ohne Leerzeichen, nach der Positionen abgeglichen werden.
 company_amount|The amount in the company currency, converted at the stated rate.|Der Betrag in Firmenwährung, zum angegebenen Kurs umgerechnet.
