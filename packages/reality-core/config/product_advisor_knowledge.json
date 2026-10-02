@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:d5be81a0fdc2f10d2144126d696d79a486a0b5bd357bc9060ce3488bd3c2edb7",
+  "knowledge_version": "advisor-v1:sha256:44279e960dfe132c8870468f3a8cf3ca83506f5e5f78161729362271d0888f8f",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -306,7 +306,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#B10",
-      "fingerprint": "7fc3be5bae15db32ad5c306b4c271d07b36df6596778fa3d1e4aeee5fa831fc3"
+      "fingerprint": "f88323a7749ec574399e28c0b5fe6f8daeea6fbd6ea30fae5363143492fd41ce"
     },
     {
       "id": "source_journey_b11",
@@ -1683,7 +1683,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#M06",
-      "fingerprint": "ba21e1dac4b2a10cd58b96b50080e453afe16ec2d9d8cf38375662c98dadc638"
+      "fingerprint": "9840a953a416bd5b65a40c5c9aa83cc68df65626e43a42db79a5ba547da658f0"
     },
     {
       "id": "source_journey_m07",
@@ -2687,18 +2687,22 @@
       "source_id": "source_journey_b10",
       "subject": "Availability, reservation and backorder",
       "title": "Customer refuses partial delivery",
-      "search_text": "B10 Availability, reservation and backorder Customer refuses partial delivery Reserved but deliberately not shipped — why? Customer refuses partial delivery Reserved but deliberately not shipped — why?",
-      "claim_text": "Reality evaluates: Reserved but deliberately not shipped — why?",
-      "support": "limited",
+      "search_text": "B10 Availability, reservation and backorder Customer refuses partial delivery Reserved but deliberately not shipped — why? ship complete complete delivery no partial delivery Komplettlieferung keine Teillieferung Customer refuses partial delivery Reserved but deliberately not shipped — why? The customer only accepts complete deliveries; can we hold the order until everything is there? Der Kunde akzeptiert nur Komplettlieferungen; halten wir den Auftrag zurück, bis alles da ist?",
+      "claim_text": "Reality evaluates: Reserved but deliberately not shipped — why? A customer, or one order, states ship complete with a reason: readiness names the rule while any open line cannot ship in full, a partial shipment is refused with its code, and Order waiting for completeness names the ready and missing lines. A person can lift the rule for one order with a reason through the review.",
+      "support": "proven",
       "limitations": [
-        "A hold with a reason can explain why reserved goods are not shipped.",
-        "There is no ship-complete or no-partial-delivery rule."
+        "Complete means the whole order; there is no per-line or parcel-count rule (B11).",
+        "An importer recording what a source says left is not refused."
       ],
       "references": [
-        "B10"
+        "B10",
+        "delivery_rule_set_propose",
+        "delivery_rules",
+        "fulfillment_readiness",
+        "shipment_dispatch_propose"
       ],
       "language": "en",
-      "fingerprint": "5e702e71bbce49dd7d402e2322289e4b6042d6748c8e5044a8f37f277a69f43d"
+      "fingerprint": "59f5671926a68e0bcd635301a3d94207cc0f7b2c3546fc7863c990e2d573dbfd"
     },
     {
       "id": "evidence_journey_b11",
@@ -5275,18 +5279,20 @@
       "source_id": "source_journey_m06",
       "subject": "B2B specifics",
       "title": "Customer rule: cancel backorders instead of delivering later",
-      "search_text": "M06 B2B specifics Customer rule: cancel backorders instead of delivering later Remainder closed by rule with reason? Customer rule: cancel backorders instead of delivering later Remainder closed by rule with reason?",
-      "claim_text": "Reality evaluates: Remainder closed by rule with reason?",
-      "support": "unavailable",
+      "search_text": "M06 B2B specifics Customer rule: cancel backorders instead of delivering later Remainder closed by rule with reason? no backorders cancel backorders keine Rückstände Rückstand stornieren Customer rule: cancel backorders instead of delivering later Remainder closed by rule with reason? The customer wants no backorders; what happens to the rest after a partial shipment? Der Kunde will keine Rückstände; was passiert mit dem Rest nach einer Teillieferung?",
+      "claim_text": "Reality evaluates: Remainder closed by rule with reason? A customer states no backorders with a reason: once part of an order has shipped, Backorder against the customer's rule reports each open rest and offers the reviewed cancellation with the rule as its reason. Nothing is cancelled by itself.",
+      "support": "proven",
       "limitations": [
-        "There is no customer rule that cancels backorders automatically.",
-        "The remainder can be closed by hand with a reason."
+        "The rest is cancelled by a person through the review, not automatically."
       ],
       "references": [
-        "M06"
+        "M06",
+        "delivery_rule_set_propose",
+        "delivery_rules",
+        "commitment_cancel_propose"
       ],
       "language": "en",
-      "fingerprint": "97c0b1659ae713455c787407f2ab304fc20f9b9a41d9ac7cc19e19304e296b77"
+      "fingerprint": "68e78af148853b7126c4c189ccf61b5f8a7ee68597347a0c634b0f91c8aa5c67"
     },
     {
       "id": "evidence_journey_m07",

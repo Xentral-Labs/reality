@@ -48,12 +48,12 @@ Tests come first in each phase where practical.
 
 ## Phase 6: Web
 
-- [ ] T012 Lieferregel on the customer and the order, the blocker label, the two findings, translations, browser fixtures
+- [x] T012 Lieferregel on the customer and the order, the blocker label, the two findings, translations, browser fixtures
 
 ## Phase 7: Stories and Guide (FR-004)
 
-- [ ] T013 Business stories B10 and M06
-- [ ] T014 Promote the journeys: Guide catalog, Guide tests, coverage, roadmap, docs
+- [x] T013 Business stories B10 and M06
+- [x] T014 Promote the journeys: Guide catalog, Guide tests, coverage, roadmap, docs
 
 ## Phase 8: Verification
 

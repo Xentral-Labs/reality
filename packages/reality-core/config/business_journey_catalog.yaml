@@ -764,23 +764,36 @@ entries:
   section: Availability, reservation and backorder
   title: Customer refuses partial delivery
   question: Reserved but deliberately not shipped — why?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Reserved but deliberately not shipped — why?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Reserved but deliberately not shipped — why? A customer, or one order, states ship complete with a reason: readiness names the rule while any open line cannot ship in full, a partial shipment is refused with its code, and Order waiting for completeness names the ready and missing lines. A person can lift the rule for one order with a reason through the review."
   limitations:
-  - A hold with a reason can explain why reserved goods are not shipped.
-  - There is no ship-complete or no-partial-delivery rule.
-  keywords: []
+  - Complete means the whole order; there is no per-line or parcel-count rule (B11).
+  - An importer recording what a source says left is not refused.
+  keywords:
+  - ship complete
+  - complete delivery
+  - no partial delivery
+  - Komplettlieferung
+  - keine Teillieferung
   question_examples:
   - Customer refuses partial delivery
   - Reserved but deliberately not shipped — why?
-  tools: []
+  - The customer only accepts complete deliveries; can we hold the order until everything is there?
+  - Der Kunde akzeptiert nur Komplettlieferungen; halten wir den Auftrag zurück, bis alles da ist?
+  tools:
+  - delivery_rule_set_propose
+  - delivery_rules
+  - fulfillment_readiness
+  - shipment_dispatch_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_fulfillment_readiness.py::test_readiness_combines_stock_reservation_and_active_hold; tests/test_commitment_holds.py::test_a_held_promise_cannot_be_shipped
-    note: A reasoned commitment hold can explain "reserved but not shipped"; there is no ship-complete or no-partial-delivery rule.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_who_refuses_partial_delivery_gets_the_whole_order_at_once
+    note: "Ship complete stated for the customer: the reserved bikes wait with the blocker named, a partial shipment is refused, the finding names the missing lamps, and the whole order ships together."
+  - reference: packages/reality-core/tests/test_delivery_rule_shipments.py
+    note: Readiness, every person-facing shipment path, the fulfillment queue and a lifted order (spec 306).
 - id: B11
   section: Availability, reservation and backorder
   title: Partial delivery allowed up to two parcels
@@ -4165,23 +4178,31 @@ entries:
   section: B2B specifics
   title: 'Customer rule: cancel backorders instead of delivering later'
   question: Remainder closed by rule with reason?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Remainder closed by rule with reason?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Remainder closed by rule with reason? A customer states no backorders with a reason: once part of an order has shipped, Backorder against the customer's rule reports each open rest and offers the reviewed cancellation with the rule as its reason. Nothing is cancelled by itself."
   limitations:
-  - There is no customer rule that cancels backorders automatically.
-  - The remainder can be closed by hand with a reason.
-  keywords: []
+  - The rest is cancelled by a person through the review, not automatically.
+  keywords:
+  - no backorders
+  - cancel backorders
+  - keine Rückstände
+  - Rückstand stornieren
   question_examples:
   - 'Customer rule: cancel backorders instead of delivering later'
   - Remainder closed by rule with reason?
-  tools: []
+  - The customer wants no backorders; what happens to the rest after a partial shipment?
+  - Der Kunde will keine Rückstände; was passiert mit dem Rest nach einer Teillieferung?
+  tools:
+  - delivery_rule_set_propose
+  - delivery_rules
+  - commitment_cancel_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_commitment_revisions.py::test_shrinking_to_what_arrived_finishes_the_promise; specs/085-close-stale-promises/spec.md
-    note: There is no party-level "no backorders" rule; the remainder can only be closed by hand (revise or cancel with a reason).
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_who_wants_no_backorders_has_the_rest_cancelled
+    note: "No backorders stated for the customer: 6 of 10 ship, the finding reports 4 open with the rule's reason, and the reviewed cancellation clears it."
 - id: M07
   section: B2B specifics
   title: Customer-prescribed delivery note or pallet label

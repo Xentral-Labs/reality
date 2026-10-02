@@ -8,12 +8,12 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 132 covered, 22 partial, 0 missing, 71 gap, 3 out.
+228 scenarios: 134 covered, 21 partial, 0 missing, 70 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 15 | 1 |  | 8 |  |
-| B Availability and reservation | 11 | 1 |  | 6 |  |
+| B Availability and reservation | 12 |  |  | 6 |  |
 | C Payment and release | 14 |  |  | 4 |  |
 | D Shipment, split and merge | 5 | 3 |  | 11 |  |
 | E Customer invoice and credit | 11 | 1 |  |  |  |
@@ -24,7 +24,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | J Warehouse and stock | 4 | 2 |  | 5 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
 | L E-commerce and marketplaces | 7 |  |  | 5 |  |
-| M B2B specifics | 1 | 3 |  | 8 |  |
+| M B2B specifics | 2 | 3 |  | 7 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 3 |  |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
@@ -50,7 +50,8 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
 4. **No drop-ship path.** Fulfilment derives only from own-stock movements. D10, D11, G15, R03.
 5. **No allocation policy.** Priority between promises, reserving by requested date, ship-complete,
    reservation lapse, channel quotas and shelf-life eligibility are all absent; spec 068 names
-   allocation a non-goal. A12, B03, B11, B12, B15, B16, B17, M06 (B10 partial). Since spec 305 a
+   allocation a non-goal. A12, B03, B11, B12, B15, B16, B17. Since spec 306 a customer or order states ship
+   complete or no backorders (B10, M06). Since spec 305 a
    receipt is served through a reviewed proposal in a stated order (assigned first, then due date),
    and available-to-promise names the purchases it relies on (B07, B08, B09, H16). Since spec 303 a person can reserve the rest of a promise
    at another warehouse and each warehouse ships its part (D02), but nothing distributes a
@@ -152,7 +153,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | B07 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_stock_only_on_order_is_promised_by_its_purchase_date | No stock and a purchase of 10 due 12 Oct with 4 assigned: available-to-promise shows nothing now and 6 more from 12 Oct, naming the purchase and supplier (spec 305). |
 | B08 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_receipt_serves_the_earlier_due_backorder_first | Two orders of 3 wait and 4 arrive: Serve backorders proposes 3 for the one due first and 1 for the other, reserves nothing until a person confirms, and only the second stays at risk (spec 305). |
 | B09 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_partial_receipt_names_the_backorders_left_uncovered | A receipt of 4 against 3 + 3 + 3 shows 3/0, 1/2 and 0/3 arrived and still to come; serving reserves 3 and 1 and the other two stay at risk (spec 305). |
-| B10 | partial | tests/test_fulfillment_readiness.py::test_readiness_combines_stock_reservation_and_active_hold; tests/test_commitment_holds.py::test_a_held_promise_cannot_be_shipped | A reasoned commitment hold can explain "reserved but not shipped"; there is no ship-complete or no-partial-delivery rule. |
+| B10 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_who_refuses_partial_delivery_gets_the_whole_order_at_once | Ship complete stated for the customer: the reserved bikes wait with the blocker named, a partial shipment is refused, Order waiting for completeness names the missing lamps, and the whole order ships together (spec 306). |
 | B11 | gap | services/fulfillment_readiness.py (blocker set) | No per-order or per-customer limit on partial deliveries or parcel count exists. |
 | B12 | gap | db/core.py `Reservation` (no deadline column); tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside | Prepayment only blocks shipment; a reservation has no lapse date and is never released automatically. |
 | B13 | covered | tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock, ::test_reservation_exceeds_stock_references_are_opaque | A stocktake loss raises `reservation_exceeds_stock` naming the reservations; it is judged per item across locations and blames no single promise. |
@@ -360,7 +361,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | M03 | gap | tests/test_master_data_api.py::test_api_ingests_arbitrary_source_as_unmapped | EDI messages can only be stored as unmapped sources; there are no ORDERS/ORDRSP/DESADV/INVOIC/REMADV interpreters or links between messages. |
 | M04 | partial | tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated; tests/scenarios/test_b2b_operational_integrity.py::test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly; tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record | Manual `commitment_revise` is proven; a customer ORDCHG source does not create a revision (a changed Shopify order is held for review instead). |
 | M05 | gap | db/core.py Document.ship_to_party_id | Only one ship-to per document header, so several recipients per order can't be stated. |
-| M06 | gap | tests/test_commitment_revisions.py::test_shrinking_to_what_arrived_finishes_the_promise; specs/085-close-stale-promises/spec.md | There is no party-level "no backorders" rule; the remainder can only be closed by hand (revise or cancel with a reason). |
+| M06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_who_wants_no_backorders_has_the_rest_cancelled | No backorders stated for the customer: 6 of 10 ship, Backorder against the customer's rule reports the open 4 with its reason, and the reviewed cancellation clears it (spec 306). |
 | M07 | gap | docs/ideas/attachments.md (HandlingUnit label idea only) | No label or delivery-note output exists, and no doc states it is out of core scope, so "out" can't be cited. |
 | M08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_customer_deduction_with_an_agreed_reason_leaves_nothing_open | Customer short payment with an agreed_deduction reduction through finance.settlement.apply: invoice open 0, reason on the review and the adjustment source record. |
 | M09 | partial | tests/test_unified_invoice_credit.py::test_financial_credit_does_not_require_return_exception; specs/004-master-data/spec.md Non-Goals ("rebates") | A credit without goods can carry a rebate; rebate agreements and year-end accrual are an explicit non-goal. |

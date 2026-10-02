@@ -39,3 +39,19 @@ fields are never promoted or recomputed merely to fill the display.
 
 Sales and Purchasing label promises as Commitments and actual consignments as Shipments. Sales
 selects outbound customer shipments; Purchasing selects inbound supplier shipments.
+
+## Delivery rules (spec 306)
+
+A customer, or one order, can state how it is delivered, with a reason:
+- **Partial allowed** is the default.
+- **Ship complete** means the whole order goes in one shipment.
+- **No backorders** means what does not ship with the first shipment is cancelled rather than delivered later.
+
+An order's rule wins over its customer's. Every statement is a version of the subject's source stream, and the `delivery_rule` row names the version in force.
+
+**Ship complete:**
+- Readiness adds `ship_complete_incomplete` while any open line of the order cannot ship its whole open quantity.
+- Every person-facing shipment path refuses a shipment that leaves an open line behind (`shipment_ship_complete_partial`): the reviewed tool and its execution, the movement endpoint, the CLI and packaged dispatch. Importers recording what a source states are not refused.
+- Order waiting for completeness names orders whose ready lines wait only because of the rule. Stating partial allowed for that one order lifts the rule.
+
+**No backorders:** Backorder against the customer's rule reports each open rest once part of the order has shipped. The reviewed cancellation with the rule as its reason clears it; nothing is cancelled by itself.
