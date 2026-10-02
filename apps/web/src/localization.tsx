@@ -24910,17 +24910,39 @@ Object.assign(dictionaries.de, {
   "nothing stated": "nichts hinterlegt",
   "Remember for this customer": "Für diesen Kunden merken",
   Replaces: "Ersetzt",
-  "State the company currency as a three-letter code.": "Gib die Firmenwährung als dreistelligen Code an.",
-  "The company currency cannot change after the first posting.": "Die Firmenwährung kann nach der ersten Buchung nicht mehr geändert werden.",
-  "The company currency changed since this review. Review it again.": "Die Firmenwährung hat sich seit dieser Prüfung geändert. Prüfe sie erneut.",
-  "State the exchange rate for an invoice in another currency than the company currency.": "Gib den Kurs für eine Rechnung in einer anderen Währung als der Firmenwährung an.",
-  "An amount in the company currency takes no exchange rate.": "Ein Betrag in Firmenwährung hat keinen Kurs.",
+  "State the company currency as a three-letter code.":
+    "Gib die Firmenwährung als dreistelligen Code an.",
+  "The company currency cannot change after the first posting.":
+    "Die Firmenwährung kann nach der ersten Buchung nicht mehr geändert werden.",
+  "The company currency changed since this review. Review it again.":
+    "Die Firmenwährung hat sich seit dieser Prüfung geändert. Prüfe sie erneut.",
+  "State the exchange rate for an invoice in another currency than the company currency.":
+    "Gib den Kurs für eine Rechnung in einer anderen Währung als der Firmenwährung an.",
+  "An amount in the company currency takes no exchange rate.":
+    "Ein Betrag in Firmenwährung hat keinen Kurs.",
   "An exchange rate must be a positive number.": "Ein Kurs muss eine positive Zahl sein.",
-  "Each entry needs one company-currency amount that is not negative.": "Jede Buchungszeile braucht einen nicht negativen Betrag in Firmenwährung.",
-  "State what was paid in the company currency for an invoice in another currency.": "Gib an, was für eine Rechnung in Fremdwährung in Firmenwährung gezahlt wurde.",
-  "An invoice in the company currency is paid in its own currency.": "Eine Rechnung in Firmenwährung wird in ihrer eigenen Währung gezahlt.",
+  "Each entry needs one company-currency amount that is not negative.":
+    "Jede Buchungszeile braucht einen nicht negativen Betrag in Firmenwährung.",
+  "State what was paid in the company currency for an invoice in another currency.":
+    "Gib an, was für eine Rechnung in Fremdwährung in Firmenwährung gezahlt wurde.",
+  "An invoice in the company currency is paid in its own currency.":
+    "Eine Rechnung in Firmenwährung wird in ihrer eigenen Währung gezahlt.",
   "The amount paid must be a positive number.": "Der gezahlte Betrag muss eine positive Zahl sein.",
-  "This invoice was posted without an exchange rate and cannot be paid in another currency.": "Diese Rechnung wurde ohne Kurs gebucht und kann nicht in einer anderen Währung gezahlt werden.",
+  "This invoice was posted without an exchange rate and cannot be paid in another currency.":
+    "Diese Rechnung wurde ohne Kurs gebucht und kann nicht in einer anderen Währung gezahlt werden.",
+  "Can be changed until the first posting.": "Bis zur ersten Buchung änderbar.",
+  "Company currency": "Firmenwährung",
+  "Currency code": "Währungscode",
+  "Exchange difference": "Kursdifferenz",
+  "Exchange gain": "Kursgewinn",
+  "Exchange loss": "Kursverlust",
+  "Exchange rate (only for an invoice in another currency)":
+    "Kurs (nur bei Rechnung in Fremdwährung)",
+  "Fixed: the company has posted in it.": "Fest: Die Firma hat darin gebucht.",
+  "Paid in company currency": "Gezahlt in Firmenwährung",
+  Rate: "Kurs",
+  "Value at the invoice rate": "Wert zum Rechnungskurs",
+  "Value in company currency": "Wert in Firmenwährung",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25198,17 +25220,39 @@ Object.assign(dictionaries.nl, {
   "nothing stated": "niets vastgelegd",
   "Remember for this customer": "Onthouden voor deze klant",
   Replaces: "Vervangt",
-  "State the company currency as a three-letter code.": "Geef de bedrijfsvaluta op als code van drie letters.",
-  "The company currency cannot change after the first posting.": "De bedrijfsvaluta kan na de eerste boeking niet meer wijzigen.",
-  "The company currency changed since this review. Review it again.": "De bedrijfsvaluta is sinds deze controle gewijzigd. Controleer opnieuw.",
-  "State the exchange rate for an invoice in another currency than the company currency.": "Geef de wisselkoers op voor een factuur in een andere valuta dan de bedrijfsvaluta.",
-  "An amount in the company currency takes no exchange rate.": "Een bedrag in de bedrijfsvaluta heeft geen wisselkoers.",
+  "State the company currency as a three-letter code.":
+    "Geef de bedrijfsvaluta op als code van drie letters.",
+  "The company currency cannot change after the first posting.":
+    "De bedrijfsvaluta kan na de eerste boeking niet meer wijzigen.",
+  "The company currency changed since this review. Review it again.":
+    "De bedrijfsvaluta is sinds deze controle gewijzigd. Controleer opnieuw.",
+  "State the exchange rate for an invoice in another currency than the company currency.":
+    "Geef de wisselkoers op voor een factuur in een andere valuta dan de bedrijfsvaluta.",
+  "An amount in the company currency takes no exchange rate.":
+    "Een bedrag in de bedrijfsvaluta heeft geen wisselkoers.",
   "An exchange rate must be a positive number.": "Een wisselkoers moet een positief getal zijn.",
-  "Each entry needs one company-currency amount that is not negative.": "Elke boekingsregel heeft een niet-negatief bedrag in bedrijfsvaluta nodig.",
-  "State what was paid in the company currency for an invoice in another currency.": "Geef op wat voor een factuur in vreemde valuta in bedrijfsvaluta is betaald.",
-  "An invoice in the company currency is paid in its own currency.": "Een factuur in bedrijfsvaluta wordt in haar eigen valuta betaald.",
+  "Each entry needs one company-currency amount that is not negative.":
+    "Elke boekingsregel heeft een niet-negatief bedrag in bedrijfsvaluta nodig.",
+  "State what was paid in the company currency for an invoice in another currency.":
+    "Geef op wat voor een factuur in vreemde valuta in bedrijfsvaluta is betaald.",
+  "An invoice in the company currency is paid in its own currency.":
+    "Een factuur in bedrijfsvaluta wordt in haar eigen valuta betaald.",
   "The amount paid must be a positive number.": "Het betaalde bedrag moet een positief getal zijn.",
-  "This invoice was posted without an exchange rate and cannot be paid in another currency.": "Deze factuur is zonder wisselkoers geboekt en kan niet in een andere valuta worden betaald.",
+  "This invoice was posted without an exchange rate and cannot be paid in another currency.":
+    "Deze factuur is zonder wisselkoers geboekt en kan niet in een andere valuta worden betaald.",
+  "Can be changed until the first posting.": "Te wijzigen tot de eerste boeking.",
+  "Company currency": "Bedrijfsvaluta",
+  "Currency code": "Valutacode",
+  "Exchange difference": "Koersverschil",
+  "Exchange gain": "Koerswinst",
+  "Exchange loss": "Koersverlies",
+  "Exchange rate (only for an invoice in another currency)":
+    "Wisselkoers (alleen bij factuur in vreemde valuta)",
+  "Fixed: the company has posted in it.": "Vast: het bedrijf heeft erin geboekt.",
+  "Paid in company currency": "Betaald in bedrijfsvaluta",
+  Rate: "Koers",
+  "Value at the invoice rate": "Waarde tegen de factuurkoers",
+  "Value in company currency": "Waarde in bedrijfsvaluta",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25486,17 +25530,39 @@ Object.assign(dictionaries.es, {
   "nothing stated": "nada registrado",
   "Remember for this customer": "Recordar para este cliente",
   Replaces: "Sustituye a",
-  "State the company currency as a three-letter code.": "Indica la moneda de la empresa con un código de tres letras.",
-  "The company currency cannot change after the first posting.": "La moneda de la empresa no puede cambiar después del primer asiento.",
-  "The company currency changed since this review. Review it again.": "La moneda de la empresa cambió desde esta revisión. Revísala de nuevo.",
-  "State the exchange rate for an invoice in another currency than the company currency.": "Indica el tipo de cambio de una factura en otra moneda que la de la empresa.",
-  "An amount in the company currency takes no exchange rate.": "Un importe en la moneda de la empresa no lleva tipo de cambio.",
+  "State the company currency as a three-letter code.":
+    "Indica la moneda de la empresa con un código de tres letras.",
+  "The company currency cannot change after the first posting.":
+    "La moneda de la empresa no puede cambiar después del primer asiento.",
+  "The company currency changed since this review. Review it again.":
+    "La moneda de la empresa cambió desde esta revisión. Revísala de nuevo.",
+  "State the exchange rate for an invoice in another currency than the company currency.":
+    "Indica el tipo de cambio de una factura en otra moneda que la de la empresa.",
+  "An amount in the company currency takes no exchange rate.":
+    "Un importe en la moneda de la empresa no lleva tipo de cambio.",
   "An exchange rate must be a positive number.": "Un tipo de cambio debe ser un número positivo.",
-  "Each entry needs one company-currency amount that is not negative.": "Cada línea necesita un importe no negativo en la moneda de la empresa.",
-  "State what was paid in the company currency for an invoice in another currency.": "Indica lo pagado en la moneda de la empresa por una factura en otra moneda.",
-  "An invoice in the company currency is paid in its own currency.": "Una factura en la moneda de la empresa se paga en su propia moneda.",
+  "Each entry needs one company-currency amount that is not negative.":
+    "Cada línea necesita un importe no negativo en la moneda de la empresa.",
+  "State what was paid in the company currency for an invoice in another currency.":
+    "Indica lo pagado en la moneda de la empresa por una factura en otra moneda.",
+  "An invoice in the company currency is paid in its own currency.":
+    "Una factura en la moneda de la empresa se paga en su propia moneda.",
   "The amount paid must be a positive number.": "El importe pagado debe ser un número positivo.",
-  "This invoice was posted without an exchange rate and cannot be paid in another currency.": "Esta factura se registró sin tipo de cambio y no puede pagarse en otra moneda.",
+  "This invoice was posted without an exchange rate and cannot be paid in another currency.":
+    "Esta factura se registró sin tipo de cambio y no puede pagarse en otra moneda.",
+  "Can be changed until the first posting.": "Se puede cambiar hasta el primer asiento.",
+  "Company currency": "Moneda de la empresa",
+  "Currency code": "Código de moneda",
+  "Exchange difference": "Diferencia de cambio",
+  "Exchange gain": "Ganancia por tipo de cambio",
+  "Exchange loss": "Pérdida por tipo de cambio",
+  "Exchange rate (only for an invoice in another currency)":
+    "Tipo de cambio (solo para facturas en otra moneda)",
+  "Fixed: the company has posted in it.": "Fija: la empresa ya ha registrado en ella.",
+  "Paid in company currency": "Pagado en la moneda de la empresa",
+  Rate: "Tipo",
+  "Value at the invoice rate": "Valor al tipo de la factura",
+  "Value in company currency": "Valor en la moneda de la empresa",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
