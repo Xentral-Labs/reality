@@ -8,18 +8,18 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 126 covered, 28 partial, 0 missing, 71 gap, 3 out.
+228 scenarios: 132 covered, 22 partial, 0 missing, 71 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 15 | 1 |  | 8 |  |
-| B Availability and reservation | 8 | 4 |  | 6 |  |
+| B Availability and reservation | 11 | 1 |  | 6 |  |
 | C Payment and release | 14 |  |  | 4 |  |
 | D Shipment, split and merge | 5 | 3 |  | 11 |  |
 | E Customer invoice and credit | 11 | 1 |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
-| G Purchase demand and order | 7 | 5 |  | 5 |  |
-| H Receipt and supplier deviations | 13 | 1 |  | 5 |  |
+| G Purchase demand and order | 8 | 4 |  | 5 |  |
+| H Receipt and supplier deviations | 14 |  |  | 5 |  |
 | I Supplier invoice and payment | 10 | 1 |  | 1 |  |
 | J Warehouse and stock | 4 | 2 |  | 5 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
@@ -29,7 +29,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | O Master data and identity | 3 |  |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
 | Q Time and period | 2 | 1 |  | 2 |  |
-| R Combined stress stories | 1 | 5 |  | 2 |  |
+| R Combined stress stories | 2 | 4 |  | 2 |  |
 
 Strongest where an operational exception class exists (at-risk, reservation_exceeds_stock,
 shipped_not_billed, returned_not_credited, billed_not_received, duplicate supplier invoice) and in
@@ -48,10 +48,11 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
 3. **A return never reopens a kept promise (spec 079).** Undeliverable, refused and lost parcels
    cannot be told apart from a customer return. D07, D08, D09.
 4. **No drop-ship path.** Fulfilment derives only from own-stock movements. D10, D11, G15, R03.
-5. **No allocation policy.** Priority between promises, reserving by requested date, serving
-   backorders on receipt, ship-complete, reservation lapse, channel quotas and shelf-life
-   eligibility are all absent; spec 068 names allocation a non-goal. A12, B03, B11, B12, B15,
-   B16, B17, M06 (B08, B10 partial). Since spec 303 a person can reserve the rest of a promise
+5. **No allocation policy.** Priority between promises, reserving by requested date, ship-complete,
+   reservation lapse, channel quotas and shelf-life eligibility are all absent; spec 068 names
+   allocation a non-goal. A12, B03, B11, B12, B15, B16, B17, M06 (B10 partial). Since spec 305 a
+   receipt is served through a reviewed proposal in a stated order (assigned first, then due date),
+   and available-to-promise names the purchases it relies on (B07, B08, B09, H16). Since spec 303 a person can reserve the rest of a promise
    at another warehouse and each warehouse ships its part (D02), but nothing distributes a
    reservation across warehouses by itself.
 6. **In-transit stock is not modelled.** Since spec 304 quarantine, inspection and expiry are stock
@@ -102,8 +103,9 @@ Found while writing them, deliberately not pinned by those tests:
 - **Historical balances use recording time for allocations.** `active_settlement_allocations`
   filters by `allocated_at` (wall clock), not the stated business date, so a balance as of a
   past cutoff can still show a credit that was refunded before that cutoff (seen in C06).
-- **R02 assignment survives cancellation.** A cancelled customer promise keeps its purchase
-  supply assignment until someone reverses it by hand.
+- **R02 assignment survives cancellation (fixed in #205).** A cancelled customer promise kept its
+  purchase supply assignment until someone reversed it by hand; since #205 it ends at read time,
+  and spec 305 proves it in the R02 and G13 stories.
 
 The combined stories R01, R02, R05, R06, R07 and R08 can be written today as end-to-end
 scenario tests from existing pieces. Each will show whether the pieces reconcile together.
@@ -147,9 +149,9 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | B04 | covered | tests/scenarios/test_catalog_stock_and_returns.py::test_stock_reserved_for_one_customer_can_be_moved_to_a_more_important_one | Release then reserve moves the stock with exact per-commitment figures and ordered events. Nothing links the two steps unless the caller passes one action id. |
 | B05 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_blocked_stock_is_not_available_until_quality_releases_it | 20 in stock, 5 blocked for quality: an order of 20 reserves 15; quality releases the 5 with its reason and the order reserves all 20 (spec 304). |
 | B06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_stock_in_the_wrong_warehouse_is_transferred_and_then_reserved | All stock in Munich: the finding names it, the reviewed transfer moves five home, the finding clears, and the order reserves and ships at home (spec 303). |
-| B07 | partial | tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt | Open PO quantity can be assigned to protect a customer promise (`protecting_supply`); there is no dated available-to-promise calculation. |
-| B08 | partial | tests/test_supply_coverage.py::test_purchasing_sales_and_inventory_views_reconcile_without_double_counting | A receipt reserves nothing automatically (the test asserts 0 reservations); a supply assignment names the intended customer, but no serving order exists. |
-| B09 | partial | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_partial_receipt_leaves_the_assigned_backorders_as_they_were | Pinned (spec 314): a receipt does not consume supply assignments, so each backorder keeps its full protecting supply; uncovered promises are answered only by reservations. Moved to spec 305. |
+| B07 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_stock_only_on_order_is_promised_by_its_purchase_date | No stock and a purchase of 10 due 12 Oct with 4 assigned: available-to-promise shows nothing now and 6 more from 12 Oct, naming the purchase and supplier (spec 305). |
+| B08 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_receipt_serves_the_earlier_due_backorder_first | Two orders of 3 wait and 4 arrive: Serve backorders proposes 3 for the one due first and 1 for the other, reserves nothing until a person confirms, and only the second stays at risk (spec 305). |
+| B09 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_partial_receipt_names_the_backorders_left_uncovered | A receipt of 4 against 3 + 3 + 3 shows 3/0, 1/2 and 0/3 arrived and still to come; serving reserves 3 and 1 and the other two stay at risk (spec 305). |
 | B10 | partial | tests/test_fulfillment_readiness.py::test_readiness_combines_stock_reservation_and_active_hold; tests/test_commitment_holds.py::test_a_held_promise_cannot_be_shipped | A reasoned commitment hold can explain "reserved but not shipped"; there is no ship-complete or no-partial-delivery rule. |
 | B11 | gap | services/fulfillment_readiness.py (blocker set) | No per-order or per-customer limit on partial deliveries or parcel count exists. |
 | B12 | gap | db/core.py `Reservation` (no deadline column); tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside | Prepayment only blocks shipment; a reservation has no lapse date and is never released automatically. |
@@ -258,7 +260,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | G10 | gap | — | No acknowledgement expectation, so an unconfirmed PO is never flagged (only overdue after the due date). |
 | G11 | covered | tests/test_commitment_revisions.py::test_a_new_date_never_erases_the_old_one, ::test_the_date_in_force_is_the_latest_stated | Append-only revisions; the latest one is in force. |
 | G12 | partial | tests/scenarios/test_international_demo.py::test_purchases_cover_the_whole_chain (S09 cancelled) | Cancellation before receipt works; cancellation cost or supplier refusal cannot be recorded. |
-| G13 | partial | tests/test_supply_assignments.py::test_partial_reversal_is_append_only_and_idempotent | The assignment is reversed manually with a reason; nothing ties the customer cancellation to the purchase reduction. |
+| G13 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_cancelled_order_frees_its_purchase_before_the_purchase_is_reduced | Cancelling the order ends its assignment, so all 10 of the purchase are unassigned and promisable; the reviewed revision to 6 then reduces the purchase (spec 305). |
 | G14 | covered | tests/scenarios/test_catalog_purchasing.py::test_two_suppliers_purchases_together_protect_one_customer_promise | 6 + 4 from two suppliers protect a demand of 10. Defect found: protection could reach 11 of 10; fixed in #201. |
 | G15 | gap | specs/242-inventory-cost-contribution/spec.md (drop shipping only listed as edge case) | No drop-ship commitment type or supplier-to-customer link. |
 | G16 | gap | src/reality/services/shipments.py (`announced` quantity always None) | Inbound notices/`in_transit` events carry no per-commitment contents, so in-transit per purchase cannot be derived. |
@@ -283,7 +285,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | H13 | covered | tests/test_inventory_tracking_reservations.py::test_lot_quantity_can_be_received_reserved_and_shipped_on_a_pallet, ::test_a_lot_carries_the_stated_best_before; tests/scenarios/test_international_demo.py (SER-0001 receipt) | Lot, expiry and serial on receipt, though not against a PO commitment. |
 | H14 | covered | tests/test_movement_corrections.py::test_void_receipt_appends_exact_correction_and_preserves_original | A compensating movement; the original is preserved. |
 | H15 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_receipt_awaiting_inspection_is_released_days_later | A package of 12 received blocked for inspection reserves nothing; quality releases 10 and the order reserves them (spec 304). |
-| H16 | partial | docs/features/b2b-operational-chain.md; tests/test_supply_assignments.py | The assignment states intent; the receipt does not reserve for the waiting commitment and no test asserts it. |
+| H16 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_customer_specific_purchase_goes_to_its_order | A purchase assigned to an order due 25 Oct is served to it first on receipt, before an order due 10 Oct, once a person confirms (spec 305). |
 | H17 | gap | tests/test_shipment_story.py::test_supplier_notice_has_zero_effect_then_package_receipt_changes_stock (`announced` None) | Advised quantities are not recorded, so advised vs received cannot be compared. |
 | H18 | covered | tests/operational_exceptions/test_derivation.py::test_supplier_return_not_credited, ::test_supplier_credit_not_returned; tests/test_returns.py::test_goods_go_back_to_the_supplier | Return and credit reconciled per PO line. |
 | H19 | covered | tests/test_costing_services.py::test_receipt_a_and_retained_review_survive_late_cost | Late duty makes the reviewed receipt cost stale; the old manifest is kept. |
@@ -418,7 +420,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | R01 | partial | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_cannot_be_released_anyway | The 80 % prepaid order is refused by shipment_dispatch and by movement_create (spec 294 fix); spec 275 FR-005 keeps it unshippable and no reviewed release exists. |
-| R02 | partial | tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt, ::test_partial_reversal_is_append_only_and_idempotent; tests/test_incremental_derivation.py::test_a_cancelled_promise_leaves_the_demand_it_was_counted_in | `supply_assignments._effective_rows` ignores customer status, so a cancelled demand keeps its purchase assignment until someone reverses it by hand; there's no combined test. |
+| R02 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_two_customers_an_under_delivery_a_key_customer_and_a_cancellation | Two orders of 3 assigned to a purchase of 6 that delivers 4 and is reduced: the key customer is reserved 3 by stated quantities, the other 1; its cancellation ends its assignment and the key customer is no longer at risk (spec 305). |
 | R03 | gap | specs/242-inventory-cost-contribution/spec.md (drop shipping listed only as an edge case) | There is no drop-shipment model (supplier ships to the customer, no own stock). |
 | R04 | gap | services/payment_intake.py (refuses references to several invoices); tests/test_payment_intake.py::test_two_invoices_for_one_order_and_a_consolidated_invoice_yield_no_allocation | There's no payout, fee or chargeback allocation across many orders. |
 | R05 | partial | tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived, ::test_shrinking_to_what_arrived_finishes_the_promise | Revising after a partial fulfilment is proven on commitments; there's no EDI ORDCHG or advice source. |

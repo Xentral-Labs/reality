@@ -52,7 +52,7 @@ Tests come first in each phase where practical.
 ## Phase 7: Stories and Guide (FR-002, FR-005)
 
 - [x] T013 Business stories for B07, B08, B09 (rewrite the pinned test), G13, H16 and R02
-- [ ] T014 Promote the journeys:
+- [x] T014 Promote the journeys:
   - the Guide catalog and Guide tests;
   - coverage and roadmap;
   - `docs/features/b2b-operational-chain.md`.

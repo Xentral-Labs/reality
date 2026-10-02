@@ -679,67 +679,87 @@ entries:
   section: Availability, reservation and backorder
   title: Stock only on order (open purchase)
   question: Can it be promised (available to promise)?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Can it be promised (available to promise)?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Can it be promised (available to promise)? Available to promise answers per item what is free now and, per open purchase in the order of its stated date, how much more becomes free, naming the purchase, its supplier and whether it is overdue; what a purchase's customer assignments still expect is not offered again."
   limitations:
-  - An open purchase can be assigned to protect a customer promise.
-  - There is no dated available-to-promise calculation.
-  keywords: []
+  - Purchase dates are what the supplier stated; an overdue purchase still counts and is marked overdue.
+  - The answer is company-wide over stock locations, not per warehouse.
+  keywords:
+  - available to promise
+  - ATP
+  - Lieferfähigkeit
+  - lieferbar ab
   question_examples:
   - Stock only on order (open purchase)
   - Can it be promised (available to promise)?
-  tools: []
+  - Nothing is in stock but a purchase is on its way; from when can we promise it?
+  - Nichts am Lager, aber eine Bestellung läuft; ab wann können wir zusagen?
+  tools:
+  - available_to_promise
+  - supply_coverage
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt
-    note: Open PO quantity can be assigned to protect a customer promise (`protecting_supply`); there is no dated available-to-promise calculation.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_stock_only_on_order_is_promised_by_its_purchase_date
+    note: "No stock, a purchase of 10 due 12 Oct with 4 assigned to a waiting order: nothing now, 6 more from 12 Oct, naming the purchase and supplier."
+  - reference: packages/reality-core/tests/test_backorders.py
+    note: Free now, waiting need, purchase dates, overdue purchases and cancellations in the answer (spec 305).
 - id: B08
   section: Availability, reservation and backorder
   title: Receipt resolves backorders
   question: Which commitment is served first?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Which commitment is served first?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Which commitment is served first? After a receipt, Serve backorders proposes reservations in a stated order: the orders the received purchase is assigned to, in assignment order, then the others by due date. A person may change the quantities and confirms; nothing is reserved by the receipt itself."
   limitations:
-  - A receipt reserves nothing automatically.
-  - A supply assignment names the intended customer, but there is no rule for which backorder is served first.
-  keywords: []
+  - There is no priority per customer; a person states a different split by changing the quantities.
+  - Lot- and serial-tracked items are reserved lot by lot, not through Serve backorders.
+  keywords:
+  - backorder
+  - serve backorders
+  - Rückstand
+  - Rückstände bedienen
   question_examples:
   - Receipt resolves backorders
   - Which commitment is served first?
-  tools: []
+  - Goods arrived and two orders are waiting; which one gets them?
+  - Ware ist eingegangen und zwei Aufträge warten; welcher bekommt sie zuerst?
+  tools:
+  - backorders_serve_propose
+  - shipment_receive_propose
+  - supply_coverage
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_supply_coverage.py::test_purchasing_sales_and_inventory_views_reconcile_without_double_counting
-    note: A receipt reserves nothing automatically (the test asserts 0 reservations); a supply assignment names the intended customer, but no serving order exists.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_receipt_serves_the_earlier_due_backorder_first
+    note: "Two orders of 3 wait and 4 arrive: the review proposes 3 for the one due first and 1 for the other, reserves nothing until a person confirms, and only the second stays at risk."
 - id: B09
   section: Availability, reservation and backorder
   title: Receipt covers only part of the backorders
   question: Which remain uncovered?
-  status: partial
+  status: supported
   evidence_level: executable
-  summary: 'Reality evaluates: Which remain uncovered? After a partial receipt, the promises a person has reserved are covered and the rest are reported at risk.'
+  summary: "Reality evaluates: Which remain uncovered? Supply coverage splits each assignment into what has arrived and what is still to come, in the order the assignments were made; Serve backorders reserves what arrived in that order, and the promises left short stay at risk."
   limitations:
-  - A receipt does not consume supply assignments, so each backorder still counts its full assigned supply after only part arrived.
-  - Which backorders stay uncovered is answered by the reservations a person makes.
-  keywords: []
+  - The split is a read-time observation; once a person reserves, the reservation decides.
+  keywords:
+  - partial receipt
+  - Teillieferung Rückstand
   question_examples:
   - Receipt covers only part of the backorders
   - Which remain uncovered?
-  tools: []
+  tools:
+  - supply_coverage
+  - backorders_serve_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_partial_receipt_leaves_the_assigned_backorders_as_they_were
-    note: 'Pinned: a receipt of 4 against assignments of 3 + 3 + 3 leaves protecting_supply at 3 each; after reserving 3 and 1, only the unreserved promises stay at risk.'
-  - reference: tests/test_supply_coverage.py::test_purchasing_sales_and_inventory_views_reconcile_without_double_counting
-    note: The partial receipt is reconciled on the supplier side.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_partial_receipt_names_the_backorders_left_uncovered
+    note: "A receipt of 4 against assignments of 3 + 3 + 3 shows 3 arrived, 1 arrived and 2 to come, and 3 to come; serving reserves 3 and 1 and the other two stay at risk."
 - id: B10
   section: Availability, reservation and backorder
   title: Customer refuses partial delivery
@@ -2599,23 +2619,26 @@ entries:
   section: 'Purchasing: demand and purchase order'
   title: Purchase reduced after the customer order was cancelled
   question: Demand chain updated?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Demand chain updated?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Demand chain updated? Cancelling a customer order ends the supply assignments that served it, so the purchase shows the quantity as unassigned and available to promise again; reducing the purchase itself stays its own reviewed revision."
   limitations:
-  - The purchase assignment can be reversed by hand with a reason.
-  - Nothing ties the customer cancellation to the purchase reduction.
+  - The purchase is not reduced automatically; a person revises it with the supplier's statement.
   keywords: []
   question_examples:
   - Purchase reduced after the customer order was cancelled
   - Demand chain updated?
-  tools: []
+  tools:
+  - commitment_cancel_propose
+  - supply_coverage
+  - available_to_promise
+  - commitment_revise_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_supply_assignments.py::test_partial_reversal_is_append_only_and_idempotent
-    note: The assignment is reversed manually with a reason; nothing ties the customer cancellation to the purchase reduction.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_cancelled_order_frees_its_purchase_before_the_purchase_is_reduced
+    note: "A purchase of 10 with 4 assigned: after the order is cancelled all 10 are unassigned and promisable; after the revision to 6, 6."
 - id: G14
   section: 'Purchasing: demand and purchase order'
   title: Two suppliers for the same item, split sourcing
@@ -3043,23 +3066,27 @@ entries:
   section: Goods receipt and supplier deviations
   title: Receipt for a customer-specific purchase (cross-docking)
   question: Goes straight to the waiting commitment?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Goes straight to the waiting commitment?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Goes straight to the waiting commitment? A purchase assigned to a customer order puts that order first when its receipt is served, even if another order is due earlier; a person confirms the reservation."
   limitations:
-  - A purchase can be assigned to the waiting customer order.
-  - The receipt does not reserve for that order automatically.
-  keywords: []
+  - The reservation is confirmed by a person, not made by the receipt itself.
+  keywords:
+  - cross-docking
+  - Streckengeschäft
   question_examples:
   - Receipt for a customer-specific purchase (cross-docking)
   - Goes straight to the waiting commitment?
-  tools: []
+  tools:
+  - supply_assign_propose
+  - shipment_receive_propose
+  - backorders_serve_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: docs/features/b2b-operational-chain.md; tests/test_supply_assignments.py
-    note: The assignment states intent; the receipt does not reserve for the waiting commitment and no test asserts it.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_customer_specific_purchase_goes_to_its_order
+    note: "A purchase of 3 assigned to an order due 25 Oct: once received, the review proposes all 3 for it before an order due 10 Oct."
 - id: H17
   section: Goods receipt and supplier deviations
   title: Advice says 100, 96 arrive
@@ -4954,23 +4981,27 @@ entries:
   section: Combined stress stories
   title: Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels
   question: Cancelled demand leaves the purchase assignment.
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Cancelled demand leaves the purchase assignment.'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Cancelled demand leaves the purchase assignment. Two orders assigned to one purchase, the purchase comes short and is reduced, a person reserves the key customer first by stating the quantities, and the other order's cancellation ends its assignment and releases its reservation."
   limitations:
-  - A cancelled customer order keeps its purchase assignment until someone reverses it by hand.
-  - The combined story is not yet proven.
+  - Which customer is key is the person's decision; there is no stated customer priority.
   keywords: []
   question_examples:
   - Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels
   - Cancelled demand leaves the purchase assignment.
-  tools: []
+  tools:
+  - supply_assign_propose
+  - commitment_revise_propose
+  - backorders_serve_propose
+  - commitment_cancel_propose
+  - supply_coverage
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt, ::test_partial_reversal_is_append_only_and_idempotent; tests/test_incremental_derivation.py::test_a_cancelled_promise_leaves_the_demand_it_was_counted_in
-    note: '`supply_assignments._effective_rows` ignores customer status, so a cancelled demand keeps its purchase assignment until someone reverses it by hand; there''s no combined test.'
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_two_customers_an_under_delivery_a_key_customer_and_a_cancellation
+    note: "A purchase of 6 for 3 + 3 delivers 4 and is reduced; the key customer gets 3 and the other 1; after the other cancels only the key customer's assignment remains and it is no longer at risk."
 - id: R03
   section: Combined stress stories
   title: Drop shipment with wrong item; customer returns it to us instead of the supplier

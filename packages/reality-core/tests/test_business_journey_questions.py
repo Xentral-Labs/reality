@@ -118,11 +118,11 @@ def test_server_derives_status_from_provider_citations() -> None:
             "text": "Reality supports the standard case, with documented limitations.",
             "status": "supported",
             # A journey that is still partial: the provider's claim must not win.
-            "citations": ["B07"],
+            "citations": ["E07"],
         }
 
     answer = answer_public_question(
-        _catalog(), "Can we promise stock that is only on order?", provider=provider
+        _catalog(), "Is a difference between invoice and order visible?", provider=provider
     )
 
     assert answer.outcome == "provider"
