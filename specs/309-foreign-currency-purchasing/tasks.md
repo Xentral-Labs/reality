@@ -62,6 +62,6 @@ Tests come first in each phase where practical.
 
 ## Phase 8: Verification
 
-- [ ] T015 Full backend suite and web checks
-- [ ] T016 Manual check per `quickstart.md`
+- [x] T015 Full backend suite and web checks
+- [x] T016 Manual check per `quickstart.md`
 - [x] T017 Review of the diff; fix findings
