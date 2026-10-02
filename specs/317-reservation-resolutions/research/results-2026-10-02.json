@@ -1,0 +1,85 @@
+{
+  "reservations": 200000,
+  "reads": {
+    "active_reserved(item, location)": {
+      "today": {
+        "median_ms": 2.67,
+        "buffers": 1338
+      },
+      "grouped": {
+        "median_ms": 197.17,
+        "buffers": 77793
+      },
+      "lateral": {
+        "median_ms": 11.32,
+        "buffers": 6647
+      },
+      "same_answer": true
+    },
+    "reserved for 500 promises": {
+      "today": {
+        "median_ms": 0.74,
+        "buffers": 16
+      },
+      "grouped": {
+        "median_ms": 102.07,
+        "buffers": 41828
+      },
+      "lateral": {
+        "median_ms": 2.41,
+        "buffers": 1515
+      },
+      "same_answer": true
+    },
+    "reserved per item, whole company": {
+      "today": {
+        "median_ms": 1.72,
+        "buffers": 105
+      },
+      "grouped": {
+        "median_ms": 358.83,
+        "buffers": 155832
+      },
+      "lateral": {
+        "median_ms": 2272.61,
+        "buffers": 1015309
+      },
+      "same_answer": true
+    },
+    "reserved per item and location, whole company": {
+      "today": {
+        "median_ms": 1.77,
+        "buffers": 105
+      },
+      "grouped": {
+        "median_ms": 311.73,
+        "buffers": 155832
+      },
+      "lateral": {
+        "median_ms": 1839.42,
+        "buffers": 1015309
+      },
+      "same_answer": true
+    },
+    "register: newest 50 active": {
+      "today": {
+        "median_ms": 0.06,
+        "buffers": 6
+      },
+      "grouped": {
+        "median_ms": 324.78,
+        "buffers": 155852
+      },
+      "lateral": {
+        "median_ms": 0.21,
+        "buffers": 156
+      },
+      "same_answer": true
+    }
+  },
+  "rows": {
+    "today": 219007,
+    "proposed": 200000,
+    "resolutions": 215007
+  }
+}
