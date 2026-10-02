@@ -12,8 +12,8 @@ Tests come first in each phase where practical.
 
 ## Phase 2: Split of assigned supply (FR-006)
 
-- [ ] T004 Tests: a receipt of 4 against 3 + 3 + 3 shows 3/0, 1/2, 0/3; a cancelled or reversed assignment drops out of the order; without receipts everything is still to come
-- [ ] T005 `assignment_split` and the `arrived` / `still_to_come` fields in `supply_coverage`
+- [x] T004 Tests: a receipt of 4 against 3 + 3 + 3 shows 3/0, 1/2, 0/3; a cancelled or reversed assignment drops out of the order; without receipts everything is still to come
+- [x] T005 `assignment_split` and the `arrived` / `still_to_come` fields in `supply_coverage`
 
 ## Phase 3: Serving backorders (FR-001, FR-004)
 

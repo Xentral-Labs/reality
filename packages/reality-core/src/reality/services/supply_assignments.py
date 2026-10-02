@@ -89,6 +89,53 @@ def _effective_rows(
     ]
 
 
+def _reversed_quantities(session: Session, tenant_id: str) -> dict[str, Decimal]:
+    return {
+        identity: _decimal(value)
+        for identity, value in session.execute(
+            select(
+                SupplyAssignment.reverses_assignment_id,
+                func.sum(SupplyAssignment.quantity),
+            )
+            .where(
+                SupplyAssignment.tenant_id == tenant_id,
+                SupplyAssignment.reverses_assignment_id.is_not(None),
+            )
+            .group_by(SupplyAssignment.reverses_assignment_id)
+        )
+    }
+
+
+def assignment_split(
+    session: Session, tenant_id: str, supplier_commitment_ids: set[str]
+) -> dict[str, tuple[Decimal, Decimal]]:
+    """Spec 305: what has arrived of each assignment and what is still to come.
+
+    A read-time observation, never stored: what a purchase has received covers
+    its standing assignments in the order they were made.
+    """
+    if not supplier_commitment_ids:
+        return {}
+    rows = [
+        row
+        for row in _effective_rows(session, tenant_id)
+        if row.supplier_commitment_id in supplier_commitment_ids
+    ]
+    reversals = _reversed_quantities(session, tenant_id)
+    terms = core.commitment_terms(session, tenant_id, list(supplier_commitment_ids))
+    left = {
+        identity: max(Decimal(0), terms[identity].fulfilled)
+        for identity in supplier_commitment_ids
+    }
+    split: dict[str, tuple[Decimal, Decimal]] = {}
+    for row in rows:  # _effective_rows orders them by creation
+        effective = row.quantity - reversals.get(row.id, Decimal(0))
+        arrived = min(effective, left[row.supplier_commitment_id])
+        left[row.supplier_commitment_id] -= arrived
+        split[row.id] = (arrived, effective - arrived)
+    return split
+
+
 def supply_coverage(
     session: Session,
     tenant_id: str,
@@ -116,23 +163,14 @@ def supply_coverage(
         supplier_id=supplier_commitment_id,
         customer_id=customer_commitment_id,
     )
-    reversals = {
-        identity: _decimal(value)
-        for identity, value in session.execute(
-            select(
-                SupplyAssignment.reverses_assignment_id,
-                func.sum(SupplyAssignment.quantity),
-            )
-            .where(
-                SupplyAssignment.tenant_id == tenant_id,
-                SupplyAssignment.reverses_assignment_id.is_not(None),
-            )
-            .group_by(SupplyAssignment.reverses_assignment_id)
-        )
-    }
+    reversals = _reversed_quantities(session, tenant_id)
+    split = assignment_split(
+        session, tenant_id, {row.supplier_commitment_id for row in rows}
+    )
     items = []
     for row in rows:
         effective = row.quantity - reversals.get(row.id, Decimal(0))
+        arrived, still_to_come = split.get(row.id, (Decimal(0), effective))
         items.append(
             {
                 "id": row.id,
@@ -140,6 +178,8 @@ def supply_coverage(
                 "customer_commitment_id": row.customer_commitment_id,
                 "purpose": row.purpose,
                 "quantity": effective,
+                "arrived": arrived,
+                "still_to_come": still_to_come,
                 "source_record_id": row.source_record_id,
             }
         )
@@ -175,6 +215,22 @@ def supply_coverage(
                 item["quantity"]
                 for item in items
                 if item["purpose"] == "customer_demand"
+            ),
+            "arrived": sum(
+                (
+                    item["arrived"]
+                    for item in items
+                    if item["purpose"] == "customer_demand"
+                ),
+                Decimal(0),
+            ),
+            "still_to_come": sum(
+                (
+                    item["still_to_come"]
+                    for item in items
+                    if item["purpose"] == "customer_demand"
+                ),
+                Decimal(0),
             ),
         }
     return result
