@@ -94,6 +94,14 @@ test("widget resends bounded in-memory turns for coherent follow-up questions", 
   assert.doesNotMatch(widget, /localStorage|sessionStorage|document\.cookie/u);
 });
 
+test("completed answers turn the composer into an explicit conversation continuation", () => {
+  assert.match(widget, /composer-context/u);
+  assert.match(widget, /copy\.followUp/u);
+  assert.match(widget, /copy\.followUpPlaceholder/u);
+  assert.match(widget, /this\.composerContext\.hidden = false/u);
+  assert.match(widget, /this\.input\.placeholder = copy\.followUpPlaceholder/u);
+});
+
 test("empty chat offers localized examples and citations explain journey IDs", () => {
   assert.match(widget, /examplesTitle/u);
   assert.match(widget, /Wie bilde ich einen B2B-Auftrag ab/u);
@@ -127,6 +135,7 @@ test("example submission gives immediate modern loading feedback", () => {
   assert.match(widget, /typing-dots/u);
   assert.match(widget, /pending\.setAttribute\("aria-label", copy\.wait\)/u);
   assert.match(widget, /pending-copy/u);
+  assert.match(widget, /pending-mark/u);
   assert.match(widget, /copy\[event\.stage\]/u);
   assert.match(widget, /Frage wird eingeordnet/u);
   assert.match(widget, /Passende Produktquellen werden geprüft/u);
@@ -135,6 +144,12 @@ test("example submission gives immediate modern loading feedback", () => {
   assert.match(widget, /event\.stage === "complete"/u);
   assert.match(widget, /this\.activeController\?\.abort\(\)/u);
   assert.match(widget, /@keyframes rjc-pulse/u);
+  assert.match(widget, /@keyframes rjc-answer-in/u);
+  assert.match(widget, /\.pending\{[^}]*background:transparent/u);
+  assert.doesNotMatch(widget, /accepted: "[^"]* …"/u);
+  assert.doesNotMatch(widget, /researching: "[^"]* …"/u);
+  assert.doesNotMatch(widget, /composing: "[^"]* …"/u);
+  assert.doesNotMatch(widget, /validating: "[^"]* …"/u);
   assert.match(widget, /prefers-reduced-motion/u);
   assert.match(widget, /this\.examples\?\.remove\(\)/u);
 });
