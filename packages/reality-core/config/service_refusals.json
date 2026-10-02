@@ -2106,6 +2106,9 @@
     },
     "customer_item_number_conflicts_with_item": {
       "message": "The customer's number names another item than the one stated."
+    },
+    "order_line_item_no_customer_number": {
+      "message": "This line quotes no customer item number to remember."
     }
   },
   "terms": [

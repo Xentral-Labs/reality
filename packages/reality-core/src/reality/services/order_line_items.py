@@ -32,6 +32,8 @@ from reality.services.core import emit_business_event
 
 ORDER_LINE_ITEM_TOOLS = {"order_line_item_assign"}
 FIELDS = {"document_line_id", "item_id"}
+# Spec 308: also remember the line's customer number for the order's customer.
+OPTIONAL_FIELDS = {"remember_for_customer"}
 
 
 def _order_closed(session: Session, tenant_id: str, document_id: str) -> bool:
@@ -120,7 +122,45 @@ def _interpretation_context(
             ImportJob.source_record_id == order.source_record_id,
         )
     )
-    return json.loads(job.input) if job and job.input else {}
+    if job and job.input:
+        return json.loads(job.input)
+    return _file_order_context(session, tenant_id, order)
+
+
+def _file_order_context(
+    session: Session, tenant_id: str, order: Document
+) -> dict[str, Any]:
+    """A file-imported order's own rows name its location (spec 308).
+
+    The order's source keeps the rows it was read from; the company is the
+    single company the import promised from. Nothing is assumed beyond that.
+    """
+    from reality.db.core import SourceRecord
+    from reality.services.file_interpreters import (
+        _location,
+        _single_company,
+        _value,
+    )
+
+    source = (
+        session.get(SourceRecord, (tenant_id, order.source_record_id))
+        if order.source_record_id
+        else None
+    )
+    try:
+        rows = json.loads(source.payload).get("rows") if source else None
+    except ValueError:
+        rows = None
+    if not rows:
+        return {}
+    try:
+        location = _location(
+            session, tenant_id, str(_value(rows[0], "location")).strip()
+        )
+        company = _single_company(session, tenant_id)
+    except core.InvalidOperation:
+        return {}
+    return {"company_party_id": company.id, "location_id": location.id}
 
 
 def preview_item_assignment(
@@ -170,7 +210,10 @@ def preview_item_assignment(
     if not from_party_id or not location_id:
         raise core.InvalidOperation(code="order_line_item_location_unknown")
     due_at = line.requested_at or (sibling.due_at if sibling else None)
+    from reality.services.customer_item_numbers import stated_number
+
     return {
+        "customer_item_number": stated_number(line),
         "document_line_id": line.id,
         "order_id": order.id,
         "order_number": order.number,
@@ -221,10 +264,15 @@ def assign_line_item(
     *,
     document_line_id: str,
     item_id: str,
+    remember_for_customer: bool = False,
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Give an unknown order line its item and create its delivery promise."""
+    """Give an unknown order line its item and create its delivery promise.
+
+    With `remember_for_customer`, the customer number the line was ordered by
+    is stated for the order's customer in the same confirmation (spec 308).
+    """
     core._require_business_mutation(session, tenant_id, "assign_order_line_item")
     with session.begin_nested():
         session.scalar(
@@ -265,6 +313,23 @@ def assign_line_item(
             _commit=False,
         )
         _hold_like_its_order(session, tenant_id, preview["order_id"], commitment)
+        if remember_for_customer:
+            if not preview["customer_item_number"]:
+                raise core.InvalidOperation(code="order_line_item_no_customer_number")
+            from reality.services.customer_item_numbers import (
+                set_customer_item_number,
+            )
+
+            set_customer_item_number(
+                session,
+                tenant_id,
+                preview["to_party_id"],
+                preview["item_id"],
+                preview["customer_item_number"],
+                line.description if line.description != line.sku else "",
+                action_id=action_id,
+                _commit=False,
+            )
         emit_business_event(
             session,
             tenant_id,
@@ -297,10 +362,14 @@ def _json(value: Any) -> str:
 def review_item_assignment(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
-    if set(arguments) != FIELDS:
+    if not FIELDS <= set(arguments) <= FIELDS | OPTIONAL_FIELDS:
         raise core.InvalidOperation(code="order_line_item_assign_fields_invalid")
     intent = {key: str(arguments[key]) for key in sorted(FIELDS)}
     state = json.loads(_json(preview_item_assignment(session, tenant_id, **intent)))
+    if arguments.get("remember_for_customer"):
+        if not state["customer_item_number"]:
+            raise core.InvalidOperation(code="order_line_item_no_customer_number")
+        intent["remember_for_customer"] = True
     return {
         "version": 1,
         "tool": "order_line_item_assign",

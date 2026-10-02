@@ -210,7 +210,28 @@ def _document(session: Session, tenant: str, record_id: str) -> list[Section]:
     ):
         item = detail["items_by_id"].get(line.item_id)
         description = line.description or _name(item)
-        label = " · ".join(value for value in (line.sku, description) if value) or "—"
+        # Spec 308: the customer's own number the line was ordered by.
+        from reality.services.customer_item_numbers import line_customer_item
+
+        quoted = line_customer_item(session, tenant, line, doc.party_id)
+        customer_label = (
+            " ".join(
+                value
+                for value in (
+                    quoted["customer_item_number"],
+                    quoted["customer_item_name"],
+                )
+                if value
+            )
+            if quoted
+            else ""
+        )
+        label = (
+            " · ".join(
+                value for value in (line.sku, description, customer_label) if value
+            )
+            or "—"
+        )
         lines.append(
             _row(
                 label,

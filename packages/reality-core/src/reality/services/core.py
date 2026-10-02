@@ -7716,6 +7716,7 @@ def _preview_manual_document_input(
                 raw,
                 index,
                 _carry_unstated_price=_carry_unstated_price,
+                _party_id=party_id,
             )
         )
 
@@ -7825,12 +7826,7 @@ def create_manual_document_with_lines(
             unit_price=row["unit_price"],
             gross_amount=row["gross_amount"],
             promised_at=row["promised_at"],
-            payload=json.dumps(
-                {"reality_finance_v1": row["reality_finance_v1"]},
-                sort_keys=True,
-            )
-            if row["reality_finance_v1"] is not None
-            else "{}",
+            payload=_manual_line_payload(row),
             unit=row["unit"],
             requested_at=utc_datetime(row["promised_at"]),
             line_type=row["line_type"],
@@ -8278,9 +8274,24 @@ def _normalize_manual_line_input(
     index: int,
     *,
     _carry_unstated_price: bool = False,
+    _party_id: str | None = None,
 ) -> dict[str, Any]:
     item_id = str(raw.get("item_id") or "").strip() or None
     item = _tenant_record(session, Item, tenant_id, item_id) if item_id else None
+    # Spec 308: a sales-order line may name the item by the customer's number.
+    customer_item_number = str(raw.get("customer_item_number") or "").strip() or None
+    if customer_item_number and document_type == "sales_order":
+        from reality.services.customer_item_numbers import resolve_customer_item
+
+        mapping = resolve_customer_item(
+            session, tenant_id, _party_id, customer_item_number
+        )
+        if item is None:
+            if mapping is None:
+                raise InvalidOperation(code="customer_item_number_unknown")
+            item = _tenant_record(session, Item, tenant_id, mapping.item_id)
+        elif mapping is not None and mapping.item_id != item.id:
+            raise InvalidOperation(code="customer_item_number_conflicts_with_item")
     quantity = positive(raw.get("quantity", 0))
     # Absent means the form stated none (0, as ever). An explicit null is kept
     # only when it is carried over from a source line that stated no price
@@ -8336,7 +8347,18 @@ def _normalize_manual_line_input(
         ),
         "billed_document_line_id": billed_document_line_id,
         "reality_finance_v1": finance_detail,
+        "customer_item_number": customer_item_number,
     }
+
+
+def _manual_line_payload(row: dict[str, Any]) -> str:
+    """What a manual line keeps beside its columns, as stated."""
+    stated = {
+        key: row[key]
+        for key in ("reality_finance_v1", "customer_item_number")
+        if row.get(key) is not None
+    }
+    return json.dumps(stated, sort_keys=True) if stated else "{}"
 
 
 def _stored_manual_line(line: DocumentLine) -> dict[str, Any]:
@@ -8356,6 +8378,7 @@ def _stored_manual_line(line: DocumentLine) -> dict[str, Any]:
         "price_list_entry_id": line.price_list_entry_id,
         "billed_document_line_id": line.billed_document_line_id,
         "reality_finance_v1": payload.get("reality_finance_v1"),
+        "customer_item_number": payload.get("customer_item_number"),
     }
 
 
@@ -8573,7 +8596,9 @@ def correct_manual_document_lines(
     )
     stored_by_id = {line.id: line for line in stored}
     normalized = [
-        _normalize_manual_line_input(session, tenant_id, document.type, raw, index)
+        _normalize_manual_line_input(
+            session, tenant_id, document.type, raw, index, _party_id=document.party_id
+        )
         for index, raw in enumerate(lines, start=1)
     ]
     entries_to_validate = [
@@ -8710,12 +8735,7 @@ def correct_manual_document_lines(
                 unit_price=row["unit_price"],
                 gross_amount=row["gross_amount"],
                 promised_at=row["promised_at"],
-                payload=json.dumps(
-                    {"reality_finance_v1": row["reality_finance_v1"]},
-                    sort_keys=True,
-                )
-                if row["reality_finance_v1"] is not None
-                else "{}",
+                payload=_manual_line_payload(row),
                 unit=row["unit"],
                 requested_at=utc_datetime(row["promised_at"]),
                 line_type=row["line_type"],

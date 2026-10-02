@@ -41,6 +41,12 @@ from reality.services.core import (
 
 ALIASES = {
     "sku": ("sku", "article_number", "item_number"),
+    # Spec 308: the customer's own article number for our item.
+    "customer_item_number": (
+        "customer_item_number",
+        "customer_article_number",
+        "kundenartikelnummer",
+    ),
     "name": ("name", "title", "description"),
     "external_id": ("external_id", "id", "source_id"),
     "quantity": ("quantity", "qty", "stock"),
@@ -84,7 +90,7 @@ FILE_MAPPING_PROFILES = {
     "sales_order": {
         "required": [
             ("order_id", "order_number"),
-            ("sku",),
+            ("sku", "customer_item_number"),
             ("quantity",),
             ("location",),
             ("party_accounting_code", "party_name"),
@@ -96,6 +102,7 @@ FILE_MAPPING_PROFILES = {
             "party_accounting_code",
             "party_name",
             "sku",
+            "customer_item_number",
             "name",
             "quantity",
             "unit_price",
@@ -489,7 +496,26 @@ def interpret_artifact(
             )
             order_commitments: list[Commitment] = []
             for row in order_rows:
-                item = _item(session, tenant_id, str(_value(row, "sku")).strip())
+                sku = str(_value(row, "sku", "") or "").strip()
+                quoted = str(_value(row, "customer_item_number", "") or "").strip()
+                if sku:
+                    item = _item(session, tenant_id, sku)
+                else:
+                    # Spec 308: the customer's number names the item; an
+                    # unknown number keeps the line without one, reported by
+                    # order_line_item_unknown until a person assigns it.
+                    from reality.services.customer_item_numbers import (
+                        resolve_customer_item,
+                    )
+
+                    mapping = resolve_customer_item(
+                        session, tenant_id, customer.id, quoted
+                    )
+                    item = (
+                        session.get(Item, (tenant_id, mapping.item_id))
+                        if mapping
+                        else None
+                    )
                 quantity = positive(_value(row, "quantity"))
                 # A row without a price stays without one (spec 314).
                 price = _stated_price(row)
@@ -499,19 +525,21 @@ def interpret_artifact(
                     tenant_id=tenant_id,
                     document_id=document.id,
                     source_line_id=str(row.get("line_id") or "") or None,
-                    item_id=item.id,
-                    sku=item.sku,
-                    description=str(_value(row, "name", item.name)),
+                    item_id=item.id if item else None,
+                    sku=item.sku if item else quoted,
+                    description=str(_value(row, "name", item.name if item else quoted)),
                     quantity=quantity,
                     unit_price=price,
                     gross_amount=line_amount,
-                    unit=item.unit,
+                    unit=item.unit if item else "pcs",
                     requested_at=utc_datetime(row.get("requested_delivery_at")),
                     line_type="item",
                     payload=json.dumps(row, ensure_ascii=False),
                 )
                 session.add(line)
                 session.flush()
+                if item is None:
+                    continue
                 commitment = Commitment(
                     id=uid("com"),
                     tenant_id=tenant_id,
