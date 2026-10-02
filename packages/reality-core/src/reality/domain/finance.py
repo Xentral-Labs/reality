@@ -37,6 +37,18 @@ OPENING_CREDITS = {
     "opening_supplier_credit": "supplier",
 }
 
+# Existing customer charges are payable claims, not invoices to dun again.
+FEE_RECEIVABLE_TYPES = frozenset({"dunning_fee_charge", "payment_return_fee_charge"})
+OPEN_ITEM_TYPES = frozenset(
+    {
+        "sales_invoice",
+        "supplier_invoice",
+        "down_payment_invoice",
+        *OPENING_DEBTS,
+        *FEE_RECEIVABLE_TYPES,
+    }
+)
+
 REFERENCE_KINDS = ("cost_center", "case_code", "coding_group")
 
 

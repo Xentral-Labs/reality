@@ -5,22 +5,22 @@ projections:
     service: projection_rows
     materialized_as: fulfillment_queue
     consumers: [MCP, Copilot, Operations]
-    reads: [business_event, document, source_record, party, item, commitment, commitment_hold, party_hold, reservation, movement]
-    calculation: Groups open customer-delivery commitments by their shortest order/evidence link and derives ship readiness from active reservations and execution holds.
+    reads: [business_event, document, source_record, party, item, commitment, commitment_hold, party_hold, reservation, movement, stock_block, stock_block_resolution]
+    calculation: Groups open customer-delivery commitments by their shortest order/evidence link and derives ship readiness from active reservations, unblocked physical stock at each supplying location, and execution holds.
     outputs: [order_key, source_system, external_order_id, party, due_at, priority, ship_ready, blocking_reasons, lines]
   - name: Fulfillment blockers
     service: projection_rows
     materialized_as: fulfillment_blockers
     consumers: [MCP, Copilot, Operational Exceptions]
-    reads: [business_event, document, item, commitment, commitment_hold, party_hold, reservation, movement]
-    calculation: Emits one rebuildable blocker row per open commitment and reason, including reservation shortages and active order or party delivery holds.
+    reads: [business_event, document, item, commitment, commitment_hold, party_hold, reservation, movement, stock_block, stock_block_resolution]
+    calculation: Emits one rebuildable blocker row per open commitment and reason, including reservation shortages, insufficient unblocked stock at supplying locations, and active order or party delivery holds.
     outputs: [blocker_id, blocker_type, order_key, commitment_id, item_id, shortage_quantity, due_at]
   - name: Item supply and demand
     service: projection_rows
     materialized_as: item_supply_demand
     consumers: [MCP, Copilot, Inventory]
-    reads: [business_event, item, commitment, reservation, movement]
-    calculation: Materializes physical, allocated, incoming, open-demand, uncovered-demand and affected-order quantities per item.
+    reads: [business_event, item, commitment, reservation, movement, stock_block, stock_block_resolution]
+    calculation: Materializes physical, allocated, effective outstanding incoming, open-demand, uncovered-demand and affected-order quantities per item; available and projected stock exclude remaining blocks.
     outputs: [item_id, sku, physical, reserved, available, incoming, open_customer_demand, uncovered_demand, projected, blocked_order_count]
   - name: Tenant usage
     service: projection_rows
@@ -35,9 +35,9 @@ projections:
     related_services: [inventory_rows]
     materialized_as: inventory
     consumers: [Home, Inventory, Chat, CLI]
-    reads: [item, location, movement, reservation, commitment]
-    calculation: Physical movement balance minus active reservations; incoming commitments are added for projected stock.
-    outputs: [physical, reserved, available, incoming, projected]
+    reads: [item, location, movement, reservation, commitment, commitment_revision, movement_correction, stock_block, stock_block_resolution]
+    calculation: Shared inventory observation; available is physical movement balance minus active reservations and remaining blocks, and projected adds correction-aware effective outstanding supplier promises after revisions and cancellation.
+    outputs: [physical, reserved, blocked, available, incoming, projected]
   - name: Operational Exceptions
     service: projection_rows
     related_services: [operational_exceptions]
@@ -68,7 +68,7 @@ projections:
     materialized_as: open_financial_items
     consumers: [Open Items, Home]
     reads: [ledger_entry, settlement_allocation, document, party]
-    calculation: Invoice-side ledger amount minus explicit payment allocations; document status is not used as payment truth.
+    calculation: Canonical invoice, opening-debt and customer-fee claims minus effective allocations and reversals; fee charges have no inherited maturity or discount and are not dunned again. Document status is not payment truth.
     outputs: [invoice, party, original_amount, allocated_amount, open_amount]
   - name: Payments
     service: projection_rows

@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
+from reality.domain.finance import FEE_RECEIVABLE_TYPES
 from reality.services.core import aging_register
 
 
@@ -18,4 +19,5 @@ def overdue_document_ids(
         if row["status"] in {"open", "partial"}
         and Decimal(row["open"]) > 0
         and (row.get("days_overdue") or 0) > 0
+        and row["document"].type not in FEE_RECEIVABLE_TYPES
     }

@@ -11091,10 +11091,13 @@
         }
       ],
       "guidance": {
-        "purpose": "Read invoice/payment-credit context and matching invoice choices; for an unallocated customer payment each choice carries the reasons it is a candidate.",
+        "purpose": "Read payable invoice/customer-fee or payment-credit context and matching claim choices; for an unallocated customer payment each choice carries the reasons it is a candidate.",
         "use_when": ["Prepare actual payment, credit allocation or refund."],
         "do_not_use_when": ["Determine tax or calculate a discount."],
-        "limitations": ["A read records no cash, allocation or reduction."],
+        "limitations": [
+          "A read records no cash, allocation or reduction.",
+          "Customer fee claims carry no inherited maturity or discount and cannot be dunned again."
+        ],
         "empty_result": "An original invoice or available-credit document identity is required.",
         "freshness": "Current committed finance state."
       },
@@ -11259,7 +11262,10 @@
       "guidance": {
         "purpose": "Prepare actual payment with explicit allocation/reduction, or consume existing credit.",
         "use_when": ["Record actual money or allocate an existing available credit."],
-        "do_not_use_when": ["Initiate a bank transfer or infer a discount."],
+        "do_not_use_when": [
+          "Initiate a bank transfer or infer a discount.",
+          "Apply a noncash reduction to a customer fee claim; fees support payment and credit allocation only."
+        ],
         "preconditions": [
           "Active compatible accounts, available claim/credit, current revision and explicit owner confirmation."
         ],
@@ -12295,7 +12301,9 @@
         "purpose": "Read one returned customer payment with its reason, reference, fee and reopened invoices.",
         "use_when": ["One known return needs reconciliation."],
         "do_not_use_when": ["The return is not known yet; list them first."],
-        "limitations": ["A fee charged on is a ledger receivable but not an open item."],
+        "limitations": [
+          "Customer fee charges are separate payable open items without inherited maturity or discounts and are not dunned again."
+        ],
         "empty_result": "Unknown and foreign identities are refused as not found.",
         "freshness": "Read from the selected return and current open amounts."
       },
@@ -22718,7 +22726,9 @@
         "purpose": "Read one returned customer payment with its reason, reference, fee and reopened invoices.",
         "use_when": ["One known return needs reconciliation."],
         "do_not_use_when": ["The return is not known yet; list them first."],
-        "limitations": ["A fee charged on is a ledger receivable but not an open item."],
+        "limitations": [
+          "Customer fee charges are separate payable open items without inherited maturity or discounts and are not dunned again."
+        ],
         "empty_result": "Unknown and foreign identities are refused as not found.",
         "freshness": "Read from the selected return and current open amounts."
       },
@@ -23172,10 +23182,13 @@
       "events": [],
       "actions": [],
       "guidance": {
-        "purpose": "Read invoice/payment-credit context and matching invoice choices; for an unallocated customer payment each choice carries the reasons it is a candidate.",
+        "purpose": "Read payable invoice/customer-fee or payment-credit context and matching claim choices; for an unallocated customer payment each choice carries the reasons it is a candidate.",
         "use_when": ["Prepare actual payment, credit allocation or refund."],
         "do_not_use_when": ["Determine tax or calculate a discount."],
-        "limitations": ["A read records no cash, allocation or reduction."],
+        "limitations": [
+          "A read records no cash, allocation or reduction.",
+          "Customer fee claims carry no inherited maturity or discount and cannot be dunned again."
+        ],
         "empty_result": "An original invoice or available-credit document identity is required.",
         "freshness": "Current committed finance state."
       },
@@ -23211,7 +23224,10 @@
       "guidance": {
         "purpose": "Prepare actual payment with explicit allocation/reduction, or consume existing credit.",
         "use_when": ["Record actual money or allocate an existing available credit."],
-        "do_not_use_when": ["Initiate a bank transfer or infer a discount."],
+        "do_not_use_when": [
+          "Initiate a bank transfer or infer a discount.",
+          "Apply a noncash reduction to a customer fee claim; fees support payment and credit allocation only."
+        ],
         "preconditions": [
           "Active compatible accounts, available claim/credit, current revision and explicit owner confirmation."
         ],
@@ -24411,7 +24427,7 @@
       "key": "fulfillment_queue",
       "label": "Fulfillment queue",
       "area": "orders",
-      "summary": "Groups open customer-delivery commitments by their shortest order/evidence link and derives ship readiness from active reservations and execution holds.",
+      "summary": "Groups open customer-delivery commitments by their shortest order/evidence link and derives ship readiness from active reservations, unblocked physical stock at each supplying location, and execution holds.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/fulfillment_queue",
@@ -24467,7 +24483,9 @@
         "commitment_hold",
         "party_hold",
         "reservation",
-        "movement"
+        "movement",
+        "stock_block",
+        "stock_block_resolution"
       ],
       "outputs": [
         "order_key",
@@ -24492,7 +24510,7 @@
       "key": "fulfillment_blockers",
       "label": "Fulfillment blockers",
       "area": "orders",
-      "summary": "Emits one rebuildable blocker row per open commitment and reason, including reservation shortages and active order or party delivery holds.",
+      "summary": "Emits one rebuildable blocker row per open commitment and reason, including reservation shortages, insufficient unblocked stock at supplying locations, and active order or party delivery holds.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/fulfillment_blockers",
@@ -24543,7 +24561,9 @@
         "commitment_hold",
         "party_hold",
         "reservation",
-        "movement"
+        "movement",
+        "stock_block",
+        "stock_block_resolution"
       ],
       "outputs": [
         "blocker_id",
@@ -24566,7 +24586,7 @@
       "key": "item_supply_demand",
       "label": "Item supply and demand",
       "area": "warehouse",
-      "summary": "Materializes physical, allocated, incoming, open-demand, uncovered-demand and affected-order quantities per item.",
+      "summary": "Materializes physical, allocated, effective outstanding incoming, open-demand, uncovered-demand and affected-order quantities per item; available and projected stock exclude remaining blocks.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/item_supply_demand",
@@ -24606,7 +24626,15 @@
       "service": "projection_rows",
       "related_services": [],
       "consumers": ["MCP", "Copilot", "Inventory"],
-      "reads": ["business_event", "item", "commitment", "reservation", "movement"],
+      "reads": [
+        "business_event",
+        "item",
+        "commitment",
+        "reservation",
+        "movement",
+        "stock_block",
+        "stock_block_resolution"
+      ],
       "outputs": [
         "item_id",
         "sku",
@@ -24757,7 +24785,7 @@
       "key": "inventory",
       "label": "Inventory",
       "area": "warehouse",
-      "summary": "Physical movement balance minus active reservations; incoming commitments are added for projected stock.",
+      "summary": "Shared inventory observation; available is physical movement balance minus active reservations and remaining blocks, and projected adds correction-aware effective outstanding supplier promises after revisions and cancellation.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/inventory",
@@ -24793,8 +24821,18 @@
       "service": "projection_rows",
       "related_services": ["inventory_rows"],
       "consumers": ["Home", "Inventory", "Chat", "CLI"],
-      "reads": ["item", "location", "movement", "reservation", "commitment"],
-      "outputs": ["physical", "reserved", "available", "incoming", "projected"],
+      "reads": [
+        "item",
+        "location",
+        "movement",
+        "reservation",
+        "commitment",
+        "commitment_revision",
+        "movement_correction",
+        "stock_block",
+        "stock_block_resolution"
+      ],
+      "outputs": ["physical", "reserved", "blocked", "available", "incoming", "projected"],
       "views": ["inventory"],
       "tools": [
         "inventory_read",
@@ -25073,7 +25111,7 @@
       "key": "open_financial_items",
       "label": "Open financial items",
       "area": "finance",
-      "summary": "Invoice-side ledger amount minus explicit payment allocations; document status is not used as payment truth.",
+      "summary": "Canonical invoice, opening-debt and customer-fee claims minus effective allocations and reversals; fee charges have no inherited maturity or discount and are not dunned again. Document status is not payment truth.",
       "read_modes": [
         {
           "query": "GET /api/tenants/{tenant}/projection-snapshots/open_financial_items",

@@ -37,7 +37,7 @@ from reality.db.core import (
 )
 from reality.domain.calendar import day_text
 
-PROJECTION_VERSION = 5
+PROJECTION_VERSION = 6
 FULFILLMENT_QUEUE = "fulfillment_queue"
 FULFILLMENT_BLOCKERS = "fulfillment_blockers"
 ITEM_SUPPLY_DEMAND = "item_supply_demand"

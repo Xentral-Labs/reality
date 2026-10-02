@@ -150,3 +150,13 @@ that document type's own history, never from another's.
 A reversal posts inverse entries with no document reference, so a reversed document still reads
 as booked and is not reported as unbooked. It was booked and then deliberately unbooked, which is
 a decision rather than an omission.
+## Customer fee open receivables
+
+Spec 318 exposes existing `dunning_fee_charge` and `payment_return_fee_charge`
+documents through canonical open-item reads and confirmed payment/credit allocation.
+Paying an invoice does not pay its fee. Effective allocations and reversals determine
+each remaining claim; no historical source or posting is rewritten. Company-borne
+payment-return fees remain expenses. Customer fees count once in balances and credit
+exposure, carry no inherited payment terms or discounts, and cannot be dunned again.
+Current fee sources state issue dates, not maturity: their due dates remain absent.
+Noncash adjustment eligibility is unchanged. Web readers delegate to the same services.

@@ -11,6 +11,7 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.inventory_reads:inventory_page
   - reality.services.exceptions:cost_findings
   - reality.services.analytics.company_options:company_generation_option
   - reality.services.analytics.captured_options:captured_report_options
@@ -52,6 +53,15 @@ explicit_operations:
   - reality.services.playground:confirm_step
   - reality.services.playground:reject_step
 families:
+  - key: shared_inventory_page
+    description: Shared inventory observations and their paginated register exclude foreign contributions.
+    classification: collection
+    authority: 319/FR-003
+    operations: [reality.services.inventory_reads:inventory_page]
+    evidence:
+      - id: tests/test_shared_inventory_observations.py::test_location_scope_applies_to_every_contribution
+        assertion: collection
+        operations: [reality.services.inventory_reads:inventory_page]
   - key: diagnostic_reads
     description: Direct MCP diagnostics derive only the selected tenant's retained records.
     classification: boundary

@@ -1,5 +1,17 @@
 # Feature: Inventory
 
+## Shared inventory observations (spec 319)
+
+Web inventory pagination, the application inventory service and the Inventory
+projection use `services/inventory_reads.py` for the same tenant-scoped SQL
+observations. Available is physical minus active reservations minus active stock
+blocks. Incoming is the effective outstanding supplier promise quantity, including
+revisions, receipts and receipt corrections; cancelled promises contribute nothing.
+Projected is available plus incoming. Location scope constrains every contribution.
+Filtering, ordering and pagination use these observations in PostgreSQL, while the
+application service retains movement links for provenance. No observation is stored
+as an authoritative fact or document status.
+
 ## Calculations
 
 - Physical = movements into location minus movements out of location.
@@ -88,4 +100,3 @@ expired lot that is blocked is no longer reported as Stock expired, which offers
 through the same tracked-identity stock rule the inventory register uses, with a
 `reserved_for_delivery` reason when a customer is waiting for it. See
 [operational exceptions](./operational_exceptions.md).
-

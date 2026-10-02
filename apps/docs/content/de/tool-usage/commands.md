@@ -3231,8 +3231,8 @@ finance_settlement_context document_id [query]
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-Read invoice/payment-credit context and matching invoice choices; for an unallocated customer
-payment each choice carries the reasons it is a candidate.
+Read payable invoice/customer-fee or payment-credit context and matching claim choices; for an
+unallocated customer payment each choice carries the reasons it is a candidate.
 
 **Verwenden, wenn**
 
@@ -3763,6 +3763,8 @@ Prepare actual payment with explicit allocation/reduction, or consume existing c
 **Nicht verwenden, wenn**
 
 - Initiate a bank transfer or infer a discount.
+- Apply a noncash reduction to a customer fee claim; fees support payment and credit allocation
+  only.
 
 **Voraussetzungen**
 

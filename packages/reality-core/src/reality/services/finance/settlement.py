@@ -39,12 +39,15 @@ def adjustment_context(
         "opening_supplier_debt",
     }:
         raise core.InvalidOperation("Select a customer or supplier invoice.")
+    return _claim_context(session, tenant_id, invoice)
+
+
+def _claim_context(
+    session: Session, tenant_id: str, invoice: Document
+) -> dict[str, Any]:
+    """Read control/account choices; callers separately enforce operation eligibility."""
     control = core._settlement_control_entry(session, tenant_id, invoice.id)
-    side = (
-        "customer"
-        if invoice.type in {"sales_invoice", "opening_customer_debt"}
-        else "supplier"
-    )
+    side = "customer" if control.account == "accounts_receivable" else "supplier"
     accounts = list_accounts(session, tenant_id)
     role = f"{side}_reduction"
     counterpart = next(
@@ -81,7 +84,9 @@ def preview_adjustment(session: Session, tenant_id: str, values: dict) -> dict:
     if values["reason_category"] not in REASONS or not values["reason"].strip():
         raise core.InvalidOperation("A supported reason and explanation are required.")
     if values["reason_category"] == "bad_debt" and context["side"] != "customer":
-        raise core.InvalidOperation("Bad debt is supported for customer receivables only.")
+        raise core.InvalidOperation(
+            "Bad debt is supported for customer receivables only."
+        )
     if values["reason_category"] == "payment_fee" and context["side"] != "customer":
         raise core.InvalidOperation(code="payment_fee_customer_only")
     if context["side"] == "supplier" and not values.get("agreement", "").strip():

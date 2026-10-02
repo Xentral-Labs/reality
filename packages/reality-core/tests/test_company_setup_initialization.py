@@ -1,5 +1,7 @@
 """Feature 199: the creation request commits the company, the worker seeds it."""
 
+import json
+
 import pytest
 from conftest import record_by_id, seed_company
 from sqlalchemy import func, select
@@ -79,8 +81,17 @@ def test_creation_answers_before_the_profile_is_seeded(session, scheduled_owner)
                 ProjectionRow.projection_name == OPEN_FINANCIAL_ITEMS,
             )
         )
-        == 40
+        == 41
     )
+    fee_rows = list(
+        session.scalars(
+            select(ProjectionRow).where(
+                ProjectionRow.tenant_id == tenant,
+                ProjectionRow.projection_name == OPEN_FINANCIAL_ITEMS,
+            )
+        )
+    )
+    assert sum(json.loads(row.payload).get("origin") == "fee" for row in fee_rows) == 1
 
 
 def test_setup_claim_uses_its_registered_timeout_and_matching_lease(

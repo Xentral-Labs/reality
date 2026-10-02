@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
@@ -28,6 +27,7 @@ from reality.db.core import (
     SourceRecord,
     Tenant,
 )
+from reality.db.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, Page, page_for
 from reality.db.query_order import query_order
 from reality.domain.calendar import as_day
 from reality.domain.stock_scope import movement_at, reservation_at
@@ -40,46 +40,12 @@ from reality.services.projections import (
     projection_state_expressions,
 )
 
-DEFAULT_PAGE_SIZE = 50
-MAX_PAGE_SIZE = 100
 ZERO = Decimal(0)
 
 
 def projection_payload_text(session, key: str):
     """Return one text value from a materialized projection payload."""
     return cast(ProjectionRow.payload, JSONB)[key].astext
-
-
-@dataclass(frozen=True)
-class Page:
-    number: int
-    size: int
-    total: int
-
-    @property
-    def pages(self) -> int:
-        return max(1, (self.total + self.size - 1) // self.size)
-
-    @property
-    def has_previous(self) -> bool:
-        return self.number > 1
-
-    @property
-    def has_next(self) -> bool:
-        return self.number < self.pages
-
-    @property
-    def offset(self) -> int:
-        return (self.number - 1) * self.size
-
-
-def page_for(total: int, number: int = 1, size: int = DEFAULT_PAGE_SIZE) -> Page:
-    safe_size = max(1, min(size, MAX_PAGE_SIZE))
-    safe_number = max(1, number)
-    page = Page(safe_number, safe_size, total)
-    if page.number > page.pages:
-        return Page(page.pages, safe_size, total)
-    return page
 
 
 def model_count(session, model, tenant_id: str, *criteria) -> int:
@@ -222,179 +188,25 @@ def inventory_page(
     projected_max: Decimal | None = None,
     sort: str = "",
     sort_direction: str = "asc",
-):
-    # A place scope narrows each side of the position to that exact location; without
-    # one, every movement that names a location on its side is counted, as before.
-    incoming = (
-        select(
-            Movement.item_id.label("item_id"), func.sum(Movement.quantity).label("qty")
-        )
-        .where(
-            Movement.tenant_id == tenant_id,
-            Movement.to_location_id == location_id
-            if location_id
-            else Movement.to_location_id.is_not(None),
-        )
-        .group_by(Movement.item_id)
-        .subquery()
-    )
-    outgoing = (
-        select(
-            Movement.item_id.label("item_id"), func.sum(Movement.quantity).label("qty")
-        )
-        .where(
-            Movement.tenant_id == tenant_id,
-            Movement.from_location_id == location_id
-            if location_id
-            else Movement.from_location_id.is_not(None),
-        )
-        .group_by(Movement.item_id)
-        .subquery()
-    )
-    reserved = (
-        select(
-            Reservation.item_id.label("item_id"),
-            func.sum(Reservation.quantity).label("qty"),
-        )
-        .where(
-            Reservation.tenant_id == tenant_id,
-            Reservation.status == "active",
-            *([Reservation.location_id == location_id] if location_id else []),
-        )
-        .group_by(Reservation.item_id)
-        .subquery()
-    )
-    from reality.services.core import _open_stock_blocks
+) -> tuple[list[dict[str, Any]], Page]:
+    from reality.services.inventory_reads import inventory_page as read_inventory_page
 
-    # Spec 304: what is held back is neither available nor projected.
-    blocks = _open_stock_blocks(tenant_id)
-    blocked = (
-        select(
-            blocks.c.item_id.label("item_id"),
-            func.sum(blocks.c.quantity).label("qty"),
-        )
-        .where(*([blocks.c.location_id == location_id] if location_id else []))
-        .group_by(blocks.c.item_id)
-        .subquery()
+    return read_inventory_page(
+        session,
+        tenant_id,
+        page=page,
+        size=size,
+        query=query,
+        item_id=item_id,
+        location_id=location_id,
+        stock_state=stock_state,
+        available_min=available_min,
+        available_max=available_max,
+        projected_min=projected_min,
+        projected_max=projected_max,
+        sort=sort,
+        sort_direction=sort_direction,
     )
-    supplier_open = (
-        select(
-            Commitment.item_id.label("item_id"),
-            func.sum(Commitment.quantity).label("qty"),
-        )
-        .where(
-            Commitment.tenant_id == tenant_id,
-            Commitment.type == "supplier_delivery",
-            Commitment.status == "open",
-            *([Commitment.location_id == location_id] if location_id else []),
-        )
-        .group_by(Commitment.item_id)
-        .subquery()
-    )
-    criteria = [Item.tenant_id == tenant_id]
-    if item_id:
-        criteria.append(Item.id == item_id)
-    if location_id:
-        # Under a place scope the register answers for what is recorded there, not for
-        # the whole catalogue: one set-based membership test, never a pass per item.
-        criteria.append(
-            Item.id.in_(
-                select(Movement.item_id)
-                .where(Movement.tenant_id == tenant_id, movement_at(location_id))
-                .union(
-                    select(Reservation.item_id).where(
-                        Reservation.tenant_id == tenant_id,
-                        reservation_at(location_id),
-                        Reservation.status == "active",
-                    )
-                )
-            )
-        )
-    if query:
-        pattern = f"%{query.strip().lower()}%"
-        criteria.append(
-            or_(func.lower(Item.name).like(pattern), func.lower(Item.sku).like(pattern))
-        )
-    physical = func.coalesce(incoming.c.qty, 0) - func.coalesce(outgoing.c.qty, 0)
-    reserved_qty = func.coalesce(reserved.c.qty, 0)
-    blocked_qty = func.coalesce(blocked.c.qty, 0)
-    supplier_qty = func.coalesce(supplier_open.c.qty, 0)
-    available = physical - reserved_qty - blocked_qty
-    projected = available + supplier_qty
-    if stock_state == "shortage":
-        criteria.append(available < 0)
-    elif stock_state == "fully_allocated":
-        criteria.append(available == 0)
-    elif stock_state == "available":
-        criteria.append(available > 0)
-    for expression, minimum, maximum in (
-        (available, available_min, available_max),
-        (projected, projected_min, projected_max),
-    ):
-        if minimum is not None:
-            criteria.append(expression >= minimum)
-        if maximum is not None:
-            criteria.append(expression <= maximum)
-    base = (
-        select(
-            Item,
-            physical.label("physical"),
-            reserved_qty.label("reserved"),
-            supplier_qty.label("supplier_open"),
-            blocked_qty.label("blocked"),
-        )
-        .outerjoin(incoming, incoming.c.item_id == Item.id)
-        .outerjoin(outgoing, outgoing.c.item_id == Item.id)
-        .outerjoin(reserved, reserved.c.item_id == Item.id)
-        .outerjoin(blocked, blocked.c.item_id == Item.id)
-        .outerjoin(supplier_open, supplier_open.c.item_id == Item.id)
-        .where(*criteria)
-    )
-    total = int(session.scalar(select(func.count()).select_from(base.subquery())) or 0)
-    pager = page_for(total, page, size)
-    records = session.execute(
-        base.order_by(
-            *query_order(
-                sort,
-                sort_direction,
-                {
-                    "id": Item.id,
-                    "name": Item.name,
-                    "physical": physical,
-                    "reserved": reserved_qty,
-                    "available": available,
-                },
-                Item.id,
-                (
-                    Item.name,
-                    Item.id,
-                ),
-            )
-        )
-        .limit(pager.size)
-        .offset(pager.offset)
-    )
-    rows = []
-    for item, physical, reserved_value, supplier_value, blocked_value in records:
-        physical, reserved_value, supplier_value, blocked_value = (
-            Decimal(value or 0)
-            for value in (physical, reserved_value, supplier_value, blocked_value)
-        )
-        available = physical - reserved_value - blocked_value
-        rows.append(
-            {
-                "item": item,
-                "physical": physical,
-                "reserved": reserved_value,
-                "blocked": blocked_value,
-                "available": available,
-                "incoming": supplier_value,
-                "projected": available + supplier_value,
-                "receipts": [],
-                "issues": [],
-            }
-        )
-    return rows, pager
 
 
 def document_page(
@@ -1034,7 +846,8 @@ def payment_page(
 def open_item_page(
     session, tenant_id: str, *, page: int = 1, size: int = DEFAULT_PAGE_SIZE
 ):
-    from reality.services.core import InvalidOperation, open_invoice_amount
+    from reality.domain.finance import OPEN_ITEM_TYPES
+    from reality.services.core import financial_open_items
 
     documents, pager = entity_page(
         session,
@@ -1042,38 +855,14 @@ def open_item_page(
         tenant_id,
         page=page,
         size=size,
-        criteria=(Document.type.in_(("sales_invoice", "supplier_invoice")),),
+        criteria=(Document.type.in_(OPEN_ITEM_TYPES),),
         order_columns=(Document.document_date.desc(), Document.id.desc()),
     )
-    parties = _records_by_id(
-        session, Party, tenant_id, {row.party_id for row in documents}
+    rows = financial_open_items(
+        session, tenant_id, document_ids={row.id for row in documents}
     )
-    rows = []
-    for document in documents:
-        try:
-            open_amount = open_invoice_amount(session, tenant_id, document.id)
-        except InvalidOperation:
-            continue
-        gross = Decimal(document.gross_amount)
-        rows.append(
-            {
-                "document": document,
-                "party": parties[document.party_id].name
-                if document.party_id in parties
-                else "—",
-                "party_payment_term_id": parties[document.party_id].payment_term_id
-                if document.party_id in parties
-                else None,
-                "open": open_amount,
-                "settled": gross - open_amount,
-                "status": "paid"
-                if open_amount == ZERO
-                else "partial"
-                if open_amount < gross
-                else "open",
-            }
-        )
-    return rows, pager
+    by_id = {row["document"].id: row for row in rows}
+    return [by_id[document.id] for document in documents if document.id in by_id], pager
 
 
 # Default order of a projection register when the caller does not sort explicitly.

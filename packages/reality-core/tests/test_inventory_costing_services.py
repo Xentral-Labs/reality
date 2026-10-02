@@ -7,7 +7,7 @@ from decimal import Decimal
 import pytest
 import test_costing_services as fixtures
 from conftest import record_by_id
-from sqlalchemy import func, select
+from sqlalchemy import event, func, select
 from sqlalchemy.exc import IntegrityError
 
 from reality.db.core import (
@@ -44,6 +44,42 @@ from reality.tools.application import (
 )
 
 cost_owner = fixtures.cost_owner
+
+
+def test_retained_inventory_inputs_batch_identity_reads(session, business, cost_owner):
+    from reality.services.inventory_costing import _inputs
+
+    args, _, _ = prepared(session, business, cost_owner)
+    _, result = commit_review(session, business, cost_owner, args)
+    review = core._tenant_record(
+        session, CostInventoryReview, business.tenant.id, result["review_id"]
+    )
+    policy = core._tenant_record(
+        session, CostPolicyRevision, business.tenant.id, review.policy_id
+    )
+    statements = []
+
+    def capture(connection, cursor, statement, parameters, context, executemany):
+        if "FROM cost_movement_basis" in statement:
+            statements.append(statement)
+
+    connection = session.connection()
+    event.listen(connection, "before_cursor_execute", capture)
+    try:
+        payload, inputs, receipts, openings = _inputs(
+            session, business.tenant.id, review, policy
+        )
+    finally:
+        event.remove(connection, "before_cursor_execute", capture)
+    assert len(inputs) == 2
+    assert len(receipts) == 1
+    assert openings == []
+    assert len(payload["members"]) == 2
+    assert len(statements) == 1
+    assert "tenant_id" in statements[0]
+    foreign = core.create_tenant(session, "Foreign retained input owner")
+    with pytest.raises(core.NotFound):
+        _inputs(session, foreign.id, review, policy)
 
 
 def test_inventory_ownership_parts_value_only_selected_owner(

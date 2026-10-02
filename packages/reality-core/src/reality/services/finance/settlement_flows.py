@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from reality.db.core import Document, LedgerEntry, Party, SourceRecord
-from reality.domain.finance import OPENING_CREDITS, OPENING_DEBTS
+from reality.domain.finance import FEE_RECEIVABLE_TYPES, OPENING_CREDITS, OPENING_DEBTS
 from reality.services import core
 from reality.services.business_locks import lock_delivery_state
 from reality.services.finance.accounts import (
@@ -20,6 +20,7 @@ from reality.services.finance.accounts import (
     resolve_account,
 )
 from reality.services.finance.settlement import (
+    _claim_context,
     accept_adjustment,
     adjustment_context,
     preview_adjustment,
@@ -32,6 +33,7 @@ INVOICES = {
     "down_payment_invoice": "customer",
     "supplier_invoice": "supplier",
     **OPENING_DEBTS,
+    **{kind: "customer" for kind in FEE_RECEIVABLE_TYPES},
 }
 CREDITS = {
     **OPENING_CREDITS,
@@ -97,7 +99,11 @@ def settlement_context(
     document = core._tenant_record(session, Document, tenant_id, document_id)
     accounts = list_accounts(session, tenant_id)
     if document.type in INVOICES:
-        context = adjustment_context(session, tenant_id, document.id)
+        context = (
+            _claim_context(session, tenant_id, document)
+            if document.type in FEE_RECEIVABLE_TYPES
+            else adjustment_context(session, tenant_id, document.id)
+        )
         context["party"] = core._tenant_record(
             session, Party, tenant_id, context["party_id"]
         ).name
@@ -105,6 +111,7 @@ def settlement_context(
             **context,
             "document_id": document.id,
             "kind": "invoice",
+            "reduction_allowed": document.type not in FEE_RECEIVABLE_TYPES,
             "cash_account": next(
                 (
                     a
@@ -285,7 +292,11 @@ def preview_settlement(session: Session, tenant_id: str, values: dict) -> dict:
         available = Decimal(context["available"]) - amount
         allocated = amount
         if mode == "allocate_credit":
-            target = adjustment_context(session, tenant_id, values["invoice_id"])
+            target = settlement_context(session, tenant_id, values["invoice_id"])
+            if target["kind"] != "invoice":
+                raise core.InvalidOperation(
+                    "Select a payable claim for credit allocation."
+                )
             if any(
                 context[k] != target[k]
                 for k in ("party_id", "currency", "control_account_id", "side")

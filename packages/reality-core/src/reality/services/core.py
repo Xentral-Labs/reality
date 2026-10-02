@@ -6666,96 +6666,28 @@ def release_party_delivery_hold(
 def inventory_rows(
     session: OrmSession, tenant_id: str, *, item_ids: set[str] | None = None
 ) -> list[dict[str, Any]]:
-    """Derive the same inventory observations with a fixed number of tenant reads.
+    """Read shared inventory observations and retain their movement provenance."""
+    from reality.services.inventory_reads import inventory_position_query, position_row
 
-    `item_ids` narrows every read to the articles the caller can still reach. It
-    changes which rows come back, never how one is derived: each article's stock
-    is worked out from its own movements, reservations and open supplier promises,
-    so a smaller set yields the same rows for the articles it names.
-    """
-    from reality.services.inventory_positions import movement_legs
-
-    def only(statement, column):
-        return statement if item_ids is None else statement.where(column.in_(item_ids))
-
-    items = list(
-        session.scalars(
-            only(select(Item).where(Item.tenant_id == tenant_id), Item.id).order_by(
-                Item.name
-            )
-        )
+    query = inventory_position_query(tenant_id)
+    if item_ids is not None:
+        query = query.where(Item.id.in_(item_ids))
+    rows = [
+        position_row(row[0], row[1:])
+        for row in session.execute(query.order_by(Item.name, Item.id))
+    ]
+    by_item = {row["item"].id: row for row in rows}
+    movements = (
+        select(Movement)
+        .where(Movement.tenant_id == tenant_id, Movement.item_id.in_(by_item))
+        .order_by(Movement.occurred_at.desc())
     )
-    movements_by_item: dict[str, list[Movement]] = {}
-    for movement in session.scalars(
-        only(
-            select(Movement).where(Movement.tenant_id == tenant_id), Movement.item_id
-        ).order_by(Movement.occurred_at.desc())
-    ):
-        movements_by_item.setdefault(movement.item_id, []).append(movement)
-    reserved_by_item = dict(
-        session.execute(
-            only(
-                select(Reservation.item_id, func.sum(Reservation.quantity)).where(
-                    Reservation.tenant_id == tenant_id,
-                    Reservation.status == "active",
-                ),
-                Reservation.item_id,
-            ).group_by(Reservation.item_id)
-        ).all()
-    )
-    # Spec 304: what is held back is neither available nor projected.
-    blocks = _open_stock_blocks(tenant_id)
-    blocked_by_item = dict(
-        session.execute(
-            only(
-                select(blocks.c.item_id, func.sum(blocks.c.quantity)),
-                blocks.c.item_id,
-            ).group_by(blocks.c.item_id)
-        ).all()
-    )
-    suppliers = list(
-        session.scalars(
-            only(
-                select(Commitment).where(
-                    Commitment.tenant_id == tenant_id,
-                    Commitment.type == "supplier_delivery",
-                    Commitment.status == "open",
-                ),
-                Commitment.item_id,
-            )
-        )
-    )
-    terms = commitment_terms(session, tenant_id, [row.id for row in suppliers])
-    incoming_by_item: dict[str, Decimal] = {}
-    for commitment in suppliers:
-        incoming_by_item[commitment.item_id] = (
-            incoming_by_item.get(commitment.item_id, ZERO) + terms[commitment.id].open
-        )
-    rows = []
-    for item in items:
-        movements = movements_by_item.get(item.id, [])
-        receipts = [movement for movement in movements if movement.to_location_id]
-        issues = [movement for movement in movements if movement.from_location_id]
-        physical = sum(
-            (amount for movement in movements for _, amount in movement_legs(movement)),
-            ZERO,
-        )
-        reserved = decimal(reserved_by_item.get(item.id, ZERO))
-        blocked = decimal(blocked_by_item.get(item.id, ZERO))
-        incoming = incoming_by_item.get(item.id, ZERO)
-        rows.append(
-            {
-                "item": item,
-                "physical": physical,
-                "reserved": reserved,
-                "blocked": blocked,
-                "available": physical - reserved - blocked,
-                "incoming": incoming,
-                "projected": physical - reserved - blocked + incoming,
-                "receipts": receipts,
-                "issues": issues,
-            }
-        )
+    for movement in session.scalars(movements):
+        row = by_item[movement.item_id]
+        if movement.to_location_id:
+            row["receipts"].append(movement)
+        if movement.from_location_id:
+            row["issues"].append(movement)
     return rows
 
 
@@ -11083,7 +11015,11 @@ def _control_entry(entries: list[LedgerEntry], account: str) -> LedgerEntry:
 # the balance on this account for this document and flips its sign by the side
 # recorded here, so a supplier credit sitting on the debit side of accounts
 # payable reads as a claim on the supplier without a line of special handling.
-from reality.domain.finance import OPENING_DIRECTIONS
+from reality.domain.finance import (
+    FEE_RECEIVABLE_TYPES,
+    OPEN_ITEM_TYPES,
+    OPENING_DIRECTIONS,
+)
 
 SETTLEMENT_CONTROL = {
     **{f"opening_{kind}": control for kind, control in OPENING_DIRECTIONS.items()},
@@ -11683,16 +11619,7 @@ def _financial_open_items(
             select(Document)
             .where(
                 Document.tenant_id == tenant_id,
-                Document.type.in_(
-                    (
-                        "sales_invoice",
-                        "supplier_invoice",
-                        "opening_customer_debt",
-                        "opening_supplier_debt",
-                        # A down-payment invoice is owed like any invoice (spec 299).
-                        "down_payment_invoice",
-                    )
-                ),
+                Document.type.in_(OPEN_ITEM_TYPES),
             )
             .where(Document.id.in_(document_ids) if document_ids is not None else True)
             .where(Document.party_id.in_(party_ids) if party_ids is not None else True)
@@ -11755,7 +11682,11 @@ def _financial_open_items(
         rows.append(
             {
                 "document": document,
-                "origin": "opening" if document.id in opening_details else "invoice",
+                "origin": "opening"
+                if document.id in opening_details
+                else "fee"
+                if document.type in FEE_RECEIVABLE_TYPES
+                else "invoice",
                 "coverage_kind": opening_kinds.get(document.id),
                 "original_due_date": opening_details[document.id].original_due_date
                 if document.id in opening_details
@@ -14132,7 +14063,12 @@ def with_invoice_aging(
         term = effective_payment_term(
             row["document"], row.get("party_payment_term_id"), terms
         )
-        if row.get("origin") == "opening":
+        if row["document"].type in FEE_RECEIVABLE_TYPES:
+            # Fee issue dates do not state maturity; no existing fee source states
+            # a due date. Never inherit invoice/party terms or invent one (spec 318).
+            term = None
+            due_date = None
+        elif row.get("origin") == "opening":
             term = None
             due_date = row.get("original_due_date")
         else:
@@ -14145,6 +14081,7 @@ def with_invoice_aging(
                 "payment_term": term,
                 "discount_date": None
                 if row.get("origin") == "opening"
+                or row["document"].type in FEE_RECEIVABLE_TYPES
                 else invoice_discount_date(row["document"], term),
             }
         )
