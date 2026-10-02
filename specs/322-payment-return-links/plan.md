@@ -1,6 +1,6 @@
 # Implementation Plan: Payment Returns Store No Forward Links
 
-**Branch**: `318-payment-return-links` | **Date**: 2026-10-02 | **Spec**: [spec.md](spec.md)
+**Branch**: `322-payment-return-links` | **Date**: 2026-10-02 | **Spec**: [spec.md](spec.md)
 
 ## Summary
 

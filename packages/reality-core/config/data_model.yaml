@@ -159,7 +159,7 @@ tables:
       handover_id: {}
       invoice_id: {}
   payment_return:
-    description: A customer payment that came back as a returned direct debit or a chargeback, with its stated reason, reference and fee. Its ledger reversal and fee documents point back to it and are not stored here (spec 318).
+    description: A customer payment that came back as a returned direct debit or a chargeback, with its stated reason, reference and fee. Its ledger reversal and fee documents point back to it and are not stored here (spec 322).
     columns:
       id: {}
       tenant_id: {}
@@ -170,7 +170,7 @@ tables:
       returned_on: {}
       fee_amount: {}
       fee_bearer: {}
-      source_record_id: {description: "The return's evidence; its fee documents carry the same source record (spec 318)."}
+      source_record_id: {description: "The return's evidence; its fee documents carry the same source record (spec 322)."}
       created_at: {}
   down_payment_offset:
     description: A down payment a final invoice states it deducts, bounded by what the down-payment invoice was paid and not yet offset.
