@@ -2693,6 +2693,35 @@ MCP_TOOL_CATALOG += (
         _read("available_to_promise"),
     ),
     MCPToolDefinition(
+        "delivery_rule_set_propose",
+        "State a delivery rule",
+        "Prepare stating how a customer (party_id) or one order (document_id) is delivered: partial_allowed, ship_complete (the whole order in one shipment) or no_backorders (what does not ship with the first shipment is cancelled, not delivered later), with the reason. An order's rule wins over its customer's; lifting ship complete for one order is stating partial_allowed for it. The review shows the rule now and the open orders it governs. A person confirms.",
+        "propose",
+        "Orders",
+        _object_schema(
+            {
+                "party_id": OPTIONAL_STRING,
+                "document_id": OPTIONAL_STRING,
+                "rule": {
+                    "type": "string",
+                    "enum": ["partial_allowed", "ship_complete", "no_backorders"],
+                },
+                "reason": STRING,
+            },
+            required=("rule", "reason"),
+        ),
+        _propose("delivery_rule_set"),
+    ),
+    MCPToolDefinition(
+        "delivery_rules",
+        "Delivery rules",
+        "Read the delivery rule in force for a customer (party_id) or an order (document_id): the rule, whether it comes from the order, the customer or the default, its reason, and every earlier statement.",
+        "read",
+        "Orders",
+        _object_schema({"party_id": OPTIONAL_STRING, "document_id": OPTIONAL_STRING}),
+        _read("delivery_rules"),
+    ),
+    MCPToolDefinition(
         "reorder_points",
         "Reorder points",
         "Read the reorder points the company stated: per item and location, the stock level it reorders at and the quantity it then orders, in the item's stock unit. Which are reached is the exception class reorder_point_reached.",

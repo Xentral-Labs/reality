@@ -587,6 +587,21 @@
       "effect": "Answers from when and how much of an item can be promised, naming each open purchase and its date."
     },
     {
+      "name": "State a delivery rule",
+      "service": "state_delivery_rule",
+      "related_services": ["review_delivery_rule"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "States how a customer or one order is delivered (partial allowed, ship complete or no backorders) with its reason, as a new version of the subject's statement stream."
+    },
+    {
+      "name": "Read delivery rules",
+      "service": "delivery_rules",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Shows the delivery rule in force for a customer or an order, where it comes from, and every earlier statement."
+    },
+    {
       "name": "Read stock blocks",
       "service": "stock_blocks",
       "mode": "query",

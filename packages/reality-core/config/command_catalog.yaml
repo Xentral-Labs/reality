@@ -167,7 +167,8 @@ parameter_descriptions:
   is_active: Whether the record remains selectable for new operational work.
   is_default: Whether this rule is the fallback for its direction and currency.
   item_id: Opaque identity of the operational item reference.
-  reviewed: What a review showed (available stock, waiting promises and holds); a confirmation after any of it changed is refused.
+  rule: "How the customer or order is delivered: partial_allowed, ship_complete or no_backorders."
+  reviewed: What the review showed, such as the rule, point or stock in force; a confirmation after it changed is refused.
   item_type: Operational classification such as product, service, or charge.
   job_id: Opaque identity of the queued source-processing job.
   lead_time_days: Expected calendar days required before supply becomes available.
@@ -1148,6 +1149,22 @@ commands:
     reads: [item, commitment, movement, reservation, stock_block, supply_assignment, party]
     writes: []
     effect: Answers from when and how much of an item can be promised, naming each open purchase and its date.
+  - name: State a delivery rule
+    service: state_delivery_rule
+    related_services: [review_delivery_rule]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [party, document, commitment, delivery_rule]
+    writes: [delivery_rule, source_record, business_event]
+    effect: States how a customer or one order is delivered (partial allowed, ship complete or no backorders) with its reason, as a new version of the subject's statement stream.
+  - name: Read delivery rules
+    service: delivery_rules
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [delivery_rule, source_record, party, document, commitment]
+    writes: []
+    effect: Shows the delivery rule in force for a customer or an order, where it comes from, and every earlier statement.
   - name: Read stock blocks
     service: stock_blocks
     mode: query
@@ -5045,6 +5062,24 @@ capability_guidance:
     unknown_when: [A purchase or order exists that was not recorded.]
     next_steps: [Promise the customer the date shown, or prepare backorders_serve_propose when goods have arrived.]
     examples: {use: [{scenario: A customer asks when 10 more can be delivered., reason: The read names the purchase and its date.}], do_not_use: [{scenario: Reserve stock for a waiting order., reason: Use backorders_serve_propose; a person confirms.}]}
+  delivery_rules:
+    kind: read
+    application_tool: delivery_rules
+    purpose: Show how a customer or an order is delivered, where the rule comes from, and why.
+    use_when: [Someone asks why an order does not ship in parts, or whether a customer accepts backorders.]
+    do_not_use_when: [The question is whether an order can ship now; read its readiness, which names the rule as a blocker.]
+    required_context: [tenant, party_id or document_id]
+    data_basis: [delivery_rule, source_record]
+    limitations: [A rule is a person's statement; nothing in an order source sets it.]
+    freshness: Read from the rules and their statements at request time.
+    empty_result: No rule is stated; partial deliveries are allowed.
+    refusal_behavior: Only the company's own customers and orders are read.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which rule an order ships under, who stated it and why.], does_not_prove: [That the customer still wants it.]}
+    unknown_when: [A customer agreement exists that was never stated in Reality.]
+    next_steps: [Change it with delivery_rule_set_propose; a person confirms.]
+    examples: {use: [{scenario: Explain why the ready lines of an order wait., reason: The read names the ship-complete rule and its reason.}], do_not_use: [{scenario: Ship part of the order anyway., reason: Lift the rule for the order with delivery_rule_set_propose first.}]}
   stock_blocks:
     kind: read
     application_tool: stock_blocks
@@ -5215,6 +5250,8 @@ agent_command_coverage:
   release_stock_block: {classification: eligible, tools: [stock_block_release_propose]}
   scrap_stock_block: {classification: eligible, tools: [stock_block_scrap_propose]}
   stock_blocks: {classification: eligible, tools: [stock_blocks]}
+  state_delivery_rule: {classification: eligible, tools: [delivery_rule_set_propose]}
+  delivery_rules: {classification: eligible, tools: [delivery_rules]}
   serve_backorders: {classification: eligible, tools: [backorders_serve_propose]}
   available_to_promise: {classification: eligible, tools: [available_to_promise]}
   remove_reorder_point: {classification: eligible, tools: [reorder_point_remove_propose]}

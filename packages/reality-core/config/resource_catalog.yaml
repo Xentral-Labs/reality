@@ -578,6 +578,8 @@ labels:
       business_journey_vote_set: Stimme für Business-Journey-Vorschlag setzen
       cost_evidence: Empfangene Anschaffungskosten anzeigen
       inventory_cost: Bestand zu Anschaffungskosten anzeigen
+      state_delivery_rule: Lieferregel festlegen
+      delivery_rules: Lieferregel anzeigen
       serve_backorders: Rückstände bedienen
       available_to_promise: Lieferfähigkeit anzeigen
       contribution_preview: Deckungsbeitragsvorschau prüfen

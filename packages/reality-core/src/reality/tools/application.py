@@ -1428,6 +1428,37 @@ def _available_to_promise(
     return available_to_promise(session, tenant_id, arguments["item_id"])
 
 
+def _delivery_rule_set(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.delivery_rules import UNCHECKED, state_delivery_rule
+
+    rule = state_delivery_rule(
+        session,
+        tenant_id,
+        arguments["rule"],
+        arguments["reason"],
+        party_id=arguments.get("party_id") or None,
+        document_id=arguments.get("document_id") or None,
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+    return _entity_result("delivery_rule", rule)
+
+
+def _delivery_rules(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.delivery_rules import delivery_rules
+
+    return delivery_rules(
+        session,
+        tenant_id,
+        party_id=arguments.get("party_id") or None,
+        document_id=arguments.get("document_id") or None,
+    )
+
+
 def _reorder_points(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2619,6 +2650,18 @@ TOOLS = {
         False,
         _available_to_promise,
     ),
+    "delivery_rule_set": Tool(
+        "delivery_rule_set",
+        "State how a customer or one order is delivered: partial allowed, ship complete or no backorders, with a reason.",
+        True,
+        _delivery_rule_set,
+    ),
+    "delivery_rules": Tool(
+        "delivery_rules",
+        "Read the delivery rule in force for a customer or an order, where it comes from, and every earlier statement.",
+        False,
+        _delivery_rules,
+    ),
     "reorder_points": Tool(
         "reorder_points",
         "Read the reorder points of the company, of one item or of one location.",
@@ -3416,6 +3459,13 @@ def create_change_proposal(
         normalized_arguments, stock_block_review = review_stock_block(
             session, tenant_id, tool_name, arguments
         )
+    delivery_rule_review = None
+    if tool_name == "delivery_rule_set":
+        from reality.services.delivery_rules import review_delivery_rule
+
+        normalized_arguments, delivery_rule_review = review_delivery_rule(
+            session, tenant_id, arguments
+        )
     reorder_review = None
     if tool_name in {"reorder_point_set", "reorder_point_remove"}:
         from reality.services.reorder_points import review_reorder_point
@@ -3489,6 +3539,8 @@ def create_change_proposal(
         preview["dunning"] = preview_notice(session, tenant_id, normalized_arguments)
     if reorder_review is not None:
         preview["reorder_point"] = reorder_review
+    if delivery_rule_review is not None:
+        preview["delivery_rule"] = delivery_rule_review
     if stock_block_review is not None:
         preview["stock_block"] = stock_block_review
     if backorder_review is not None:
@@ -4097,6 +4149,7 @@ def approve_and_execute_proposal(
         "stock_block_release",
         "stock_block_scrap",
         "backorders_serve",
+        "delivery_rule_set",
         "down_payment_invoice_record",
         "proforma_invoice_record",
         "commitment_revise",

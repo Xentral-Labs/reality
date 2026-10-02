@@ -96,6 +96,9 @@ location_app = typer.Typer()
 payment_term_app = typer.Typer()
 reorder_point_app = typer.Typer(help="Reorder points per item and location (spec 302).")
 stock_app = typer.Typer(help="Blocked stock: block, release, scrap (spec 304).")
+delivery_rule_app = typer.Typer(
+    help="Delivery rules: ship complete or no backorders per customer or order (spec 306)."
+)
 backorder_app = typer.Typer(
     help="Backorders: serve waiting orders, available to promise (spec 305)."
 )
@@ -120,6 +123,7 @@ app.add_typer(payment_term_app, name="payment-term")
 app.add_typer(reorder_point_app, name="reorder-point")
 app.add_typer(stock_app, name="stock-block")
 app.add_typer(backorder_app, name="backorders")
+app.add_typer(delivery_rule_app, name="delivery-rule")
 app.add_typer(pricing_app, name="pricing")
 app.add_typer(finance_app, name="finance")
 app.add_typer(commitment_app, name="commitment")
@@ -1102,6 +1106,47 @@ def backorders_serve_command(
         "backorders_serve", arguments, tenant, yes, preview_key="backorder_serving"
     )
     con.print("✓ Backorders served")
+
+
+@delivery_rule_app.command("show")
+def delivery_rule_show(
+    party: str = typer.Option("", "--party"),
+    order: str = typer.Option("", "--order"),
+    tenant: str | None = None,
+):
+    """The delivery rule in force for a customer or an order, with its history."""
+    from reality.services.delivery_rules import delivery_rules
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            answer = delivery_rules(
+                s, selected.id, party_id=party or None, document_id=order or None
+            )
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=answer, default=str)
+
+
+@delivery_rule_app.command("set")
+def delivery_rule_set_command(
+    rule: str,
+    reason: str = typer.Option(..., "--reason"),
+    party: str = typer.Option("", "--party"),
+    order: str = typer.Option("", "--order"),
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm a delivery rule for a customer or an order."""
+    arguments = {"rule": rule, "reason": reason}
+    if party:
+        arguments["party_id"] = party
+    if order:
+        arguments["document_id"] = order
+    _stock_block_change(
+        "delivery_rule_set", arguments, tenant, yes, preview_key="delivery_rule"
+    )
+    con.print("✓ Delivery rule stated")
 
 
 @backorder_app.command("promise")

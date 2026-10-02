@@ -37,8 +37,8 @@ Tests come first in each phase where practical.
 
 ## Phase 5: Adapters and gates (FR-003)
 
-- [ ] T010 Tools, MCP, Web and CLI, with adapter tests and tenant isolation
-- [ ] T011 Catalog gates:
+- [x] T010 Tools, MCP, Web and CLI, with adapter tests and tenant isolation
+- [x] T011 Catalog gates:
   - data model and docs field rows;
   - reporting graph;
   - command and action catalogs, tool topics;

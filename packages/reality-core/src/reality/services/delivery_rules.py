@@ -426,3 +426,88 @@ def require_delivery_rule(
                 code="shipment_ship_complete_partial",
                 values={"order": number or order_id, "lines": len(left)},
             )
+
+
+def _affected_orders(
+    session: Session, tenant_id: str, kind: str, identity: str
+) -> list[str]:
+    """Open orders the statement would govern: the order itself, or the customer's."""
+    if kind == "document":
+        return [identity]
+    return sorted(
+        set(
+            session.scalars(
+                select(Commitment.document_id).where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.to_party_id == identity,
+                    Commitment.type == "customer_delivery",
+                    Commitment.status == "open",
+                    Commitment.document_id.is_not(None),
+                )
+            )
+        )
+    )
+
+
+def review_delivery_rule(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """The arguments a confirmation executes and what the person is shown.
+
+    The review shows the subject's own rule now, or none, beside what it
+    becomes, and the open orders it governs with the rule each would ship
+    under. It carries the current rule into the arguments: executing them
+    later refuses if the rule has changed in between.
+    """
+    kind, identity, rule, stated = validate_delivery_rule(
+        session,
+        tenant_id,
+        str(arguments.get("rule") or ""),
+        str(arguments.get("reason") or ""),
+        party_id=str(arguments.get("party_id") or "") or None,
+        document_id=str(arguments.get("document_id") or "") or None,
+    )
+    current = rule_values(_current(session, tenant_id, kind, identity))
+    orders = _affected_orders(session, tenant_id, kind, identity)
+    effective = effective_rules(session, tenant_id, orders)
+    numbers = dict(
+        session.execute(
+            select(Document.id, Document.number).where(
+                Document.tenant_id == tenant_id, Document.id.in_(orders)
+            )
+        ).all()
+    )
+    if kind == "party":
+        name = session.scalar(
+            select(Party.name).where(Party.tenant_id == tenant_id, Party.id == identity)
+        )
+    else:
+        name = numbers.get(identity, identity)
+    normalized = {
+        f"{kind}_id": identity,
+        "rule": rule,
+        "reason": stated,
+        "reviewed": current,
+    }
+    preview = {
+        "subject": kind,
+        "subject_id": identity,
+        "name": name,
+        "current": current,
+        "proposed": {"rule": rule, "reason": stated},
+        "orders": [
+            {
+                "document_id": order_id,
+                "number": numbers.get(order_id, order_id),
+                "now": effective[order_id]["rule"],
+                # A customer statement does not change an order with its own rule.
+                "after": (
+                    effective[order_id]["rule"]
+                    if kind == "party" and effective[order_id]["source"] == "order"
+                    else rule
+                ),
+            }
+            for order_id in orders
+        ],
+    }
+    return normalized, preview
