@@ -60,8 +60,11 @@ Tests come first in each phase where practical.
 ## Phase 8: Verification
 
 - [ ] T015 Full backend suite and web checks
-- [ ] T016 Manual check per `quickstart.md`
-- [ ] T017 Review of the diff; fix findings
+- [x] T016 Manual check per `quickstart.md` on an isolated stack, in German
+  - A receipt of 4 offered "Serve backorders". The assigned order (due 25 Oct) was proposed 3 before the order due 10 Oct (1). Changing the second line to 0 and reviewing again reserved only 3.
+  - The warehouse preview showed 2 short now and 10 more from 30 Oct (8 in total), naming the purchase.
+  - Serving from the warehouse row with the location chosen proposed the remaining 1. Closing it withdrew the review: 1 executed and 3 withdrawn proposals, none left open.
+- [x] T017 Review of the diff; fix findings
   - Serving order and available-to-promise read revised due dates.
   - Supply still to come is capped at what each promise still needs, so a reserved or delivered promise no longer holds back its purchase.
   - The confirmation compares what the review showed (available stock, waiting needs, holds) under the delivery lock and refuses any change.
