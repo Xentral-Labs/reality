@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { ProposalReview } from "../api";
 import { t } from "../localization";
 
 const compactFieldListClass = "space-y-1.5 text-sm";
@@ -32,7 +33,40 @@ export function DecisionReviewHeader({
   );
 }
 
+export function ProposalApprovalRequirement({
+  nextStep,
+}: {
+  nextStep?: ProposalReview["next_step"];
+}) {
+  if (!nextStep) return null;
+  const approvalAuthority =
+    nextStep.decision_policy?.approval.authority ||
+    (nextStep.required_principal === "authenticated_active_owner"
+      ? "company_owner"
+      : nextStep.required_principal === "authenticated_active_member"
+        ? "company_member"
+        : "action_context");
+  const approvalRequirement = {
+    company_owner: t("An authenticated company owner must approve this proposal."),
+    company_member: t(
+      "For company operations, an active company member must approve this proposal.",
+    ),
+    private_report_author: t("The original report author must approve this proposal."),
+    account_user: t("An authenticated account user must approve this proposal."),
+    action_context: t("Explicit authorized approval is required."),
+    unavailable: "",
+  }[approvalAuthority];
+  if (!approvalRequirement) return null;
+  return (
+    <p className="w-full rounded-xl bg-surface-muted p-4 text-sm" data-approval-requirement>
+      {approvalAuthority === "company_owner" && <>{t("Owner decision required")}. </>}
+      {approvalRequirement}
+    </p>
+  );
+}
+
 export function DecisionActionBar({
+  nextStep,
   busy = false,
   reject,
   edit,
@@ -42,6 +76,7 @@ export function DecisionActionBar({
   editLabel = "Request changes",
   children,
 }: {
+  nextStep?: ProposalReview["next_step"];
   busy?: boolean;
   reject?: () => void;
   edit?: () => void;
@@ -53,6 +88,7 @@ export function DecisionActionBar({
 }) {
   return (
     <footer className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-border-default pt-5">
+      {confirm && <ProposalApprovalRequirement nextStep={nextStep} />}
       {children}
       {reject && (
         <button className="br-btn" disabled={busy} onClick={reject}>

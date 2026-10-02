@@ -1,3 +1,4 @@
+import { CreditHoldRelease } from "./CreditHoldRelease";
 import { CustomerHoldCard } from "./CustomerHoldCard";
 import { OpeningStockCard } from "./OpeningStockCard";
 import { CreditCard } from "./CreditCard";
@@ -782,6 +783,7 @@ function DeliveryActionCard({
           </p>
           {proposal.status === "proposed" && !uncertain && (
             <DecisionActionBar
+              nextStep={proposal.next_step}
               busy={busy || !proposal.review}
               reject={reject}
               edit={() =>
@@ -980,6 +982,7 @@ export function ActionCard(
     activeTool === "customer_exchange_record"
   )
     return <ShipmentActions {...props} tool={activeTool} />;
+  if (activeTool === "credit_hold_release") return <CreditHoldRelease {...props} />;
   if (activeTool === "party_delivery_hold" || activeTool === "party_delivery_hold_release")
     return <CustomerHoldCard {...props} tool={activeTool} />;
   if (activeTool === "commitment_revise" || activeTool === "commitment_cancel")

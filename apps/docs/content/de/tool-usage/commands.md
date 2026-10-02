@@ -10024,7 +10024,8 @@ execution boundary.
 
 **Verwenden, wenn**
 
-- An authorized person or agent explicitly decides the exact pending proposal preview.
+- A permissioned caller submits an explicit authorized decision on the exact pending proposal
+  preview.
 
 **Nicht verwenden, wenn**
 

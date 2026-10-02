@@ -5856,6 +5856,41 @@ Object.assign(dictionaries.es, {
 });
 
 Object.assign(dictionaries.de, {
+  "An authenticated company owner must approve this proposal.":
+    "Ein angemeldeter Unternehmenseigentümer muss diesen Vorschlag bestätigen.",
+  "For company operations, an active company member must approve this proposal.":
+    "Für betriebliche Aktionen muss ein aktives Firmenmitglied diesen Vorschlag bestätigen.",
+  "The original report author must approve this proposal.":
+    "Der ursprüngliche Autor des Berichts muss diesen Vorschlag bestätigen.",
+  "An authenticated account user must approve this proposal.":
+    "Ein angemeldeter Benutzer muss diesen Vorschlag bestätigen.",
+  "Explicit authorized approval is required.":
+    "Eine ausdrückliche, berechtigte Freigabe ist erforderlich.",
+});
+Object.assign(dictionaries.nl, {
+  "An authenticated company owner must approve this proposal.":
+    "Een aangemelde bedrijfseigenaar moet dit voorstel goedkeuren.",
+  "For company operations, an active company member must approve this proposal.":
+    "Voor bedrijfsactiviteiten moet een actief bedrijfslid dit voorstel goedkeuren.",
+  "The original report author must approve this proposal.":
+    "De oorspronkelijke auteur van het rapport moet dit voorstel goedkeuren.",
+  "An authenticated account user must approve this proposal.":
+    "Een aangemelde accountgebruiker moet dit voorstel goedkeuren.",
+  "Explicit authorized approval is required.": "Expliciete bevoegde goedkeuring is vereist.",
+});
+Object.assign(dictionaries.es, {
+  "An authenticated company owner must approve this proposal.":
+    "Un propietario autenticado de la empresa debe aprobar esta propuesta.",
+  "For company operations, an active company member must approve this proposal.":
+    "Para las operaciones de la empresa, un miembro activo debe aprobar esta propuesta.",
+  "The original report author must approve this proposal.":
+    "El autor original del informe debe aprobar esta propuesta.",
+  "An authenticated account user must approve this proposal.":
+    "Un usuario autenticado de la cuenta debe aprobar esta propuesta.",
+  "Explicit authorized approval is required.": "Se requiere una aprobación explícita y autorizada.",
+});
+
+Object.assign(dictionaries.de, {
   "Acquisition value": "Anschaffungswert",
   "Calculated by the shared retained cost service; this view records no financial authority.":
     "Vom gemeinsamen Kostenservice berechnet; diese Ansicht erfasst keine finanzielle Autorität.",

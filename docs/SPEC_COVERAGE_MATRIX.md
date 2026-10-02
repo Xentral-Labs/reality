@@ -2059,3 +2059,15 @@ Tables `stock_count` and `stock_count_line`: a count of one location, and per li
   - J02: a count posts its gain and its loss, each linked to its line.
   - J03: a cycle count during operation keeps the pick after its counting time.
   - R07: a month-end loss names three reservations, the finding raises, and none is released.
+
+## Consistent proposal decision policy — Spec 323
+
+Contract: `docs/features/proposal-decision-policy.md`.
+
+| Requirements | Evidence |
+|---|---|
+| 323 FR-001–FR-004, FR-007, DR-001/DR-002: action authority, owner credit release, ordinary paths, member rechecks and existing exceptions | `packages/reality-core/tests/test_proposal_decision_policy.py`; existing credit-hold, application-tool and proposal-review suites |
+| 323 FR-002, FR-005/FR-006, DR-002: decision/channel distinctions, Chat exclusion and external attribution | `packages/reality-core/tests/test_ai_mcp.py`; `packages/reality-core/tests/finance/test_owner_handoff.py`; existing Chat security and confirmation suites |
+| 323 FR-008: compatible shared-policy Web presentation | `apps/web/scripts/proposal-decision-policy-contract.test.mjs`; `apps/web/scripts/proposal-review-browser.mjs` |
+
+Execution evidence is recorded in spec 323; this map does not imply completion.

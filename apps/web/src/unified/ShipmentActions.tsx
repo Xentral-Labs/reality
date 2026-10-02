@@ -396,6 +396,7 @@ export function ShipmentActions({
           )}
           {proposal.status === "proposed" && (
             <DecisionActionBar
+              nextStep={proposal.next_step}
               busy={busy}
               reject={reject}
               confirm={confirm}
