@@ -3533,17 +3533,22 @@ def _agreed_line_prices(
     }
     stated: dict[str, tuple[datetime, str, Decimal]] = {}
     if promises and _revision_prices_stored(session):
-        for revision in session.scalars(
-            select(CommitmentRevision).where(
+        for commitment_id, stated_at, revision_id, price in session.execute(
+            select(
+                CommitmentRevision.commitment_id,
+                CommitmentRevision.stated_at,
+                CommitmentRevision.id,
+                CommitmentRevision.unit_price,
+            ).where(
                 CommitmentRevision.tenant_id == tenant_id,
                 CommitmentRevision.commitment_id.in_(set(promises)),
                 CommitmentRevision.unit_price.is_not(None),
             )
         ):
-            line_id = promises[revision.commitment_id]
-            key = (utc_datetime(revision.stated_at), revision.id)
+            line_id = promises[commitment_id]
+            key = (utc_datetime(stated_at), revision_id)
             if line_id not in stated or key > stated[line_id][:2]:
-                stated[line_id] = (*key, decimal(revision.unit_price))
+                stated[line_id] = (*key, decimal(price))
     for line_id, (_, _, price) in stated.items():
         agreed[line_id] = price
     return agreed
@@ -3616,7 +3621,14 @@ def revise_commitment(
         raise NotFound(code="commitment_not_found")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
-    if commitment.status != "open":
+    # Spec 310: a price-only statement is the one revision a fulfilled
+    # purchase takes, since a supplier may confirm a price after delivering.
+    if commitment.status != "open" and not (
+        commitment.status == "fulfilled"
+        and unit_price is not None
+        and due_at is None
+        and quantity is None
+    ):
         raise InvalidOperation(code="commitment_revise_not_open")
     stated_due = utc_datetime(due_at) if due_at is not None else None
     if due_at is not None and stated_due is None:
@@ -3634,8 +3646,10 @@ def revise_commitment(
             stated_price = decimal(unit_price)
         except (ArithmeticError, ValueError, TypeError) as error:
             raise InvalidOperation(code="commitment_price_invalid") from error
-        if stated_price < ZERO or stated_price != stated_price.quantize(
-            Decimal("0.0001")
+        if (
+            stated_price < ZERO
+            or stated_price >= Decimal(10) ** 14
+            or stated_price != stated_price.quantize(Decimal("0.0001"))
         ):
             raise InvalidOperation(code="commitment_price_invalid")
     if stated_due is None and stated_quantity is None and stated_price is None:
@@ -9960,7 +9974,9 @@ def _order_line_billing(
         if projected_reversal_group:
             reversed_groups.add(projected_reversal_group)
         released = bool(groups) and set(groups) <= reversed_groups
-        if not released:
+        # A charge billed for the line (a cancellation cost, spec 310) bills
+        # none of its goods.
+        if not released and invoice_line.line_type != "charge":
             billed += invoice_line.quantity
         evidence.append(
             {

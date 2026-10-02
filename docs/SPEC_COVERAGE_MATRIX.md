@@ -2217,6 +2217,9 @@ Column `commitment_revision.unit_price`: a supplier's confirmed unit price, the 
   - A cancellation charge raises no purchase finding, while goods billed on the cancelled line still are.
   - A line received short, billed short or at another price is not matched; returns count; the match is read for purchase orders only.
   - The migration refuses its downgrade once terms are stated.
+  - A charge on a received line leaves its goods billable; a line partly received and cancelled for the rest matches what arrived.
+  - Terms compare a line in the stock unit through the item's factor and name another unit as not comparable.
+  - A price is confirmed after everything arrived; a quantity is not, and an absurd price is refused.
 - `packages/reality-core/tests/test_purchasing_depth_adapters.py`:
   - Strict MCP schemas and the price on the revision schema.
   - An agent states terms and reads the match; the Web states terms, revises a price and reads the match.

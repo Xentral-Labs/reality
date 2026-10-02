@@ -35,17 +35,35 @@ def _text(value: Decimal | None) -> str | None:
     return None if value is None else format(decimal(value).normalize(), "f")
 
 
+def _billed_in_promise_unit(
+    line: DocumentLine, held: list[Commitment], quantity: Decimal
+) -> Decimal | None:
+    """A quantity in the line's unit, in the unit the line's promises hold.
+
+    The relation fixed when the line was ordered (spec 301) is the line's
+    quantity against everything it promised, however many promises split it.
+    """
+    from reality.domain.units import line_in_promise, promise_held_unit
+
+    unit = promise_held_unit(held[0].unit, line, line.unit)
+    if unit == line.unit:
+        return quantity
+    return line_in_promise(
+        quantity, line, sum((decimal(c.quantity) for c in held), ZERO), unit
+    )
+
+
 def purchase_match(
     session: Session, tenant_id: str, document_id: str
 ) -> dict[str, Any]:
     """Whether each line of a purchase order is ordered = received = billed."""
     from reality.services.exceptions import (
         _billing_lines,
-        _in_promise_unit,
         _invoice_lines,
         _prices_comparable,
         _quantity_in_agreed_unit,
         _referencing_document_type,
+        _released_invoice_ids,
     )
 
     order = _tenant_record(session, Document, tenant_id, document_id)
@@ -102,27 +120,39 @@ def purchase_match(
         cancelled = not open_promises
         ordered = sum((decimal(c.quantity) for c in held), ZERO)
         in_force = sum((terms[c.id].quantity for c in open_promises), ZERO)
+        receipts = {c.id: movements.get((c.id, "receipt"), ZERO) for c in held}
         received = sum(
             (
-                movements.get((c.id, "receipt"), ZERO)
-                - movements.get((c.id, "supplier_return"), ZERO)
+                receipts[c.id] - movements.get((c.id, "supplier_return"), ZERO)
                 for c in held
             ),
             ZERO,
         )
+        # An open promise expects what is in force; a cancelled one only what
+        # arrived on it before it was cancelled.
+        expected = in_force + sum(
+            (receipts[c.id] for c in held if c.status == "cancelled"), ZERO
+        )
         invoices = _invoice_lines(session, tenant_id, line.id)
+        referencing = _billing_lines(session, tenant_id, line.id)
+        released = _released_invoice_ids(
+            session, tenant_id, {row.document_id for row in referencing}
+        )
         credits = [
             row
-            for row in _billing_lines(session, tenant_id, line.id)
+            for row in referencing
             if _referencing_document_type(session, tenant_id, row)
             == "supplier_credit_note"
+            and row.line_type != "charge"
+            and row.document_id not in released
         ]
         charges = [
             row
-            for row in _billing_lines(session, tenant_id, line.id)
+            for row in referencing
             if row.line_type == "charge"
             and _referencing_document_type(session, tenant_id, row)
             == "supplier_invoice"
+            and row.document_id not in released
         ]
         billed_raw = (
             _quantity_in_agreed_unit(session, tenant_id, line, invoices)
@@ -139,12 +169,9 @@ def purchase_match(
         if billed_raw is None or credited_raw is None:
             differences.append("units_not_comparable")
         else:
-            billed, _ = _in_promise_unit(
-                session, tenant_id, held[0], line, billed_raw - credited_raw
-            )
+            billed = _billed_in_promise_unit(line, held, billed_raw - credited_raw)
             if billed is None:
                 differences.append("units_not_comparable")
-        expected = ZERO if cancelled else in_force
         if received < expected:
             differences.append("received_short")
         elif received > expected:

@@ -490,3 +490,72 @@ def test_the_migration_guards_its_downgrade(postgres_database, monkeypatch):
     finally:
         engine.dispose()
         command.upgrade(config, "head")
+
+
+def test_a_charge_on_a_received_line_leaves_its_goods_billable(session, business):
+    tenant = business.tenant.id
+    document, line, promise = _purchase(session, business, "PO-310-H", "10")
+    _receive(session, business, promise, "10")
+    _charge(session, business, line, amount="15.00", number="EXP-310")
+
+    # The goods are still billable in full, and the line matches once billed.
+    _invoice(session, business, line, "10", "100", "INV-310-H")
+    row = purchase_match(session, tenant, document.id)["lines"][0]
+    assert row["matched"] is True and [c["amount"] for c in row["charges"]] == ["15"]
+
+
+def test_a_partly_received_line_cancelled_for_the_rest_matches_what_arrived(
+    session, business
+):
+    tenant = business.tenant.id
+    document, line, promise = _purchase(session, business, "PO-310-P", "100")
+    _receive(session, business, promise, "60")
+    core.cancel_commitment(session, tenant, promise.id, reason="Rest not needed")
+    _invoice(session, business, line, "60", "600", "INV-310-P")
+
+    row = purchase_match(session, tenant, document.id)["lines"][0]
+    assert (row["cancelled"], row["matched"], row["differences"]) == (True, True, [])
+
+
+def test_terms_compare_a_line_in_the_stock_unit_through_the_items_factor(
+    session, business
+):
+    tenant = business.tenant.id
+    item = core.create_item(session, tenant, "BOX-310", "Boxed 310")
+    item.purchase_unit, item.conversion_factor = "box", Decimal(12)
+    session.flush()
+    set_supplier_item_terms(session, tenant, business.supplier.id, item.id, "5")
+
+    fine = order_terms_check(
+        session, tenant, business.supplier.id, item.id, Decimal(60), "pcs"
+    )
+    assert (fine["below_minimum"], fine["suggested_quantity"]) == (False, "60")
+    short = order_terms_check(
+        session, tenant, business.supplier.id, item.id, Decimal(24), "pcs"
+    )
+    assert (short["below_minimum"], short["suggested_quantity"]) == (True, "60")
+    other = order_terms_check(
+        session, tenant, business.supplier.id, item.id, Decimal(1), "pallet"
+    )
+    assert other["units_not_comparable"] is True
+
+
+def test_a_price_is_confirmed_after_everything_arrived(session, business):
+    tenant = business.tenant.id
+    _, line, promise = _purchase(session, business, "PO-310-F", "10")
+    _receive(session, business, promise, "10")
+    session.refresh(promise)
+    assert promise.status == "fulfilled"
+
+    core.revise_commitment(session, tenant, promise.id, unit_price="9.5")
+
+    assert core._agreed_line_prices(session, tenant, [line])[line.id] == Decimal("9.5")
+    # Positive control: a quantity is still not revised on a fulfilled promise.
+    _refused(
+        "commitment_revise_not_open",
+        lambda: core.revise_commitment(session, tenant, promise.id, quantity="9"),
+    )
+    _refused(
+        "commitment_price_invalid",
+        lambda: core.revise_commitment(session, tenant, promise.id, unit_price="1e15"),
+    )

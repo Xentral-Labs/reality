@@ -103,7 +103,9 @@ As a buyer, I see which purchase lines are fully matched.
 - A source-stated value is recorded as stated and never recomputed (Constitution VIII). Confirmed prices and stated minimums are kept as stated.
 - A confirmed price applies to invoice lines recorded after it; earlier invoices keep the price they were compared to when recorded. Their finding reads against the price in force at read time.
 - A cancelled line with a charge is matched when nothing was received and only the charge was billed.
-- A minimum or multiple in another unit than the purchase unit is refused.
+- Terms are in the item's purchase unit; a line in the stock unit is compared through the item's factor, and a line in another unit is named as not comparable.
+- A price may be confirmed after everything arrived; quantity and date may not.
+- A charge line billing an order line bills none of its goods, whether the line is cancelled or not.
 
 ## Requirements *(mandatory)*
 

@@ -124,7 +124,14 @@ def _review_commitment_revision(
     commitment = core._tenant_record(
         session, core.Commitment, tenant_id, arguments["commitment_id"]
     )
-    if commitment.status != "open":
+    # Spec 310: a supplier may confirm a price after delivering everything; a
+    # price-only statement is the one revision a fulfilled purchase takes.
+    price_only = arguments.get("unit_price") is not None and all(
+        arguments.get(key) is None for key in ("due_at", "quantity")
+    )
+    if commitment.status != "open" and not (
+        price_only and commitment.status == "fulfilled"
+    ):
         raise core.InvalidOperation(code="commitment_revise_not_open")
     if arguments.get("source_record_id"):
         core._tenant_record(
@@ -153,7 +160,11 @@ def _review_commitment_revision(
             stated_price = core.decimal(arguments["unit_price"])
         except (ArithmeticError, ValueError, TypeError) as error:
             raise core.InvalidOperation(code="commitment_price_invalid") from error
-        if stated_price < 0 or stated_price != stated_price.quantize(Decimal("0.0001")):
+        if (
+            stated_price < 0
+            or stated_price >= Decimal(10) ** 14
+            or stated_price != stated_price.quantize(Decimal("0.0001"))
+        ):
             raise core.InvalidOperation(code="commitment_price_invalid")
     if stated_due is None and stated_quantity is None and stated_price is None:
         raise core.InvalidOperation(code="revision_needs_date_or_quantity")
@@ -348,6 +359,7 @@ def commitment_action_detail(
             == review["effect"]["released_hold_ids"]
             if tool == "commitment_cancel"
             else payload.get("quantity") == review["intent"].get("quantity")
+            and payload.get("unit_price") == review["intent"].get("unit_price")
             and payload.get("due_at")
             == (
                 core.utc_datetime(review["intent"]["due_at"]).isoformat()

@@ -514,7 +514,7 @@ export function OrderCard({
                           · {t("Suggested quantity")}{" "}
                           <strong>
                             {formatQuantity(
-                              review.state.supplier_terms[String(index)].suggested_quantity,
+                              review.state.supplier_terms[String(index)].suggested_quantity ?? "",
                             )}
                           </strong>
                         </p>

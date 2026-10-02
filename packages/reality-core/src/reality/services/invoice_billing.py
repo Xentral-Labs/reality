@@ -76,6 +76,8 @@ def _candidate_lines(
             DocumentLine.tenant_id == tenant_id,
             DocumentLine.document_id.in_(invoice),
             DocumentLine.billed_document_line_id.is_not(None),
+            # Charges bill no goods (spec 310).
+            DocumentLine.line_type != "charge",
         )
         .group_by(DocumentLine.billed_document_line_id)
         .subquery()
