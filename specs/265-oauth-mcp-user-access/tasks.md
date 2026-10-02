@@ -227,4 +227,4 @@ US5 two-client compatibility and all final release gates pass.
 - [x] G001 Review existing FR-001/FR-003/FR-021/FR-023 and plan the smallest transport-only repair; Constitution and coverage analysis PASS.
 - [x] G002 Add and observe failing executable Nginx regression in scripts/test_web_gateway.py.
 - [x] G003 Repair apps/web/default.conf.template and run the regression in frontend-quality.
-- [ ] G004 Run local verification, review diff, obtain green hosted gates, merge/deploy and verify public discovery/authorization behavior.
+- [x] G004 Run local verification, review diff, obtain green hosted gates, merge/deploy and verify public discovery/authorization behavior.
