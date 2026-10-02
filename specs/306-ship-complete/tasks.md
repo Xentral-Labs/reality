@@ -32,8 +32,8 @@ Tests come first in each phase where practical.
 
 ## Phase 4: Findings (FR-005)
 
-- [ ] T008 Tests: both classes, with positive controls, next steps and invalidation
-- [ ] T009 `order_waiting_for_completeness` and `backorder_against_rule`, their catalog, reference and resource entries
+- [x] T008 Tests: both classes, with positive controls, next steps and invalidation
+- [x] T009 `order_waiting_for_completeness` and `backorder_against_rule`, their catalog, reference and resource entries
 
 ## Phase 5: Adapters and gates (FR-003)
 

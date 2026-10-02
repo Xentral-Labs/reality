@@ -2004,3 +2004,8 @@ Table `delivery_rule`: how a customer, or one of its orders, wants to be deliver
   - Cancelled and shipped lines count as complete.
   - An importer recording what left is not refused.
   - The fulfillment queue names the rule, with no rule as control.
+- `packages/reality-core/tests/test_delivery_rule_exceptions.py`:
+  - An order waiting only for completeness is reported with its ready and waiting lines and where the rule comes from. No rule is the control, and completing the order clears it.
+  - An order with nothing ready is not waiting for the rule.
+  - A rest after a shipment is a backorder against a no-backorder rule, line by line. Nothing shipped is the control, and cancelling clears it.
+  - Without the rule a rest is ordinary.

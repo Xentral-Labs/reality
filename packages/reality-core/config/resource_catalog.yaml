@@ -135,12 +135,12 @@ resources:
         Auftragsbeleg ist der Nachweis; offene Menge, Versandfähigkeit und Verzug werden aus der
         Verpflichtung, ihren Reservierungen und den erfüllenden Bewegungen abgeleitet.
     synonyms: [sales order, purchase order, commitment, reservation, backlog, Kundenauftrag, Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefersperre]
-    tables: [commitment, commitment_hold, commitment_revision, reservation]
-    match: "commitment|reserv|order|promise|stale|fulfillment|hold"
+    tables: [commitment, commitment_hold, commitment_revision, reservation, delivery_rule]
+    match: "commitment|reserv|order|promise|stale|fulfillment|hold|delivery_rule|backorder_against"
     views: [orders, commitments, reservations, fulfillment_blockers, warehouse_queue]
     projections: [fulfillment_queue, fulfillment_blockers, commitment_register]
     exceptions:
-      [overdue_outgoing_customer_commitment, outgoing_commitment_due_soon, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, stale_cost_review, negative_actual_db1]
+      [overdue_outgoing_customer_commitment, outgoing_commitment_due_soon, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, stale_cost_review, negative_actual_db1, order_waiting_for_completeness, backorder_against_rule]
 
   - key: delivery
     label:
@@ -402,7 +402,7 @@ processes:
         resource: order
         actions: [hold_commitment, hold_party_delivery, revise_commitment]
         lists: [fulfillment_blockers]
-        exceptions: [commitment_hold_unreleased, party_hold_unreleased, credit_limit_exceeded]
+        exceptions: [commitment_hold_unreleased, party_hold_unreleased, credit_limit_exceeded, order_waiting_for_completeness, backorder_against_rule]
       - title: { en: Dispatch the goods and follow the carrier, de: Ware versenden und den Spediteur verfolgen }
         resource: delivery
         actions: [record_packaged_execution, record_shipment_notice, record_shipment_event]
@@ -764,6 +764,8 @@ labels:
       item_oversold: Artikel überverkauft
       reorder_point_reached: Meldebestand erreicht
       stock_in_another_location: Bestand in anderem Lager
+      order_waiting_for_completeness: Auftrag wartet auf Vollständigkeit
+      backorder_against_rule: Rückstand gegen Kundenregel
       outgoing_commitment_due_soon: Liefertermin gefährdet
       silent_source: Quelle verstummt
       source_interpretation_failure: Quelle nicht interpretierbar

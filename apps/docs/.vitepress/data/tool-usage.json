@@ -472,7 +472,13 @@
         "Rückstand",
         "Liefersperre"
       ],
-      "tables": ["commitment", "commitment_hold", "commitment_revision", "reservation"],
+      "tables": [
+        "commitment",
+        "commitment_hold",
+        "commitment_revision",
+        "reservation",
+        "delivery_rule"
+      ],
       "lists": [
         "view:commitments",
         "view:reservations",
@@ -519,7 +525,9 @@
         "exception:stale_cost_review",
         "exception:negative_actual_db1",
         "exception:order_line_item_unknown",
-        "exception:order_line_price_missing"
+        "exception:order_line_price_missing",
+        "exception:order_waiting_for_completeness",
+        "exception:backorder_against_rule"
       ],
       "tools": [
         "tool:commitments_list",
@@ -533,6 +541,7 @@
         "event:party.delivery_hold_placed",
         "event:reorder_point.set",
         "event:reorder_point.removed",
+        "event:delivery_rule.stated",
         "event:commitment.created",
         "event:commitment.cancelled",
         "event:commitment.revised",
@@ -1303,7 +1312,9 @@
           "exceptions": [
             "exception:commitment_hold_unreleased",
             "exception:party_hold_unreleased",
-            "exception:credit_limit_exceeded"
+            "exception:credit_limit_exceeded",
+            "exception:order_waiting_for_completeness",
+            "exception:backorder_against_rule"
           ]
         },
         {
@@ -24646,6 +24657,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "delivery_rule.stated",
         "document.recorded",
         "document.corrected",
         "commitment.created",
@@ -24727,6 +24739,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "delivery_rule.stated",
         "document.recorded",
         "document.corrected",
         "commitment.created",
@@ -24902,6 +24915,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "delivery_rule.stated",
         "location.created",
         "location.updated",
         "master_data.lifecycle_changed",
@@ -25088,6 +25102,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "delivery_rule.stated",
         "location.updated",
         "master_data.lifecycle_changed",
         "price_list.updated",
@@ -25177,7 +25192,9 @@
         "exception:billed_not_shipped",
         "exception:item_oversold",
         "exception:reorder_point_reached",
-        "exception:stock_in_another_location"
+        "exception:stock_in_another_location",
+        "exception:order_waiting_for_completeness",
+        "exception:backorder_against_rule"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -25468,6 +25485,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "delivery_rule.stated",
         "location.created",
         "location.updated",
         "document.recorded",
@@ -26734,6 +26752,58 @@
       "resources": ["item"]
     },
     {
+      "id": "exception:order_waiting_for_completeness",
+      "kind": "exception",
+      "key": "order_waiting_for_completeness",
+      "label": "Order waiting for completeness",
+      "area": "orders",
+      "summary": "An order that ships complete, by its own rule or its customer's, where some open lines could ship now and others cannot. The ready lines wait only because of the rule: a shipment of them alone is refused, so the goods sit reserved while the customer gets nothing. Reality reads the effective delivery rule and asks readiness for every open line without the rule; when some are ready and some are not, the entry names both and where the rule comes from. An order with nothing ready is not reported here, because it waits for stock, reservations or payment, which other classes name. Nothing is shipped or lifted by the entry: completing the order clears it, or a person lifts the rule for this one order with a reason through the review, and the customer's rule stays for every other order.",
+      "owner": "Sales",
+      "clears_through": "Completing every open line, cancelling the lines that will not come, or lifting the rule for this order with a reason.",
+      "severity": "normal",
+      "record_type": "document",
+      "authority": "306/FR-005",
+      "evidence": [
+        "tests/test_delivery_rule_exceptions.py::test_an_order_waiting_only_for_completeness_is_reported",
+        "tests/test_delivery_rule_exceptions.py::test_an_order_with_nothing_ready_is_not_waiting_for_the_rule"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:documents"
+      ],
+      "label_de": "Auftrag wartet auf Vollständigkeit",
+      "resources": ["order"]
+    },
+    {
+      "id": "exception:backorder_against_rule",
+      "kind": "exception",
+      "key": "backorder_against_rule",
+      "label": "Backorder against the customer's rule",
+      "area": "orders",
+      "summary": "A customer who wants no backorders received part of an order, and a line still has an open rest. The rule says what does not ship with the first shipment is cancelled rather than delivered later; Reality reports every open rest of such an order once anything of it has shipped, with the rule and its reason. It cancels nothing: the reviewed cancellation with the rule as its reason clears the entry, and an order the customer wants completed after all can state partial allowed for itself. Before the first shipment nothing is a backorder.",
+      "owner": "Sales",
+      "clears_through": "Cancelling the rest with the rule as its reason, shipping it, or stating another rule for the order.",
+      "severity": "normal",
+      "record_type": "commitment",
+      "authority": "306/FR-005",
+      "evidence": [
+        "tests/test_delivery_rule_exceptions.py::test_a_rest_after_a_shipment_is_a_backorder_against_the_rule",
+        "tests/test_delivery_rule_exceptions.py::test_without_a_no_backorder_rule_a_rest_is_ordinary"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:commitments"
+      ],
+      "label_de": "Rückstand gegen Kundenregel",
+      "resources": ["order"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -27365,6 +27435,26 @@
       "links": ["command:scrap_stock_block"],
       "label_de": "stock_block.scrapped",
       "resources": ["item"]
+    },
+    {
+      "id": "event:delivery_rule.stated",
+      "kind": "event",
+      "key": "delivery_rule.stated",
+      "label": "delivery_rule.stated",
+      "area": "orders",
+      "summary": "",
+      "producer": "state_delivery_rule",
+      "subject": "delivery_rule",
+      "invalidates": [
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Operational Exceptions",
+        "Timeline",
+        "Tenant usage"
+      ],
+      "links": [],
+      "label_de": "delivery_rule.stated",
+      "resources": ["order"]
     },
     {
       "id": "event:location.created",

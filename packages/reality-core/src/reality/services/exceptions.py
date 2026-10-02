@@ -129,6 +129,8 @@ CLASS_ORDER = {
     "item_oversold": 45,
     "reorder_point_reached": 46,
     "stock_in_another_location": 47,
+    "order_waiting_for_completeness": 48,
+    "backorder_against_rule": 49,
 }
 
 
@@ -3637,6 +3639,173 @@ def _reorder_point_reached_exceptions(
     return result
 
 
+def _ruled_orders(
+    session: Session, tenant_id: str, rule: str
+) -> tuple[dict[str, dict[str, Any]], dict[str, list[Any]]]:
+    """Orders with open customer promises whose effective delivery rule is `rule`.
+
+    Spec 306. Returns the rule entries and, per order, its open promises in line
+    order. Only orders under a stated rule are read further.
+    """
+    from reality.db.core import Commitment
+    from reality.services.delivery_rules import effective_rules
+
+    promises = session.scalars(
+        select(Commitment)
+        .where(
+            Commitment.tenant_id == tenant_id,
+            Commitment.type == "customer_delivery",
+            Commitment.status == "open",
+            Commitment.document_id.is_not(None),
+        )
+        .order_by(Commitment.created_at, Commitment.id)
+    ).all()
+    by_order: dict[str, list[Any]] = {}
+    for promise in promises:
+        by_order.setdefault(promise.document_id, []).append(promise)
+    rules = {
+        identity: entry
+        for identity, entry in effective_rules(
+            session, tenant_id, list(by_order)
+        ).items()
+        if entry["rule"] == rule
+    }
+    return rules, {identity: by_order[identity] for identity in rules}
+
+
+def _order_waiting_for_completeness_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """An order that ships complete, with some lines ready and others not.
+
+    Spec 306 FR-005. Only the rule keeps the ready lines back: an order with
+    nothing ready is waiting for stock, which other classes already name.
+    Lifting the rule for the order, or completing it, clears the entry.
+    """
+    from reality.db.core import Document
+    from reality.services.core import commitment_terms
+    from reality.services.fulfillment_readiness import fulfillment_readiness
+
+    rules, orders = _ruled_orders(session, tenant_id, "ship_complete")
+    result = []
+    for order_id, promises in orders.items():
+        terms = commitment_terms(session, tenant_id, [row.id for row in promises])
+        open_lines = [row for row in promises if terms[row.id].open > ZERO]
+        ready, waiting = [], []
+        for row in open_lines:
+            readiness = fulfillment_readiness(
+                session, tenant_id, row.id, _delivery_rule=False
+            )
+            (ready if readiness.ship_ready else waiting).append(row)
+        if not ready or not waiting:
+            continue
+        number = session.scalar(
+            select(Document.number).where(
+                Document.tenant_id == tenant_id, Document.id == order_id
+            )
+        )
+        rule = rules[order_id]
+        result.append(
+            OperationalException(
+                _identity("order_waiting_for_completeness", order_id),
+                "order_waiting_for_completeness",
+                (),
+                "normal",
+                "Order waiting for completeness",
+                f"{len(ready)} of {len(open_lines)} open lines could ship, but the "
+                f"order ships complete ({rule['reason'] or rule['source']})",
+                "document",
+                order_id,
+                {
+                    "ready_lines": len(ready),
+                    "waiting_lines": len(waiting),
+                    "rule_source": rule["source"],
+                },
+                {
+                    "document_id": order_id,
+                    "number": number,
+                    "rule_source": rule["source"],
+                    "rule_source_record_id": rule["source_record_id"],
+                    "ready_commitment_ids": [row.id for row in ready],
+                    "waiting_commitment_ids": [row.id for row in waiting],
+                },
+                min(
+                    (row.due_at or row.created_at for row in open_lines),
+                    default=None,
+                ),
+            )
+        )
+    return result
+
+
+def _backorder_against_rule_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """An open rest of an order whose customer wants no backorders.
+
+    Spec 306 FR-005 (M06). Once any line of the order has shipped, what is still
+    open on each line is reported; the reviewed cancellation with the rule as
+    its reason clears it. Nothing is cancelled by the entry itself.
+    """
+    from reality.db.core import Commitment, Movement
+    from reality.services.core import commitment_terms
+
+    rules, orders = _ruled_orders(session, tenant_id, "no_backorders")
+    if not orders:
+        return []
+    shipped_orders = set(
+        session.scalars(
+            select(Commitment.document_id)
+            .join(
+                Movement,
+                (Movement.tenant_id == Commitment.tenant_id)
+                & (Movement.commitment_id == Commitment.id),
+            )
+            .where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.document_id.in_(set(orders)),
+                Movement.type == "shipment",
+            )
+        )
+    )
+    result = []
+    for order_id in sorted(shipped_orders):
+        promises = orders[order_id]
+        terms = commitment_terms(session, tenant_id, [row.id for row in promises])
+        rule = rules[order_id]
+        for row in promises:
+            rest = terms[row.id].open
+            if rest <= ZERO:
+                continue
+            result.append(
+                OperationalException(
+                    _identity("backorder_against_rule", row.id),
+                    "backorder_against_rule",
+                    (),
+                    "normal",
+                    "Backorder against the customer's rule",
+                    f"{rest.normalize():f} still open after a shipment, but the "
+                    f"customer wants no backorders ({rule['reason'] or rule['source']})",
+                    "commitment",
+                    row.id,
+                    {
+                        "open_quantity": rest.normalize(),
+                        "rule_source": rule["source"],
+                    },
+                    {
+                        "commitment_id": row.id,
+                        "document_id": order_id,
+                        "item_id": row.item_id,
+                        "rule_source": rule["source"],
+                        "rule_source_record_id": rule["source_record_id"],
+                        "reason": rule["reason"],
+                    },
+                    row.due_at or row.created_at,
+                )
+            )
+    return result
+
+
 def _stock_in_another_location_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
@@ -4698,6 +4867,8 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "item_oversold": _item_oversold_exceptions,
     "reorder_point_reached": _reorder_point_reached_exceptions,
     "stock_in_another_location": _stock_in_another_location_exceptions,
+    "order_waiting_for_completeness": _order_waiting_for_completeness_exceptions,
+    "backorder_against_rule": _backorder_against_rule_exceptions,
     "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
