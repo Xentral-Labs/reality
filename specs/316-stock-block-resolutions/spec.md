@@ -35,7 +35,7 @@ This is the split-and-rewrite pattern of a classic ERP stock record, not the Sou
 ### Non-Goals
 
 - Changing what can be blocked, the reasons, the review/confirmation flow, or the availability rule of spec 304 (physical − reserved − blocked).
-- Changing `reservation`, which follows the same split pattern; it gets its own review if this shape proves out.
+- Changing `reservation`, which follows the same split pattern. Measured and declined in [spec 317](../317-reservation-resolutions/spec.md): deriving its open state makes company-wide reads about 1,500× more expensive.
 - Releasing or scrapping across several blocks in one action.
 - Undoing a resolution. A wrong release is followed by a new block; a wrong scrap by recording the goods again, as spec 304 states.
 - Any document status field (Constitution II).
