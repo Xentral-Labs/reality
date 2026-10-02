@@ -85,6 +85,10 @@ more selective invalidation belongs to the later integrated valuation work.
 
 ## Scope and verification
 
+A foreign supplier invoice posted at a stated rate (spec 309) offers that rate as a
+`conversion_basis` in its cost evidence, with the invoice's source as evidence; it becomes
+a basis only when the owner confirms it.
+
 Supported scope is a same-currency positive goods receipt in its recorded base unit,
 with at most 100 contributing financial component revisions. Returns, FX conversion,
 unit conversion, inventory consumption and company-wide totals are outside this slice.

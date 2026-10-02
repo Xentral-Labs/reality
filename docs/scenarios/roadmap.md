@@ -34,7 +34,7 @@ spec 305.
 | 12 | 2 | [306 Ship-Complete and No-Partial-Delivery Rules](../../specs/306-ship-complete/spec.md) | B10, M06 (implemented; supported) |
 | 13 | 2 | [307 Stock Count Sessions](../../specs/307-stock-count/spec.md) | J02, R07, J03 (implemented; supported) |
 | 14 | 2 | [308 Customer Item Numbers](../../specs/308-customer-item-numbers/spec.md) | M02 (implemented; supported) |
-| 15 | 2 | [309 Foreign-Currency Purchasing](../../specs/309-foreign-currency-purchasing/spec.md) | G08, R06, I11 |
+| 15 | 2 | [309 Foreign-Currency Purchasing](../../specs/309-foreign-currency-purchasing/spec.md) | G08, R06, I11 (implemented; supported) |
 | 16 | 2 | [310 Supplier Confirmations, Minimum Quantities and Three-Way Match](../../specs/310-purchasing-depth/spec.md) | G09, G06, G12, I01 |
 | 17 | 2 | [311 EDI Order Changes](../../specs/311-edi-order-changes/spec.md) | M04, R05 |
 | 18 | 2 | [312 Customer Pickup and Late 3PL Confirmations](../../specs/312-shipping-modes/spec.md) | D15, D12 |

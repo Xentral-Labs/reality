@@ -1440,3 +1440,317 @@ def test_reorder_for_stock_at_the_reorder_point(session, business):
         entry.causal_values["available_quantity"],
         entry.causal_values["incoming_quantity"],
     ) == (Decimal(0), Decimal(48))
+
+
+# --- Spec 309: foreign-currency purchasing (G08, I11, R06) -----------------------
+
+
+def _exchange_account(session, business):
+    from reality.services.finance.accounts import create_account, set_default_account
+
+    account = create_account(
+        session,
+        business.tenant.id,
+        code="2660",
+        name="Kursdifferenzen",
+        role="exchange_difference",
+    )
+    set_default_account(
+        session,
+        business.tenant.id,
+        role="exchange_difference",
+        account_id=account["id"],
+    )
+
+
+def _usd_purchase(session, business, number, quantity, price, supplier=None):
+    gross = str(Decimal(quantity) * Decimal(price))
+    _, _, lines, commitments = core.create_manual_order(
+        session,
+        business.tenant.id,
+        "purchase",
+        number,
+        business.company.id,
+        (supplier or business.supplier).id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": quantity,
+                "unit_price": price,
+                "gross_amount": gross,
+            }
+        ],
+        gross,
+        currency="USD",
+        document_date="2026-09-01",
+    )
+    return lines[0], commitments[0]
+
+
+def _usd_invoice(session, business, line, quantity, gross, number, rate):
+    _, receipt = _reviewed(
+        session,
+        business,
+        "supplier_invoice_record",
+        {
+            "lines": [
+                {
+                    "order_line_id": line.id,
+                    "quantity": quantity,
+                    "gross_amount": gross,
+                    "reality_finance_v1": {"net": gross, "tax": "0"},
+                }
+            ],
+            "gross_amount": gross,
+            "number": number,
+            "effective_at": "2026-09-20T10:00:00Z",
+            "exchange_rate": rate,
+        },
+        number,
+    )
+    return {row["family"]: row["id"] for row in receipt["records"]}
+
+
+def _payable(session, business, invoice_id):
+    from reality.db.core import LedgerEntry
+
+    return session.scalar(
+        select(LedgerEntry).where(
+            LedgerEntry.tenant_id == business.tenant.id,
+            LedgerEntry.document_id == invoice_id,
+            LedgerEntry.debit_credit == "credit",
+        )
+    )
+
+
+def test_a_usd_purchase_is_invoiced_at_its_stated_rate(session, business):
+    """G08: a USD purchase keeps its currency and is booked in EUR at the stated rate."""
+    tenant = business.tenant.id
+    line, purchase = _usd_purchase(session, business, "PO-G08", "100", "10")
+    _receive_into(session, business, "IN-G08", purchase, "100")
+    assert (purchase.currency, purchase.amount) == ("USD", Decimal(1000))
+
+    # A USD invoice without its rate is refused.
+    with pytest.raises(core.InvalidOperation) as refused:
+        _usd_invoice(session, business, line, "100", "1000", "INV-G08", None)
+    assert refused.value.code == "exchange_rate_required"
+
+    invoice = _usd_invoice(session, business, line, "100", "1000", "INV-G08", "0.92")
+
+    payable = _payable(session, business, invoice["document"])
+    assert (payable.amount, payable.currency) == (Decimal(1000), "USD")
+    assert (payable.company_amount, payable.exchange_rate) == (
+        Decimal("920.00"),
+        Decimal("0.92"),
+    )
+    assert core.open_invoice_amount(session, tenant, invoice["document"]) == 1000
+
+
+def test_a_usd_invoice_paid_in_eur_realises_its_exchange_difference(session, business):
+    """I11: the EUR payment of a USD invoice books the realised gain or loss."""
+    tenant = business.tenant.id
+    _exchange_account(session, business)
+    line, purchase = _usd_purchase(session, business, "PO-I11", "100", "10")
+    _receive_into(session, business, "IN-I11", purchase, "100")
+    invoice = _usd_invoice(session, business, line, "100", "1000", "INV-I11", "0.92")[
+        "document"
+    ]
+
+    first, _ = _reviewed(
+        session,
+        business,
+        "supplier_payment_post",
+        {"invoice_id": invoice, "amount": "400", "paid_amount": "372.00"},
+        "PAY-I11-1",
+    )
+    exchange = json.loads(first.input)["_delivery_review"]["state"]["exchange"]
+    assert (exchange["kind"], Decimal(exchange["difference"])) == ("loss", 4)
+    _reviewed(
+        session,
+        business,
+        "supplier_payment_post",
+        {"invoice_id": invoice, "amount": "600", "paid_amount": "540.00"},
+        "PAY-I11-2",
+    )
+
+    assert core.open_invoice_amount(session, tenant, invoice) == 0
+    # 920.00 at the invoice rate, 912.00 paid: a loss of 4.00 and a gain of 12.00.
+    assert core.account_balance(session, tenant, "exchange_difference") == 0
+    from reality.db.core import LedgerEntry
+
+    differences = sorted(
+        (entry.debit_credit, entry.company_amount)
+        for entry in session.scalars(
+            select(LedgerEntry).where(LedgerEntry.tenant_id == tenant)
+        )
+        if entry.account == "exchange_difference"
+    )
+    assert differences == [("credit", Decimal("12.00")), ("debit", Decimal("4.00"))]
+
+
+def test_an_import_container_lands_in_eur_with_freight_and_duty(
+    session, business, cost_owner
+):
+    """R06: five USD purchases from two suppliers arrive in one container; one
+    receipt's landed cost reads in EUR from its invoice rate, freight and duty, and
+    the two waiting customer orders are served from the arrival."""
+    tenant = business.tenant.id
+    second = core.create_party(session, tenant, "Shenzhen Parts Ltd.", "supplier")
+    waiting = [
+        _sales(session, business, "SO-R06-1", "30", "2026-10-01"),
+        _sales(session, business, "SO-R06-2", "20", "2026-10-03"),
+    ]
+    purchases = [
+        _usd_purchase(
+            session, business, f"PO-R06-{index}", "10", "10", supplier=supplier
+        )
+        for index, supplier in enumerate(
+            (business.supplier, business.supplier, business.supplier, second, second),
+            start=1,
+        )
+    ]
+    receipts = [
+        json.loads(
+            _receive_into(session, business, f"CNT-R06-{index}", purchase, "10").output
+        )["movement_ids"][0]
+        for index, (_, purchase) in enumerate(purchases, start=1)
+    ]
+    invoices = [
+        _usd_invoice(session, business, line, "10", "100", f"INV-R06-{index}", rate)
+        for index, ((line, _), rate) in enumerate(
+            zip(purchases, ("0.92", "0.92", "0.92", "0.91", "0.91"), strict=True),
+            start=1,
+        )
+    ]
+    assert (
+        sorted(
+            _payable(session, business, row["document"]).company_amount
+            for row in invoices
+        )
+        == [Decimal("91.00")] * 2 + [Decimal("92.00")] * 3
+    )
+
+    # Freight and duty in EUR, on the first receipt.
+    principal = Principal(cost_owner.id)
+    for number, category, net in (
+        ("FR-R06", "inbound_freight", "8.00"),
+        ("ZOLL-R06", "duty", "4.00"),
+    ):
+        recorded = json.loads(
+            confirm_tool(
+                session,
+                tenant,
+                propose_tool(
+                    session,
+                    tenant,
+                    "supplier_invoice_free_record",
+                    {
+                        "supplier_id": business.supplier.id,
+                        "number": number,
+                        "currency": "EUR",
+                        "gross_amount": net,
+                        "document_date": "2026-09-22",
+                        "lines": [
+                            {
+                                "description": f"{category} CNT-R06",
+                                "quantity": "1",
+                                "unit": "pcs",
+                                "unit_price": net,
+                                "gross_amount": net,
+                                "line_type": "charge",
+                                "reality_finance_v1": {"net": net, "tax": "0"},
+                            }
+                        ],
+                    },
+                ).id,
+                confirmed=True,
+            ).output
+        )
+        ids = {row["family"]: row["id"] for row in recorded["records"]}
+        evidence = cost_evidence(session, tenant, ids["document"], ids["document_line"])
+        with caller(principal):
+            proposal = create_change_proposal(
+                session,
+                tenant,
+                "cost.change",
+                {
+                    "operation": "assign",
+                    "document_id": ids["document"],
+                    "document_line_id": ids["document_line"],
+                    "expected_event_sequence": evidence["event_sequence"],
+                    "expected_evidence_hash": evidence["evidence_hash"],
+                    "basis": "net",
+                    "tax_treatment": "recoverable",
+                    "selected_basis_tax_inclusion": "excluded",
+                    "parts": [
+                        {
+                            "movement_id": receipts[0],
+                            "category": category,
+                            "source_share": net,
+                            "cost_effect": 1,
+                        }
+                    ],
+                    "reason": f"{category} of the container",
+                },
+            )
+        approve_and_execute_proposal(
+            session, tenant, proposal.id, confirming_principal=principal, confirmed=True
+        )
+
+    # The first invoice's rate is offered as the conversion basis and confirmed.
+    first = invoices[0]
+    evidence = cost_evidence(session, tenant, first["document"], first["document_line"])
+    offer = evidence["offered_conversion_basis"]
+    assert (offer["from_code"], offer["to_code"], offer["numerator"]) == (
+        "USD",
+        "EUR",
+        "0.92",
+    )
+    basis = cost_fixtures.execute(
+        session,
+        business,
+        cost_owner,
+        {**offer, "expected_event_sequence": evidence["event_sequence"]},
+    )["conversion_basis_revision_id"]
+    evidence = cost_evidence(session, tenant, first["document"], first["document_line"])
+    with caller(principal):
+        goods = create_change_proposal(
+            session,
+            tenant,
+            "cost.change",
+            {
+                "operation": "assign",
+                "document_id": first["document"],
+                "document_line_id": first["document_line"],
+                "expected_event_sequence": evidence["event_sequence"],
+                "expected_evidence_hash": evidence["evidence_hash"],
+                "basis": "net",
+                "tax_treatment": "recoverable",
+                "selected_basis_tax_inclusion": "excluded",
+                "parts": [
+                    {
+                        "movement_id": receipts[0],
+                        "category": "goods",
+                        "source_share": "100",
+                        "cost_effect": 1,
+                        "conversion_basis_revision_id": basis,
+                    }
+                ],
+                "reason": "Goods of PO-R06-1 at the invoice rate",
+            },
+        )
+    approve_and_execute_proposal(
+        session, tenant, goods.id, confirming_principal=principal, confirmed=True
+    )
+    cost = run_read_tool(
+        session, tenant, "cost.receipt.get", {"movement_id": receipts[0]}
+    )
+    # 100 USD at 0.92 is 92.00 EUR, plus 8.00 freight and 4.00 duty.
+    assert (Decimal(cost["known_cost"]), cost["currency"]) == (Decimal("104.00"), "EUR")
+
+    _serve(session, business)
+    assert [_reserved(session, business, promise.id) for promise in waiting] == [
+        Decimal(30),
+        Decimal(20),
+    ]

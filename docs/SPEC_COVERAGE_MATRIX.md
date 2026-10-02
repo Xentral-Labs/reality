@@ -2147,3 +2147,8 @@ Table `company_currency`: the currency the company keeps its books in, EUR until
   - The Web reads and states the currency, and pays a USD invoice in EUR.
   - Another company cannot read or state it; the CLI shows and states after asking.
 - `packages/reality-core/tests/test_cost_conversion_services.py::test_a_posted_invoice_rate_is_offered_as_the_conversion_basis`: the invoice rate is offered as the conversion basis and the receipt cost reads in EUR.
+- `packages/reality-core/tests/scenarios/test_catalog_purchasing.py`, stories:
+  - G08: a USD purchase is invoiced at its stated rate, and refused without one.
+  - I11: a USD invoice paid in EUR in two parts realises a loss and a gain and leaves nothing open.
+  - R06: five USD purchases from two suppliers; the invoice rate lands one receipt in EUR with freight and duty, and the waiting orders are served.
+- `packages/reality-core/tests/test_foreign_currency_payments.py::test_a_payment_in_the_invoice_currency_realises_nothing`: a payment without a company-currency amount is valued at the invoice rate.

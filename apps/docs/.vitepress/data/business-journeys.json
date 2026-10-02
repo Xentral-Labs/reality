@@ -2602,19 +2602,30 @@
       "section": "Purchasing: demand and purchase order",
       "title": "Purchase order in foreign currency (USD, CNY)",
       "question": "Currency kept, conversion at posting?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Currency kept, conversion at posting?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Currency kept, conversion at posting? A purchase and its invoice keep the supplier's currency. The invoice is posted at the exchange rate a person states, and every ledger entry carries its amount in the company currency beside its own, with the rate used.",
       "limitations": [
-        "The purchase keeps its currency, and settling across currencies is refused.",
-        "Nothing is converted at posting."
+        "Rates are stated per invoice and payment; there is no rate feed or rate table.",
+        "Open items are not revalued at a reporting date."
       ],
-      "keywords": [],
+      "keywords": [
+        "foreign currency purchase",
+        "USD purchase order",
+        "exchange rate",
+        "Fremdwährung",
+        "Wechselkurs"
+      ],
       "question_examples": [
         "Purchase order in foreign currency (USD, CNY)",
-        "Currency kept, conversion at posting?"
+        "Currency kept, conversion at posting?",
+        "We buy in USD; how is the invoice booked in EUR?",
+        "Wir kaufen in USD ein; wie wird die Rechnung in EUR gebucht?"
       ],
-      "tools": [],
+      "tools": [
+        "supplier_invoice_record_propose",
+        "company_currency"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -3475,19 +3486,31 @@
       "section": "Supplier invoice and payment",
       "title": "Exchange difference between USD invoice and payment",
       "question": "FX difference posted?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: FX difference posted?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: FX difference posted? A EUR payment of a USD invoice states what it settles in USD and what was paid in EUR. The difference to the invoice's value at its own rate is posted as a realised exchange gain or loss, per payment, and a fully paid invoice leaves nothing open in either currency.",
       "limitations": [
-        "A realized exchange difference between a foreign-currency invoice and its payment is not recorded.",
-        "Settling an invoice with a payment in another currency is refused."
+        "Rates come from the invoice posting and the stated payment; there is no revaluation of open items.",
+        "Foreign-currency payment runs pay in the invoice currency and realise nothing."
       ],
-      "keywords": [],
+      "keywords": [
+        "exchange difference",
+        "FX gain",
+        "FX loss",
+        "Kursdifferenz",
+        "Kursgewinn",
+        "Kursverlust"
+      ],
       "question_examples": [
         "Exchange difference between USD invoice and payment",
-        "FX difference posted?"
+        "FX difference posted?",
+        "We paid a USD invoice from our EUR account; where is the exchange difference?",
+        "Wir haben eine USD-Rechnung vom EUR-Konto bezahlt; wo ist die Kursdifferenz?"
       ],
-      "tools": [],
+      "tools": [
+        "supplier_payment_post_propose",
+        "company_currency"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -5268,19 +5291,23 @@
       "section": "Combined stress stories",
       "title": "Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting",
       "question": "Landed cost and customer allocation.",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Landed cost and customer allocation.",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Landed cost and customer allocation. Five USD purchases from two suppliers arrive and are invoiced at their stated rates. The invoice rate is offered as the conversion basis, so a receipt's landed cost reads in EUR with its freight and duty, and the waiting customer orders are served from the arrival.",
       "limitations": [
-        "Freight and duty in landed cost and assigning supply to customers both work.",
-        "Converting the USD rate is not part of costing, and a combined container story is not yet proven."
+        "The invoice rate becomes a conversion basis only when the owner confirms it.",
+        "Costs in another currency are attributed to a receipt after its company-currency costs."
       ],
       "keywords": [],
       "question_examples": [
         "Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting",
         "Landed cost and customer allocation."
       ],
-      "tools": [],
+      "tools": [
+        "supplier_invoice_record_propose",
+        "cost_change_propose",
+        "backorders_serve_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

@@ -12,7 +12,7 @@ Tests come first in each phase where practical.
 
 ## Phase 2: Company currency and ledger amounts (FR-001, FR-005, SC-003)
 
-- [ ] T004 Tests:
+- [x] T004 Tests:
   - the backfill;
   - every new posting carries its company amount, and a company-currency posting carries rate 1;
   - groups balance in both currencies, with rounding remainders;
@@ -20,11 +20,11 @@ Tests come first in each phase where practical.
   - the company currency's default, its statement and its refusal after a posting;
   - tenant isolation;
   - the migration downgrade.
-- [ ] T005 Migration `0115`, models, `post_ledger` and group checks, `services/finance/company_currency.py`, the `exchange_difference` role and default account, events, refusals with translations
+- [x] T005 Migration `0115`, models, `post_ledger` and group checks, `services/finance/company_currency.py`, the `exchange_difference` role and default account, events, refusals with translations
 
 ## Phase 3: Foreign invoices and payments (FR-001, FR-002)
 
-- [ ] T006 Tests:
+- [x] T006 Tests:
   - an invoice posted at a stated rate, and refused without one;
   - a payment with a gain, and one with a loss;
   - two partial payments leaving nothing in either currency;
@@ -32,17 +32,17 @@ Tests come first in each phase where practical.
   - a stale payment review;
   - a reversal taking the difference back;
   - company-currency balances per account.
-- [ ] T007 Supplier invoice and payment services, reviews, reversal, ledger reads
+- [x] T007 Supplier invoice and payment services, reviews, reversal, ledger reads
 
 ## Phase 4: Landed cost (FR-006)
 
-- [ ] T008 Tests: the conversion basis offered from the invoice rate, with its source as evidence, and the receipt cost read in EUR
-- [ ] T009 The offer in the receipt costing preview
+- [x] T008 Tests: the conversion basis offered from the invoice rate, with its source as evidence, and the receipt cost read in EUR
+- [x] T009 The offer in the receipt costing preview
 
 ## Phase 5: Adapters and gates (FR-003)
 
-- [ ] T010 Tools, MCP, Web and CLI, with adapter tests
-- [ ] T011 Catalog gates:
+- [x] T010 Tools, MCP, Web and CLI, with adapter tests
+- [x] T011 Catalog gates:
   - data model and docs field rows;
   - reporting graph;
   - command and action catalogs, tool topics;
@@ -54,12 +54,12 @@ Tests come first in each phase where practical.
 
 ## Phase 6: Web
 
-- [ ] T012 Firmenwährung in the finance settings; Kurs on the supplier invoice; Gezahlt in EUR on the supplier payment; both amounts, rate and difference in posting and payment views; translations; browser fixtures
+- [x] T012 Firmenwährung in the finance settings; Kurs on the supplier invoice; Gezahlt in EUR on the supplier payment; both amounts, rate and difference in posting and payment views; translations; browser fixtures
 
 ## Phase 7: Stories and Guide (FR-004)
 
-- [ ] T013 Business stories G08, I11 and R06
-- [ ] T014 Promote G08, I11 and R06: Guide catalog, Guide tests, coverage, roadmap, docs
+- [x] T013 Business stories G08, I11 and R06
+- [x] T014 Promote G08, I11 and R06: Guide catalog, Guide tests, coverage, roadmap, docs
 
 ## Phase 8: Verification
 

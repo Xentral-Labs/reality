@@ -2529,23 +2529,34 @@ entries:
   section: 'Purchasing: demand and purchase order'
   title: Purchase order in foreign currency (USD, CNY)
   question: Currency kept, conversion at posting?
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Currency kept, conversion at posting?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Currency kept, conversion at posting? A purchase and its invoice keep the supplier's currency. The invoice is posted at the exchange rate a person states, and every ledger entry carries its amount in the company currency beside its own, with the rate used."
   limitations:
-  - The purchase keeps its currency, and settling across currencies is refused.
-  - Nothing is converted at posting.
-  keywords: []
+  - Rates are stated per invoice and payment; there is no rate feed or rate table.
+  - Open items are not revalued at a reporting date.
+  keywords:
+  - foreign currency purchase
+  - USD purchase order
+  - exchange rate
+  - Fremdwährung
+  - Wechselkurs
   question_examples:
   - Purchase order in foreign currency (USD, CNY)
   - Currency kept, conversion at posting?
-  tools: []
+  - We buy in USD; how is the invoice booked in EUR?
+  - Wir kaufen in USD ein; wie wird die Rechnung in EUR gebucht?
+  tools:
+  - supplier_invoice_record_propose
+  - company_currency
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: db/core.py Commitment.currency; tests/test_payment_runs.py::test_a_run_is_one_currency
-    note: 'Currency is kept and cross-currency is refused; nothing converts at posting (docs/features/ledger.md Non-goals: FX revaluation).'
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_usd_purchase_is_invoiced_at_its_stated_rate
+    note: "A USD purchase of 1,000 is invoiced at 0.92: the payable is 1,000 USD and 920.00 EUR, and an invoice without its rate is refused."
+  - reference: packages/reality-core/tests/test_company_currency.py
+    note: Company currency, both amounts on every entry, rounding, reversal and the migration (spec 309).
 - id: G09
   section: 'Purchasing: demand and purchase order'
   title: Supplier confirms different quantity/price/date
@@ -3381,23 +3392,35 @@ entries:
   section: Supplier invoice and payment
   title: Exchange difference between USD invoice and payment
   question: FX difference posted?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: FX difference posted?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: FX difference posted? A EUR payment of a USD invoice states what it settles in USD and what was paid in EUR. The difference to the invoice's value at its own rate is posted as a realised exchange gain or loss, per payment, and a fully paid invoice leaves nothing open in either currency."
   limitations:
-  - A realized exchange difference between a foreign-currency invoice and its payment is not recorded.
-  - Settling an invoice with a payment in another currency is refused.
-  keywords: []
+  - Rates come from the invoice posting and the stated payment; there is no revaluation of open items.
+  - Foreign-currency payment runs pay in the invoice currency and realise nothing.
+  keywords:
+  - exchange difference
+  - FX gain
+  - FX loss
+  - Kursdifferenz
+  - Kursgewinn
+  - Kursverlust
   question_examples:
   - Exchange difference between USD invoice and payment
   - FX difference posted?
-  tools: []
+  - We paid a USD invoice from our EUR account; where is the exchange difference?
+  - Wir haben eine USD-Rechnung vom EUR-Konto bezahlt; wo ist die Kursdifferenz?
+  tools:
+  - supplier_payment_post_propose
+  - company_currency
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: docs/features/ledger.md Non-goals (FX revaluation); ledger rejects cross-currency
-    note: No realized FX difference posting; revaluation is out, the realized difference is not stated either way.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_usd_invoice_paid_in_eur_realises_its_exchange_difference
+    note: "1,000 USD at 0.92 paid in two parts, 372.00 and 540.00 EUR: a loss of 4.00 and a gain of 12.00, and nothing is left open."
+  - reference: packages/reality-core/tests/test_foreign_currency_payments.py
+    note: Gains, losses, partial payments, refusals, a stale review and reversal (spec 309).
 - id: I12
   section: Supplier invoice and payment
   title: Duplicate supplier invoice
@@ -5119,23 +5142,26 @@ entries:
   section: Combined stress stories
   title: 'Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting'
   question: Landed cost and customer allocation.
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Landed cost and customer allocation.'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Landed cost and customer allocation. Five USD purchases from two suppliers arrive and are invoiced at their stated rates. The invoice rate is offered as the conversion basis, so a receipt's landed cost reads in EUR with its freight and duty, and the waiting customer orders are served from the arrival."
   limitations:
-  - Freight and duty in landed cost and assigning supply to customers both work.
-  - Converting the USD rate is not part of costing, and a combined container story is not yet proven.
+  - The invoice rate becomes a conversion basis only when the owner confirms it.
+  - Costs in another currency are attributed to a receipt after its company-currency costs.
   keywords: []
   question_examples:
   - 'Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting'
   - Landed cost and customer allocation.
-  tools: []
+  tools:
+  - supplier_invoice_record_propose
+  - cost_change_propose
+  - backorders_serve_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: docs/features/receipt-costing.md (freight/duty categories; FX excluded); tests/test_cost_allocation_services.py::test_weighted_preview_and_confirmation_retain_exact_existing_parts; tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt
-    note: Freight/duty landed cost and customer assignment exist; USD rate conversion is out of the costing slice, and there's no combined container test.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_an_import_container_lands_in_eur_with_freight_and_duty
+    note: "Five USD purchases at 0.92 and 0.91; 100 USD of goods at 0.92 plus 8.00 freight and 4.00 duty land at 104.00 EUR, and the orders of 30 and 20 are reserved."
 - id: R07
   section: Combined stress stories
   title: Month-end count difference uncovers three reservations
