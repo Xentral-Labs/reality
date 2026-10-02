@@ -392,7 +392,7 @@ def record_return(
 def _caused(
     session: Session, tenant_id: str, row: PaymentReturn, entry: LedgerEntry
 ) -> dict[str, str | None]:
-    """What the return caused, read from the records that point back to it (spec 318).
+    """What the return caused, read from the records that point back to it (spec 322).
 
     The reversal is the one of the payment's posting group, which can be
     reversed once; the fee documents carry the return's own source record.

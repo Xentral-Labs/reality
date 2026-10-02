@@ -1561,7 +1561,7 @@ class PaymentReturn(Base):
     """A customer payment that came back: a returned direct debit or a chargeback.
 
     Reality, append-only. It keeps what the bank or provider stated. What it
-    caused points back to it, never the other way (spec 318): the ledger
+    caused points back to it, never the other way (spec 322): the ledger
     reversal is the one of the payment's posting group, the fee documents carry
     this return's source record, and which invoices reopened is read from the
     payment's allocations.

@@ -1,6 +1,6 @@
 # Feature Specification: Payment Returns Store No Forward Links
 
-**Feature Branch**: `318-payment-return-links`
+**Feature Branch**: `322-payment-return-links`
 
 **Created**: 2026-10-02
 
