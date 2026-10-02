@@ -47,3 +47,7 @@ Revert code and generated references together. No data migration or write change
 ## Complexity Tracking
 
 No Constitution exceptions.
+
+## Verification-blocker remediation (2026-10-02)
+
+Spec impact: none for the additional performance refactor. Existing spec 146 FR-033 and spec 234 retained-inventory contracts remain unchanged. Profiling the existing setup timeout found 26,000 SQL round-trips, including repeated immutable inventory input identity reads. Batch those bounded tenant-scoped identities in `services/inventory_costing.py:_inputs`, preserving every integrity check, missing/foreign refusal and received value. No cache survives a service call, no confirmation is skipped, and the production 120-second setup limit is unchanged. Add query-count and scope regressions to `tests/test_inventory_costing_services.py` first; compare retained outputs, then rerun setup and full CI gates. All Constitution rows remain PASS; no new schema, dependency or business behavior.

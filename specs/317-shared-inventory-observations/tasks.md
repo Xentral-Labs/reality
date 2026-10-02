@@ -25,6 +25,10 @@
 
 ## Dependencies and Parallel Work
 
+- [x] T012 Restore verification feasibility: add a failing retained-inventory input query-count/scope regression in `tests/test_inventory_costing_services.py`, then batch immutable input reads in `services/inventory_costing.py:_inputs` without changing validations or setup deadlines (spec impact none; existing specs 146 FR-033 and 234). T012 precedes T009; acceptance output and all integrity/tenant regression tests must remain green.
+
+Remediation analysis: T012 is behavior-preserving, maps to the existing setup/inventory contracts and does not broaden FR-001–FR-005. No unresolved clarification or critical/high consistency finding.
+
 T001 → T002 → T003 → T004 → T005 → T006; T007 can run alongside T004; T008 follows T007. T009-T011 follow all implementation. Deliver US1 first, then US2. No schema or migration work.
 
 ## Requirement Coverage

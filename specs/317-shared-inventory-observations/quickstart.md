@@ -19,4 +19,8 @@ Then run `make test`, `make lint spec-check`, `make web-build`, `make docs-gener
 
 ## Review
 
+### Verification-blocker remediation
+
+Profiling reproduced the timeout: 26,000 SQL round-trips, 166.9 seconds in profile creation, 89.6 seconds cumulatively in 79 cost decisions, and only 5.7 seconds rebuilding projections. Batch retained input identities within `_inputs`; retain all tenant predicates, validation order, hashes and source values, with no cross-call cache or changed deadline. The new query-count test failed before the refactor (2 movement-basis reads instead of 1). Final inventory-cost integrity and canonical demo module run: 65 passed in 191.55 seconds, including completed setup under the unchanged 120-second limit. Full backend verification still follows.
+
 Reviewed tenant predicates on every aggregate, same-tenant outer query, corrected receipt contributions, cancellation, transfer conservation, unchanged Page re-export, SQL pagination and movement provenance. No business arithmetic remains in the Web inventory forwarding function. The existing company-wide projection consumes `core.inventory_rows`; its calculation remains equivalent, so no projection version bump or stored-data rewrite is needed.

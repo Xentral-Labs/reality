@@ -4,6 +4,7 @@ import json
 from dataclasses import asdict
 from datetime import UTC, datetime
 from decimal import Decimal
+from typing import Any
 
 from sqlalchemy import cast, func, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
@@ -709,13 +710,77 @@ def _inputs(
     )
     if len(ownership_parts) > 500:
         raise core.InvalidOperation(code="inventory_ownership_portion_bound_exceeded")
+
+    # Keep these maps local to this read: immutable retained identities are fetched
+    # once per model, with tenant predicates, rather than once per member/portion.
+    def load(model: type[Any], identities: set[str | None]) -> dict[str, Any]:
+        if not identities:
+            return {}
+        return {
+            row.id: row
+            for row in session.scalars(
+                select(model).where(model.tenant_id == tenant, model.id.in_(identities))
+            )
+        }
+
+    def retained_row(rows: dict[str, Any], identity: str | None) -> Any:
+        if identity not in rows:
+            raise core.NotFound(code="costing_scope_not_found")
+        return rows[identity]
+
+    movements = load(
+        CostMovementBasis,
+        {
+            *(member.movement_basis_id for member in members),
+            *(part.movement_basis_id for part in ownership_parts),
+        },
+    )
+    events = load(
+        BusinessEvent, {basis.movement_event_id for basis in movements.values()}
+    )
+    owners = load(Party, {part.owner_party_id for part in ownership_parts})
+    ownerships = load(
+        CostOwnershipRevision,
+        {
+            member.ownership_revision_id
+            for member in members
+            if member.kind == "receipt"
+        },
+    )
+    receipt_bases = load(
+        CostReceiptBasis,
+        {ownership.receipt_basis_id for ownership in ownerships.values()},
+    )
+    opening_ids = {
+        member.movement_basis_id for member in members if member.kind == "opening"
+    }
+    opening_bases = (
+        {
+            row.movement_basis_id: row
+            for row in session.scalars(
+                select(CostOpeningBasis).where(
+                    CostOpeningBasis.tenant_id == tenant,
+                    CostOpeningBasis.movement_basis_id.in_(opening_ids),
+                )
+            )
+        }
+        if opening_ids
+        else {}
+    )
+    sources = load(
+        SourceRecord,
+        {
+            *(part.evidence_source_record_id for part in ownership_parts),
+            *(opening.evidence_source_record_id for opening in opening_bases.values()),
+        },
+    )
     basis_by_id = {}
     grouped_parts: dict[str, list] = {}
     retained_ownership = []
     for part in ownership_parts:
-        basis = _row(session, CostMovementBasis, tenant, part.movement_basis_id)
-        _row(session, Party, tenant, part.owner_party_id)
-        _row(session, SourceRecord, tenant, part.evidence_source_record_id)
+        basis = retained_row(movements, part.movement_basis_id)
+        retained_row(owners, part.owner_party_id)
+        retained_row(sources, part.evidence_source_record_id)
         if part.input_schema_version != 1 or part.quantity <= 0:
             raise core.InvalidOperation(code="inventory_ownership_integrity_mismatch")
         basis_by_id[basis.id] = basis
@@ -762,8 +827,8 @@ def _inputs(
     }
     inputs, receipts, openings = [], [], []
     for member in members:
-        basis = _row(session, CostMovementBasis, tenant, member.movement_basis_id)
-        source_event = _row(session, BusinessEvent, tenant, basis.movement_event_id)
+        basis = retained_row(movements, member.movement_basis_id)
+        source_event = retained_row(events, basis.movement_event_id)
         correction_input = None
         valid_source_event = (
             source_event.event_type == "movement.recorded"
@@ -815,12 +880,8 @@ def _inputs(
         if member.kind == "receipt":
             if len(receipts) >= MAX_RECEIPTS:
                 raise core.InvalidOperation(code="inventory_receipt_bound_exceeded")
-            ownership = _row(
-                session, CostOwnershipRevision, tenant, member.ownership_revision_id
-            )
-            receipt_basis = _row(
-                session, CostReceiptBasis, tenant, ownership.receipt_basis_id
-            )
+            ownership = retained_row(ownerships, member.ownership_revision_id)
+            receipt_basis = retained_row(receipt_bases, ownership.receipt_basis_id)
             if (
                 ownership.owner_party_id != policy.owner_party_id
                 or ownership.covered_quantity != quantity
@@ -854,12 +915,7 @@ def _inputs(
                 }
             )
         elif member.kind == "opening":
-            opening = session.scalar(
-                select(CostOpeningBasis).where(
-                    CostOpeningBasis.tenant_id == tenant,
-                    CostOpeningBasis.movement_basis_id == basis.id,
-                )
-            )
+            opening = opening_bases.get(basis.id)
             if (
                 opening is None
                 or (
@@ -870,7 +926,7 @@ def _inputs(
                 or opening.input_schema_version != 1
             ):
                 raise core.InvalidOperation(code="inventory_opening_integrity_mismatch")
-            _row(session, SourceRecord, tenant, opening.evidence_source_record_id)
+            retained_row(sources, opening.evidence_source_record_id)
             cost = _money(opening.acquisition_cost * quantity / basis.base_quantity)
             retained["opening"] = _values(opening)
             openings.append(
