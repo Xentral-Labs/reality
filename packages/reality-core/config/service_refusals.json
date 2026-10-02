@@ -2085,6 +2085,27 @@
     },
     "stock_count_time_before_stock": {
       "message": "The counting time is before the goods first came to this location; check the date."
+    },
+    "customer_item_number_party_not_customer": {
+      "message": "Customer item numbers are stated for a customer."
+    },
+    "customer_item_number_required": {
+      "message": "State the customer's item number."
+    },
+    "customer_item_number_item_not_found": {
+      "message": "This item was not found in this company."
+    },
+    "customer_item_number_not_found": {
+      "message": "This customer has no such item number."
+    },
+    "customer_item_number_changed_since_review": {
+      "message": "This customer item number changed after it was reviewed; review it again."
+    },
+    "customer_item_number_unknown": {
+      "message": "The customer has no item under this number; choose our item or state the number for the customer first."
+    },
+    "customer_item_number_conflicts_with_item": {
+      "message": "The customer's number names another item than the one stated."
     }
   },
   "terms": [

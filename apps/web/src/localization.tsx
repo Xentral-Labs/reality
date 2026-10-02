@@ -24858,6 +24858,16 @@ Object.assign(dictionaries.de, {
   "The counting time is before the goods first came to this location; check the date.":
     "Der Zählzeitpunkt liegt vor dem ersten Zugang der Ware an diesem Lagerort; prüfe das Datum.",
   "counted lines": "gezählte Zeile(n)",
+  "Customer item numbers are stated for a customer.":
+    "Kundenartikelnummern gelten für einen Kunden.",
+  "State the customer's item number.": "Gib die Artikelnummer des Kunden an.",
+  "This customer has no such item number.": "Dieser Kunde hat keine solche Artikelnummer.",
+  "This customer item number changed after it was reviewed; review it again.":
+    "Diese Kundenartikelnummer hat sich nach der Prüfung geändert; prüfe sie erneut.",
+  "The customer has no item under this number; choose our item or state the number for the customer first.":
+    "Der Kunde hat unter dieser Nummer keinen Artikel; wähle unseren Artikel oder lege die Nummer zuerst für den Kunden an.",
+  "The customer's number names another item than the one stated.":
+    "Die Nummer des Kunden bezeichnet einen anderen Artikel als den angegebenen.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25117,6 +25127,15 @@ Object.assign(dictionaries.nl, {
   "The counting time is before the goods first came to this location; check the date.":
     "Het teltijdstip ligt vóór de eerste ontvangst van de goederen op deze locatie; controleer de datum.",
   "counted lines": "getelde regel(s)",
+  "Customer item numbers are stated for a customer.": "Klantartikelnummers gelden voor een klant.",
+  "State the customer's item number.": "Geef het artikelnummer van de klant op.",
+  "This customer has no such item number.": "Deze klant heeft geen dergelijk artikelnummer.",
+  "This customer item number changed after it was reviewed; review it again.":
+    "Dit klantartikelnummer is na de controle gewijzigd; controleer het opnieuw.",
+  "The customer has no item under this number; choose our item or state the number for the customer first.":
+    "De klant heeft onder dit nummer geen artikel; kies ons artikel of leg het nummer eerst vast voor de klant.",
+  "The customer's number names another item than the one stated.":
+    "Het nummer van de klant verwijst naar een ander artikel dan het opgegeven.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25375,6 +25394,16 @@ Object.assign(dictionaries.es, {
   "The counting time is before the goods first came to this location; check the date.":
     "La hora del recuento es anterior a la primera entrada de la mercancía en esta ubicación; revisa la fecha.",
   "counted lines": "línea(s) contada(s)",
+  "Customer item numbers are stated for a customer.":
+    "Los números de artículo del cliente se indican para un cliente.",
+  "State the customer's item number.": "Indica el número de artículo del cliente.",
+  "This customer has no such item number.": "Este cliente no tiene ese número de artículo.",
+  "This customer item number changed after it was reviewed; review it again.":
+    "Este número de artículo del cliente cambió tras la revisión; revísalo de nuevo.",
+  "The customer has no item under this number; choose our item or state the number for the customer first.":
+    "El cliente no tiene ningún artículo con este número; elige nuestro artículo o indica primero el número para el cliente.",
+  "The customer's number names another item than the one stated.":
+    "El número del cliente corresponde a otro artículo distinto del indicado.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
