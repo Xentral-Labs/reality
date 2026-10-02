@@ -82,3 +82,7 @@ The checkout contains unrelated pre-existing work and uncommitted generated outp
 staleness check here. Two-pass generation reproducibility checks the held outputs
 without reverting other work. The owner subsequently authorized a feature-only
 commit; shared files were staged by scope and generated outputs by isolated snapshot.
+
+## Published Release Evidence — 2026-10-02
+
+[PR #291](https://github.com/Xentral-Labs/reality/pull/291) released specs 323 and 325 together after all **22 hosted quality checks succeeded**. Rebase merge: `87a826015df786ae3b5324c72c6abf50379168a5`. [Deploy run](https://github.com/Xentral-Labs/reality/actions/runs/37022632660) and [GitOps receiver](https://github.com/Xentral-Labs/argocd/actions/runs/37022861405) succeeded. Logged-in native inspection identified a separate settings/runtime and membership-presentation defect, corrected by spec326 / PR292 without weakening this feature's approval or private-author boundaries. Spec326 records the subsequent release evidence and the remaining existing-session post-check limitation.
