@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { TargetMappings } from "./TargetMappings";
 import { AccountSettings } from "./AccountSettings";
+import { CompanyCurrencySection } from "./CompanyCurrencySection";
 import { ReferenceSettings } from "./ReferenceSettings";
 import { SourceMappings } from "./SourceMappings";
 import { t } from "../localization";
@@ -67,6 +68,7 @@ export function FinanceSettings({
       <div className="min-w-0">
         {area === "accounts" && (
           <div className="space-y-4">
+            <CompanyCurrencySection key={tenantId} tenantId={tenantId} canManage={canManage} />
             <nav aria-label={t("Account settings areas")} className="flex flex-wrap gap-2">
               <button
                 className={`br-btn ${!external ? areaStyles.active : areaStyles.inactive}`}

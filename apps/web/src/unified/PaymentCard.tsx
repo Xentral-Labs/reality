@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   api,
+  companyCurrencyApi,
   deliveryActions,
   paymentActions,
   type PaymentInput,
@@ -48,6 +49,8 @@ export function PaymentCard({
   const [query, setQuery] = useState(""),
     [page, setPage] = useState(1),
     [invoiceSeed, setInvoiceSeed] = useState("");
+  // Spec 309: a supplier invoice in another currency is paid in the company currency.
+  const book = useRead(() => companyCurrencyApi.read(tenant), [tenant]);
   const invoices = useRead(
     () =>
       api.openItems(
@@ -124,7 +127,11 @@ export function PaymentCard({
         request.current,
         activeTool,
         Object.fromEntries(
-          Object.entries(draft).filter(([key, value]) => key !== "effective_at" || !!value),
+          Object.entries(draft).filter(
+            ([key, value]) =>
+              (key !== "effective_at" || !!value) &&
+              (key !== "paid_amount" || (foreign && !!value)),
+          ),
         ) as PaymentInput,
       );
       if (alive.current) {
@@ -170,6 +177,12 @@ export function PaymentCard({
     });
 
   const review = proposal?.review;
+  const chosen = invoices.data?.items.find((r) => r.document_id === draft.invoice_id);
+  const foreign =
+    activeTool === "supplier_payment_post" &&
+    !!chosen &&
+    !!book.data &&
+    chosen.currency !== book.data.currency;
   const money = (value: string, currency: string) => formatMoney(value, currency, 4);
   const field = (label: string, key: string, required = true) => (
     <label className="block text-sm">
@@ -293,6 +306,11 @@ export function PaymentCard({
             )}
             <div className="grid gap-4 sm:grid-cols-2">
               {field(t("Payment amount"), "amount")}
+              {foreign &&
+                field(
+                  `${t("Paid in company currency")} (${book.data?.currency ?? ""})`,
+                  "paid_amount",
+                )}
               {field(t("Payment reference"), "payment_number", false)}
               {field(t("Effective time (UTC ISO, optional)"), "effective_at", false)}
             </div>
@@ -351,6 +369,38 @@ export function PaymentCard({
                   </strong>
                 </div>
               </div>
+              {review.state.exchange && (
+                <div
+                  className="grid gap-2 rounded-lg border border-border-default p-4 text-sm sm:grid-cols-2"
+                  data-exchange-difference
+                >
+                  <span className="text-fg-muted">{t("Paid in company currency")}</span>
+                  <strong>
+                    {money(
+                      review.state.exchange.paid_amount,
+                      review.state.exchange.company_currency,
+                    )}{" "}
+                    · {t("Rate")} {review.state.exchange.payment_rate}
+                  </strong>
+                  <span className="text-fg-muted">{t("Value at the invoice rate")}</span>
+                  <strong>
+                    {money(
+                      review.state.exchange.invoice_value,
+                      review.state.exchange.company_currency,
+                    )}{" "}
+                    · {t("Rate")} {review.state.exchange.invoice_rate}
+                  </strong>
+                  <span className="text-fg-muted">{t("Exchange difference")}</span>
+                  <strong>
+                    {review.state.exchange.kind === "none"
+                      ? t("None")
+                      : `${t(review.state.exchange.kind === "gain" ? "Exchange gain" : "Exchange loss")} ${money(
+                          review.state.exchange.difference,
+                          review.state.exchange.company_currency,
+                        )}`}
+                  </strong>
+                </div>
+              )}
               <p className="text-sm">
                 {t("Payment reference")}:{" "}
                 {review.state.creation.payment_number || t("Assigned at recording")}

@@ -3484,6 +3484,9 @@ export type InvoiceProposal = Omit<DeliveryProposal, "review" | "observation"> &
         effective_at?: string;
         reality_finance_v1?: StatedInvoiceAmounts;
         down_payment_offsets?: DownPaymentOffset[];
+        /** Spec 309: the stated rate of a foreign supplier invoice and its value. */
+        exchange_rate?: string;
+        company_amount?: string;
       };
       down_payment_offers?: DownPaymentOffer[];
       open_after_offsets?: string;
@@ -3581,10 +3584,39 @@ export type PaymentProposal = Omit<DeliveryProposal, "review" | "observation"> &
       source: null | { id: string; source_system: string; external_id: string };
       open_before: string;
       open_after: string;
+      /** Spec 309: a supplier payment of a foreign invoice in the company currency. */
+      exchange?: {
+        company_currency: string;
+        paid_amount: string;
+        payment_rate: string;
+        invoice_rate: string;
+        invoice_value: string;
+        difference: string;
+        kind: "gain" | "loss" | "none";
+      };
     };
   };
   payment_entry_id?: string;
   observation: null | { open: string; allocation_active: boolean };
+};
+export type CompanyCurrency = {
+  currency: string;
+  source_record_id: string | null;
+  has_postings: boolean;
+};
+export const companyCurrencyApi = {
+  read: (tenant: string) =>
+    request<CompanyCurrency>(`/api/tenants/${encodeURIComponent(tenant)}/finance/company-currency`),
+  prepare: (tenant: string, currency: string) =>
+    request<{ id: string; status: string; preview: Record<string, unknown> }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/finance/company-currency/proposals`,
+      { method: "POST", body: JSON.stringify({ currency }) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
 };
 export const paymentActions = {
   prepare: (tenant: string, request: string, tool: string, args: PaymentInput) =>

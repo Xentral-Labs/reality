@@ -178,7 +178,11 @@ export function InvoiceCard({
     run(async () => {
       const result = await invoiceActions.prepare(tenant, request.current, activeTool, {
         ...Object.fromEntries(
-          Object.entries(draft).filter(([key, value]) => key !== "effective_at" || !!value),
+          Object.entries(draft).filter(
+            ([key, value]) =>
+              (key !== "effective_at" || !!value) &&
+              (key !== "exchange_rate" || (direction === "purchase" && !!value)),
+          ),
         ),
         lines: draft.lines?.map(withStatedDetail),
       } as InvoiceInput);
@@ -540,6 +544,12 @@ export function InvoiceCard({
               {field(t("Invoice number"), "number")}
               {field(t("Stated invoice amount"), "gross_amount")}
               {field(t("Effective time (UTC ISO, optional)"), "effective_at", false)}
+              {direction === "purchase" &&
+                field(
+                  t("Exchange rate (only for an invoice in another currency)"),
+                  "exchange_rate",
+                  false,
+                )}
             </div>
             <p className="text-sm text-fg-muted">
               {t(
@@ -639,6 +649,13 @@ export function InvoiceCard({
                   )}
                 </strong>
               </div>
+              {review.state.creation.exchange_rate && review.state.creation.company_amount && (
+                <p className="text-sm" data-invoice-exchange-rate>
+                  {t("Rate")} {review.state.creation.exchange_rate} ·{" "}
+                  {t("Value in company currency")}{" "}
+                  <strong>{review.state.creation.company_amount}</strong>
+                </p>
+              )}
               {review.state.down_payment_offers && proposal.status === "proposed" && (
                 <DownPaymentOffsets
                   key={proposal.id}
