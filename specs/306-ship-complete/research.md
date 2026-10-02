@@ -9,7 +9,11 @@
 
 ## Decisions
 
-- **One append-only table, `delivery_rule`.** It holds a party or a document (exactly one), the rule, a reason, who stated it and when. Its history is the explanation. Lifting the rule for an order is a new statement of partial allowed for that order. No column on `party` or `document`.
+- **One table, `delivery_rule`, with a source stream** (owner pattern since spec 320):
+  - One current row per customer or order names the statement in force.
+  - Every statement, with its reason, is a version of the subject's source stream, and the history is read from there.
+  - Lifting the rule for an order is a new statement of partial allowed for that order.
+  - No column on `party` or `document`.
 - **Effective rule.** The latest statement for the order wins over the latest for its customer (the order's counterparty). Without either, partial allowed.
 - **Completeness.** The whole order counts, over its open customer promises. A cancelled or fulfilled line counts as complete. A line is complete for shipping when its whole open quantity can ship: reserved, or physically available where it is shipped from, under the same rule the readiness stock check uses.
 - **A shipment as a group.** Readiness sees one line at a time, so the shipment paths check the group: every open line of an order under ship complete must be in the same shipment with its whole open quantity.

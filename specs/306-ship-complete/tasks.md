@@ -12,13 +12,13 @@ Tests come first in each phase where practical.
 
 ## Phase 2: Rule record (FR-001)
 
-- [ ] T004 Tests:
+- [x] T004 Tests:
   - schema checks and the migration downgrade;
   - stating a rule for a customer and for an order;
   - the effective rule (order over customer over default);
   - refusals;
   - tenant isolation.
-- [ ] T005 Migration `0112`, the `DeliveryRule` model, `services/delivery_rules.py`, the event and the refusals with translations
+- [x] T005 Migration `0112`, the `DeliveryRule` model, `services/delivery_rules.py`, the event and the refusals with translations
 
 ## Phase 3: Readiness and shipments (FR-002)
 

@@ -4,7 +4,7 @@
 
 ## Summary
 
-A person states a delivery rule for a customer or for one order: partial allowed, ship complete or no backorders. Each statement is an append-only `delivery_rule` row with its reason. The latest statement for the order wins; otherwise the latest for the customer applies; otherwise partial allowed.
+A person states a delivery rule for a customer or for one order: partial allowed, ship complete or no backorders. Each statement is kept as a version of the subject's source stream, and a `delivery_rule` row per customer or order names the one in force (spec 320 pattern). The latest statement for the order wins; otherwise the latest for the customer applies; otherwise partial allowed.
 
 **Ship complete (B10):**
 - Readiness gains the blocker `ship_complete_incomplete`, naming the lines that cannot ship in full.
@@ -42,13 +42,13 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/de
 
 | Principle | Result | Evidence |
 |---|---|---|
-| I. Source → Evidence → Reality | PASS | A rule is a person's statement with its reason, linked to the customer or the order it is about. |
+| I. Source → Evidence → Reality | PASS | Every statement is an immutable source version; the rule row names the one in force and links the customer or order it is about. |
 | II. Reality is the operational authority | PASS | No document status: whether an order is complete is read from its promises, stock and reservations; the rule is a stated term. |
 | III. Proven schema only | PASS | Readiness, every shipment path and two classes filter and act on the effective rule. |
 | IV. Tenant and service boundaries | PASS | Composite tenant FKs; one service path behind every adapter. |
 | V. Specification and test evidence | PASS | Tests planned per phase, with positive controls. |
 | VI. Explainable Web product | PASS | The blocker and both findings name the rule, who stated it, why, and the lines concerned. |
-| VII. Simplicity and storage discipline | PASS | One append-only table. No column on `party` or `document`, which also avoids the historical-schema trap of a new `document` column. |
+| VII. Simplicity and storage discipline | PASS | One table with the spec 320 source-stream pattern. No column on `party` or `document`, which also avoids the historical-schema trap of a new `document` column. |
 | VIII. Received values are recorded, never recomputed | PASS | Rules are kept as stated; completeness is derived at read time. |
 
 ## Design

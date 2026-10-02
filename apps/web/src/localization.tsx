@@ -24725,6 +24725,16 @@ Object.assign(dictionaries.de, {
   Reserve: "Reservieren",
   "Short now": "Jetzt fehlend",
   "Without a date": "Ohne Termin",
+  "A delivery rule is stated for exactly one customer or one order.":
+    "Eine Lieferregel gilt für genau einen Kunden oder einen Auftrag.",
+  "A delivery rule is partial allowed, ship complete or no backorders.":
+    "Eine Lieferregel ist „Teillieferung erlaubt“, „Komplettlieferung“ oder „Keine Rückstände“.",
+  "State why the delivery rule applies.": "Gib an, warum die Lieferregel gilt.",
+  "A delivery rule is stated for a customer.": "Eine Lieferregel gilt für einen Kunden.",
+  "A delivery rule is stated for a customer order.":
+    "Eine Lieferregel gilt für einen Kundenauftrag.",
+  "This delivery rule changed after it was reviewed; review it again.":
+    "Diese Lieferregel hat sich nach der Prüfung geändert; prüfe sie erneut.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -24905,6 +24915,16 @@ Object.assign(dictionaries.nl, {
   Reserve: "Reserveren",
   "Short now": "Nu tekort",
   "Without a date": "Zonder datum",
+  "A delivery rule is stated for exactly one customer or one order.":
+    "Een leveringsregel geldt voor precies één klant of één order.",
+  "A delivery rule is partial allowed, ship complete or no backorders.":
+    "Een leveringsregel is ‘deellevering toegestaan’, ‘volledig leveren’ of ‘geen nalevering’.",
+  "State why the delivery rule applies.": "Geef aan waarom de leveringsregel geldt.",
+  "A delivery rule is stated for a customer.": "Een leveringsregel geldt voor een klant.",
+  "A delivery rule is stated for a customer order.":
+    "Een leveringsregel geldt voor een klantorder.",
+  "This delivery rule changed after it was reviewed; review it again.":
+    "Deze leveringsregel is na de controle gewijzigd; controleer haar opnieuw.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25085,6 +25105,16 @@ Object.assign(dictionaries.es, {
   Reserve: "Reservar",
   "Short now": "Faltan ahora",
   "Without a date": "Sin fecha",
+  "A delivery rule is stated for exactly one customer or one order.":
+    "Una regla de entrega se indica para exactamente un cliente o un pedido.",
+  "A delivery rule is partial allowed, ship complete or no backorders.":
+    "Una regla de entrega es «entrega parcial permitida», «entrega completa» o «sin pendientes».",
+  "State why the delivery rule applies.": "Indica por qué se aplica la regla de entrega.",
+  "A delivery rule is stated for a customer.": "Una regla de entrega se indica para un cliente.",
+  "A delivery rule is stated for a customer order.":
+    "Una regla de entrega se indica para un pedido de cliente.",
+  "This delivery rule changed after it was reviewed; review it again.":
+    "Esta regla de entrega cambió tras la revisión; revísala de nuevo.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
