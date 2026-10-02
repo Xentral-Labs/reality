@@ -33,8 +33,8 @@ Tests come first in each phase where practical.
 
 ## Phase 4: Adapters and gates (FR-003)
 
-- [ ] T008 Tools, MCP, Web and CLI, with adapter tests
-- [ ] T009 Catalog gates:
+- [x] T008 Tools, MCP, Web and CLI, with adapter tests
+- [x] T009 Catalog gates:
   - data model and docs field rows;
   - reporting graph;
   - command and action catalogs, tool topics;

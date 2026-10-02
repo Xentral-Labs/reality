@@ -55,6 +55,7 @@ angegeben.
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review              | Bereichsübergreifend    | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
 | [`handover_detail`](#command-handover_detail)                                     | Read collection handover                   | Bereichsübergreifend    | `finance_dunning_collection_handover`                                                                                                                                                        | Web · MCP · Chat                        |
 | [`cost_query`](#command-cost_query)                                               | Read cost query context                    | Bereichsübergreifend    | `cost_query_get`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
+| [`customer_item_numbers`](#command-customer_item_numbers)                         | Read customer item numbers                 | Bereichsübergreifend    | `customer_item_numbers`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`dunning_context`](#command-dunning_context)                                     | Read dunning context                       | Bereichsübergreifend    | `finance_dunning_context`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`notice_detail`](#command-notice_detail)                                         | Read dunning notice                        | Bereichsübergreifend    | `finance_dunning_notice`                                                                                                                                                                     | Web · MCP · Chat                        |
 | [`schedule`](#command-schedule)                                                   | Read dunning schedule                      | Bereichsübergreifend    | `finance_dunning_schedule`                                                                                                                                                                   | Web · MCP · Chat                        |
@@ -67,6 +68,8 @@ angegeben.
 | [`reverse_notice`](#command-reverse_notice)                                       | Reverse dunning notice                     | Bereichsübergreifend    | `finance_dunning_reverse_propose`                                                                                                                                                            | Web · MCP · Chat                        |
 | [`business_journey_vote_set`](#command-business_journey_vote_set)                 | Set a Business Journey suggestion vote     | Bereichsübergreifend    | `business_journey_vote_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
 | [`set_schedule`](#command-set_schedule)                                           | Set dunning schedule                       | Bereichsübergreifend    | `finance_dunning_schedule_set_propose`                                                                                                                                                       | Web · MCP · Chat                        |
+| [`set_customer_item_number`](#command-set_customer_item_number)                   | State a customer item number               | Bereichsübergreifend    | `customer_item_number_set_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
+| [`remove_customer_item_number`](#command-remove_customer_item_number)             | Withdraw a customer item number            | Bereichsübergreifend    | `customer_item_number_remove_propose`                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`accept_adjustment`](#command-accept_adjustment)                                 | Accept settlement reduction                | Finanzen                | `finance_adjustment_propose`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`assign_component`](#command-assign_component)                                   | Assign received financial component        | Finanzen                | `finance_component_assign_propose`                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`create_account`](#command-create_account)                                       | Create operational account                 | Finanzen                | `finance_create_account_propose`                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -7415,7 +7418,7 @@ delivery promise from the order; no money moves.
 **Aufruf**
 
 ```text
-order_line_item_assign_propose document_line_id item_id
+order_line_item_assign_propose document_line_id item_id [remember_for_customer]
 ```
 
 **Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
@@ -7435,17 +7438,18 @@ confirmation is required.
 **Aufruf**
 
 ```text
-order_line_item_assign_propose document_line_id item_id
+order_line_item_assign_propose document_line_id item_id [remember_for_customer]
 ```
 
 **Zugriff:** `propose`
 
 **Parameter**
 
-| Name               | Typ      | Pflicht | Beschreibung                                                                              | Standard |
-| ------------------ | -------- | ------- | ----------------------------------------------------------------------------------------- | -------- |
-| `document_line_id` | `string` | ja      | Opaque same-tenant received document line identity; must belong to the selected document. | —        |
-| `item_id`          | `string` | ja      | Opaque identity of the operational item reference.                                        | —        |
+| Name                    | Typ       | Pflicht | Beschreibung                                                                                       | Standard |
+| ----------------------- | --------- | ------- | -------------------------------------------------------------------------------------------------- | -------- |
+| `document_line_id`      | `string`  | ja      | Opaque same-tenant received document line identity; must belong to the selected document.          | —        |
+| `item_id`               | `string`  | ja      | Opaque identity of the operational item reference.                                                 | —        |
+| `remember_for_customer` | `boolean` | nein    | Also state the number the line was ordered by as the customer's item number for the assigned item. | —        |
 
 **Siehe auch:** Command [`assign_line_item`](./commands#command-assign_line_item)
 
@@ -8569,6 +8573,63 @@ independent freshness.
 
 **Siehe auch:** Command [`cost_query`](./commands#command-cost_query)
 
+### `customer_item_numbers` — Read customer item numbers {#command-customer_item_numbers}
+
+Lists a customer's own article numbers, or the numbers customers use for one item.
+
+**Aufruf**
+
+```text
+customer_item_numbers [party_id] [item_id]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `customer_item_number`, `party`, `item` · Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`customer_item_numbers`](./commands#tool-customer_item_numbers)
+
+#### `customer_item_numbers` — Customer item numbers {#tool-customer_item_numbers}
+
+Read a customer's own article numbers (party_id) or the numbers customers use for one of our items
+(item_id), with the customer's names for them.
+
+**Aufruf**
+
+```text
+customer_item_numbers [party_id] [item_id]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage            | Art                        | Standard |
+| --------------------------- | -------------------------- | -------- |
+| `MCP customer_item_numbers` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Show which of our items a customer means by its own article numbers.
+
+**Verwenden, wenn**
+
+- A customer order quotes the customer's own article number
+- or someone asks which numbers a customer uses.
+
+**Nicht verwenden, wenn**
+
+- The question is a price; read the price resolution.
+
+**Parameter**
+
+| Name       | Typ      | Pflicht | Beschreibung                                                           | Standard |
+| ---------- | -------- | ------- | ---------------------------------------------------------------------- | -------- |
+| `party_id` | `string` | nein    | Opaque identity of the customer, supplier, or other operational party. | —        |
+| `item_id`  | `string` | nein    | Opaque identity of the operational item reference.                     | —        |
+
+**Siehe auch:** Command [`customer_item_numbers`](./commands#command-customer_item_numbers)
+
 ### `dunning_context` — Read dunning context {#command-dunning_context}
 
 Validates one selected reminder scope and returns the finance revision without recording or sending
@@ -9278,6 +9339,94 @@ Set the company's dunning schedule for owner confirmation.
 **Prüfen mit:** `finance.dunning.schedule` — The confirmed waiting days and fees are retained.
 
 **Siehe auch:** Command [`set_schedule`](./commands#command-set_schedule)
+
+### `set_customer_item_number` — State a customer item number {#command-set_customer_item_number}
+
+States which of our items a customer's own article number names, with the customer's name for it, as
+a new version of that number's statement stream.
+
+**Aufruf**
+
+```text
+customer_item_number_set_propose party_id item_id customer_item_number [customer_item_name]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `party`, `item`, `customer_item_number` · Schreibt: `customer_item_number`,
+`source_record`, `business_event` · Erzeugt: `customer_item_number.set`
+
+**Siehe auch:** Agenten-Tool
+[`customer_item_number_set_propose`](./commands#tool-customer_item_number_set_propose), Event
+[`customer_item_number.set`](./events#event-customer_item_number-set)
+
+#### `customer_item_number_set_propose` — State a customer item number {#tool-customer_item_number_set_propose}
+
+Prepare stating which of our items a customer's own article number names (party_id, item_id,
+customer_item_number), with the customer's name for it. Orders by hand, by chat and by file then
+resolve lines quoting that number for this customer; case and spaces do not matter. The review shows
+what the number names now. A person confirms.
+
+**Aufruf**
+
+```text
+customer_item_number_set_propose party_id item_id customer_item_number [customer_item_name]
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                   | Typ      | Pflicht | Beschreibung                                                                                    | Standard |
+| ---------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------- | -------- |
+| `party_id`             | `string` | ja      | Opaque identity of the customer, supplier, or other operational party.                          | —        |
+| `item_id`              | `string` | ja      | Opaque identity of the operational item reference.                                              | —        |
+| `customer_item_number` | `string` | ja      | The customer's own article number, as the customer states it; matched ignoring case and spaces. | —        |
+| `customer_item_name`   | `string` | nein    | The customer's own name for the item, as stated.                                                | —        |
+
+**Siehe auch:** Command [`set_customer_item_number`](./commands#command-set_customer_item_number)
+
+### `remove_customer_item_number` — Withdraw a customer item number {#command-remove_customer_item_number}
+
+Withdraws a customer's article number; lines ordered by it keep it as stated.
+
+**Aufruf**
+
+```text
+customer_item_number_remove_propose party_id customer_item_number
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `party`, `customer_item_number` · Schreibt: `customer_item_number`,
+`source_record`, `business_event` · Erzeugt: `customer_item_number.removed`
+
+**Siehe auch:** Agenten-Tool
+[`customer_item_number_remove_propose`](./commands#tool-customer_item_number_remove_propose), Event
+[`customer_item_number.removed`](./events#event-customer_item_number-removed)
+
+#### `customer_item_number_remove_propose` — Withdraw a customer item number {#tool-customer_item_number_remove_propose}
+
+Prepare withdrawing a customer's article number; lines already ordered by it keep it as stated. A
+person confirms.
+
+**Aufruf**
+
+```text
+customer_item_number_remove_propose party_id customer_item_number
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                   | Typ      | Pflicht | Beschreibung                                                                                    | Standard |
+| ---------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------- | -------- |
+| `party_id`             | `string` | ja      | Opaque identity of the customer, supplier, or other operational party.                          | —        |
+| `customer_item_number` | `string` | ja      | The customer's own article number, as the customer states it; matched ignoring case and spaces. | —        |
+
+**Siehe auch:** Command
+[`remove_customer_item_number`](./commands#command-remove_customer_item_number)
 
 ## Agenten-Tools ohne Geschäftsaktion
 

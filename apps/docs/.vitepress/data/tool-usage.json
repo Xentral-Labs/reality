@@ -240,7 +240,14 @@
         "Kreditor",
         "Adresse"
       ],
-      "tables": ["party", "party_role", "party_group", "party_group_member", "party_hold"],
+      "tables": [
+        "party",
+        "party_role",
+        "party_group",
+        "party_group_member",
+        "party_hold",
+        "customer_item_number"
+      ],
       "lists": ["view:parties"],
       "actions": [
         "command:propose_company_party",
@@ -250,9 +257,11 @@
         "command:assign_party_price_list",
         "command:create_party_group",
         "command:hold_party_delivery",
+        "command:set_customer_item_number",
+        "command:remove_customer_item_number",
         "command:record_handover"
       ],
-      "reads": ["command:credit_exposure"],
+      "reads": ["command:customer_item_numbers", "command:credit_exposure"],
       "exceptions": ["exception:credit_limit_exceeded", "exception:party_hold_unreleased"],
       "tools": ["tool:finance_party_balances"],
       "events": [
@@ -261,6 +270,8 @@
         "event:party.updated",
         "event:party.delivery_hold_placed",
         "event:party.delivery_hold_released",
+        "event:customer_item_number.set",
+        "event:customer_item_number.removed",
         "event:master_data.lifecycle_changed",
         "event:party_price_list.assigned",
         "event:party_group.updated",
@@ -8305,7 +8316,7 @@
       "summary": "Prepare this business mutation without changing state. Assign an item to an order line. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "order_line_item_assign_propose document_line_id item_id",
+      "synopsis": "order_line_item_assign_propose document_line_id item_id [remember_for_customer]",
       "parameters": [
         {
           "name": "document_line_id",
@@ -8319,6 +8330,13 @@
           "type": "string",
           "required": true,
           "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "remember_for_customer",
+          "type": "boolean",
+          "required": false,
+          "description": "Also state the number the line was ordered by as the customer's item number for the assigned item.",
           "depth": 0
         }
       ],
@@ -10139,6 +10157,140 @@
       "links": ["command:available_to_promise"],
       "label_de": "Available to promise",
       "resources": ["item", "order"]
+    },
+    {
+      "id": "tool:customer_item_number_set_propose",
+      "kind": "tool",
+      "key": "customer_item_number_set_propose",
+      "label": "State a customer item number",
+      "area": "cross_functional",
+      "summary": "Prepare stating which of our items a customer's own article number names (party_id, item_id, customer_item_number), with the customer's name for it. Orders by hand, by chat and by file then resolve lines quoting that number for this customer; case and spaces do not matter. The review shows what the number names now. A person confirms.",
+      "access": "propose",
+      "group": "Orders",
+      "synopsis": "customer_item_number_set_propose party_id item_id customer_item_number [customer_item_name]",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "customer_item_number",
+          "type": "string",
+          "required": true,
+          "description": "The customer's own article number, as the customer states it; matched ignoring case and spaces.",
+          "depth": 0
+        },
+        {
+          "name": "customer_item_name",
+          "type": "string",
+          "required": false,
+          "description": "The customer's own name for the item, as stated.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "set_customer_item_number",
+      "projections": [],
+      "links": ["command:set_customer_item_number"],
+      "label_de": "State a customer item number",
+      "resources": ["party"]
+    },
+    {
+      "id": "tool:customer_item_number_remove_propose",
+      "kind": "tool",
+      "key": "customer_item_number_remove_propose",
+      "label": "Withdraw a customer item number",
+      "area": "cross_functional",
+      "summary": "Prepare withdrawing a customer's article number; lines already ordered by it keep it as stated. A person confirms.",
+      "access": "propose",
+      "group": "Orders",
+      "synopsis": "customer_item_number_remove_propose party_id customer_item_number",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "customer_item_number",
+          "type": "string",
+          "required": true,
+          "description": "The customer's own article number, as the customer states it; matched ignoring case and spaces.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "remove_customer_item_number",
+      "projections": [],
+      "links": ["command:remove_customer_item_number"],
+      "label_de": "Withdraw a customer item number",
+      "resources": ["party"]
+    },
+    {
+      "id": "tool:customer_item_numbers",
+      "kind": "tool",
+      "key": "customer_item_numbers",
+      "label": "Customer item numbers",
+      "area": "cross_functional",
+      "summary": "Read a customer's own article numbers (party_id) or the numbers customers use for one of our items (item_id), with the customer's names for them.",
+      "access": "read",
+      "group": "Orders",
+      "synopsis": "customer_item_numbers [party_id] [item_id]",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Show which of our items a customer means by its own article numbers.",
+        "use_when": [
+          "A customer order quotes the customer's own article number",
+          "or someone asks which numbers a customer uses."
+        ],
+        "do_not_use_when": ["The question is a price; read the price resolution."],
+        "limitations": [
+          "A number is what a person stated for the customer; Shopify orders quote our own SKU."
+        ],
+        "empty_result": "No customer item number is stated for the selection.",
+        "freshness": "Read from the mappings at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP customer_item_numbers",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "customer_item_numbers",
+      "projections": [],
+      "links": ["command:customer_item_numbers"],
+      "label_de": "Customer item numbers",
+      "resources": ["party"]
     },
     {
       "id": "tool:stock_count_propose",
@@ -21826,6 +21978,86 @@
       "resources": ["item", "order"]
     },
     {
+      "id": "command:set_customer_item_number",
+      "kind": "command",
+      "key": "set_customer_item_number",
+      "label": "State a customer item number",
+      "area": "cross_functional",
+      "summary": "States which of our items a customer's own article number names, with the customer's name for it, as a new version of that number's statement stream.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["party", "item", "customer_item_number"],
+      "writes": ["customer_item_number", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_customer_item_number", "resolve_customer_item"],
+      "tools": ["customer_item_number_set_propose"],
+      "synopses": [
+        "customer_item_number_set_propose party_id item_id customer_item_number [customer_item_name]"
+      ],
+      "events": ["customer_item_number.set"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:customer_item_number_set_propose", "event:customer_item_number.set"],
+      "label_de": "Kundenartikelnummer festlegen",
+      "resources": ["party"]
+    },
+    {
+      "id": "command:remove_customer_item_number",
+      "kind": "command",
+      "key": "remove_customer_item_number",
+      "label": "Withdraw a customer item number",
+      "area": "cross_functional",
+      "summary": "Withdraws a customer's article number; lines ordered by it keep it as stated.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["party", "customer_item_number"],
+      "writes": ["customer_item_number", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["customer_item_number_remove_propose"],
+      "synopses": ["customer_item_number_remove_propose party_id customer_item_number"],
+      "events": ["customer_item_number.removed"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:customer_item_number_remove_propose", "event:customer_item_number.removed"],
+      "label_de": "Kundenartikelnummer entfernen",
+      "resources": ["party"]
+    },
+    {
+      "id": "command:customer_item_numbers",
+      "kind": "command",
+      "key": "customer_item_numbers",
+      "label": "Read customer item numbers",
+      "area": "cross_functional",
+      "summary": "Lists a customer's own article numbers, or the numbers customers use for one item.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["customer_item_number", "party", "item"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["customer_item_numbers"],
+      "synopses": ["customer_item_numbers [party_id] [item_id]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Show which of our items a customer means by its own article numbers.",
+        "use_when": [
+          "A customer order quotes the customer's own article number",
+          "or someone asks which numbers a customer uses."
+        ],
+        "do_not_use_when": ["The question is a price; read the price resolution."],
+        "limitations": [
+          "A number is what a person stated for the customer; Shopify orders quote our own SKU."
+        ],
+        "empty_result": "No customer item number is stated for the selection.",
+        "freshness": "Read from the mappings at request time."
+      },
+      "links": ["tool:customer_item_numbers"],
+      "label_de": "Kundenartikelnummern anzeigen",
+      "resources": ["party"]
+    },
+    {
       "id": "command:record_stock_count",
       "kind": "command",
       "key": "record_stock_count",
@@ -24145,7 +24377,9 @@
       "confirmation": "required",
       "related_services": ["preview_item_assignment"],
       "tools": ["order_line_item_assign_propose"],
-      "synopses": ["order_line_item_assign_propose document_line_id item_id"],
+      "synopses": [
+        "order_line_item_assign_propose document_line_id item_id [remember_for_customer]"
+      ],
       "events": ["document_line.item_assigned"],
       "actions": [],
       "guidance": {},
@@ -25329,6 +25563,8 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "customer_item_number.set",
+        "customer_item_number.removed",
         "stock_count.posted",
         "delivery_rule.stated",
         "location.created",
@@ -25902,6 +26138,8 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "customer_item_number.set",
+        "customer_item_number.removed",
         "stock_count.posted",
         "delivery_rule.stated",
         "location.created",
@@ -27853,6 +28091,34 @@
       "links": ["command:scrap_stock_block"],
       "label_de": "stock_block.scrapped",
       "resources": ["item"]
+    },
+    {
+      "id": "event:customer_item_number.set",
+      "kind": "event",
+      "key": "customer_item_number.set",
+      "label": "customer_item_number.set",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "set_customer_item_number",
+      "subject": "customer_item_number",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:set_customer_item_number"],
+      "label_de": "customer_item_number.set",
+      "resources": ["party"]
+    },
+    {
+      "id": "event:customer_item_number.removed",
+      "kind": "event",
+      "key": "customer_item_number.removed",
+      "label": "customer_item_number.removed",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "remove_customer_item_number",
+      "subject": "customer_item_number",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:remove_customer_item_number"],
+      "label_de": "customer_item_number.removed",
+      "resources": ["party"]
     },
     {
       "id": "event:stock_count.posted",
@@ -74663,6 +74929,8 @@
         "command:update_location",
         "command:create_payment_term",
         "command:create_price_list",
+        "command:set_customer_item_number",
+        "command:remove_customer_item_number",
         "command:record_stock_count",
         "command:state_delivery_rule",
         "command:record_down_payment_invoice",

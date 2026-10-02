@@ -2090,3 +2090,29 @@ Verification evidence: `specs/325-readable-proposal-reviews/quickstart.md`.
 | FR-004–FR-005, FR-006 | Shared private-library membership explanation; unchanged private detail/change denial | `test_reporting_graph_lifecycle.py`; `test_reporting_graph_surfaces.py`; `analytics-save-clarity-browser.mjs` |
 
 Verification evidence: `specs/326-company-settings-access/quickstart.md`. Completion requires green hosted CI and live deployment inspection.
+
+## Customer item numbers — Spec 308
+
+Table `customer_item_number`: a customer's own article number, with the customer's name, for one of our items. Each statement is a version of the number's source stream.
+
+- `packages/reality-core/tests/test_customer_item_numbers.py`:
+  - A number resolves for its customer, ignoring case and spaces; an unknown number is the control.
+  - The same number at another customer resolves to that customer's own item.
+  - Restating and removing are versions of one stream, and an item may have several numbers.
+  - Statements are refused with their codes: a supplier, a blank number, an unknown item, a missing number to remove. A valid statement is the control.
+  - Another company can neither state nor resolve.
+  - The table refuses a blank number and a second mapping of the same key.
+- `packages/reality-core/tests/test_customer_item_orders.py`:
+  - A manual line resolves by the customer's number and keeps it in its payload.
+  - An unknown or conflicting number is refused in entry; agreeing item and number are the control.
+  - An imported order resolves known numbers and keeps an unknown line without an item, reported until assigned. Assigning with remember-for-customer states the mapping.
+  - The review carries the line's number.
+  - The stated number shows on the order preview, the delivery case and the invoice line.
+  - A changed mapping leaves past lines as stated.
+- `packages/reality-core/tests/test_customer_item_adapters.py`:
+  - The MCP schemas are strict, and the assignment takes remember-for-customer.
+  - An agent proposes and a person confirms.
+  - A number changed after its review is refused.
+  - The Web sets, reads and removes, and refuses a supplier with its code.
+  - Another company can neither read nor state, with the own list as control.
+  - The CLI asks before stating and lists.

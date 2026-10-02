@@ -96,6 +96,9 @@ location_app = typer.Typer()
 payment_term_app = typer.Typer()
 reorder_point_app = typer.Typer(help="Reorder points per item and location (spec 302).")
 stock_app = typer.Typer(help="Blocked stock: block, release, scrap (spec 304).")
+customer_item_app = typer.Typer(
+    help="Customer item numbers: a customer's own article numbers (spec 308)."
+)
 stock_count_app = typer.Typer(help="Stock counts: count a location and post the differences (spec 307).")
 delivery_rule_app = typer.Typer(
     help="Delivery rules: ship complete or no backorders per customer or order (spec 306)."
@@ -126,6 +129,7 @@ app.add_typer(stock_app, name="stock-block")
 app.add_typer(backorder_app, name="backorders")
 app.add_typer(delivery_rule_app, name="delivery-rule")
 app.add_typer(stock_count_app, name="stock-count")
+app.add_typer(customer_item_app, name="customer-item")
 app.add_typer(pricing_app, name="pricing")
 app.add_typer(finance_app, name="finance")
 app.add_typer(commitment_app, name="commitment")
@@ -1108,6 +1112,66 @@ def backorders_serve_command(
         "backorders_serve", arguments, tenant, yes, preview_key="backorder_serving"
     )
     con.print("✓ Backorders served")
+
+
+@customer_item_app.command("list")
+def customer_item_list_command(
+    party: str = typer.Option("", "--party"),
+    item: str = typer.Option("", "--item"),
+    tenant: str | None = None,
+):
+    """A customer's own article numbers, or the numbers used for one item."""
+    from reality.services.customer_item_numbers import customer_item_numbers
+
+    with Session() as s:
+        selected = selected_tenant(s, tenant)
+        rows = customer_item_numbers(
+            s, selected.id, party_id=party or None, item_id=item or None
+        )
+    con.print_json(data=rows, default=str)
+
+
+@customer_item_app.command("set")
+def customer_item_set_command(
+    party_id: str,
+    customer_item_number: str,
+    item_id: str,
+    name: str = typer.Option("", "--name"),
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm which of our items a customer's number names."""
+    _stock_block_change(
+        "customer_item_number_set",
+        {
+            "party_id": party_id,
+            "customer_item_number": customer_item_number,
+            "item_id": item_id,
+            "customer_item_name": name,
+        },
+        tenant,
+        yes,
+        preview_key="customer_item_number",
+    )
+    con.print("✓ Customer item number stated")
+
+
+@customer_item_app.command("remove")
+def customer_item_remove_command(
+    party_id: str,
+    customer_item_number: str,
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm withdrawing a customer's number."""
+    _stock_block_change(
+        "customer_item_number_remove",
+        {"party_id": party_id, "customer_item_number": customer_item_number},
+        tenant,
+        yes,
+        preview_key="customer_item_number",
+    )
+    con.print("✓ Customer item number withdrawn")
 
 
 _COUNT_LINE = typer.Option(

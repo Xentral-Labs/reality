@@ -9,7 +9,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | Objekt                                                         | Listen | Aktionen | Klärfälle |
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
-| [Geschäftspartner](#resource-party)                            | 1      | 8        | 2         |
+| [Geschäftspartner](#resource-party)                            | 1      | 10       | 2         |
 | [Artikel](#resource-item)                                      | 5      | 11       | 6         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
@@ -79,10 +79,16 @@ Preisgruppen hängen hier.
 - [Preisgruppe anlegen und zuweisen](./commands#command-create_party_group) (`create_party_group`)
 - [Liefersperre setzen oder aufheben](./commands#command-hold_party_delivery)
   (`hold_party_delivery`)
+- [Kundenartikelnummer festlegen](./commands#command-set_customer_item_number)
+  (`set_customer_item_number`)
+- [Kundenartikelnummer entfernen](./commands#command-remove_customer_item_number)
+  (`remove_customer_item_number`)
 - [An Inkasso übergeben](./commands#command-record_handover) (`record_handover`)
 
 **Nachschlagen**
 
+- [Kundenartikelnummern anzeigen](./commands#command-customer_item_numbers)
+  (`customer_item_numbers`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 
 **Klärfälle**
@@ -94,12 +100,14 @@ Preisgruppen hängen hier.
 
 **Kommt vor in:** [Stammdaten und Quellen](./processes#process-master_data)
 
-**Darunter:** Tabellen: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold` ·
-Events:
+**Darunter:** Tabellen: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold`,
+`customer_item_number` · Events:
 [`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded),
 [`party.created`](./events#event-party-created), [`party.updated`](./events#event-party-updated),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`party.delivery_hold_released`](./events#event-party-delivery_hold_released),
+[`customer_item_number.set`](./events#event-customer_item_number-set),
+[`customer_item_number.removed`](./events#event-customer_item_number-removed),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed),
 [`party_price_list.assigned`](./events#event-party_price_list-assigned),
 [`party_group.updated`](./events#event-party_group-updated),

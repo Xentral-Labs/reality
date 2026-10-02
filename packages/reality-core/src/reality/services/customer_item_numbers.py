@@ -349,3 +349,60 @@ def line_customer_item(
         "customer_item_number": number,
         "customer_item_name": mapping.customer_item_name if mapping else "",
     }
+
+
+CUSTOMER_ITEM_NUMBER_TOOLS = {"customer_item_number_set", "customer_item_number_remove"}
+
+
+def review_customer_item_number(
+    session: Session, tenant_id: str, tool_name: str, arguments: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """The arguments a confirmation executes and what the person is shown.
+
+    The review shows what the number names now, or nothing, beside what it
+    will name, and carries the current mapping: a confirmation after it changed
+    is refused.
+    """
+    if tool_name not in CUSTOMER_ITEM_NUMBER_TOOLS:
+        raise InvalidOperation(code="proposal_tool_not_found")
+    removing = tool_name == "customer_item_number_remove"
+    party, item, stated, key = validate_customer_item_number(
+        session,
+        tenant_id,
+        str(arguments.get("party_id") or ""),
+        None if removing else str(arguments.get("item_id") or ""),
+        str(arguments.get("customer_item_number") or ""),
+        removing=removing,
+    )
+    current = mapping_values(_current(session, tenant_id, party.id, key))
+    name = str(arguments.get("customer_item_name") or "").strip()
+    normalized = {
+        "party_id": party.id,
+        "customer_item_number": stated,
+        **({} if removing else {"item_id": item.id, "customer_item_name": name}),
+        "reviewed": current,
+    }
+    current_item = (
+        session.get(Item, (tenant_id, current["item_id"])) if current else None
+    )
+    preview = {
+        "customer": party.name,
+        "customer_item_number": stated,
+        "current": (
+            {
+                **current,
+                "item": current_item.name if current_item else current["item_id"],
+            }
+            if current
+            else None
+        ),
+        "proposed": None
+        if removing
+        else {
+            "item_id": item.id,
+            "item": item.name,
+            "sku": item.sku,
+            "customer_item_name": name,
+        },
+    }
+    return normalized, preview
