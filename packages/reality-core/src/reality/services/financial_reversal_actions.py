@@ -29,7 +29,7 @@ _COMPANY_KEYS = ("company_amount", "exchange_rate")
 def _as_stored(values: list[dict], stored: list[dict]) -> list[dict]:
     """Entry values as a snapshot taken before spec 309 recorded them.
 
-    Migration 0115 gave existing entries their company amount; a reversal
+    Migration 0116 gave existing entries their company amount; a reversal
     reviewed before it stored entries without one, and stays verifiable.
     """
     known = {row.get("id"): row for row in stored if isinstance(row, dict)}

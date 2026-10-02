@@ -1,14 +1,14 @@
 """The company currency and a company-currency amount on every ledger entry (spec 309).
 
-Revision ID: 0115_company_currency
-Revises: 0114_customer_item_number
+Revision ID: 0116_company_currency
+Revises: 0115_chat_scoped_proposals
 """
 
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0115_company_currency"
-down_revision = "0114_customer_item_number"
+revision = "0116_company_currency"
+down_revision = "0115_chat_scoped_proposals"
 branch_labels = None
 depends_on = None
 

@@ -23,7 +23,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/fo
 
 **Language/Version**: Python 3.12, TypeScript (React)
 
-**Storage**: PostgreSQL; migration `0115_company_currency`
+**Storage**: PostgreSQL; migration `0116_company_currency`
 
 **Testing**:
 - ledger, posting, payment, reversal, settings, costing, adapter and story tests;
@@ -53,7 +53,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/fo
 
 ## Design
 
-1. **Schema:** migration `0115`:
+1. **Schema:** migration `0116`:
    - `company_currency` (tenant, currency, source).
    - `ledger_entry.company_amount` (Numeric 18,4) and `exchange_rate` (Numeric 18,8), both nullable.
    - Backfill: existing EUR entries get `company_amount = amount` and rate 1. Other currencies stay null, meaning unconverted.

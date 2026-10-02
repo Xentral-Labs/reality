@@ -20,7 +20,7 @@ Tests come first in each phase where practical.
   - the company currency's default, its statement and its refusal after a posting;
   - tenant isolation;
   - the migration downgrade.
-- [x] T005 Migration `0115`, models, `post_ledger` and group checks, `services/finance/company_currency.py`, the `exchange_difference` role and default account, events, refusals with translations
+- [x] T005 Migration `0116`, models, `post_ledger` and group checks, `services/finance/company_currency.py`, the `exchange_difference` role and default account, events, refusals with translations
 
 ## Phase 3: Foreign invoices and payments (FR-001, FR-002)
 

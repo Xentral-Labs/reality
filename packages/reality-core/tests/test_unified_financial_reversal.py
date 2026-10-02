@@ -374,7 +374,7 @@ def test_concurrent_payment_and_reversal_do_not_bypass_review(postgres_database)
 
 
 def test_a_reversal_reviewed_before_company_amounts_still_verifies(session, business):
-    """Spec 309: 0115 gave existing entries a company amount; a reversal whose
+    """Spec 309: 0116 gave existing entries a company amount; a reversal whose
     review and event were stored without one stays verified."""
     _, ig, _ = fixture(session, business, "supplier")
     p = prepare(session, business, ig)
