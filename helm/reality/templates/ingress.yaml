@@ -3,7 +3,7 @@
   ONE public host for the app.
 
   The SPA calls the API with relative paths and a host-only session cookie, so
-  the app host must serve both. `/api/` and `/healthz` are NOT routed here — the
+  the app host must serve both. API and OAuth transport paths are NOT routed here — the
   web pod's own nginx proxies them to the api Service, which keeps the browser
   strictly same-origin and means the API needs no public listener of its own.
 
@@ -26,7 +26,7 @@ metadata:
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
     {{- if .Values.ingress.blockOpenApi }}
     # Opt-in belt-and-braces. Not needed while the web pod's nginx is the only
-    # route to the API, because it proxies just /api/ and /healthz — /docs,
+    # route to the API, because it proxies only API/health and explicit OAuth protocol paths — /docs,
     # /redoc and /openapi.json fall through to the SPA. Relevant only if a path
     # rule or a dedicated API host is added; FastAPI's docs routes are
     # unauthenticated because the auth middleware only guards /api/.

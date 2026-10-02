@@ -52,7 +52,7 @@ Revoked membership, inactive user, invalid MCP origins, explicit issuer override
 - **FR-001**: Owner AI/token settings MUST load using the current catalog and configuration; the deployed shared failure MUST have a meaningful regression proof.
 - **FR-002**: Displaying the MCP public address MUST validate only that address. The MCP runtime MUST use explicit issuer override, then configured API_URL, then local default, preserving production HTTPS and origin validation. Configuration reads MUST preserve credentials and permissions.
 - **FR-003**: Company cards MUST distinguish owner, member and absent membership without inferring membership from visibility.
-- **FR-004**: Private report library reads without active user membership MUST explain that requirement; private record existence MUST remain undisclosed.
+- **FR-004**: Private report library reads without active user membership MUST explain that requirement; private record existence MUST remain undisclosed. Membership refusal MUST be presented as an access state, not a technical loading failure. It MUST explain that a company owner can add the user or the user can switch companies, and offer an explicitly labeled access recheck using the current response. Genuine technical failures retain the normal error/retry treatment.
 - **FR-005**: Owner, membership, tenant and author enforcement MUST remain unchanged; invalid or retired token permissions MUST never expand token authority.
 - **FR-006**: New visible messages MUST be localized in all supported product languages; retry and company changes MUST use current responses.
 

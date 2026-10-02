@@ -248,13 +248,41 @@ for (const [language, message] of Object.entries({
     state.membershipDenied = true;
     await page.goto(analytics("reports"));
     await page.getByText(message, { exact: true }).waitFor();
-    assert.doesNotMatch(await page.locator("main").innerText(), /Report not found/);
+    await page
+      .getByRole("heading", {
+        name: {
+          en: "Company membership required",
+          de: "Firmenmitgliedschaft erforderlich",
+          nl: "Bedrijfslidmaatschap vereist",
+          es: "Se requiere membresía en la empresa",
+        }[language],
+        exact: true,
+      })
+      .waitFor();
+    await page
+      .getByText(
+        {
+          en: "Ask a company owner to add you as a member, or switch to a company you belong to.",
+          de: "Bitte einen Firmeninhaber, dich als Mitglied hinzuzufügen, oder wechsle zu einer Firma, der du angehörst.",
+          nl: "Vraag een bedrijfseigenaar om je als lid toe te voegen, of schakel naar een bedrijf waarvan je lid bent.",
+          es: "Pide al propietario de la empresa que te añada como miembro o cambia a una empresa a la que pertenezcas.",
+        }[language],
+        { exact: true },
+      )
+      .waitFor();
+    assert.doesNotMatch(
+      await page.locator("main").innerText(),
+      /Report not found|Could not load this view/,
+    );
     state.membershipDenied = false;
     await page
       .getByRole("button", {
-        name: { en: "Retry", de: "Erneut versuchen", nl: "Opnieuw proberen", es: "Reintentar" }[
-          language
-        ],
+        name: {
+          en: "Check access again",
+          de: "Zugriff erneut prüfen",
+          nl: "Toegang opnieuw controleren",
+          es: "Comprobar acceso de nuevo",
+        }[language],
         exact: true,
       })
       .click();

@@ -31,3 +31,11 @@ The configuration correction preserves all public-origin and production HTTPS ch
 ### Remaining Existing-Session UI Post-Check
 
 Before the fix, the authenticated owner endpoint was observed returning Internal Server Error. After rollout, native Computer Use returns `-10005: cgWindowNotFound` for Chrome. Fresh app selection by name and bundle ID, surface inventory, and a reset/reconnection reproduced the failure; Chrome is listed running, but no usable window is available. No alternative technique accessed its session or credentials. The user was asked asynchronously to make Chrome visible after returning. The actual post-deployment owner dialog result is therefore **not claimed as observed**. The authenticated owner/member API regression and all four-language settings/report browser proofs are green; T013 remains open until the native window can be read.
+
+## Existing-session completion (2026-10-02)
+
+After Chrome became visible, native Computer Use verified the deployed company page: test showed Owner; the two companies without membership showed No company membership. Agents & API tokens loaded its connected-client/manual-token sections and empty active-token list without error. AI configuration displayed AI credentials configured and Managed by Reality. The nonmember private report library explained that an active company membership is required. No credentials, grants, membership or business records were changed. T013 is now complete.
+
+## Access-state browser proof (2026-10-02)
+
+The new membership-heading assertion failed before the UI change. After the change, `analytics-save-clarity-browser.mjs` passes all four languages: access heading and owner/switch-company guidance, no technical loading-error title, Check access again, current-response recovery, no writes and normal saved-report journeys. Prettier, TypeScript/Vite production build, four-language i18n audit (2553/2553 covered each), spec policy and generated catalog parity pass. Hosted CI remains required before completion.

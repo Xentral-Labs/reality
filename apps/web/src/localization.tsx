@@ -13,6 +13,10 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Company membership required": "Firmenmitgliedschaft erforderlich",
+    "Check access again": "Zugriff erneut prüfen",
+    "Ask a company owner to add you as a member, or switch to a company you belong to.":
+      "Bitte einen Firmeninhaber, dich als Mitglied hinzuzufügen, oder wechsle zu einer Firma, der du angehörst.",
     "No company membership": "Keine Firmenmitgliedschaft",
     "You do not have an active membership in this company. Only company owners manage users and agent tokens.":
       "Du hast keine aktive Mitgliedschaft in dieser Firma. Nur Firmeninhaber verwalten Benutzer und Agent-Tokens.",
@@ -2125,6 +2129,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Company membership required": "Bedrijfslidmaatschap vereist",
+    "Check access again": "Toegang opnieuw controleren",
+    "Ask a company owner to add you as a member, or switch to a company you belong to.":
+      "Vraag een bedrijfseigenaar om je als lid toe te voegen, of schakel naar een bedrijf waarvan je lid bent.",
     "No company membership": "Geen bedrijfslidmaatschap",
     "You do not have an active membership in this company. Only company owners manage users and agent tokens.":
       "Je hebt geen actief lidmaatschap in dit bedrijf. Alleen bedrijfseigenaren beheren gebruikers en agenttokens.",
@@ -3932,6 +3940,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Company membership required": "Se requiere membresía en la empresa",
+    "Check access again": "Comprobar acceso de nuevo",
+    "Ask a company owner to add you as a member, or switch to a company you belong to.":
+      "Pide al propietario de la empresa que te añada como miembro o cambia a una empresa a la que pertenezcas.",
     "No company membership": "Sin membresía en la empresa",
     "You do not have an active membership in this company. Only company owners manage users and agent tokens.":
       "No tienes una membresía activa en esta empresa. Solo los propietarios gestionan usuarios y tokens de agentes.",

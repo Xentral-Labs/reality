@@ -77,15 +77,24 @@ export function ReportLibrary({
         }
       />
       {!read.data ? (
-        <ReadState
-          loading={read.loading}
-          error={
-            read.code === "company_membership_required"
-              ? t("An active company membership is required to use private reports.")
-              : read.error
-          }
-          retry={read.refresh}
-        />
+        !read.loading && read.code === "company_membership_required" ? (
+          <div className="rounded-xl border border-border-default bg-surface p-6" role="status">
+            <h2 className="font-medium">{t("Company membership required")}</h2>
+            <p className="mt-3 text-sm text-fg-muted">
+              {t("An active company membership is required to use private reports.")}
+            </p>
+            <p className="my-3 text-sm text-fg-muted">
+              {t(
+                "Ask a company owner to add you as a member, or switch to a company you belong to.",
+              )}
+            </p>
+            <button className="br-btn" onClick={read.refresh}>
+              {t("Check access again")}
+            </button>
+          </div>
+        ) : (
+          <ReadState loading={read.loading} error={read.error} retry={read.refresh} />
+        )
       ) : (
         <>
           {!read.data.records.length && (

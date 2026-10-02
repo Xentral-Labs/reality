@@ -234,7 +234,11 @@ owns authentication, onboarding, `/`, and every `/app` route at
 owns `/api/*`, `/healthz`, `/docs` and `/openapi.json`. The independently deployed MCP
 runtime owns authenticated Streamable HTTP at the exact configured `MCP_URL` and uses
 port 8001 in the local Compose profile. Web/API neither mounts nor proxies MCP. It
-contains no Jinja templates, browser JavaScript or CSS. Direct browser requests to retired
+contains no Jinja templates, browser JavaScript or CSS. The single-host Product Web
+gateway forwards the two OAuth discovery documents and explicit protocol/token/revoke/
+completion endpoints to this API. The interaction-only `/oauth/authorize` URL remains
+a React consent route; no business authorization rule is implemented in Nginx.
+Direct browser requests to retired
 backend UI routes receive a permanent redirect to the React deployment.
 
 Product Docs owns public, tenant-independent guidance at the exact configured `DOCS_URL`
@@ -3521,3 +3525,5 @@ values. Common and shipment technical JSON is available only in an initially col
 Technical details disclosure, with credential and sealed carrier values omitted/redacted.
 These projections do not change stored proposals, execution, rejection authority, review
 tokens or replay. Verification: `specs/325-readable-proposal-reviews/quickstart.md`.
+
+Private report membership refusal is an access status with localized owner/switch-company guidance and an explicit access recheck. It does not use the technical loading-error heading or generic Retry action; actual read failures retain those controls (spec 326 FR-004).
