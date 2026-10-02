@@ -246,7 +246,8 @@
         "party_group",
         "party_group_member",
         "party_hold",
-        "customer_item_number"
+        "customer_item_number",
+        "supplier_item_terms"
       ],
       "lists": ["view:parties"],
       "actions": [
@@ -257,11 +258,17 @@
         "command:assign_party_price_list",
         "command:create_party_group",
         "command:hold_party_delivery",
+        "command:set_supplier_item_terms",
+        "command:remove_supplier_item_terms",
         "command:set_customer_item_number",
         "command:remove_customer_item_number",
         "command:record_handover"
       ],
-      "reads": ["command:customer_item_numbers", "command:credit_exposure"],
+      "reads": [
+        "command:supplier_item_terms",
+        "command:customer_item_numbers",
+        "command:credit_exposure"
+      ],
       "exceptions": ["exception:credit_limit_exceeded", "exception:party_hold_unreleased"],
       "tools": ["tool:finance_party_balances"],
       "events": [
@@ -270,6 +277,8 @@
         "event:party.updated",
         "event:party.delivery_hold_placed",
         "event:party.delivery_hold_released",
+        "event:supplier_item_terms.set",
+        "event:supplier_item_terms.removed",
         "event:customer_item_number.set",
         "event:customer_item_number.removed",
         "event:master_data.lifecycle_changed",
@@ -336,6 +345,7 @@
       "reads": [
         "command:inventory_cost",
         "command:available_to_promise",
+        "command:purchase_match",
         "command:stock_counts",
         "command:stock_count_detail",
         "command:stock_blocks",
@@ -526,6 +536,7 @@
       ],
       "reads": [
         "command:available_to_promise",
+        "command:purchase_match",
         "command:delivery_rules",
         "command:reorder_points",
         "command:credit_exposure",
@@ -625,7 +636,7 @@
         "command:record_shipment_event",
         "command:supersede_shipment_event"
       ],
-      "reads": ["command:month_end_billing"],
+      "reads": ["command:purchase_match", "command:month_end_billing"],
       "exceptions": ["exception:return_unresolved", "exception:unexplained_movement"],
       "tools": ["tool:shipments_list", "tool:shipment_explain", "tool:movement_explanation"],
       "events": [
@@ -1159,6 +1170,7 @@
         "command:preview_document",
         "command:list_source_mappings",
         "command:source_mapping_history",
+        "command:purchase_match",
         "command:credit_exposure",
         "command:month_end_billing",
         "command:notices",
@@ -9299,7 +9311,7 @@
       "summary": "Prepare this business mutation without changing state. Revise commitment. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "commitment_revise_propose commitment_id [due_at] [quantity] [note] [stated_at] [source_record_id] [retained_allocations]",
+      "synopsis": "commitment_revise_propose commitment_id [due_at] [quantity] [unit_price] [note] [stated_at] [source_record_id] [retained_allocations]",
       "parameters": [
         {
           "name": "commitment_id",
@@ -9320,6 +9332,13 @@
           "type": "string",
           "required": false,
           "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        },
+        {
+          "name": "unit_price",
+          "type": "string",
+          "required": false,
+          "description": "Decimal monetary amount for one unit before quantity multiplication.",
           "depth": 0
         },
         {
@@ -10258,6 +10277,189 @@
       "links": ["command:company_currency_state"],
       "label_de": "Company currency",
       "resources": ["accounting"]
+    },
+    {
+      "id": "tool:supplier_item_terms_set_propose",
+      "kind": "tool",
+      "key": "supplier_item_terms_set_propose",
+      "label": "State supplier item terms",
+      "area": "cross_functional",
+      "summary": "Prepare stating a supplier's minimum order quantity and/or order multiple (pack size) for one item (party_id, item_id), both in the item's purchase unit. Purchase reviews then name an order below the minimum or off the multiple, with the next quantity that meets them; orders are never refused. A person confirms.",
+      "access": "propose",
+      "group": "Purchasing",
+      "synopsis": "supplier_item_terms_set_propose party_id item_id [minimum_quantity] [order_multiple]",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "minimum_quantity",
+          "type": "string",
+          "required": false,
+          "description": "The supplier's minimum order quantity for the item, in its purchase unit, as stated.",
+          "depth": 0
+        },
+        {
+          "name": "order_multiple",
+          "type": "string",
+          "required": false,
+          "description": "The supplier's order multiple (pack size) for the item, in its purchase unit, as stated.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "set_supplier_item_terms",
+      "projections": [],
+      "links": ["command:set_supplier_item_terms"],
+      "label_de": "State supplier item terms",
+      "resources": ["party"]
+    },
+    {
+      "id": "tool:supplier_item_terms_remove_propose",
+      "kind": "tool",
+      "key": "supplier_item_terms_remove_propose",
+      "label": "Withdraw supplier item terms",
+      "area": "cross_functional",
+      "summary": "Prepare withdrawing a supplier's minimum order quantity and order multiple for one item. A person confirms.",
+      "access": "propose",
+      "group": "Purchasing",
+      "synopsis": "supplier_item_terms_remove_propose party_id item_id",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "remove_supplier_item_terms",
+      "projections": [],
+      "links": ["command:remove_supplier_item_terms"],
+      "label_de": "Withdraw supplier item terms",
+      "resources": ["party"]
+    },
+    {
+      "id": "tool:supplier_item_terms",
+      "kind": "tool",
+      "key": "supplier_item_terms",
+      "label": "Supplier item terms",
+      "area": "cross_functional",
+      "summary": "Read suppliers' minimum order quantities and order multiples, of one supplier (party_id) or one item (item_id).",
+      "access": "read",
+      "group": "Purchasing",
+      "synopsis": "supplier_item_terms [party_id] [item_id]",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Show a supplier's minimum order quantity and order multiple per item.",
+        "use_when": [
+          "Someone asks how much must be ordered from a supplier at least",
+          "or in which pack size."
+        ],
+        "do_not_use_when": ["The question is a price; read the price resolution."],
+        "limitations": [
+          "Terms are what a person stated; orders below them are named in review",
+          "not refused."
+        ],
+        "empty_result": "No terms are stated for the selection.",
+        "freshness": "Read at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP supplier_item_terms",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "supplier_item_terms",
+      "projections": [],
+      "links": ["command:supplier_item_terms"],
+      "label_de": "Supplier item terms",
+      "resources": ["party"]
+    },
+    {
+      "id": "tool:purchase_match",
+      "kind": "tool",
+      "key": "purchase_match",
+      "label": "Three-way match of a purchase order",
+      "area": "cross_functional",
+      "summary": "Read per line of one purchase order (document_id) whether it is matched: the quantity in force (ordered, or confirmed by the supplier) received net of returns and billed net of credits at the price agreed last. Otherwise each difference is named (received_short, received_over, billed_short, billed_over, price_differs, units_not_comparable). A cancelled line expects nothing and shows its cancellation charges.",
+      "access": "read",
+      "group": "Purchasing",
+      "synopsis": "purchase_match document_id",
+      "parameters": [
+        {
+          "name": "document_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the evidence document to inspect or correct.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Show whether a purchase order's lines are matched across order, receipt and invoice.",
+        "use_when": [
+          "Someone asks whether a purchase can be paid",
+          "or whether order",
+          "receipt and invoice agree."
+        ],
+        "do_not_use_when": ["The question is about open payables; read the open items."],
+        "limitations": [
+          "Exact match only",
+          "without tolerances; lines in units that cannot be compared are named",
+          "not judged."
+        ],
+        "empty_result": "The order has no lines that promised goods.",
+        "freshness": "Derived from promises, movements and invoice lines at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP purchase_match",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "purchase_match",
+      "projections": [],
+      "links": ["command:purchase_match"],
+      "label_de": "Three-way match of a purchase order",
+      "resources": ["delivery", "item", "order", "source"]
     },
     {
       "id": "tool:customer_item_number_set_propose",
@@ -21692,7 +21894,7 @@
       "related_services": [],
       "tools": ["commitment_revise_propose"],
       "synopses": [
-        "commitment_revise_propose commitment_id [due_at] [quantity] [note] [stated_at] [source_record_id] [retained_allocations]"
+        "commitment_revise_propose commitment_id [due_at] [quantity] [unit_price] [note] [stated_at] [source_record_id] [retained_allocations]"
       ],
       "events": ["commitment.revised"],
       "actions": [],
@@ -22111,6 +22313,131 @@
       "links": ["tool:company_currency"],
       "label_de": "Firmenwährung anzeigen",
       "resources": ["accounting"]
+    },
+    {
+      "id": "command:set_supplier_item_terms",
+      "kind": "command",
+      "key": "set_supplier_item_terms",
+      "label": "State supplier item terms",
+      "area": "cross_functional",
+      "summary": "States a supplier's minimum order quantity and order multiple for an item, as a new version of their statement stream; purchase reviews name an order that falls short.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["party", "item", "supplier_item_terms"],
+      "writes": ["supplier_item_terms", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_supplier_item_terms", "order_terms_check"],
+      "tools": ["supplier_item_terms_set_propose"],
+      "synopses": [
+        "supplier_item_terms_set_propose party_id item_id [minimum_quantity] [order_multiple]"
+      ],
+      "events": ["supplier_item_terms.set"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:supplier_item_terms_set_propose", "event:supplier_item_terms.set"],
+      "label_de": "Lieferantenkonditionen festlegen",
+      "resources": ["party"]
+    },
+    {
+      "id": "command:remove_supplier_item_terms",
+      "kind": "command",
+      "key": "remove_supplier_item_terms",
+      "label": "Withdraw supplier item terms",
+      "area": "cross_functional",
+      "summary": "Withdraws a supplier's minimum order quantity and order multiple for an item.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["party", "item", "supplier_item_terms"],
+      "writes": ["supplier_item_terms", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["supplier_item_terms_remove_propose"],
+      "synopses": ["supplier_item_terms_remove_propose party_id item_id"],
+      "events": ["supplier_item_terms.removed"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:supplier_item_terms_remove_propose", "event:supplier_item_terms.removed"],
+      "label_de": "Lieferantenkonditionen entfernen",
+      "resources": ["party"]
+    },
+    {
+      "id": "command:supplier_item_terms",
+      "kind": "command",
+      "key": "supplier_item_terms",
+      "label": "Read supplier item terms",
+      "area": "cross_functional",
+      "summary": "Lists suppliers' minimum order quantities and order multiples, of one supplier or one item.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["supplier_item_terms", "party", "item"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["supplier_item_terms"],
+      "synopses": ["supplier_item_terms [party_id] [item_id]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Show a supplier's minimum order quantity and order multiple per item.",
+        "use_when": [
+          "Someone asks how much must be ordered from a supplier at least",
+          "or in which pack size."
+        ],
+        "do_not_use_when": ["The question is a price; read the price resolution."],
+        "limitations": [
+          "Terms are what a person stated; orders below them are named in review",
+          "not refused."
+        ],
+        "empty_result": "No terms are stated for the selection.",
+        "freshness": "Read at request time."
+      },
+      "links": ["tool:supplier_item_terms"],
+      "label_de": "Lieferantenkonditionen anzeigen",
+      "resources": ["party"]
+    },
+    {
+      "id": "command:purchase_match",
+      "kind": "command",
+      "key": "purchase_match",
+      "label": "Read the three-way match of a purchase order",
+      "area": "cross_functional",
+      "summary": "Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "document",
+        "document_line",
+        "commitment",
+        "commitment_revision",
+        "movement",
+        "item"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["purchase_match"],
+      "synopses": ["purchase_match document_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Show whether a purchase order's lines are matched across order, receipt and invoice.",
+        "use_when": [
+          "Someone asks whether a purchase can be paid",
+          "or whether order",
+          "receipt and invoice agree."
+        ],
+        "do_not_use_when": ["The question is about open payables; read the open items."],
+        "limitations": [
+          "Exact match only",
+          "without tolerances; lines in units that cannot be compared are named",
+          "not judged."
+        ],
+        "empty_result": "The order has no lines that promised goods.",
+        "freshness": "Derived from promises, movements and invoice lines at request time."
+      },
+      "links": ["tool:purchase_match"],
+      "label_de": "Bestellabgleich anzeigen",
+      "resources": ["delivery", "item", "order", "source"]
     },
     {
       "id": "command:set_customer_item_number",
@@ -25699,6 +26026,8 @@
         "stock_block.released",
         "stock_block.scrapped",
         "company_currency.set",
+        "supplier_item_terms.set",
+        "supplier_item_terms.removed",
         "customer_item_number.set",
         "customer_item_number.removed",
         "stock_count.posted",
@@ -26275,6 +26604,8 @@
         "stock_block.released",
         "stock_block.scrapped",
         "company_currency.set",
+        "supplier_item_terms.set",
+        "supplier_item_terms.removed",
         "customer_item_number.set",
         "customer_item_number.removed",
         "stock_count.posted",
@@ -28242,6 +28573,34 @@
       "links": ["command:set_company_currency"],
       "label_de": "company_currency.set",
       "resources": ["accounting"]
+    },
+    {
+      "id": "event:supplier_item_terms.set",
+      "kind": "event",
+      "key": "supplier_item_terms.set",
+      "label": "supplier_item_terms.set",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "set_supplier_item_terms",
+      "subject": "supplier_item_terms",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:set_supplier_item_terms"],
+      "label_de": "supplier_item_terms.set",
+      "resources": ["party"]
+    },
+    {
+      "id": "event:supplier_item_terms.removed",
+      "kind": "event",
+      "key": "supplier_item_terms.removed",
+      "label": "supplier_item_terms.removed",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "remove_supplier_item_terms",
+      "subject": "supplier_item_terms",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:remove_supplier_item_terms"],
+      "label_de": "supplier_item_terms.removed",
+      "resources": ["party"]
     },
     {
       "id": "event:customer_item_number.set",
@@ -75081,6 +75440,8 @@
         "command:create_payment_term",
         "command:create_price_list",
         "command:set_company_currency",
+        "command:set_supplier_item_terms",
+        "command:remove_supplier_item_terms",
         "command:set_customer_item_number",
         "command:remove_customer_item_number",
         "command:record_stock_count",
@@ -76148,6 +76509,20 @@
           "meaning": {
             "en": "When Reality created this record (UTC).",
             "de": "Wann Reality diesen Eintrag angelegt hat (UTC)."
+          },
+          "references": []
+        },
+        {
+          "name": "unit_price",
+          "type": "NUMERIC(18, 4)",
+          "nullable": true,
+          "default": {
+            "kind": "none",
+            "value": ""
+          },
+          "meaning": {
+            "en": "Unit price received for this line; no price recalculation.",
+            "de": "Empfangener Stückpreis dieser Position; keine Preisneuberechnung."
           },
           "references": []
         }

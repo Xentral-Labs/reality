@@ -2798,9 +2798,9 @@ def _invoice_price_differs_exceptions(
     ).all()
     # Spec 310: a purchase line's agreed price is the one the supplier confirmed
     # last, else the price ordered.
-    from reality.services.core import agreed_line_prices
+    from reality.services.core import _agreed_line_prices
 
-    agreed_prices = agreed_line_prices(
+    agreed_prices = _agreed_line_prices(
         session,
         tenant_id,
         {

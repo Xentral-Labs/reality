@@ -39,7 +39,9 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["tenant_id", "party_id"], ["party.tenant_id", "party.id"]
         ),
-        sa.ForeignKeyConstraint(["tenant_id", "item_id"], ["item.tenant_id", "item.id"]),
+        sa.ForeignKeyConstraint(
+            ["tenant_id", "item_id"], ["item.tenant_id", "item.id"]
+        ),
         sa.ForeignKeyConstraint(
             ["tenant_id", "source_record_id"],
             ["source_record.tenant_id", "source_record.id"],
@@ -61,7 +63,9 @@ def upgrade() -> None:
         "ix_supplier_item_terms_tenant_id", "supplier_item_terms", ["tenant_id"]
     )
     op.create_index(
-        "ix_supplier_item_terms_item_id", "supplier_item_terms", ["tenant_id", "item_id"]
+        "ix_supplier_item_terms_item_id",
+        "supplier_item_terms",
+        ["tenant_id", "item_id"],
     )
     op.create_index(
         "ix_supplier_item_terms_source_record_id",

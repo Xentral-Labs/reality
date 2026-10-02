@@ -602,6 +602,35 @@
       "effect": "Answers the company currency, EUR until stated, and whether the company has posted anything."
     },
     {
+      "name": "State supplier item terms",
+      "service": "set_supplier_item_terms",
+      "related_services": ["review_supplier_item_terms", "order_terms_check"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "States a supplier's minimum order quantity and order multiple for an item, as a new version of their statement stream; purchase reviews name an order that falls short."
+    },
+    {
+      "name": "Withdraw supplier item terms",
+      "service": "remove_supplier_item_terms",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Withdraws a supplier's minimum order quantity and order multiple for an item."
+    },
+    {
+      "name": "Read supplier item terms",
+      "service": "supplier_item_terms",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lists suppliers' minimum order quantities and order multiples, of one supplier or one item."
+    },
+    {
+      "name": "Read the three-way match of a purchase order",
+      "service": "purchase_match",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference."
+    },
+    {
       "name": "State a customer item number",
       "service": "set_customer_item_number",
       "related_services": ["review_customer_item_number", "resolve_customer_item"],

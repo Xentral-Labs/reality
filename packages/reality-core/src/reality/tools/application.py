@@ -1492,6 +1492,64 @@ def _company_currency(
     return company_currency_state(session, tenant_id)
 
 
+def _supplier_item_terms_set(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.supplier_item_terms import (
+        UNCHECKED,
+        set_supplier_item_terms,
+    )
+
+    row = set_supplier_item_terms(
+        session,
+        tenant_id,
+        arguments["party_id"],
+        arguments["item_id"],
+        arguments.get("minimum_quantity"),
+        arguments.get("order_multiple"),
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+    return _entity_result("supplier_item_terms", row)
+
+
+def _supplier_item_terms_remove(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.supplier_item_terms import (
+        UNCHECKED,
+        remove_supplier_item_terms,
+    )
+
+    return remove_supplier_item_terms(
+        session,
+        tenant_id,
+        arguments["party_id"],
+        arguments["item_id"],
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+
+
+def _supplier_item_terms(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.supplier_item_terms import supplier_item_terms
+
+    return supplier_item_terms(
+        session,
+        tenant_id,
+        party_id=arguments.get("party_id") or None,
+        item_id=arguments.get("item_id") or None,
+    )
+
+
+def _purchase_match(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.purchase_match import purchase_match
+
+    return purchase_match(session, tenant_id, arguments["document_id"])
+
+
 def _customer_item_numbers(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2771,6 +2829,30 @@ TOOLS = {
         False,
         _company_currency,
     ),
+    "supplier_item_terms_set": Tool(
+        "supplier_item_terms_set",
+        "State a supplier's minimum order quantity and order multiple for an item.",
+        True,
+        _supplier_item_terms_set,
+    ),
+    "supplier_item_terms_remove": Tool(
+        "supplier_item_terms_remove",
+        "Withdraw a supplier's minimum order quantity and order multiple for an item.",
+        True,
+        _supplier_item_terms_remove,
+    ),
+    "supplier_item_terms": Tool(
+        "supplier_item_terms",
+        "Read suppliers' minimum order quantities and order multiples.",
+        False,
+        _supplier_item_terms,
+    ),
+    "purchase_match": Tool(
+        "purchase_match",
+        "Read whether each line of a purchase order is ordered = received = billed at the agreed price, or what differs.",
+        False,
+        _purchase_match,
+    ),
     "customer_item_number_set": Tool(
         "customer_item_number_set",
         "State which of our items a customer's own article number names, with the customer's name for it.",
@@ -2869,7 +2951,7 @@ TOOLS = {
     ),
     "commitment_revise": Tool(
         "commitment_revise",
-        "Record that a counterparty now states a different date or quantity.",
+        "Record that a counterparty now states a different date, quantity or, for a purchase, unit price.",
         True,
         _commitment_revise,
     ),
@@ -3622,6 +3704,13 @@ def create_change_proposal(
         normalized_arguments, stock_block_review = review_stock_block(
             session, tenant_id, tool_name, arguments
         )
+    supplier_terms_review = None
+    if tool_name in {"supplier_item_terms_set", "supplier_item_terms_remove"}:
+        from reality.services.supplier_item_terms import review_supplier_item_terms
+
+        normalized_arguments, supplier_terms_review = review_supplier_item_terms(
+            session, tenant_id, tool_name, arguments
+        )
     customer_item_review = None
     if tool_name in {"customer_item_number_set", "customer_item_number_remove"}:
         from reality.services.customer_item_numbers import (
@@ -3731,6 +3820,8 @@ def create_change_proposal(
         preview["stock_count"] = stock_count_review
     if customer_item_review is not None:
         preview["customer_item_number"] = customer_item_review
+    if supplier_terms_review is not None:
+        preview["supplier_item_terms"] = supplier_terms_review
     if company_currency_review is not None:
         preview["company_currency"] = company_currency_review
     if stock_block_review is not None:
@@ -4326,6 +4417,8 @@ def approve_and_execute_proposal(
         "stock_count",
         "customer_item_number_set",
         "customer_item_number_remove",
+        "supplier_item_terms_set",
+        "supplier_item_terms_remove",
         "company_currency_set",
         "down_payment_invoice_record",
         "proforma_invoice_record",

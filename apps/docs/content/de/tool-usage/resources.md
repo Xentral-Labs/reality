@@ -9,7 +9,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | Objekt                                                         | Listen | Aktionen | Klärfälle |
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
-| [Geschäftspartner](#resource-party)                            | 1      | 10       | 2         |
+| [Geschäftspartner](#resource-party)                            | 1      | 12       | 2         |
 | [Artikel](#resource-item)                                      | 5      | 11       | 6         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
@@ -79,6 +79,10 @@ Preisgruppen hängen hier.
 - [Preisgruppe anlegen und zuweisen](./commands#command-create_party_group) (`create_party_group`)
 - [Liefersperre setzen oder aufheben](./commands#command-hold_party_delivery)
   (`hold_party_delivery`)
+- [Lieferantenkonditionen festlegen](./commands#command-set_supplier_item_terms)
+  (`set_supplier_item_terms`)
+- [Lieferantenkonditionen entfernen](./commands#command-remove_supplier_item_terms)
+  (`remove_supplier_item_terms`)
 - [Kundenartikelnummer festlegen](./commands#command-set_customer_item_number)
   (`set_customer_item_number`)
 - [Kundenartikelnummer entfernen](./commands#command-remove_customer_item_number)
@@ -87,6 +91,7 @@ Preisgruppen hängen hier.
 
 **Nachschlagen**
 
+- [Lieferantenkonditionen anzeigen](./commands#command-supplier_item_terms) (`supplier_item_terms`)
 - [Kundenartikelnummern anzeigen](./commands#command-customer_item_numbers)
   (`customer_item_numbers`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
@@ -101,11 +106,13 @@ Preisgruppen hängen hier.
 **Kommt vor in:** [Stammdaten und Quellen](./processes#process-master_data)
 
 **Darunter:** Tabellen: `party`, `party_role`, `party_group`, `party_group_member`, `party_hold`,
-`customer_item_number` · Events:
+`customer_item_number`, `supplier_item_terms` · Events:
 [`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded),
 [`party.created`](./events#event-party-created), [`party.updated`](./events#event-party-updated),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`party.delivery_hold_released`](./events#event-party-delivery_hold_released),
+[`supplier_item_terms.set`](./events#event-supplier_item_terms-set),
+[`supplier_item_terms.removed`](./events#event-supplier_item_terms-removed),
 [`customer_item_number.set`](./events#event-customer_item_number-set),
 [`customer_item_number.removed`](./events#event-customer_item_number-removed),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed),
@@ -152,6 +159,7 @@ hier.
 
 - [Bestand zu Anschaffungskosten anzeigen](./commands#command-inventory_cost) (`inventory_cost`)
 - [Lieferfähigkeit anzeigen](./commands#command-available_to_promise) (`available_to_promise`)
+- [Bestellabgleich anzeigen](./commands#command-purchase_match) (`purchase_match`)
 - [Inventuren anzeigen](./commands#command-stock_counts) (`stock_counts`)
 - [Inventur anzeigen](./commands#command-stock_count_detail) (`stock_count_detail`)
 - [Read stock blocks](./commands#command-stock_blocks) (`stock_blocks`)
@@ -315,6 +323,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 **Nachschlagen**
 
 - [Lieferfähigkeit anzeigen](./commands#command-available_to_promise) (`available_to_promise`)
+- [Bestellabgleich anzeigen](./commands#command-purchase_match) (`purchase_match`)
 - [Lieferregel anzeigen](./commands#command-delivery_rules) (`delivery_rules`)
 - [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
@@ -404,6 +413,7 @@ Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück,
 
 **Nachschlagen**
 
+- [Bestellabgleich anzeigen](./commands#command-purchase_match) (`purchase_match`)
 - [Monatsabschluss Fakturierung anzeigen](./commands#command-month_end_billing)
   (`month_end_billing`)
 
@@ -874,6 +884,7 @@ Nachweis, Quelle
 - [Quellcode-Zuordnungen anzeigen](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Verlauf der Quellcode-Zuordnung](./commands#command-source_mapping_history)
   (`source_mapping_history`)
+- [Bestellabgleich anzeigen](./commands#command-purchase_match) (`purchase_match`)
 - [Kreditobligo anzeigen](./commands#command-credit_exposure) (`credit_exposure`)
 - [Monatsabschluss Fakturierung anzeigen](./commands#command-month_end_billing)
   (`month_end_billing`)

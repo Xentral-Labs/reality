@@ -1237,6 +1237,69 @@ def post_company_currency_proposal(
         raise api_error(error) from error
 
 
+class SupplierItemTermsProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    operation: Literal["set", "remove"]
+    party_id: str = Field(min_length=1, max_length=200)
+    item_id: str = Field(min_length=1, max_length=200)
+    minimum_quantity: str | None = Field(default=None, max_length=40)
+    order_multiple: str | None = Field(default=None, max_length=40)
+
+
+@router.get("/supplier-item-terms")
+def get_supplier_item_terms(
+    tenant_id: str,
+    session: DatabaseSession,
+    party_id: str | None = Query(default=None, max_length=200),
+    item_id: str | None = Query(default=None, max_length=200),
+):
+    """Spec 310: suppliers' minimum order quantities and order multiples."""
+    from reality.services.supplier_item_terms import supplier_item_terms
+
+    try:
+        get_tenant(session, tenant_id)
+        return {
+            "rows": supplier_item_terms(
+                session, tenant_id, party_id=party_id, item_id=item_id
+            )
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/supplier-item-terms/proposals")
+def post_supplier_item_terms_proposal(
+    tenant_id: str, body: SupplierItemTermsProposal, session: DatabaseSession
+):
+    """Spec 310: prepare stating or withdrawing terms; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    arguments = body.model_dump(exclude_none=True)
+    tool = f"supplier_item_terms_{arguments.pop('operation')}"
+    try:
+        proposal = create_change_proposal(
+            session, tenant_id, tool, arguments, actor_type="human"
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/purchase-orders/{document_id}/match")
+def get_purchase_match(tenant_id: str, document_id: str, session: DatabaseSession):
+    """Spec 310: the three-way match of one purchase order, per line."""
+    from reality.services.purchase_match import purchase_match
+
+    try:
+        return purchase_match(session, tenant_id, document_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.get("/customer-item-numbers")
 def get_customer_item_numbers(
     tenant_id: str,
@@ -3031,6 +3094,8 @@ class CommitmentRevisionWrite(ApiModel):
     request_id: str = Field(min_length=1, max_length=200)
     due_at: datetime | None = None
     quantity: Decimal | None = None
+    # Spec 310: a supplier's confirmed unit price, in the order line's unit.
+    unit_price: Decimal | None = None
     note: str = ""
     stated_at: datetime | None = None
     source_record_id: str | None = None

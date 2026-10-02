@@ -302,13 +302,20 @@ def order_terms_check(
     if row is None:
         return None
     asked = decimal(quantity)
-    minimum = decimal(row.minimum_quantity) if row.minimum_quantity is not None else None
+    minimum = (
+        decimal(row.minimum_quantity) if row.minimum_quantity is not None else None
+    )
     multiple = decimal(row.order_multiple) if row.order_multiple is not None else None
     target = max(asked, minimum) if minimum is not None else asked
     if multiple is not None:
-        target = (target / multiple).to_integral_value(rounding=ROUND_CEILING) * multiple
+        target = (target / multiple).to_integral_value(
+            rounding=ROUND_CEILING
+        ) * multiple
     below = minimum is not None and asked < minimum
-    off = multiple is not None and (asked / multiple) != (asked / multiple).to_integral_value()
+    off = (
+        multiple is not None
+        and (asked / multiple) != (asked / multiple).to_integral_value()
+    )
     return {
         **terms_values(row),
         "below_minimum": below,

@@ -2203,3 +2203,21 @@ Table `company_currency`: the currency the company keeps its books in, EUR until
   - I11: a USD invoice paid in EUR in two parts realises a loss and a gain and leaves nothing open.
   - R06: five USD purchases from two suppliers; the invoice rate lands one receipt in EUR with freight and duty, and the waiting orders are served.
 - `packages/reality-core/tests/test_foreign_currency_payments.py::test_a_payment_in_the_invoice_currency_realises_nothing`: a payment without a company-currency amount is valued at the invoice rate.
+
+## Supplier confirmations, minimum quantities and three-way match — Spec 310
+
+Column `commitment_revision.unit_price`: a supplier's confirmed unit price, the agreed price from then on. Table `supplier_item_terms`: a supplier's minimum order quantity and order multiple per item, each statement a version of `internal_supplier_item_terms`. The three-way match is a read, `purchase_match`, derived at read time.
+
+- `packages/reality-core/tests/test_purchasing_depth.py`:
+  - A supplier confirms quantity, date and price; the guided invoice takes the price and the line is matched.
+  - An invoice above the confirmed price is reported against it.
+  - A price is confirmed for purchases only, and must be valid; a price-only revision is the control.
+  - The revision review shows the ordered and the confirmed price.
+  - Terms name a quantity below the minimum or off the multiple with the next valid one; the order review carries them; they are versions and refuse nonsense; another company cannot state or read them.
+  - A cancellation charge raises no purchase finding, while goods billed on the cancelled line still are.
+  - A line received short, billed short or at another price is not matched; returns count; the match is read for purchase orders only.
+  - The migration refuses its downgrade once terms are stated.
+- `packages/reality-core/tests/test_purchasing_depth_adapters.py`:
+  - Strict MCP schemas and the price on the revision schema.
+  - An agent states terms and reads the match; the Web states terms, revises a price and reads the match.
+  - Another company cannot read or state; the CLI asks before stating and reads the match.

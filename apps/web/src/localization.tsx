@@ -24944,6 +24944,23 @@ Object.assign(dictionaries.de, {
   "The amount is too small to have a value in the company currency.":
     "Der Betrag ist zu klein, um in Firmenwährung einen Wert zu haben.",
   "Realised exchange differences": "Realisierte Kursdifferenzen",
+  "Only a supplier can confirm a price for a purchase.":
+    "Nur ein Lieferant kann einen Preis für eine Bestellung bestätigen.",
+  "A confirmed price needs the purchase order line it belongs to.":
+    "Ein bestätigter Preis braucht die Bestellposition, zu der er gehört.",
+  "A confirmed price must be a number of at most four decimal places, not negative.":
+    "Ein bestätigter Preis muss eine nicht negative Zahl mit höchstens vier Nachkommastellen sein.",
+  "Minimum quantities are stated for suppliers.":
+    "Mindestmengen werden für Lieferanten festgelegt.",
+  "State a minimum order quantity, an order multiple or both.":
+    "Gib eine Mindestbestellmenge, ein Bestellvielfaches oder beides an.",
+  "A minimum order quantity and an order multiple must be positive numbers.":
+    "Mindestbestellmenge und Bestellvielfaches müssen positive Zahlen sein.",
+  "No terms are stated for this supplier and item.":
+    "Für diesen Lieferanten und Artikel sind keine Konditionen hinterlegt.",
+  "The supplier's terms changed since this review. Review them again.":
+    "Die Lieferantenkonditionen haben sich seit dieser Prüfung geändert. Prüfe sie erneut.",
+  "A match is read for a purchase order.": "Ein Abgleich wird für eine Bestellung gelesen.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25255,6 +25272,23 @@ Object.assign(dictionaries.nl, {
   "The amount is too small to have a value in the company currency.":
     "Het bedrag is te klein om in bedrijfsvaluta een waarde te hebben.",
   "Realised exchange differences": "Gerealiseerde koersverschillen",
+  "Only a supplier can confirm a price for a purchase.":
+    "Alleen een leverancier kan een prijs voor een inkoop bevestigen.",
+  "A confirmed price needs the purchase order line it belongs to.":
+    "Een bevestigde prijs heeft de inkooporderregel nodig waar hij bij hoort.",
+  "A confirmed price must be a number of at most four decimal places, not negative.":
+    "Een bevestigde prijs moet een niet-negatief getal met hoogstens vier decimalen zijn.",
+  "Minimum quantities are stated for suppliers.":
+    "Minimumhoeveelheden worden voor leveranciers vastgelegd.",
+  "State a minimum order quantity, an order multiple or both.":
+    "Geef een minimale bestelhoeveelheid, een bestelveelvoud of beide op.",
+  "A minimum order quantity and an order multiple must be positive numbers.":
+    "Een minimale bestelhoeveelheid en een bestelveelvoud moeten positieve getallen zijn.",
+  "No terms are stated for this supplier and item.":
+    "Voor deze leverancier en dit artikel zijn geen voorwaarden vastgelegd.",
+  "The supplier's terms changed since this review. Review them again.":
+    "De voorwaarden van de leverancier zijn sinds deze controle gewijzigd. Controleer opnieuw.",
+  "A match is read for a purchase order.": "Een afstemming wordt voor een inkooporder gelezen.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25566,6 +25600,23 @@ Object.assign(dictionaries.es, {
   "The amount is too small to have a value in the company currency.":
     "El importe es demasiado pequeño para tener valor en la moneda de la empresa.",
   "Realised exchange differences": "Diferencias de cambio realizadas",
+  "Only a supplier can confirm a price for a purchase.":
+    "Solo un proveedor puede confirmar un precio de una compra.",
+  "A confirmed price needs the purchase order line it belongs to.":
+    "Un precio confirmado necesita la línea del pedido de compra a la que pertenece.",
+  "A confirmed price must be a number of at most four decimal places, not negative.":
+    "Un precio confirmado debe ser un número no negativo con como máximo cuatro decimales.",
+  "Minimum quantities are stated for suppliers.":
+    "Las cantidades mínimas se registran para proveedores.",
+  "State a minimum order quantity, an order multiple or both.":
+    "Indica una cantidad mínima de pedido, un múltiplo de pedido o ambos.",
+  "A minimum order quantity and an order multiple must be positive numbers.":
+    "La cantidad mínima y el múltiplo de pedido deben ser números positivos.",
+  "No terms are stated for this supplier and item.":
+    "No hay condiciones registradas para este proveedor y artículo.",
+  "The supplier's terms changed since this review. Review them again.":
+    "Las condiciones del proveedor cambiaron desde esta revisión. Revísalas de nuevo.",
+  "A match is read for a purchase order.": "La conciliación se consulta para un pedido de compra.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

@@ -2438,6 +2438,8 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                 "commitment_id": STRING,
                 "due_at": OPTIONAL_STRING,
                 "quantity": DECIMAL_STRING,
+                # Spec 310: a supplier's confirmed unit price, in the line's unit.
+                "unit_price": OPTIONAL_STRING,
                 "note": OPTIONAL_STRING,
                 "stated_at": OPTIONAL_STRING,
                 "source_record_id": OPTIONAL_STRING,
@@ -2719,6 +2721,52 @@ MCP_TOOL_CATALOG += (
         "Finance",
         _object_schema({}),
         _read("company_currency"),
+    ),
+    MCPToolDefinition(
+        "supplier_item_terms_set_propose",
+        "State supplier item terms",
+        "Prepare stating a supplier's minimum order quantity and/or order multiple (pack size) for one item (party_id, item_id), both in the item's purchase unit. Purchase reviews then name an order below the minimum or off the multiple, with the next quantity that meets them; orders are never refused. A person confirms.",
+        "propose",
+        "Purchasing",
+        _object_schema(
+            {
+                "party_id": STRING,
+                "item_id": STRING,
+                "minimum_quantity": OPTIONAL_STRING,
+                "order_multiple": OPTIONAL_STRING,
+            },
+            required=("party_id", "item_id"),
+        ),
+        _propose("supplier_item_terms_set"),
+    ),
+    MCPToolDefinition(
+        "supplier_item_terms_remove_propose",
+        "Withdraw supplier item terms",
+        "Prepare withdrawing a supplier's minimum order quantity and order multiple for one item. A person confirms.",
+        "propose",
+        "Purchasing",
+        _object_schema(
+            {"party_id": STRING, "item_id": STRING}, required=("party_id", "item_id")
+        ),
+        _propose("supplier_item_terms_remove"),
+    ),
+    MCPToolDefinition(
+        "supplier_item_terms",
+        "Supplier item terms",
+        "Read suppliers' minimum order quantities and order multiples, of one supplier (party_id) or one item (item_id).",
+        "read",
+        "Purchasing",
+        _object_schema({"party_id": OPTIONAL_STRING, "item_id": OPTIONAL_STRING}),
+        _read("supplier_item_terms"),
+    ),
+    MCPToolDefinition(
+        "purchase_match",
+        "Three-way match of a purchase order",
+        "Read per line of one purchase order (document_id) whether it is matched: the quantity in force (ordered, or confirmed by the supplier) received net of returns and billed net of credits at the price agreed last. Otherwise each difference is named (received_short, received_over, billed_short, billed_over, price_differs, units_not_comparable). A cancelled line expects nothing and shows its cancellation charges.",
+        "read",
+        "Purchasing",
+        _object_schema({"document_id": STRING}, required=("document_id",)),
+        _read("purchase_match"),
     ),
     MCPToolDefinition(
         "customer_item_number_set_propose",

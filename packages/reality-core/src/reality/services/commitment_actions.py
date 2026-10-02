@@ -238,7 +238,7 @@ def _review_commitment_revision(
         line = core._tenant_record(
             session, core.DocumentLine, tenant_id, commitment.document_line_id
         )
-        agreed = core.agreed_line_prices(session, tenant_id, [line])[line.id]
+        agreed = core._agreed_line_prices(session, tenant_id, [line])[line.id]
         state["price"] = {
             "unit": line.unit,
             "ordered_unit_price": (
