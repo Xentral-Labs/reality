@@ -1763,3 +1763,242 @@ def test_an_import_container_lands_in_eur_with_freight_and_duty(
         Decimal(30),
         Decimal(20),
     ]
+
+
+# --- Spec 310: confirmations, terms, cancellation charges, three-way match ----------
+
+
+def _purchase_line(session, business, number, quantity="100", price="10"):
+    gross = str(Decimal(quantity) * Decimal(price))
+    _, document, (line,), (promise,) = core.create_manual_order(
+        session,
+        business.tenant.id,
+        "purchase",
+        number,
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": quantity,
+                "unit_price": price,
+                "gross_amount": gross,
+            }
+        ],
+        gross,
+        document_date="2026-09-01",
+    )
+    return document, line, promise
+
+
+def _match(session, business, document):
+    from reality.services.purchase_match import purchase_match
+
+    return purchase_match(session, business.tenant.id, document.id)
+
+
+def test_a_supplier_confirms_less_later_and_dearer_and_is_billed_as_confirmed(
+    session, business
+):
+    """G09: the confirmation restates quantity, date and price; the invoice follows it."""
+    tenant = business.tenant.id
+    document, line, promise = _purchase_line(session, business, "PO-G09")
+
+    _reviewed(
+        session,
+        business,
+        "commitment_revise",
+        {
+            "commitment_id": promise.id,
+            "quantity": "90",
+            "due_at": "2026-10-19T00:00:00Z",
+            "unit_price": "10.50",
+            "note": "Order confirmation AB-G09",
+        },
+        "rev-G09",
+    )
+    _receive_into(session, business, "IN-G09", promise, "90")
+    invoice = _supplier_invoice(session, business, line, "90", "945", "INV-G09")
+
+    (row,) = _match(session, business, document)["lines"]
+    assert (
+        row["ordered"],
+        row["in_force"],
+        row["ordered_unit_price"],
+        row["agreed_unit_price"],
+    ) == (
+        "100",
+        "90",
+        "10",
+        "10.5",
+    )
+    assert row["matched"] is True
+    billed = session.scalars(
+        select(core.DocumentLine).where(
+            core.DocumentLine.tenant_id == tenant,
+            core.DocumentLine.document_id == invoice,
+        )
+    ).one()
+    # Billed at the confirmed price, nothing differs (tests/test_purchasing_depth.py
+    # reports a price above it as the control).
+    assert billed.id not in _records_of(session, tenant, "invoice_price_differs")
+    assert billed.unit_price == Decimal("10.5")
+
+
+def test_a_minimum_and_a_pack_size_are_named_and_the_surplus_is_stock(
+    session, business
+):
+    """G06: the review names the minimum and pack size; the person orders more."""
+    tenant = business.tenant.id
+    proposal = create_change_proposal(
+        session,
+        tenant,
+        "supplier_item_terms_set",
+        {
+            "party_id": business.supplier.id,
+            "item_id": business.item.id,
+            "minimum_quantity": "50",
+            "order_multiple": "12",
+        },
+    )
+    approve_and_execute_proposal(session, tenant, proposal.id, confirmed=True)
+    need = _sales(session, business, "SO-G06", "30", "2026-10-20")
+    arguments = {
+        "direction": "purchase",
+        "number": "PO-G06",
+        "company_party_id": business.company.id,
+        "counterparty_id": business.supplier.id,
+        "location_id": business.location.id,
+        "currency": "EUR",
+        "gross_amount": "300",
+        "lines": [
+            {
+                "item_id": business.item.id,
+                "quantity": "30",
+                "unit_price": "10",
+                "gross_amount": "300",
+            }
+        ],
+    }
+    review = json.loads(
+        prepare_delivery_action(
+            session, tenant, "order_create", arguments, request_id="PO-G06-30"
+        ).input
+    )["_delivery_review"]
+    terms = review["state"]["supplier_terms"]["0"]
+    assert (
+        terms["below_minimum"],
+        terms["off_multiple"],
+        terms["suggested_quantity"],
+    ) == (
+        True,
+        True,
+        "60",
+    )
+    # The person orders what the supplier sells: 60, for a need of 30.
+    _reviewed(
+        session,
+        business,
+        "order_create",
+        {
+            **arguments,
+            "gross_amount": "600",
+            "lines": [
+                {**arguments["lines"][0], "quantity": "60", "gross_amount": "600"}
+            ],
+        },
+        "PO-G06-60",
+    )
+    purchase = session.scalars(
+        select(core.Commitment)
+        .join(core.Document, core.Document.id == core.Commitment.document_id)
+        .where(core.Commitment.tenant_id == tenant, core.Document.number == "PO-G06")
+    ).one()
+    _receive_into(session, business, "IN-G06", purchase, "60")
+    core.reserve(session, tenant, need.id)
+    # 30 serve the order and 30 stay free stock.
+    assert core.stock_at(session, tenant, business.item.id, business.location.id) == 60
+    assert _reserved(session, business, need.id) == 30
+
+
+def test_a_purchase_cancelled_after_production_records_the_suppliers_charge(
+    session, business
+):
+    """G12: the cancellation and the supplier's charge, with no purchase finding."""
+    tenant = business.tenant.id
+    document, line, promise = _purchase_line(session, business, "PO-G12", "20")
+    _reviewed(
+        session,
+        business,
+        "commitment_cancel",
+        {
+            "commitment_id": promise.id,
+            "reason": "No longer needed; supplier had produced",
+        },
+        "cxl-G12",
+    )
+    charge = json.loads(
+        confirm_tool(
+            session,
+            tenant,
+            propose_tool(
+                session,
+                tenant,
+                "supplier_invoice_free_record",
+                {
+                    "supplier_id": business.supplier.id,
+                    "number": "CXL-G12",
+                    "currency": "EUR",
+                    "gross_amount": "40.00",
+                    "lines": [
+                        {
+                            "description": "Cancellation charge PO-G12",
+                            "quantity": "1",
+                            "unit": "pcs",
+                            "unit_price": "40.00",
+                            "gross_amount": "40.00",
+                            "line_type": "charge",
+                            "billed_document_line_id": line.id,
+                        }
+                    ],
+                },
+            ).id,
+            confirmed=True,
+        ).output
+    )
+    invoice_id = next(r["id"] for r in charge["records"] if r["family"] == "document")
+    assert core.open_invoice_amount(session, tenant, invoice_id) == Decimal(40)
+    assert line.id not in _records_of(session, tenant, "billed_not_received")
+    (row,) = _match(session, business, document)["lines"]
+    assert (
+        row["cancelled"],
+        row["matched"],
+        [c["amount"] for c in row["charges"]],
+    ) == (
+        True,
+        True,
+        ["40"],
+    )
+
+
+def test_a_purchase_receipt_and_invoice_that_agree_are_matched(session, business):
+    """I01: a positive three-way match, and the line that is not."""
+    tenant = business.tenant.id
+    document, line, promise = _purchase_line(session, business, "PO-I01", "10")
+    _, short_line, short = _purchase_line(session, business, "PO-I01-B", "10")
+    _receive_into(session, business, "IN-I01", promise, "10")
+    _supplier_invoice(session, business, line, "10", "100", "INV-I01")
+    _receive_into(session, business, "IN-I01-B", short, "8")
+    _supplier_invoice(session, business, short_line, "8", "80", "INV-I01-B")
+
+    assert _match(session, business, document)["matched"] is True
+    other = session.scalars(
+        select(core.Document).where(
+            core.Document.tenant_id == tenant, core.Document.number == "PO-I01-B"
+        )
+    ).one()
+    # Positive control: the short line names its difference.
+    assert _match(session, business, other)["lines"][0]["differences"] == [
+        "received_short"
+    ]

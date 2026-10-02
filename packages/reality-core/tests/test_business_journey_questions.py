@@ -153,7 +153,8 @@ def test_advisor_receives_relevant_executable_tools() -> None:
         )
         return {
             "text": "Create the supplier invoice from its stated evidence. **Tools:** Use supplier_invoice_record_propose and confirm the proposal.",
-            "status": "partial",
+            # I01 is supported since spec 310.
+            "status": "supported",
             "citations": ["I01"],
         }
 
@@ -166,7 +167,7 @@ def test_advisor_receives_relevant_executable_tools() -> None:
 
     assert answer.outcome == "provider"
     assert "supplier_invoice_record_propose" in answer.text
-    assert answer.status == "partial"
+    assert answer.status == "supported"
     assert answer.citations
 
 

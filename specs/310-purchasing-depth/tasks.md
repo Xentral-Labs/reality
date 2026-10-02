@@ -48,8 +48,8 @@ Tests come first in each phase where practical.
 
 ## Phase 7: Stories and Guide (FR-004)
 
-- [ ] T013 Business stories G09, G06, G12 and I01
-- [ ] T014 Promote them: Guide catalog, routing check, coverage, roadmap, docs
+- [x] T013 Business stories G09, G06, G12 and I01
+- [x] T014 Promote them: Guide catalog, routing check, coverage, roadmap, docs
 
 ## Phase 8: Verification
 

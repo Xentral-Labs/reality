@@ -2550,19 +2550,32 @@
       "section": "Purchasing: demand and purchase order",
       "title": "Minimum order quantity / pack size forces more",
       "question": "Surplus visible as stock-bound?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Surplus visible as stock-bound?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Surplus visible as stock-bound? Per supplier and item a minimum order quantity and an order multiple are stated. A purchase review names a quantity below them with the next one that meets them; the order is not refused. What is bought beyond the need is free stock or is assigned.",
       "limitations": [
-        "Surplus from a larger purchase shows up as stock or unassigned supply.",
-        "Minimum order quantities and pack sizes are not recorded."
+        "Terms are a hint in the review, never enforced.",
+        "Lead times per supplier are not recorded."
       ],
-      "keywords": [],
+      "keywords": [
+        "minimum order quantity",
+        "MOQ",
+        "pack size",
+        "order multiple",
+        "Mindestbestellmenge",
+        "Verpackungseinheit"
+      ],
       "question_examples": [
         "Minimum order quantity / pack size forces more",
-        "Surplus visible as stock-bound?"
+        "Surplus visible as stock-bound?",
+        "The supplier sells only cartons of 12 and at least 50; what happens when we need 30?",
+        "Der Lieferant liefert nur Kartons zu 12 und mindestens 50; was passiert, wenn wir 30 brauchen?"
       ],
-      "tools": [],
+      "tools": [
+        "supplier_item_terms_set_propose",
+        "supplier_item_terms",
+        "order_create_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -2635,19 +2648,29 @@
       "section": "Purchasing: demand and purchase order",
       "title": "Supplier confirms different quantity/price/date",
       "question": "Confirmed vs ordered visible?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Confirmed vs ordered visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Confirmed vs ordered visible? A supplier's confirmation is a revision of the purchase promise: it restates quantity, date and unit price. Ordered and confirmed values are both shown, the guided supplier invoice takes the confirmed price, and Invoice price differs compares against it.",
       "limitations": [
-        "A confirmed quantity or date is recorded as a revision against the original.",
-        "A confirmed price cannot be stated."
+        "Confirmations are entered by a person or chat; EDI order responses are not interpreted."
       ],
-      "keywords": [],
+      "keywords": [
+        "order confirmation",
+        "supplier confirmation",
+        "confirmed price",
+        "Auftragsbestätigung",
+        "bestätigter Preis"
+      ],
       "question_examples": [
         "Supplier confirms different quantity/price/date",
-        "Confirmed vs ordered visible?"
+        "Confirmed vs ordered visible?",
+        "The supplier confirmed 90 instead of 100 at a higher price; where do we record that?",
+        "Der Lieferant bestätigt 90 statt 100 zu einem höheren Preis; wo erfassen wir das?"
       ],
-      "tools": [],
+      "tools": [
+        "commitment_revise_propose",
+        "purchase_match"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -2698,19 +2721,29 @@
       "section": "Purchasing: demand and purchase order",
       "title": "Purchase cancelled after supplier produced",
       "question": "Cancellation cost or refusal recorded?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Cancellation cost or refusal recorded?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Cancellation cost or refusal recorded? The purchase line is cancelled with its reason, and the supplier's cancellation charge is recorded as a supplier invoice with a charge line naming that line. It is posted and paid like any invoice, raises no purchase finding, and the line shows the cancellation and the charge.",
       "limitations": [
-        "A purchase can be cancelled before receipt.",
-        "Cancellation costs or a supplier's refusal to cancel cannot be recorded."
+        "A supplier refusing the cancellation is recorded as a note or by keeping the promise open; there is no refusal status."
       ],
-      "keywords": [],
+      "keywords": [
+        "cancellation charge",
+        "cancellation cost",
+        "Stornokosten",
+        "Stornogebühr"
+      ],
       "question_examples": [
         "Purchase cancelled after supplier produced",
-        "Cancellation cost or refusal recorded?"
+        "Cancellation cost or refusal recorded?",
+        "We cancelled a purchase the supplier had already made; how do we book their charge?",
+        "Wir haben eine bereits produzierte Bestellung storniert; wie buchen wir die Stornokosten?"
       ],
-      "tools": [],
+      "tools": [
+        "commitment_cancel_propose",
+        "supplier_invoice_free_record_propose",
+        "purchase_match"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -3264,23 +3297,31 @@
       "section": "Supplier invoice and payment",
       "title": "Three-way match: purchase = receipt = invoice",
       "question": "Match confirmed?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality detects specific purchase, receipt and supplier-invoice discrepancies as findings. The absence of findings is not exposed as a positive clean three-way-match result, and a complete clean three-way match is not yet proven.",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Match confirmed? The match of a purchase order answers per line whether the quantity in force was received, net of returns, and billed, net of credits, at the price agreed last. A line that agrees is matched; otherwise each difference is named.",
       "localized_summaries": {
-        "de": "Reality erkennt bestimmte Abweichungen zwischen Bestellung, Wareneingang und Lieferantenrechnung als Findings. Das Fehlen von Findings wird nicht als positiv bestaetigter Drei-Wege-Abgleich ausgegeben; ein vollstaendiger sauberer Drei-Wege-Abgleich ist noch nicht belegt."
+        "de": "Der Bestellabgleich beantwortet je Position, ob die geltende Menge erhalten (abzüglich Rücksendungen) und berechnet (abzüglich Gutschriften) wurde, zum zuletzt vereinbarten Preis. Eine passende Position ist abgeglichen; sonst wird jede Abweichung genannt."
       },
       "limitations": [
-        "A match shows only as the absence of findings; there is no positive 'matched' answer.",
-        "A clean three-way match is not yet proven."
+        "Exact match only; there are no tolerances."
       ],
-      "keywords": [],
+      "keywords": [
+        "three-way match",
+        "purchase match",
+        "Drei-Wege-Abgleich",
+        "Bestellabgleich"
+      ],
       "question_examples": [
         "Three-way match: purchase = receipt = invoice",
         "Match confirmed?",
-        "Welche Abweichungen erkennt Reality bei einer Lieferantenrechnung?"
+        "Welche Abweichungen erkennt Reality bei einer Lieferantenrechnung?",
+        "Is this purchase order fully received and billed as agreed?",
+        "Ist diese Bestellung vollständig geliefert und wie vereinbart berechnet?"
       ],
-      "tools": [],
+      "tools": [
+        "purchase_match"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

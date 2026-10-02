@@ -2221,3 +2221,8 @@ Column `commitment_revision.unit_price`: a supplier's confirmed unit price, the 
   - Strict MCP schemas and the price on the revision schema.
   - An agent states terms and reads the match; the Web states terms, revises a price and reads the match.
   - Another company cannot read or state; the CLI asks before stating and reads the match.
+- `packages/reality-core/tests/scenarios/test_catalog_purchasing.py`, stories:
+  - G09: a supplier confirms less, later and dearer, and is billed as confirmed.
+  - G06: the minimum and pack size are named, and the surplus stays free stock.
+  - G12: a purchase cancelled after production records the supplier's charge without findings.
+  - I01: a purchase, receipt and invoice that agree are matched; the short line names its difference.
