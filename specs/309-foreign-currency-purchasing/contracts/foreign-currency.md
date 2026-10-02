@@ -38,4 +38,4 @@
 
 ## Ledger reads
 
-Ledger entries and posting groups gain `company_amount` and `exchange_rate`, and posting groups gain `company_currency`. Account balances gain `company_balance`.
+Ledger entry values (reversal previews and events) and `ledger.posted` events gain `company_amount` and `exchange_rate` per entry, and the event gains `company_currency`. A company-currency balance per account is not part of this feature.
