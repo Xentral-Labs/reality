@@ -2109,6 +2109,9 @@ Table `customer_item_number`: a customer's own article number, with the customer
   - The review carries the line's number.
   - The stated number shows on the order preview, the delivery case and the invoice line.
   - A changed mapping leaves past lines as stated.
+  - A file line stating our item has its number checked; a line with neither item nor number is still refused.
+  - Remembering shows the mapping it replaces and refuses one made since the review.
+  - A correction that does not state the number keeps it.
 - `packages/reality-core/tests/test_customer_item_adapters.py`:
   - The MCP schemas are strict, and the assignment takes remember-for-customer.
   - An agent proposes and a person confirms.
@@ -2116,3 +2119,4 @@ Table `customer_item_number`: a customer's own article number, with the customer
   - The Web sets, reads and removes, and refuses a supplier with its code.
   - Another company can neither read nor state, with the own list as control.
   - The CLI asks before stating and lists.
+  - An agent orders by the customer's number through the strict order schema.
