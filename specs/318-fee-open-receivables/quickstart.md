@@ -19,7 +19,10 @@ Verification pending; no completion claim.
 - `make docs-build`: 11 Python reference tests, 109 Node tests, formatting and VitePress build passed.
 - `make lint spec-check`: passed.
 - `make docs-catalog-check`: passed after the local implementation commit; regeneration is identical, including Product Advisor artifacts.
-- Overall backend gate remains blocked by the pre-existing demo-baseline timeout, reproduced on unmodified `590c4d72` (see spec 317 evidence). No completion claim and no release/push.
+- The pre-existing demo-baseline timeout was reproduced on unmodified `590c4d72` and addressed by bounded retained-input batching (see spec 317 evidence). Overall backend verification is still open; draft PR #279 runs CI in parallel with the local suite.
+- First CI backend shard 2: 1,616 passed, 1 skipped, 1 failed. The canonical setup projection expected 40 rows but correctly observes 41 after including the existing historical fee. Update that expectation with an explicit one-fee-origin assertion; do not change seeded documents or weaken the gate.
+- Updated canonical setup regression: 1 passed in 97.18 seconds, explicitly retaining 40 prior rows plus one fee-origin row. The added assertion reads the stored serialized JSON; no application behavior changed.
+- First CI round: all three other backend shards, seven browser-script shards, six live-browser stories, frontend, docs and spec policy passed. Only the stale setup expectation failed; a fresh complete CI run follows the test correction.
 
 ## Review
 

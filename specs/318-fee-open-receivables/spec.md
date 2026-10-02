@@ -2,7 +2,7 @@
 
 **Feature Branch**: `codex/journey-consistency`
 **Created**: 2026-10-02
-**Status**: Implemented; focused verification passed, overall demo gate blocked
+**Status**: Implemented; focused verification passed, overall backend verification in progress
 **Language**: English
 **Input**: Close the fee receivable gap identified in the journey architecture review.
 
