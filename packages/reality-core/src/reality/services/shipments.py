@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -9,6 +9,7 @@ from sqlalchemy import and_, exists, func, or_, select
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
+    BusinessEvent,
     Commitment,
     Movement,
     MovementCorrection,
@@ -68,12 +69,21 @@ def record_shipment_notice(
     occurred_at: datetime | None = None,
     reporter_type: str = "counterparty",
     action_id: str | None = None,
+    delivery_mode: str | None = None,
+    collected_by: str | None = None,
     commit: bool = True,
 ) -> tuple[Shipment, ShipmentPackage, ShipmentEvent]:
     try:
         validate_shipment_direction(purpose, direction)
     except ShipmentCompatibilityError as error:
         raise InvalidOperation.from_refusal(error) from error
+    delivery_mode, collected_by = _delivery_mode(
+        purpose, carrier, tracking_number, delivery_mode, collected_by
+    )
+    stated_at = utc_datetime(occurred_at)
+    if stated_at is not None and stated_at > now() + timedelta(minutes=5):
+        # Spec 312: when the goods moved is a past fact, never a plan.
+        raise InvalidOperation(code="shipment_occurred_at_future")
     _record(session, Party, tenant_id, counterparty_id)
     role = required_party_role(purpose)
     if not session.scalar(
@@ -96,6 +106,7 @@ def record_shipment_notice(
         purpose=purpose,
         counterparty_id=counterparty_id,
         source_record_id=source_record_id,
+        **({"delivery_mode": delivery_mode} if delivery_mode else {}),
     )
     session.add(shipment)
     session.flush()
@@ -131,7 +142,14 @@ def record_shipment_notice(
         "shipment.notice_recorded",
         "shipment",
         shipment.id,
-        {"package_id": package.id, "direction": direction, "purpose": purpose},
+        {
+            "package_id": package.id,
+            "direction": direction,
+            "purpose": purpose,
+            **({"delivery_mode": delivery_mode} if delivery_mode else {}),
+            # Spec 312: who collected a pickup, as stated; nothing calculates on it.
+            **({"collected_by": collected_by} if collected_by else {}),
+        },
         source_record_id=source_record_id,
         action_id=action_id,
         correlation_id=action_id,
@@ -139,6 +157,32 @@ def record_shipment_notice(
     if commit:
         session.commit()
     return shipment, package, event
+
+
+DELIVERY_MODES = ("carrier", "pickup")
+
+
+
+def _delivery_mode(
+    purpose: str,
+    carrier: str | None,
+    tracking_number: str | None,
+    delivery_mode: str | None,
+    collected_by: str | None,
+) -> tuple[str | None, str | None]:
+    """The stated mode and collector, refused where they cannot be true."""
+    mode = (delivery_mode or "").strip() or None
+    name = (collected_by or "").strip() or None
+    if mode is not None and mode not in DELIVERY_MODES:
+        raise InvalidOperation(code="shipment_delivery_mode_invalid")
+    if mode == "pickup":
+        if purpose != "customer_delivery":
+            raise InvalidOperation(code="shipment_pickup_customer_only")
+        if (carrier and carrier.strip()) or (tracking_number and tracking_number.strip()):
+            raise InvalidOperation(code="shipment_pickup_carrier_refused")
+    elif name is not None:
+        raise InvalidOperation(code="shipment_collector_pickup_only")
+    return mode, name
 
 
 def record_shipment_event(
@@ -278,6 +322,8 @@ def record_packaged_execution(
     source_record_id: str | None = None,
     occurred_at: datetime | None = None,
     action_id: str | None = None,
+    delivery_mode: str | None = None,
+    collected_by: str | None = None,
     commit: bool = True,
 ) -> dict[str, Any]:
     if purpose == "customer_delivery":
@@ -332,6 +378,8 @@ def record_packaged_execution(
         occurred_at=occurred_at,
         reporter_type="company",
         action_id=action_id,
+        delivery_mode=delivery_mode,
+        collected_by=collected_by,
         commit=False,
     )
     expected_type = {
@@ -349,6 +397,10 @@ def record_packaged_execution(
         arguments.pop("shipment_package_id", None)
         blocked = arguments.pop("blocked_quantity", None)
         block_reason = arguments.pop("block_reason", None)
+        # Spec 312: the movements happened when the shipment says, which a
+        # late 3PL confirmation states as earlier than its recording.
+        if occurred_at is not None and "occurred_at" not in arguments:
+            arguments["occurred_at"] = utc_datetime(occurred_at)
         movement = record_movement(
             session,
             tenant_id,
@@ -491,6 +543,38 @@ def _details(
         for shipment_id in shipment_ids
     }
 
+    # Spec 312: who collected a pickup is stated with the shipment's notice.
+    notices = {
+        subject_id: json.loads(payload or "{}")
+        for subject_id, payload in session.execute(
+            select(BusinessEvent.subject_id, BusinessEvent.payload).where(
+                BusinessEvent.tenant_id == tenant_id,
+                BusinessEvent.event_type == "shipment.notice_recorded",
+                BusinessEvent.subject_id.in_(shipment_ids),
+            )
+        )
+    }
+
+    def timing(shipment_events: list[ShipmentEvent]) -> dict[str, Any]:
+        """When the goods moved, as stated, and when Reality was told."""
+        notice = next(
+            (event for event in shipment_events if event.event_type == "announced"),
+            None,
+        )
+        if notice is None:
+            return {"moved_at": None, "recorded_at": None, "confirmation_lag_seconds": None}
+        moved = utc_datetime(notice.occurred_at)
+        recorded = utc_datetime(notice.recorded_at)
+        return {
+            "moved_at": moved,
+            "recorded_at": recorded,
+            "confirmation_lag_seconds": int((recorded - moved).total_seconds())
+            if moved is not None and recorded is not None and recorded > moved
+            else 0
+            if moved is not None
+            else None,
+        }
+
     def render(shipment: Shipment) -> dict[str, Any]:
         shipment_packages = packages_by_shipment[shipment.id]
         shipment_movements = movements_by_shipment[shipment.id]
@@ -533,6 +617,10 @@ def _details(
             "counterparty_id": shipment.counterparty_id,
             "created_at": shipment.created_at,
             "source_record_id": shipment.source_record_id,
+            "delivery_mode": notices.get(shipment.id, {}).get("delivery_mode")
+            or ("carrier" if any(p.carrier for p in shipment_packages) else None),
+            "collected_by": notices.get(shipment.id, {}).get("collected_by"),
+            **timing(shipment_events),
             "packages": [
                 {
                     "id": package.id,

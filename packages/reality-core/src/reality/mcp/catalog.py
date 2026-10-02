@@ -408,6 +408,9 @@ def _shipment_execution_schema(purposes: dict[str, str]) -> dict[str, Any]:
                     "tracking_number": OPTIONAL_STRING,
                     "source_record_id": OPTIONAL_STRING,
                     "occurred_at": OPTIONAL_STRING,
+                    # Spec 312: a customer pickup and who collected.
+                    "delivery_mode": OPTIONAL_STRING,
+                    "collected_by": OPTIONAL_STRING,
                 },
                 required=("purpose", "counterparty_id", "movements"),
             )

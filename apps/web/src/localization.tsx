@@ -24989,6 +24989,15 @@ Object.assign(dictionaries.de, {
     "Die Mehrmenge kommt als Rücksendung zurück, oder die Position wird auf die gelieferte Menge angehoben.",
   "A delivered line can be raised only up to what was shipped and kept.":
     "Eine gelieferte Position kann nur bis zur gelieferten und behaltenen Menge angehoben werden.",
+  "When the goods moved cannot lie in the future.":
+    "Wann die Ware bewegt wurde, kann nicht in der Zukunft liegen.",
+  "A shipment goes by carrier or is collected by the customer.":
+    "Eine Sendung geht per Spediteur oder wird vom Kunden abgeholt.",
+  "Only a customer delivery can be collected.": "Abholen lässt sich nur eine Kundenlieferung.",
+  "A collected shipment has no carrier or tracking number.":
+    "Eine abgeholte Sendung hat keinen Spediteur und keine Sendungsnummer.",
+  "Who collected is stated for a pickup only.":
+    "Wer abgeholt hat, wird nur bei einer Abholung angegeben.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25345,6 +25354,15 @@ Object.assign(dictionaries.nl, {
     "Het teveel komt terug als retour, of de regel wordt verhoogd tot wat geleverd is.",
   "A delivered line can be raised only up to what was shipped and kept.":
     "Een geleverde regel kan alleen worden verhoogd tot wat geleverd en behouden is.",
+  "When the goods moved cannot lie in the future.":
+    "Wanneer de goederen bewogen, kan niet in de toekomst liggen.",
+  "A shipment goes by carrier or is collected by the customer.":
+    "Een zending gaat per vervoerder of wordt door de klant afgehaald.",
+  "Only a customer delivery can be collected.": "Alleen een klantlevering kan worden afgehaald.",
+  "A collected shipment has no carrier or tracking number.":
+    "Een afgehaalde zending heeft geen vervoerder of trackingnummer.",
+  "Who collected is stated for a pickup only.":
+    "Wie heeft afgehaald, wordt alleen bij een afhaling opgegeven.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25701,6 +25719,14 @@ Object.assign(dictionaries.es, {
     "El exceso vuelve como devolución, o la línea se aumenta hasta lo enviado.",
   "A delivered line can be raised only up to what was shipped and kept.":
     "Una línea entregada solo puede aumentarse hasta lo enviado y conservado.",
+  "When the goods moved cannot lie in the future.":
+    "El momento en que se movió la mercancía no puede estar en el futuro.",
+  "A shipment goes by carrier or is collected by the customer.":
+    "Un envío va por transportista o lo recoge el cliente.",
+  "Only a customer delivery can be collected.": "Solo una entrega a cliente puede recogerse.",
+  "A collected shipment has no carrier or tracking number.":
+    "Un envío recogido no tiene transportista ni número de seguimiento.",
+  "Who collected is stated for a pickup only.": "Quién recogió solo se indica en una recogida.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

@@ -54,6 +54,9 @@ SHIPMENT_EXECUTION_FIELDS = {
     "tracking_number",
     "source_record_id",
     "occurred_at",
+    # Spec 312: a customer pickup and who collected.
+    "delivery_mode",
+    "collected_by",
 }
 SHIPMENT_MOVEMENT_FIELDS = {
     "movement_type",
