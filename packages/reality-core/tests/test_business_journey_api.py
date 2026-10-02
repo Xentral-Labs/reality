@@ -193,7 +193,7 @@ def test_public_question_rejects_provider_status_or_citation_changes(
 def test_public_question_adds_published_prose_ids_to_citations(monkeypatch) -> None:
     def invalid(_envelope):
         return {
-            "text": "F02 is supported, and E07 is also relevant.",
+            "text": "F02 is supported, and M04 is also relevant.",
             "status": "supported",
             "citations": ["F02"],
         }
@@ -207,7 +207,7 @@ def test_public_question_adds_published_prose_ids_to_citations(monkeypatch) -> N
 
     assert response.status_code == 200
     assert response.json()["outcome"] == "provider"
-    assert response.json()["citations"] == ["F02", "E07"]
+    assert response.json()["citations"] == ["F02", "M04"]
     assert response.json()["status"] == "partial"
 
 
