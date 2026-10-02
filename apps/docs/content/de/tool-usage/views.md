@@ -464,10 +464,11 @@ readiness from active reservations and execution holds.
 **Hintergrundaktualisierung nach:** `payment.returned`, `commitment.fulfilled`,
 `reservation.consumed`, `fact.observed`, `source_record.interpreted`, `party.created`,
 `party.updated`, `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.updated`,
-`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
-`commitment.revised`, `promises.closed`, `document_line.item_assigned`, `exchange.recorded`,
-`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
-`movement.recorded`, `movement.corrected`, `ledger.reversed`, `settlement.allocated`
+`stock_block.created`, `stock_block.released`, `stock_block.scrapped`, `document.recorded`,
+`document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
+`promises.closed`, `document_line.item_assigned`, `exchange.recorded`, `commitment.held`,
+`commitment.hold_released`, `reservation.created`, `reservation.released`, `movement.recorded`,
+`movement.corrected`, `ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Sicht [`orders`](./views#view-orders), Sicht
 [`warehouse_queue`](./views#view-warehouse_queue), Agenten-Tool
@@ -495,11 +496,11 @@ and active order or party delivery holds.
 
 **Hintergrundaktualisierung nach:** `payment.returned`, `commitment.fulfilled`,
 `reservation.consumed`, `fact.observed`, `source_record.interpreted`, `party.delivery_hold_placed`,
-`party.delivery_hold_released`, `item.updated`, `document.recorded`, `document.corrected`,
-`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
-`reservation.released`, `movement.recorded`, `movement.corrected`, `ledger.reversed`,
-`settlement.allocated`
+`party.delivery_hold_released`, `item.updated`, `stock_block.created`, `stock_block.released`,
+`stock_block.scrapped`, `document.recorded`, `document.corrected`, `commitment.created`,
+`commitment.cancelled`, `commitment.revised`, `promises.closed`, `exchange.recorded`,
+`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
+`movement.recorded`, `movement.corrected`, `ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Sicht [`fulfillment_blockers`](./views#view-fulfillment_blockers), Agenten-Tool
 [`fulfillment_blockers`](./commands#tool-fulfillment_blockers)
@@ -526,10 +527,10 @@ quantities per item.
 
 **Hintergrundaktualisierung nach:** `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
 `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.created`, `item.updated`,
-`location.created`, `location.updated`, `commitment.created`, `commitment.cancelled`,
-`commitment.revised`, `promises.closed`, `exchange.recorded`, `commitment.held`,
-`commitment.hold_released`, `reservation.created`, `reservation.released`, `movement.recorded`,
-`movement.corrected`
+`stock_block.created`, `stock_block.released`, `stock_block.scrapped`, `location.created`,
+`location.updated`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
+`promises.closed`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
+`reservation.created`, `reservation.released`, `movement.recorded`, `movement.corrected`
 
 **Siehe auch:** Sicht [`supply_demand`](./views#view-supply_demand), Agenten-Tool
 [`item_supply_demand`](./commands#tool-item_supply_demand)
@@ -565,12 +566,13 @@ Change Proposal, and chat activity without loading business rows or querying onc
 `commitment.fulfilled`, `reservation.consumed`, `fact.observed`, `source_record.received`,
 `source_record.unmapped`, `source_record.interpreted`, `party.created`, `party.updated`,
 `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.created`, `item.updated`,
-`reorder_point.set`, `reorder_point.removed`, `location.created`, `location.updated`,
-`master_data.lifecycle_changed`, `payment_term.updated`, `payment_term.created`,
-`price_list.updated`, `price_list.created`, `price_list_entry.created`, `party_price_list.assigned`,
-`party_group.updated`, `party_group.created`, `party_group_member.added`,
-`party_group_price_list.assigned`, `document.recorded`, `document.corrected`, `commitment.created`,
-`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
+`reorder_point.set`, `reorder_point.removed`, `stock_block.created`, `stock_block.released`,
+`stock_block.scrapped`, `location.created`, `location.updated`, `master_data.lifecycle_changed`,
+`payment_term.updated`, `payment_term.created`, `price_list.updated`, `price_list.created`,
+`price_list_entry.created`, `party_price_list.assigned`, `party_group.updated`,
+`party_group.created`, `party_group_member.added`, `party_group_price_list.assigned`,
+`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
+`commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
 `return.announcement_withdrawn`, `document_line.item_assigned`, `exchange.recorded`,
 `commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
 `handling_unit.created`, `lot.created`, `lot.expiry_stated`, `lot.expiry_corrected`,
@@ -597,10 +599,10 @@ stock.
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
 **Hintergrundaktualisierung nach:** `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
-`item.created`, `item.updated`, `location.created`, `location.updated`,
-`master_data.lifecycle_changed`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
-`promises.closed`, `reservation.created`, `reservation.released`, `movement.recorded`,
-`movement.corrected`
+`item.created`, `item.updated`, `stock_block.created`, `stock_block.released`,
+`stock_block.scrapped`, `location.created`, `location.updated`, `master_data.lifecycle_changed`,
+`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
+`reservation.created`, `reservation.released`, `movement.recorded`, `movement.corrected`
 
 **Siehe auch:** Sicht [`inventory`](./views#view-inventory), Agenten-Tool
 [`inventory_read`](./commands#tool-inventory_read), Agenten-Tool
@@ -634,11 +636,12 @@ restrictions.
 `reservation.consumed`, `fact.observed`, `source_record.received`, `source_record.unmapped`,
 `source_record.interpreted`, `party.created`, `party.updated`, `party.delivery_hold_placed`,
 `party.delivery_hold_released`, `item.created`, `item.updated`, `reorder_point.set`,
-`reorder_point.removed`, `location.updated`, `master_data.lifecycle_changed`, `price_list.updated`,
-`price_list.created`, `price_list_entry.created`, `party_price_list.assigned`,
-`party_group.updated`, `party_group.created`, `party_group_member.added`,
-`party_group_price_list.assigned`, `document.recorded`, `document.corrected`, `commitment.created`,
-`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
+`reorder_point.removed`, `stock_block.created`, `stock_block.released`, `stock_block.scrapped`,
+`location.updated`, `master_data.lifecycle_changed`, `price_list.updated`, `price_list.created`,
+`price_list_entry.created`, `party_price_list.assigned`, `party_group.updated`,
+`party_group.created`, `party_group_member.added`, `party_group_price_list.assigned`,
+`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
+`commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
 `return.announcement_withdrawn`, `document_line.item_assigned`, `exchange.recorded`,
 `commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
 `lot.expiry_stated`, `lot.expiry_corrected`, `movement.recorded`, `movement.corrected`,
@@ -849,13 +852,14 @@ Normalizes important evidence and reality timestamps into one chronological oper
 `order.recorded`, `source_record.stored`, `commitment.fulfilled`, `reservation.consumed`,
 `fact.observed`, `source_record.received`, `source_record.unmapped`, `source_record.interpreted`,
 `party.created`, `party.updated`, `item.created`, `item.updated`, `reorder_point.set`,
-`reorder_point.removed`, `location.created`, `location.updated`, `document.recorded`,
-`document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
-`promises.closed`, `payments.run`, `return.announced`, `return.announcement_withdrawn`,
-`document_line.item_assigned`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
-`lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
-`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`reorder_point.removed`, `stock_block.created`, `stock_block.released`, `stock_block.scrapped`,
+`location.created`, `location.updated`, `document.recorded`, `document.corrected`,
+`commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
+`payments.run`, `return.announced`, `return.announcement_withdrawn`, `document_line.item_assigned`,
+`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `handling_unit.created`, `lot.created`, `lot.expiry_stated`,
+`lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`, `movement.corrected`,
+`ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Agenten-Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose),
 Agenten-Tool [`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool

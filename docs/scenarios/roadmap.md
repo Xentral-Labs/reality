@@ -24,7 +24,7 @@ spec 305.
 | 7 | 1 | [301 Unit Conversion Between Purchase and Sales Units](../../specs/301-unit-conversion/spec.md) | O05 (implemented; supported) |
 | 8 | 1 | [302 Reorder Point and Replenishment Proposal](../../specs/302-reorder-point/spec.md) | G02 (implemented; supported) |
 | 9 | 1 | [303 Orders Served From Several Warehouses](../../specs/303-multi-warehouse-orders/spec.md) | A02, B06, D02 (implemented; supported) |
-| 10 | 1 | [304 Blocked Stock and Best-Before Dates](../../specs/304-blocked-stock/spec.md) | B05, J05, H08, H15 |
+| 10 | 1 | [304 Blocked Stock and Best-Before Dates](../../specs/304-blocked-stock/spec.md) | B05, J05, H08, H15 (implemented; supported) |
 
 ## Tier 2: important for specific customers or in depth
 

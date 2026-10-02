@@ -550,6 +550,35 @@
       "effect": "Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds stay."
     },
     {
+      "name": "Block stock",
+      "service": "block_stock",
+      "related_services": ["review_stock_block"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Holds back a quantity where it lies with a reason; nothing moves, and it is excluded from availability, reservation and shipping."
+    },
+    {
+      "name": "Release a stock block",
+      "service": "release_stock_block",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Makes blocked stock available again, wholly or partly, with the reason; nothing moves."
+    },
+    {
+      "name": "Scrap blocked stock",
+      "service": "scrap_stock_block",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Writes blocked stock off its location, wholly or partly, with one reasoned adjustment linked to the block."
+    },
+    {
+      "name": "Read stock blocks",
+      "service": "stock_blocks",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lists the stock held back by blocks with item, location, identity, quantity, reason and who blocked it."
+    },
+    {
       "name": "Set a reorder point",
       "service": "set_reorder_point",
       "related_services": ["review_reorder_point"],

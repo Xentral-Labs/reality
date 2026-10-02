@@ -2,26 +2,26 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 122 covered, 30 partial, 0 missing, 73 gap, 3 out.
+228 scenarios: 126 covered, 28 partial, 0 missing, 71 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 15 | 1 |  | 8 |  |
-| B Availability and reservation | 7 | 5 |  | 6 |  |
+| B Availability and reservation | 8 | 4 |  | 6 |  |
 | C Payment and release | 14 |  |  | 4 |  |
 | D Shipment, split and merge | 5 | 3 |  | 11 |  |
 | E Customer invoice and credit | 11 | 1 |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
 | G Purchase demand and order | 7 | 5 |  | 5 |  |
-| H Receipt and supplier deviations | 11 | 1 |  | 7 |  |
+| H Receipt and supplier deviations | 13 | 1 |  | 5 |  |
 | I Supplier invoice and payment | 10 | 1 |  | 1 |  |
-| J Warehouse and stock | 3 | 3 |  | 5 |  |
+| J Warehouse and stock | 4 | 2 |  | 5 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
 | L E-commerce and marketplaces | 7 |  |  | 5 |  |
 | M B2B specifics | 1 | 3 |  | 8 |  |
@@ -54,8 +54,9 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
    B16, B17, M06 (B08, B10 partial). Since spec 303 a person can reserve the rest of a promise
    at another warehouse and each warehouse ships its part (D02), but nothing distributes a
    reservation across warehouses by itself.
-6. **Locations have no availability status.** Quarantine, inspection and in-transit exist only as
-   "move it to another location". B05, H08, H15, J01 (J05 partial by design).
+6. **In-transit stock is not modelled.** Since spec 304 quarantine, inspection and expiry are stock
+   blocks where the goods lie (B05, H08, H15, J05); stock on its way between locations still exists
+   only as "move it to another location". J01.
 7. **Shopify orders and refunds are interpreted, other sources are not.** Later Shopify versions
    apply reductions of unshipped quantity and hold everything else (specs 081, 296); refunds
    become evidence. Shipments, marketplace, 3PL and EDI sources have no interpreter.
@@ -144,7 +145,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | B02 | covered | tests/operational_exceptions/test_derivation.py::test_outgoing_commitment_at_risk; tests/test_application_tools.py::test_reservation_receipts_classify_none_partial_and_complete | With no stock the whole promise is `outgoing_commitment_at_risk` (cause insufficient_reservation), and the receipt reports `effect=none`. |
 | B03 | gap | specs/068-promise-coverage-exceptions/spec.md (Non-Goals); tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock_impact | No allocation or priority rule exists: whoever reserves first gets the units, and only a `competing_commitments` count is reported. |
 | B04 | covered | tests/scenarios/test_catalog_stock_and_returns.py::test_stock_reserved_for_one_customer_can_be_moved_to_a_more_important_one | Release then reserve moves the stock with exact per-commitment figures and ordered events. Nothing links the two steps unless the caller passes one action id. |
-| B05 | partial | docs/features/inventory.md ("Nothing is blocked"); tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes | There is no blocked-stock state; exclusion only works by moving goods to another location (for example a quarantine disposition transfer), and expired stock is deliberately still available. |
+| B05 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_blocked_stock_is_not_available_until_quality_releases_it | 20 in stock, 5 blocked for quality: an order of 20 reserves 15; quality releases the 5 with its reason and the order reserves all 20 (spec 304). |
 | B06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_stock_in_the_wrong_warehouse_is_transferred_and_then_reserved | All stock in Munich: the finding names it, the reviewed transfer moves five home, the finding clears, and the order reserves and ships at home (spec 303). |
 | B07 | partial | tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt | Open PO quantity can be assigned to protect a customer promise (`protecting_supply`); there is no dated available-to-promise calculation. |
 | B08 | partial | tests/test_supply_coverage.py::test_purchasing_sales_and_inventory_views_reconcile_without_double_counting | A receipt reserves nothing automatically (the test asserts 0 reservations); a supply assignment names the intended customer, but no serving order exists. |
@@ -274,14 +275,14 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | H05 | gap | services/core.py supplier_return bound | A supplier return must reference a received delivery, and the surplus cannot be received against the PO. |
 | H06 | gap | services/core.py "Movement does not match the commitment" | Wrong item cannot be tied to the PO; it only appears as an unexplained receipt. |
 | H07 | gap | — | No substitute/successor item link on receipt. |
-| H08 | gap | services/return_dispositions.py (customer returns only) | Location has no availability status; inbound quarantine is not modelled. |
+| H08 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_damaged_goods_are_received_blocked_and_scrapped | A reviewed receipt of 20 blocks 5 damaged in the same confirmation: 15 available; scrapping the 5 leaves 15 physical (spec 304). |
 | H09 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_receipt_without_a_purchase_order_says_why_it_arrived | A receipt without a purchase keeps its stated reason and is explained by it; a delivery-path receipt without one is reported (spec 314). |
 | H10 | covered | tests/scenarios/test_catalog_purchasing.py::test_one_inbound_package_is_split_across_several_purchase_orders | One package receives 5 for PO-A and 4 for PO-B; shipment_explain reports 9. |
 | H11 | covered | tests/scenarios/test_catalog_purchasing.py::test_early_receipt_fulfils_the_purchase_and_keeps_its_due_date | Receipt before the due date fulfils the purchase and keeps the due date; no read names a receipt "early", it is derivable. |
 | H12 | covered | tests/scenarios/test_catalog_purchasing.py::test_receipt_before_purchase_order_is_linked_later_by_replacement | An unexplained receipt is linked to the later PO by correct_movement; stock unchanged, PO fulfilled, exception cleared. |
 | H13 | covered | tests/test_inventory_tracking_reservations.py::test_lot_quantity_can_be_received_reserved_and_shipped_on_a_pallet, ::test_a_lot_carries_the_stated_best_before; tests/scenarios/test_international_demo.py (SER-0001 receipt) | Lot, expiry and serial on receipt, though not against a PO commitment. |
 | H14 | covered | tests/test_movement_corrections.py::test_void_receipt_appends_exact_correction_and_preserves_original | A compensating movement; the original is preserved. |
-| H15 | gap | specs/116-unified-receipt-release (reservation release, not QC) | No inspection hold or received-but-not-released state. |
+| H15 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_receipt_awaiting_inspection_is_released_days_later | A package of 12 received blocked for inspection reserves nothing; quality releases 10 and the order reserves them (spec 304). |
 | H16 | partial | docs/features/b2b-operational-chain.md; tests/test_supply_assignments.py | The assignment states intent; the receipt does not reserve for the waiting commitment and no test asserts it. |
 | H17 | gap | tests/test_shipment_story.py::test_supplier_notice_has_zero_effect_then_package_receipt_changes_stock (`announced` None) | Advised quantities are not recorded, so advised vs received cannot be compared. |
 | H18 | covered | tests/operational_exceptions/test_derivation.py::test_supplier_return_not_credited, ::test_supplier_credit_not_returned; tests/test_returns.py::test_goods_go_back_to_the_supplier | Return and credit reconciled per PO line. |
@@ -312,7 +313,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | J02 | partial | tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock ("stocktake loss"); tests/test_inventory_and_fulfillment.py::test_adjustment_requires_reason | Losses and gains are recorded as reasoned adjustments; there is no count record (counted vs book quantity) and no test of a stocktake gain. |
 | J03 | gap | services/ (no count or pick concept) | There are no count sessions and no picking state, so a cycle count during open picks cannot be represented. |
 | J04 | covered | tests/test_inventory_and_fulfillment.py::test_transfer_return_and_reasoned_adjustment_reconcile_by_location, ::test_adjustment_requires_reason | A write-off adjustment requires a reason and reconciles by location; the reason is free text, not a code. |
-| J05 | partial | tests/test_inventory_tracking_reservations.py::test_expiry_blocks_nothing; tests/operational_exceptions/test_derivation.py::test_stock_expired | Expired lots are reported (`stock_expired`) but deliberately not excluded from availability; scrapping is a plain adjustment. |
+| J05 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_an_expired_lot_is_blocked_from_its_finding_and_scrapped | An expired lot is named with its location, blocked from the finding (which then clears) and scrapped (spec 304). |
 | J06 | gap | services/core.py ("Movement exceeds physical stock."); tests/test_inventory_and_fulfillment.py::test_cannot_ship_more_than_stock | Outbound movements above physical stock are refused, so negative stock cannot occur or be explained. |
 | J07 | gap | — | No external or 3PL stock observation exists to compare with movement-derived stock. |
 | J08 | covered | tests/scenarios/test_catalog_stock_and_returns.py::test_consignment_stock_at_a_customer_site_stays_counted_as_ours | Stock at a consignment location stays in the company total and is available only there. Ownership and valuation are not asserted (a location has no party link). |

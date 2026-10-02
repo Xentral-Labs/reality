@@ -379,7 +379,18 @@ def _shipment_execution_schema(purposes: dict[str, str]) -> dict[str, Any]:
                 "serial_unit_id": OPTIONAL_STRING,
                 "reason": OPTIONAL_STRING,
                 # Spec 301: only a receipt may be stated in the purchase unit.
-                **({"unit": PURCHASE_UNIT} if movement_type == "receipt" else {}),
+                **(
+                    {
+                        "unit": PURCHASE_UNIT,
+                        "blocked_quantity": DECIMAL_STRING,
+                        "block_reason": {
+                            "type": "string",
+                            "enum": ["quality", "damage", "expiry", "inspection"],
+                        },
+                    }
+                    if movement_type == "receipt"
+                    else {}
+                ),
             },
             required=("item_id", "quantity"),
         )
@@ -1613,6 +1624,11 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                 "resolves_movement_id": OPTIONAL_STRING,
                 "return_announcement_id": OPTIONAL_STRING,
                 "unit": PURCHASE_UNIT,
+                "blocked_quantity": DECIMAL_STRING,
+                "block_reason": {
+                    "type": "string",
+                    "enum": ["quality", "damage", "expiry", "inspection"],
+                },
                 "opening_cost": {
                     "type": "object",
                     "description": "Opening stock only: the total acquisition value its evidence states, recorded as received for the cost review (spec 282).",
@@ -2576,6 +2592,72 @@ MCP_TOOL_CATALOG += (
             }
         ),
         _read("supply_coverage"),
+    ),
+    MCPToolDefinition(
+        "stock_blocks",
+        "Stock blocks",
+        "Read stock held back where it lies: item, location, lot or pallet, quantity, reason and who blocked it. Blocked stock is excluded from availability, reservation and shipping until released or scrapped.",
+        "read",
+        "Warehouse",
+        _object_schema(
+            {
+                "item_id": OPTIONAL_STRING,
+                "location_id": OPTIONAL_STRING,
+                "status": {
+                    "type": "string",
+                    "enum": ["active", "released", "scrapped", "all"],
+                },
+            }
+        ),
+        _read("stock_blocks"),
+    ),
+    MCPToolDefinition(
+        "stock_block_propose",
+        "Block stock",
+        "Prepare blocking a quantity of an item at a location, optionally its lot, pallet or serial, for quality, damage, expiry or inspection. Nothing moves; the review shows what stays available. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {
+                "item_id": STRING,
+                "location_id": STRING,
+                "quantity": DECIMAL_STRING,
+                "reason_code": {
+                    "type": "string",
+                    "enum": ["quality", "damage", "expiry", "inspection"],
+                },
+                "note": OPTIONAL_STRING,
+                "handling_unit_id": OPTIONAL_STRING,
+                "lot_id": OPTIONAL_STRING,
+                "serial_unit_id": OPTIONAL_STRING,
+            },
+            required=("item_id", "location_id", "quantity", "reason_code"),
+        ),
+        _propose("stock_block"),
+    ),
+    MCPToolDefinition(
+        "stock_block_release_propose",
+        "Release blocked stock",
+        "Prepare releasing a stock block, wholly or partly (quantity), with a reason, so the goods are available again. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {"block_id": STRING, "quantity": OPTIONAL_STRING, "reason": STRING},
+            required=("block_id", "reason"),
+        ),
+        _propose("stock_block_release"),
+    ),
+    MCPToolDefinition(
+        "stock_block_scrap_propose",
+        "Scrap blocked stock",
+        "Prepare scrapping blocked stock, wholly or partly, with a reason: one adjustment writes it off its location. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {"block_id": STRING, "quantity": OPTIONAL_STRING, "reason": STRING},
+            required=("block_id", "reason"),
+        ),
+        _propose("stock_block_scrap"),
     ),
     MCPToolDefinition(
         "reorder_points",

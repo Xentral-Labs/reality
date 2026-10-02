@@ -18,6 +18,7 @@ from reality.db.core import (
     Movement,
     Reservation,
     SerialUnit,
+    StockBlock,
 )
 
 
@@ -98,6 +99,7 @@ def inventory_detail_rows(
                 )
             if effective_before is None:
                 row["reserved"] = Decimal(0)
+                row["blocked"] = Decimal(0)
             buckets[key] = row
         return buckets[key]
 
@@ -129,10 +131,24 @@ def inventory_detail_rows(
                 reservation.serial_unit_id,
                 reservation.handling_unit_id,
             )["reserved"] += reservation.quantity
+        # Spec 304: what is held back lies in its exact bucket too.
+        blocks = select(StockBlock).where(
+            StockBlock.tenant_id == tenant_id, StockBlock.status == "active"
+        )
+        if item_ids is not None:
+            blocks = blocks.where(StockBlock.item_id.in_(item_ids))
+        for block in session.scalars(blocks):
+            bucket(
+                block.item_id,
+                block.location_id,
+                block.lot_id,
+                block.serial_unit_id,
+                block.handling_unit_id,
+            )["blocked"] += block.quantity
     present = {key[0] for key in buckets}
     for item_id in items.keys() - present:
         bucket(item_id, None, None, None, None)
     for row in buckets.values():
         if effective_before is None:
-            row["available"] = row["physical"] - row["reserved"]
+            row["available"] = row["physical"] - row["reserved"] - row["blocked"]
     return list(buckets.values())

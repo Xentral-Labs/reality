@@ -3900,6 +3900,84 @@ def reserved_by_identity(
     return decimal(session.scalar(query) or ZERO)
 
 
+def blocked_quantity(
+    session: OrmSession,
+    tenant_id: str,
+    item_id: str,
+    location_id: str | None = None,
+    *,
+    handling_unit_id: str | None = None,
+    lot_id: str | None = None,
+    serial_unit_id: str | None = None,
+) -> Decimal:
+    """What is held back by active stock blocks (spec 304).
+
+    Available is physical less reserved less blocked, at a location and at an
+    identity alike; every reader that reserves, moves or reports availability
+    takes the third term from here, beside `stock_at` and `active_reserved`.
+    """
+    from reality.db.core import StockBlock
+
+    query = select(func.coalesce(func.sum(StockBlock.quantity), 0)).where(
+        StockBlock.tenant_id == tenant_id,
+        StockBlock.item_id == item_id,
+        StockBlock.status == "active",
+    )
+    if location_id:
+        query = query.where(StockBlock.location_id == location_id)
+    for field, value in (
+        (StockBlock.handling_unit_id, handling_unit_id),
+        (StockBlock.lot_id, lot_id),
+        (StockBlock.serial_unit_id, serial_unit_id),
+    ):
+        if value:
+            query = query.where(field == value)
+    return decimal(session.scalar(query) or ZERO)
+
+
+def blocked_within_identity(
+    session: OrmSession,
+    tenant_id: str,
+    item_id: str,
+    location_id: str,
+    *,
+    handling_unit_id: str | None = None,
+    lot_id: str | None = None,
+    serial_unit_id: str | None = None,
+) -> Decimal:
+    """Blocks that hold back part of exactly this identity (spec 304).
+
+    A block that names a lot holds back that lot wherever it lies at the
+    location, also inside a pallet; a movement of that pallet's lot is judged
+    against it. A block counts here when it names some identity and every
+    field it names agrees with the movement's.
+    """
+    from reality.db.core import StockBlock
+
+    conditions = []
+    for field, value in (
+        (StockBlock.handling_unit_id, handling_unit_id),
+        (StockBlock.lot_id, lot_id),
+        (StockBlock.serial_unit_id, serial_unit_id),
+    ):
+        conditions.append(
+            or_(field.is_(None), field == value) if value else field.is_(None)
+        )
+    query = select(func.coalesce(func.sum(StockBlock.quantity), 0)).where(
+        StockBlock.tenant_id == tenant_id,
+        StockBlock.item_id == item_id,
+        StockBlock.location_id == location_id,
+        StockBlock.status == "active",
+        or_(
+            StockBlock.handling_unit_id.is_not(None),
+            StockBlock.lot_id.is_not(None),
+            StockBlock.serial_unit_id.is_not(None),
+        ),
+        *conditions,
+    )
+    return decimal(session.scalar(query) or ZERO)
+
+
 @dataclass(frozen=True)
 class ReservationResult:
     reservation: Reservation | None
@@ -3970,7 +4048,9 @@ def _preview_reservation(
     aggregate_available = max(
         ZERO,
         stock_at(session, tenant_id, commitment.item_id, reserved_at)
-        - active_reserved(session, tenant_id, commitment.item_id, reserved_at),
+        - active_reserved(session, tenant_id, commitment.item_id, reserved_at)
+        # Spec 304: blocked stock is never reserved.
+        - blocked_quantity(session, tenant_id, commitment.item_id, reserved_at),
     )
     if handling_unit_id or lot_id or serial_unit_id:
         identity_available = max(
@@ -3985,6 +4065,15 @@ def _preview_reservation(
                 serial_unit_id=serial_unit_id,
             )
             - reserved_by_identity(
+                session,
+                tenant_id,
+                commitment.item_id,
+                reserved_at,
+                handling_unit_id=handling_unit_id,
+                lot_id=lot_id,
+                serial_unit_id=serial_unit_id,
+            )
+            - blocked_quantity(
                 session,
                 tenant_id,
                 commitment.item_id,
@@ -5087,6 +5176,50 @@ def _append_movement(
         < qty
     ):
         raise InvalidOperation(code="movement_exceeds_identity_stock")
+    if (
+        movement_type in {"shipment", "transfer", "supplier_return"}
+        or (movement_type == "adjustment" and from_location_id)
+    ) and from_location_id:
+        # Spec 304: blocked stock stays where it lies until it is released or
+        # scrapped; scrapping closes its block before it writes the part off.
+        held = blocked_quantity(session, tenant_id, item_id, from_location_id)
+        if held and (
+            stock_at(session, tenant_id, item_id, from_location_id)
+            - _excluded_stock_effect(_correcting, item_id, from_location_id)
+            - held
+            < qty
+            or (
+                (handling_unit_id or lot_id or serial_unit_id)
+                and stock_by_identity(
+                    session,
+                    tenant_id,
+                    item_id,
+                    from_location_id,
+                    handling_unit_id=handling_unit_id,
+                    lot_id=lot_id,
+                    serial_unit_id=serial_unit_id,
+                )
+                - _excluded_stock_effect(
+                    _correcting,
+                    item_id,
+                    from_location_id,
+                    handling_unit_id=handling_unit_id,
+                    lot_id=lot_id,
+                    serial_unit_id=serial_unit_id,
+                )
+                - blocked_within_identity(
+                    session,
+                    tenant_id,
+                    item_id,
+                    from_location_id,
+                    handling_unit_id=handling_unit_id,
+                    lot_id=lot_id,
+                    serial_unit_id=serial_unit_id,
+                )
+                < qty
+            )
+        ):
+            raise InvalidOperation(code="movement_takes_blocked_stock")
     if serial_unit_id and movement_type in {"opening_stock", "receipt", "return"}:
         serial_in = session.scalar(
             select(func.coalesce(func.sum(Movement.quantity), 0)).where(
@@ -5818,6 +5951,25 @@ def correct_movement(
             < decimal(original.quantity)
         ):
             raise InvalidOperation(code="movement_correction_later_identity_dependents")
+        from reality.db.core import StockBlock
+
+        # Spec 304: a correction may not take away stock a block holds back,
+        # and a scrap is undone by recording the goods again, not by bringing
+        # them back unblocked.
+        if session.scalar(
+            select(StockBlock.id).where(
+                StockBlock.tenant_id == tenant_id,
+                StockBlock.movement_id == original.id,
+                StockBlock.status == "scrapped",
+            )
+        ):
+            raise InvalidOperation(code="movement_correction_scrap_block")
+        if compensation_from and (
+            stock_at(session, tenant_id, original.item_id, compensation_from)
+            - blocked_quantity(session, tenant_id, original.item_id, compensation_from)
+            < decimal(original.quantity)
+        ):
+            raise InvalidOperation(code="movement_correction_takes_blocked_stock")
         compensation = Movement(
             id=uid("mov"),
             tenant_id=tenant_id,
@@ -6518,6 +6670,20 @@ def inventory_rows(
             ).group_by(Reservation.item_id)
         ).all()
     )
+    from reality.db.core import StockBlock
+
+    # Spec 304: what is held back is neither available nor projected.
+    blocked_by_item = dict(
+        session.execute(
+            only(
+                select(StockBlock.item_id, func.sum(StockBlock.quantity)).where(
+                    StockBlock.tenant_id == tenant_id,
+                    StockBlock.status == "active",
+                ),
+                StockBlock.item_id,
+            ).group_by(StockBlock.item_id)
+        ).all()
+    )
     suppliers = list(
         session.scalars(
             only(
@@ -6546,15 +6712,17 @@ def inventory_rows(
             ZERO,
         )
         reserved = decimal(reserved_by_item.get(item.id, ZERO))
+        blocked = decimal(blocked_by_item.get(item.id, ZERO))
         incoming = incoming_by_item.get(item.id, ZERO)
         rows.append(
             {
                 "item": item,
                 "physical": physical,
                 "reserved": reserved,
-                "available": physical - reserved,
+                "blocked": blocked,
+                "available": physical - reserved - blocked,
                 "incoming": incoming,
-                "projected": physical - reserved + incoming,
+                "projected": physical - reserved - blocked + incoming,
                 "receipts": receipts,
                 "issues": issues,
             }

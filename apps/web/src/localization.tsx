@@ -20876,8 +20876,8 @@ Object.assign(dictionaries.de, {
     "Die Sperre aufheben, oder erst das erledigen, wofür sie gesetzt wurde, und sie dann aufheben.",
   "Party hold not lifted": "Liefersperre nicht aufgehoben",
   "Expired stock on hand": "Abgelaufener Bestand",
-  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
-    "Den Bestand per Bestandsanpassung ausbuchen, an den Lieferanten zurückschicken oder anderweitig aus dem Lager nehmen.",
+  "Blocking the stock, writing it off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "Den Bestand sperren, per Bestandsanpassung ausbuchen, an den Lieferanten zurückschicken oder anderweitig aus dem Lager nehmen.",
   "Missing acquisition cost": "Anschaffungskosten fehlen",
   "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
     "Die fehlenden Kostennachweise der Wareneingänge bestätigen und eine aktuelle, vollständige Unternehmensbewertung veröffentlichen.",
@@ -20995,8 +20995,8 @@ Object.assign(dictionaries.nl, {
     "De blokkade opheffen, of eerst doen waarvoor die is ingesteld en haar dan opheffen.",
   "Party hold not lifted": "Leveringsblokkade niet opgeheven",
   "Expired stock on hand": "Verlopen voorraad aanwezig",
-  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
-    "De voorraad afboeken met een correctie, terugsturen naar de leverancier of op een andere manier uit voorraad halen.",
+  "Blocking the stock, writing it off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "De voorraad blokkeren, afboeken met een correctie, terugsturen naar de leverancier of op een andere manier uit voorraad halen.",
   "Missing acquisition cost": "Aanschafkosten ontbreken",
   "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
     "Het ontbrekende kostenbewijs van de ontvangsten bevestigen en een actuele, volledige bedrijfswaardering publiceren.",
@@ -21113,8 +21113,8 @@ Object.assign(dictionaries.es, {
     "Levantar la retención, o hacer primero aquello por lo que se puso y después levantarla.",
   "Party hold not lifted": "Bloqueo del socio sin levantar",
   "Expired stock on hand": "Stock caducado en almacén",
-  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
-    "Dar de baja el stock con un ajuste, devolverlo al proveedor o sacarlo del almacén de otra forma.",
+  "Blocking the stock, writing it off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "Bloquear el stock, darlo de baja con un ajuste, devolverlo al proveedor o sacarlo del almacén de otra forma.",
   "Missing acquisition cost": "Falta el coste de adquisición",
   "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
     "Confirmar los justificantes de coste que faltan en las entradas y publicar una valoración de empresa actual y completa.",
@@ -24653,6 +24653,54 @@ Object.assign(dictionaries.de, {
   Transferred: "Umgelagert",
   "This transfer takes stock that is reserved at its warehouse; the orders reserved there lose their stock.":
     "Diese Umlagerung nimmt Bestand, der in ihrem Lager reserviert ist; die dort reservierten Aufträge verlieren ihren Bestand.",
+  "Only {available} of the {requested} can be blocked: the rest is reserved, already blocked or not there.":
+    "Nur {available} von {requested} lassen sich sperren: der Rest ist reserviert, schon gesperrt oder nicht vorhanden.",
+  "Only a stocked item can be blocked.": "Nur ein Lagerartikel kann gesperrt werden.",
+  "Stock can be blocked only at a location that holds stock.":
+    "Bestand lässt sich nur an einem Lagerort sperren, der Bestand führt.",
+  "This block is no longer active.": "Diese Sperre ist nicht mehr aktiv.",
+  "Stock block not found.": "Sperre nicht gefunden.",
+  "That is more than the block holds.": "Das ist mehr, als die Sperre enthält.",
+  "Enter a quantity above zero with at most four decimal places.":
+    "Gib eine Menge über null mit höchstens vier Nachkommastellen an.",
+  "State why the block is lifted.": "Gib an, warum die Sperre aufgehoben wird.",
+  "Choose quality, damage, expiry or inspection as the reason.":
+    "Wähle Qualität, Beschädigung, Ablauf oder Prüfung als Grund.",
+  "Choose active, released, scrapped or all.": "Wähle aktiv, freigegeben, verschrottet oder alle.",
+  "This stock is blocked; release or scrap the block before moving it.":
+    "Dieser Bestand ist gesperrt; gib die Sperre frei oder verschrotte den Bestand, bevor du ihn bewegst.",
+  "Only a receipt can block part of what it records.":
+    "Nur ein Wareneingang kann einen Teil dessen sperren, was er einbucht.",
+  "This block changed after it was reviewed; review it again.":
+    "Diese Sperre wurde nach der Prüfung geändert; prüfe sie erneut.",
+  "Available after confirming": "Verfügbar nach der Bestätigung",
+  "Available now": "Jetzt verfügbar",
+  Block: "Sperren",
+  "Block stock": "Bestand sperren",
+  "Blocked after confirming": "Gesperrt nach der Bestätigung",
+  "Blocked stock": "Gesperrter Bestand",
+  "Blocked stock stays where it lies and cannot be reserved, shipped or moved until it is released or scrapped. Nothing changes before you confirm.":
+    "Gesperrter Bestand bleibt, wo er liegt, und kann nicht reserviert, versendet oder bewegt werden, bis er freigegeben oder verschrottet wird. Vor deiner Bestätigung ändert sich nichts.",
+  Damage: "Beschädigung",
+  Expiry: "Ablauf",
+  Inspection: "Prüfung",
+  "Lot ID (if the item is lot-tracked)": "Chargen-ID (bei chargengeführten Artikeln)",
+  "Of which blocked": "Davon gesperrt",
+  Quality: "Qualität",
+  "Release blocked stock": "Gesperrten Bestand freigeben",
+  "Released after confirming": "Freigegeben nach der Bestätigung",
+  Scrap: "Verschrotten",
+  "Scrap blocked stock": "Gesperrten Bestand verschrotten",
+  "Scrapped after confirming": "Verschrottet nach der Bestätigung",
+  "Scrapping writes the goods off their location with one adjustment. Nothing changes before you confirm.":
+    "Verschrotten bucht die Ware mit einer Bestandskorrektur aus ihrem Lagerort aus. Vor deiner Bestätigung ändert sich nichts.",
+  Why: "Warum",
+  "A receipt can block at most what it receives.":
+    "Ein Wareneingang kann höchstens sperren, was er einbucht.",
+  "Correcting this movement would take stock that is blocked; release or scrap the block first.":
+    "Diese Korrektur würde gesperrten Bestand wegnehmen; gib die Sperre zuerst frei oder verschrotte den Bestand.",
+  "This adjustment scrapped blocked stock; record the goods again instead of correcting it.":
+    "Diese Korrektur hat gesperrten Bestand verschrottet; buche die Ware neu ein, statt sie zu korrigieren.",
   "Reorder point reached": "Meldebestand erreicht",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, Wareneingang buchen oder Reservierungen freigeben, bis der Lagerort über seinem Meldebestand liegt, oder den Meldebestand ändern oder entfernen.",
@@ -24757,6 +24805,54 @@ Object.assign(dictionaries.nl, {
   Transferred: "Verplaatst",
   "This transfer takes stock that is reserved at its warehouse; the orders reserved there lose their stock.":
     "Deze verplaatsing neemt voorraad die in het magazijn gereserveerd is; de daar gereserveerde orders verliezen hun voorraad.",
+  "Only {available} of the {requested} can be blocked: the rest is reserved, already blocked or not there.":
+    "Slechts {available} van de {requested} kunnen worden geblokkeerd: de rest is gereserveerd, al geblokkeerd of niet aanwezig.",
+  "Only a stocked item can be blocked.": "Alleen een voorraadartikel kan worden geblokkeerd.",
+  "Stock can be blocked only at a location that holds stock.":
+    "Voorraad kan alleen worden geblokkeerd op een locatie met voorraad.",
+  "This block is no longer active.": "Deze blokkering is niet meer actief.",
+  "Stock block not found.": "Blokkering niet gevonden.",
+  "That is more than the block holds.": "Dat is meer dan de blokkering bevat.",
+  "Enter a quantity above zero with at most four decimal places.":
+    "Geef een hoeveelheid boven nul met hoogstens vier decimalen op.",
+  "State why the block is lifted.": "Geef aan waarom de blokkering wordt opgeheven.",
+  "Choose quality, damage, expiry or inspection as the reason.":
+    "Kies kwaliteit, schade, verval of keuring als reden.",
+  "Choose active, released, scrapped or all.": "Kies actief, vrijgegeven, afgeschreven of alle.",
+  "This stock is blocked; release or scrap the block before moving it.":
+    "Deze voorraad is geblokkeerd; geef de blokkering vrij of schrijf de voorraad af voordat je hem verplaatst.",
+  "Only a receipt can block part of what it records.":
+    "Alleen een ontvangst kan een deel van wat ze boekt blokkeren.",
+  "This block changed after it was reviewed; review it again.":
+    "Deze blokkering is na de controle gewijzigd; controleer haar opnieuw.",
+  "Available after confirming": "Beschikbaar na bevestiging",
+  "Available now": "Nu beschikbaar",
+  Block: "Blokkeren",
+  "Block stock": "Voorraad blokkeren",
+  "Blocked after confirming": "Geblokkeerd na bevestiging",
+  "Blocked stock": "Geblokkeerde voorraad",
+  "Blocked stock stays where it lies and cannot be reserved, shipped or moved until it is released or scrapped. Nothing changes before you confirm.":
+    "Geblokkeerde voorraad blijft waar hij ligt en kan niet worden gereserveerd, verzonden of verplaatst tot hij wordt vrijgegeven of afgeschreven. Voor je bevestiging verandert er niets.",
+  Damage: "Schade",
+  Expiry: "Verval",
+  Inspection: "Keuring",
+  "Lot ID (if the item is lot-tracked)": "Partij-ID (bij artikelen met partijregistratie)",
+  "Of which blocked": "Waarvan geblokkeerd",
+  Quality: "Kwaliteit",
+  "Release blocked stock": "Geblokkeerde voorraad vrijgeven",
+  "Released after confirming": "Vrijgegeven na bevestiging",
+  Scrap: "Afschrijven",
+  "Scrap blocked stock": "Geblokkeerde voorraad afschrijven",
+  "Scrapped after confirming": "Afgeschreven na bevestiging",
+  "Scrapping writes the goods off their location with one adjustment. Nothing changes before you confirm.":
+    "Afschrijven boekt de goederen met één correctie uit hun locatie. Voor je bevestiging verandert er niets.",
+  Why: "Waarom",
+  "A receipt can block at most what it receives.":
+    "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
+  "Correcting this movement would take stock that is blocked; release or scrap the block first.":
+    "Deze correctie zou geblokkeerde voorraad wegnemen; geef de blokkering eerst vrij of schrijf de voorraad af.",
+  "This adjustment scrapped blocked stock; record the goods again instead of correcting it.":
+    "Deze correctie heeft geblokkeerde voorraad afgeschreven; boek de goederen opnieuw in in plaats van haar te corrigeren.",
   "Reorder point reached": "Bestelpunt bereikt",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Bestellen, ontvangst boeken of reserveringen vrijgeven tot de locatie boven haar bestelpunt ligt, of het bestelpunt wijzigen of verwijderen.",
@@ -24862,6 +24958,54 @@ Object.assign(dictionaries.es, {
   Transferred: "Trasladado",
   "This transfer takes stock that is reserved at its warehouse; the orders reserved there lose their stock.":
     "Este traslado toma stock reservado en su almacén; los pedidos reservados allí pierden su stock.",
+  "Only {available} of the {requested} can be blocked: the rest is reserved, already blocked or not there.":
+    "Solo {available} de {requested} se pueden bloquear: el resto está reservado, ya bloqueado o no está.",
+  "Only a stocked item can be blocked.": "Solo se puede bloquear un artículo de stock.",
+  "Stock can be blocked only at a location that holds stock.":
+    "Solo se puede bloquear stock en una ubicación que tenga stock.",
+  "This block is no longer active.": "Este bloqueo ya no está activo.",
+  "Stock block not found.": "Bloqueo no encontrado.",
+  "That is more than the block holds.": "Eso es más de lo que contiene el bloqueo.",
+  "Enter a quantity above zero with at most four decimal places.":
+    "Indica una cantidad mayor que cero con cuatro decimales como máximo.",
+  "State why the block is lifted.": "Indica por qué se levanta el bloqueo.",
+  "Choose quality, damage, expiry or inspection as the reason.":
+    "Elige calidad, daño, caducidad o inspección como motivo.",
+  "Choose active, released, scrapped or all.": "Elige activo, liberado, desechado o todos.",
+  "This stock is blocked; release or scrap the block before moving it.":
+    "Este stock está bloqueado; libera el bloqueo o desecha el stock antes de moverlo.",
+  "Only a receipt can block part of what it records.":
+    "Solo una recepción puede bloquear parte de lo que registra.",
+  "This block changed after it was reviewed; review it again.":
+    "Este bloqueo cambió después de revisarlo; revísalo de nuevo.",
+  "Available after confirming": "Disponible tras confirmar",
+  "Available now": "Disponible ahora",
+  Block: "Bloquear",
+  "Block stock": "Bloquear stock",
+  "Blocked after confirming": "Bloqueado tras confirmar",
+  "Blocked stock": "Stock bloqueado",
+  "Blocked stock stays where it lies and cannot be reserved, shipped or moved until it is released or scrapped. Nothing changes before you confirm.":
+    "El stock bloqueado se queda donde está y no se puede reservar, enviar ni mover hasta que se libere o se deseche. Nada cambia antes de que confirmes.",
+  Damage: "Daño",
+  Expiry: "Caducidad",
+  Inspection: "Inspección",
+  "Lot ID (if the item is lot-tracked)": "ID de lote (si el artículo se gestiona por lotes)",
+  "Of which blocked": "De los cuales bloqueados",
+  Quality: "Calidad",
+  "Release blocked stock": "Liberar stock bloqueado",
+  "Released after confirming": "Liberado tras confirmar",
+  Scrap: "Desechar",
+  "Scrap blocked stock": "Desechar stock bloqueado",
+  "Scrapped after confirming": "Desechado tras confirmar",
+  "Scrapping writes the goods off their location with one adjustment. Nothing changes before you confirm.":
+    "Desechar da de baja la mercancía de su ubicación con un ajuste. Nada cambia antes de que confirmes.",
+  Why: "Por qué",
+  "A receipt can block at most what it receives.":
+    "Una recepción puede bloquear como máximo lo que recibe.",
+  "Correcting this movement would take stock that is blocked; release or scrap the block first.":
+    "Corregir este movimiento quitaría stock bloqueado; libera o desecha el bloqueo primero.",
+  "This adjustment scrapped blocked stock; record the goods again instead of correcting it.":
+    "Este ajuste desechó stock bloqueado; registra la mercancía de nuevo en lugar de corregirlo.",
   "Reorder point reached": "Punto de pedido alcanzado",
   "Ordering, receiving or releasing reservations until the location is above its reorder point, or changing or removing the reorder point.":
     "Pedir, registrar la recepción o liberar reservas hasta que la ubicación supere su punto de pedido, o cambiar o eliminar el punto de pedido.",

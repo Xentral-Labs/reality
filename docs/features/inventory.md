@@ -69,10 +69,17 @@ A lot with **no** stated date says nothing in either direction. There is no way 
 with no shelf life from one whose label nobody read, and inventing that distinction would be worse
 than the silence.
 
-**Nothing is blocked, chosen or released.** Expired stock can still be reserved and still be
-shipped: refusing the movement would stop a company recording something that already happened — the
-customer has the goods either way — and choosing which lot ships is an allocation policy this
-product has never had. First-expiring-first-out is a policy, not a record.
+**The date blocks nothing by itself.** Expired stock can still be reserved and shipped until a
+person blocks it: refusing the movement on the date alone would stop a company recording something
+that already happened — the customer has the goods either way — and choosing which lot ships is an
+allocation policy this product has never had. First-expiring-first-out is a policy, not a record.
+
+**Blocked stock (spec 304).** A person blocks stock where it lies, with a reason (quality, damage,
+expiry, inspection) and optionally its lot, pallet or serial; a reviewed receipt can block part or
+all of what it brings in. Nothing moves. Every reader that reserves, ships, transfers or reports
+availability subtracts active blocks: available is physical less reserved less blocked. A block is
+released, wholly or partly, or scrapped with one reasoned adjustment, each through the review. An
+expired lot that is blocked is no longer reported as Stock expired, which offers to block it.
 
 `stock_expired` reports every lot past its stated date that still has stock on hand, counted
 through the same tracked-identity stock rule the inventory register uses, with a

@@ -1037,7 +1037,37 @@ def _movement_create(
         arguments.get("commitment_id"),
         arguments.get("quantity", "0"),
     )
-    return _entity_result("movement", record_movement(session, tenant_id, **arguments))
+    # Spec 304: a receipt may hold back part or all of what it brings in.
+    blocked = arguments.pop("blocked_quantity", None)
+    block_reason = arguments.pop("block_reason", None)
+    if not blocked:
+        return _entity_result(
+            "movement", record_movement(session, tenant_id, **arguments)
+        )
+    from reality.services.stock_blocks import block_stock
+
+    if arguments.get("movement_type") != "receipt":
+        raise InvalidOperation(code="stock_block_receipt_only")
+    movement = record_movement(session, tenant_id, **arguments, _commit=False)
+    block = block_stock(
+        session,
+        tenant_id,
+        movement.item_id,
+        movement.to_location_id,
+        blocked,
+        block_reason or "",
+        handling_unit_id=movement.handling_unit_id,
+        lot_id=movement.lot_id,
+        serial_unit_id=movement.serial_unit_id,
+        action_id=arguments.get("action_id"),
+        _movement_id=movement.id,
+        _receipt=movement.quantity,
+        _commit=False,
+    )
+    session.commit()
+    result = _entity_result("movement", movement)
+    result["records"].append({"family": "stock_block", "id": block.id})
+    return result
 
 
 def _movement_explanation(
@@ -1316,6 +1346,61 @@ def _credit_hold_release(
 
     arguments["action_id"] = arguments.pop("_action_id", None)
     return release_credit_holds(session, tenant_id, **arguments)
+
+
+def _stock_blocks(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.stock_blocks import stock_blocks
+
+    return stock_blocks(
+        session,
+        tenant_id,
+        item_id=arguments.get("item_id") or None,
+        location_id=arguments.get("location_id") or None,
+        status=arguments.get("status") or "active",
+    )
+
+
+def _stock_block(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.stock_blocks import block_stock
+
+    block = block_stock(
+        session,
+        tenant_id,
+        arguments["item_id"],
+        arguments["location_id"],
+        arguments["quantity"],
+        arguments["reason_code"],
+        arguments.get("note", ""),
+        handling_unit_id=arguments.get("handling_unit_id"),
+        lot_id=arguments.get("lot_id"),
+        serial_unit_id=arguments.get("serial_unit_id"),
+        action_id=arguments.get("_action_id"),
+    )
+    return _entity_result("stock_block", block)
+
+
+def _stock_block_resolve(scrap: bool) -> ToolHandler:
+    def handler(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+        from reality.services.stock_blocks import (
+            check_reviewed_block,
+            release_stock_block,
+            scrap_stock_block,
+        )
+
+        check_reviewed_block(
+            session, tenant_id, arguments["block_id"], arguments.get("reviewed")
+        )
+        resolve = scrap_stock_block if scrap else release_stock_block
+        return resolve(
+            session,
+            tenant_id,
+            arguments["block_id"],
+            arguments.get("quantity"),
+            reason=arguments["reason"],
+            action_id=arguments.get("_action_id"),
+        )
+
+    return handler
 
 
 def _reorder_points(
@@ -2473,6 +2558,30 @@ TOOLS = {
         False,
         _month_end_billing,
     ),
+    "stock_blocks": Tool(
+        "stock_blocks",
+        "Read the stock held back by blocks, with item, location, quantity and reason.",
+        False,
+        _stock_blocks,
+    ),
+    "stock_block": Tool(
+        "stock_block",
+        "Block stock where it lies with a reason; it stays put and is not available.",
+        True,
+        _stock_block,
+    ),
+    "stock_block_release": Tool(
+        "stock_block_release",
+        "Release a stock block, wholly or partly, with a reason.",
+        True,
+        _stock_block_resolve(False),
+    ),
+    "stock_block_scrap": Tool(
+        "stock_block_scrap",
+        "Scrap blocked stock, wholly or partly, with a reason and one adjustment.",
+        True,
+        _stock_block_resolve(True),
+    ),
     "reorder_points": Tool(
         "reorder_points",
         "Read the reorder points of the company, of one item or of one location.",
@@ -3256,6 +3365,13 @@ def create_change_proposal(
         normalized_arguments = proposal_arguments(session, tenant_id, arguments)
     if tool_name in FINANCE_COMMANDS:
         normalized_arguments = validate_finance_request(tool_name, arguments)
+    stock_block_review = None
+    if tool_name in {"stock_block", "stock_block_release", "stock_block_scrap"}:
+        from reality.services.stock_blocks import review_stock_block
+
+        normalized_arguments, stock_block_review = review_stock_block(
+            session, tenant_id, tool_name, arguments
+        )
     reorder_review = None
     if tool_name in {"reorder_point_set", "reorder_point_remove"}:
         from reality.services.reorder_points import review_reorder_point
@@ -3329,6 +3445,8 @@ def create_change_proposal(
         preview["dunning"] = preview_notice(session, tenant_id, normalized_arguments)
     if reorder_review is not None:
         preview["reorder_point"] = reorder_review
+    if stock_block_review is not None:
+        preview["stock_block"] = stock_block_review
     if tool_name == DUNNING_SCHEDULE_COMMAND:
         from reality.services.dunning_runs import _stated_levels, schedule
 
@@ -3929,6 +4047,9 @@ def approve_and_execute_proposal(
         "credit_hold_release",
         "reorder_point_set",
         "reorder_point_remove",
+        "stock_block",
+        "stock_block_release",
+        "stock_block_scrap",
         "down_payment_invoice_record",
         "proforma_invoice_record",
         "commitment_revise",

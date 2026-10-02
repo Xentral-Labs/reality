@@ -17,6 +17,7 @@ from reality.services.core import (
     InvalidOperation,
     NotFound,
     active_reserved,
+    blocked_quantity,
     business_discovery_record,
     business_discovery_statement,
     get_tenant,
@@ -226,6 +227,8 @@ def location_inventory_rows(
                 ),
                 Decimal(0),
             )
+            # Spec 304: blocked stock lies there and is not available.
+            held_back = blocked_quantity(session, tenant_id, item.id, location.id)
             result[f"{item.id}:{location.id}"] = {
                 "item_id": item.id,
                 "item": item.name,
@@ -238,9 +241,10 @@ def location_inventory_rows(
                 "quantity_basis": "item_unit",
                 "physical": str(physical),
                 "reserved": str(reserved),
-                "available": str(physical - reserved),
+                "blocked": str(held_back),
+                "available": str(physical - reserved - held_back),
                 "incoming": str(incoming),
-                "projected": str(physical - reserved + incoming),
+                "projected": str(physical - reserved - held_back + incoming),
             }
     return result
 

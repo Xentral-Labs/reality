@@ -22,6 +22,7 @@ from reality.services.core import (
     InvalidOperation,
     active_party_delivery_hold,
     active_settlement_allocations,
+    blocked_quantity,
     commitment_quantity,
     movement_quantity,
     open_invoice_amount,
@@ -263,8 +264,11 @@ def fulfillment_readiness(
     }
 
     def physical_at(location_id: str | None) -> Decimal:
+        # Spec 304: blocked stock never ships, so it is not stock behind a
+        # promise either.
         return (
             stock_at(session, tenant_id, commitment.item_id, location_id)
+            - blocked_quantity(session, tenant_id, commitment.item_id, location_id)
             if commitment.item_id
             else ZERO
         )

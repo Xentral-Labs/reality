@@ -226,6 +226,10 @@ parameter_descriptions:
   raw: Whether to print the original lossless source payload instead of a summary.
   note: Free-text record of what the counterparty said, kept with the statement.
   reason: Human-readable explanation for a hold, correction, or lifecycle change.
+  block_id: Opaque identity of a stock block.
+  resolved_by: Who released or scrapped a stock block.
+  blocked_quantity: Part of a receipt, in the stock unit, held back where it lands (spec 304).
+  block_reason: Why the blocked part of a receipt is held back.
   reorder_point: Stock level, in the item's stock unit, at or below which available plus incoming stock at the location is reported (spec 302).
   reorder_quantity: Quantity, in the item's stock unit, proposed when the reorder point is reached.
   tool_name: Name of the application tool whose arguments are reviewed.
@@ -1102,6 +1106,38 @@ commands:
     reads: [document, commitment, commitment_hold, party, ledger_entry, document_line]
     writes: [commitment_hold, business_event]
     effect: Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds stay.
+  - name: Block stock
+    service: block_stock
+    related_services: [review_stock_block]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [item, location, movement, reservation, stock_block]
+    writes: [stock_block, business_event]
+    effect: Holds back a quantity where it lies with a reason; nothing moves, and it is excluded from availability, reservation and shipping.
+  - name: Release a stock block
+    service: release_stock_block
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [stock_block]
+    writes: [stock_block, business_event]
+    effect: Makes blocked stock available again, wholly or partly, with the reason; nothing moves.
+  - name: Scrap blocked stock
+    service: scrap_stock_block
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [stock_block, movement]
+    writes: [stock_block, movement, business_event]
+    effect: Writes blocked stock off its location, wholly or partly, with one reasoned adjustment linked to the block.
+  - name: Read stock blocks
+    service: stock_blocks
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [stock_block, item, location]
+    writes: []
+    effect: Lists the stock held back by blocks with item, location, identity, quantity, reason and who blocked it.
   - name: Set a reorder point
     service: set_reorder_point
     related_services: [review_reorder_point]
@@ -4972,6 +5008,24 @@ capability_guidance:
     unknown_when: [An order or payment exists that was not recorded, or an amount is in another currency.]
     next_steps: [Release a held order with credit_hold_release_propose after deciding.]
     examples: {use: [{scenario: Explain why an order is held for credit., reason: The read names the open, overdue and ordered amounts and the credits.}], do_not_use: [{scenario: Release the hold., reason: Use credit_hold_release_propose; an owner confirms.}]}
+  stock_blocks:
+    kind: read
+    application_tool: stock_blocks
+    purpose: List stock held back where it lies, with its reason, quantity and who blocked it.
+    use_when: [Someone asks why stock is not available, or which goods are in quarantine, inspection or damaged.]
+    do_not_use_when: [The question is what is available to sell; read inventory, which already subtracts blocks.]
+    required_context: [tenant]
+    data_basis: [stock_block, item, location]
+    limitations: [A block is a person's statement; nothing blocks stock by itself, not even an expiry date.]
+    freshness: Read from the blocks at request time.
+    empty_result: Nothing is blocked for the selection.
+    refusal_behavior: Only the company's own blocks are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which quantity is held back where and why.], does_not_prove: [That the goods are physically damaged or unsafe.]}
+    unknown_when: [Goods are held back on the shelf without a block being recorded.]
+    next_steps: [Release with stock_block_release_propose or scrap with stock_block_scrap_propose; a person confirms.]
+    examples: {use: [{scenario: Explain why five pieces cannot be reserved., reason: The read names the block and its reason.}], do_not_use: [{scenario: Write the goods off., reason: Use stock_block_scrap_propose; a person confirms.}]}
   reorder_points:
     kind: read
     application_tool: reorder_points
@@ -5120,6 +5174,10 @@ agent_command_coverage:
   record_proforma_invoice: {classification: eligible, tools: [proforma_invoice_record_propose]}
   month_end_billing: {classification: eligible, tools: [month_end_billing]}
   set_reorder_point: {classification: eligible, tools: [reorder_point_set_propose]}
+  block_stock: {classification: eligible, tools: [stock_block_propose]}
+  release_stock_block: {classification: eligible, tools: [stock_block_release_propose]}
+  scrap_stock_block: {classification: eligible, tools: [stock_block_scrap_propose]}
+  stock_blocks: {classification: eligible, tools: [stock_blocks]}
   remove_reorder_point: {classification: eligible, tools: [reorder_point_remove_propose]}
   reorder_points: {classification: eligible, tools: [reorder_points]}
   list_targets:

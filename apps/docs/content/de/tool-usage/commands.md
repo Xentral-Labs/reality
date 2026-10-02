@@ -135,6 +135,7 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 | [`preview_document`](#command-preview_document)                                   | Preview Document                           | Belege, Quellen & Facts | `finance_target_mapping_preview`                                                                                                                                                             | CLI · Web · MCP · Chat                  |
 | [`record_corrected_document_source`](#command-record_corrected_document_source)   | Record corrected document source           | Belege, Quellen & Facts | `document_source_correct_propose`                                                                                                                                                            | Web · API · MCP · Chat                  |
 | [`create_manual_document_with_lines`](#command-create_manual_document_with_lines) | Record manual document                     | Belege, Quellen & Facts | `document_create_propose`                                                                                                                                                                    | Web · API · MCP · Chat                  |
+| [`block_stock`](#command-block_stock)                                             | Block stock                                | Lager & Logistik        | `stock_block_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`correct_lot_expiry`](#command-correct_lot_expiry)                               | Correct lot expiry                         | Lager & Logistik        | `lot_expiry_correct_propose`                                                                                                                                                                 | CLI · Web · API · MCP · Chat            |
 | [`correct_movement`](#command-correct_movement)                                   | Correct movement                           | Lager & Logistik        | `movement_correction_propose`                                                                                                                                                                | CLI · Web · API · Chat · MCP            |
 | [`create_handling_unit`](#command-create_handling_unit)                           | Create handling unit                       | Lager & Logistik        | `handling_unit_create_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
@@ -143,9 +144,12 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 | [`record_packaged_execution`](#command-record_packaged_execution)                 | Dispatch or receive shipment package       | Lager & Logistik        | `shipment_dispatch_propose`, `shipment_receive_propose`                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`expired_lots`](#command-expired_lots)                                           | Read expired lots                          | Lager & Logistik        | `expired_lots`                                                                                                                                                                               | Web · API · MCP · Chat                  |
 | [`inventory_cost`](#command-inventory_cost)                                       | Read reviewed inventory acquisition costs  | Lager & Logistik        | `cost_inventory_get`                                                                                                                                                                         | CLI · Web · MCP · Chat                  |
+| [`stock_blocks`](#command-stock_blocks)                                           | Read stock blocks                          | Lager & Logistik        | `stock_blocks`                                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`record_movement`](#command-record_movement)                                     | Record movement                            | Lager & Logistik        | `movement_create_propose`                                                                                                                                                                    | CLI · Web · API · scenario · MCP · Chat |
 | [`record_shipment_event`](#command-record_shipment_event)                         | Record shipment event                      | Lager & Logistik        | `shipment_event_record_propose`                                                                                                                                                              | CLI · Web · API · MCP · Chat            |
 | [`record_shipment_notice`](#command-record_shipment_notice)                       | Record shipment notice                     | Lager & Logistik        | `shipment_notice_record_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
+| [`release_stock_block`](#command-release_stock_block)                             | Release a stock block                      | Lager & Logistik        | `stock_block_release_propose`                                                                                                                                                                | CLI · Web · API · MCP · Chat            |
+| [`scrap_stock_block`](#command-scrap_stock_block)                                 | Scrap blocked stock                        | Lager & Logistik        | `stock_block_scrap_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`state_lot_expiry`](#command-state_lot_expiry)                                   | State lot expiry                           | Lager & Logistik        | `lot_expiry_state_propose`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
 | [`supersede_shipment_event`](#command-supersede_shipment_event)                   | Supersede shipment event                   | Lager & Logistik        | `shipment_event_supersede_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 
@@ -5485,6 +5489,54 @@ return_announcement_withdraw_propose announcement_id [note]
 
 ## Lager & Logistik
 
+### `block_stock` — Block stock {#command-block_stock}
+
+Holds back a quantity where it lies with a reason; nothing moves, and it is excluded from
+availability, reservation and shipping.
+
+**Aufruf**
+
+```text
+stock_block_propose item_id location_id quantity reason_code [note] [handling_unit_id] [lot_id] [serial_unit_id]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `item`, `location`, `movement`, `reservation`, `stock_block` · Schreibt:
+`stock_block`, `business_event` · Erzeugt: `stock_block.created`
+
+**Siehe auch:** Agenten-Tool [`stock_block_propose`](./commands#tool-stock_block_propose), Event
+[`stock_block.created`](./events#event-stock_block-created)
+
+#### `stock_block_propose` — Block stock {#tool-stock_block_propose}
+
+Prepare blocking a quantity of an item at a location, optionally its lot, pallet or serial, for
+quality, damage, expiry or inspection. Nothing moves; the review shows what stays available. A
+person confirms.
+
+**Aufruf**
+
+```text
+stock_block_propose item_id location_id quantity reason_code [note] [handling_unit_id] [lot_id] [serial_unit_id]
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name               | Typ      | Pflicht | Beschreibung                                                                                                  | Standard |
+| ------------------ | -------- | ------- | ------------------------------------------------------------------------------------------------------------- | -------- |
+| `item_id`          | `string` | ja      | Opaque identity of the operational item reference.                                                            | —        |
+| `location_id`      | `string` | ja      | Opaque identity of the operational or physical location.                                                      | —        |
+| `quantity`         | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                                       | —        |
+| `reason_code`      | `string` | ja      | Stable machine-readable reason used for filtering and automation. `quality`, `damage`, `expiry`, `inspection` | —        |
+| `note`             | `string` | nein    | Free-text record of what the counterparty said, kept with the statement.                                      | —        |
+| `handling_unit_id` | `string` | nein    | Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.                           | —        |
+| `lot_id`           | `string` | nein    | Exact batch or lot identity to reserve or move.                                                               | —        |
+| `serial_unit_id`   | `string` | nein    | Exact serial-unit identity to reserve or move; serialized quantities are always one.                          | —        |
+
+**Siehe auch:** Geschäftsaktion [`block_stock`](./commands#command-block_stock)
+
 ### `correct_lot_expiry` — Correct lot expiry {#command-correct_lot_expiry}
 
 Records that a stated best-before was read wrong and what it says instead, against a confirmed
@@ -5794,6 +5846,8 @@ shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_n
 | `movements[].serial_unit_id`   | `string` | nein    | Exact serial-unit identity to reserve or move; serialized quantities are always one.                                                                                                                                      | —        |
 | `movements[].reason`           | `string` | nein    | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                                                                                   | —        |
 | `movements[].unit`             | `string` | nein    | Receipts only: the unit the quantity is stated in, the item's stock unit (default) or its purchase unit. A purchase-unit quantity is recorded in the stock unit by the item's stated factor, and what was stated is kept. | —        |
+| `movements[].blocked_quantity` | `string` | nein    | Part of a receipt, in the stock unit, held back where it lands (spec 304).                                                                                                                                                | —        |
+| `movements[].block_reason`     | `string` | nein    | Why the blocked part of a receipt is held back. `quality`, `damage`, `expiry`, `inspection`                                                                                                                               | —        |
 | `carrier`                      | `string` | nein    | Carrier name stated for a physical package; it is descriptive and not an internal identity.                                                                                                                               | —        |
 | `tracking_number`              | `string` | nein    | Carrier-assigned package reference used for operational lookup; it is not internal identity.                                                                                                                              | —        |
 | `source_record_id`             | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.                                                                                                                                              | —        |
@@ -5922,6 +5976,68 @@ Read stock acquisition value and economic consumption at an explicitly confirmed
 
 **Siehe auch:** Geschäftsaktion [`inventory_cost`](./commands#command-inventory_cost)
 
+### `stock_blocks` — Read stock blocks {#command-stock_blocks}
+
+Lists the stock held back by blocks with item, location, identity, quantity, reason and who blocked
+it.
+
+**Aufruf**
+
+```text
+stock_blocks [item_id] [location_id] [status]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `stock_block`, `item`, `location` · Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`stock_blocks`](./commands#tool-stock_blocks)
+
+#### `stock_blocks` — Stock blocks {#tool-stock_blocks}
+
+Read stock held back where it lies: item, location, lot or pallet, quantity, reason and who blocked
+it. Blocked stock is excluded from availability, reservation and shipping until released or
+scrapped.
+
+**Aufruf**
+
+```text
+stock_blocks [item_id] [location_id] [status]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage   | Art                        | Standard |
+| ------------------ | -------------------------- | -------- |
+| `MCP stock_blocks` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+List stock held back where it lies, with its reason, quantity and who blocked it.
+
+**Verwenden, wenn**
+
+- Someone asks why stock is not available
+- or which goods are in quarantine
+- inspection or damaged.
+
+**Nicht verwenden, wenn**
+
+- The question is what is available to sell; read inventory
+- which already subtracts blocks.
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                                                                 | Standard |
+| ------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------ | -------- |
+| `item_id`     | `string` | nein    | Opaque identity of the operational item reference.                                                           | —        |
+| `location_id` | `string` | nein    | Opaque identity of the operational or physical location.                                                     | —        |
+| `status`      | `string` | nein    | Lifecycle state to filter by, such as open, fulfilled, or withdrawn. `active`, `released`, `scrapped`, `all` | —        |
+
+**Siehe auch:** Geschäftsaktion [`stock_blocks`](./commands#command-stock_blocks)
+
 ### `record_movement` — Record movement {#command-record_movement}
 
 Records an immutable physical event with the same optional pallet, lot, and serial identity used by
@@ -5930,7 +6046,7 @@ reservations.
 **Aufruf**
 
 ```text
-movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [opening_cost]
+movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [blocked_quantity] [block_reason] [opening_cost]
 ```
 
 **Erreichbar über:** CLI · Web · API · scenario · MCP · Chat
@@ -5953,7 +6069,7 @@ required.
 **Aufruf**
 
 ```text
-movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [opening_cost]
+movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [blocked_quantity] [block_reason] [opening_cost]
 ```
 
 **Zugriff:** `propose`
@@ -6001,6 +6117,8 @@ Record an immutable physical receipt, transfer, shipment, return, or adjustment.
 | `resolves_movement_id`            | `string` | nein    | Opaque identity of the return this movement settles; absent means it settles none.                                                                                                                                                                              | —        |
 | `return_announcement_id`          | `string` | nein    | Opaque identity of the announced return these goods fulfil; absent means they were not announced.                                                                                                                                                               | —        |
 | `unit`                            | `string` | nein    | Receipts only: the unit the quantity is stated in, the item's stock unit (default) or its purchase unit. A purchase-unit quantity is recorded in the stock unit by the item's stated factor, and what was stated is kept.                                       | —        |
+| `blocked_quantity`                | `string` | nein    | Part of a receipt, in the stock unit, held back where it lands (spec 304).                                                                                                                                                                                      | —        |
+| `block_reason`                    | `string` | nein    | Why the blocked part of a receipt is held back. `quality`, `damage`, `expiry`, `inspection`                                                                                                                                                                     | —        |
 | `opening_cost`                    | `object` | nein    | Opening stock only: the total acquisition value its evidence states, recorded as received for the cost review (spec 282).                                                                                                                                       | —        |
 | `opening_cost.amount`             | `string` | ja      | Total acquisition value exactly as the evidence states it; never a computed unit cost.                                                                                                                                                                          | —        |
 | `opening_cost.currency`           | `string` | ja      | Three-letter currency code of the stated value.                                                                                                                                                                                                                 | —        |
@@ -6106,6 +6224,91 @@ shipment_notice_record_propose direction purpose counterparty_id [carrier] [trac
 
 **Siehe auch:** Geschäftsaktion
 [`record_shipment_notice`](./commands#command-record_shipment_notice)
+
+### `release_stock_block` — Release a stock block {#command-release_stock_block}
+
+Makes blocked stock available again, wholly or partly, with the reason; nothing moves.
+
+**Aufruf**
+
+```text
+stock_block_release_propose block_id [quantity] reason
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `stock_block` · Schreibt: `stock_block`, `business_event` · Erzeugt:
+`stock_block.released`
+
+**Siehe auch:** Agenten-Tool
+[`stock_block_release_propose`](./commands#tool-stock_block_release_propose), Event
+[`stock_block.released`](./events#event-stock_block-released)
+
+#### `stock_block_release_propose` — Release blocked stock {#tool-stock_block_release_propose}
+
+Prepare releasing a stock block, wholly or partly (quantity), with a reason, so the goods are
+available again. A person confirms.
+
+**Aufruf**
+
+```text
+stock_block_release_propose block_id [quantity] reason
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name       | Typ      | Pflicht | Beschreibung                                                            | Standard |
+| ---------- | -------- | ------- | ----------------------------------------------------------------------- | -------- |
+| `block_id` | `string` | ja      | Opaque identity of a stock block.                                       | —        |
+| `quantity` | `string` | nein    | Decimal quantity expressed in the item's relevant unit.                 | —        |
+| `reason`   | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change. | —        |
+
+**Siehe auch:** Geschäftsaktion [`release_stock_block`](./commands#command-release_stock_block)
+
+### `scrap_stock_block` — Scrap blocked stock {#command-scrap_stock_block}
+
+Writes blocked stock off its location, wholly or partly, with one reasoned adjustment linked to the
+block.
+
+**Aufruf**
+
+```text
+stock_block_scrap_propose block_id [quantity] reason
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `stock_block`, `movement` · Schreibt: `stock_block`, `movement`,
+`business_event` · Erzeugt: `stock_block.scrapped`
+
+**Siehe auch:** Agenten-Tool
+[`stock_block_scrap_propose`](./commands#tool-stock_block_scrap_propose), Event
+[`stock_block.scrapped`](./events#event-stock_block-scrapped)
+
+#### `stock_block_scrap_propose` — Scrap blocked stock {#tool-stock_block_scrap_propose}
+
+Prepare scrapping blocked stock, wholly or partly, with a reason: one adjustment writes it off its
+location. A person confirms.
+
+**Aufruf**
+
+```text
+stock_block_scrap_propose block_id [quantity] reason
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name       | Typ      | Pflicht | Beschreibung                                                            | Standard |
+| ---------- | -------- | ------- | ----------------------------------------------------------------------- | -------- |
+| `block_id` | `string` | ja      | Opaque identity of a stock block.                                       | —        |
+| `quantity` | `string` | nein    | Decimal quantity expressed in the item's relevant unit.                 | —        |
+| `reason`   | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change. | —        |
+
+**Siehe auch:** Geschäftsaktion [`scrap_stock_block`](./commands#command-scrap_stock_block)
 
 ### `state_lot_expiry` — State lot expiry {#command-state_lot_expiry}
 

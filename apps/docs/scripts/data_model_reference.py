@@ -58,6 +58,10 @@ billed_document_line_id|Agreed order line that this invoice line bills, if any.|
 from_party_id|Party making the promise.|Geschäftspartner, der die Zusage macht.
 to_party_id|Party receiving the promise.|Geschäftspartner, dem die Zusage gilt.
 location_id|Location associated with the promise or stock allocation.|Ort, auf den sich die Zusage oder Bestandszuordnung bezieht.
+resolved_at|UTC timestamp when the block was released or scrapped.|UTC-Zeitpunkt, zu dem die Sperre freigegeben oder verschrottet wurde.
+resolved_by|Who released or scrapped the block.|Wer die Sperre freigegeben oder verschrottet hat.
+resolution_reason|Why the block was released or scrapped, as stated.|Warum die Sperre freigegeben oder verschrottet wurde, wie angegeben.
+previous_block_id|Block a partial release or scrap continued this one from.|Sperre, aus der eine Teilfreigabe oder Teilverschrottung diese fortgeführt hat.
 reorder_point|Stock level at or below which the item is reordered at the location.|Bestand, bei dessen Erreichen oder Unterschreiten der Artikel am Lagerort nachbestellt wird.
 reorder_quantity|Quantity proposed when the reorder point is reached.|Menge, die beim Erreichen des Meldebestands vorgeschlagen wird.
 updated_at|UTC timestamp of the last change.|UTC-Zeitpunkt der letzten Änderung.

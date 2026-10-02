@@ -222,7 +222,7 @@
         "Lagerbestand",
         "Verfügbarkeit"
       ],
-      "tables": ["item", "supply_assignment", "item_reorder_point"],
+      "tables": ["item", "supply_assignment", "item_reorder_point", "stock_block"],
       "lists": [
         "view:inventory",
         "view:items",
@@ -234,11 +234,14 @@
         "command:create_item",
         "command:update_item",
         "command:set_master_data_active",
+        "command:block_stock",
+        "command:release_stock_block",
+        "command:scrap_stock_block",
         "command:set_reorder_point",
         "command:remove_reorder_point",
         "command:assign_supply"
       ],
-      "reads": ["command:inventory_cost", "command:reorder_points"],
+      "reads": ["command:inventory_cost", "command:stock_blocks", "command:reorder_points"],
       "exceptions": [
         "exception:units_not_comparable",
         "exception:reservation_exceeds_stock",
@@ -258,6 +261,9 @@
         "event:item.updated",
         "event:reorder_point.set",
         "event:reorder_point.removed",
+        "event:stock_block.created",
+        "event:stock_block.released",
+        "event:stock_block.scrapped",
         "event:master_data.lifecycle_changed"
       ],
       "workspace_actions": []
@@ -2620,6 +2626,21 @@
           "required": false,
           "description": "Receipts only: the unit the quantity is stated in, the item's stock unit (default) or its purchase unit. A purchase-unit quantity is recorded in the stock unit by the item's stated factor, and what was stated is kept.",
           "depth": 1
+        },
+        {
+          "name": "movements[].blocked_quantity",
+          "type": "string",
+          "required": false,
+          "description": "Part of a receipt, in the stock unit, held back where it lands (spec 304).",
+          "depth": 1
+        },
+        {
+          "name": "movements[].block_reason",
+          "type": "string",
+          "required": false,
+          "description": "Why the blocked part of a receipt is held back.",
+          "depth": 1,
+          "enum": ["quality", "damage", "expiry", "inspection"]
         },
         {
           "name": "carrier",
@@ -6053,7 +6074,7 @@
       "summary": "Prepare this business mutation without changing state. Record Movement. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [opening_cost]",
+      "synopsis": "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [blocked_quantity] [block_reason] [opening_cost]",
       "parameters": [
         {
           "name": "movement_type",
@@ -6168,6 +6189,21 @@
           "required": false,
           "description": "Receipts only: the unit the quantity is stated in, the item's stock unit (default) or its purchase unit. A purchase-unit quantity is recorded in the stock unit by the item's stated factor, and what was stated is kept.",
           "depth": 0
+        },
+        {
+          "name": "blocked_quantity",
+          "type": "string",
+          "required": false,
+          "description": "Part of a receipt, in the stock unit, held back where it lands (spec 304).",
+          "depth": 0
+        },
+        {
+          "name": "block_reason",
+          "type": "string",
+          "required": false,
+          "description": "Why the blocked part of a receipt is held back.",
+          "depth": 0,
+          "enum": ["quality", "damage", "expiry", "inspection"]
         },
         {
           "name": "opening_cost",
@@ -9664,6 +9700,230 @@
       "projections": [],
       "links": [],
       "label_de": "Supply coverage",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:stock_blocks",
+      "kind": "tool",
+      "key": "stock_blocks",
+      "label": "Stock blocks",
+      "area": "warehouse",
+      "summary": "Read stock held back where it lies: item, location, lot or pallet, quantity, reason and who blocked it. Blocked stock is excluded from availability, reservation and shipping until released or scrapped.",
+      "access": "read",
+      "group": "Warehouse",
+      "synopsis": "stock_blocks [item_id] [location_id] [status]",
+      "parameters": [
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": false,
+          "description": "Lifecycle state to filter by, such as open, fulfilled, or withdrawn.",
+          "depth": 0,
+          "enum": ["active", "released", "scrapped", "all"]
+        }
+      ],
+      "guidance": {
+        "purpose": "List stock held back where it lies, with its reason, quantity and who blocked it.",
+        "use_when": [
+          "Someone asks why stock is not available",
+          "or which goods are in quarantine",
+          "inspection or damaged."
+        ],
+        "do_not_use_when": [
+          "The question is what is available to sell; read inventory",
+          "which already subtracts blocks."
+        ],
+        "limitations": [
+          "A block is a person's statement; nothing blocks stock by itself",
+          "not even an expiry date."
+        ],
+        "empty_result": "Nothing is blocked for the selection.",
+        "freshness": "Read from the blocks at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP stock_blocks",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "stock_blocks",
+      "projections": [],
+      "links": ["command:stock_blocks"],
+      "label_de": "Stock blocks",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:stock_block_propose",
+      "kind": "tool",
+      "key": "stock_block_propose",
+      "label": "Block stock",
+      "area": "warehouse",
+      "summary": "Prepare blocking a quantity of an item at a location, optionally its lot, pallet or serial, for quality, damage, expiry or inspection. Nothing moves; the review shows what stays available. A person confirms.",
+      "access": "propose",
+      "group": "Warehouse",
+      "synopsis": "stock_block_propose item_id location_id quantity reason_code [note] [handling_unit_id] [lot_id] [serial_unit_id]",
+      "parameters": [
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        },
+        {
+          "name": "reason_code",
+          "type": "string",
+          "required": true,
+          "description": "Stable machine-readable reason used for filtering and automation.",
+          "depth": 0,
+          "enum": ["quality", "damage", "expiry", "inspection"]
+        },
+        {
+          "name": "note",
+          "type": "string",
+          "required": false,
+          "description": "Free-text record of what the counterparty said, kept with the statement.",
+          "depth": 0
+        },
+        {
+          "name": "handling_unit_id",
+          "type": "string",
+          "required": false,
+          "description": "Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.",
+          "depth": 0
+        },
+        {
+          "name": "lot_id",
+          "type": "string",
+          "required": false,
+          "description": "Exact batch or lot identity to reserve or move.",
+          "depth": 0
+        },
+        {
+          "name": "serial_unit_id",
+          "type": "string",
+          "required": false,
+          "description": "Exact serial-unit identity to reserve or move; serialized quantities are always one.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "block_stock",
+      "projections": [],
+      "links": ["command:block_stock"],
+      "label_de": "Block stock",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:stock_block_release_propose",
+      "kind": "tool",
+      "key": "stock_block_release_propose",
+      "label": "Release blocked stock",
+      "area": "warehouse",
+      "summary": "Prepare releasing a stock block, wholly or partly (quantity), with a reason, so the goods are available again. A person confirms.",
+      "access": "propose",
+      "group": "Warehouse",
+      "synopsis": "stock_block_release_propose block_id [quantity] reason",
+      "parameters": [
+        {
+          "name": "block_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of a stock block.",
+          "depth": 0
+        },
+        {
+          "name": "quantity",
+          "type": "string",
+          "required": false,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "release_stock_block",
+      "projections": [],
+      "links": ["command:release_stock_block"],
+      "label_de": "Release blocked stock",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:stock_block_scrap_propose",
+      "kind": "tool",
+      "key": "stock_block_scrap_propose",
+      "label": "Scrap blocked stock",
+      "area": "warehouse",
+      "summary": "Prepare scrapping blocked stock, wholly or partly, with a reason: one adjustment writes it off its location. A person confirms.",
+      "access": "propose",
+      "group": "Warehouse",
+      "synopsis": "stock_block_scrap_propose block_id [quantity] reason",
+      "parameters": [
+        {
+          "name": "block_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of a stock block.",
+          "depth": 0
+        },
+        {
+          "name": "quantity",
+          "type": "string",
+          "required": false,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "scrap_stock_block",
+      "projections": [],
+      "links": ["command:scrap_stock_block"],
+      "label_de": "Scrap blocked stock",
       "resources": ["item"]
     },
     {
@@ -20585,7 +20845,7 @@
       "related_services": [],
       "tools": ["movement_create_propose"],
       "synopses": [
-        "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [opening_cost]"
+        "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [blocked_quantity] [block_reason] [opening_cost]"
       ],
       "events": ["commitment.fulfilled", "reservation.consumed", "movement.recorded"],
       "actions": ["record_movement"],
@@ -20943,6 +21203,113 @@
       "links": ["tool:credit_hold_release_propose"],
       "label_de": "Kreditsperre freigeben",
       "resources": ["order"]
+    },
+    {
+      "id": "command:block_stock",
+      "kind": "command",
+      "key": "block_stock",
+      "label": "Block stock",
+      "area": "warehouse",
+      "summary": "Holds back a quantity where it lies with a reason; nothing moves, and it is excluded from availability, reservation and shipping.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["item", "location", "movement", "reservation", "stock_block"],
+      "writes": ["stock_block", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_stock_block"],
+      "tools": ["stock_block_propose"],
+      "synopses": [
+        "stock_block_propose item_id location_id quantity reason_code [note] [handling_unit_id] [lot_id] [serial_unit_id]"
+      ],
+      "events": ["stock_block.created"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:stock_block_propose", "event:stock_block.created"],
+      "label_de": "Block stock",
+      "resources": ["item"]
+    },
+    {
+      "id": "command:release_stock_block",
+      "kind": "command",
+      "key": "release_stock_block",
+      "label": "Release a stock block",
+      "area": "warehouse",
+      "summary": "Makes blocked stock available again, wholly or partly, with the reason; nothing moves.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["stock_block"],
+      "writes": ["stock_block", "business_event"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["stock_block_release_propose"],
+      "synopses": ["stock_block_release_propose block_id [quantity] reason"],
+      "events": ["stock_block.released"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:stock_block_release_propose", "event:stock_block.released"],
+      "label_de": "Release a stock block",
+      "resources": ["item"]
+    },
+    {
+      "id": "command:scrap_stock_block",
+      "kind": "command",
+      "key": "scrap_stock_block",
+      "label": "Scrap blocked stock",
+      "area": "warehouse",
+      "summary": "Writes blocked stock off its location, wholly or partly, with one reasoned adjustment linked to the block.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["stock_block", "movement"],
+      "writes": ["stock_block", "movement", "business_event"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["stock_block_scrap_propose"],
+      "synopses": ["stock_block_scrap_propose block_id [quantity] reason"],
+      "events": ["stock_block.scrapped"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:stock_block_scrap_propose", "event:stock_block.scrapped"],
+      "label_de": "Scrap blocked stock",
+      "resources": ["item"]
+    },
+    {
+      "id": "command:stock_blocks",
+      "kind": "command",
+      "key": "stock_blocks",
+      "label": "Read stock blocks",
+      "area": "warehouse",
+      "summary": "Lists the stock held back by blocks with item, location, identity, quantity, reason and who blocked it.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["stock_block", "item", "location"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["stock_blocks"],
+      "synopses": ["stock_blocks [item_id] [location_id] [status]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "List stock held back where it lies, with its reason, quantity and who blocked it.",
+        "use_when": [
+          "Someone asks why stock is not available",
+          "or which goods are in quarantine",
+          "inspection or damaged."
+        ],
+        "do_not_use_when": [
+          "The question is what is available to sell; read inventory",
+          "which already subtracts blocks."
+        ],
+        "limitations": [
+          "A block is a person's statement; nothing blocks stock by itself",
+          "not even an expiry date."
+        ],
+        "empty_result": "Nothing is blocked for the selection.",
+        "freshness": "Read from the blocks at request time."
+      },
+      "links": ["tool:stock_blocks"],
+      "label_de": "Read stock blocks",
+      "resources": ["item"]
     },
     {
       "id": "command:set_reorder_point",
@@ -23989,6 +24356,9 @@
         "party.delivery_hold_placed",
         "party.delivery_hold_released",
         "item.updated",
+        "stock_block.created",
+        "stock_block.released",
+        "stock_block.scrapped",
         "document.recorded",
         "document.corrected",
         "commitment.created",
@@ -24065,6 +24435,9 @@
         "party.delivery_hold_placed",
         "party.delivery_hold_released",
         "item.updated",
+        "stock_block.created",
+        "stock_block.released",
+        "stock_block.scrapped",
         "document.recorded",
         "document.corrected",
         "commitment.created",
@@ -24135,6 +24508,9 @@
         "party.delivery_hold_released",
         "item.created",
         "item.updated",
+        "stock_block.created",
+        "stock_block.released",
+        "stock_block.scrapped",
         "location.created",
         "location.updated",
         "commitment.created",
@@ -24224,6 +24600,9 @@
         "item.updated",
         "reorder_point.set",
         "reorder_point.removed",
+        "stock_block.created",
+        "stock_block.released",
+        "stock_block.scrapped",
         "location.created",
         "location.updated",
         "master_data.lifecycle_changed",
@@ -24318,6 +24697,9 @@
         "fact.observed",
         "item.created",
         "item.updated",
+        "stock_block.created",
+        "stock_block.released",
+        "stock_block.scrapped",
         "location.created",
         "location.updated",
         "master_data.lifecycle_changed",
@@ -24394,6 +24776,9 @@
         "item.updated",
         "reorder_point.set",
         "reorder_point.removed",
+        "stock_block.created",
+        "stock_block.released",
+        "stock_block.scrapped",
         "location.updated",
         "master_data.lifecycle_changed",
         "price_list.updated",
@@ -24771,6 +25156,9 @@
         "item.updated",
         "reorder_point.set",
         "reorder_point.removed",
+        "stock_block.created",
+        "stock_block.released",
+        "stock_block.scrapped",
         "location.created",
         "location.updated",
         "document.recorded",
@@ -25713,9 +26101,9 @@
       "key": "stock_expired",
       "label": "Expired stock on hand",
       "area": "warehouse",
-      "summary": "A company is holding goods whose best-before date has passed. Until spec 109 nothing in the model could express a best-before at all — a Lot carried an item, a number and where it came from — so expired stock looked exactly like good stock: it counted as available, it could be reserved, and the first person to learn otherwise was the customer. The date is now recorded on the lot exactly as somebody read it off the goods or off the delivery note. **It is never computed:** a shelf life in days multiplied out from a production date would be a date nobody stated, which is what Reality refuses everywhere. Reality compares that stated date with the day the queue is asked, and reports every lot past it that still has stock on hand, counted through the one tracked-identity stock rule the inventory register uses so the two can never disagree. Oldest expiry first. A lot with nothing left is not reported: nothing is held, so there is nothing for anybody to do. A lot with **no** stated date says nothing in either direction — there is no way to tell an item with no shelf life from one whose label nobody read, and inventing that distinction would be worse than the silence. **There is deliberately no entry for stock that is about to expire**, which is the more useful report and the one a reader will look for. It needs a horizon, and no horizon exists on stated ground: nothing on an item states a shelf life and no term states a minimum remaining life. The one mechanism that could produce a number is the learned-expectation rule, which already governs ten of this catalog's classes on figures nobody has checked against a real business; an eleventh would grow that risk to buy a threshold nobody could defend. What would unblock it is a customer's stated minimum remaining life, or a measured turnover from a real business — either a received or a measured figure rather than an invented one. Nothing here blocks, chooses or releases anything. A picker can still ship expired stock, because refusing the movement would stop a company recording something that already happened, and choosing which lot ships is an allocation policy this product has never had. So this entry reduces surprise rather than preventing loss.",
+      "summary": "A company is holding goods whose best-before date has passed. Until spec 109 nothing in the model could express a best-before at all — a Lot carried an item, a number and where it came from — so expired stock looked exactly like good stock: it counted as available, it could be reserved, and the first person to learn otherwise was the customer. The date is now recorded on the lot exactly as somebody read it off the goods or off the delivery note. **It is never computed:** a shelf life in days multiplied out from a production date would be a date nobody stated, which is what Reality refuses everywhere. Reality compares that stated date with the day the queue is asked, and reports every lot past it that still has stock on hand, counted through the one tracked-identity stock rule the inventory register uses so the two can never disagree. Oldest expiry first. A lot with nothing left is not reported: nothing is held, so there is nothing for anybody to do. A lot with **no** stated date says nothing in either direction — there is no way to tell an item with no shelf life from one whose label nobody read, and inventing that distinction would be worse than the silence. **There is deliberately no entry for stock that is about to expire**, which is the more useful report and the one a reader will look for. It needs a horizon, and no horizon exists on stated ground: nothing on an item states a shelf life and no term states a minimum remaining life. The one mechanism that could produce a number is the learned-expectation rule, which already governs ten of this catalog's classes on figures nobody has checked against a real business; an eleventh would grow that risk to buy a threshold nobody could defend. What would unblock it is a customer's stated minimum remaining life, or a measured turnover from a real business — either a received or a measured figure rather than an invented one. Nothing here blocks, chooses or releases anything by itself. Since spec 304 the entry offers to block the lot, and stock somebody blocked is no longer reported. A picker can still ship expired stock that nobody blocked, because refusing the movement would stop a company recording something that already happened, and choosing which lot ships is an allocation policy this product has never had. So this entry reduces surprise rather than preventing loss.",
       "owner": "Warehouse control, with quality assurance where the goods are regulated",
-      "clears_through": "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.",
+      "clears_through": "Blocking the stock, writing it off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.",
       "severity": "high",
       "record_type": "lot",
       "authority": "109/FR-006",
@@ -26602,6 +26990,72 @@
       "links": ["command:remove_reorder_point"],
       "label_de": "reorder_point.removed",
       "resources": ["item", "order"]
+    },
+    {
+      "id": "event:stock_block.created",
+      "kind": "event",
+      "key": "stock_block.created",
+      "label": "stock_block.created",
+      "area": "warehouse",
+      "summary": "",
+      "producer": "block_stock",
+      "subject": "stock_block",
+      "invalidates": [
+        "Inventory",
+        "Item supply and demand",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Operational Exceptions",
+        "Timeline",
+        "Tenant usage"
+      ],
+      "links": ["command:block_stock"],
+      "label_de": "stock_block.created",
+      "resources": ["item"]
+    },
+    {
+      "id": "event:stock_block.released",
+      "kind": "event",
+      "key": "stock_block.released",
+      "label": "stock_block.released",
+      "area": "warehouse",
+      "summary": "",
+      "producer": "release_stock_block",
+      "subject": "stock_block",
+      "invalidates": [
+        "Inventory",
+        "Item supply and demand",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Operational Exceptions",
+        "Timeline",
+        "Tenant usage"
+      ],
+      "links": ["command:release_stock_block"],
+      "label_de": "stock_block.released",
+      "resources": ["item"]
+    },
+    {
+      "id": "event:stock_block.scrapped",
+      "kind": "event",
+      "key": "stock_block.scrapped",
+      "label": "stock_block.scrapped",
+      "area": "warehouse",
+      "summary": "",
+      "producer": "scrap_stock_block",
+      "subject": "stock_block",
+      "invalidates": [
+        "Inventory",
+        "Item supply and demand",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Operational Exceptions",
+        "Timeline",
+        "Tenant usage"
+      ],
+      "links": ["command:scrap_stock_block"],
+      "label_de": "stock_block.scrapped",
+      "resources": ["item"]
     },
     {
       "id": "event:location.created",
@@ -74948,6 +75402,7 @@
       "actions": [
         "command:record_movement",
         "command:correct_movement",
+        "command:scrap_stock_block",
         "command:record_packaged_execution",
         "command:record_return_disposition"
       ]

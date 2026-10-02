@@ -2785,6 +2785,51 @@ export const reorderPoints = {
       { method: "POST", body: JSON.stringify({ confirmed: true }) },
     ),
 };
+/** Spec 304: stock held back where it lies, with its reason. */
+export type StockBlockReason = "quality" | "damage" | "expiry" | "inspection";
+export type StockBlock = {
+  id: string;
+  item_id: string;
+  item: string | null;
+  unit: string | null;
+  location_id: string;
+  location: string | null;
+  lot_id: string | null;
+  handling_unit_id: string | null;
+  serial_unit_id: string | null;
+  quantity: string;
+  reason_code: StockBlockReason;
+  note: string;
+  status: "active" | "released" | "scrapped";
+  created_at: string;
+  created_by: string;
+  resolution_reason: string | null;
+};
+export type StockBlockProposal = {
+  id: string;
+  status: string;
+  preview: { tool: string; stock_block: Record<string, string | null> };
+};
+export const stockBlocks = {
+  list: (tenant: string, item = "", location = "", status = "active") =>
+    request<{ rows: StockBlock[] }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/stock-blocks?${new URLSearchParams({
+        status,
+        ...(item ? { item_id: item } : {}),
+        ...(location ? { location_id: location } : {}),
+      })}`,
+    ),
+  prepare: (tenant: string, body: Record<string, string>) =>
+    request<StockBlockProposal>(
+      `/api/tenants/${encodeURIComponent(tenant)}/stock-blocks/proposals`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
+};
 export const deliveryActions = {
   references: (tenant: string, commitment: string, family: string, query = "") =>
     request<{ items: Array<{ id: string; label: string }>; has_more: boolean }>(
@@ -2908,6 +2953,8 @@ export type WarehouseRow = {
   unit: string;
   physical?: string;
   reserved?: string;
+  /** Spec 304: stock held back where it lies. */
+  blocked?: string;
   available?: string;
   item_id?: string;
   item?: string;

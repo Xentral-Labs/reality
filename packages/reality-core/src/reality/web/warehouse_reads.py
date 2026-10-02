@@ -80,7 +80,10 @@ def warehouse_register(
                 "name": row["item"].name,
                 "sku": row["item"].sku,
                 "unit": row["item"].unit,
-                **{key: str(row[key]) for key in ("physical", "reserved", "available")},
+                **{
+                    key: str(row[key])
+                    for key in ("physical", "reserved", "blocked", "available")
+                },
             }
             for row in rows
         ]

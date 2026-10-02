@@ -68,6 +68,9 @@ SHIPMENT_MOVEMENT_FIELDS = {
     "reason",
     # Spec 301: a receipt may state the purchase unit.
     "unit",
+    # Spec 304: a receipt may hold back part of what it brings in.
+    "blocked_quantity",
+    "block_reason",
 }
 
 
@@ -174,6 +177,8 @@ def review_shipment_action(
                     )
                 movement.pop("shipment_package_id", None)
                 movement.pop("source_record_id", None)
+                blocked = movement.pop("blocked_quantity", None)
+                block_reason = movement.pop("block_reason", None)
                 preview = _append_movement(
                     session,
                     tenant_id,
@@ -182,6 +187,24 @@ def review_shipment_action(
                     validate_only=True,
                     **movement,
                 )
+                if blocked:
+                    from reality.services.stock_blocks import validate_block
+
+                    if movement_type != "receipt":
+                        raise InvalidOperation(code="stock_block_receipt_only")
+                    validate_block(
+                        session,
+                        tenant_id,
+                        preview["item_id"],
+                        preview["to_location_id"],
+                        blocked,
+                        block_reason or "",
+                        handling_unit_id=movement.get("handling_unit_id"),
+                        lot_id=preview.get("lot_id"),
+                        serial_unit_id=movement.get("serial_unit_id"),
+                        _incoming=Decimal(str(preview["quantity"])),
+                        _receipt=Decimal(str(preview["quantity"])),
+                    )
                 readiness = None
                 if purpose == "customer_delivery":
                     readiness = fulfillment_readiness(

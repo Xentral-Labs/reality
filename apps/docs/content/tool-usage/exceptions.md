@@ -1105,14 +1105,16 @@ mechanism that could produce a number is the learned-expectation rule, which alr
 this catalog's classes on figures nobody has checked against a real business; an eleventh would grow
 that risk to buy a threshold nobody could defend. What would unblock it is a customer's stated
 minimum remaining life, or a measured turnover from a real business — either a received or a
-measured figure rather than an invented one. Nothing here blocks, chooses or releases anything. A
-picker can still ship expired stock, because refusing the movement would stop a company recording
-something that already happened, and choosing which lot ships is an allocation policy this product
-has never had. So this entry reduces surprise rather than preventing loss.
+measured figure rather than an invented one. Nothing here blocks, chooses or releases anything by
+itself. Since spec 304 the entry offers to block the lot, and stock somebody blocked is no longer
+reported. A picker can still ship expired stock that nobody blocked, because refusing the movement
+would stop a company recording something that already happened, and choosing which lot ships is an
+allocation policy this product has never had. So this entry reduces surprise rather than preventing
+loss.
 
 - **Owner:** Warehouse control, with quality assurance where the goods are regulated
-- **Clears through:** Writing the stock off with an adjustment, sending it back to the supplier, or
-  otherwise moving it out of stock.
+- **Clears through:** Blocking the stock, writing it off with an adjustment, sending it back to the
+  supplier, or otherwise moving it out of stock.
 - **Severity:** `high`
 - **Record type:** `lot`
 - **Authority:** `109/FR-006`

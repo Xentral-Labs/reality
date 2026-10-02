@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:28a4d27f3e5373ed99f5b201f6023550d4adf9a87958939cd24f02404e64866d",
+  "knowledge_version": "advisor-v1:sha256:eb9d21df8f871f9afdc0e67923926e8936c0cd025510780fc0cfd7abf8c08a9e",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -46,7 +46,12 @@
         "evidence_journey_b17",
         "evidence_journey_b18"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "stock_blocks",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_b2b_specifics",
@@ -258,7 +263,12 @@
         "evidence_journey_h18",
         "evidence_journey_h19"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "stock_blocks",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_kits_bills_of_material_and_variants",
@@ -876,6 +886,10 @@
         "evidence_command_reserve",
         "evidence_command_record_movement",
         "evidence_command_correct_movement",
+        "evidence_command_block_stock",
+        "evidence_command_release_stock_block",
+        "evidence_command_scrap_stock_block",
+        "evidence_command_stock_blocks",
         "evidence_command_set_reorder_point",
         "evidence_command_remove_reorder_point",
         "evidence_command_reorder_points",
@@ -951,6 +965,22 @@
           "mode": "mutation"
         },
         {
+          "name": "block_stock",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_stock_block",
+          "mode": "mutation"
+        },
+        {
+          "name": "scrap_stock_block",
+          "mode": "mutation"
+        },
+        {
+          "name": "stock_blocks",
+          "mode": "query"
+        },
+        {
           "name": "set_reorder_point",
           "mode": "mutation"
         },
@@ -1005,6 +1035,8 @@
         "evidence_command_reserve",
         "evidence_command_record_movement",
         "evidence_command_correct_movement",
+        "evidence_command_block_stock",
+        "evidence_command_stock_blocks",
         "evidence_command_set_reorder_point",
         "evidence_command_remove_reorder_point",
         "evidence_command_reorder_points",
@@ -1047,6 +1079,14 @@
         {
           "name": "correct_movement",
           "mode": "mutation"
+        },
+        {
+          "name": "block_stock",
+          "mode": "mutation"
+        },
+        {
+          "name": "stock_blocks",
+          "mode": "query"
         },
         {
           "name": "set_reorder_point",
@@ -1183,6 +1223,7 @@
         "evidence_command_hold_document_commitments",
         "evidence_command_hold_party_delivery",
         "evidence_command_release_credit_holds",
+        "evidence_command_block_stock",
         "evidence_command_set_reorder_point",
         "evidence_command_remove_reorder_point",
         "evidence_command_reorder_points",
@@ -1254,6 +1295,10 @@
         },
         {
           "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "block_stock",
           "mode": "mutation"
         },
         {
@@ -1348,6 +1393,8 @@
         "evidence_command_reserve",
         "evidence_command_record_movement",
         "evidence_command_correct_movement",
+        "evidence_command_block_stock",
+        "evidence_command_scrap_stock_block",
         "evidence_command_month_end_billing",
         "evidence_command_announce_customer_return",
         "evidence_command_return_announcements",
@@ -1401,6 +1448,14 @@
         },
         {
           "name": "correct_movement",
+          "mode": "mutation"
+        },
+        {
+          "name": "block_stock",
+          "mode": "mutation"
+        },
+        {
+          "name": "scrap_stock_block",
           "mode": "mutation"
         },
         {

@@ -10,7 +10,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 8        | 2         |
-| [Artikel](#resource-item)                                      | 5      | 6        | 6         |
+| [Artikel](#resource-item)                                      | 5      | 9        | 6         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
 | [Auftrag](#resource-order)                                     | 8      | 14       | 12        |
@@ -131,6 +131,9 @@ hier.
 - [Artikel ändern](./commands#command-update_item) (`update_item`)
 - [Stammdatensatz aktivieren oder deaktivieren](./commands#command-set_master_data_active)
   (`set_master_data_active`)
+- [Block stock](./commands#command-block_stock) (`block_stock`)
+- [Release a stock block](./commands#command-release_stock_block) (`release_stock_block`)
+- [Scrap blocked stock](./commands#command-scrap_stock_block) (`scrap_stock_block`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Zulauf einem Kundenbedarf zuordnen](./commands#command-assign_supply) (`assign_supply`)
@@ -138,6 +141,7 @@ hier.
 **Nachschlagen**
 
 - [Bestand zu Anschaffungskosten anzeigen](./commands#command-inventory_cost) (`inventory_cost`)
+- [Read stock blocks](./commands#command-stock_blocks) (`stock_blocks`)
 - [Read reorder points](./commands#command-reorder_points) (`reorder_points`)
 
 **Klärfälle**
@@ -156,10 +160,13 @@ hier.
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Stammdaten und Quellen](./processes#process-master_data)
 
-**Darunter:** Tabellen: `item`, `supply_assignment`, `item_reorder_point` · Events:
+**Darunter:** Tabellen: `item`, `supply_assignment`, `item_reorder_point`, `stock_block` · Events:
 [`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
+[`stock_block.created`](./events#event-stock_block-created),
+[`stock_block.released`](./events#event-stock_block-released),
+[`stock_block.scrapped`](./events#event-stock_block-scrapped),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agenten-Tools ohne
 Geschäftsaktion: [`inventory_read`](./commands#tool-inventory_read),
 [`item_supply_demand`](./commands#tool-item_supply_demand),

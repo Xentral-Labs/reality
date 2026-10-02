@@ -27,6 +27,7 @@ from reality.services.core import (
     _movement_values,
     _tenant_record,
     active_reserved,
+    blocked_quantity,
     preview_movement_correction,
     stock_at,
     stock_by_identity,
@@ -136,6 +137,8 @@ def correction_state(
         location = _tenant_record(session, Location, tenant_id, location_id)
         physical = stock_at(session, tenant_id, item_id, location_id)
         reserved = active_reserved(session, tenant_id, item_id, location_id)
+        # Spec 304: what is blocked there is not available either.
+        held_back = blocked_quantity(session, tenant_id, item_id, location_id)
         delta = Decimal(0)
         identities = []
         for index, value in enumerate(values):
@@ -172,9 +175,10 @@ def correction_state(
                 "location": location.name,
                 "physical": _quantity(physical),
                 "reserved": _quantity(reserved),
+                "blocked": _quantity(held_back),
                 "delta": _quantity(delta),
                 "after": _quantity(physical + delta),
-                "available_after": _quantity(physical + delta - reserved),
+                "available_after": _quantity(physical + delta - reserved - held_back),
                 "identities": identities,
             }
         )
