@@ -13,7 +13,7 @@ Extend the spec 290 Business Journey question service into one research-backed P
 **Language/Version**: Python 3.12+; TypeScript/Vue only for existing Web/Docs presentation changes
 **Primary Dependencies**: Existing Pydantic v2, FastAPI, HTTPX, PyYAML, Anthropic adapter and generated catalog infrastructure; no new runtime dependency
 **Storage**: Committed generated JSON knowledge artifact plus existing YAML/Markdown authorities; no PostgreSQL schema change
-**Testing**: pytest unit/service/API/chat stories; generated-artifact checks; Docs widget/component tests; existing Web and Docs builds; multilingual buyer-evaluation fixtures
+**Testing**: pytest unit/service/API/chat stories; generated-artifact checks; Docs widget/component and progress-stream tests; existing Web and Docs builds; multilingual buyer-evaluation fixtures
 **Project Type**: Shared backend service with API, application-tool, authenticated Chat, Docs and embeddable-widget adapters
 **Constraints**: Public-safe source allowlist; strict tenant scope; bounded provider calls and evidence; deterministic fallback; no browser business rules; no public runtime filesystem/code search
 **Scale/Scope**: Initial 228 journeys, current executable catalogs, curated durable public contracts and at least 75 evaluation questions; lexical/structured retrieval before considering embeddings
@@ -87,11 +87,16 @@ Tests, code and private specs are not copied into the public artifact. They can 
 
 The provider sees only compact bounded conversation context, the research task, the compact Capability Map and retrieved public-safe evidence, never the complete repository or a callable tenant/business tool surface. Public clients retain up to ten exchanges; the service compresses prior user concerns before research. Planning and answer calls have bounded stage deadlines whose worst-case sum remains below the public widget timeout; timeout falls back through the same deterministic service. A synthesis fallback uses the product-evaluation authority plus representative proven and restrictive evidence from the dossier rather than one last Journey.
 
+The service accepts an optional request-scoped progress observer. It emits controlled lifecycle events at the service boundary before research, composition and validation, plus one terminal validated answer. The observer never receives draft provider prose. The existing synchronous return value remains authoritative and unchanged. The streaming HTTP adapter runs the synchronous service in a worker context, bridges observer events to a bounded asynchronous response queue and stops scheduling avoidable provider stages after disconnect. Stage timings use a monotonic clock and structured names; telemetry excludes question, history, answer and evidence prose.
+
+Deterministic retrieval computes whether selected evidence already covers the current narrow question. Only an insufficient result invokes semantic planning. A request deadline is shared across planning, composition and the single validation retry. When the remaining budget cannot safely cover a retry, the service returns the deterministic validated fallback immediately.
+
 ### Service and adapter flow
 
 - `answer_public_question` remains a compatibility facade delegating to `answer_product_question`.
 - `business_journey_guide` remains the canonical read tool name to avoid MCP/Chat compatibility churn.
 - `/api/journey-guide/questions` retains existing fields and adds optional `intent`, `claims`, `sources`, `clarification`, `detected_language` and `knowledge_version`.
+- The same route accepts an additive progress mode negotiated by query parameter and returns newline-delimited JSON lifecycle events; clients without that mode retain the ordinary JSON response.
 - `services/core.py` replaces the short hard-coded phrase list with shared product-question classification. Tenant operational requests retain normal tool routing.
 - Website and Docs render server-returned structure; they do not infer status, evidence or language.
 - Platform-admin evidence remains additive and cannot raise the public claim ceiling without a governed public source update.
@@ -107,6 +112,7 @@ No Alembic migration and no PostgreSQL table are required. Research plans, evide
 - Catalog/doc content is untrusted evidence, never instruction.
 - Provider timeout, invalid plan, malformed claims or failed validation falls back to deterministic selected evidence, one clarification or an explicit unavailable result.
 - Existing public rate limits and bounded history remain.
+- Progress events contain only enumerated lifecycle states, elapsed milliseconds and the terminal validated response; no provider draft or raw telemetry content is emitted.
 - Authenticated company observations use existing session, membership and tenant-scoped tools.
 - The service records bounded decision codes and evidence IDs, not secrets or raw private content.
 - No advisory path executes mutations; mentioned proposal tools retain confirmation requirements.
@@ -122,6 +128,7 @@ No Alembic migration and no PostgreSQL table are required. Research plans, evide
 | FR-016, FR-026, DR-003, DR-007 | security/story | public leakage, adversarial prompt and cross-scope tests | No general product-evidence visibility model exists. |
 | FR-017, DR-001–DR-002, DR-006 | Chat story | capability plus tenant follow-up and confirmation regression | Current capability branch short-circuits broader research. |
 | FR-024–FR-025, SC-001–SC-009 | acceptance/eval | at least 75 claim-oriented buyer cases | No ERP-buyer release gate exists. |
+| FR-031–FR-036, SC-012–SC-014 | service/API/widget/performance | progress ordering, no-draft disclosure, disconnect, stage timing and production-like latency tests | The widget currently waits on one buffered JSON response and exposes only an undifferentiated spinner. |
 | Docs/widget presentation | adapter | claim/source safe-rendering, detected-language and responsive tests | Clients render prose and Journey citations only. |
 
 Test order is source policy → domain validation → service/evaluations → tool/API/Chat → presentation → full gates. Initial red proofs reproduce the observed migration, credit-hold, return end-to-end and procure-to-pay overclaims.
@@ -141,6 +148,9 @@ Rollback disables the advisor pipeline and returns the endpoint/tool to the spec
 - Lexical retrieval may miss synonyms; prove the gap with evaluations before adding search infrastructure.
 - An LLM verifier may agree with an incorrect writer; deterministic source/status/tool ceilings remain authoritative.
 - Provider ambiguity judgment may over-question; acceptance cases require direct answers when omitted detail does not materially change the conclusion and clarification only for materially different flows.
+- Progress text can become misleading if emitted by the browser rather than the service; only observed server stages drive the UI.
+- Cancellation cannot interrupt a provider network operation already inside a synchronous call; it must prevent later stages and close resources, while provider client timeouts bound the active call.
+- Latency optimization can reduce recall if planning is skipped too aggressively; the sufficiency rule requires relevant supported evidence and evaluation coverage before bypassing semantic planning.
 - Broad answers may become catalog dumps; subquestion and 180-word defaults constrain them.
 - Chat may misclassify a tenant operation as general advice; explicit company context and normal tool routing take precedence.
 - Automatic language detection can be uncertain for short inputs; bounded history and surface language provide deterministic fallback.

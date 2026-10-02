@@ -21,6 +21,10 @@
           send: "Senden",
           close: "Chat schließen",
           wait: "Antwort wird gesucht …",
+          accepted: "Frage wird eingeordnet …",
+          researching: "Passende Produktquellen werden geprüft …",
+          composing: "Antwort wird formuliert …",
+          validating: "Aussagen werden belegt …",
           unavailable: "Die Antwort ist gerade nicht verfügbar. Öffne den Business Journey Guide.",
           guide: "Im Guide ansehen",
           openJourney: "Journey {id} in neuem Tab öffnen",
@@ -43,6 +47,10 @@
             send: "Versturen",
             close: "Chat sluiten",
             wait: "Bewijs wordt gezocht …",
+            accepted: "De vraag wordt beoordeeld …",
+            researching: "Productbronnen worden gecontroleerd …",
+            composing: "Het antwoord wordt opgesteld …",
+            validating: "Beweringen worden onderbouwd …",
             unavailable: "Het antwoord is nu niet beschikbaar. Open de Business Journey Guide.",
             guide: "Openen in de Guide",
             openJourney: "Journey {id} openen in een nieuw tabblad",
@@ -65,6 +73,10 @@
               send: "Enviar",
               close: "Cerrar chat",
               wait: "Buscando evidencia …",
+              accepted: "Analizando la pregunta …",
+              researching: "Comprobando fuentes del producto …",
+              composing: "Redactando la respuesta …",
+              validating: "Validando las afirmaciones …",
               unavailable: "La respuesta no está disponible ahora. Abre la Business Journey Guide.",
               guide: "Abrir en la Guide",
               openJourney: "Abrir journey {id} en una pestaña nueva",
@@ -85,6 +97,10 @@
               send: "Send",
               close: "Close chat",
               wait: "Looking for evidence …",
+              accepted: "Understanding the question …",
+              researching: "Checking relevant product sources …",
+              composing: "Composing the answer …",
+              validating: "Validating the claims …",
               unavailable: "The answer is unavailable right now. Open the Business Journey Guide.",
               guide: "Open in the Guide",
               openJourney: "Open journey {id} in a new tab",
@@ -108,7 +124,7 @@
           *,*::before,*::after{box-sizing:border-box}button,textarea{font:inherit}.launcher{display:flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:13px 19px;background:#6755f5;color:#fff;font-weight:760;box-shadow:0 14px 38px #25214c4d;cursor:pointer}.launcher-mark{font-size:18px;line-height:1}
           .panel{display:none;position:fixed;right:24px;bottom:24px;width:min(640px,calc(100vw - 48px));height:calc(100vh - 48px);height:calc(100dvh - 48px);grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;border:1px solid #d9ddea;border-radius:24px;background:#fff;box-shadow:0 28px 90px #11182740}
           .panel[data-open=true]{display:grid}.head{display:flex;align-items:start;justify-content:space-between;gap:24px;padding:24px 26px 20px;border-bottom:1px solid #e8eaf2;background:#fff}.head h2{margin:0;font-size:23px;line-height:1.2;letter-spacing:-.02em}.head p{max-width:48ch;margin:8px 0 0;color:#626a7f;font-size:14px}.close{display:grid;place-items:center;flex:0 0 auto;width:38px;height:38px;border:0;border-radius:12px;background:#f3f4f8;font-size:25px;line-height:1;cursor:pointer;color:#626a7f}
-          .conversation{display:flex;flex-direction:column;gap:14px;min-height:0;padding:22px 24px;overflow-y:auto;overscroll-behavior:contain;background:#fbfbfd;scrollbar-gutter:stable}.message{max-width:88%;font-size:15px;line-height:1.55}.message.user{align-self:flex-end;padding:11px 15px;border-radius:18px 18px 5px 18px;background:#6755f5;color:#fff;line-height:1.45}.message.assistant{align-self:flex-start;width:100%}.answer{padding:16px 18px;border:1px solid #e7e4fa;border-radius:18px 18px 18px 5px;background:#f5f3ff}.answer p{margin:0 0 10px}.answer p:last-child{margin-bottom:0}.answer .section-title{margin:14px 0 6px;color:#3f348f;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}.answer .section-title:first-child{margin-top:0}.answer ul{margin:0 0 10px;padding-left:20px}.answer li{margin:3px 0;padding-left:2px}.answer a{color:#5745df;font-weight:700}.pending{display:flex;align-items:center;width:auto!important;padding:12px 15px;border:1px solid #e7e4fa;border-radius:18px 18px 18px 5px;background:#f5f3ff}.typing-dots{display:inline-flex;gap:5px}.typing-dots i{width:6px;height:6px;border-radius:50%;background:#6755f5;animation:rjc-pulse 1.2s infinite ease-in-out}.typing-dots i:nth-child(2){animation-delay:.15s}.typing-dots i:nth-child(3){animation-delay:.3s}@keyframes rjc-pulse{0%,70%,100%{opacity:.25;transform:translateY(0)}35%{opacity:1;transform:translateY(-3px)}}.examples{margin:auto 0;color:#626a7f}.examples p{margin:0 0 12px;font-size:14px;font-weight:700}.example-list{display:flex;flex-wrap:wrap;gap:9px}.example-list button{border:1px solid #ded9fb;border-radius:999px;padding:9px 13px;background:#fff;color:#4f43c8;cursor:pointer;text-align:left;transition:background .15s,border-color .15s,transform .15s}.example-list button:hover{border-color:#a99cff;background:#f5f3ff;transform:translateY(-1px)}.example-list button:active{transform:translateY(0)}.citations{width:100%;margin-top:14px;padding-top:9px;border-top:1px solid #ded9fb;border-collapse:collapse;table-layout:fixed}.citations tr+tr{border-top:1px solid #e8e4fb}.citations td{padding:4px;font-size:12px;line-height:1.35}.citation-id{width:45px;color:#5144d9;font-weight:800}.citation-title{overflow:hidden;color:#625a8f;font-weight:600;text-overflow:ellipsis;white-space:nowrap}.citation-open{width:27px;text-align:right}.citation-open a{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;text-decoration:none}.citation-open a:hover{background:#e7e2ff}
+          .conversation{display:flex;flex-direction:column;gap:14px;min-height:0;padding:22px 24px;overflow-y:auto;overscroll-behavior:contain;background:#fbfbfd;scrollbar-gutter:stable}.message{max-width:88%;font-size:15px;line-height:1.55}.message.user{align-self:flex-end;padding:11px 15px;border-radius:18px 18px 5px 18px;background:#6755f5;color:#fff;line-height:1.45}.message.assistant{align-self:flex-start;width:100%}.answer{padding:16px 18px;border:1px solid #e7e4fa;border-radius:18px 18px 18px 5px;background:#f5f3ff}.answer p{margin:0 0 10px}.answer p:last-child{margin-bottom:0}.answer .section-title{margin:14px 0 6px;color:#3f348f;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}.answer .section-title:first-child{margin-top:0}.answer ul{margin:0 0 10px;padding-left:20px}.answer li{margin:3px 0;padding-left:2px}.answer a{color:#5745df;font-weight:700}.pending{display:flex;align-items:center;gap:10px;width:auto!important;padding:12px 15px;border:1px solid #e7e4fa;border-radius:18px 18px 18px 5px;background:#f5f3ff}.pending-copy{font-size:13px;color:#625a8f}.typing-dots{display:inline-flex;gap:5px}.typing-dots i{width:6px;height:6px;border-radius:50%;background:#6755f5;animation:rjc-pulse 1.2s infinite ease-in-out}.typing-dots i:nth-child(2){animation-delay:.15s}.typing-dots i:nth-child(3){animation-delay:.3s}@keyframes rjc-pulse{0%,70%,100%{opacity:.25;transform:translateY(0)}35%{opacity:1;transform:translateY(-3px)}}.examples{margin:auto 0;color:#626a7f}.examples p{margin:0 0 12px;font-size:14px;font-weight:700}.example-list{display:flex;flex-wrap:wrap;gap:9px}.example-list button{border:1px solid #ded9fb;border-radius:999px;padding:9px 13px;background:#fff;color:#4f43c8;cursor:pointer;text-align:left;transition:background .15s,border-color .15s,transform .15s}.example-list button:hover{border-color:#a99cff;background:#f5f3ff;transform:translateY(-1px)}.example-list button:active{transform:translateY(0)}.citations{width:100%;margin-top:14px;padding-top:9px;border-top:1px solid #ded9fb;border-collapse:collapse;table-layout:fixed}.citations tr+tr{border-top:1px solid #e8e4fb}.citations td{padding:4px;font-size:12px;line-height:1.35}.citation-id{width:45px;color:#5144d9;font-weight:800}.citation-title{overflow:hidden;color:#625a8f;font-weight:600;text-overflow:ellipsis;white-space:nowrap}.citation-open{width:27px;text-align:right}.citation-open a{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;text-decoration:none}.citation-open a:hover{background:#e7e2ff}
           .references{margin:14px 0 0!important;padding-top:10px!important;border-top:1px solid #ded9fb;font-size:12px}.references-label{display:block;margin-bottom:5px;color:#625a8f}.references li{margin:2px 0!important}
           form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px;padding:16px 18px 18px;border-top:1px solid #e8eaf2;background:#fff}textarea{min-width:0;max-height:140px;resize:none;padding:13px 15px;border:1px solid #cdd2df;border-radius:14px;background:#fff;color:inherit;line-height:1.45}form button{min-height:48px;border:0;border-radius:14px;padding:11px 18px;background:#6755f5;color:#fff;font-weight:750;cursor:pointer}form button:disabled{opacity:.55;cursor:wait}
           button:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #a99cff;outline-offset:2px}
@@ -130,6 +146,7 @@
       this.sendButton = root.querySelector('form button[type="submit"]');
       this.examples = root.querySelector(".examples");
       this.history = [];
+      this.activeController = null;
     }
 
     connectedCallback() {
@@ -160,6 +177,7 @@
     }
 
     close() {
+      this.activeController?.abort();
       this.panel.dataset.open = "false";
       this.launcher.setAttribute("aria-expanded", "false");
       this.launcher.focus();
@@ -187,20 +205,47 @@
         document.createElement("i"),
       );
       pending.append(dots);
+      const pendingCopy = document.createElement("span");
+      pendingCopy.className = "pending-copy";
+      pendingCopy.textContent = copy.accepted;
+      pending.append(pendingCopy);
       this.conversation.append(pending);
       this.scrollConversation();
       const controller = new AbortController();
+      this.activeController = controller;
       const timeout = setTimeout(() => controller.abort(), 40000);
       try {
-        const response = await fetch(`${apiUrl}/api/journey-guide/questions`, {
+        const response = await fetch(`${apiUrl}/api/journey-guide/questions?stream=true`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question, locale: apiLocale, history: this.history }),
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("journey question unavailable");
+        if (!response.body) throw new Error("journey progress unavailable");
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let answer = null;
+        while (true) {
+          const { value, done } = await reader.read();
+          buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            const event = JSON.parse(line);
+            if (event.stage === "complete") {
+              answer = event.answer;
+            } else if (copy[event.stage]) {
+              pendingCopy.textContent = copy[event.stage];
+              pending.setAttribute("aria-label", copy[event.stage]);
+            }
+          }
+          if (done) break;
+        }
+        if (!answer) throw new Error("journey progress incomplete");
         pending.remove();
-        const answer = await response.json();
         this.show(answer);
         this.history.push(
           { role: "user", content: question },
@@ -209,20 +254,23 @@
         this.history = this.history.slice(-20);
       } catch (_error) {
         pending.remove();
-        const message = document.createElement("div");
-        message.className = "message assistant answer";
-        const paragraph = document.createElement("p");
-        paragraph.textContent = copy.unavailable;
-        const link = document.createElement("a");
-        link.href = guideUrl;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = copy.guide;
-        message.append(paragraph, link);
-        this.conversation.append(message);
-        this.scrollConversation();
+        if (!controller.signal.aborted) {
+          const message = document.createElement("div");
+          message.className = "message assistant answer";
+          const paragraph = document.createElement("p");
+          paragraph.textContent = copy.unavailable;
+          const link = document.createElement("a");
+          link.href = guideUrl;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = copy.guide;
+          message.append(paragraph, link);
+          this.conversation.append(message);
+          this.scrollConversation();
+        }
       } finally {
         clearTimeout(timeout);
+        if (this.activeController === controller) this.activeController = null;
         this.input.disabled = false;
         this.sendButton.disabled = false;
         this.input.focus();

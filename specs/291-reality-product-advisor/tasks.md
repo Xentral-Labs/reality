@@ -168,3 +168,17 @@ All artifacts MUST be written in English. Tests precede the behavior they prove.
 - [x] T087 [US4] [FR-029] Extend the shared public request contract and both Docs/widget clients to retain ten ephemeral exchanges
 - [x] T088 [US5] [FR-030] Implement the connected-conversation evaluation runner and validate fixture structure in the release suite
 - [ ] T089 Run focused service, API, widget, evaluation, docs generation, Spec Policy and live five-conversation verification; record the measured result in quickstart.md (focused and live verification complete; repository gates pending)
+
+## Phase 12: Safe progress and bounded advisor latency
+
+**Independent test**: Delay planner and answer providers, then verify the widget promptly renders truthful localized stages, never exposes draft prose, returns the same validated terminal answer as JSON and stops avoidable work after disconnect.
+
+- [x] T090 [P] [US6] [FR-031] [FR-032] [FR-033] Add failing progress-event ordering, skipped-stage and no-draft-disclosure service tests in `packages/reality-core/tests/test_product_advisor_service.py`
+- [x] T091 [P] [US6] [FR-031] [FR-036] Add failing compatible JSON, NDJSON terminal-answer and disconnect contract tests in `packages/reality-core/tests/test_business_journey_api.py`
+- [x] T092 [P] [US6] [FR-031] [FR-033] Add failing localized progress rendering, malformed-stream and abort tests in `apps/docs/scripts/business-journey-widget.test.mjs`
+- [x] T093 [P] [US6] [FR-034] [FR-035] Add failing stage-timing, planner-sufficiency and retry-budget tests in `packages/reality-core/tests/test_product_advisor_service.py`
+- [x] T094 [US6] [FR-032] [FR-034] [FR-035] Implement request-scoped progress observation, content-free timings, deterministic planner sufficiency and deadline-aware retry in `packages/reality-core/src/reality/services/product_advisor.py`
+- [x] T095 [US6] [FR-031] [FR-032] [FR-036] Implement the additive NDJSON adapter and disconnect handling in `packages/reality-core/src/reality/web/journey_guide_api.py`
+- [x] T096 [US6] [FR-031] [FR-033] Implement NDJSON consumption, truthful localized stage presentation and request abort in `apps/docs/public/journey-guide-widget/widget.js`
+- [x] T097 [US6] [SC-012] [SC-013] [SC-014] Run focused suites and production-like narrow, broad and connected latency samples; record stage distributions and outcomes in `specs/291-reality-product-advisor/quickstart.md`
+- [ ] T098 Run `make spec-check`, `make lint`, `make test`, `make docs-catalog-check`, `make docs-build` and `make web-build`, then record the Constitution and progress/no-draft review in `specs/291-reality-product-advisor/quickstart.md`

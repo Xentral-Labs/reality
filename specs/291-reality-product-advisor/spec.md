@@ -138,6 +138,24 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 5. **Given** the governed Journey, resource or executable catalogs change, **When** advisory knowledge is generated, **Then** a compact Capability Map is regenerated from those sources without maintaining a second hand-written routing catalog.
 6. **Given** a public question is semantically phrased without catalog keywords, **When** the provider plans retrieval, **Then** it selects bounded Capability Map identities and the server resolves and validates their evidence; the provider neither receives the complete evidence index nor invokes a business tool.
 
+---
+
+### User Story 6 - Understand progress while a researched answer is prepared (Priority: P1)
+
+As an ERP evaluator, I receive immediate, truthful progress feedback while Reality researches and validates an answer, without seeing unsupported draft content.
+
+**Why this priority**: A silent spinner for several seconds makes the advisor appear stuck, while exposing draft tokens before validation would weaken the product's evidence guarantee.
+
+**Independent Test**: Ask representative narrow, broad and follow-up questions through the public widget with a delayed provider; verify that progress appears promptly, reflects completed or active server stages, and that no answer text is visible before the final validated result.
+
+**Acceptance Scenarios**:
+
+1. **Given** an admitted public question, **When** processing begins, **Then** the user sees an initial progress state within 300 milliseconds under the production-like test profile.
+2. **Given** research and answer generation take several seconds, **When** processing advances, **Then** the widget distinguishes source research, answer composition and claim validation using localized status text.
+3. **Given** a provider drafts unsupported content, **When** validation rejects it, **Then** no part of that draft has been exposed and the user receives only a validated deterministic fallback.
+4. **Given** a client that does not request progress events, **When** it posts the same question, **Then** the existing JSON response remains compatible and reaches the same material conclusion.
+5. **Given** the visitor closes the widget, navigates away or cancels the request, **When** processing is still active, **Then** the client stops consuming progress and the server does not continue avoidable downstream provider work.
+
 ### Edge Cases
 
 - A question contains several claims with different support levels.
@@ -155,6 +173,9 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - A prompt-injection instruction is present in a document, catalog entry, source excerpt or user question.
 - The same question is asked in different natural languages while canonical evidence remains English.
 - A short follow-up contains too little text to identify a language reliably.
+- A progress-capable connection is interrupted before the final event.
+- A provider stage is skipped because deterministic evidence is already sufficient.
+- A provider retry would exceed the remaining request budget.
 
 ## Requirements *(mandatory)*
 
@@ -192,6 +213,12 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - **FR-028**: The advisor MUST recognize synthesis turns such as Fit-Gap conclusions, pilot recommendations and product decisions. For those turns it MUST build a bounded request-scoped conversation dossier from prior user concerns, research the dossier together with the latest question and compose a balanced conclusion across the discussed process rather than selecting only the latest adjacent capability.
 - **FR-029**: Conversation history supplied by public surfaces MUST support at least ten user/assistant exchanges while remaining ephemeral and bounded. Research MUST use prior user concerns only when the latest turn is referential or requests synthesis; prior assistant prose MUST NOT become product evidence, and an unrelated self-contained question MUST remain scoped to its current turn.
 - **FR-030**: The governed evaluation set MUST include at least five connected ERP-selection conversations covering B2B wholesale, purchase to pay, finance controls, integration/migration and multi-entity operation. Each conversation MUST define required conclusions, prohibited overclaims and a useful final synthesis without fixing exact prose.
+- **FR-031**: The public question interface MUST offer an additive progress mode while preserving the existing JSON request and response contract for clients that do not request progress.
+- **FR-032**: Progress mode MUST communicate only server-controlled lifecycle states and MUST NOT expose provider draft text, partial claims or sources before the complete answer has passed deterministic validation.
+- **FR-033**: Progress states MUST distinguish admission, evidence research, answer composition and claim validation when those stages occur; skipped stages MUST NOT be falsely presented as completed work, and all user-visible state text MUST follow the active answer language or documented surface-language fallback.
+- **FR-034**: The advisor MUST record bounded stage durations and aggregate request duration without recording raw public question or answer content as performance telemetry.
+- **FR-035**: Semantic planning MUST be skipped when deterministic retrieval has already established sufficient relevant evidence, and validation retry MUST yield to a safe deterministic fallback when the remaining request budget cannot accommodate the retry.
+- **FR-036**: A disconnected or cancelled progress request MUST stop avoidable downstream provider work while preserving safe cleanup and MUST NOT affect the compatible non-progress request path.
 
 ### Domain and Traceability Requirements
 
@@ -228,6 +255,9 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 - **SC-009**: Provider timeout, malformed output and failed validation cases return a safe deterministic result or clarification with zero unsupported generated claims.
 - **SC-010**: Every FR and DR maps to at least one acceptance scenario and executable proof before implementation is marked complete.
 - **SC-011**: In production-like timeout tests, 100% of public advisor requests return an answer, clarification or safe fallback before the 40-second widget timeout; provider planning never receives the complete evidence-unit index.
+- **SC-012**: In production-like widget tests, 100% of admitted progress requests display their first server-controlled state within 300 milliseconds.
+- **SC-013**: Across representative narrow, broad and connected-conversation requests, no provider draft text or unvalidated claim is visible before the final validated answer event.
+- **SC-014**: In the recorded production-like latency sample, ordinary advisor requests target a median completion time below 8 seconds and a 95th-percentile completion time below 15 seconds; every request still completes safely before the 40-second client limit.
 
 ## Assumptions and Dependencies
 
@@ -249,4 +279,6 @@ As a maintainer, I can change an authoritative journey, tool, contract or public
 | FR-019–FR-019a | US1–US4 | Language-detection, fallback and multilingual conclusion-parity evaluation |
 | FR-021–FR-025 | US5 | Evidence and Capability Map generation freshness, stale-reference and ERP-buyer evaluation gates |
 | FR-027 | US4, US5 | Business Journey Guide browsing, proposal and voting regressions |
-| SC-001–SC-011 | All | Reviewed acceptance corpus, bounded-time provider tests and required repository quality gates |
+| FR-028–FR-030 | US2, US4, US5 | Connected conversation service, API, widget and live ERP-selection evaluations |
+| FR-031–FR-036 | US6 | Progress-contract, no-draft-disclosure, cancellation, stage-timing and latency-budget tests |
+| SC-001–SC-014 | All | Reviewed acceptance corpus, bounded-time and progress tests, live latency sample and required repository quality gates |
