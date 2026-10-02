@@ -20,4 +20,5 @@
 ## Verification and Review
 - [x] T010 Update docs/WEB_SPEC.md and applicable MCP contract; run generated catalog checks (FR-001–FR-006).
 - [x] T011 Complete tests/lint/spec/docs/browser gates and record evidence in specs/326-company-settings-access/quickstart.md.
-- [ ] T012 Review final diff, publish PR, obtain green complete hosted CI, merge/deploy under explicit session authorization and verify logged-in UI.
+- [x] T012 Review final diff, publish PR, obtain green complete hosted CI, merge/deploy under explicit session authorization and verify public release endpoints.
+- [ ] T013 Complete the read-only post-deployment check of both owner dialogs and membership/report presentation in the existing logged-in Chrome session. Blocked by Computer Use `cgWindowNotFound`; do not claim an observed live owner result until the window is accessible.
