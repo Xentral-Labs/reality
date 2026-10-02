@@ -545,3 +545,18 @@ def test_replaying_the_same_confirmation_records_nothing_twice(session, business
 
     assert first.id == again.id
     assert core.stock_at(session, tenant, business.item.id) == 8
+
+
+def test_a_loss_into_blocks_with_nothing_reserved_names_no_reservation(
+    session, business
+):
+    tenant = business.tenant.id
+    _stock(session, business, business.item, "8")
+    block_stock(session, tenant, business.item.id, business.location.id, "2", "damage")
+
+    _, preview = _review(
+        session, business, [{"item_id": business.item.id, "counted_quantity": "1"}]
+    )
+
+    assert preview["lines"][0]["from_blocks"] == "1"
+    assert preview["uncovered"] == []

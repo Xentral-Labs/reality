@@ -279,22 +279,29 @@ def _uncovered(
     by_item: dict[str, dict[str, Any]] = {}
     for line in assessed:
         entry = by_item.setdefault(
-            line["item"].id, {"item": line["item"], "difference": ZERO}
+            line["item"].id,
+            {"item": line["item"], "difference": ZERO, "from_blocks": ZERO},
         )
         entry["difference"] += line["difference"]
+        entry["from_blocks"] += line["from_blocks"]
     result = []
     for item_id, entry in by_item.items():
         if entry["difference"] >= 0:
             continue
         # Here, at this location: what is still free to serve a reservation
         # after the count, blocked stock not counted as serving anyone.
+        # What stays free here: physical after the count, less what blocks
+        # still hold once the count has scrapped its part of them.
         physical_after = (
             stock_by_identity(session, tenant_id, item_id, location.id)
             + entry["difference"]
-            - blocked_quantity(session, tenant_id, item_id, location.id)
+            - (
+                blocked_quantity(session, tenant_id, item_id, location.id)
+                - entry["from_blocks"]
+            )
         )
         reserved = active_reserved(session, tenant_id, item_id, location.id)
-        if reserved <= physical_after:
+        if reserved <= 0 or reserved <= physical_after:
             continue
         rows = session.execute(
             select(

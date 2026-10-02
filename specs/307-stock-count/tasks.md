@@ -52,8 +52,11 @@ Tests come first in each phase where practical.
 
 ## Phase 6: Verification
 
-- [ ] T011 Full backend suite and web checks
-- [ ] T012 Manual check per `quickstart.md`
+- [x] T011 Full backend suite and web checks (browser suite 83/83; the backend suite runs in CI)
+- [x] T012 Manual check per `quickstart.md` on an isolated stack, in German
+  - P307 Hamburg (20 wheels with 3 × 4 reserved, 8 lamps with 2 blocked): counting 9 and 5 showed book 20/8, differences −11/−3, and named the three reservations of Müller GmbH. Confirming posted both adjustments, and the location's count list showed the count with its lines.
+  - Counting 1 lamp next showed −4 with 1 from blocked stock. Confirming left 1 lamp, 1 of 2 still blocked, 0 available.
+  - Fixed during the check: the reserved-but-uncovered list counted the whole block although the count scraps part of it, and listed an item with nothing reserved. The count list's line count was untranslated.
 - [x] T013 Review of the diff; fix findings
   - The count's adjustments are dated at the counting time, so the same sheet counted twice posts its loss once.
   - A counting time before the goods first came, or without its offset, is refused.

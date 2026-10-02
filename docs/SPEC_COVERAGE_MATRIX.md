@@ -2048,6 +2048,7 @@ Tables `stock_count` and `stock_count_line`: a count of one location, and per li
     - A corrected movement is not in the book.
     - The block part of a loss cites the count.
     - Replaying the same confirmation records nothing twice.
+    - A loss into blocks with nothing reserved names no reservation.
 - `packages/reality-core/tests/test_stock_count_adapters.py`:
   - The MCP schema is strict, including each line.
   - An agent proposes a count and a person confirms; a replay records nothing twice, and both reads show it.

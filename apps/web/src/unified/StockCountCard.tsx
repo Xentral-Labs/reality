@@ -295,7 +295,7 @@ export function StockCountList({ tenant, location }: { tenant: string; location:
               aria-expanded={opened === row.id}
               onClick={() => setOpened(opened === row.id ? "" : row.id)}
             >
-              {formatDateTime(row.created_at)} · {row.lines} {t("lines")}
+              {formatDateTime(row.created_at)} · {row.lines} {t("counted lines")}
               {row.note ? ` · ${row.note}` : ""}
             </button>
             {opened === row.id &&

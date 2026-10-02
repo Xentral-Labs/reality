@@ -24804,6 +24804,7 @@ Object.assign(dictionaries.de, {
     "Ein Zählzeitpunkt braucht seine Zeitzonen-Angabe, zum Beispiel 2026-10-02T10:00:00+02:00.",
   "The counting time is before the goods first came to this location; check the date.":
     "Der Zählzeitpunkt liegt vor dem ersten Zugang der Ware an diesem Lagerort; prüfe das Datum.",
+  "counted lines": "gezählte Zeile(n)",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25062,6 +25063,7 @@ Object.assign(dictionaries.nl, {
     "Een teltijdstip heeft zijn tijdzone nodig, bijvoorbeeld 2026-10-02T10:00:00+02:00.",
   "The counting time is before the goods first came to this location; check the date.":
     "Het teltijdstip ligt vóór de eerste ontvangst van de goederen op deze locatie; controleer de datum.",
+  "counted lines": "getelde regel(s)",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25319,6 +25321,7 @@ Object.assign(dictionaries.es, {
     "Una hora de recuento necesita su zona horaria, por ejemplo 2026-10-02T10:00:00+02:00.",
   "The counting time is before the goods first came to this location; check the date.":
     "La hora del recuento es anterior a la primera entrada de la mercancía en esta ubicación; revisa la fecha.",
+  "counted lines": "línea(s) contada(s)",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
