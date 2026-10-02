@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, deliveryActions, type DeliveryProposal } from "../api";
 import { t } from "../localization";
-import { DecisionActionBar } from "./DecisionReview";
+import { BusinessFieldList, DecisionActionBar, TechnicalDetails } from "./DecisionReview";
 import type { DeliveryAction } from "./ActionLauncher";
 
 type ShipmentTool = Extract<
@@ -383,16 +383,25 @@ export function ShipmentActions({
               </section>
             </div>
           ) : (
-            <pre
-              data-original-content
-              className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap rounded-lg bg-surface-muted p-4 text-xs"
-            >
-              {JSON.stringify(
-                proposal.status === "executed" ? proposal.receipt : proposal.review,
-                null,
-                2,
+            <div className="mt-3 space-y-4">
+              {proposal.status === "executed" ? (
+                <BusinessFieldList record={proposal.receipt || {}} />
+              ) : (
+                <>
+                  <section className="rounded-xl bg-surface-muted p-4">
+                    <h3 className="font-medium">{t("Proposed change")}</h3>
+                    <BusinessFieldList record={proposal.review?.intent || {}} />
+                  </section>
+                  <section className="rounded-xl bg-surface-muted p-4">
+                    <h3 className="font-medium">{t("Prepared preview")}</h3>
+                    <BusinessFieldList record={proposal.review?.effect || {}} />
+                  </section>
+                </>
               )}
-            </pre>
+              <TechnicalDetails
+                value={proposal.status === "executed" ? proposal.receipt : proposal.review}
+              />
+            </div>
           )}
           {proposal.status === "proposed" && (
             <DecisionActionBar

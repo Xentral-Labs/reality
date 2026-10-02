@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from reality.db.core import ChangeProposal
 from reality.services.core import NotFound
 from reality.services.delivery_actions import eligible as delivery_review_eligible
+from reality.services.memberships import Principal
 from reality.tools.application import TOOLS
 
 ReviewKind = Literal[
@@ -32,6 +33,8 @@ _SENSITIVE_KEY = re.compile(
     r"(?:authorization|credential|password|secret|token|api[_-]?key|private[_-]?key)",
     re.IGNORECASE,
 )
+_PRIVATE_CARRIERS = frozenset({"private_report_change", "requested_analysis"})
+_PRIVATE_REPORT_TOOLS = frozenset({"graph.reports.change", "analytics.reports.change"})
 
 
 def classify_proposal(tool: str, arguments: dict[str, Any]) -> ReviewKind:
@@ -53,7 +56,11 @@ def _safe(value: Any, key: str = "") -> Any:
     if key and _SENSITIVE_KEY.search(key):
         return "[redacted]"
     if isinstance(value, dict):
-        return {str(k): _safe(v, str(k)) for k, v in value.items()}
+        return {
+            str(k): _safe(v, str(k))
+            for k, v in value.items()
+            if str(k) not in _PRIVATE_CARRIERS
+        }
     if isinstance(value, list):
         return [_safe(item) for item in value]
     return value
@@ -126,7 +133,11 @@ def proposal_next_step(proposal: ChangeProposal) -> dict[str, Any]:
 
 
 def proposal_review(
-    session: Session, tenant_id: str, proposal_id: str
+    session: Session,
+    tenant_id: str,
+    proposal_id: str,
+    *,
+    principal: Principal | None = None,
 ) -> dict[str, Any]:
     proposal = session.scalar(
         select(ChangeProposal).where(
@@ -144,6 +155,12 @@ def proposal_review(
     from reality.services.decision_attribution import UNKNOWN, decision_attributions
 
     attribution = decision_attributions(session, tenant_id, [proposal.id])
+    private_review = None
+    if tool in _PRIVATE_REPORT_TOOLS or tool == "graph.requests.create":
+        private_review = _private_review(session, tenant_id, proposal, principal)
+    private_hidden = (
+        private_review is not None and private_review["state"] != "readable"
+    )
     return {
         "id": proposal.id,
         "tool": tool,
@@ -156,10 +173,17 @@ def proposal_review(
         "decided_at": proposal.decided_at.isoformat() if proposal.decided_at else None,
         "decider": attribution.get(proposal.id, {}).get("decider", dict(UNKNOWN)),
         "input": _safe(arguments or {}),
-        "preview": _safe(output or {}) if proposal.status == "proposed" else {},
-        "receipt": _safe(output or {}) if proposal.status != "proposed" else {},
+        "preview": _safe(output or {})
+        if proposal.status == "proposed" and not private_hidden
+        else {},
+        "receipt": _safe(output or {})
+        if proposal.status != "proposed" and not private_hidden
+        else {},
+        **({"private_review": private_review} if private_review is not None else {}),
         "next_step": proposal_next_step(proposal),
-        "confirmable": proposal.status == "proposed" and kind != "retired",
+        "confirmable": proposal.status == "proposed"
+        and kind != "retired"
+        and not private_hidden,
         "rejectable": proposal.status == "proposed",
         "message": (
             "This stored proposal is malformed and cannot be approved. You may reject it."
@@ -169,3 +193,51 @@ def proposal_review(
             else ""
         ),
     }
+
+
+def _private_review(
+    session: Session,
+    tenant_id: str,
+    proposal: ChangeProposal,
+    principal: Principal | None,
+) -> dict[str, Any]:
+    from reality.services.analytics.errors import AnalyticsError
+    from reality.services.analytics.proposals import preview, preview_request
+    from reality.services.core import InvalidOperation
+
+    hidden = {
+        "state": "hidden",
+        "message": "This change is private. Only its original author can view its contents.",
+    }
+    if principal is None:
+        return hidden
+    try:
+        details = (
+            preview(session, tenant_id, principal, proposal.id)
+            if proposal.type.removeprefix("tool:") in _PRIVATE_REPORT_TOOLS
+            else preview_request(
+                session, tenant_id, principal, json.loads(proposal.input)
+            )
+        )
+        if (
+            proposal.type.removeprefix("tool:") in _PRIVATE_REPORT_TOOLS
+            and details["kind"] != "graph"
+        ):
+            raise AnalyticsError(
+                "Private report kind is retired.", "unsupported_report_kind"
+            )
+    except AnalyticsError as error:
+        if error.code == "user_context_required":
+            return hidden
+        return {
+            "state": "unavailable",
+            "message": "The private change cannot be read. It may be rejected, but cannot be approved here.",
+        }
+    except (NotFound, InvalidOperation):
+        return hidden
+    except (KeyError, TypeError, ValueError):
+        return {
+            "state": "unavailable",
+            "message": "The private change cannot be read. It may be rejected, but cannot be approved here.",
+        }
+    return {"state": "readable", "details": _safe(details)}

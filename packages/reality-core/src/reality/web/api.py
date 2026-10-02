@@ -7187,12 +7187,14 @@ def _proposal_payload(
 
 @router.get("/change-proposals/{proposal_id}/review")
 def get_change_proposal_review(
-    tenant_id: str, proposal_id: str, session: DatabaseSession
+    tenant_id: str, proposal_id: str, request: Request, session: DatabaseSession
 ):
     from reality.services.proposal_reviews import proposal_review
 
     try:
-        return proposal_review(session, tenant_id, proposal_id)
+        return proposal_review(
+            session, tenant_id, proposal_id, principal=optional_request_principal(request)
+        )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

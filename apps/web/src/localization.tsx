@@ -25637,3 +25637,30 @@ Object.assign(dictionaries.es, {
   "Returned direct debit": "Adeudo devuelto",
   Chargeback: "Contracargo",
 });
+
+Object.assign(dictionaries.de, {
+  "Review private change": "Private Änderung prüfen",
+  "Proposed change": "Vorgeschlagene Änderung",
+  "This change is private. Only its original author can view its contents.":
+    "Diese Änderung ist privat. Nur ihr ursprünglicher Autor kann den Inhalt einsehen.",
+  "The private change cannot be read. It may be rejected, but cannot be approved here.":
+    "Die private Änderung kann nicht gelesen werden. Sie kann abgelehnt, aber hier nicht bestätigt werden.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Review private change": "Privéwijziging beoordelen",
+  "Proposed change": "Voorgestelde wijziging",
+  "This change is private. Only its original author can view its contents.":
+    "Deze wijziging is privé. Alleen de oorspronkelijke auteur kan de inhoud bekijken.",
+  "The private change cannot be read. It may be rejected, but cannot be approved here.":
+    "De privéwijziging kan niet worden gelezen. Deze kan worden afgewezen, maar hier niet worden goedgekeurd.",
+});
+
+Object.assign(dictionaries.es, {
+  "Review private change": "Revisar cambio privado",
+  "Proposed change": "Cambio propuesto",
+  "This change is private. Only its original author can view its contents.":
+    "Este cambio es privado. Solo su autor original puede ver el contenido.",
+  "The private change cannot be read. It may be rejected, but cannot be approved here.":
+    "El cambio privado no se puede leer. Puede rechazarse, pero no aprobarse aquí.",
+});

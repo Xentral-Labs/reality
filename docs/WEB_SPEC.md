@@ -3497,3 +3497,18 @@ the item's unit and leads to the pair rather than to the item across all locatio
 movement rows name the item they moved and sign the quantity against this location. Reading
 one location never derives the company's stock: the record endpoint reads the record, and the
 explanation derives its positions in one query, lists at most what it shows and counts the rest.
+
+## Readable proposal reviews (spec 325)
+
+Common proposal review omits sealed private report/request carriers recursively. The Web
+adapter passes the authenticated principal to the shared read service. The original active
+author sees held operation, name and definition/question through the existing analytics
+author boundary; other readers receive a privacy notice and no private preview or receipt.
+Unreadable private changes remain rejectable but cannot be approved from this review.
+Legacy encrypted payloads never fall back to ciphertext display in the browser.
+
+Shipment review presents intent/effect and execution receipts as labelled nested business
+values. Common and shipment technical JSON is available only in an initially collapsed
+Technical details disclosure, with credential and sealed carrier values omitted/redacted.
+These projections do not change stored proposals, execution, rejection authority, review
+tokens or replay. Verification: `specs/325-readable-proposal-reviews/quickstart.md`.
