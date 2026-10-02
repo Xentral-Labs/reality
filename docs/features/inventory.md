@@ -77,8 +77,11 @@ allocation policy this product has never had. First-expiring-first-out is a poli
 **Blocked stock (spec 304).** A person blocks stock where it lies, with a reason (quality, damage,
 expiry, inspection) and optionally its lot, pallet or serial; a reviewed receipt can block part or
 all of what it brings in. Nothing moves. Every reader that reserves, ships, transfers or reports
-availability subtracts active blocks: available is physical less reserved less blocked. A block is
-released, wholly or partly, or scrapped with one reasoned adjustment, each through the review. An
+availability subtracts what blocks still hold back: available is physical less reserved less
+blocked. A block is released, wholly or partly, or scrapped with one reasoned adjustment, each
+through the review. The block keeps the quantity it was stated with under one id; each release or
+scrap is its own resolution, and what is still blocked is the stated quantity less them, read at
+read time (spec 316). An
 expired lot that is blocked is no longer reported as Stock expired, which offers to block it.
 
 `stock_expired` reports every lot past its stated date that still has stock on hand, counted

@@ -28,5 +28,5 @@
 
 ## Notes
 
-Two proposed clarifications (list filters; folding existing split chains) await owner
-confirmation before planning.
+Both clarifications (list filters; folding existing split chains) accepted by the owner on
+2026-10-02.

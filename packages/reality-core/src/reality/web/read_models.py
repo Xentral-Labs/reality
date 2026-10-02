@@ -264,20 +264,17 @@ def inventory_page(
         .group_by(Reservation.item_id)
         .subquery()
     )
-    from reality.db.core import StockBlock
+    from reality.services.core import _open_stock_blocks
 
     # Spec 304: what is held back is neither available nor projected.
+    blocks = _open_stock_blocks(tenant_id)
     blocked = (
         select(
-            StockBlock.item_id.label("item_id"),
-            func.sum(StockBlock.quantity).label("qty"),
+            blocks.c.item_id.label("item_id"),
+            func.sum(blocks.c.quantity).label("qty"),
         )
-        .where(
-            StockBlock.tenant_id == tenant_id,
-            StockBlock.status == "active",
-            *([StockBlock.location_id == location_id] if location_id else []),
-        )
-        .group_by(StockBlock.item_id)
+        .where(*([blocks.c.location_id == location_id] if location_id else []))
+        .group_by(blocks.c.item_id)
         .subquery()
     )
     supplier_open = (

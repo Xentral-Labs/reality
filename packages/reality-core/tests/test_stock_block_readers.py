@@ -372,3 +372,52 @@ def test_a_lot_block_holds_inside_a_pallet(session, business):
         lot_id=other_lot.id,
         reason="count",
     )
+
+
+def test_every_reader_counts_only_what_is_still_open(session, business):
+    """Spec 316 FR-004: partial resolutions leave the open quantity everywhere."""
+    from reality.services import projections
+    from reality.services.stock_blocks import scrap_stock_block
+    from reality.web.read_models import inventory_page
+
+    tenant = business.tenant.id
+    _stock(session, business, "20")
+    block = _block(session, business, "10")
+    release_stock_block(session, tenant, block.id, "3", reason="passed QC")
+    scrap_stock_block(session, tenant, block.id, "2", reason="cracked")
+    # 18 there, 5 still blocked of the 10 stated.
+    promise = _promise(session, business, "14")
+
+    assert core.blocked_quantity(session, tenant, business.item.id) == 5
+    assert (
+        core.blocked_quantity(session, tenant, business.item.id, business.location.id)
+        == 5
+    )
+    row = _inventory(session, business)
+    assert (row["physical"], row["blocked"], row["available"]) == (
+        Decimal(18),
+        Decimal(5),
+        Decimal(13),
+    )
+    (position,) = [
+        row
+        for row in inventory_detail_rows(session, tenant)
+        if row["item_id"] == business.item.id and row["location_id"]
+    ]
+    assert (position["blocked"], position["available"]) == (Decimal(5), Decimal(13))
+    rows, _ = inventory_page(session, tenant, item_id=business.item.id)
+    assert (rows[0]["blocked"], rows[0]["available"]) == (Decimal(5), Decimal(13))
+    assert core.reserve(session, tenant, promise.id).reserved == 13
+    assert fulfillment_readiness(session, tenant, promise.id).physical_quantity == 13
+    projections.refresh_operational_projections(session, tenant, force=True)
+    (line,) = [
+        line
+        for row in projections.projection_rows(
+            session, tenant, projections.FULFILLMENT_QUEUE
+        )
+        for line in row["lines"]
+        if line["commitment_id"] == promise.id
+    ]
+    assert Decimal(line["physical_quantity"]) == 13
+    oversold = _classes(session, business, "item_oversold")[business.item.id]
+    assert oversold.causal_values["on_hand_quantity"] == 13

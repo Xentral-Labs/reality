@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-02
 
-**Status**: Draft
+**Status**: Implemented
 
 **Language**: English
 
@@ -45,8 +45,8 @@ This is the split-and-rewrite pattern of a classic ERP stock record, not the Sou
 ### Session 2026-10-02
 
 - Q: Where do releases and scraps live? → A: In their own record per resolution, pointing at the block (shortest true link: resolution → block). The block row is never updated after it is created.
-- Q: Which list filters remain? → A: `active` (open quantity > 0, the default), `resolved` (open quantity = 0) and `all`. `released` and `scrapped` are dropped as filters, because one block may now have both outcomes; each block shows its resolutions instead. *(Proposed; owner to confirm.)*
-- Q: What happens to existing split chains? → A: Each chain folds into its first block. That block's quantity becomes the sum of the chain, which is what the clerk stated; every closed row of the chain becomes one resolution with its own quantity, reason, who and when, and scrap movement. The continuation rows are removed. Event history keeps its old ids. *(Proposed; owner to confirm.)*
+- Q: Which list filters remain? → A: `active` (open quantity > 0, the default), `resolved` (open quantity = 0) and `all`. `released` and `scrapped` are dropped as filters, because one block may now have both outcomes; each block shows its resolutions instead. *(Accepted by the owner 2026-10-02.)*
+- Q: What happens to existing split chains? → A: Each chain folds into its first block. That block's quantity becomes the sum of the chain, which is what the clerk stated; every closed row of the chain becomes one resolution with its own quantity, reason, who and when, and scrap movement. The continuation rows are removed. Event history keeps its old ids. *(Accepted by the owner 2026-10-02.)*
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -132,15 +132,15 @@ As an owner whose company already uses blocks, I find every block with the quant
 
 ## Open Questions
 
-- Owner confirmation of the two proposed clarifications (list filters; folding existing chains).
+None. Both proposed clarifications were accepted by the owner on 2026-10-02.
 
 ## Requirement Traceability
 
 | Requirement | Scenario(s) | Evidence |
 |---|---|---|
 | FR-001, FR-002, FR-003, FR-007, DR-001, DR-002 | US1 1–3 | `tests/test_stock_blocks.py` |
-| FR-004, SC-002, SC-003 | US2 1 | `tests/test_stock_block_readers.py`; stories B05, H08, H15, J05 |
+| FR-004, SC-002, SC-003 | US2 1 | `tests/test_stock_block_readers.py`; stories B05, H08, H15, J05 in `tests/scenarios/test_catalog_stock_and_returns.py` |
 | FR-005 | US1 4, US2 2 | `tests/test_stock_blocks.py` |
-| FR-006, DR-004 | US1 1–3 | `tests/test_stock_block_adapters.py`; web browser test for the block card |
-| FR-008 | US3 1–2 | migration test for `0109` |
+| FR-006, DR-004 | US1 1–3 | `tests/test_stock_block_adapters.py`; web build, format and i18n checks (no browser script covers the block card, as in spec 304) |
+| FR-008 | US3 1–2 | `tests/test_stock_blocks.py::test_the_migration_folds_split_blocks_into_what_was_stated` |
 | DR-003 | All | plan data model |

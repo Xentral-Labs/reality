@@ -160,8 +160,9 @@ hier.
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Stammdaten und Quellen](./processes#process-master_data)
 
-**Darunter:** Tabellen: `item`, `supply_assignment`, `item_reorder_point`, `stock_block` · Events:
-[`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
+**Darunter:** Tabellen: `item`, `supply_assignment`, `item_reorder_point`, `stock_block`,
+`stock_block_resolution` · Events: [`item.created`](./events#event-item-created),
+[`item.updated`](./events#event-item-updated),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
 [`stock_block.created`](./events#event-stock_block-created),

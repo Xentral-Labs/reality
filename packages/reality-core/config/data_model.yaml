@@ -34,7 +34,7 @@ sections:
     tables: [financial_component, document, document_line, opening_scope, opening_item_detail]
   - name: Reality
     description: Obligations, allocations, physical events, financial events, and observations.
-    tables: [component_assignment_revision, component_assignment_part, subledger_account, finance_role_destination, finance_state, commitment, commitment_hold, reservation, stock_block, handling_unit, lot, serial_unit, movement, ledger_entry, ledger_reversal, settlement_allocation, fact, business_event]
+    tables: [component_assignment_revision, component_assignment_part, subledger_account, finance_role_destination, finance_state, commitment, commitment_hold, reservation, stock_block, stock_block_resolution, handling_unit, lot, serial_unit, movement, ledger_entry, ledger_reversal, settlement_allocation, fact, business_event]
   - name: Interaction
     description: Auditable Change Proposals, approvals, executions, and chat history.
     tables: [secret, secret_audit_event, ai_settings, mcp_access_token, action, chat_session, chat_message, playground_run, playground_step, storyline_trace_entry, storyline_package, interaction]
@@ -809,7 +809,7 @@ tables:
       stated_quantity: {description: Quantity a receipt stated in the item's purchase unit, kept beside the stock-unit quantity (spec 301).}
       stated_unit: {description: The purchase unit that quantity was stated in.}
   stock_block:
-    description: Stock held back where it lies with its reason, excluded from availability until released or scrapped (spec 304).
+    description: Stock held back where it lies with its reason, as stated and never changed; what is still blocked is its quantity less its resolutions (specs 304, 316).
     columns:
       id: {}
       tenant_id: {}
@@ -818,17 +818,24 @@ tables:
       handling_unit_id: {description: Pallet blocked, when stated.}
       lot_id: {description: Batch blocked, when stated or required by the item's tracking.}
       serial_unit_id: {description: Serial unit blocked, when stated.}
-      quantity: {description: Quantity held back while the block is active.}
+      quantity: {description: Quantity blocked as stated; releases and scraps never change it.}
       reason_code: {description: "Why the goods are held back: quality, damage, expiry or inspection."}
       note: {description: Free text as the person stated it.}
-      status: {description: "Active while it holds stock back; released or scrapped once resolved."}
       created_at: {}
       created_by: {description: Who placed the block.}
-      resolved_at: {description: UTC timestamp when the block was released or scrapped.}
+      receipt_movement_id: {description: The receipt that stated the block, when a receipt blocked part of what it brought.}
+  stock_block_resolution:
+    description: One release or scrap of part or all of a stock block, appended and never changed (spec 316).
+    columns:
+      id: {}
+      tenant_id: {}
+      block_id: {description: The block this releases or scraps.}
+      kind: {description: "release makes the part available again; scrap writes it off."}
+      quantity: {description: Quantity released or scrapped; subtracted from the block's stated quantity.}
+      reason: {description: Why, as stated.}
+      resolved_at: {description: UTC timestamp when it was released or scrapped.}
       resolved_by: {description: Who released or scrapped it.}
-      resolution_reason: {description: Why it was released or scrapped, as stated.}
-      previous_block_id: {description: The block a partial release or scrap continued this one from.}
-      movement_id: {description: The receipt that created the block, or the adjustment that scrapped it.}
+      movement_id: {description: The adjustment a scrap recorded; empty for a release.}
   handling_unit:
     description: Optional physical pallet identity used to group item movements without becoming inventory itself.
     columns:

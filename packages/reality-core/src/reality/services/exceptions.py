@@ -3068,25 +3068,18 @@ def _stock_coverage_exceptions(
 def _blocked_by_item_location(
     session: Session, tenant_id: str, item_ids: set[str]
 ) -> dict[tuple[str, str], Decimal]:
-    """Active stock blocks per item and location, in one read (spec 304)."""
-    from reality.db.core import StockBlock
+    """Open stock blocks per item and location, in one read (spec 304, 316)."""
+    from reality.services.core import _open_stock_blocks
 
     if not item_ids:
         return {}
+    blocks = _open_stock_blocks(tenant_id)
     return {
         (item_id, location_id): Decimal(quantity)
         for item_id, location_id, quantity in session.execute(
-            select(
-                StockBlock.item_id,
-                StockBlock.location_id,
-                func.sum(StockBlock.quantity),
-            )
-            .where(
-                StockBlock.tenant_id == tenant_id,
-                StockBlock.item_id.in_(item_ids),
-                StockBlock.status == "active",
-            )
-            .group_by(StockBlock.item_id, StockBlock.location_id)
+            select(blocks.c.item_id, blocks.c.location_id, func.sum(blocks.c.quantity))
+            .where(blocks.c.item_id.in_(item_ids))
+            .group_by(blocks.c.item_id, blocks.c.location_id)
         )
     }
 

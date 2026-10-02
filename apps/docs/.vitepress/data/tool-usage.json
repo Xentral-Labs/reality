@@ -293,7 +293,13 @@
         "Lagerbestand",
         "Verfügbarkeit"
       ],
-      "tables": ["item", "supply_assignment", "item_reorder_point", "stock_block"],
+      "tables": [
+        "item",
+        "supply_assignment",
+        "item_reorder_point",
+        "stock_block",
+        "stock_block_resolution"
+      ],
       "lists": [
         "view:inventory",
         "view:items",
@@ -9779,7 +9785,7 @@
       "key": "stock_blocks",
       "label": "Stock blocks",
       "area": "warehouse",
-      "summary": "Read stock held back where it lies: item, location, lot or pallet, quantity, reason and who blocked it. Blocked stock is excluded from availability, reservation and shipping until released or scrapped.",
+      "summary": "Read stock held back where it lies: item, location, lot or pallet, the quantity as blocked, what is still open, reason, who blocked it, and each release or scrap since. Blocked stock is excluded from availability, reservation and shipping until released or scrapped.",
       "access": "read",
       "group": "Warehouse",
       "synopsis": "stock_blocks [item_id] [location_id] [status]",
@@ -9804,7 +9810,7 @@
           "required": false,
           "description": "Lifecycle state to filter by, such as open, fulfilled, or withdrawn.",
           "depth": 0,
-          "enum": ["active", "released", "scrapped", "all"]
+          "enum": ["active", "resolved", "all"]
         }
       ],
       "guidance": {
