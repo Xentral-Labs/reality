@@ -38,7 +38,7 @@ def preview_free_supplier_invoice(
 ) -> dict[str, Any]:
     """Validate one source-stated supplier invoice without inventing an order."""
     required = {"supplier_id", "number", "currency", "gross_amount", "lines"}
-    optional = {"document_date", "effective_at"}
+    optional = {"document_date", "effective_at", "exchange_rate"}
     if required - arguments.keys() or arguments.keys() - required - optional:
         raise InvalidOperation(
             "Free supplier invoice fields are incomplete or unsupported."
@@ -67,6 +67,10 @@ def preview_free_supplier_invoice(
         currency=arguments["currency"],
         document_date=document_date,
     )
+    # Spec 309: an invoice in another currency states the rate it is posted at.
+    rate = core._invoice_exchange_rate(
+        session, tenant_id, "purchase", values["currency"], arguments.get("exchange_rate")
+    )
     return json.loads(
         _json(
             {
@@ -74,6 +78,16 @@ def preview_free_supplier_invoice(
                 "effective_at": effective,
                 "document": values,
                 "lines": lines,
+                **(
+                    {
+                        "exchange_rate": rate,
+                        "company_amount": core._round_cents(
+                            core.decimal(values["gross_amount"]) * rate
+                        ),
+                    }
+                    if rate is not None
+                    else {}
+                ),
             }
         )
     )
@@ -90,6 +104,7 @@ def record_free_supplier_invoice(
     lines: list[dict[str, Any]],
     document_date: str = "",
     effective_at: str | None = None,
+    exchange_rate: Decimal | str | None = None,
     action_id: str | None = None,
 ) -> dict[str, Any]:
     """Atomically retain free invoice evidence and post its stated payable."""
@@ -101,6 +116,7 @@ def record_free_supplier_invoice(
         "lines": lines,
         **({"document_date": document_date} if document_date else {}),
         **({"effective_at": effective_at} if effective_at else {}),
+        **({"exchange_rate": str(exchange_rate)} if exchange_rate is not None else {}),
     }
     creation = preview_free_supplier_invoice(session, tenant_id, arguments)
     with session.begin_nested():
@@ -134,6 +150,7 @@ def record_free_supplier_invoice(
             document.id,
             effective_at=core.utc_datetime(creation["effective_at"]),
             action_id=action_id,
+            exchange_rate=creation.get("exchange_rate"),
             _commit=False,
         )
         receipt = {

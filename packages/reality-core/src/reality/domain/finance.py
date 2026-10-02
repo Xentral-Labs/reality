@@ -17,6 +17,7 @@ ACCOUNT_ROLES.update(
         "dunning_fee_revenue": "Dunning fee revenue",
         "payment_fee_expense": "Payment fees",
         "customer_down_payments": "Received down payments",
+        "exchange_difference": "Realised exchange differences",
     }
 )
 CONTROL_ROLES = frozenset({"accounts_receivable", "accounts_payable"})

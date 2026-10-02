@@ -390,13 +390,13 @@ def test_target_migration_preserves_ledger_and_refuses_history_loss(
             )
             core.post_sales_invoice(db, tenant, doc.id)
             before = db.scalars(
-                text("SELECT row_to_json(e)::text FROM ledger_entry e ORDER BY id")
+                text("SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id")
             ).all()
         command.upgrade(config, "head")
         with Session(engine) as db:
             assert (
                 db.scalars(
-                    text("SELECT row_to_json(e)::text FROM ledger_entry e ORDER BY id")
+                    text("SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id")
                 ).all()
                 == before
             )

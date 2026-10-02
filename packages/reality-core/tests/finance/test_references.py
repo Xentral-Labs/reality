@@ -229,7 +229,7 @@ def test_reference_migration_preserves_postings_and_blocks_destructive_downgrade
             before = (
                 db.execute(
                     text(
-                        "SELECT row_to_json(e)::text FROM ledger_entry e WHERE tenant_id=:tenant ORDER BY id"
+                        "SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e WHERE tenant_id=:tenant ORDER BY id"
                     ),
                     {"tenant": tenant},
                 )
@@ -241,7 +241,7 @@ def test_reference_migration_preserves_postings_and_blocks_destructive_downgrade
             assert (
                 connection.execute(
                     text(
-                        "SELECT row_to_json(e)::text FROM ledger_entry e WHERE tenant_id=:tenant ORDER BY id"
+                        "SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e WHERE tenant_id=:tenant ORDER BY id"
                     ),
                     {"tenant": tenant},
                 )

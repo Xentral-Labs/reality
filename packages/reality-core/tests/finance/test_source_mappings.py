@@ -420,7 +420,7 @@ def test_source_mapping_migration_preserves_ledger_and_history(
             customer = SimpleNamespace(id=customer.id)
             before = (
                 db.execute(
-                    text("SELECT row_to_json(e)::text FROM ledger_entry e ORDER BY id")
+                    text("SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id")
                 )
                 .scalars()
                 .all()
@@ -429,7 +429,7 @@ def test_source_mapping_migration_preserves_ledger_and_history(
         with Session(engine) as db:
             assert (
                 db.execute(
-                    text("SELECT row_to_json(e)::text FROM ledger_entry e ORDER BY id")
+                    text("SELECT (to_jsonb(e) - 'company_amount' - 'exchange_rate')::text FROM ledger_entry e ORDER BY id")
                 )
                 .scalars()
                 .all()

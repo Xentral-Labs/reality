@@ -215,10 +215,21 @@ def _payment_evidence(
         or posted.get("currency") != created["currency"]
     ):
         return None
-    if len(snapshots) != 2 or len({e["id"] for e in snapshots}) != 2:
+    exchange = review["state"].get("exchange")
+    amounts = [amount, amount]
+    if exchange and exchange["kind"] != "none":
+        # Spec 309: the realised difference carries no document-currency amount.
+        effect = [
+            *effect,
+            ("exchange_difference", "credit" if exchange["kind"] == "gain" else "debit"),
+        ]
+        amounts.append(Decimal(0))
+    if len(snapshots) != len(effect) or len({e["id"] for e in snapshots}) != len(effect):
         return None
     entries = []
-    for snapshot, (expected_account, side) in zip(snapshots, effect, strict=True):
+    for snapshot, (expected_account, side), expected_amount in zip(
+        snapshots, effect, amounts, strict=True
+    ):
         entry = session.scalar(
             select(LedgerEntry).where(
                 LedgerEntry.tenant_id == tenant_id, LedgerEntry.id == snapshot["id"]
@@ -236,13 +247,21 @@ def _payment_evidence(
         if (
             entry.account != expected_account
             or entry.debit_credit != side
-            or entry.amount != amount
+            or entry.amount != expected_amount
         ):
             return None
         if (
             snapshot.get("account") != expected_account
             or snapshot.get("side") != side
-            or Decimal(str(snapshot.get("amount", "-1"))) != amount
+            or Decimal(str(snapshot.get("amount", "-1"))) != expected_amount
+        ):
+            return None
+        if exchange and Decimal(str(entry.company_amount)) != Decimal(
+            {
+                "accounts_payable": exchange["invoice_value"],
+                "cash": exchange["paid_amount"],
+                "exchange_difference": exchange["difference"],
+            }[expected_account]
         ):
             return None
         if created["effective_at"] and utc_datetime(entry.effective_at) != utc_datetime(
