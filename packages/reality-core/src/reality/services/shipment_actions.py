@@ -226,6 +226,8 @@ def review_shipment_action(
                         preview["commitment_id"],
                         proposed_quantity=Decimal(preview["quantity"]),
                         from_location_id=preview.get("from_location_id"),
+                        # The whole shipment answers to the order's rule.
+                        _delivery_rule=False,
                     )
                     if not readiness.ship_ready:
                         raise InvalidOperation(

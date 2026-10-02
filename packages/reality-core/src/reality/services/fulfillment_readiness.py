@@ -600,7 +600,12 @@ def require_paid_prepayment(
     if kind != "customer_delivery":
         return
     readiness = fulfillment_readiness(
-        session, tenant_id, commitment_id, proposed_quantity=Decimal(str(quantity))
+        session,
+        tenant_id,
+        commitment_id,
+        proposed_quantity=Decimal(str(quantity)),
+        # The order's rule is checked for the shipment as a whole below.
+        _delivery_rule=False,
     )
     # Spec 306: the order's ship-complete rule binds the same paths.
     from reality.services.delivery_rules import require_delivery_rule

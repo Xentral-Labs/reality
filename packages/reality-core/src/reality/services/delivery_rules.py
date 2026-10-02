@@ -62,19 +62,10 @@ def _is_customer(session: Session, tenant_id: str, party: Party) -> bool:
 
 
 def _order_customer(session: Session, tenant_id: str, document: Document) -> str:
-    """The customer an order delivers to, or refuse what is no customer order."""
-    customer = session.scalar(
-        select(Commitment.to_party_id)
-        .where(
-            Commitment.tenant_id == tenant_id,
-            Commitment.document_id == document.id,
-            Commitment.type == "customer_delivery",
-        )
-        .limit(1)
-    )
-    if customer is None:
+    """The customer an order is placed by, or refuse what is no customer order."""
+    if document.type != "sales_order" or not document.party_id:
         raise InvalidOperation(code="delivery_rule_document_not_order")
-    return customer
+    return document.party_id
 
 
 def _subject(
@@ -152,6 +143,16 @@ def state_delivery_rule(
         session, tenant_id, rule, reason, party_id=party_id, document_id=document_id
     )
     current = _current(session, tenant_id, kind, identity)
+    if action_id and current is not None:
+        # The same confirmation again: it already stated this.
+        in_force = session.scalar(
+            select(SourceRecord.payload).where(
+                SourceRecord.tenant_id == tenant_id,
+                SourceRecord.id == current.source_record_id,
+            )
+        )
+        if in_force and json.loads(in_force).get("statement_id") == action_id:
+            return current
     if _expected is not UNCHECKED and rule_values(current) != _expected:
         raise InvalidOperation(code="delivery_rule_changed_since_review")
     previous = rule_values(current)
@@ -237,12 +238,11 @@ def effective_rules(
     ids = set(document_ids)
     if not ids:
         return {}
+    # The order's own party is its customer: the shortest true link.
     customers = dict(
         session.execute(
-            select(Commitment.document_id, Commitment.to_party_id).where(
-                Commitment.tenant_id == tenant_id,
-                Commitment.document_id.in_(ids),
-                Commitment.type == "customer_delivery",
+            select(Document.id, Document.party_id).where(
+                Document.tenant_id == tenant_id, Document.id.in_(ids)
             )
         ).all()
     )
@@ -392,10 +392,13 @@ def require_delivery_rule(
 
     shipped: dict[str, Decimal] = {}
     for commitment_id, quantity in movements:
-        if commitment_id:
-            shipped[commitment_id] = shipped.get(commitment_id, Decimal(0)) + Decimal(
-                str(quantity)
-            )
+        try:
+            amount = Decimal(str(quantity))
+        except ArithmeticError:
+            # A quantity that is no number is refused by the movement's own check.
+            continue
+        if commitment_id and amount.is_finite():
+            shipped[commitment_id] = shipped.get(commitment_id, Decimal(0)) + amount
     orders = {
         document_id
         for document_id in session.scalars(

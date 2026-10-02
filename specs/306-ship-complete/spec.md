@@ -82,6 +82,10 @@ As a sales clerk, I mark a customer as "no backorders": what cannot ship now is 
 - A cancelled or fulfilled line does not count against completeness.
 - An importer recording what a source states is not refused (spec 294 FR-006); the rule binds what a person ships.
 - An order's rule outranks the customer's, also when the customer's rule changes later.
+- A line may ship complete in several movements of one shipment, for example from two warehouses or as serial units; the shipment as a whole carries the order.
+- A shipment that was corrected away is no shipment for no backorders.
+- An order kept back by a hold is not reported as waiting for completeness; the hold classes name it.
+- The order's customer is the order's own party.
 
 ## Requirements *(mandatory)*
 

@@ -2009,6 +2009,14 @@ Table `delivery_rule`: how a customer, or one of its orders, wants to be deliver
   - An order with nothing ready is not waiting for the rule.
   - A rest after a shipment is a backorder against a no-backorder rule, line by line. Nothing shipped is the control, and cancelling clears it.
   - Without the rule a rest is ordinary.
+  - Review round: a corrected shipment is no shipment, and an order kept back by a hold is not waiting for the rule.
+- Review round in `test_delivery_rule_shipments.py`:
+  - A line split across two warehouses ships complete in one shipment.
+  - A single-line order ships complete as one shipment, and a part of it is refused.
+  - A quantity that is no number keeps the movement's own refusal.
+- Review round in `test_delivery_rule_adapters.py`:
+  - Executing the same confirmation again states nothing.
+  - The isolation test has its own-company positive control.
 - `packages/reality-core/tests/test_delivery_rule_adapters.py`:
   - The MCP schema is strict.
   - An agent proposes a customer rule, and the review shows the open orders it governs. A person confirms, a replay states nothing twice, and the read names the customer as the source.

@@ -306,6 +306,8 @@ def record_packaged_execution(
                 commitment_id,
                 proposed_quantity=proposed_quantity,
                 from_location_id=movement_arguments.get("from_location_id"),
+                # The whole shipment answers to the order's rule, checked above.
+                _delivery_rule=False,
             )
             if not readiness.ship_ready:
                 raise InvalidOperation(

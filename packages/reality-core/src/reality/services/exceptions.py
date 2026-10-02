@@ -3687,17 +3687,23 @@ def _order_waiting_for_completeness_exceptions(
     from reality.services.fulfillment_readiness import fulfillment_readiness
 
     rules, orders = _ruled_orders(session, tenant_id, "ship_complete")
+    terms = commitment_terms(
+        session, tenant_id, [row.id for rows in orders.values() for row in rows]
+    )
     result = []
     for order_id, promises in orders.items():
-        terms = commitment_terms(session, tenant_id, [row.id for row in promises])
         open_lines = [row for row in promises if terms[row.id].open > ZERO]
-        ready, waiting = [], []
+        ready, waiting, held = [], [], False
         for row in open_lines:
             readiness = fulfillment_readiness(
                 session, tenant_id, row.id, _delivery_rule=False
             )
             (ready if readiness.ship_ready else waiting).append(row)
-        if not ready or not waiting:
+            held = held or bool(
+                {"commitment_hold", "party_delivery_hold"} & set(readiness.blocker_codes)
+            )
+        # A hold keeps the order back by itself; the hold classes name it.
+        if not ready or not waiting or held:
             continue
         number = session.scalar(
             select(Document.number).where(
@@ -3747,31 +3753,28 @@ def _backorder_against_rule_exceptions(
     open on each line is reported; the reviewed cancellation with the rule as
     its reason clears it. Nothing is cancelled by the entry itself.
     """
-    from reality.db.core import Commitment, Movement
+    from reality.db.core import Commitment
     from reality.services.core import commitment_terms
 
     rules, orders = _ruled_orders(session, tenant_id, "no_backorders")
     if not orders:
         return []
-    shipped_orders = set(
-        session.scalars(
-            select(Commitment.document_id)
-            .join(
-                Movement,
-                (Movement.tenant_id == Commitment.tenant_id)
-                & (Movement.commitment_id == Commitment.id),
-            )
-            .where(
-                Commitment.tenant_id == tenant_id,
-                Commitment.document_id.in_(set(orders)),
-                Movement.type == "shipment",
-            )
+    # Shipped means delivered, corrections included: a reversed shipment is none.
+    # Every line of the order counts, also one shipped in full or cancelled since.
+    lines = session.execute(
+        select(Commitment.id, Commitment.document_id).where(
+            Commitment.tenant_id == tenant_id,
+            Commitment.document_id.in_(set(orders)),
+            Commitment.type == "customer_delivery",
         )
-    )
+    ).all()
+    terms = commitment_terms(session, tenant_id, [row.id for row in lines])
+    shipped_orders = {
+        row.document_id for row in lines if terms[row.id].fulfilled > ZERO
+    }
     result = []
     for order_id in sorted(shipped_orders):
         promises = orders[order_id]
-        terms = commitment_terms(session, tenant_id, [row.id for row in promises])
         rule = rules[order_id]
         for row in promises:
             rest = terms[row.id].open

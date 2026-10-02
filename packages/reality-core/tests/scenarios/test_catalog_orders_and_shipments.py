@@ -1280,7 +1280,7 @@ def _state_rule(session, business, rule, reason, **subject):
     assert executed.status == "executed"
 
 
-def _findings(session, business, class_id):
+def _rule_findings(session, business, class_id):
     return {
         row.record_id: row
         for row in operational_exceptions(session, business.tenant.id)
@@ -1318,7 +1318,7 @@ def test_a_customer_who_refuses_partial_delivery_gets_the_whole_order_at_once(
 
     readiness = fulfillment_readiness(session, tenant, bikes)
     assert "ship_complete_incomplete" in readiness.blocker_codes
-    waiting = _findings(session, business, "order_waiting_for_completeness")
+    waiting = _rule_findings(session, business, "order_waiting_for_completeness")
     assert waiting[order["document_id"]].trace["waiting_commitment_ids"] == [lamps]
     try:
         _ship(session, business, "TRK-B10-1", bikes, "5")
@@ -1350,7 +1350,7 @@ def test_a_customer_who_refuses_partial_delivery_gets_the_whole_order_at_once(
     )
     assert open_quantity(session, tenant, bikes) == 0
     assert open_quantity(session, tenant, lamps) == 0
-    assert order["document_id"] not in _findings(
+    assert order["document_id"] not in _rule_findings(
         session, business, "order_waiting_for_completeness"
     )
 
@@ -1370,11 +1370,11 @@ def test_a_customer_who_wants_no_backorders_has_the_rest_cancelled(session, busi
     (bikes,) = order["commitment_ids"]
     reserve(session, tenant, bikes)
     # Positive control: nothing shipped, nothing is a backorder yet.
-    assert bikes not in _findings(session, business, "backorder_against_rule")
+    assert bikes not in _rule_findings(session, business, "backorder_against_rule")
 
     _ship(session, business, "TRK-M06", bikes, "6")
 
-    finding = _findings(session, business, "backorder_against_rule")[bikes]
+    finding = _rule_findings(session, business, "backorder_against_rule")[bikes]
     assert finding.causal_values["open_quantity"] == 4
     assert finding.trace["reason"] == "Customer reorders instead of waiting"
     _act(
@@ -1388,4 +1388,4 @@ def test_a_customer_who_wants_no_backorders_has_the_rest_cancelled(session, busi
         "m06-cancel",
     )
     assert record_by_id(session, Commitment, bikes).status == "cancelled"
-    assert bikes not in _findings(session, business, "backorder_against_rule")
+    assert bikes not in _rule_findings(session, business, "backorder_against_rule")

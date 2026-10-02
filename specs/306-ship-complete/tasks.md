@@ -60,3 +60,13 @@ Tests come first in each phase where practical.
 - [ ] T015 Full backend suite and web checks
 - [ ] T016 Manual check per `quickstart.md`
 - [ ] T017 Review of the diff; fix findings
+  - A line split across movements (two warehouses, serial units) no longer fails per movement: only the shipment as a whole answers to the rule.
+  - The fulfillment queue derives the rule's blocker once per order from the lines it already holds, not through readiness per line.
+  - A quantity that is no number keeps the movement's own refusal.
+  - A corrected shipment does not count for no backorders.
+  - Replaying a confirmation is checked before the review comparison.
+  - An order kept back by a hold is not waiting for completeness.
+  - The order's customer is `document.party_id`.
+  - The web cards withdraw on unmount and do not prepare twice.
+  - The reference catalog reason for `Commitment.document_id` names the delivery rule.
+  - Tests: positive controls for the isolation and single-line cases.

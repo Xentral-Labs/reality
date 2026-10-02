@@ -31,8 +31,8 @@
 
 ## Readiness and shipments
 
-- **Blocker** `ship_complete_incomplete`, with the order and the lines that cannot ship in full.
-- **Refusal** `shipment_ship_complete_partial` on every person-facing shipment path, naming the order and the lines left behind.
+- **Blocker** `ship_complete_incomplete`, linking the order. Order waiting for completeness names the ready and the waiting lines.
+- **Refusal** `shipment_ship_complete_partial` on every person-facing shipment path, naming the order and how many open lines the shipment would leave behind.
 
 ## Classes
 

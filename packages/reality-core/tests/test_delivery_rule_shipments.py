@@ -242,7 +242,9 @@ def test_cancelled_and_shipped_lines_count_as_complete(session, business, lamp):
     )
 
 
-def test_an_importer_recording_what_left_is_not_refused(session, business, lamp):
+def test_a_movement_recorded_as_stated_is_not_refused(session, business, lamp):
+    """The rule binds what a person ships through the reviewed paths, not the core
+    record a source interpretation writes when a source states goods left."""
     tenant = business.tenant.id
     _, (bikes, _) = _order(
         session, business, "SO-306-I", [(business.item, "5"), (lamp, "3")]
@@ -290,3 +292,83 @@ def test_the_fulfillment_queue_names_the_rule(session, business, lamp):
 
     assert "ship_complete_incomplete" in reasons()[bikes.id]
     assert "insufficient_reservation" in reasons()[lamps.id]
+
+
+# --- review round (T017) ---------------------------------------------------------------
+
+
+def test_a_line_split_across_two_warehouses_ships_complete(session, business, lamp):
+    tenant = business.tenant.id
+    munich = core.create_location(session, tenant, "Munich 306")
+    _, (bikes,) = _order(session, business, "SO-306-SPLIT", [(business.item, "5")])
+    _stock(session, business, business.item, "3")
+    core.record_movement(
+        session,
+        tenant,
+        "opening_stock",
+        business.item.id,
+        "2",
+        to_location_id=munich.id,
+    )
+    core.reserve(session, tenant, bikes.id, "3")
+    core.reserve(session, tenant, bikes.id, "2", location_id=munich.id)
+    _ship_complete(session, business)
+    proposal = create_change_proposal(
+        session,
+        tenant,
+        "shipment_dispatch",
+        {
+            "purpose": "customer_delivery",
+            "counterparty_id": business.customer.id,
+            "carrier": "DHL",
+            "tracking_number": "TRK-SPLIT",
+            "movements": [
+                {
+                    "commitment_id": bikes.id,
+                    "item_id": business.item.id,
+                    "from_location_id": location,
+                    "quantity": quantity,
+                }
+                for location, quantity in (
+                    (business.location.id, "3"),
+                    (munich.id, "2"),
+                )
+            ],
+        },
+    )
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+
+    executed = approve_and_execute_proposal(
+        session, tenant, proposal.id, review_token=token, confirmed=True
+    )
+
+    assert executed.status == "executed"
+    assert core.stock_at(session, tenant, business.item.id) == 0
+
+
+def test_a_single_line_order_ships_complete_as_one_shipment(session, business):
+    tenant = business.tenant.id
+    _, (bikes,) = _order(session, business, "SO-306-ONE", [(business.item, "5")])
+    _stock(session, business, business.item, "5")
+    core.reserve(session, tenant, bikes.id)
+    _ship_complete(session, business)
+
+    proposal = _single_shipment(session, business, bikes, business.item, "5", "one")
+
+    assert json.loads(proposal.input)["_delivery_review"]["token"]
+    _refused(
+        "shipment_ship_complete_partial",
+        lambda: _single_shipment(session, business, bikes, business.item, "4", "four"),
+    )
+
+
+def test_a_quantity_that_is_no_number_keeps_its_own_refusal(session, business, lamp):
+    tenant = business.tenant.id
+    _, (bikes, _) = _order(
+        session, business, "SO-306-NAN", [(business.item, "5"), (lamp, "3")]
+    )
+    _ship_complete(session, business)
+
+    # The movement's own quantity check answers, as it does without a rule.
+    with pytest.raises(ArithmeticError):
+        _dispatch(session, business, "TRK-NAN", [(bikes, business.item, "abc")])

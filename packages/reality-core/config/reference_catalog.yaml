@@ -152,7 +152,9 @@ records:
       meaning: The order a promise belongs to, absent for a promise raised without one.
       reason: >-
         Every order-line class reaches the order through the line rather than through this
-        field, so nothing depends on it. It is read to name the order in an entry.
+        field. It is read to name the order in an entry, and since spec 306 to find the order's
+        delivery rule: a promise raised without an order is under no order rule, so its absence
+        is not a missing link and concludes nothing.
     from_party_id:
       classification: trace_only
       meaning: Who is to deliver, absent only for a promise recorded without a counterparty.

@@ -765,8 +765,7 @@ def _open_work_rows(
                 reasons.append(("insufficient_stock", "physical stock is insufficient"))
             payment_readiness = (
                 fulfillment_readiness(session, tenant_id, commitment.id)
-                if commitment.document_id
-                in prepayment_document_ids | ship_complete_document_ids
+                if commitment.document_id in prepayment_document_ids
                 else None
             )
             if payment_readiness is not None:
@@ -774,9 +773,7 @@ def _open_work_rows(
                 reasons.extend(
                     (
                         blocker,
-                        "the order ships complete"
-                        if blocker == "ship_complete_incomplete"
-                        else " ".join(
+                        " ".join(
                             (
                                 f"required {payment_readiness.required_amount}",
                                 f"{payment_readiness.currency}; received",
@@ -863,6 +860,48 @@ def _open_work_rows(
                 blockers[blocker_key] = blocker
                 order_blockers.append(blocker)
                 blocked_orders_by_item[commitment.item_id].add(record_key)
+        if (
+            document
+            and document.id in ship_complete_document_ids
+            and any(line["blocking_reasons"] for line in lines)
+        ):
+            # Spec 306: under ship complete a ready line waits for the whole
+            # order; read from the lines already derived, once per order.
+            for line in lines:
+                if line["blocking_reasons"]:
+                    continue
+                line["blocking_reasons"] = ["ship_complete_incomplete"]
+                line["shippable_quantity"] = Decimal(0)
+                line["ready_by_location"] = []
+                blocker_key = f"{line['commitment_id']}:ship_complete_incomplete"
+                blocker = {
+                    "blocker_id": blocker_key,
+                    "blocker_type": "ship_complete_incomplete",
+                    "detail": "the order ships complete",
+                    "order_key": record_key,
+                    "document_id": document.id,
+                    "document_number": document.number,
+                    "commitment_id": line["commitment_id"],
+                    "item_id": line["item_id"],
+                    "item": line["item"],
+                    "shortage_quantity": "0",
+                    "due_at": line["due_at"],
+                    **{
+                        key: line[key]
+                        for key in (
+                            "unit",
+                            "unit_status",
+                            "quantity_basis",
+                            "document_line_unit",
+                            "unit_mismatch",
+                        )
+                        if key in line
+                    },
+                }
+                blockers[blocker_key] = blocker
+                order_blockers.append(blocker)
+                # Not counted against the item: its stock and reservation are
+                # fine, and the narrowed supply-and-demand path agrees.
         party_id = document.party_id if document else order_commitments[0].to_party_id
         party = parties.get(party_id or "")
         queue[record_key] = {

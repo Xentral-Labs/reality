@@ -124,6 +124,38 @@ def test_an_agent_proposes_and_a_person_confirms(session, business):
     )
 
 
+def test_executing_the_same_confirmation_again_states_nothing(session, business):
+    tenant = business.tenant.id
+    proposal = create_change_proposal(
+        session,
+        tenant,
+        "delivery_rule_set",
+        {"party_id": business.customer.id, "rule": "ship_complete", "reason": "Once"},
+    )
+    for _ in range(2):
+        state_delivery_rule(
+            session,
+            tenant,
+            "ship_complete",
+            "Once",
+            party_id=business.customer.id,
+            action_id=proposal.id,
+            _expected=None,
+        )
+
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(SourceRecord)
+            .where(
+                SourceRecord.tenant_id == tenant,
+                SourceRecord.source_system == "internal_delivery_rule",
+            )
+        )
+        == 1
+    )
+
+
 def test_a_rule_changed_after_its_review_is_refused(session, business):
     tenant = business.tenant.id
     stale = create_change_proposal(
@@ -186,6 +218,12 @@ def test_another_company_cannot_read_or_state(session, business, monkeypatch):
     document = _order(session, business)
     other = core.create_tenant(session, "Other GmbH")
     client = _client(session, monkeypatch)
+    # Positive control: the same client reads its own company's order.
+    own = client.get(
+        f"/api/tenants/{business.tenant.id}/delivery-rules",
+        params={"document_id": document.id},
+    )
+    assert own.status_code == 200, own.text
     prefix = f"/api/tenants/{other.id}"
 
     read = client.get(f"{prefix}/delivery-rules", params={"document_id": document.id})

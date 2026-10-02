@@ -108,6 +108,7 @@ export function DeliveryRuleCard({
     }
   };
   const prepare = () =>
+    !busy &&
     run(async () => {
       const value = await deliveryRules.prepare(tenant, {
         ...(party ? { party_id: party } : { document_id: order }),
@@ -341,14 +342,22 @@ export function BackorderCancelCard({
     [done, setDone] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const pending = useRef<string | null>(null);
   useEffect(() => {
     alive.current = true;
     return () => {
       alive.current = false;
+      // A review nobody confirmed is withdrawn, also when the card goes away.
+      const id = pending.current;
+      pending.current = null;
+      if (id) void api.rejectProposal(tenant, id, null).catch(() => undefined);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const leave = () => {
-    if (review && !done) void api.rejectProposal(tenant, review.id, null).catch(() => undefined);
+    const id = pending.current;
+    pending.current = null;
+    if (id) void api.rejectProposal(tenant, id, null).catch(() => undefined);
     close();
   };
   const modal = useModal(busy, leave);
@@ -408,8 +417,14 @@ export function BackorderCancelCard({
                   "commitment_cancel",
                   { commitment_id: commitment, reason },
                 );
-                if (alive.current && value.review)
+                if (!alive.current) {
+                  void api.rejectProposal(tenant, value.id, null).catch(() => undefined);
+                  return;
+                }
+                if (value.review) {
+                  pending.current = value.id;
                   setReview({ id: value.id, token: value.review.token });
+                }
               })
             }
           >
@@ -421,6 +436,7 @@ export function BackorderCancelCard({
             disabled={busy}
             onClick={() =>
               run(async () => {
+                pending.current = null;
                 await deliveryActions.confirm(tenant, review.id, review.token);
                 if (!alive.current) return;
                 setDone(true);
