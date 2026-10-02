@@ -24943,6 +24943,7 @@ Object.assign(dictionaries.de, {
   "Value in company currency": "Wert in Firmenwährung",
   "The amount is too small to have a value in the company currency.":
     "Der Betrag ist zu klein, um in Firmenwährung einen Wert zu haben.",
+  "Realised exchange differences": "Realisierte Kursdifferenzen",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25253,6 +25254,7 @@ Object.assign(dictionaries.nl, {
   "Value in company currency": "Waarde in bedrijfsvaluta",
   "The amount is too small to have a value in the company currency.":
     "Het bedrag is te klein om in bedrijfsvaluta een waarde te hebben.",
+  "Realised exchange differences": "Gerealiseerde koersverschillen",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25563,6 +25565,7 @@ Object.assign(dictionaries.es, {
   "Value in company currency": "Valor en la moneda de la empresa",
   "The amount is too small to have a value in the company currency.":
     "El importe es demasiado pequeño para tener valor en la moneda de la empresa.",
+  "Realised exchange differences": "Diferencias de cambio realizadas",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

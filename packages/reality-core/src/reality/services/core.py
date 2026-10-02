@@ -10047,9 +10047,10 @@ def _preview_order_invoice(
         session, tenant_id, direction, creation["currency"], rate
     )
     if stated is not None:
-        creation["exchange_rate"] = stated
-        creation["company_amount"] = _round_cents(
-            decimal(creation["gross_amount"]) * stated
+        # As normalized text, so the review and the recorded event state them alike.
+        creation["exchange_rate"] = format(stated.normalize(), "f")
+        creation["company_amount"] = format(
+            _round_cents(decimal(creation["gross_amount"]) * stated).normalize(), "f"
         )
     return creation
 
