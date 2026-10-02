@@ -2372,6 +2372,7 @@ def _return_exceptions(
             for row in referencing
             if _referencing_document_type(session, tenant_id, row)
             in {"sales_invoice", "supplier_invoice"}
+            and row.line_type != "charge"
         ]
         credited, unit = _in_promise_unit(
             session,
@@ -2654,6 +2655,9 @@ def _units_not_comparable_exceptions(
                     for row in referencing
                     if _referencing_document_type(session, tenant_id, row)
                     in {"sales_invoice", "supplier_invoice"}
+                    # A charge bills no goods (spec 310), so its unit is no
+                    # comparison to decline.
+                    and row.line_type != "charge"
                 ],
             )
             declines.extend(refused)

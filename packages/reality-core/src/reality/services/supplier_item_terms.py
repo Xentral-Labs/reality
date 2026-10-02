@@ -291,17 +291,35 @@ def order_terms_check(
     party_id: str,
     item_id: str,
     quantity: Decimal,
+    unit: str | None = None,
 ) -> dict[str, Any] | None:
     """How a purchase quantity meets the supplier's terms, or None without terms.
 
-    The quantity is in the order line's unit, which for a purchase is the item's
-    purchase unit (spec 301). The suggestion is the smallest quantity at or above
-    both the minimum and the asked quantity that is a whole number of multiples.
+    The terms are in the item's purchase unit. A line in the stock unit is
+    compared through the item's stated factor (spec 301), and the suggestion is
+    given back in the line's unit; a line in any other unit is named as not
+    comparable rather than guessed. The suggestion is the smallest quantity at or
+    above both the minimum and the asked quantity that is a whole number of
+    multiples.
     """
     row = _current(session, tenant_id, party_id, item_id)
     if row is None:
         return None
-    asked = decimal(quantity)
+    item = _tenant_record(session, Item, tenant_id, item_id)
+    purchase_unit = item.purchase_unit or item.unit
+    factor = decimal(item.conversion_factor or 1)
+    line_unit = unit or purchase_unit
+    if line_unit == purchase_unit:
+        scale = Decimal(1)
+    elif line_unit == item.unit and factor > 0:
+        scale = factor
+    else:
+        return {
+            **terms_values(row),
+            "unit": purchase_unit,
+            "units_not_comparable": True,
+        }
+    asked = decimal(quantity) / scale
     minimum = (
         decimal(row.minimum_quantity) if row.minimum_quantity is not None else None
     )
@@ -318,9 +336,11 @@ def order_terms_check(
     )
     return {
         **terms_values(row),
+        "unit": purchase_unit,
         "below_minimum": below,
         "off_multiple": off,
-        "suggested_quantity": _text(target),
+        # In the line's own unit, so the person can type it as it is.
+        "suggested_quantity": _text(target * scale),
     }
 
 

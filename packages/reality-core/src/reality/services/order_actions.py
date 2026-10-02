@@ -110,6 +110,7 @@ def review_order(
                 creation["document"]["party_id"],
                 line["item_id"],
                 Decimal(str(line["quantity"])),
+                line.get("unit"),
             )
             if check is not None:
                 supplier_terms[str(index)] = check

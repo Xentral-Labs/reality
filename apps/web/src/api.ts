@@ -3083,9 +3083,11 @@ export type CustomerItemNumber = {
 export type SupplierTermsCheck = {
   minimum_quantity: string | null;
   order_multiple: string | null;
-  below_minimum: boolean;
-  off_multiple: boolean;
-  suggested_quantity: string;
+  unit?: string;
+  units_not_comparable?: boolean;
+  below_minimum?: boolean;
+  off_multiple?: boolean;
+  suggested_quantity?: string;
 };
 export type SupplierItemTerms = {
   id: string;
