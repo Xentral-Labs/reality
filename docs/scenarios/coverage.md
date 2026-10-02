@@ -8,15 +8,15 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 145 covered, 12 partial, 0 missing, 68 gap, 3 out.
+228 scenarios: 147 covered, 10 partial, 0 missing, 68 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
-| A Order intake and changes | 15 | 1 |  | 8 |  |
+| A Order intake and changes | 16 |  |  | 8 |  |
 | B Availability and reservation | 12 |  |  | 6 |  |
 | C Payment and release | 14 |  |  | 4 |  |
 | D Shipment, split and merge | 5 | 3 |  | 11 |  |
-| E Customer invoice and credit | 11 | 1 |  |  |  |
+| E Customer invoice and credit | 12 |  |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
 | G Purchase demand and order | 12 |  |  | 5 |  |
 | H Receipt and supplier deviations | 14 |  |  | 5 |  |
@@ -120,7 +120,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | A02 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_order_with_many_lines_is_served_from_two_warehouses | Twelve lines, half stocked at home and half in Munich: the Munich lines are named, reserved there, all lines are ready and each warehouse ships its own lines in one parcel (spec 303). |
 | A03 | covered | packages/reality-core/tests/test_unified_order_entry.py::test_multiline_review_trace_and_replay | The same `item_id` on two lines gives two commitments with their own amounts. The discounted-versus-free case itself is not tested. |
 | A04 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_raising_the_quantity_after_a_partial_delivery_opens_only_the_rest | 10 ordered, 4 shipped, raised to 12 through the reviewed revision: 8 open, 4 delivered; the rest is reserved again and ships in full. |
-| A05 | partial | packages/reality-core/tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived | The revision is accepted and marks the commitment fulfilled, neither refused nor turned into a return demand. Only the supplier side is tested, and no exception class reports the excess delivery. |
+| A05 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_lowers_a_line_below_what_already_shipped | The revision stands, and Shipped beyond the order reports the excess until it comes back or the line is raised again (spec 313). |
 | A06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_cancelling_one_line_leaves_the_other_lines_open_and_reserved | Reviewed cancellation of one of three reserved lines: only that line is cancelled and unreserved; the other two stay open with their reservations. |
 | A07 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_cancelling_every_line_of_a_reserved_order_releases_all_its_stock | Every line of a reserved two-item order cancelled through the reviewed action: no active reservation remains and stock is unchanged. |
 | A08 | gap | packages/reality-core/src/reality/services/core.py (no picking concept) | There is no picking or staging record, so "picked but not shipped" and the stock going back cannot be represented. |
@@ -221,7 +221,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | E04 | covered | tests/test_partial_invoicing_rebilling.py::test_partial_reversal_rebilling_and_historical_proof; tests/test_ledger_reversals.py::test_reversal_appends_exact_inverse_and_preserves_original | The exact inverse is appended and the original stays; billing becomes available again for the new invoice. |
 | E05 | covered | tests/test_unified_invoice_credit.py::test_partial_multi_credit_without_return_and_exact_recovery; ::test_financial_credit_does_not_require_return_exception | The receivable drops with zero Movements and no `credited_not_returned`. |
 | E06 | covered | tests/operational_exceptions/test_derivation.py::test_returned_not_credited; ::test_invoice_linked_credit_clears_returned_not_credited_through_shortest_links | Return and credit meet on the order line through the shortest links, not through a direct link from the credit to the return movement. |
-| E07 | partial | tests/operational_exceptions/test_derivation.py::test_invoice_price_differs; ::test_shipped_not_billed | Price differences and under-billing are visible; billing more than was shipped on the sales side is not reported. |
+| E07 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_invoice_that_differs_from_the_order_is_reported_each_way | Over-billing, under-billing and another price are each reported per line (specs 299, 313). |
 | E08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_freight_surcharge_and_a_deducted_payment_fee_stay_apart_from_the_goods | Freight and surcharge lines on a sales invoice are no goods finding; a fee the provider deducts settles the invoice as payment-fee expense (spec 297). |
 | E09 | covered | tests/scenarios/test_catalog_finance.py::test_invoice_billed_to_the_orderer_keeps_a_different_ship_to_party | Invoice, AR and balance name the orderer; ship-to is reachable through the billed order line. The invoice document itself carries no ship-to. |
 | E10 | covered | tests/scenarios/test_catalog_finance.py::test_e_invoice_xml_is_stored_losslessly_as_traceable_source_evidence | XRechnung bytes (BOM, CRLF, umlauts) round-trip exactly with hash and size; the source stays unmapped, no interpreter exists. |

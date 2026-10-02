@@ -45,6 +45,7 @@ The owner delegated these decisions to the recommended options.
 
 - Q: Is billing more than shipped a new class? → A: No. *Invoiced and not shipped* (spec 299) already reports it per order line. E07 is proven by a story with the existing classes.
 - Q: How is the excess of a lowered line reported? → A: As a new finding, *Shipped beyond the order*, on customer promises only, of normal severity. It clears through a return of the excess or a revision back up to what was shipped. The revision itself stays accepted.
+- Q: A line lowered to below what shipped becomes fulfilled; how is it raised again? → A: A fulfilled customer promise takes one quantity revision: up to what was shipped net of returns, at most, which keeps it fulfilled. Raising it further is refused as before.
 
 ## User Scenarios & Testing *(mandatory)*
 

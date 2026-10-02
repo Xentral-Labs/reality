@@ -10,18 +10,18 @@
 
 ## Phase 2: Shipped beyond the order (FR-002)
 
-- [ ] T004 Tests:
+- [x] T004 Tests:
   - lowered below shipped is reported;
   - it clears by a return and by a revision up;
   - a cancelled rest is not reported;
   - nothing beyond is the control;
   - isolation.
-- [ ] T005 Derivation, catalog entries, pinned lists, translations
+- [x] T005 Derivation, catalog entries, pinned lists, translations
 
 ## Phase 3: Stories and Guide (FR-001, FR-004)
 
-- [ ] T006 Business stories A05 and E07
-- [ ] T007 Promote A05 and E07: Guide catalog, routing check, coverage, roadmap, matrix, docs
+- [x] T006 Business stories A05 and E07
+- [x] T007 Promote A05 and E07: Guide catalog, routing check, coverage, roadmap, matrix, docs
 
 ## Phase 4: Verification
 

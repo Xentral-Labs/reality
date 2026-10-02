@@ -111,19 +111,28 @@
       "section": "Order intake and order changes",
       "title": "Customer lowers the quantity below the delivered quantity",
       "question": "Is the revision refused or does it demand a return?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Is the revision refused or does it demand a return?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the revision refused or does it demand a return? The revision is accepted, because it is what the customer said, and Shipped beyond the order reports what left beyond the new quantity. It clears when the excess comes back as a return, or when the line is raised again to what was shipped because the customer keeps it.",
       "limitations": [
-        "Lowering the quantity below what was delivered is accepted and closes the line; it is neither refused nor turned into a return request.",
-        "The excess delivery is not reported."
+        "No return request or credit note is created by itself."
       ],
-      "keywords": [],
+      "keywords": [
+        "lowered below delivered",
+        "over-delivery",
+        "Mehrlieferung",
+        "Menge reduziert"
+      ],
       "question_examples": [
         "Customer lowers the quantity below the delivered quantity",
-        "Is the revision refused or does it demand a return?"
+        "Is the revision refused or does it demand a return?",
+        "The customer reduced the order to 4 but we already shipped 6; what happens?",
+        "Der Kunde reduziert auf 4, wir haben aber schon 6 geliefert; was passiert?"
       ],
-      "tools": [],
+      "tools": [
+        "commitment_revise_propose",
+        "exceptions_list"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -1989,19 +1998,28 @@
       "section": "Customer invoice and credit note",
       "title": "Invoice differs from the order (quantity/price)",
       "question": "Is the difference visible?",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Is the difference visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the difference visible? Each way an invoice differs from the order line is reported: billing more than was shipped as Invoiced and not shipped, billing less as Shipped and not billed, and another price as Invoice price differs, each with the quantities or prices compared.",
       "limitations": [
-        "Price differences and under-billing are visible.",
-        "Invoicing a customer for more than was shipped is not reported."
+        "Differences are reported, never corrected by themselves; a credit note or a further invoice settles them."
       ],
-      "keywords": [],
+      "keywords": [
+        "invoice differs from order",
+        "over-billing",
+        "under-billing",
+        "Rechnung weicht ab"
+      ],
       "question_examples": [
         "Invoice differs from the order (quantity/price)",
-        "Is the difference visible?"
+        "Is the difference visible?",
+        "We invoiced 12 but shipped only 10; does Reality show that?",
+        "Wir haben 12 berechnet, aber nur 10 geliefert; zeigt Reality das?"
       ],
-      "tools": [],
+      "tools": [
+        "exceptions_list",
+        "exception_explain"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
