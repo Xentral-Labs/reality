@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:c46b22bbda9a8bbdf0826392c99e9d7422859be27fad4f07682c1f2a60bee055",
+  "knowledge_version": "advisor-v1:sha256:ebeabc3a1d6661b63256126f67062d5b452026b0226fcdc18abc56b03a0dacc4",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -990,7 +990,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G06",
-      "fingerprint": "7956556e63309bddf6933b83f385a59a7cce4e27de5a5c82cebf756865b8c9ff"
+      "fingerprint": "3a649017ea2526a6e81c4a601637bf70b71b03c345ad20adf83d0eb562a9619c"
     },
     {
       "id": "source_journey_g07",
@@ -1017,7 +1017,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G09",
-      "fingerprint": "5574b32d11dc4dd075e7b3f84d6377bdbc9045f1dd6e1b76ca2a58ad93ff9a5c"
+      "fingerprint": "c2b196dadbe514a88664f41bfbcfa124de573fa826f6794f3b6c4c12c99f3fd4"
     },
     {
       "id": "source_journey_g10",
@@ -1044,7 +1044,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G12",
-      "fingerprint": "f6c86fca2feb4e615ad2a4bcbc2a6d73a0eff7686dc26ea60a594149238f993f"
+      "fingerprint": "226cd9b596ffead989b9601f68117aa1ede308c329040faa15aa7cc5a368ca52"
     },
     {
       "id": "source_journey_g13",
@@ -1269,7 +1269,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#I01",
-      "fingerprint": "52cee07019fe1d07b2fdff18feab6c30a8e5c02715780a23bfab54b49c593499"
+      "fingerprint": "7cfdfdaa0272712435b2a65faeebfd14137826c4f589d74527681d4c7027aed3"
     },
     {
       "id": "source_journey_i02",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "287c902491f37eb067e4ece2564b581b06f5246a201903838dc6032c98dd5078"
+      "fingerprint": "e24f9b9b96aa3e2b90168dd16c56b87636aa9788c201b836a0b1fa2454a808f8"
     },
     {
       "id": "source_document_product_evaluation",
@@ -3972,18 +3972,21 @@
       "source_id": "source_journey_g06",
       "subject": "Purchasing: demand and purchase order",
       "title": "Minimum order quantity / pack size forces more",
-      "search_text": "G06 Purchasing: demand and purchase order Minimum order quantity / pack size forces more Surplus visible as stock-bound? Minimum order quantity / pack size forces more Surplus visible as stock-bound?",
-      "claim_text": "Reality evaluates: Surplus visible as stock-bound?",
-      "support": "limited",
+      "search_text": "G06 Purchasing: demand and purchase order Minimum order quantity / pack size forces more Surplus visible as stock-bound? minimum order quantity MOQ pack size order multiple Mindestbestellmenge Verpackungseinheit Minimum order quantity / pack size forces more Surplus visible as stock-bound? The supplier sells only cartons of 12 and at least 50; what happens when we need 30? Der Lieferant liefert nur Kartons zu 12 und mindestens 50; was passiert, wenn wir 30 brauchen?",
+      "claim_text": "Reality evaluates: Surplus visible as stock-bound? Per supplier and item a minimum order quantity and an order multiple are stated. A purchase review names a quantity below them with the next one that meets them; the order is not refused. What is bought beyond the need is free stock or is assigned.",
+      "support": "proven",
       "limitations": [
-        "Surplus from a larger purchase shows up as stock or unassigned supply.",
-        "Minimum order quantities and pack sizes are not recorded."
+        "Terms are a hint in the review, never enforced.",
+        "Lead times per supplier are not recorded."
       ],
       "references": [
-        "G06"
+        "G06",
+        "supplier_item_terms_set_propose",
+        "supplier_item_terms",
+        "order_create_propose"
       ],
       "language": "en",
-      "fingerprint": "04785ee7be3a73041e838bc13d22e46368802f062482ceab79ed69ade3fa3371"
+      "fingerprint": "24a3cedc6078f2a247cb38fbb50075557f16db6583de582af73066517c9e55be"
     },
     {
       "id": "evidence_journey_g07",
@@ -4027,18 +4030,19 @@
       "source_id": "source_journey_g09",
       "subject": "Purchasing: demand and purchase order",
       "title": "Supplier confirms different quantity/price/date",
-      "search_text": "G09 Purchasing: demand and purchase order Supplier confirms different quantity/price/date Confirmed vs ordered visible? Supplier confirms different quantity/price/date Confirmed vs ordered visible?",
-      "claim_text": "Reality evaluates: Confirmed vs ordered visible?",
-      "support": "limited",
+      "search_text": "G09 Purchasing: demand and purchase order Supplier confirms different quantity/price/date Confirmed vs ordered visible? order confirmation supplier confirmation confirmed price Auftragsbestätigung bestätigter Preis Supplier confirms different quantity/price/date Confirmed vs ordered visible? The supplier confirmed 90 instead of 100 at a higher price; where do we record that? Der Lieferant bestätigt 90 statt 100 zu einem höheren Preis; wo erfassen wir das?",
+      "claim_text": "Reality evaluates: Confirmed vs ordered visible? A supplier's confirmation is a revision of the purchase promise: it restates quantity, date and unit price. Ordered and confirmed values are both shown, the guided supplier invoice takes the confirmed price, and Invoice price differs compares against it.",
+      "support": "proven",
       "limitations": [
-        "A confirmed quantity or date is recorded as a revision against the original.",
-        "A confirmed price cannot be stated."
+        "Confirmations are entered by a person or chat; EDI order responses are not interpreted."
       ],
       "references": [
-        "G09"
+        "G09",
+        "commitment_revise_propose",
+        "purchase_match"
       ],
       "language": "en",
-      "fingerprint": "50f541a8e54e8e5d82ef275b6b63a691a34207f7382fe73aee501780f08fdaf0"
+      "fingerprint": "d6a22ca38934d6fa51195a35cc50953813b3b56e9d8e3d2b7af8271df9a5116d"
     },
     {
       "id": "evidence_journey_g10",
@@ -4078,18 +4082,20 @@
       "source_id": "source_journey_g12",
       "subject": "Purchasing: demand and purchase order",
       "title": "Purchase cancelled after supplier produced",
-      "search_text": "G12 Purchasing: demand and purchase order Purchase cancelled after supplier produced Cancellation cost or refusal recorded? Purchase cancelled after supplier produced Cancellation cost or refusal recorded?",
-      "claim_text": "Reality evaluates: Cancellation cost or refusal recorded?",
-      "support": "limited",
+      "search_text": "G12 Purchasing: demand and purchase order Purchase cancelled after supplier produced Cancellation cost or refusal recorded? cancellation charge cancellation cost Stornokosten Stornogebühr Purchase cancelled after supplier produced Cancellation cost or refusal recorded? We cancelled a purchase the supplier had already made; how do we book their charge? Wir haben eine bereits produzierte Bestellung storniert; wie buchen wir die Stornokosten?",
+      "claim_text": "Reality evaluates: Cancellation cost or refusal recorded? The purchase line is cancelled with its reason, and the supplier's cancellation charge is recorded as a supplier invoice with a charge line naming that line. It is posted and paid like any invoice, raises no purchase finding, and the line shows the cancellation and the charge.",
+      "support": "proven",
       "limitations": [
-        "A purchase can be cancelled before receipt.",
-        "Cancellation costs or a supplier's refusal to cancel cannot be recorded."
+        "A supplier refusing the cancellation is recorded as a note or by keeping the promise open; there is no refusal status."
       ],
       "references": [
-        "G12"
+        "G12",
+        "commitment_cancel_propose",
+        "supplier_invoice_free_record_propose",
+        "purchase_match"
       ],
       "language": "en",
-      "fingerprint": "74e447baa0df041d9587c6e88cd204044ec0b385ab979009e336f18947b5761a"
+      "fingerprint": "73cff272de13630bba75002d5fc357d0f6c55356d21b8e6cb0651a04d6ddfe3c"
     },
     {
       "id": "evidence_journey_g13",
@@ -4499,21 +4505,21 @@
       "source_id": "source_journey_i01",
       "subject": "Supplier invoice and payment",
       "title": "Three-way match: purchase = receipt = invoice",
-      "search_text": "I01 Supplier invoice and payment Three-way match: purchase = receipt = invoice Match confirmed? Three-way match: purchase = receipt = invoice Match confirmed? Welche Abweichungen erkennt Reality bei einer Lieferantenrechnung?",
-      "claim_text": "Reality detects specific purchase, receipt and supplier-invoice discrepancies as findings. The absence of findings is not exposed as a positive clean three-way-match result, and a complete clean three-way match is not yet proven.",
+      "search_text": "I01 Supplier invoice and payment Three-way match: purchase = receipt = invoice Match confirmed? three-way match purchase match Drei-Wege-Abgleich Bestellabgleich Three-way match: purchase = receipt = invoice Match confirmed? Welche Abweichungen erkennt Reality bei einer Lieferantenrechnung? Is this purchase order fully received and billed as agreed? Ist diese Bestellung vollständig geliefert und wie vereinbart berechnet?",
+      "claim_text": "Reality evaluates: Match confirmed? The match of a purchase order answers per line whether the quantity in force was received, net of returns, and billed, net of credits, at the price agreed last. A line that agrees is matched; otherwise each difference is named.",
       "localized_claims": {
-        "de": "Reality erkennt bestimmte Abweichungen zwischen Bestellung, Wareneingang und Lieferantenrechnung als Findings. Das Fehlen von Findings wird nicht als positiv bestaetigter Drei-Wege-Abgleich ausgegeben; ein vollstaendiger sauberer Drei-Wege-Abgleich ist noch nicht belegt."
+        "de": "Der Bestellabgleich beantwortet je Position, ob die geltende Menge erhalten (abzüglich Rücksendungen) und berechnet (abzüglich Gutschriften) wurde, zum zuletzt vereinbarten Preis. Eine passende Position ist abgeglichen; sonst wird jede Abweichung genannt."
       },
-      "support": "limited",
+      "support": "proven",
       "limitations": [
-        "A match shows only as the absence of findings; there is no positive 'matched' answer.",
-        "A clean three-way match is not yet proven."
+        "Exact match only; there are no tolerances."
       ],
       "references": [
-        "I01"
+        "I01",
+        "purchase_match"
       ],
       "language": "en",
-      "fingerprint": "4d1e80365ad5778a52f10f4876abe82818354c2e14b2699ff3f9b6d5aea964ef"
+      "fingerprint": "9ad429b866b5ef72eb039c88032ec3c80da781c1b6acf4407f3ab523be14ca6d"
     },
     {
       "id": "evidence_journey_i02",
@@ -7254,6 +7260,66 @@
       ],
       "language": "en",
       "fingerprint": "bb852c49a2072099a2c647a685eef2b424fbbb0cceadc08391295e03c93909c2"
+    },
+    {
+      "id": "evidence_command_set_supplier_item_terms",
+      "source_id": "source_executable_commands",
+      "subject": "State supplier item terms",
+      "title": "State supplier item terms",
+      "search_text": "set_supplier_item_terms State supplier item terms States a supplier's minimum order quantity and order multiple for an item, as a new version of their statement stream; purchase reviews name an order that falls short. mutation",
+      "claim_text": "set_supplier_item_terms is a governed mutation command for States a supplier's minimum order quantity and order multiple for an item, as a new version of their statement stream; purchase reviews name an order that falls short..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "set_supplier_item_terms"
+      ],
+      "language": "en",
+      "fingerprint": "2dbcb0490dfffd374234ae80bd2bca53941a034cd282314e0f9718dadcf2e914"
+    },
+    {
+      "id": "evidence_command_remove_supplier_item_terms",
+      "source_id": "source_executable_commands",
+      "subject": "Withdraw supplier item terms",
+      "title": "Withdraw supplier item terms",
+      "search_text": "remove_supplier_item_terms Withdraw supplier item terms Withdraws a supplier's minimum order quantity and order multiple for an item. mutation",
+      "claim_text": "remove_supplier_item_terms is a governed mutation command for Withdraws a supplier's minimum order quantity and order multiple for an item..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "remove_supplier_item_terms"
+      ],
+      "language": "en",
+      "fingerprint": "48a09ed0ce594db7d53275ed5816d4fc1ee4043361331c5326af2cea4611e219"
+    },
+    {
+      "id": "evidence_command_supplier_item_terms",
+      "source_id": "source_executable_commands",
+      "subject": "Read supplier item terms",
+      "title": "Read supplier item terms",
+      "search_text": "supplier_item_terms Read supplier item terms Lists suppliers' minimum order quantities and order multiples, of one supplier or one item. query",
+      "claim_text": "supplier_item_terms is a governed query command for Lists suppliers' minimum order quantities and order multiples, of one supplier or one item..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "supplier_item_terms"
+      ],
+      "language": "en",
+      "fingerprint": "baad7c7072d86bb48624ba7631aa62ad18637842ffc8c75871a3e815ffffd491"
+    },
+    {
+      "id": "evidence_command_purchase_match",
+      "source_id": "source_executable_commands",
+      "subject": "Read the three-way match of a purchase order",
+      "title": "Read the three-way match of a purchase order",
+      "search_text": "purchase_match Read the three-way match of a purchase order Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference. query",
+      "claim_text": "purchase_match is a governed query command for Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "purchase_match"
+      ],
+      "language": "en",
+      "fingerprint": "e71a58e186706d15e3b7c665e077af3f9352303a21ff0db3db3dda1e9cd89505"
     },
     {
       "id": "evidence_command_set_customer_item_number",

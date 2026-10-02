@@ -17,7 +17,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/pu
 
 **Language/Version**: Python 3.12, TypeScript (React)
 
-**Storage**: PostgreSQL; migration `0117_purchasing_depth`
+**Storage**: PostgreSQL; migration `0122_purchasing_depth`
 
 **Testing**:
 - revision, terms, exception, match, adapter and story tests;
@@ -46,7 +46,7 @@ See [research.md](research.md), [data-model.md](data-model.md) and [contracts/pu
 
 ## Design
 
-1. **Schema:** migration `0117`:
+1. **Schema:** migration `0122`:
    - `commitment_revision.unit_price` (Numeric 18,4, nullable);
    - table `supplier_item_terms`.
 2. **Confirmed price:**

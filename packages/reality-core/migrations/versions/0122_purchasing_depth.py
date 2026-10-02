@@ -1,14 +1,14 @@
 """Confirmed purchase prices and supplier item terms (spec 310).
 
-Revision ID: 0117_purchasing_depth
-Revises: 0116_company_currency
+Revision ID: 0122_purchasing_depth
+Revises: 0121_census_members
 """
 
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0117_purchasing_depth"
-down_revision = "0116_company_currency"
+revision = "0122_purchasing_depth"
+down_revision = "0121_census_members"
 branch_labels = None
 depends_on = None
 
