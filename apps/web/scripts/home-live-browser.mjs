@@ -245,9 +245,11 @@ try {
         const summary = panel.locator("[data-activity-summary]");
         await page.mouse.move(0, 0);
         const restingHeight = (await summary.boundingBox()).height;
-        await bars.first().hover();
+        // Hover complete buckets only. The window starts exactly one period ago, so the
+        // first bucket is cut to the minutes left before :00 or :30, and the live last
+        // bucket is partial too; either can be a pixel wide and covered by its neighbour.
+        await bars.nth(1).hover();
         assert.equal((await summary.boundingBox()).height, restingHeight, "Summary grows on hover");
-        // Use a complete bucket: the live partial bucket can be subpixel-wide.
         await bars.nth((await bars.count()) - 2).hover();
         assert.equal(
           (await summary.boundingBox()).height,
