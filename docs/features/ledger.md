@@ -51,7 +51,14 @@ while a credit note settles an invoice and is settled by a refund.
 ## Invariants
 
 - A posting group balances to zero in one currency.
-- Amounts are positive Decimal values; debit/credit determines direction.
+- Every entry also carries its amount in the company currency and the rate used
+  (spec 309): the amount itself at rate 1 in the company currency, converted at a
+  stated rate otherwise. A converted group balances in the company currency too. A
+  foreign entry from before spec 309 has no company amount and stays unconverted.
+- Amounts are positive Decimal values; debit/credit determines direction. The one
+  exception is a realised exchange difference: an `exchange_difference` entry in the
+  payment's group with no amount in the group's currency, carrying only its
+  company-currency gain (credit) or loss (debit).
 - Every entry is tenant-scoped and has document or source provenance.
 - Entries are append-only; mistakes are corrected by reversal.
 - A posting group may be reversed once. A reversing group cannot itself be reversed;
@@ -63,8 +70,24 @@ while a credit note settles an invoice and is settled by a refund.
 
 ## Non-goals
 
-Chart-of-accounts administration, tax returns, bank reconciliation, FX revaluation,
-period closing, and statutory reporting are outside V0.
+Chart-of-accounts administration, tax returns, bank reconciliation, FX revaluation of
+open items, foreign-currency sales postings, period closing, and statutory reporting are
+outside V0.
+
+## Foreign-currency purchasing (spec 309)
+
+- The company currency is stated in the finance settings, EUR by default, and cannot
+  change once anything is posted.
+- A supplier invoice in another currency is posted at the rate a person states.
+- A supplier payment of such an invoice may state what was paid in the company currency.
+  The payable side carries the invoice's company-currency value of the settled part, the
+  cash side what was paid, and the difference goes to `exchange_difference`. The payment
+  that settles the rest takes what is left of the invoice's value, so nothing remains
+  through rounding.
+- Without a stated company-currency amount, the payment is made in the invoice currency
+  and valued at the invoice rate; nothing is realised.
+- The allocation stays in the invoice currency, so open items and their refusals are
+  unchanged.
 
 ## Acceptance stories
 

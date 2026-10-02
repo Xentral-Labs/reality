@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:6bca3a126cc8a4d51a0f6bd621b26cee5fcb01617095c00fa22ddc5469a8681b",
+  "knowledge_version": "advisor-v1:sha256:4f267ebe74bd160bac002601fffee7a5d102e6d12edbb487397541ebd808b867",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1008,7 +1008,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G08",
-      "fingerprint": "f4cc3bdd7af46277c9f43a0e8cd462a17aa685fd5cb5261bd5b7e8ea98f650b6"
+      "fingerprint": "898b3cf0309f03d3c7cd71b125f19ef8a319f3d8f1921ca17813167b12ec449a"
     },
     {
       "id": "source_journey_g09",
@@ -1359,7 +1359,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#I11",
-      "fingerprint": "99ed29d258dc9fda16da17495fb86d61a4103be7f05746ec4ccb685353e8267c"
+      "fingerprint": "12ac9be6436b2472c1f2f7bb7a10786a32f6b4e517f3b0ef669f1bd4a96647c0"
     },
     {
       "id": "source_journey_i12",
@@ -2034,7 +2034,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#R06",
-      "fingerprint": "f9d614f31a69eb9ba16367a48366fe1a14aa5b8422faf140d1833cdd11d0ff3c"
+      "fingerprint": "7a6a26f34f293a0f352cc68393b0148af0f23be61dc3b3b6c68fb2c24e06f7b6"
     },
     {
       "id": "source_journey_r07",
@@ -4007,18 +4007,20 @@
       "source_id": "source_journey_g08",
       "subject": "Purchasing: demand and purchase order",
       "title": "Purchase order in foreign currency (USD, CNY)",
-      "search_text": "G08 Purchasing: demand and purchase order Purchase order in foreign currency (USD, CNY) Currency kept, conversion at posting? Purchase order in foreign currency (USD, CNY) Currency kept, conversion at posting?",
-      "claim_text": "Reality evaluates: Currency kept, conversion at posting?",
-      "support": "limited",
+      "search_text": "G08 Purchasing: demand and purchase order Purchase order in foreign currency (USD, CNY) Currency kept, conversion at posting? foreign currency purchase USD purchase order exchange rate Fremdwährung Wechselkurs Purchase order in foreign currency (USD, CNY) Currency kept, conversion at posting? We buy in USD; how is the invoice booked in EUR? Wir kaufen in USD ein; wie wird die Rechnung in EUR gebucht?",
+      "claim_text": "Reality evaluates: Currency kept, conversion at posting? A purchase and its invoice keep the supplier's currency. The invoice is posted at the exchange rate a person states, and every ledger entry carries its amount in the company currency beside its own, with the rate used.",
+      "support": "proven",
       "limitations": [
-        "The purchase keeps its currency, and settling across currencies is refused.",
-        "Nothing is converted at posting."
+        "Rates are stated per invoice and payment; there is no rate feed or rate table.",
+        "Open items are not revalued at a reporting date."
       ],
       "references": [
-        "G08"
+        "G08",
+        "supplier_invoice_record_propose",
+        "company_currency"
       ],
       "language": "en",
-      "fingerprint": "9a6c3d9324c4c08852f5706d60a36f1721b8ef389697ba45ef0e84fcddda78f3"
+      "fingerprint": "d48dfd818657a41fc8e613c269e2b7a3e6cdc732645557eb12860108eedd24f8"
     },
     {
       "id": "evidence_journey_g09",
@@ -4662,18 +4664,20 @@
       "source_id": "source_journey_i11",
       "subject": "Supplier invoice and payment",
       "title": "Exchange difference between USD invoice and payment",
-      "search_text": "I11 Supplier invoice and payment Exchange difference between USD invoice and payment FX difference posted? Exchange difference between USD invoice and payment FX difference posted?",
-      "claim_text": "Reality evaluates: FX difference posted?",
-      "support": "unavailable",
+      "search_text": "I11 Supplier invoice and payment Exchange difference between USD invoice and payment FX difference posted? exchange difference FX gain FX loss Kursdifferenz Kursgewinn Kursverlust Exchange difference between USD invoice and payment FX difference posted? We paid a USD invoice from our EUR account; where is the exchange difference? Wir haben eine USD-Rechnung vom EUR-Konto bezahlt; wo ist die Kursdifferenz?",
+      "claim_text": "Reality evaluates: FX difference posted? A EUR payment of a USD invoice states what it settles in USD and what was paid in EUR. The difference to the invoice's value at its own rate is posted as a realised exchange gain or loss, per payment, and a fully paid invoice leaves nothing open in either currency.",
+      "support": "proven",
       "limitations": [
-        "A realized exchange difference between a foreign-currency invoice and its payment is not recorded.",
-        "Settling an invoice with a payment in another currency is refused."
+        "Rates come from the invoice posting and the stated payment; there is no revaluation of open items.",
+        "Foreign-currency payment runs pay in the invoice currency and realise nothing."
       ],
       "references": [
-        "I11"
+        "I11",
+        "supplier_payment_post_propose",
+        "company_currency"
       ],
       "language": "en",
-      "fingerprint": "ec6cb51268059169a0af6efb15e778fe0f4db250b5df93982e2869b8f6679d19"
+      "fingerprint": "f95f65f46d97b21ab2279dab95cdf31040a8f5d3a85660bb56f76ed174621da0"
     },
     {
       "id": "evidence_journey_i12",
@@ -5968,17 +5972,20 @@
       "subject": "Combined stress stories",
       "title": "Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting",
       "search_text": "R06 Combined stress stories Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting Landed cost and customer allocation. Import container: 5 purchases, 2 suppliers, freight, duty, USD rate; 2 customer orders waiting Landed cost and customer allocation.",
-      "claim_text": "Reality evaluates: Landed cost and customer allocation.",
-      "support": "limited",
+      "claim_text": "Reality evaluates: Landed cost and customer allocation. Five USD purchases from two suppliers arrive and are invoiced at their stated rates. The invoice rate is offered as the conversion basis, so a receipt's landed cost reads in EUR with its freight and duty, and the waiting customer orders are served from the arrival.",
+      "support": "proven",
       "limitations": [
-        "Freight and duty in landed cost and assigning supply to customers both work.",
-        "Converting the USD rate is not part of costing, and a combined container story is not yet proven."
+        "The invoice rate becomes a conversion basis only when the owner confirms it.",
+        "Costs in another currency are attributed to a receipt after its company-currency costs."
       ],
       "references": [
-        "R06"
+        "R06",
+        "supplier_invoice_record_propose",
+        "cost_change_propose",
+        "backorders_serve_propose"
       ],
       "language": "en",
-      "fingerprint": "f58158473a5ab1f4e2f79ebd651195ce04ca1f97ab7fc1ccc17068d8df47035f"
+      "fingerprint": "6e30e16910e2124719ff9ca021580357c976a7e6d31488677496728886fe2578"
     },
     {
       "id": "evidence_journey_r07",

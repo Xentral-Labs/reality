@@ -8,7 +8,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 138 covered, 18 partial, 0 missing, 69 gap, 3 out.
+228 scenarios: 141 covered, 16 partial, 0 missing, 68 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -18,9 +18,9 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | D Shipment, split and merge | 5 | 3 |  | 11 |  |
 | E Customer invoice and credit | 11 | 1 |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
-| G Purchase demand and order | 8 | 4 |  | 5 |  |
+| G Purchase demand and order | 9 | 3 |  | 5 |  |
 | H Receipt and supplier deviations | 14 |  |  | 5 |  |
-| I Supplier invoice and payment | 10 | 1 |  | 1 |  |
+| I Supplier invoice and payment | 11 | 1 |  |  |  |
 | J Warehouse and stock | 6 | 1 |  | 4 |  |
 | K Kits and variants | 1 |  |  | 5 |  |
 | L E-commerce and marketplaces | 7 |  |  | 5 |  |
@@ -29,7 +29,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | O Master data and identity | 3 |  |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
 | Q Time and period | 2 | 1 |  | 2 |  |
-| R Combined stress stories | 3 | 3 |  | 2 |  |
+| R Combined stress stories | 4 | 2 |  | 2 |  |
 
 Strongest where an operational exception class exists (at-risk, reservation_exceeds_stock,
 shipped_not_billed, returned_not_credited, billed_not_received, duplicate supplier invoice) and in
@@ -74,8 +74,9 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
 11. **No kits or bills of material.** K01, K02, K03, K04, K06.
 12. **No period record (spec 184 is a stub).** Q02, Q04. There is also no sales-side
     "invoiced not shipped" class (E03, Q01 partial).
-13. **Single-currency settlement.** Cross-currency allocation is refused and no realized FX
-    difference is posted. I11 (N03 out; G08 partial).
+13. **Foreign currency on the purchase side only.** Supplier invoices and payments convert at
+    stated rates and realise exchange differences (spec 309); sales in another currency,
+    revaluation of open items and foreign payment runs are not converted. (N03 out.)
 14. **Other single gaps:** loans and samples with a return obligation (M12), repair round trip
     (F10), returnable packaging (D19), subscriptions (L08), stored tax rate and customs data (L11,
     L12, D14), negative stock (J06 is refused by design), 3PL stock reconciliation (J07),
@@ -256,7 +257,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | G05 | gap | — | No framework agreement or call-off concept exists. |
 | G06 | partial | tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt | Surplus shows up as stock or unassigned supply; MOQ and pack size are not modelled or tested. |
 | G07 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported | Purchase price list with a 10-unit tier; the order line takes the tier entry; the guided supplier invoice is kept as stated with no finding; a second invoice at the single-unit tier recorded through document_create is reported as invoice_price_differs. |
-| G08 | partial | db/core.py Commitment.currency; tests/test_payment_runs.py::test_a_run_is_one_currency | Currency is kept and cross-currency is refused; nothing converts at posting (docs/features/ledger.md Non-goals: FX revaluation). |
+| G08 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_usd_purchase_is_invoiced_at_its_stated_rate | A USD purchase keeps its currency; its invoice is posted at the stated rate with both amounts on every entry (spec 309). |
 | G09 | partial | tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated, ::test_one_statement_can_restate_both | Confirmed quantity/date are revisions against the original; a confirmed *price* cannot be stated. |
 | G10 | gap | — | No acknowledgement expectation, so an unconfirmed PO is never flagged (only overdue after the due date). |
 | G11 | covered | tests/test_commitment_revisions.py::test_a_new_date_never_erases_the_old_one, ::test_the_date_in_force_is_the_latest_stated | Append-only revisions; the latest one is in force. |
@@ -305,7 +306,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | I08 | covered | tests/test_credit_notes.py::test_netting_leaves_the_remainder_open; tests/scenarios/test_storyline_purchase_to_pay.py::test_the_credit_branch_pays_less_and_keeps_the_quantity_finding | |
 | I09 | covered | tests/finance/test_commercial_edges.py::test_deposit_is_explicit_credit_and_clears_final_invoice[supplier] | The deposit is not linked to the PO. |
 | I10 | covered | tests/scenarios/test_storyline_purchase_to_pay.py (discount-full, credit-allocate, discount-net); tests/test_ledger.py::test_supplier_invoice_and_partial_payment_leave_open_payable | |
-| I11 | gap | docs/features/ledger.md Non-goals (FX revaluation); ledger rejects cross-currency | No realized FX difference posting; revaluation is out, the realized difference is not stated either way. |
+| I11 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_usd_invoice_paid_in_eur_realises_its_exchange_difference | A USD invoice paid in EUR in two parts realises a loss and a gain against its invoice rate and leaves nothing open (spec 309). |
 | I12 | covered | tests/operational_exceptions/test_derivation.py::test_duplicate_supplier_invoice; tests/test_payment_runs.py::test_the_duplicate_rule_has_one_home; tests/test_ledger.py::test_duplicate_invoice_posting_and_overpayment_are_rejected | Detected, and payment runs refuse it. |
 
 ## J. Warehouse and stock
@@ -425,6 +426,6 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | R03 | gap | specs/242-inventory-cost-contribution/spec.md (drop shipping listed only as an edge case) | There is no drop-shipment model (supplier ships to the customer, no own stock). |
 | R04 | gap | services/payment_intake.py (refuses references to several invoices); tests/test_payment_intake.py::test_two_invoices_for_one_order_and_a_consolidated_invoice_yield_no_allocation | There's no payout, fee or chargeback allocation across many orders. |
 | R05 | partial | tests/test_commitment_revisions.py::test_a_promise_can_shrink_below_what_arrived, ::test_shrinking_to_what_arrived_finishes_the_promise | Revising after a partial fulfilment is proven on commitments; there's no EDI ORDCHG or advice source. |
-| R06 | partial | docs/features/receipt-costing.md (freight/duty categories; FX excluded); tests/test_cost_allocation_services.py::test_weighted_preview_and_confirmation_retain_exact_existing_parts; tests/test_supply_assignments.py::test_customer_and_stock_supply_reconcile_without_implying_receipt | Freight/duty landed cost and customer assignment exist; USD rate conversion is out of the costing slice, and there's no combined container test. |
+| R06 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_an_import_container_lands_in_eur_with_freight_and_duty | Five USD purchases from two suppliers; the invoice rate as conversion basis lands one receipt in EUR with freight and duty, and the waiting orders are served (spec 309). |
 | R07 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_month_end_loss_uncovers_three_reservations_and_releases_none | Three reservations of 4 against 12, a count of 9: the review names all three, Reservation exceeds stock raises, and none is released by itself (spec 307). |
 | R08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_customer_who_is_also_a_supplier_is_held_with_every_fact | Overdue receivable, ordered value and open credit make the exposure; the payable to the same party is named, not netted (spec 298). |
