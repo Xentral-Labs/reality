@@ -21,4 +21,6 @@
 - [x] T010 Update docs/WEB_SPEC.md and applicable MCP contract; run generated catalog checks (FR-001–FR-006).
 - [x] T011 Complete tests/lint/spec/docs/browser gates and record evidence in specs/326-company-settings-access/quickstart.md.
 - [x] T012 Review final diff, publish PR, obtain green complete hosted CI, merge/deploy under explicit session authorization and verify public release endpoints.
-- [ ] T013 Complete the read-only post-deployment check of both owner dialogs and membership/report presentation in the existing logged-in Chrome session. Blocked by Computer Use `cgWindowNotFound`; do not claim an observed live owner result until the window is accessible.
+- [x] T013 Complete the read-only post-deployment check of both owner dialogs and membership/report presentation in the existing logged-in Chrome session. Chrome became accessible on 2026-10-02: both owner dialogs loaded successfully, absent membership was labeled correctly, and the private library explained its active-membership requirement.
+
+- [ ] T014 Add failing localized browser assertions for the access-state heading/guidance/recheck; update ReportLibrary and translations, verify browser recovery and full hosted gates (FR-004/FR-006).

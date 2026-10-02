@@ -124,3 +124,12 @@ Effective use requires both the scope matching the tool's current access class a
 exact tool grant; later catalog growth never expands it. `offline_access`, if supported,
 is an authorization-server request and is never advertised as an MCP resource scope or
 challenge requirement.
+
+## Single-host web gateway
+
+The public app gateway forwards both exact discovery paths, `/oauth/token`,
+`/oauth/revoke`, `/oauth/complete/*`, and protocol `/oauth/authorize` requests to
+the existing authorization API. `/oauth/authorize?interaction=<opaque ID>`
+continues to load the product SPA; the frontend validates its exact interaction
+URL. Unrelated well-known paths and API documentation are not exposed by these
+routes. Methods, queries, request bodies and cookies pass through unchanged.

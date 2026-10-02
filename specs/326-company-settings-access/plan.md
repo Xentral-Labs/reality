@@ -37,3 +37,7 @@ None. Revert code commit if needed. No credential rotation, token creation or li
 
 ## Review Risks
 Avoid broadening private author access, labeling platform admin as member, weakening HTTPS checks, or hiding unrelated errors. Root cause directly reproduced with production environment and no database.
+
+## Access-state presentation follow-up (2026-10-02)
+
+The user approved correcting the misleading loading-error/retry presentation observed in the live nonmember report library. FR-004 now distinguishes access refusal from technical errors. Add a report-specific accessible status with a membership heading, owner/switch-company guidance and Check access again action, localized in all four languages. Keep the existing stable API code and all permissions; no membership writes. Tests first: extend the four-language browser scenario to require the heading/guidance/action and reject the technical failure wording, then retain successful current-response recovery. Constitution I–VIII PASS; no schema or service changes. Analysis: all updated FR-004/FR-006 acceptance maps to this browser scenario and ReportLibrary/localization; no unresolved clarification or critical finding.

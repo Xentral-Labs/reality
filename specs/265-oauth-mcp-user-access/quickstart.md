@@ -229,3 +229,7 @@ make docs-catalog-check
 Record exact command, revision, date, pass/fail counts, skipped tests, both client
 versions and screenshots in this feature's later review evidence. Do not mark tasks,
 acceptance criteria or `docs/V0_CHECKLIST.md` complete while any required check is red.
+
+## Web gateway regression proof (2026-10-02)
+
+`python3 scripts/test_web_gateway.py` initially failed because OAuth metadata returned the SPA HTML. After the transport repair it passes discovery JSON, protocol/consent route separation, unchanged methods/query/body/cookies, completion redirect and cookie headers, existing API/health, and unrelated paths. The test runs the deployed Nginx template in nginx:1.27-alpine against a synthetic Python upstream on an isolated Docker network and cleans both containers/network. Helm lint, workflow tests, spec policy, core/script Ruff and diff whitespace checks pass. Public rollout verification follows hosted CI.

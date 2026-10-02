@@ -221,3 +221,10 @@ US5 two-client compatibility and all final release gates pass.
 | DR-003 | T007, T027 | T010, T028–T031 | Pending |
 | DR-004 | T006 | T008–T009, T035, T054 | Pending |
 | DR-005 | T006, T052 | T008–T009, T012, T052, T054 | Pending |
+
+## Public web gateway regression repair (2026-10-02)
+
+- [x] G001 Review existing FR-001/FR-003/FR-021/FR-023 and plan the smallest transport-only repair; Constitution and coverage analysis PASS.
+- [x] G002 Add and observe failing executable Nginx regression in scripts/test_web_gateway.py.
+- [x] G003 Repair apps/web/default.conf.template and run the regression in frontend-quality.
+- [ ] G004 Run local verification, review diff, obtain green hosted gates, merge/deploy and verify public discovery/authorization behavior.

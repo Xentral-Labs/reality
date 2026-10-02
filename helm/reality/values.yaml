@@ -51,7 +51,7 @@ imagePullSecrets: []
 # `/api/`; a split app.* + api.* layout needs a frontend code change, not a
 # values edit.
 #
-# The web container's nginx proxies /api/ and /healthz to `API_UPSTREAM`, which
+# The web container's nginx proxies API/health and explicit OAuth protocol paths to `API_UPSTREAM`, which
 # this chart points at the api Service — so the API needs no Ingress of its own.
 urls:
   app: ""            # e.g. https://app.runreality.ai  (SPA + /api/, one host)
@@ -467,7 +467,7 @@ ingress:
   # Adds ALB fixed-response 404s for /openapi.json, /docs and /redoc.
   #
   # OFF by default because it is not needed in the shipped layout: the web pod's
-  # nginx proxies ONLY `/api/` and `/healthz` to the API, so those three paths
+  # nginx proxies only API/health and explicit OAuth protocol paths to the API, so those three paths
   # fall through to the SPA's index.html and the API's anonymous OpenAPI surface
   # is not reachable through the app host at all. Verified by request.
   #

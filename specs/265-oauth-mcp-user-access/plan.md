@@ -293,3 +293,15 @@ All eight blocking rows remain PASS after the Phase 1 model and contracts. The d
 adds no business schema, parallel tool/service, Sandbox exception, stored derivation or
 document-owned operational state. The only new persistence is bounded account/security
 authority proven directly by FR-004–FR-011, FR-015–FR-019 and the protocol contracts.
+
+## Public web gateway regression repair (2026-10-02)
+
+Spec impact: restores FR-001, FR-003, FR-021 and FR-023; no new feature or permission. Session authorization covers review, merge and deployment. The deployed single-host ingress sends OAuth discovery and protocol requests to the web gateway, which currently falls back to SPA HTML.
+
+Proxy the two exact discovery routes, token/revoke routes and completion prefix to the existing API. On the shared authorize path, route a nonempty interaction argument to the unchanged SPA and all protocol requests to the API. The backend remains responsible for validation, consent, tenancy and grants. Preserve method, body, query and cookies. Do not broaden routing to arbitrary well-known paths or API documentation. Existing API routes and static assets retain their behavior.
+
+Constitution Check: I–VIII PASS. Transport-only repair; no ORM writes, schema, source/evidence changes, tenant exceptions, new permissions or dependencies. Existing Nginx container is reused. Rollback: revert gateway configuration and CI regression step.
+
+Tests first: execute the production Nginx template in its official image against a synthetic upstream and SPA. Prove JSON discovery, protocol/consent separation, unchanged POST body/query/cookie and completion redirect, existing API/health forwarding, and unrelated SPA paths. Add this executable gate to frontend-quality. Run spec policy, workflow regression tests and Nginx test locally; require all hosted gates green before merge. After deploy, public metadata must be JSON with the canonical issuer; malformed authorization must reach API validation without creating grants.
+
+Pre-implementation analysis/review: requirements have no unresolved clarification; all four requirements map to the gateway regression test and routing task. No critical findings. Route separation is necessary because protocol and browser consent intentionally share /oauth/authorize.
