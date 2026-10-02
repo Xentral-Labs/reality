@@ -123,6 +123,26 @@ interface Process {
 }
 
 interface Model {
+  interface_guide: {
+    title: Localized;
+    counts_note: Localized;
+    relationships_title: Localized;
+    kinds: Record<
+      "command" | "tool" | "action",
+      {
+        label: Localized;
+        singular: Localized;
+        description: Localized;
+      }
+    >;
+    example: {
+      title: Localized;
+      description: Localized;
+      action: string;
+      command: string;
+      tool: string;
+    };
+  };
   analyticsModel: Record<
     "en" | "de",
     InstanceType<typeof AnalyticsModelExplorer>["$props"]["catalog"]
@@ -236,10 +256,8 @@ const copy: Record<Locale, Record<string, string>> = {
     projection: "Projection",
     workspaces: "Workspaces",
     views: "Views",
-    actions: "Actions",
     consumers: "Consumers",
     outputs: "Outputs",
-    command: "Command",
     targetRoute: "Lands on",
     prerequisites: "Prerequisites",
     owner: "Owner",
@@ -254,19 +272,13 @@ const copy: Record<Locale, Record<string, string>> = {
     byWorkspace: "By workspace",
     byArea: "By business area",
     answers: "Answers",
-    kind_command: "Commands",
-    kind_tool: "Agent tools",
     kind_view: "Views",
     kind_projection: "Projections",
-    kind_action: "Actions",
     kind_exception: "Exceptions",
     kind_event: "Events",
     kind_workspace: "Workspaces",
-    one_command: "command",
-    one_tool: "agent tool",
     one_view: "view",
     one_projection: "projection",
-    one_action: "action",
     one_exception: "exception",
     one_event: "event",
     one_workspace: "workspace",
@@ -346,10 +358,8 @@ const copy: Record<Locale, Record<string, string>> = {
     projection: "Projection",
     workspaces: "Arbeitsbereiche",
     views: "Sichten",
-    actions: "Aktionen",
     consumers: "Verbraucher",
     outputs: "Ausgaben",
-    command: "Geschäftsaktion",
     targetRoute: "Landet auf",
     prerequisites: "Voraussetzungen",
     owner: "Verantwortlich",
@@ -364,19 +374,13 @@ const copy: Record<Locale, Record<string, string>> = {
     byWorkspace: "Nach Arbeitsbereich",
     byArea: "Nach Geschäftsbereich",
     answers: "Beantwortet",
-    kind_command: "Geschäftsaktionen",
-    kind_tool: "Agenten-Tools",
     kind_view: "Sichten",
     kind_projection: "Projections",
-    kind_action: "Aktionen",
     kind_exception: "Ausnahmen",
     kind_event: "Events",
     kind_workspace: "Arbeitsbereiche",
-    one_command: "Geschäftsaktion",
-    one_tool: "Agenten-Tool",
     one_view: "Sicht",
     one_projection: "Projection",
-    one_action: "Aktion",
     one_exception: "Ausnahme",
     one_event: "Event",
     one_workspace: "Arbeitsbereich",
@@ -385,7 +389,19 @@ const copy: Record<Locale, Record<string, string>> = {
 
 const { lang } = useData();
 const locale = computed<Locale>(() => (lang.value.startsWith("de") ? "de" : "en"));
-const t = computed(() => copy[locale.value]);
+const t = computed(() => {
+  const guide = model.value?.interface_guide;
+  const kinds = Object.entries(guide?.kinds || {}).flatMap(([kind, definition]) => [
+    ["kind_" + kind, definition.label[locale.value]],
+    ["one_" + kind, definition.singular[locale.value]],
+  ]);
+  return {
+    ...copy[locale.value],
+    ...Object.fromEntries(kinds),
+    actions: guide?.kinds.action.label[locale.value] || "",
+    command: guide?.kinds.command.label[locale.value] || "",
+  };
+});
 const pagePrefix = computed(() => (locale.value === "de" ? "/de/tool-usage/" : "/tool-usage/"));
 
 const model = shallowRef<Model | null>(null);
@@ -488,6 +504,11 @@ const results = computed(() =>
 );
 
 const selected = computed(() => byId.value.get(selectedId.value) || null);
+const operationRelationships = computed(() =>
+  (selected.value?.links || []).filter((id) =>
+    ["command", "tool", "action"].includes(byId.value.get(id)?.kind || ""),
+  ),
+);
 
 const entriesOf = (kindOf: Kind, keys: string[] | undefined) =>
   (keys || []).map((k) => byId.value.get(`${kindOf}:${k}`)).filter((e): e is Entry => Boolean(e));
@@ -982,6 +1003,30 @@ const explorerIntro = computed(() => {
         <h2>{{ explorerIntro[0] }}</h2>
         <p>{{ explorerIntro[1] }}</p>
       </header>
+      <details v-if="tab === 'technical'" class="interface-guide" data-interface-guide>
+        <summary>{{ loc(model.interface_guide.title) }}</summary>
+        <dl>
+          <template v-for="(definition, key) in model.interface_guide.kinds" :key="key">
+            <dt>{{ loc(definition.label) }}</dt>
+            <dd>{{ loc(definition.description) }}</dd>
+          </template>
+        </dl>
+        <p>{{ loc(model.interface_guide.counts_note) }}</p>
+        <h3>{{ loc(model.interface_guide.example.title) }}</h3>
+        <p>{{ loc(model.interface_guide.example.description) }}</p>
+        <ul>
+          <li v-for="key in ['action', 'tool', 'command'] as const" :key="key">
+            {{ loc(model.interface_guide.kinds[key].label) }}:
+            <button
+              type="button"
+              class="linkish"
+              @click="select(model.interface_guide.example[key])"
+            >
+              <code>{{ byId.get(model.interface_guide.example[key])?.key }}</code>
+            </button>
+          </li>
+        </ul>
+      </details>
       <div class="tool-usage-toolbar">
         <label class="tool-usage-search">
           <span class="visually-hidden">{{ t.search }}</span>
@@ -1674,10 +1719,32 @@ const explorerIntro = computed(() => {
                   </ul>
                 </template>
 
-                <template v-if="selected.links.length">
+                <section v-if="operationRelationships.length" data-operation-relationships>
+                  <h3 class="man-title">
+                    {{ loc(model.interface_guide.relationships_title) }}
+                  </h3>
+                  <ul class="man-links">
+                    <li v-for="id in operationRelationships" :key="id">
+                      <button type="button" class="tool-usage-row compact" @click="select(id)">
+                        <span :class="['badge', 'badge-' + byId.get(id)?.kind]">
+                          {{ t["one_" + byId.get(id)?.kind] }}
+                        </span>
+                        <code>{{ byId.get(id)?.key }}</code>
+                        <span class="row-label">{{ name(byId.get(id)) }}</span>
+                      </button>
+                    </li>
+                  </ul>
+                </section>
+
+                <template v-if="selected.links.some((id) => !operationRelationships.includes(id))">
                   <h3 class="man-title">{{ t.seeAlso }}</h3>
                   <ul class="man-links">
-                    <li v-for="id in selected.links" :key="id">
+                    <li
+                      v-for="id in selected.links.filter(
+                        (id) => !operationRelationships.includes(id),
+                      )"
+                      :key="id"
+                    >
                       <button type="button" class="tool-usage-row compact" @click="select(id)">
                         <span :class="['badge', 'badge-' + byId.get(id)?.kind]">
                           {{ t["one_" + byId.get(id)?.kind] }}
@@ -2729,6 +2796,28 @@ const explorerIntro = computed(() => {
 .read-execution code {
   overflow-wrap: anywhere;
   white-space: normal;
+}
+
+.interface-guide {
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+}
+
+.interface-guide summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.interface-guide dt {
+  margin-top: 0.75rem;
+  font-weight: 600;
+}
+
+.interface-guide dd {
+  margin: 0.25rem 0 0;
+  color: var(--vp-c-text-2);
 }
 .read-execution > div + div {
   margin-top: 1.5rem;

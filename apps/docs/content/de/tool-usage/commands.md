@@ -7,6 +7,30 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 > Automatisch aus `command_catalog.yaml`, `reality/mcp/catalog.py` erzeugt. Diese Seite nicht von
 > Hand bearbeiten.
 
+## Commands, Agenten-Tools und Web-Aktionen
+
+| Art           | Beschreibung                                                                                                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Commands      | Gemeinsame Anwendungsoperationen zum Lesen und Ändern. CLI, Web und Agenten nutzen dieselben fachlichen Services.                                                                                                                    |
+| Agenten-Tools | Aufrufbare Agenten-Schnittstellen mit definierten Eingaben und Zugriffsarten. Ein Tool kann einen Command zugänglich machen; Abfragen, Discovery und Vorschlagssteuerung müssen keinem einzelnen fachlichen Command zugeordnet sein. |
+| Web-Aktionen  | Registrierte Bedienaktionen der Web-Arbeitsbereiche, die einen Command starten, mit Voraussetzungen, Bestätigung und Zielansicht. Gezählt werden registrierte Workspace-Aktionen, nicht sämtliche Web-Buttons.                       |
+
+Diese Zahlen überschneiden sich: Ein Command, sein Agenten-Tool und seine Web-Aktion können dieselbe
+Fähigkeit beschreiben. Sie lassen sich nicht als unabhängige Features addieren. Ein Command kann
+mehrere Agenten-Tools haben oder keines.
+
+### Beispiel: 5 Stück reservieren
+
+Die Web-Aktion startet den Reservierungs-Command nach ihrer Bestätigung. Das Agenten-Tool bereitet
+einen Vorschlag mit Commitment-ID und Menge 5 vor; die ausdrückliche Freigabe über
+proposal_approve_and_execute führt anschließend zum selben Command. Der Service prüft die Zuteilung.
+Die Menge ist in der Agenten-Schnittstelle optional; mit 5 wird die gewünschte Menge ausdrücklich
+angegeben.
+
+- Web-Aktionen: [Reserve stock](./views#action-reserve_stock) (`reserve_stock`)
+- Agenten-Tools: [Propose reservation](./commands#tool-reservation_propose) (`reservation_propose`)
+- Commands: [Bestand reservieren](./commands#command-reserve) (`reserve`)
+
 | Schlüssel                                                                         | Bezeichnung                                | Bereich                 | Agenten-Tools                                                                                                                                                                                | Erreichbar über                         |
 | --------------------------------------------------------------------------------- | ------------------------------------------ | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
 | [`business_journey_proposal_create`](#command-business_journey_proposal_create)   | Suggest a Business Journey                 | Agentensteuerung        | `business_journey_suggest_propose`                                                                                                                                                           | Web · API · MCP · Chat                  |
@@ -196,7 +220,7 @@ business_journey_suggest_propose title business_question expected_outcome proces
 | `process_area`      | `string` | ja      | `availability`, `b2b`, `combined`, `commerce`, `finance`, `invoicing`, `master_data`, `orders`, `payables`, `payments`, `products`, `purchasing`, `receiving`, `returns`, `shipping`, `sources`, `time`, `warehouse` | —        |
 | `business_context`  | `string` | nein    | —                                                                                                                                                                                                                    | —        |
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`business_journey_proposal_create`](./commands#command-business_journey_proposal_create)
 
 ## Unternehmen & Zugang
@@ -238,7 +262,7 @@ member_invite_propose email [locale]
 | `email`  | `string` | ja      | Email address supplied for the named business purpose.                                                         | —        |
 | `locale` | `string` | nein    | Preferred supported language for invitation delivery, with the documented fallback when absent or unsupported. | `en`     |
 
-**Siehe auch:** Geschäftsaktion [`create_invitation`](./commands#command-create_invitation)
+**Siehe auch:** Command [`create_invitation`](./commands#command-create_invitation)
 
 ### `remove_member` — Remove company member {#command-remove_member}
 
@@ -275,7 +299,7 @@ member_remove_propose membership_id
 | --------------- | -------- | ------- | ---------------------------------------------------- | -------- |
 | `membership_id` | `string` | ja      | Opaque identity of the company membership to remove. | —        |
 
-**Siehe auch:** Geschäftsaktion [`remove_member`](./commands#command-remove_member)
+**Siehe auch:** Command [`remove_member`](./commands#command-remove_member)
 
 ### `resend_invitation` — Resend company invitation {#command-resend_invitation}
 
@@ -315,7 +339,7 @@ invitation_resend_propose invitation_id
 | --------------- | -------- | ------- | -------------------------------------------------------------- | -------- |
 | `invitation_id` | `string` | ja      | Opaque identity of the company invitation to resend or revoke. | —        |
 
-**Siehe auch:** Geschäftsaktion [`resend_invitation`](./commands#command-resend_invitation)
+**Siehe auch:** Command [`resend_invitation`](./commands#command-resend_invitation)
 
 ### `revoke_invitation` — Revoke company invitation {#command-revoke_invitation}
 
@@ -354,7 +378,7 @@ invitation_revoke_propose invitation_id
 | --------------- | -------- | ------- | -------------------------------------------------------------- | -------- |
 | `invitation_id` | `string` | ja      | Opaque identity of the company invitation to resend or revoke. | —        |
 
-**Siehe auch:** Geschäftsaktion [`revoke_invitation`](./commands#command-revoke_invitation)
+**Siehe auch:** Command [`revoke_invitation`](./commands#command-revoke_invitation)
 
 ## Stammdaten & Preise
 
@@ -402,8 +426,7 @@ price_tier_create_propose price_list_id item_id min_quantity unit_price unit [va
 | `valid_from`    | `string` | nein    | Inclusive UTC instant from which a rule or price may be selected.                 | —        |
 | `valid_until`   | `string` | nein    | Optional inclusive UTC instant after which a rule or price is no longer selected. | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`create_price_list_entry`](./commands#command-create_price_list_entry)
+**Siehe auch:** Command [`create_price_list_entry`](./commands#command-create_price_list_entry)
 
 ### `assign_party_price_list` — Assign party price list {#command-assign_party_price_list}
 
@@ -445,8 +468,7 @@ party_price_list_assign_propose party_id price_list_id [priority]
 | `price_list_id` | `string`  | ja      | Opaque identity of the sales or purchase price list.                   | —        |
 | `priority`      | `integer` | nein    | Ordering used when more than one eligible rule could apply.            | `100`    |
 
-**Siehe auch:** Geschäftsaktion
-[`assign_party_price_list`](./commands#command-assign_party_price_list)
+**Siehe auch:** Command [`assign_party_price_list`](./commands#command-assign_party_price_list)
 
 ### `set_master_data_active` — Change master-data lifecycle {#command-set_master_data_active}
 
@@ -488,8 +510,7 @@ master_data_lifecycle_propose model record_id is_active
 | `record_id` | `string`  | ja      | Opaque identity of the master-data record whose lifecycle is being changed.                            | —        |
 | `is_active` | `boolean` | ja      | Whether the record remains selectable for new operational work.                                        | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`set_master_data_active`](./commands#command-set_master_data_active)
+**Siehe auch:** Command [`set_master_data_active`](./commands#command-set_master_data_active)
 
 ### `create_party_group` — Create and assign pricing group {#command-create_party_group}
 
@@ -536,7 +557,7 @@ party_group_create_propose code name
 | `code` | `string` | ja      | Short tenant-scoped business code used to find the record operationally. | —        |
 | `name` | `string` | ja      | Human-readable display name; it is not used as internal identity.        | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_party_group`](./commands#command-create_party_group)
+**Siehe auch:** Command [`create_party_group`](./commands#command-create_party_group)
 
 #### `party_group_update_propose` — Update party group {#tool-party_group_update_propose}
 
@@ -559,7 +580,7 @@ party_group_update_propose party_group_id code name
 | `code`           | `string` | ja      | Short tenant-scoped business code used to find the record operationally. | —        |
 | `name`           | `string` | ja      | Human-readable display name; it is not used as internal identity.        | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_party_group`](./commands#command-create_party_group)
+**Siehe auch:** Command [`create_party_group`](./commands#command-create_party_group)
 
 #### `party_group_member_add_propose` — Add party group member {#tool-party_group_member_add_propose}
 
@@ -581,7 +602,7 @@ party_group_member_add_propose party_group_id party_id
 | `party_group_id` | `string` | ja      | Opaque identity of a pricing or operational party group.               | —        |
 | `party_id`       | `string` | ja      | Opaque identity of the customer, supplier, or other operational party. | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_party_group`](./commands#command-create_party_group)
+**Siehe auch:** Command [`create_party_group`](./commands#command-create_party_group)
 
 #### `group_price_list_assign_propose` — Assign group price list {#tool-group_price_list_assign_propose}
 
@@ -604,7 +625,7 @@ group_price_list_assign_propose party_group_id price_list_id [priority]
 | `price_list_id`  | `string`  | ja      | Opaque identity of the sales or purchase price list.        | —        |
 | `priority`       | `integer` | nein    | Ordering used when more than one eligible rule could apply. | `100`    |
 
-**Siehe auch:** Geschäftsaktion [`create_party_group`](./commands#command-create_party_group)
+**Siehe auch:** Command [`create_party_group`](./commands#command-create_party_group)
 
 ### `create_item` — Create item {#command-create_item}
 
@@ -655,7 +676,7 @@ item_create_propose records
 | `records[].external_id`         | `string`  | nein    | Identifier assigned by the named external source system; never internal identity.                       | —         |
 | `records[].source_payload`      | `object`  | nein    | Lossless external JSON evidence from which typed operational fields were selected.                      | —         |
 
-**Siehe auch:** Geschäftsaktion [`create_item`](./commands#command-create_item)
+**Siehe auch:** Command [`create_item`](./commands#command-create_item)
 
 ### `create_location` — Create location {#command-create_location}
 
@@ -705,7 +726,7 @@ location_create_propose records
 | `records[].external_id`        | `string`  | nein    | Identifier assigned by the named external source system; never internal identity.                                                                                | —           |
 | `records[].source_payload`     | `object`  | nein    | Lossless external JSON evidence from which typed operational fields were selected.                                                                               | —           |
 
-**Siehe auch:** Geschäftsaktion [`create_location`](./commands#command-create_location)
+**Siehe auch:** Command [`create_location`](./commands#command-create_location)
 
 ### `create_party` — Create party {#command-create_party}
 
@@ -759,7 +780,7 @@ party_create_propose records
 | `records[].external_id`       | `string` | nein    | Identifier assigned by the named external source system; never internal identity.                                                                                                                  | —        |
 | `records[].source_payload`    | `object` | nein    | Lossless external JSON evidence from which typed operational fields were selected.                                                                                                                 | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_party`](./commands#command-create_party)
+**Siehe auch:** Command [`create_party`](./commands#command-create_party)
 
 ### `create_payment_term` — Create payment term {#command-create_payment_term}
 
@@ -809,7 +830,7 @@ payment_term_create_propose code name due_days [discount_percent] [discount_days
 | `external_id`         | `string`  | nein    | Identifier assigned by the named external source system; never internal identity.                                       | —        |
 | `source_payload`      | `object`  | nein    | Lossless external JSON evidence from which typed operational fields were selected.                                      | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_payment_term`](./commands#command-create_payment_term)
+**Siehe auch:** Command [`create_payment_term`](./commands#command-create_payment_term)
 
 #### `payment_term_update_propose` — Update payment term {#tool-payment_term_update_propose}
 
@@ -836,7 +857,7 @@ payment_term_update_propose payment_term_id code name due_days [discount_percent
 | `discount_days`       | `integer` | nein    | Days from the invoice date within which an early-payment discount applies; stated together with the rate or not at all. | —        |
 | `requires_prepayment` | `boolean` | nein    | Whether customer delivery requires qualifying allocated payment evidence before dispatch.                               | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_payment_term`](./commands#command-create_payment_term)
+**Siehe auch:** Command [`create_payment_term`](./commands#command-create_payment_term)
 
 ### `create_price_list` — Create price list {#command-create_price_list}
 
@@ -887,7 +908,7 @@ price_list_create_propose code name direction currency [valid_from] [valid_until
 | `external_id`    | `string`  | nein    | Identifier assigned by the named external source system; never internal identity.             | —        |
 | `source_payload` | `object`  | nein    | Lossless external JSON evidence from which typed operational fields were selected.            | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_price_list`](./commands#command-create_price_list)
+**Siehe auch:** Command [`create_price_list`](./commands#command-create_price_list)
 
 #### `price_list_update_propose` — Update price list {#tool-price_list_update_propose}
 
@@ -913,7 +934,7 @@ price_list_update_propose price_list_id code name direction currency [is_default
 | `currency`      | `string`  | ja      | ISO 4217 currency code for monetary values.                                                   | —        |
 | `is_default`    | `boolean` | nein    | Whether this rule is the fallback for its direction and currency.                             | `False`  |
 
-**Siehe auch:** Geschäftsaktion [`create_price_list`](./commands#command-create_price_list)
+**Siehe auch:** Command [`create_price_list`](./commands#command-create_price_list)
 
 ### `commercial_match` — Read reviewed partial commercial match {#command-commercial_match}
 
@@ -977,7 +998,7 @@ references.
 | `document_line_id`  | `string` | ja      | Opaque same-tenant received document line identity; must belong to the selected document.                 | —        |
 | `match_revision_id` | `string` | nein    | Exact retained commercial match revision identity; absence selects the latest revision for the sold line. | `None`   |
 
-**Siehe auch:** Geschäftsaktion [`commercial_match`](./commands#command-commercial_match)
+**Siehe auch:** Command [`commercial_match`](./commands#command-commercial_match)
 
 ### `resolve_price` — Resolve authoritative price quote {#command-resolve_price}
 
@@ -1042,7 +1063,7 @@ why that list won.
 | `unit`      | `string` | ja      | Unit of measure in which the quantity is expressed.                                           | —        |
 | `at`        | `string` | nein    | UTC instant at which the projection or rule should be evaluated.                              | —        |
 
-**Siehe auch:** Geschäftsaktion [`resolve_price`](./commands#command-resolve_price)
+**Siehe auch:** Command [`resolve_price`](./commands#command-resolve_price)
 
 ### `update_item` — Update item {#command-update_item}
 
@@ -1095,7 +1116,7 @@ item_update_propose records
 | `records[].external_id`         | `string`  | nein    | Identifier assigned by the named external source system; never internal identity.                       | —        |
 | `records[].source_payload`      | `object`  | nein    | Lossless external JSON evidence from which typed operational fields were selected.                      | —        |
 
-**Siehe auch:** Geschäftsaktion [`update_item`](./commands#command-update_item)
+**Siehe auch:** Command [`update_item`](./commands#command-update_item)
 
 ### `update_location` — Update location {#command-update_location}
 
@@ -1144,7 +1165,7 @@ location_update_propose records
 | `records[].external_id`        | `string`  | nein    | Identifier assigned by the named external source system; never internal identity.                                                                                | —        |
 | `records[].source_payload`     | `object`  | nein    | Lossless external JSON evidence from which typed operational fields were selected.                                                                               | —        |
 
-**Siehe auch:** Geschäftsaktion [`update_location`](./commands#command-update_location)
+**Siehe auch:** Command [`update_location`](./commands#command-update_location)
 
 ### `update_party` — Update party {#command-update_party}
 
@@ -1201,7 +1222,7 @@ party_update_propose records
 | `records[].external_id`       | `string` | nein    | Identifier assigned by the named external source system; never internal identity.                                                                                                                  | —        |
 | `records[].source_payload`    | `object` | nein    | Lossless external JSON evidence from which typed operational fields were selected.                                                                                                                 | —        |
 
-**Siehe auch:** Geschäftsaktion [`update_party`](./commands#command-update_party)
+**Siehe auch:** Command [`update_party`](./commands#command-update_party)
 
 ## Finanzen
 
@@ -1271,7 +1292,7 @@ Prepare an explicit noncash customer or supplier settlement reduction.
 
 **Prüfen mit:** `finance.adjustment.context` — Remaining invoice claim.
 
-**Siehe auch:** Geschäftsaktion [`accept_adjustment`](./commands#command-accept_adjustment)
+**Siehe auch:** Command [`accept_adjustment`](./commands#command-accept_adjustment)
 
 ### `assign_component` — Assign received financial component {#command-assign_component}
 
@@ -1346,7 +1367,7 @@ Prepare explicit classification and cost-center shares for a received component.
 **Prüfen mit:** `finance.component.history` — Immutable received-component assignment revision and
 exact shares.
 
-**Siehe auch:** Geschäftsaktion [`assign_component`](./commands#command-assign_component)
+**Siehe auch:** Command [`assign_component`](./commands#command-assign_component)
 
 ### `create_account` — Create operational account {#command-create_account}
 
@@ -1408,7 +1429,7 @@ Prepare an owner-confirmed operational account configuration change.
 
 **Prüfen mit:** `timeline` — The account change event and identity.
 
-**Siehe auch:** Geschäftsaktion [`create_account`](./commands#command-create_account), Projection
+**Siehe auch:** Command [`create_account`](./commands#command-create_account), Projection
 [`timeline`](./views#projection-timeline)
 
 ### `execute_payment_run` — Execute payment run {#command-execute_payment_run}
@@ -1429,7 +1450,7 @@ Schreibt: `source_record`, `document`, `ledger_entry`, `settlement_allocation`, 
 Erzeugt: `payments.run`
 
 **Siehe auch:** Agenten-Tool [`payment_run_propose`](./commands#tool-payment_run_propose), Event
-[`payments.run`](./events#event-payments-run), Geschäftsaktion
+[`payments.run`](./events#event-payments-run), Command
 [`post_supplier_payment`](./commands#command-post_supplier_payment)
 
 #### `payment_run_propose` — Execute payment run {#tool-payment_run_propose}
@@ -1457,7 +1478,7 @@ payment_run_propose payments currency expected_total reason
 | `expected_total`            | `string` | ja      | The sum of money the caller confirmed; a run is refused unless the stated amounts still add up to it.                             | —        |
 | `reason`                    | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                                                           | —        |
 
-**Siehe auch:** Geschäftsaktion [`execute_payment_run`](./commands#command-execute_payment_run)
+**Siehe auch:** Command [`execute_payment_run`](./commands#command-execute_payment_run)
 
 ### `import_opening` — Import opening positions {#command-import_opening}
 
@@ -1535,7 +1556,7 @@ Prepare explicit customer/supplier opening residuals with stable source coverage
 **Prüfen mit:** `finance.opening.context` — Current finance revision and account setup; inspect
 receipt document and ledger identities for balances.
 
-**Siehe auch:** Geschäftsaktion [`import_opening`](./commands#command-import_opening)
+**Siehe auch:** Command [`import_opening`](./commands#command-import_opening)
 
 ### `initialize_accounts` — Initialize operational accounts {#command-initialize_accounts}
 
@@ -1594,8 +1615,8 @@ Prepare an owner-confirmed operational account configuration change.
 
 **Prüfen mit:** `timeline` — The account change event and identity.
 
-**Siehe auch:** Geschäftsaktion [`initialize_accounts`](./commands#command-initialize_accounts),
-Projection [`timeline`](./views#projection-timeline)
+**Siehe auch:** Command [`initialize_accounts`](./commands#command-initialize_accounts), Projection
+[`timeline`](./views#projection-timeline)
 
 ### `list_mappings` — List Mappings {#command-list_mappings}
 
@@ -1658,7 +1679,7 @@ Read Finance-only target configuration and explicit mapping resolution.
 | `limit`     | `integer` | nein    | Maximum number of records or jobs processed by this invocation.           | —        |
 | `offset`    | `integer` | nein    | Number of matching rows to skip for bounded pagination.                   | —        |
 
-**Siehe auch:** Geschäftsaktion [`list_mappings`](./commands#command-list_mappings)
+**Siehe auch:** Command [`list_mappings`](./commands#command-list_mappings)
 
 ### `list_target_references` — List Target References {#command-list_target_references}
 
@@ -1723,8 +1744,7 @@ Read Finance-only target configuration and explicit mapping resolution.
 | `limit`     | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                 | —        |
 | `offset`    | `integer` | nein    | Number of matching rows to skip for bounded pagination.                         | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`list_target_references`](./commands#command-list_target_references)
+**Siehe auch:** Command [`list_target_references`](./commands#command-list_target_references)
 
 ### `list_targets` — List Targets {#command-list_targets}
 
@@ -1786,7 +1806,7 @@ Read Finance-only target configuration and explicit mapping resolution.
 | `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation.           | —        |
 | `offset` | `integer` | nein    | Number of matching rows to skip for bounded pagination.                   | —        |
 
-**Siehe auch:** Geschäftsaktion [`list_targets`](./commands#command-list_targets)
+**Siehe auch:** Command [`list_targets`](./commands#command-list_targets)
 
 ### `maintain_target_configuration` — Maintain Target Configuration {#command-maintain_target_configuration}
 
@@ -1863,7 +1883,7 @@ Review Finance-only target configuration.
 **Prüfen mit:** `finance.target_mappings.list` — Current rules; mapping history preserves reviewed
 revisions.
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`maintain_target_configuration`](./commands#command-maintain_target_configuration)
 
 #### `finance_target_update_propose` — Review Finance target configuration {#tool-finance_target_update_propose}
@@ -1910,7 +1930,7 @@ Review Finance-only target configuration.
 **Prüfen mit:** `finance.target_mappings.list` — Current rules; mapping history preserves reviewed
 revisions.
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`maintain_target_configuration`](./commands#command-maintain_target_configuration)
 
 #### `finance_target_reference_create_propose` — Review Finance target configuration {#tool-finance_target_reference_create_propose}
@@ -1958,7 +1978,7 @@ Review Finance-only target configuration.
 **Prüfen mit:** `finance.target_mappings.list` — Current rules; mapping history preserves reviewed
 revisions.
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`maintain_target_configuration`](./commands#command-maintain_target_configuration)
 
 #### `finance_target_reference_update_propose` — Review Finance target configuration {#tool-finance_target_reference_update_propose}
@@ -2005,7 +2025,7 @@ Review Finance-only target configuration.
 **Prüfen mit:** `finance.target_mappings.list` — Current rules; mapping history preserves reviewed
 revisions.
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`maintain_target_configuration`](./commands#command-maintain_target_configuration)
 
 #### `finance_target_mapping_set_propose` — Review Finance target configuration {#tool-finance_target_mapping_set_propose}
@@ -2059,7 +2079,7 @@ Review Finance-only target configuration.
 **Prüfen mit:** `finance.target_mappings.list` — Current rules; mapping history preserves reviewed
 revisions.
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`maintain_target_configuration`](./commands#command-maintain_target_configuration)
 
 ### `maintain_reference` — Maintain finance reference {#command-maintain_reference}
@@ -2128,7 +2148,7 @@ Prepare a reasoned reference catalog change for owner confirmation.
 **Prüfen mit:** `finance.references.history` — Immutable before/after decision and confirming
 action.
 
-**Siehe auch:** Geschäftsaktion [`maintain_reference`](./commands#command-maintain_reference)
+**Siehe auch:** Command [`maintain_reference`](./commands#command-maintain_reference)
 
 #### `finance_reference_update_propose` — Update finance reference {#tool-finance_reference_update_propose}
 
@@ -2174,7 +2194,7 @@ Prepare a reasoned reference catalog change for owner confirmation.
 **Prüfen mit:** `finance.references.history` — Immutable before/after decision and confirming
 action.
 
-**Siehe auch:** Geschäftsaktion [`maintain_reference`](./commands#command-maintain_reference)
+**Siehe auch:** Command [`maintain_reference`](./commands#command-maintain_reference)
 
 ### `mapping_history` — Mapping History {#command-mapping_history}
 
@@ -2237,7 +2257,7 @@ Read Finance-only target configuration and explicit mapping resolution.
 | `limit`      | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                   | —        |
 | `offset`     | `integer` | nein    | Number of matching rows to skip for bounded pagination.                           | —        |
 
-**Siehe auch:** Geschäftsaktion [`mapping_history`](./commands#command-mapping_history)
+**Siehe auch:** Command [`mapping_history`](./commands#command-mapping_history)
 
 ### `allocate_credit_note` — Net credit note against invoice {#command-allocate_credit_note}
 
@@ -2278,7 +2298,7 @@ credit_note_allocate_propose credit_note_id invoice_id amount
 | `invoice_id`     | `string` | ja      | Opaque identity of the invoice evidence associated with a payment or allocation. | —        |
 | `amount`         | `string` | ja      | Monetary amount of the payment or financial observation.                         | —        |
 
-**Siehe auch:** Geschäftsaktion [`allocate_credit_note`](./commands#command-allocate_credit_note)
+**Siehe auch:** Command [`allocate_credit_note`](./commands#command-allocate_credit_note)
 
 ### `allocate_supplier_credit_note` — Net supplier credit against invoice {#command-allocate_supplier_credit_note}
 
@@ -2319,7 +2339,7 @@ supplier_credit_note_allocate_propose credit_note_id invoice_id amount
 | `invoice_id`     | `string` | ja      | Opaque identity of the invoice evidence associated with a payment or allocation. | —        |
 | `amount`         | `string` | ja      | Monetary amount of the payment or financial observation.                         | —        |
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`allocate_supplier_credit_note`](./commands#command-allocate_supplier_credit_note)
 
 ### `post_sales_credit_note` — Post credit note {#command-post_sales_credit_note}
@@ -2359,8 +2379,7 @@ credit_note_post_propose credit_note_id [effective_at]
 | `credit_note_id` | `string` | ja      | Opaque identity of the credit note being posted, netted or refunded. | —        |
 | `effective_at`   | `string` | nein    | UTC instant from which the observation or rule takes effect.         | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`post_sales_credit_note`](./commands#command-post_sales_credit_note)
+**Siehe auch:** Command [`post_sales_credit_note`](./commands#command-post_sales_credit_note)
 
 ### `post_customer_payment` — Post customer payment {#command-post_customer_payment}
 
@@ -2378,7 +2397,7 @@ customer_payment_post_propose invoice_id amount [payment_number] [source_record_
 `document`, `ledger_entry`, `settlement_allocation`
 
 **Siehe auch:** Agenten-Tool
-[`customer_payment_post_propose`](./commands#tool-customer_payment_post_propose), Aktion
+[`customer_payment_post_propose`](./commands#tool-customer_payment_post_propose), Web-Aktion
 [`post_customer_payment`](./views#action-post_customer_payment)
 
 #### `customer_payment_post_propose` — Post customer payment {#tool-customer_payment_post_propose}
@@ -2404,7 +2423,7 @@ customer_payment_post_propose invoice_id amount [payment_number] [source_record_
 | `source_record_id` | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.     | —        |
 | `effective_at`     | `string` | nein    | UTC instant from which the observation or rule takes effect.                     | —        |
 
-**Siehe auch:** Geschäftsaktion [`post_customer_payment`](./commands#command-post_customer_payment)
+**Siehe auch:** Command [`post_customer_payment`](./commands#command-post_customer_payment)
 
 ### `post_customer_refund` — Post customer refund {#command-post_customer_refund}
 
@@ -2447,7 +2466,7 @@ customer_refund_post_propose credit_note_id amount [refund_number] [source_recor
 | `source_record_id` | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.  | —        |
 | `effective_at`     | `string` | nein    | UTC instant from which the observation or rule takes effect.                  | —        |
 
-**Siehe auch:** Geschäftsaktion [`post_customer_refund`](./commands#command-post_customer_refund)
+**Siehe auch:** Command [`post_customer_refund`](./commands#command-post_customer_refund)
 
 ### `post_sales_invoice` — Post sales invoice {#command-post_sales_invoice}
 
@@ -2487,7 +2506,7 @@ sales_invoice_post_propose document_id [effective_at]
 | `document_id`  | `string` | ja      | Opaque identity of the evidence document to inspect or correct. | —        |
 | `effective_at` | `string` | nein    | UTC instant from which the observation or rule takes effect.    | —        |
 
-**Siehe auch:** Geschäftsaktion [`post_sales_invoice`](./commands#command-post_sales_invoice)
+**Siehe auch:** Command [`post_sales_invoice`](./commands#command-post_sales_invoice)
 
 ### `post_supplier_credit_note` — Post supplier credit note {#command-post_supplier_credit_note}
 
@@ -2527,8 +2546,7 @@ supplier_credit_note_post_propose credit_note_id [effective_at]
 | `credit_note_id` | `string` | ja      | Opaque identity of the credit note being posted, netted or refunded. | —        |
 | `effective_at`   | `string` | nein    | UTC instant from which the observation or rule takes effect.         | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`post_supplier_credit_note`](./commands#command-post_supplier_credit_note)
+**Siehe auch:** Command [`post_supplier_credit_note`](./commands#command-post_supplier_credit_note)
 
 ### `post_supplier_invoice` — Post supplier invoice {#command-post_supplier_invoice}
 
@@ -2568,7 +2586,7 @@ supplier_invoice_post_propose document_id [effective_at]
 | `document_id`  | `string` | ja      | Opaque identity of the evidence document to inspect or correct. | —        |
 | `effective_at` | `string` | nein    | UTC instant from which the observation or rule takes effect.    | —        |
 
-**Siehe auch:** Geschäftsaktion [`post_supplier_invoice`](./commands#command-post_supplier_invoice)
+**Siehe auch:** Command [`post_supplier_invoice`](./commands#command-post_supplier_invoice)
 
 ### `post_supplier_payment` — Post supplier payment {#command-post_supplier_payment}
 
@@ -2586,7 +2604,7 @@ supplier_payment_post_propose invoice_id amount [payment_number] [source_record_
 `document`, `ledger_entry`, `settlement_allocation`
 
 **Siehe auch:** Agenten-Tool
-[`supplier_payment_post_propose`](./commands#tool-supplier_payment_post_propose), Aktion
+[`supplier_payment_post_propose`](./commands#tool-supplier_payment_post_propose), Web-Aktion
 [`post_supplier_payment`](./views#action-post_supplier_payment)
 
 #### `supplier_payment_post_propose` — Post supplier payment {#tool-supplier_payment_post_propose}
@@ -2612,7 +2630,7 @@ supplier_payment_post_propose invoice_id amount [payment_number] [source_record_
 | `source_record_id` | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.     | —        |
 | `effective_at`     | `string` | nein    | UTC instant from which the observation or rule takes effect.                     | —        |
 
-**Siehe auch:** Geschäftsaktion [`post_supplier_payment`](./commands#command-post_supplier_payment)
+**Siehe auch:** Command [`post_supplier_payment`](./commands#command-post_supplier_payment)
 
 ### `post_supplier_refund` — Post supplier refund {#command-post_supplier_refund}
 
@@ -2655,7 +2673,7 @@ supplier_refund_post_propose credit_note_id amount [refund_number] [source_recor
 | `source_record_id` | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.  | —        |
 | `effective_at`     | `string` | nein    | UTC instant from which the observation or rule takes effect.                  | —        |
 
-**Siehe auch:** Geschäftsaktion [`post_supplier_refund`](./commands#command-post_supplier_refund)
+**Siehe auch:** Command [`post_supplier_refund`](./commands#command-post_supplier_refund)
 
 ### `preview_payment_run` — Preview payment run {#command-preview_payment_run}
 
@@ -2716,7 +2734,7 @@ per currency, and what was withheld.
 | -------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | `pay_by` | `string` | ja      | The day the payment run is being made for; invoices due on or before it are proposed, as is any invoice whose early-payment window is still open. | —        |
 
-**Siehe auch:** Geschäftsaktion [`preview_payment_run`](./commands#command-preview_payment_run)
+**Siehe auch:** Command [`preview_payment_run`](./commands#command-preview_payment_run)
 
 ### `credit_exposure` — Read a credit exposure {#command-credit_exposure}
 
@@ -2775,7 +2793,7 @@ Explain a customer's credit exposure against its limit and why an order is held 
 | `party_id` | `string` | ja      | Opaque identity of the customer, supplier, or other operational party.       | —        |
 | `as_of`    | `string` | nein    | UTC instant the derivation is evaluated at; the current instant when absent. | —        |
 
-**Siehe auch:** Geschäftsaktion [`credit_exposure`](./commands#command-credit_exposure)
+**Siehe auch:** Command [`credit_exposure`](./commands#command-credit_exposure)
 
 ### `billable_positions` — Read billable invoice positions {#command-billable_positions}
 
@@ -2837,7 +2855,7 @@ grouped by order, for one consolidated invoice.
 | `currency`  | `string`  | ja      | ISO 4217 currency code for monetary values.                                                   | —        |
 | `limit`     | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                               | —        |
 
-**Siehe auch:** Geschäftsaktion [`billable_positions`](./commands#command-billable_positions)
+**Siehe auch:** Command [`billable_positions`](./commands#command-billable_positions)
 
 ### `component_history` — Read component assignment history {#command-component_history}
 
@@ -2897,7 +2915,7 @@ Read received component values and internal attribution history.
 | `limit`        | `integer` | nein    | Maximum number of records or jobs processed by this invocation. | —        |
 | `offset`       | `integer` | nein    | Number of matching rows to skip for bounded pagination.         | —        |
 
-**Siehe auch:** Geschäftsaktion [`component_history`](./commands#command-component_history)
+**Siehe auch:** Command [`component_history`](./commands#command-component_history)
 
 ### `list_references` — Read finance references {#command-list_references}
 
@@ -2956,7 +2974,7 @@ Read defined internal cost centers, case codes and coding groups.
 | `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                                                            | —        |
 | `offset` | `integer` | nein    | Number of matching rows to skip for bounded pagination.                                                                    | —        |
 
-**Siehe auch:** Geschäftsaktion [`list_references`](./commands#command-list_references)
+**Siehe auch:** Command [`list_references`](./commands#command-list_references)
 
 ### `invoice_credit_context` — Read invoice credit context {#command-invoice_credit_context}
 
@@ -3011,8 +3029,7 @@ Read one customer invoice's eligible opaque line identities and remaining credit
 | ------------ | -------- | ------- | -------------------------------------------------------------------------------- | -------- |
 | `invoice_id` | `string` | ja      | Opaque identity of the invoice evidence associated with a payment or allocation. | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`invoice_credit_context`](./commands#command-invoice_credit_context)
+**Siehe auch:** Command [`invoice_credit_context`](./commands#command-invoice_credit_context)
 
 ### `opening_context` — Read opening position context {#command-opening_context}
 
@@ -3066,7 +3083,7 @@ Read permitted opening account, active parties and current review revision.
 | ------- | -------- | ------- | ------------------------------------------------------------------------- | -------- |
 | `query` | `string` | nein    | Optional invoice-number search within matching same-party credit targets. | —        |
 
-**Siehe auch:** Geschäftsaktion [`opening_context`](./commands#command-opening_context)
+**Siehe auch:** Command [`opening_context`](./commands#command-opening_context)
 
 ### `list_accounts` — Read operational accounts {#command-list_accounts}
 
@@ -3120,7 +3137,7 @@ Read permitted operational accounts, role defaults and the current finance revis
 
 Keine Parameter.
 
-**Siehe auch:** Geschäftsaktion [`list_accounts`](./commands#command-list_accounts)
+**Siehe auch:** Command [`list_accounts`](./commands#command-list_accounts)
 
 ### `transaction_matrix` — Read operational transaction matrix {#command-transaction_matrix}
 
@@ -3174,7 +3191,7 @@ Read fixed operational directions, received amount bases and configured default 
 
 Keine Parameter.
 
-**Siehe auch:** Geschäftsaktion [`transaction_matrix`](./commands#command-transaction_matrix)
+**Siehe auch:** Command [`transaction_matrix`](./commands#command-transaction_matrix)
 
 ### `settlement_context` — Read payment and credit context {#command-settlement_context}
 
@@ -3232,7 +3249,7 @@ payment each choice carries the reasons it is a candidate.
 | `document_id` | `string` | ja      | Opaque identity of the evidence document to inspect or correct.           | —        |
 | `query`       | `string` | nein    | Optional invoice-number search within matching same-party credit targets. | —        |
 
-**Siehe auch:** Geschäftsaktion [`settlement_context`](./commands#command-settlement_context)
+**Siehe auch:** Command [`settlement_context`](./commands#command-settlement_context)
 
 ### `component_context` — Read received financial detail {#command-component_context}
 
@@ -3292,7 +3309,7 @@ Read received component values and internal attribution history.
 | `limit`           | `integer` | nein    | Maximum number of records or jobs processed by this invocation.  | —        |
 | `offset`          | `integer` | nein    | Number of matching rows to skip for bounded pagination.          | —        |
 
-**Siehe auch:** Geschäftsaktion [`component_context`](./commands#command-component_context)
+**Siehe auch:** Command [`component_context`](./commands#command-component_context)
 
 ### `reference_history` — Read reference history {#command-reference_history}
 
@@ -3350,7 +3367,7 @@ Read immutable reference decision history.
 | `limit`        | `integer` | nein    | Maximum number of records or jobs processed by this invocation. | —        |
 | `offset`       | `integer` | nein    | Number of matching rows to skip for bounded pagination.         | —        |
 
-**Siehe auch:** Geschäftsaktion [`reference_history`](./commands#command-reference_history)
+**Siehe auch:** Command [`reference_history`](./commands#command-reference_history)
 
 ### `adjustment_context` — Read settlement reduction context {#command-adjustment_context}
 
@@ -3406,7 +3423,7 @@ Read the remaining claim and reduction account configuration.
 | ------------ | -------- | ------- | -------------------------------------------------------------------------------- | -------- |
 | `invoice_id` | `string` | ja      | Opaque identity of the invoice evidence associated with a payment or allocation. | —        |
 
-**Siehe auch:** Geschäftsaktion [`adjustment_context`](./commands#command-adjustment_context)
+**Siehe auch:** Command [`adjustment_context`](./commands#command-adjustment_context)
 
 ### `list_source_mappings` — Read source code mappings {#command-list_source_mappings}
 
@@ -3466,7 +3483,7 @@ Read or propose exact source-code classification with separate source and intern
 | `limit`           | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                    | —        |
 | `offset`          | `integer` | nein    | Number of matching rows to skip for bounded pagination.                            | —        |
 
-**Siehe auch:** Geschäftsaktion [`list_source_mappings`](./commands#command-list_source_mappings)
+**Siehe auch:** Command [`list_source_mappings`](./commands#command-list_source_mappings)
 
 ### `source_mapping_history` — Read source mapping history {#command-source_mapping_history}
 
@@ -3525,8 +3542,7 @@ Read or propose exact source-code classification with separate source and intern
 | `limit`      | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                   | —        |
 | `offset`     | `integer` | nein    | Number of matching rows to skip for bounded pagination.                           | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`source_mapping_history`](./commands#command-source_mapping_history)
+**Siehe auch:** Command [`source_mapping_history`](./commands#command-source_mapping_history)
 
 ### `record_down_payment_invoice` — Record a down-payment invoice {#command-record_down_payment_invoice}
 
@@ -3573,7 +3589,7 @@ down_payment_invoice_record_propose order_id number gross_amount [currency] [eff
 | `net_amount`   | `string` | nein    | Net amount the document states; recorded as stated and never derived from the gross.       | —        |
 | `tax_amount`   | `string` | nein    | Tax amount the document states; recorded as stated and never derived from the gross.       | —        |
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`record_down_payment_invoice`](./commands#command-record_down_payment_invoice)
 
 ### `record_proforma_invoice` — Record a pro-forma invoice {#command-record_proforma_invoice}
@@ -3624,8 +3640,7 @@ proforma_invoice_record_propose order_id number gross_amount [currency] [documen
 | `lines[].net_amount`   | `string` | nein    | Net amount the document states; recorded as stated and never derived from the gross.         | —        |
 | `lines[].tax_amount`   | `string` | nein    | Tax amount the document states; recorded as stated and never derived from the gross.         | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`record_proforma_invoice`](./commands#command-record_proforma_invoice)
+**Siehe auch:** Command [`record_proforma_invoice`](./commands#command-record_proforma_invoice)
 
 ### `record_free_supplier_invoice` — Record free supplier invoice {#command-record_free_supplier_invoice}
 
@@ -3702,7 +3717,7 @@ order.
 **Prüfen mit:** `document_register` — The supplier invoice and stated lines are retained.;
 `finance_balances` — The payable derives from posted LedgerEntries.
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`record_free_supplier_invoice`](./commands#command-record_free_supplier_invoice), Projection
 [`document_register`](./views#projection-document_register)
 
@@ -3783,7 +3798,7 @@ Prepare actual payment with explicit allocation/reduction, or consume existing c
 
 **Prüfen mit:** `finance.settlement.context` — Current remaining invoice claim or available credit.
 
-**Siehe auch:** Geschäftsaktion [`apply_settlement`](./commands#command-apply_settlement)
+**Siehe auch:** Command [`apply_settlement`](./commands#command-apply_settlement)
 
 ### `record_sales_credit` — Record return credit {#command-record_sales_credit}
 
@@ -3860,8 +3875,8 @@ shape.
 derives independently after execution.; `document_register` — The retained credit and its shortest
 line links exist.
 
-**Siehe auch:** Geschäftsaktion [`record_sales_credit`](./commands#command-record_sales_credit),
-Projection [`document_register`](./views#projection-document_register)
+**Siehe auch:** Command [`record_sales_credit`](./commands#command-record_sales_credit), Projection
+[`document_register`](./views#projection-document_register)
 
 ### `record_sales_invoice` — Record sales invoice {#command-record_sales_invoice}
 
@@ -3932,7 +3947,7 @@ sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount [re
 | `down_payment_offsets[].down_payment_document_id` | `string`  | ja      | —                                                                                                                                                                                                    | —        |
 | `down_payment_offsets[].amount`                   | `string`  | ja      | Monetary amount of the payment or financial observation.                                                                                                                                             | —        |
 
-**Siehe auch:** Geschäftsaktion [`record_sales_invoice`](./commands#command-record_sales_invoice)
+**Siehe auch:** Command [`record_sales_invoice`](./commands#command-record_sales_invoice)
 
 ### `record_supplier_invoice` — Record supplier invoice {#command-record_supplier_invoice}
 
@@ -3996,8 +4011,7 @@ supplier_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount 
 | `number`                              | `string`  | ja      | Human-facing document or transaction number; it is not internal identity.                                                  | —        |
 | `effective_at`                        | `string`  | nein    | UTC instant from which the observation or rule takes effect.                                                               | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`record_supplier_invoice`](./commands#command-record_supplier_invoice)
+**Siehe auch:** Command [`record_supplier_invoice`](./commands#command-record_supplier_invoice)
 
 ### `release_credit_holds` — Release a credit hold {#command-release_credit_holds}
 
@@ -4038,7 +4052,7 @@ credit_hold_release_propose document_id reason
 | `document_id` | `string` | ja      | Opaque identity of the evidence document to inspect or correct.         | —        |
 | `reason`      | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change. | —        |
 
-**Siehe auch:** Geschäftsaktion [`release_credit_holds`](./commands#command-release_credit_holds)
+**Siehe auch:** Command [`release_credit_holds`](./commands#command-release_credit_holds)
 
 ### `reverse_ledger_posting_group` — Reverse ledger posting group {#command-reverse_ledger_posting_group}
 
@@ -4079,7 +4093,7 @@ ledger_reversal_propose posting_group_id reason
 | `posting_group_id` | `string` | ja      | Opaque identity shared by the balanced LedgerEntries in one posting group. | —        |
 | `reason`           | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change.    | —        |
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`reverse_ledger_posting_group`](./commands#command-reverse_ledger_posting_group)
 
 ### `set_default_account` — Set operational account default {#command-set_default_account}
@@ -4141,8 +4155,8 @@ Prepare an owner-confirmed operational account configuration change.
 
 **Prüfen mit:** `timeline` — The account change event and identity.
 
-**Siehe auch:** Geschäftsaktion [`set_default_account`](./commands#command-set_default_account),
-Projection [`timeline`](./views#projection-timeline)
+**Siehe auch:** Command [`set_default_account`](./commands#command-set_default_account), Projection
+[`timeline`](./views#projection-timeline)
 
 ### `set_source_mapping` — Set source code mapping {#command-set_source_mapping}
 
@@ -4213,7 +4227,7 @@ Read or propose exact source-code classification with separate source and intern
 **Prüfen mit:** `finance.references.history` — Immutable before/after decision and confirming
 action.
 
-**Siehe auch:** Geschäftsaktion [`set_source_mapping`](./commands#command-set_source_mapping)
+**Siehe auch:** Command [`set_source_mapping`](./commands#command-set_source_mapping)
 
 ### `update_account` — Update operational account {#command-update_account}
 
@@ -4278,7 +4292,7 @@ Prepare an owner-confirmed operational account configuration change.
 
 **Prüfen mit:** `timeline` — The account change event and identity.
 
-**Siehe auch:** Geschäftsaktion [`update_account`](./commands#command-update_account), Projection
+**Siehe auch:** Command [`update_account`](./commands#command-update_account), Projection
 [`timeline`](./views#projection-timeline)
 
 ## Aufträge & Erfüllung
@@ -4324,8 +4338,7 @@ return_announce_propose commitment_id quantity [reference] [reason] [expected_by
 | `reason`        | `string` | nein    | Human-readable explanation for a hold, correction, or lifecycle change.                                | —        |
 | `expected_by`   | `string` | nein    | The day the customer says the goods will go back; absent means they did not say.                       | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`announce_customer_return`](./commands#command-announce_customer_return)
+**Siehe auch:** Command [`announce_customer_return`](./commands#command-announce_customer_return)
 
 ### `cancel_commitment` — Cancel commitment remainder {#command-cancel_commitment}
 
@@ -4395,8 +4408,8 @@ preserving evidence and physical history.
 **Prüfen mit:** `commitment_register` — The commitment is cancelled and no open remainder remains.;
 `inventory` — Released reservations no longer reduce available stock.
 
-**Siehe auch:** Geschäftsaktion [`cancel_commitment`](./commands#command-cancel_commitment),
-Projection [`commitment_register`](./views#projection-commitment_register), Projection
+**Siehe auch:** Command [`cancel_commitment`](./commands#command-cancel_commitment), Projection
+[`commitment_register`](./views#projection-commitment_register), Projection
 [`inventory`](./views#projection-inventory)
 
 ### `close_stale_promises` — Close stale promises {#command-close_stale_promises}
@@ -4416,7 +4429,7 @@ stale_closure_propose direction due_before expected_count reason
 Schreibt: `commitment`, `reservation`, `business_event` · Erzeugt: `promises.closed`
 
 **Siehe auch:** Agenten-Tool [`stale_closure_propose`](./commands#tool-stale_closure_propose), Event
-[`promises.closed`](./events#event-promises-closed), Geschäftsaktion
+[`promises.closed`](./events#event-promises-closed), Command
 [`cancel_commitment`](./commands#command-cancel_commitment)
 
 #### `stale_closure_propose` — Close stale promises {#tool-stale_closure_propose}
@@ -4441,7 +4454,7 @@ stale_closure_propose direction due_before expected_count reason
 | `expected_count` | `integer` | ja      | The number the caller saw in the preview; a closure is refused unless it still matches.       | —        |
 | `reason`         | `string`  | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                       | —        |
 
-**Siehe auch:** Geschäftsaktion [`close_stale_promises`](./commands#command-close_stale_promises)
+**Siehe auch:** Command [`close_stale_promises`](./commands#command-close_stale_promises)
 
 ### `create_manual_order` — Create manual sales or purchase order {#command-create_manual_order}
 
@@ -4460,8 +4473,8 @@ order_create_propose direction number company_party_id counterparty_id location_
 `source_stream`, `source_record`, `document`, `document_line`, `commitment`, `business_event` ·
 Erzeugt: `order.recorded`
 
-**Siehe auch:** Agenten-Tool [`order_create_propose`](./commands#tool-order_create_propose), Aktion
-[`create_manual_order`](./views#action-create_manual_order), Event
+**Siehe auch:** Agenten-Tool [`order_create_propose`](./commands#tool-order_create_propose),
+Web-Aktion [`create_manual_order`](./views#action-create_manual_order), Event
 [`order.recorded`](./events#event-order-recorded)
 
 #### `order_create_propose` — Create order {#tool-order_create_propose}
@@ -4533,8 +4546,8 @@ Record a manual order as Source and Document Evidence with derived Commitments.
 **Prüfen mit:** `document_register` — Document Evidence links to its immutable source.;
 `commitment_register` — Promised quantities exist as Commitments rather than document status.
 
-**Siehe auch:** Geschäftsaktion [`create_manual_order`](./commands#command-create_manual_order),
-Projection [`commitment_register`](./views#projection-commitment_register), Projection
+**Siehe auch:** Command [`create_manual_order`](./commands#command-create_manual_order), Projection
+[`commitment_register`](./views#projection-commitment_register), Projection
 [`document_register`](./views#projection-document_register)
 
 ### `hold_commitment` — Hold commitment {#command-hold_commitment}
@@ -4555,7 +4568,7 @@ commitment_hold_release_propose commitment_id
 
 **Siehe auch:** Agenten-Tool [`commitment_hold_propose`](./commands#tool-commitment_hold_propose),
 Agenten-Tool [`commitment_hold_release_propose`](./commands#tool-commitment_hold_release_propose),
-Aktion [`hold_commitment`](./views#action-hold_commitment), Event
+Web-Aktion [`hold_commitment`](./views#action-hold_commitment), Event
 [`commitment.held`](./events#event-commitment-held)
 
 #### `commitment_hold_propose` — Hold commitment {#tool-commitment_hold_propose}
@@ -4579,7 +4592,7 @@ commitment_hold_propose commitment_id reason_code [note]
 | `reason_code`   | `string` | ja      | Stable machine-readable reason used for filtering and automation.        | —        |
 | `note`          | `string` | nein    | Free-text record of what the counterparty said, kept with the statement. | —        |
 
-**Siehe auch:** Geschäftsaktion [`hold_commitment`](./commands#command-hold_commitment)
+**Siehe auch:** Command [`hold_commitment`](./commands#command-hold_commitment)
 
 #### `commitment_hold_release_propose` — Release commitment hold {#tool-commitment_hold_release_propose}
 
@@ -4600,7 +4613,7 @@ commitment_hold_release_propose commitment_id
 | --------------- | -------- | ------- | -------------------------------------------------------------------- | -------- |
 | `commitment_id` | `string` | ja      | Opaque identity of the obligation being reserved, held, or executed. | —        |
 
-**Siehe auch:** Geschäftsaktion [`hold_commitment`](./commands#command-hold_commitment)
+**Siehe auch:** Command [`hold_commitment`](./commands#command-hold_commitment)
 
 ### `hold_document_commitments` — Hold document commitments {#command-hold_document_commitments}
 
@@ -4619,7 +4632,7 @@ document_hold_release_propose document_id
 
 **Siehe auch:** Agenten-Tool [`document_hold_propose`](./commands#tool-document_hold_propose),
 Agenten-Tool [`document_hold_release_propose`](./commands#tool-document_hold_release_propose),
-Aktion [`hold_document_commitments`](./views#action-hold_document_commitments)
+Web-Aktion [`hold_document_commitments`](./views#action-hold_document_commitments)
 
 #### `document_hold_propose` — Hold document commitments {#tool-document_hold_propose}
 
@@ -4642,8 +4655,7 @@ document_hold_propose document_id reason_code [note]
 | `reason_code` | `string` | ja      | Stable machine-readable reason used for filtering and automation.        | —        |
 | `note`        | `string` | nein    | Free-text record of what the counterparty said, kept with the statement. | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`hold_document_commitments`](./commands#command-hold_document_commitments)
+**Siehe auch:** Command [`hold_document_commitments`](./commands#command-hold_document_commitments)
 
 #### `document_hold_release_propose` — Release document holds {#tool-document_hold_release_propose}
 
@@ -4664,8 +4676,7 @@ document_hold_release_propose document_id
 | ------------- | -------- | ------- | --------------------------------------------------------------- | -------- |
 | `document_id` | `string` | ja      | Opaque identity of the evidence document to inspect or correct. | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`hold_document_commitments`](./commands#command-hold_document_commitments)
+**Siehe auch:** Command [`hold_document_commitments`](./commands#command-hold_document_commitments)
 
 ### `returns` — List returned payments {#command-returns}
 
@@ -4718,7 +4729,7 @@ List returned customer payments with their reason, fee and reopened invoices.
 
 Keine Parameter.
 
-**Siehe auch:** Geschäftsaktion [`returns`](./commands#command-returns)
+**Siehe auch:** Command [`returns`](./commands#command-returns)
 
 ### `preview_stale_promise_closure` — Preview stale promise closure {#command-preview_stale_promise_closure}
 
@@ -4779,7 +4790,7 @@ changing anything.
 | `direction`  | `string` | ja      | Business flow direction, such as sales or purchase, incoming or outgoing. `sales`, `purchase` | —        |
 | `due_before` | `string` | ja      | Promises due strictly before this instant are considered; nothing later matches.              | —        |
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`preview_stale_promise_closure`](./commands#command-preview_stale_promise_closure)
 
 ### `return_detail` — Read a returned payment {#command-return_detail}
@@ -4834,7 +4845,7 @@ Read one returned customer payment with its reason, reference, fee and reopened 
 | ----------- | -------- | ------- | -------------------------------------------------- | -------- |
 | `return_id` | `string` | ja      | Opaque same-tenant identity of a returned payment. | —        |
 
-**Siehe auch:** Geschäftsaktion [`return_detail`](./commands#command-return_detail)
+**Siehe auch:** Command [`return_detail`](./commands#command-return_detail)
 
 ### `return_announcements` — Read announced returns {#command-return_announcements}
 
@@ -4892,7 +4903,7 @@ waiting for.
 | `commitment_id` | `string` | nein    | Opaque identity of the obligation being reserved, held, or executed.                                  | —        |
 | `status`        | `string` | nein    | Lifecycle state to filter by, such as open, fulfilled, or withdrawn. `open`, `fulfilled`, `withdrawn` | —        |
 
-**Siehe auch:** Geschäftsaktion [`return_announcements`](./commands#command-return_announcements)
+**Siehe auch:** Command [`return_announcements`](./commands#command-return_announcements)
 
 ### `reorder_points` — Read reorder points {#command-reorder_points}
 
@@ -4950,7 +4961,7 @@ List the reorder points the company stated, per item and location, with the reor
 | `item_id`     | `string` | nein    | Opaque identity of the operational item reference.       | —        |
 | `location_id` | `string` | nein    | Opaque identity of the operational or physical location. | —        |
 
-**Siehe auch:** Geschäftsaktion [`reorder_points`](./commands#command-reorder_points)
+**Siehe auch:** Command [`reorder_points`](./commands#command-reorder_points)
 
 ### `record_return` — Record a returned payment {#command-record_return}
 
@@ -5024,7 +5035,7 @@ Record a returned direct debit or chargeback of a customer payment for owner con
 
 **Prüfen mit:** `finance.payment_return` — The return
 
-**Siehe auch:** Geschäftsaktion [`record_return`](./commands#command-record_return)
+**Siehe auch:** Command [`record_return`](./commands#command-record_return)
 
 ### `release_reservation` — Release reservation {#command-release_reservation}
 
@@ -5064,7 +5075,7 @@ reservation_release_propose reservation_id
 | ---------------- | -------- | ------- | ---------------------------------------------------- | -------- |
 | `reservation_id` | `string` | ja      | Opaque identity of the reservation being given back. | —        |
 
-**Siehe auch:** Geschäftsaktion [`release_reservation`](./commands#command-release_reservation)
+**Siehe auch:** Command [`release_reservation`](./commands#command-release_reservation)
 
 ### `remove_reorder_point` — Remove a reorder point {#command-remove_reorder_point}
 
@@ -5105,7 +5116,7 @@ reorder_point_remove_propose item_id location_id
 | `item_id`     | `string` | ja      | Opaque identity of the operational item reference.       | —        |
 | `location_id` | `string` | ja      | Opaque identity of the operational or physical location. | —        |
 
-**Siehe auch:** Geschäftsaktion [`remove_reorder_point`](./commands#command-remove_reorder_point)
+**Siehe auch:** Command [`remove_reorder_point`](./commands#command-remove_reorder_point)
 
 ### `reserve` — Reserve stock {#command-reserve}
 
@@ -5123,8 +5134,8 @@ reservation_propose commitment_id [quantity] [handling_unit_id] [lot_id] [serial
 **Wirkung:** Liest: `commitment`, `movement`, `reservation`, `item`, `location`, `handling_unit`,
 `lot`, `serial_unit` · Schreibt: `reservation` · Erzeugt: `reservation.created`
 
-**Siehe auch:** Agenten-Tool [`reservation_propose`](./commands#tool-reservation_propose), Aktion
-[`reserve_stock`](./views#action-reserve_stock), Event
+**Siehe auch:** Agenten-Tool [`reservation_propose`](./commands#tool-reservation_propose),
+Web-Aktion [`reserve_stock`](./views#action-reserve_stock), Event
 [`reservation.created`](./events#event-reservation-created)
 
 #### `reservation_propose` — Propose reservation {#tool-reservation_propose}
@@ -5175,7 +5186,7 @@ Allocate currently available stock to an existing outgoing Commitment.
 **Prüfen mit:** `inventory` — Reserved quantity increases and available quantity decreases.;
 `commitment_register` — Allocation links to the intended Commitment.
 
-**Siehe auch:** Geschäftsaktion [`reserve`](./commands#command-reserve), Projection
+**Siehe auch:** Command [`reserve`](./commands#command-reserve), Projection
 [`commitment_register`](./views#projection-commitment_register), Projection
 [`inventory`](./views#projection-inventory)
 
@@ -5249,9 +5260,8 @@ changing credit evidence.
 identity and reconciles the remaining quantity.; `inventory` — The resulting exact-location stock
 effect is visible independently.
 
-**Siehe auch:** Geschäftsaktion
-[`record_return_disposition`](./commands#command-record_return_disposition), Projection
-[`inventory`](./views#projection-inventory)
+**Siehe auch:** Command [`record_return_disposition`](./commands#command-record_return_disposition),
+Projection [`inventory`](./views#projection-inventory)
 
 ### `revise_commitment` — Revise commitment {#command-revise_commitment}
 
@@ -5330,8 +5340,8 @@ and fulfillment history.
 **Prüfen mit:** `commitment_register` — The current open commitment reflects the reviewed revision.;
 `inventory` — Only the reviewed reservation quantities remain allocated.
 
-**Siehe auch:** Geschäftsaktion [`revise_commitment`](./commands#command-revise_commitment),
-Projection [`commitment_register`](./views#projection-commitment_register), Projection
+**Siehe auch:** Command [`revise_commitment`](./commands#command-revise_commitment), Projection
+[`commitment_register`](./views#projection-commitment_register), Projection
 [`inventory`](./views#projection-inventory)
 
 ### `set_reorder_point` — Set a reorder point {#command-set_reorder_point}
@@ -5377,7 +5387,7 @@ reorder_point_set_propose item_id location_id reorder_point reorder_quantity
 | `reorder_point`    | `string` | ja      | Stock level, in the item's stock unit, at or below which available plus incoming stock at the location is reported (spec 302). | —        |
 | `reorder_quantity` | `string` | ja      | Quantity, in the item's stock unit, proposed when the reorder point is reached.                                                | —        |
 
-**Siehe auch:** Geschäftsaktion [`set_reorder_point`](./commands#command-set_reorder_point)
+**Siehe auch:** Command [`set_reorder_point`](./commands#command-set_reorder_point)
 
 ### `hold_party_delivery` — Set party delivery hold {#command-hold_party_delivery}
 
@@ -5397,8 +5407,8 @@ party_delivery_hold_release_propose party_id
 
 **Siehe auch:** Agenten-Tool
 [`party_delivery_hold_propose`](./commands#tool-party_delivery_hold_propose), Agenten-Tool
-[`party_delivery_hold_release_propose`](./commands#tool-party_delivery_hold_release_propose), Aktion
-[`party_delivery_hold`](./views#action-party_delivery_hold), Event
+[`party_delivery_hold_release_propose`](./commands#tool-party_delivery_hold_release_propose),
+Web-Aktion [`party_delivery_hold`](./views#action-party_delivery_hold), Event
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed)
 
 #### `party_delivery_hold_propose` — Place party delivery hold {#tool-party_delivery_hold_propose}
@@ -5422,7 +5432,7 @@ party_delivery_hold_propose party_id reason_code [note]
 | `reason_code` | `string` | ja      | Stable machine-readable reason used for filtering and automation.        | —        |
 | `note`        | `string` | nein    | Free-text record of what the counterparty said, kept with the statement. | —        |
 
-**Siehe auch:** Geschäftsaktion [`hold_party_delivery`](./commands#command-hold_party_delivery)
+**Siehe auch:** Command [`hold_party_delivery`](./commands#command-hold_party_delivery)
 
 #### `party_delivery_hold_release_propose` — Release party delivery hold {#tool-party_delivery_hold_release_propose}
 
@@ -5443,7 +5453,7 @@ party_delivery_hold_release_propose party_id
 | ---------- | -------- | ------- | ---------------------------------------------------------------------- | -------- |
 | `party_id` | `string` | ja      | Opaque identity of the customer, supplier, or other operational party. | —        |
 
-**Siehe auch:** Geschäftsaktion [`hold_party_delivery`](./commands#command-hold_party_delivery)
+**Siehe auch:** Command [`hold_party_delivery`](./commands#command-hold_party_delivery)
 
 ### `withdraw_return_announcement` — Withdraw return announcement {#command-withdraw_return_announcement}
 
@@ -5484,7 +5494,7 @@ return_announcement_withdraw_propose announcement_id [note]
 | `announcement_id` | `string` | ja      | Opaque identity of the announced customer return.                        | —        |
 | `note`            | `string` | nein    | Free-text record of what the counterparty said, kept with the statement. | —        |
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`withdraw_return_announcement`](./commands#command-withdraw_return_announcement)
 
 ## Lager & Logistik
@@ -5535,7 +5545,7 @@ stock_block_propose item_id location_id quantity reason_code [note] [handling_un
 | `lot_id`           | `string` | nein    | Exact batch or lot identity to reserve or move.                                                               | —        |
 | `serial_unit_id`   | `string` | nein    | Exact serial-unit identity to reserve or move; serialized quantities are always one.                          | —        |
 
-**Siehe auch:** Geschäftsaktion [`block_stock`](./commands#command-block_stock)
+**Siehe auch:** Command [`block_stock`](./commands#command-block_stock)
 
 ### `correct_lot_expiry` — Correct lot expiry {#command-correct_lot_expiry}
 
@@ -5578,7 +5588,7 @@ lot_expiry_correct_propose lot_id [expires_at] [expected_expires_at] reason
 | `expected_expires_at` | `string` | nein    | The best-before date the caller believes is stated now, or absent to say none is; a correction is refused unless it still matches, so it cannot be made by somebody who has not looked. | —        |
 | `reason`              | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                                                 | —        |
 
-**Siehe auch:** Geschäftsaktion [`correct_lot_expiry`](./commands#command-correct_lot_expiry)
+**Siehe auch:** Command [`correct_lot_expiry`](./commands#command-correct_lot_expiry)
 
 ### `correct_movement` — Correct movement {#command-correct_movement}
 
@@ -5598,7 +5608,7 @@ movement_correction_propose movement_id reason [replacement]
 `movement_correction`, `commitment`, `business_event` · Erzeugt: `movement.corrected`
 
 **Siehe auch:** Agenten-Tool
-[`movement_correction_propose`](./commands#tool-movement_correction_propose), Aktion
+[`movement_correction_propose`](./commands#tool-movement_correction_propose), Web-Aktion
 [`correct_movement`](./views#action-correct_movement), Event
 [`movement.corrected`](./events#event-movement-corrected)
 
@@ -5623,7 +5633,7 @@ movement_correction_propose movement_id reason [replacement]
 | `reason`      | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change.          | —        |
 | `replacement` | `object` | nein    | Optional complete intended Movement that replaces the compensated original.      | —        |
 
-**Siehe auch:** Geschäftsaktion [`correct_movement`](./commands#command-correct_movement)
+**Siehe auch:** Command [`correct_movement`](./commands#command-correct_movement)
 
 ### `create_handling_unit` — Create handling unit {#command-create_handling_unit}
 
@@ -5642,7 +5652,7 @@ handling_unit_create_propose [nve] [source_record_id]
 `business_event` · Erzeugt: `handling_unit.created`
 
 **Siehe auch:** Agenten-Tool
-[`handling_unit_create_propose`](./commands#tool-handling_unit_create_propose), Aktion
+[`handling_unit_create_propose`](./commands#tool-handling_unit_create_propose), Web-Aktion
 [`create_handling_unit`](./views#action-create_handling_unit), Event
 [`handling_unit.created`](./events#event-handling_unit-created)
 
@@ -5666,7 +5676,7 @@ handling_unit_create_propose [nve] [source_record_id]
 | `nve`              | `string` | nein    | Optional Nummer der Versandeinheit / SSCC printed on a pallet or handling unit. | —        |
 | `source_record_id` | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.    | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_handling_unit`](./commands#command-create_handling_unit)
+**Siehe auch:** Command [`create_handling_unit`](./commands#command-create_handling_unit)
 
 ### `create_lot` — Create lot {#command-create_lot}
 
@@ -5684,7 +5694,7 @@ lot_create_propose item_id lot_number [expires_at] [source_record_id]
 **Wirkung:** Liest: `tenant`, `item`, `source_record`, `lot` · Schreibt: `lot`, `business_event` ·
 Erzeugt: `lot.created`
 
-**Siehe auch:** Agenten-Tool [`lot_create_propose`](./commands#tool-lot_create_propose), Aktion
+**Siehe auch:** Agenten-Tool [`lot_create_propose`](./commands#tool-lot_create_propose), Web-Aktion
 [`create_lot`](./views#action-create_lot), Event [`lot.created`](./events#event-lot-created)
 
 #### `lot_create_propose` — Create lot {#tool-lot_create_propose}
@@ -5708,7 +5718,7 @@ lot_create_propose item_id lot_number [expires_at] [source_record_id]
 | `expires_at`       | `string` | nein    | The best-before date somebody read off the goods or the delivery note, as a calendar day; never computed from a shelf life, and never adjusted once stated. | —        |
 | `source_record_id` | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.                                                                                | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_lot`](./commands#command-create_lot)
+**Siehe auch:** Command [`create_lot`](./commands#command-create_lot)
 
 ### `create_serial_unit` — Create serial unit {#command-create_serial_unit}
 
@@ -5727,7 +5737,7 @@ serial_unit_create_propose item_id serial_number [lot_id] [source_record_id]
 `serial_unit`, `business_event` · Erzeugt: `serial_unit.created`
 
 **Siehe auch:** Agenten-Tool
-[`serial_unit_create_propose`](./commands#tool-serial_unit_create_propose), Aktion
+[`serial_unit_create_propose`](./commands#tool-serial_unit_create_propose), Web-Aktion
 [`create_serial_unit`](./views#action-create_serial_unit), Event
 [`serial_unit.created`](./events#event-serial_unit-created)
 
@@ -5753,7 +5763,7 @@ serial_unit_create_propose item_id serial_number [lot_id] [source_record_id]
 | `lot_id`           | `string` | nein    | Exact batch or lot identity to reserve or move.                              | —        |
 | `source_record_id` | `string` | nein    | Opaque identity of the immutable source record supporting this typed record. | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_serial_unit`](./commands#command-create_serial_unit)
+**Siehe auch:** Command [`create_serial_unit`](./commands#command-create_serial_unit)
 
 ### `record_packaged_execution` — Dispatch or receive shipment package {#command-record_packaged_execution}
 
@@ -5774,7 +5784,7 @@ shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_n
 
 **Siehe auch:** Agenten-Tool
 [`shipment_dispatch_propose`](./commands#tool-shipment_dispatch_propose), Agenten-Tool
-[`shipment_receive_propose`](./commands#tool-shipment_receive_propose), Geschäftsaktion
+[`shipment_receive_propose`](./commands#tool-shipment_receive_propose), Command
 [`record_movement`](./commands#command-record_movement)
 
 #### `shipment_dispatch_propose` — Propose package dispatch {#tool-shipment_dispatch_propose}
@@ -5812,8 +5822,7 @@ shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_
 | `source_record_id`             | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.                                                                                      | —        |
 | `occurred_at`                  | `string` | nein    | UTC instant at which the physical or business event occurred.                                                                                                     | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`record_packaged_execution`](./commands#command-record_packaged_execution)
+**Siehe auch:** Command [`record_packaged_execution`](./commands#command-record_packaged_execution)
 
 #### `shipment_receive_propose` — Propose package receipt {#tool-shipment_receive_propose}
 
@@ -5853,8 +5862,7 @@ shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_n
 | `source_record_id`             | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.                                                                                                                                              | —        |
 | `occurred_at`                  | `string` | nein    | UTC instant at which the physical or business event occurred.                                                                                                                                                             | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`record_packaged_execution`](./commands#command-record_packaged_execution)
+**Siehe auch:** Command [`record_packaged_execution`](./commands#command-record_packaged_execution)
 
 ### `expired_lots` — Read expired lots {#command-expired_lots}
 
@@ -5913,7 +5921,7 @@ List the batches whose stated best-before date has passed, oldest first.
 
 Keine Parameter.
 
-**Siehe auch:** Geschäftsaktion [`expired_lots`](./commands#command-expired_lots)
+**Siehe auch:** Command [`expired_lots`](./commands#command-expired_lots)
 
 ### `inventory_cost` — Read reviewed inventory acquisition costs {#command-inventory_cost}
 
@@ -5974,7 +5982,7 @@ Read stock acquisition value and economic consumption at an explicitly confirmed
 | `review_id`              | `string` | nein    | Exact retained inventory or contribution review identity for the selected tool; absence selects its latest review.                                                       | `None`   |
 | `assessment_revision_id` | `string` | nein    | Optional exact retained carrying-value assessment identity paired with the selected inventory review; absence selects the latest verified assessment for a current read. | `None`   |
 
-**Siehe auch:** Geschäftsaktion [`inventory_cost`](./commands#command-inventory_cost)
+**Siehe auch:** Command [`inventory_cost`](./commands#command-inventory_cost)
 
 ### `stock_blocks` — Read stock blocks {#command-stock_blocks}
 
@@ -6036,7 +6044,7 @@ List stock held back where it lies, with its reason, quantity and who blocked it
 | `location_id` | `string` | nein    | Opaque identity of the operational or physical location.                                                     | —        |
 | `status`      | `string` | nein    | Lifecycle state to filter by, such as open, fulfilled, or withdrawn. `active`, `released`, `scrapped`, `all` | —        |
 
-**Siehe auch:** Geschäftsaktion [`stock_blocks`](./commands#command-stock_blocks)
+**Siehe auch:** Command [`stock_blocks`](./commands#command-stock_blocks)
 
 ### `record_movement` — Record movement {#command-record_movement}
 
@@ -6056,7 +6064,7 @@ Schreibt: `movement`, `reservation`, `commitment`, `action`, `business_event` ·
 `commitment.fulfilled`, `reservation.consumed`, `movement.recorded`
 
 **Siehe auch:** Agenten-Tool [`movement_create_propose`](./commands#tool-movement_create_propose),
-Aktion [`record_movement`](./views#action-record_movement), Event
+Web-Aktion [`record_movement`](./views#action-record_movement), Event
 [`commitment.fulfilled`](./events#event-commitment-fulfilled), Event
 [`reservation.consumed`](./events#event-reservation-consumed), Event
 [`movement.recorded`](./events#event-movement-recorded)
@@ -6128,7 +6136,7 @@ Record an immutable physical receipt, transfer, shipment, return, or adjustment.
 — Fulfillment derives from Movements linked to the Commitment.; `timeline` — The physical event is
 visible with its opaque identity.
 
-**Siehe auch:** Geschäftsaktion [`record_movement`](./commands#command-record_movement), Projection
+**Siehe auch:** Command [`record_movement`](./commands#command-record_movement), Projection
 [`commitment_register`](./views#projection-commitment_register), Projection
 [`inventory`](./views#projection-inventory), Projection [`timeline`](./views#projection-timeline)
 
@@ -6176,7 +6184,7 @@ shipment_event_record_propose shipment_id [shipment_package_id] event_type repor
 | `source_record_id`    | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.                                                                                | —        |
 | `external_event_id`   | `string` | nein    | Optional source-assigned event identity used to make repeated intake idempotent.                                                                            | —        |
 
-**Siehe auch:** Geschäftsaktion [`record_shipment_event`](./commands#command-record_shipment_event)
+**Siehe auch:** Command [`record_shipment_event`](./commands#command-record_shipment_event)
 
 ### `record_shipment_notice` — Record shipment notice {#command-record_shipment_notice}
 
@@ -6222,8 +6230,7 @@ shipment_notice_record_propose direction purpose counterparty_id [carrier] [trac
 | `occurred_at`      | `string` | nein    | UTC instant at which the physical or business event occurred.                                                                                                                         | —              |
 | `reporter_type`    | `string` | nein    | Closed attribution for who stated a shipment observation, such as company, counterparty, or carrier. `company`, `counterparty`, `carrier`, `integration`                              | `counterparty` |
 
-**Siehe auch:** Geschäftsaktion
-[`record_shipment_notice`](./commands#command-record_shipment_notice)
+**Siehe auch:** Command [`record_shipment_notice`](./commands#command-record_shipment_notice)
 
 ### `release_stock_block` — Release a stock block {#command-release_stock_block}
 
@@ -6265,7 +6272,7 @@ stock_block_release_propose block_id [quantity] reason
 | `quantity` | `string` | nein    | Decimal quantity expressed in the item's relevant unit.                 | —        |
 | `reason`   | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change. | —        |
 
-**Siehe auch:** Geschäftsaktion [`release_stock_block`](./commands#command-release_stock_block)
+**Siehe auch:** Command [`release_stock_block`](./commands#command-release_stock_block)
 
 ### `scrap_stock_block` — Scrap blocked stock {#command-scrap_stock_block}
 
@@ -6308,7 +6315,7 @@ stock_block_scrap_propose block_id [quantity] reason
 | `quantity` | `string` | nein    | Decimal quantity expressed in the item's relevant unit.                 | —        |
 | `reason`   | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change. | —        |
 
-**Siehe auch:** Geschäftsaktion [`scrap_stock_block`](./commands#command-scrap_stock_block)
+**Siehe auch:** Command [`scrap_stock_block`](./commands#command-scrap_stock_block)
 
 ### `state_lot_expiry` — State lot expiry {#command-state_lot_expiry}
 
@@ -6348,7 +6355,7 @@ lot_expiry_state_propose lot_id expires_at
 | `lot_id`     | `string` | ja      | Exact batch or lot identity to reserve or move.                                                                                                             | —        |
 | `expires_at` | `string` | ja      | The best-before date somebody read off the goods or the delivery note, as a calendar day; never computed from a shelf life, and never adjusted once stated. | —        |
 
-**Siehe auch:** Geschäftsaktion [`state_lot_expiry`](./commands#command-state_lot_expiry)
+**Siehe auch:** Command [`state_lot_expiry`](./commands#command-state_lot_expiry)
 
 ### `supersede_shipment_event` — Supersede shipment event {#command-supersede_shipment_event}
 
@@ -6390,8 +6397,7 @@ shipment_event_supersede_propose event_id reason [replacement_event_id] [source_
 | `replacement_event_id` | `string` | nein    | Optional opaque identity of another ShipmentEvent that replaces the corrected observation. | —        |
 | `source_record_id`     | `string` | nein    | Opaque identity of the immutable source record supporting this typed record.               | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`supersede_shipment_event`](./commands#command-supersede_shipment_event)
+**Siehe auch:** Command [`supersede_shipment_event`](./commands#command-supersede_shipment_event)
 
 ## Belege, Quellen & Facts
 
@@ -6448,8 +6454,7 @@ document_correct_propose document_id document_type number party_id amount [curre
 | `payment_term_code`     | `string` | nein    | Tenant-scoped code of the payment condition to apply.                               | —        |
 | `ship_to_party_id`      | `string` | nein    | Opaque identity of the party receiving the physical delivery.                       | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`correct_manual_document`](./commands#command-correct_manual_document)
+**Siehe auch:** Command [`correct_manual_document`](./commands#command-correct_manual_document)
 
 #### `document_lines_correct_propose` — Correct manual document lines {#tool-document_lines_correct_propose}
 
@@ -6473,8 +6478,7 @@ document_lines_correct_propose document_id expected_revision lines [actor_contex
 | `lines`             | `array`  | ja      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction. | —        |
 | `actor_context`     | `object` | nein    | Optional authenticated actor metadata retained with the correction audit when available.     | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`correct_manual_document`](./commands#command-correct_manual_document)
+**Siehe auch:** Command [`correct_manual_document`](./commands#command-correct_manual_document)
 
 ### `create_source_capability` — Define source capability {#command-create_source_capability}
 
@@ -6517,8 +6521,7 @@ source_capability_create_propose source_system_id source_type target_type
 | `source_type`      | `string` | ja      | Upstream record kind as named by its source, before operational interpretation. | —        |
 | `target_type`      | `string` | ja      | Operational Reality type the source capability is intended to produce.          | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`create_source_capability`](./commands#command-create_source_capability)
+**Siehe auch:** Command [`create_source_capability`](./commands#command-create_source_capability)
 
 #### `source_capability_lifecycle_propose` — Change source capability lifecycle {#tool-source_capability_lifecycle_propose}
 
@@ -6540,8 +6543,7 @@ source_capability_lifecycle_propose capability_id is_active
 | `capability_id` | `string`  | ja      | Opaque identity of the source capability to change.             | —        |
 | `is_active`     | `boolean` | ja      | Whether the record remains selectable for new operational work. | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`create_source_capability`](./commands#command-create_source_capability)
+**Siehe auch:** Command [`create_source_capability`](./commands#command-create_source_capability)
 
 ### `create_source_system` — Define source system {#command-create_source_system}
 
@@ -6584,7 +6586,7 @@ source_system_create_propose code name [description]
 | `name`        | `string` | ja      | Human-readable display name; it is not used as internal identity.        | —        |
 | `description` | `string` | nein    | Human-readable explanation of the record or rule.                        | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_source_system`](./commands#command-create_source_system)
+**Siehe auch:** Command [`create_source_system`](./commands#command-create_source_system)
 
 #### `source_system_lifecycle_propose` — Change source system lifecycle {#tool-source_system_lifecycle_propose}
 
@@ -6606,7 +6608,7 @@ source_system_lifecycle_propose source_system_id is_active
 | `source_system_id` | `string`  | ja      | Opaque identity of the registered external source instance.     | —        |
 | `is_active`        | `boolean` | ja      | Whether the record remains selectable for new operational work. | —        |
 
-**Siehe auch:** Geschäftsaktion [`create_source_system`](./commands#command-create_source_system)
+**Siehe auch:** Command [`create_source_system`](./commands#command-create_source_system)
 
 ### `enqueue_source` — Ingest arbitrary source {#command-enqueue_source}
 
@@ -6653,7 +6655,7 @@ source_ingest_propose artifact_id [source_system] [source_type] [external_id] [e
 | `external_id`     | `string` | nein    | Identifier assigned by the named external source system; never internal identity. | —               |
 | `expected_target` | `string` | nein    | —                                                                                 | `data_drop`     |
 
-**Siehe auch:** Geschäftsaktion [`enqueue_source`](./commands#command-enqueue_source)
+**Siehe auch:** Command [`enqueue_source`](./commands#command-enqueue_source)
 
 #### `source_record_ingest_propose` — Ingest arbitrary source record {#tool-source_record_ingest_propose}
 
@@ -6680,7 +6682,7 @@ source_record_ingest_propose source_system source_type external_id payload [sour
 | `context`            | `object` | nein    | Optional structured metadata retained with the operation for traceability.             | —        |
 | `source_artifact_id` | `string` | nein    | Optional opaque identity of the immutable streamed file supporting this source record. | —        |
 
-**Siehe auch:** Geschäftsaktion [`enqueue_source`](./commands#command-enqueue_source)
+**Siehe auch:** Command [`enqueue_source`](./commands#command-enqueue_source)
 
 ### `install_connector_shell` — Install mock connector shell {#command-install_connector_shell}
 
@@ -6722,8 +6724,7 @@ connector_install_propose connector_code [source_types] [system_code] [system_na
 | `system_code`    | `string` | nein    | Unique tenant-scoped code for one external source instance.            | —        |
 | `system_name`    | `string` | nein    | Human-readable name of the external source instance.                   | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`install_connector_shell`](./commands#command-install_connector_shell)
+**Siehe auch:** Command [`install_connector_shell`](./commands#command-install_connector_shell)
 
 ### `observe_fact` — Observe fact {#command-observe_fact}
 
@@ -6741,8 +6742,9 @@ fact_observe_propose source_record_id subject_type subject_id predicate value ob
 **Wirkung:** Liest: `tenant`, `source_record`, `commitment` · Schreibt: `fact`, `business_event` ·
 Erzeugt: `fact.observed`
 
-**Siehe auch:** Agenten-Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose), Aktion
-[`observe_fact`](./views#action-observe_fact), Event [`fact.observed`](./events#event-fact-observed)
+**Siehe auch:** Agenten-Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose),
+Web-Aktion [`observe_fact`](./views#action-observe_fact), Event
+[`fact.observed`](./events#event-fact-observed)
 
 #### `fact_observe_propose` — Propose Fact observation {#tool-fact_observe_propose}
 
@@ -6793,7 +6795,7 @@ Record one reviewed, source-supported observation without replacing a typed busi
 **Prüfen mit:** `timeline` — The Fact observation event and opaque identity appear in tenant
 history.
 
-**Siehe auch:** Geschäftsaktion [`observe_fact`](./commands#command-observe_fact), Projection
+**Siehe auch:** Command [`observe_fact`](./commands#command-observe_fact), Projection
 [`timeline`](./views#projection-timeline)
 
 ### `preview_document` — Preview Document {#command-preview_document}
@@ -6860,7 +6862,7 @@ Read Finance-only target configuration and explicit mapping resolution.
 | `limit`       | `integer` | nein    | Maximum number of records or jobs processed by this invocation. | —        |
 | `offset`      | `integer` | nein    | Number of matching rows to skip for bounded pagination.         | —        |
 
-**Siehe auch:** Geschäftsaktion [`preview_document`](./commands#command-preview_document)
+**Siehe auch:** Command [`preview_document`](./commands#command-preview_document)
 
 ### `record_corrected_document_source` — Record corrected document source {#command-record_corrected_document_source}
 
@@ -6901,7 +6903,7 @@ document_source_correct_propose document_id payload [source_version_at]
 | `payload`           | `object` | ja      | Lossless JSON object received from or prepared for an external context. | —        |
 | `source_version_at` | `string` | nein    | Upstream version timestamp used to order immutable source versions.     | —        |
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`record_corrected_document_source`](./commands#command-record_corrected_document_source)
 
 ### `create_manual_document_with_lines` — Record manual document {#command-create_manual_document_with_lines}
@@ -6958,7 +6960,7 @@ document_create_propose document_type number party_id lines gross_amount [curren
 | `document_date`                   | `string` | nein    | Business date printed on or asserted by the evidence document.                                                                                                              | —        |
 | `payment_term_code`               | `string` | nein    | Tenant-scoped code of the payment condition to apply.                                                                                                                       | —        |
 
-**Siehe auch:** Geschäftsaktion
+**Siehe auch:** Command
 [`create_manual_document_with_lines`](./commands#command-create_manual_document_with_lines)
 
 ## Bereichsübergreifend
@@ -7019,8 +7021,7 @@ explicit limitations.
 | `question` | `string` | ja      | Business situation to check against the published Business Journey Guide. | —        |
 | `locale`   | `string` | nein    | Language for the deterministic capability conclusion. `en`, `de`          | `en`     |
 
-**Siehe auch:** Geschäftsaktion
-[`business_journey_guide`](./commands#command-business_journey_guide)
+**Siehe auch:** Command [`business_journey_guide`](./commands#command-business_journey_guide)
 
 ### `assign_line_item` — Assign an item to an order line {#command-assign_line_item}
 
@@ -7062,7 +7063,7 @@ order_line_item_assign_propose document_line_id item_id
 | `document_line_id` | `string` | ja      | Opaque same-tenant received document line identity; must belong to the selected document. | —        |
 | `item_id`          | `string` | ja      | Opaque identity of the operational item reference.                                        | —        |
 
-**Siehe auch:** Geschäftsaktion [`assign_line_item`](./commands#command-assign_line_item)
+**Siehe auch:** Command [`assign_line_item`](./commands#command-assign_line_item)
 
 ### `assign_supply` — Assign incoming supply to customer demand {#command-assign_supply}
 
@@ -7104,7 +7105,7 @@ supply_assign_propose supplier_commitment_id [customer_commitment_id] purpose qu
 | `purpose`                | `string` | ja      | Closed business purpose that determines the shipment's counterparty role and compatible Movement type. `customer_demand`, `stock_replenishment`               | —        |
 | `quantity`               | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                                                                                       | —        |
 
-**Siehe auch:** Geschäftsaktion [`assign_supply`](./commands#command-assign_supply)
+**Siehe auch:** Command [`assign_supply`](./commands#command-assign_supply)
 
 ### `change_graph_report` — Change Private Graph Report {#command-change_graph_report}
 
@@ -7196,7 +7197,7 @@ graph_report_change_propose operation request_id [report_id] [expected_revision]
 | `question.order_by[].descending`               | `boolean` | nein    | —                                                                                                                                                                                                                                                        | `False`      |
 | `question.limit`                               | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                                                                                                                                                                                          | `200`        |
 
-**Siehe auch:** Geschäftsaktion [`change_graph_report`](./commands#command-change_graph_report)
+**Siehe auch:** Command [`change_graph_report`](./commands#command-change_graph_report)
 
 ### `execute_cost_change` — Confirm cost and contribution decision {#command-execute_cost_change}
 
@@ -7427,7 +7428,7 @@ independently reviewed selling-cost coverage for DB2.; `cost.receipt.get` — Re
 shares and reviewed completeness.; `cost.inventory.get` — Confirmed bounded policy, ownership,
 acquisition value and consumption at an exact retained cutoff.
 
-**Siehe auch:** Geschäftsaktion [`execute_cost_change`](./commands#command-execute_cost_change)
+**Siehe auch:** Command [`execute_cost_change`](./commands#command-execute_cost_change)
 
 ### `confirm_run` — Confirm dunning run {#command-confirm_run}
 
@@ -7498,7 +7499,7 @@ Record the reviewed dunning run's notices for owner confirmation.
 **Prüfen mit:** `finance.dunning.notices` — The recorded notices; `finance.dunning.run_context` —
 Reminded items now wait for their next level.
 
-**Siehe auch:** Geschäftsaktion [`confirm_run`](./commands#command-confirm_run)
+**Siehe auch:** Command [`confirm_run`](./commands#command-confirm_run)
 
 ### `cost_review_draft` — Draft a cost review {#command-cost_review_draft}
 
@@ -7567,7 +7568,7 @@ identifiers.
 | `answers.method`         | `string` | nein    | `fifo`, `specific`                                                                                          | `None`   |
 | `answers.owner_party_id` | `string` | nein    | —                                                                                                           | `None`   |
 
-**Siehe auch:** Geschäftsaktion [`cost_review_draft`](./commands#command-cost_review_draft)
+**Siehe auch:** Command [`cost_review_draft`](./commands#command-cost_review_draft)
 
 ### `record_customer_exchange` — Exchange returned goods for a replacement {#command-record_customer_exchange}
 
@@ -7616,8 +7617,7 @@ customer_exchange_propose [return_movement_id] [return_announcement_id] quantity
 | `due_at`                 | `string` | nein    | The date the counterparty now states the promise is due on; optional if a quantity is stated.     | —        |
 | `reason`                 | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                           | —        |
 
-**Siehe auch:** Geschäftsaktion
-[`record_customer_exchange`](./commands#command-record_customer_exchange)
+**Siehe auch:** Command [`record_customer_exchange`](./commands#command-record_customer_exchange)
 
 ### `record_handover` — Hand over to collection {#command-record_handover}
 
@@ -7689,7 +7689,7 @@ Hand one customer's invoices to collection after a level 3 notice, for owner con
 
 **Prüfen mit:** `finance.dunning.collection_handover` — The handover
 
-**Siehe auch:** Geschäftsaktion [`record_handover`](./commands#command-record_handover)
+**Siehe auch:** Command [`record_handover`](./commands#command-record_handover)
 
 ### `cost_record` — Inspect retained cost record {#command-cost_record}
 
@@ -7763,7 +7763,7 @@ same reader as the web Inspector and CLI.
 | `page`      | `integer` | nein    | One-based page of retained membership, bounded to 25 records per page.                  | `1`      |
 | `language`  | `string`  | nein    | Requested inspection labels (en/de); nl/es use English fallback. `en`, `de`, `nl`, `es` | `en`     |
 
-**Siehe auch:** Geschäftsaktion [`cost_record`](./commands#command-cost_record)
+**Siehe auch:** Command [`cost_record`](./commands#command-cost_record)
 
 ### `handovers` — List collection handovers {#command-handovers}
 
@@ -7817,7 +7817,7 @@ List collection handovers with their invoices and delivery hold.
 
 Keine Parameter.
 
-**Siehe auch:** Geschäftsaktion [`handovers`](./commands#command-handovers)
+**Siehe auch:** Command [`handovers`](./commands#command-handovers)
 
 ### `notices` — List dunning notices {#command-notices}
 
@@ -7869,7 +7869,7 @@ List recorded manual reminder evidence with invoice, fee and reversal trace.
 
 Keine Parameter.
 
-**Siehe auch:** Geschäftsaktion [`notices`](./commands#command-notices)
+**Siehe auch:** Command [`notices`](./commands#command-notices)
 
 ### `contribution_preview` — Preview current contribution candidate {#command-contribution_preview}
 
@@ -7929,7 +7929,7 @@ basis.
 | ------------------ | -------- | ------- | ----------------------------------------------------------------------------------------- | -------- |
 | `document_line_id` | `string` | ja      | Opaque same-tenant received document line identity; must belong to the selected document. | —        |
 
-**Siehe auch:** Geschäftsaktion [`contribution_preview`](./commands#command-contribution_preview)
+**Siehe auch:** Command [`contribution_preview`](./commands#command-contribution_preview)
 
 ### `run_context` — Preview dunning run {#command-run_context}
 
@@ -7990,7 +7990,7 @@ others are left out.
 | `run_date`  | `string` | ja      | Calendar date of the dunning run; overdue days and waiting periods are counted up to its end.                                                                                                                                                                                                    | —        |
 | `party_ids` | `array`  | nein    | Opaque business-partner identities the caller can still reach, used to select which partners are answered for; absent means every partner of the company. A balance is summed within one partner and currency and never across them, so naming fewer returns fewer rows of identical arithmetic. | —        |
 
-**Siehe auch:** Geschäftsaktion [`run_context`](./commands#command-run_context)
+**Siehe auch:** Command [`run_context`](./commands#command-run_context)
 
 ### `propose_cost_review` — Propose a drafted cost review {#command-propose_cost_review}
 
@@ -8060,7 +8060,7 @@ arguments.
 **Prüfen mit:** `cost.query.get` — The guidance then shows the owner's confirmation step linked to
 the proposal.
 
-**Siehe auch:** Geschäftsaktion [`propose_cost_review`](./commands#command-propose_cost_review)
+**Siehe auch:** Command [`propose_cost_review`](./commands#command-propose_cost_review)
 
 ### `handover_detail` — Read collection handover {#command-handover_detail}
 
@@ -8116,7 +8116,7 @@ Read one collection handover with its invoices, the last notice of each and the 
 | ------------- | -------- | ------- | ----------------------------------------------------- | -------- |
 | `handover_id` | `string` | ja      | Opaque same-tenant identity of a collection handover. | —        |
 
-**Siehe auch:** Geschäftsaktion [`handover_detail`](./commands#command-handover_detail)
+**Siehe auch:** Command [`handover_detail`](./commands#command-handover_detail)
 
 ### `cost_query` — Read cost query context {#command-cost_query}
 
@@ -8183,7 +8183,7 @@ independent freshness.
 | `knowledge_at`       | `string` | nein    | Optional exact retained knowledge cutoff in UTC; mismatches refuse instead of reinterpreting current evidence as historical. | `None`   |
 | `policy_revision_id` | `string` | nein    | Optional exact retained valuation-policy constraint; mismatches refuse without activating policy.                            | `None`   |
 
-**Siehe auch:** Geschäftsaktion [`cost_query`](./commands#command-cost_query)
+**Siehe auch:** Command [`cost_query`](./commands#command-cost_query)
 
 ### `dunning_context` — Read dunning context {#command-dunning_context}
 
@@ -8247,7 +8247,7 @@ Validate one manual reminder against current overdue invoices and expose its fin
 | `reason`      | `string`  | nein    | Human-readable explanation for a hold, correction, or lifecycle change.                        | —        |
 | `number`      | `string`  | nein    | Human-facing document or transaction number; it is not internal identity.                      | —        |
 
-**Siehe auch:** Geschäftsaktion [`dunning_context`](./commands#command-dunning_context)
+**Siehe auch:** Command [`dunning_context`](./commands#command-dunning_context)
 
 ### `notice_detail` — Read dunning notice {#command-notice_detail}
 
@@ -8302,7 +8302,7 @@ Read one retained manual reminder with its exact invoice membership, fee and rev
 | ----------- | -------- | ------- | ------------------------------------------------------------ | -------- |
 | `notice_id` | `string` | ja      | Opaque same-tenant identity of the retained manual reminder. | —        |
 
-**Siehe auch:** Geschäftsaktion [`notice_detail`](./commands#command-notice_detail)
+**Siehe auch:** Command [`notice_detail`](./commands#command-notice_detail)
 
 ### `schedule` — Read dunning schedule {#command-schedule}
 
@@ -8355,7 +8355,7 @@ Read the company's dunning schedule and the finance revision required to change 
 
 Keine Parameter.
 
-**Siehe auch:** Geschäftsaktion [`schedule`](./commands#command-schedule)
+**Siehe auch:** Command [`schedule`](./commands#command-schedule)
 
 ### `receipt_cost` — Read receipt acquisition costs {#command-receipt_cost}
 
@@ -8413,7 +8413,7 @@ Read receipt acquisition costs, category coverage and exact retained review hist
 | `movement_id` | `string` | ja      | Opaque identity of the immutable physical Movement being inspected or corrected.     | —        |
 | `manifest_id` | `string` | nein    | Opaque sealed receipt review input set; absence requests current retained knowledge. | `None`   |
 
-**Siehe auch:** Geschäftsaktion [`receipt_cost`](./commands#command-receipt_cost)
+**Siehe auch:** Command [`receipt_cost`](./commands#command-receipt_cost)
 
 ### `cost_evidence` — Read received acquisition-cost evidence {#command-cost_evidence}
 
@@ -8471,7 +8471,7 @@ Read stated supplier invoice or credit amounts and their evidence fingerprint wi
 | `document_id`      | `string` | ja      | Opaque identity of the evidence document to inspect or correct.                           | —        |
 | `document_line_id` | `string` | nein    | Opaque same-tenant received document line identity; must belong to the selected document. | `None`   |
 
-**Siehe auch:** Geschäftsaktion [`cost_evidence`](./commands#command-cost_evidence)
+**Siehe auch:** Command [`cost_evidence`](./commands#command-cost_evidence)
 
 ### `reviewed_contribution` — Read reviewed commercial contribution {#command-reviewed_contribution}
 
@@ -8533,7 +8533,7 @@ retained inputs.
 | `document_line_id` | `string` | ja      | Opaque same-tenant received document line identity; must belong to the selected document.                          | —        |
 | `review_id`        | `string` | nein    | Exact retained inventory or contribution review identity for the selected tool; absence selects its latest review. | `None`   |
 
-**Siehe auch:** Geschäftsaktion [`reviewed_contribution`](./commands#command-reviewed_contribution)
+**Siehe auch:** Command [`reviewed_contribution`](./commands#command-reviewed_contribution)
 
 ### `month_end_billing` — Read the month-end billing lists {#command-month_end_billing}
 
@@ -8591,7 +8591,7 @@ reports.
 | ------- | -------- | ------- | ---------------------------------------------------------------------------- | -------- |
 | `as_of` | `string` | nein    | UTC instant the derivation is evaluated at; the current instant when absent. | —        |
 
-**Siehe auch:** Geschäftsaktion [`month_end_billing`](./commands#command-month_end_billing)
+**Siehe auch:** Command [`month_end_billing`](./commands#command-month_end_billing)
 
 ### `record_notice` — Record dunning notice {#command-record_notice}
 
@@ -8658,7 +8658,7 @@ Record one owner-confirmed manual reminder and optional exact stated fee.
 
 **Prüfen mit:** `finance.dunning.notice` — Exact notice membership and fee effect are retained.
 
-**Siehe auch:** Geschäftsaktion [`record_notice`](./commands#command-record_notice)
+**Siehe auch:** Command [`record_notice`](./commands#command-record_notice)
 
 ### `propose_company_party` — Record the company as its business partner {#command-propose_company_party}
 
@@ -8723,7 +8723,7 @@ Keine Parameter.
 **Prüfen mit:** `cost.review.draft` — The draft names the waiting proposal, and after confirmation
 no longer asks for the company partner.
 
-**Siehe auch:** Geschäftsaktion [`propose_company_party`](./commands#command-propose_company_party)
+**Siehe auch:** Command [`propose_company_party`](./commands#command-propose_company_party)
 
 ### `reverse_notice` — Reverse dunning notice {#command-reverse_notice}
 
@@ -8784,7 +8784,7 @@ Reverse one owner-confirmed manual reminder and its fee effect without deleting 
 
 **Prüfen mit:** `finance.dunning.notice` — Reversal identity and fee outcome are retained.
 
-**Siehe auch:** Geschäftsaktion [`reverse_notice`](./commands#command-reverse_notice)
+**Siehe auch:** Command [`reverse_notice`](./commands#command-reverse_notice)
 
 ### `business_journey_vote_set` — Set a Business Journey suggestion vote {#command-business_journey_vote_set}
 
@@ -8824,8 +8824,7 @@ business_journey_vote_propose proposal_id active
 | `proposal_id` | `string`  | ja      | —                                               | —        |
 | `active`      | `boolean` | ja      | True votes; false withdraws the account's vote. | `True`   |
 
-**Siehe auch:** Geschäftsaktion
-[`business_journey_vote_set`](./commands#command-business_journey_vote_set)
+**Siehe auch:** Command [`business_journey_vote_set`](./commands#command-business_journey_vote_set)
 
 ### `set_schedule` — Set dunning schedule {#command-set_schedule}
 
@@ -8894,7 +8893,7 @@ Set the company's dunning schedule for owner confirmation.
 
 **Prüfen mit:** `finance.dunning.schedule` — The confirmed waiting days and fees are retained.
 
-**Siehe auch:** Geschäftsaktion [`set_schedule`](./commands#command-set_schedule)
+**Siehe auch:** Command [`set_schedule`](./commands#command-set_schedule)
 
 ## Agenten-Tools ohne Geschäftsaktion
 
