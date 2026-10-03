@@ -3821,82 +3821,112 @@ entries:
   section: Kits, bills of material and variants
   title: Kit sold, shipped from components
   question: Availability = minimum of components?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Availability = minimum of components?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Availability = minimum of components? Yes. A kit is an item with stated components, and per location it is available as the free kits on hand plus the whole kits the free components build, naming the part that limits it. Packing the order assembles the kit from its parts; it then ships as itself."
   limitations:
-  - There are no kits or bills of material, so kit availability cannot be derived from its components.
-  keywords: []
+  - One level only; a kit inside a kit is refused.
+  - What the components build is read, not reserved, until the kit is assembled.
+  keywords:
+  - kit availability
+  - bill of materials
+  - Stückliste
+  - Set-Verfügbarkeit
   question_examples:
   - Kit sold, shipped from components
   - Availability = minimum of components?
-  tools: []
+  - How many bike kits can we pack from the frames and wheels in stock?
+  - Wie viele Fahrrad-Sets können wir aus den Rahmen und Rädern auf Lager packen?
+  tools:
+  - kits
+  - kit_define_propose
+  - kit_assemble_propose
+  - shipment_dispatch_propose
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [K02, K04]
   internal_evidence:
-  - reference: services/core.py create_item (`item_type` in stocked/service/charge)
-    note: There is no kit or bill-of-materials structure, so kit availability cannot be derived from components.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_kits.py::test_a_kit_is_sold_and_shipped_from_its_components
+    note: "3 frames and 4 wheels build 2 kits, limited by the wheels; the order of 2 is not oversold, is assembled, reserved and shipped, leaving 1 frame and no wheels."
+  - reference: packages/reality-core/tests/test_kits.py
+    note: Availability with a reserved part, definition refusals, the oversold count and isolation (spec 333).
 - id: K02
   section: Kits, bills of material and variants
   title: One component missing, no partial kit allowed
   question: Whole kit held?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Whole kit held?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Whole kit held? Yes. An assembly takes every component or none: one part short refuses it whole, naming the part, what is needed and what is free, and nothing leaves stock. Without a kit there is nothing to ship, so the order waits whole until the part arrives."
   limitations:
-  - There are no kits, so a whole kit cannot be held back when one component is missing.
-  keywords: []
+  - The kit order is reported as oversold while the parts cannot build it; no separate kit class names it.
+  keywords:
+  - component missing
+  - Komponente fehlt
   question_examples:
   - One component missing, no partial kit allowed
   - Whole kit held?
-  tools: []
+  - One wheel is missing for the bike kit; does half a kit go out?
+  - Für das Fahrrad-Set fehlt ein Rad; geht ein halbes Set raus?
+  tools:
+  - kits
+  - kit_assemble_propose
+  - exceptions_list
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [K01]
   internal_evidence:
-  - reference: services/core.py create_item
-    note: There is no kit concept, so the whole kit cannot be held when one component is missing.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_kits.py::test_a_kit_missing_one_component_is_held_back_whole
+    note: "A frame and one wheel: the assembly is refused naming the wheel, nothing is consumed, the order cannot ship; when the wheel arrives it ships whole."
 - id: K03
   section: Kits, bills of material and variants
   title: Return of a single component from a kit
   question: Component back, kit credit partial?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Component back, kit credit partial?'
+  status: partial
+  evidence_level: executable
+  summary: "Reality evaluates: Component back, kit credit partial? The component comes back to stock as its own item, and the kit's split gives its per-piece share of the price as the credit amount. The return is not linked to the kit's delivery."
   limitations:
-  - A component can be returned as an item of its own, but without a kit link no partial kit credit follows.
+  - A returned component has no promise of its own, so it reads as Unexplained movement until a person explains it.
+  - The return and credit classes cannot pair a component return with a credit on the kit's invoice.
   keywords: []
   question_examples:
   - Return of a single component from a kit
   - Component back, kit credit partial?
-  tools: []
+  tools:
+  - kit_split
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [K06]
   internal_evidence:
-  - reference: services/core.py create_item
-    note: A component can be returned as its own item, but there is no kit link, so no partial kit credit can be derived.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_kits.py::test_a_single_component_comes_back_from_a_kit
+    note: "One wheel back from a shipped kit: back in stock, its credit share read from the split (23.80), and pinned as Unexplained movement until a component return is linked to its kit."
 - id: K04
   section: Kits, bills of material and variants
   title: 'Light assembly: components consumed, finished item produced'
   question: Paired movements?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Paired movements?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Paired movements? Yes. One reviewed assembly consumes every component and produces the finished item at one location, all under one statement at one time; the movements are never corrected one by one."
   limitations:
-  - There is no assembly step that consumes components and produces the finished item.
-  keywords: []
+  - The components' cost is not rolled into the finished item; inventory cost reviews refuse items with assembly movements for now.
+  keywords:
+  - light assembly
+  - assembly
+  - Montage
+  - Konfektionierung
   question_examples:
   - 'Light assembly: components consumed, finished item produced'
   - Paired movements?
-  tools: []
+  - We assemble three kits from parts in the warehouse; what is booked?
+  - Wir montieren drei Sets aus Teilen im Lager; was wird gebucht?
+  tools:
+  - kit_assemble_propose
+  - movement_explanation
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [K01]
   internal_evidence:
-  - reference: 'specs/242-inventory-cost-contribution/spec.md (Non-Goals: no production/WIP)'
-    note: There is no assembly or production movement that pairs components consumed with the finished item produced.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_kits.py::test_a_light_assembly_consumes_components_and_produces_the_item
+    note: "3 kits assembled ahead: 3 frames and 6 wheels out, 3 kits in, one statement; availability adds assembled and buildable kits; a correction of one side is refused."
 - id: K05
   section: Kits, bills of material and variants
   title: Variant item (size/colour) purchased together
@@ -3931,22 +3961,31 @@ entries:
   section: Kits, bills of material and variants
   title: Bundle price split across components (revenue, tax)
   question: Split stated or derived?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Split stated or derived?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Split stated or derived? The shares are stated on the kit; the split is derived at read time from the line's stated net, tax and gross, rounded to the cent with the remainder on the largest share, so the parts add up exactly to the line."
   limitations:
-  - A bundle price is not split into component revenue or tax; lines carry only the amounts the source states.
-  keywords: []
+  - The line's stated tax is split by the shares; per-component tax rates are not modelled.
+  - Revenue reports keep the kit line; the split is a read beside them.
+  keywords:
+  - bundle price split
+  - revenue split
+  - Preisaufteilung
   question_examples:
   - Bundle price split across components (revenue, tax)
   - Split stated or derived?
-  tools: []
+  - How much of the bike kit's invoice is revenue and tax for the frame?
+  - Wie viel der Set-Rechnung ist Umsatz und Steuer für den Rahmen?
+  tools:
+  - kit_split
   demo_references: []
   product_paths: []
-  related_journeys: []
+  related_journeys: [K03]
   internal_evidence:
+  - reference: packages/reality-core/tests/scenarios/test_catalog_kits.py::test_a_bundle_price_is_split_across_its_components
+    note: "An invoice line of 119.00 (100.00 net, 19.00 tax) splits 60/40: frame 60/11.40/71.40, wheels 40/7.60/47.60, adding up exactly."
   - reference: tests/test_commercial_matching_services.py::test_shipping_kit_production_direct_cost_and_unresolved_wip_are_explicit
-    note: A `kit_input` role exists for cost matching only; there is no bundle-to-component revenue or tax split, so lines carry only stated amounts.
+    note: The cost side keeps its separate kit_input role for cost matching.
 - id: L01
   section: E-commerce and marketplaces
   title: 'Amazon FBA: stock at Amazon, sales/returns/fees via reports'

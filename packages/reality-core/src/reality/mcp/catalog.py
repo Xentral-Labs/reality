@@ -2942,6 +2942,72 @@ MCP_TOOL_CATALOG += (
         ),
         _propose("reorder_point_remove"),
     ),
+    MCPToolDefinition(
+        "kits",
+        "Kits",
+        "Read the kits of the company, or the kit an item is or is part of (item_id): the components, how many one kit takes, the stated price shares, and per location the free kits on hand, the whole kits the free components build and the component that limits them.",
+        "read",
+        "Warehouse",
+        _object_schema({"item_id": OPTIONAL_STRING}),
+        _read("kits"),
+    ),
+    MCPToolDefinition(
+        "kit_split",
+        "Kit split",
+        "Read how a kit's order or invoice line (document_line_id) splits its stated gross, and its stated net and tax where the line states them, across the components by the kit's stated shares, with the gross per component piece. A kit without stated shares has no split.",
+        "read",
+        "Warehouse",
+        _object_schema({"document_line_id": STRING}, required=("document_line_id",)),
+        _read("kit_split"),
+    ),
+    MCPToolDefinition(
+        "kit_define_propose",
+        "Define kit",
+        "Prepare the components of a kit for confirmation: per component the item, how many one kit takes in the component's stock unit and optionally its share of the kit's price (shares for all or none, adding up to exactly 1). The kit and its components are stocked, untracked items; a component is never a kit. The components are stated once. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {
+                "kit_item_id": STRING,
+                "components": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "items": _object_schema(
+                        {
+                            "item_id": STRING,
+                            "quantity": DECIMAL_STRING,
+                            "share": {
+                                "type": ["string", "null"],
+                                "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                            },
+                        },
+                        required=("item_id", "quantity"),
+                    ),
+                },
+            },
+            required=("kit_item_id", "components"),
+        ),
+        _propose("kit_define"),
+    ),
+    MCPToolDefinition(
+        "kit_assemble_propose",
+        "Assemble kits",
+        "Prepare assembling whole kits at a location for confirmation: every component leaves the location by its quantity per kit and the kits enter it, all or nothing, optionally at a stated earlier time (ISO 8601 with its offset). The review shows what each component gives and what is free; a component short of free stock refuses the whole assembly. Packing a kit order assembles it this way before it ships. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {
+                "kit_item_id": STRING,
+                "location_id": STRING,
+                "quantity": DECIMAL_STRING,
+                "occurred_at": OPTIONAL_STRING,
+                "note": OPTIONAL_STRING,
+            },
+            required=("kit_item_id", "location_id", "quantity"),
+        ),
+        _propose("kit_assemble"),
+    ),
 )
 
 MCP_TOOL_CATALOG += (

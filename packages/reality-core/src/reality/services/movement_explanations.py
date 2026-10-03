@@ -211,6 +211,20 @@ def movement_explanation(
                 else "Shipment package",
             }
         )
+    elif movement.type in {"assembly_input", "assembly_output"}:
+        # Spec 333: one side of a kit assembly; its statement names both sides.
+        kind = "assembly"
+        summary = (
+            "This movement is part of a kit assembly: components consumed and kits"
+            " produced at one location under one statement."
+        )
+        links.append(
+            {
+                "kind": "source_record",
+                "id": movement.source_record_id or "",
+                "label": "Kit assembly",
+            }
+        )
     elif movement.source_record_id:
         source = session.scalar(
             select(SourceRecord).where(

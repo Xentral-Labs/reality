@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:0c19aa9ea0f909cb5e64420522b05bb6fad7b28ed014252fcf3cd46b10d2cdce",
+  "knowledge_version": "advisor-v1:sha256:06fffc562784a8046e88c46d977791701535db7e82f47f40772c0d8330af217c",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -342,7 +342,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#B14",
-      "fingerprint": "a27ac9f19a1bc7d4a6e48c28ac7b962590695823f4200d2ee7a697b800565c6c"
+      "fingerprint": "65f3c25b16d4ff63103e7216897d4235c31ef8b001c5a97c60ce251d1cac1fca"
     },
     {
       "id": "source_journey_b15",
@@ -459,7 +459,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C09",
-      "fingerprint": "0481cdf8d00a472697ae728b86d14710c8852829631c6e4e9dca4cdea968dc2d"
+      "fingerprint": "9baa80c156dd451c30f5a4aa00c8e048059e5444ce0f0c5f60bc17d0b5abf6fb"
     },
     {
       "id": "source_journey_c10",
@@ -468,7 +468,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C10",
-      "fingerprint": "b0d67309d3628d720ff7c07c88aa1f97c82465b622ab6da482b27f32c6eeb010"
+      "fingerprint": "e0300432e35cabb74a3ece9cf80fa7906116c589c403554f4d99abaf0d18ccd7"
     },
     {
       "id": "source_journey_c11",
@@ -495,7 +495,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C13",
-      "fingerprint": "056ea45f255917e3cf001bffef4a25619ef1cac930c2e902e64fa8970d36eea2"
+      "fingerprint": "acb94acabde5c62dd886fbb1c0eaeaac89d2e70214482fbaf109ed4e7bd2ccb9"
     },
     {
       "id": "source_journey_c14",
@@ -504,7 +504,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#C14",
-      "fingerprint": "18ce50d590f66acb758e81d4c413814c29d377fde42cc8b8b993949d1d8defae"
+      "fingerprint": "1998540f771c00bc96e1377502e988cc42af2497b000a6eb6d94bfbca10f4064"
     },
     {
       "id": "source_journey_c15",
@@ -603,7 +603,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D07",
-      "fingerprint": "a2c5ee535ad7d64e6bb7bd44a8c8974bdd82a8229ea73864a175bea9195fd9e5"
+      "fingerprint": "75b095f8963b39a867c91651f487cc50529026e08153c93ce87a8f4db3c7ed2b"
     },
     {
       "id": "source_journey_d08",
@@ -612,7 +612,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D08",
-      "fingerprint": "56e19decb50b140a0ab5fb5b74ef6ab34867e9a7a0b69828f8fee255ecadd1fc"
+      "fingerprint": "7dfb733978cd6058d310ed4e8f3a61bc565bd8dc73f91a47960026ce1c5114b1"
     },
     {
       "id": "source_journey_d09",
@@ -621,7 +621,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D09",
-      "fingerprint": "cc18aee31004b7185cc699eeda98d8da9cd1b194edc49585375b2cdf19248ab4"
+      "fingerprint": "d12ba820ad9e49159c0a8963afa076a92a0a1b7f537a636f44ea7b72a798e21e"
     },
     {
       "id": "source_journey_d10",
@@ -738,7 +738,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E03",
-      "fingerprint": "b0461381fcb5d6c0bda486e7f8516056b78ee1b2a1aea8c9788c9838b458320e"
+      "fingerprint": "98df2fb9d38840c8e9e2057903cd0fe4842a8092a146d6899837abbf80b429bd"
     },
     {
       "id": "source_journey_e04",
@@ -810,7 +810,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#E11",
-      "fingerprint": "8932444eedba6c2cea0e7a30268d242c1297fd9a6c0be2ef39dc6f2878312c9d"
+      "fingerprint": "b3b05dee42e0cd6fe96eb636445f77eeca41a290db654f14c660a08c89b4685f"
     },
     {
       "id": "source_journey_e12",
@@ -1476,7 +1476,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K01",
-      "fingerprint": "89880eafb92126e5519c1e9c8a774378fba3c9403704d9dbd3df87ab0608b657"
+      "fingerprint": "ffa3546c9e121a5e3b7bb61ac3611fa497048379d73d4cfa72f5a7a0a45e6aa2"
     },
     {
       "id": "source_journey_k02",
@@ -1485,7 +1485,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K02",
-      "fingerprint": "9926b0bbdfa4c2aaabf2e4a3773cc7641573de75416ecbe6d4de7a12ff5f1dd7"
+      "fingerprint": "9418f32d341c3ad8ea700b88fe90c9faa273f8298b180497bb8ac450fc972ac0"
     },
     {
       "id": "source_journey_k03",
@@ -1494,7 +1494,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K03",
-      "fingerprint": "eb96bfe09924a0332ea42e30a5713d0ef020bb30d88b433c214de4ab9f73d923"
+      "fingerprint": "ef34d18cc0be0166e21014799a8be65a40ed5301598feb89a5137fc7f54035ac"
     },
     {
       "id": "source_journey_k04",
@@ -1503,7 +1503,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K04",
-      "fingerprint": "2edcb5ecb861e4108e9bfda2b1eabbd07be7929dfdc40471429682ad7a5c7bb4"
+      "fingerprint": "6b3011e88e5469ddb408cad5d8dc4d136f6e4663937bd4f4f5104a86e09f0687"
     },
     {
       "id": "source_journey_k05",
@@ -1521,7 +1521,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K06",
-      "fingerprint": "213ddca937f9ffa1e100176c5907dbde5f905d4aeeb73c7d6bb357bc8a5d21e4"
+      "fingerprint": "34bbdfa69fcf14b7e6061d066a40a595b26423ab81c200b7a8af1fff50f65177"
     },
     {
       "id": "source_journey_l01",
@@ -1539,7 +1539,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L02",
-      "fingerprint": "735eb842951e0f016b0161caac04f33605e9f0cfaec724044b2380fa9273d587"
+      "fingerprint": "fb2e95bfadfae582b679d2763aff76434c94f011262a6bb62f7e7718e1ac83bb"
     },
     {
       "id": "source_journey_l03",
@@ -1548,7 +1548,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L03",
-      "fingerprint": "750843a502955b43a077b2615b88f27d6254f6b3649fca739b282316ef4a54e2"
+      "fingerprint": "03de1586f23f0448909b16ea5cf6e499139f64fa64f00930e58df64b2ffbc89e"
     },
     {
       "id": "source_journey_l04",
@@ -1584,7 +1584,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L07",
-      "fingerprint": "a93da0a1c1f73bebd8441b5dfbbb8a6c714df2a886e98cd846c5dd3fe86e1a32"
+      "fingerprint": "df3b031acccbbbf22fb74243d170d8cc45435ab9155870b149cb2eb6c7822de1"
     },
     {
       "id": "source_journey_l08",
@@ -1944,7 +1944,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#Q01",
-      "fingerprint": "363f32dc91a74425745c172dc4c025c2b75aec814a0b1d14a4b89ca103751db4"
+      "fingerprint": "07e66f950eb283708beb2500ea6f8156720c2c5566040657143a75626eaafa18"
     },
     {
       "id": "source_journey_q02",
@@ -2016,7 +2016,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#R04",
-      "fingerprint": "cdfa6536891caa3ee9b251e2bfbdb934f6d1386df47cd37d764f530a44b2bcf3"
+      "fingerprint": "0cd736efcb4cf65ce4609ef7bd7edbde5bc24634df18ff3e7675f6e77ab7fc90"
     },
     {
       "id": "source_journey_r05",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "b7e632a02de039a25b2ea2a1345380bceb36f36bf4de3ebe8f9df22ecfa4621a"
+      "fingerprint": "a9b9cacd806ee908d9d2c9135f09631c6cdce7f1ec1cb4ee5a2b710470764a44"
     },
     {
       "id": "source_document_product_evaluation",
@@ -2773,7 +2773,7 @@
         "item_supply_demand"
       ],
       "language": "en",
-      "fingerprint": "29a16bcfe576d31284f6207964fc254fcec06900f5759a989e00f903a53376d4"
+      "fingerprint": "f9a3d45b61a6572dcdd828f6d054046d8cb1c9cacfd634bf2b07f684687b55b4"
     },
     {
       "id": "evidence_journey_b15",
@@ -2979,40 +2979,34 @@
       "source_id": "source_journey_c09",
       "subject": "Payment and release",
       "title": "Card/PayPal/Klarna: authorization ≠ capture",
-      "search_text": "C09 Payment and release Card/PayPal/Klarna: authorization ≠ capture Are authorization and capture separate facts? payment authorization capture authorized amount Autorisierung Zahlungsautorisierung Card/PayPal/Klarna: authorization ≠ capture Are authorization and capture separate facts? Klarna authorized 100 but captured 60, what is left? Wie viel der Kartenautorisierung ist schon eingezogen?",
-      "claim_text": "Reality evaluates: Are authorization and capture separate facts? An authorization of an order and each capture against it are recorded as stated through reviewed commands; authorized, captured and left are read apart, and a capture beyond what is left is refused.",
-      "support": "proven",
+      "search_text": "C09 Payment and release Card/PayPal/Klarna: authorization ≠ capture Are authorization and capture separate facts? Card/PayPal/Klarna: authorization ≠ capture Are authorization and capture separate facts?",
+      "claim_text": "Reality evaluates: Are authorization and capture separate facts?",
+      "support": "unavailable",
       "limitations": [
-        "Authorizations and captures are stated by a person or an agent; provider feeds are not read yet.",
-        "A capture is not a posting; the money posts when the payout arrives."
+        "Payment authorization and capture are not recorded as separate steps; only received payments are."
       ],
       "references": [
-        "C09",
-        "finance_payment_authorization_record_propose",
-        "finance_payment_capture_record_propose",
-        "finance_payment_authorizations"
+        "C09"
       ],
       "language": "en",
-      "fingerprint": "99634491162448b556bb422a472398bf4cf93522f19241ac9dfa99495d2067d6"
+      "fingerprint": "a8c0c0d434135b6481900dffe341a37f73dbf26526e3e538d2a616e05855a581"
     },
     {
       "id": "evidence_journey_c10",
       "source_id": "source_journey_c10",
       "subject": "Payment and release",
       "title": "Authorization expires before a late partial shipment",
-      "search_text": "C10 Payment and release Authorization expires before a late partial shipment Is the uncovered remainder visible? authorization expired expired authorization uncovered remainder Autorisierung abgelaufen Authorization expires before a late partial shipment Is the uncovered remainder visible? The card authorization ran out before the rest of the order shipped Die Autorisierung ist abgelaufen, bevor der Rest geliefert wurde",
-      "claim_text": "Reality evaluates: Is the uncovered remainder visible? When an authorization lapses with a remainder while the order still has goods to ship, Payment authorization expired names the uncovered amount until a new authorization covers it or nothing is left to ship.",
-      "support": "proven",
+      "search_text": "C10 Payment and release Authorization expires before a late partial shipment Is the uncovered remainder visible? Authorization expires before a late partial shipment Is the uncovered remainder visible?",
+      "claim_text": "Reality evaluates: Is the uncovered remainder visible?",
+      "support": "unavailable",
       "limitations": [
-        "Nothing is held or cancelled by itself; the finding asks a person to authorize again."
+        "Authorizations are not recorded, so an expired authorization and the uncovered remainder cannot be shown."
       ],
       "references": [
-        "C10",
-        "finance_payment_authorizations",
-        "exceptions_list"
+        "C10"
       ],
       "language": "en",
-      "fingerprint": "ed8b7e5fae5f9654a0758eeb98e1ef1a337a513afbce8d0682c68bf3b6c29baa"
+      "fingerprint": "7835a89de570651bbd7885855ff64f9e970399ae59676d1e1a84113468d5f25a"
     },
     {
       "id": "evidence_journey_c11",
@@ -3049,19 +3043,17 @@
       "source_id": "source_journey_c13",
       "subject": "Payment and release",
       "title": "Cash on delivery",
-      "search_text": "C13 Payment and release Cash on delivery Payment tied to the shipment? cash on delivery COD Nachnahme collected amount Cash on delivery Payment tied to the shipment? DHL remitted the cash on delivery, which order does it pay? Welche Rechnung bezahlt die Nachnahme von DHL?",
-      "claim_text": "Reality evaluates: Payment tied to the shipment? The carrier's cash-on-delivery remittance is settled as a payout whose line states the parcel's tracking number; it leads to the order and its invoice, pays it, and the payout read names the shipment.",
-      "support": "proven",
+      "search_text": "C13 Payment and release Cash on delivery Payment tied to the shipment? Cash on delivery Payment tied to the shipment?",
+      "claim_text": "Reality evaluates: Payment tied to the shipment?",
+      "support": "unavailable",
       "limitations": [
-        "A shipment does not state the amount to collect; the tie is the tracking number the remittance states."
+        "There is no cash-on-delivery path, and a payment cannot be tied to a shipment."
       ],
       "references": [
-        "C13",
-        "finance_payout_settle_propose",
-        "finance_payout"
+        "C13"
       ],
       "language": "en",
-      "fingerprint": "19d7fec82fd1ed3b8c646ffaf6fc333cdf3f5b9c966688f4cd7e317f9670b28e"
+      "fingerprint": "d85cd4213d7e659d6fbe0204e9bf7a480e165dd2f2826c93a387f66c80103ea1"
     },
     {
       "id": "evidence_journey_c14",
@@ -3080,7 +3072,7 @@
         "sales_invoice_record_propose"
       ],
       "language": "en",
-      "fingerprint": "cd987d187fec0faa35a0d1c45d1898f9a04ae932187c5eec7b78ea7ce9eee211"
+      "fingerprint": "9644f3f12e4785d15e7947361b772ed1aa47cc3a0b849fb875469dd32050b25a"
     },
     {
       "id": "evidence_journey_c15",
@@ -3258,59 +3250,54 @@
       "source_id": "source_journey_d07",
       "subject": "Picking, shipment, split and merge",
       "title": "Parcel lost, carrier insurance pays",
-      "search_text": "D07 Picking, shipment, split and merge Parcel lost, carrier insurance pays Goods gone, claim receivable, customer still served? lost parcel carrier claim insurance claim Paketverlust Schadensmeldung Parcel lost, carrier insurance pays Goods gone, claim receivable, customer still served? The carrier lost a parcel; how do we claim it and send the order again? Der Spediteur hat ein Paket verloren; wie machen wir die Forderung geltend und liefern neu?",
-      "claim_text": "Reality evaluates: Goods gone, claim receivable, customer still served? A lost parcel is recorded as a failed delivery: its shipment no longer counts as delivered, the goods are written off, the promise is open again to ship once more, and a claim against the carrier or its insurer is an open receivable that the carrier's payment settles.",
-      "support": "proven",
+      "search_text": "D07 Picking, shipment, split and merge Parcel lost, carrier insurance pays Goods gone, claim receivable, customer still served? Parcel lost, carrier insurance pays Goods gone, claim receivable, customer still served?",
+      "claim_text": "Reality evaluates: Goods gone, claim receivable, customer still served?",
+      "support": "unavailable",
       "limitations": [
-        "A failure covers the whole shipment, not one package of several.",
-        "The claim amount is stated; it is not derived from the goods' cost."
+        "There is no claim against the carrier or its insurer.",
+        "A lost parcel still counts as delivered until it is corrected."
       ],
       "references": [
-        "D07",
-        "shipment_delivery_failure_propose",
-        "delivery_failure_summary"
+        "D07"
       ],
       "language": "en",
-      "fingerprint": "ad0505acb6ce99641b9049f38a194112c6e2e6a90636c897b20f2258fbcc0d08"
+      "fingerprint": "4f3e035103fac0370e222dc82b394891fbf963fe283a1f437c6d947d533eee62"
     },
     {
       "id": "evidence_journey_d08",
       "source_id": "source_journey_d08",
       "subject": "Picking, shipment, split and merge",
       "title": "Parcel undeliverable, returns",
-      "search_text": "D08 Picking, shipment, split and merge Parcel undeliverable, returns Stock back, commitment reopened? undeliverable parcel returned to sender Unzustellbar Rücksendung an Absender Parcel undeliverable, returns Stock back, commitment reopened? A parcel came back because the address was wrong; is the order open again? Ein Paket kam unzustellbar zurück; ist der Auftrag wieder offen?",
-      "claim_text": "Reality evaluates: Stock back, commitment reopened? An undeliverable parcel is recorded as a failed delivery, not a customer return: its shipment no longer counts as delivered, the goods are back where they left from, and the promise is open again; an invoice already issued is reported as invoiced and not shipped until the order ships again.",
-      "support": "proven",
+      "search_text": "D08 Picking, shipment, split and merge Parcel undeliverable, returns Stock back, commitment reopened? Parcel undeliverable, returns Stock back, commitment reopened?",
+      "claim_text": "Reality evaluates: Stock back, commitment reopened?",
+      "support": "unavailable",
       "limitations": [
-        "The goods come back to the location they left from.",
-        "Reshipping or cancelling is a separate decision with the existing tools."
+        "Returned stock is booked back, but a return never reopens the delivery promise.",
+        "An undeliverable parcel cannot be told apart from a customer return."
       ],
       "references": [
-        "D08",
-        "shipment_delivery_failure_propose",
-        "delivery_failure_summary"
+        "D08"
       ],
       "language": "en",
-      "fingerprint": "3aa1cba5f6d50771a2ab05d38a15a806e755d87a8b959ffcb4ce911b2e65b798"
+      "fingerprint": "22ef5d6b68cc26ba1ccff521a7b2eb9a0c9e82f167e41a91d3869256f9943408"
     },
     {
       "id": "evidence_journey_d09",
       "source_id": "source_journey_d09",
       "subject": "Picking, shipment, split and merge",
       "title": "Delivery refused",
-      "search_text": "D09 Picking, shipment, split and merge Delivery refused Same as D08 with a reason? delivery refused refusal Annahmeverweigerung Annahme verweigert Delivery refused Same as D08 with a reason? The customer refused the parcel at the door; how do we record why? Der Kunde hat die Annahme verweigert; wie erfassen wir den Grund?",
-      "claim_text": "Reality evaluates: Same as D08 with a reason? A refused delivery is a failed delivery with the stated refusal reason, shown on the shipment; the goods are back and the promise is open again to ship once more or cancel.",
-      "support": "proven",
+      "search_text": "D09 Picking, shipment, split and merge Delivery refused Same as D08 with a reason? Delivery refused Same as D08 with a reason?",
+      "claim_text": "Reality evaluates: Same as D08 with a reason?",
+      "support": "unavailable",
       "limitations": [
-        "The reason is free text."
+        "As in D08, returned stock is booked back but the delivery promise does not reopen.",
+        "A refusal reason can be recorded on a return announcement, not on the received return itself."
       ],
       "references": [
-        "D09",
-        "shipment_delivery_failure_propose",
-        "delivery_failure_summary"
+        "D09"
       ],
       "language": "en",
-      "fingerprint": "144150c4886770508160d05b6c1646b3557c246dd2ba7e2e774279f48569e3cb"
+      "fingerprint": "0bfc2b3e426697e103cec79e2095803b00e0e649663ef385432a3211a84a4175"
     },
     {
       "id": "evidence_journey_d10",
@@ -3539,7 +3526,7 @@
         "month_end_billing"
       ],
       "language": "en",
-      "fingerprint": "94281c6e1c9791e498a1cd1c0f695524e05a32471d84ae66b8fc01b274a20ecf"
+      "fingerprint": "21da5449fdad5a62010e592b0496cda7c1d5019fb4df9baab1039c6831589ec1"
     },
     {
       "id": "evidence_journey_e04",
@@ -3673,7 +3660,7 @@
         "sales_invoice_record_propose"
       ],
       "language": "en",
-      "fingerprint": "039f3be5928c31ddd51514dd9e4a5947ac3a777971f788cecf4c89dc19524a91"
+      "fingerprint": "8098a322d679348d16d9dea606f46fda54247c95330089906b565bca8700dd0f"
     },
     {
       "id": "evidence_journey_e12",
@@ -4916,34 +4903,42 @@
       "source_id": "source_journey_k01",
       "subject": "Kits, bills of material and variants",
       "title": "Kit sold, shipped from components",
-      "search_text": "K01 Kits, bills of material and variants Kit sold, shipped from components Availability = minimum of components? Kit sold, shipped from components Availability = minimum of components?",
-      "claim_text": "Reality evaluates: Availability = minimum of components?",
-      "support": "unavailable",
+      "search_text": "K01 Kits, bills of material and variants Kit sold, shipped from components Availability = minimum of components? kit availability bill of materials Stückliste Set-Verfügbarkeit Kit sold, shipped from components Availability = minimum of components? How many bike kits can we pack from the frames and wheels in stock? Wie viele Fahrrad-Sets können wir aus den Rahmen und Rädern auf Lager packen?",
+      "claim_text": "Reality evaluates: Availability = minimum of components? Yes. A kit is an item with stated components, and per location it is available as the free kits on hand plus the whole kits the free components build, naming the part that limits it. Packing the order assembles the kit from its parts; it then ships as itself.",
+      "support": "proven",
       "limitations": [
-        "There are no kits or bills of material, so kit availability cannot be derived from its components."
+        "One level only; a kit inside a kit is refused.",
+        "What the components build is read, not reserved, until the kit is assembled."
       ],
       "references": [
-        "K01"
+        "K01",
+        "kits",
+        "kit_define_propose",
+        "kit_assemble_propose",
+        "shipment_dispatch_propose"
       ],
       "language": "en",
-      "fingerprint": "56eeec5ba4912c6a97ceb0920ec01a579796cf0b3fcd6dda4d59b0bb2bbf6d07"
+      "fingerprint": "7c0c13f36e5c65ced182c7b2b300bdd33e5f589ed04fc86cd562d7db956be3fc"
     },
     {
       "id": "evidence_journey_k02",
       "source_id": "source_journey_k02",
       "subject": "Kits, bills of material and variants",
       "title": "One component missing, no partial kit allowed",
-      "search_text": "K02 Kits, bills of material and variants One component missing, no partial kit allowed Whole kit held? One component missing, no partial kit allowed Whole kit held?",
-      "claim_text": "Reality evaluates: Whole kit held?",
-      "support": "unavailable",
+      "search_text": "K02 Kits, bills of material and variants One component missing, no partial kit allowed Whole kit held? component missing Komponente fehlt One component missing, no partial kit allowed Whole kit held? One wheel is missing for the bike kit; does half a kit go out? Für das Fahrrad-Set fehlt ein Rad; geht ein halbes Set raus?",
+      "claim_text": "Reality evaluates: Whole kit held? Yes. An assembly takes every component or none: one part short refuses it whole, naming the part, what is needed and what is free, and nothing leaves stock. Without a kit there is nothing to ship, so the order waits whole until the part arrives.",
+      "support": "proven",
       "limitations": [
-        "There are no kits, so a whole kit cannot be held back when one component is missing."
+        "The kit order is reported as oversold while the parts cannot build it; no separate kit class names it."
       ],
       "references": [
-        "K02"
+        "K02",
+        "kits",
+        "kit_assemble_propose",
+        "exceptions_list"
       ],
       "language": "en",
-      "fingerprint": "96a6c9979fad6a386537cdbc6638dcc03a35e9f22f763372f90e2cd41c2da726"
+      "fingerprint": "c497db74931d0bf4fea91a13a518513685c3a51cc1ee860d8c0d2894b1e5d93d"
     },
     {
       "id": "evidence_journey_k03",
@@ -4951,33 +4946,37 @@
       "subject": "Kits, bills of material and variants",
       "title": "Return of a single component from a kit",
       "search_text": "K03 Kits, bills of material and variants Return of a single component from a kit Component back, kit credit partial? Return of a single component from a kit Component back, kit credit partial?",
-      "claim_text": "Reality evaluates: Component back, kit credit partial?",
-      "support": "unavailable",
+      "claim_text": "Reality evaluates: Component back, kit credit partial? The component comes back to stock as its own item, and the kit's split gives its per-piece share of the price as the credit amount. The return is not linked to the kit's delivery.",
+      "support": "limited",
       "limitations": [
-        "A component can be returned as an item of its own, but without a kit link no partial kit credit follows."
+        "A returned component has no promise of its own, so it reads as Unexplained movement until a person explains it.",
+        "The return and credit classes cannot pair a component return with a credit on the kit's invoice."
       ],
       "references": [
-        "K03"
+        "K03",
+        "kit_split"
       ],
       "language": "en",
-      "fingerprint": "03eace0c8cdc94f9522ad07bad87d1c6e4463bc65000b2ac7f958b4187746b93"
+      "fingerprint": "27a761ea0bcb2545be7c2fe3acd4dda927f503160637720a0e74a48118396635"
     },
     {
       "id": "evidence_journey_k04",
       "source_id": "source_journey_k04",
       "subject": "Kits, bills of material and variants",
       "title": "Light assembly: components consumed, finished item produced",
-      "search_text": "K04 Kits, bills of material and variants Light assembly: components consumed, finished item produced Paired movements? Light assembly: components consumed, finished item produced Paired movements?",
-      "claim_text": "Reality evaluates: Paired movements?",
-      "support": "unavailable",
+      "search_text": "K04 Kits, bills of material and variants Light assembly: components consumed, finished item produced Paired movements? light assembly assembly Montage Konfektionierung Light assembly: components consumed, finished item produced Paired movements? We assemble three kits from parts in the warehouse; what is booked? Wir montieren drei Sets aus Teilen im Lager; was wird gebucht?",
+      "claim_text": "Reality evaluates: Paired movements? Yes. One reviewed assembly consumes every component and produces the finished item at one location, all under one statement at one time; the movements are never corrected one by one.",
+      "support": "proven",
       "limitations": [
-        "There is no assembly step that consumes components and produces the finished item."
+        "The components' cost is not rolled into the finished item; inventory cost reviews refuse items with assembly movements for now."
       ],
       "references": [
-        "K04"
+        "K04",
+        "kit_assemble_propose",
+        "movement_explanation"
       ],
       "language": "en",
-      "fingerprint": "dc2e6c450f9b08faedea4c69fef8c2ea7277381f42bc76509925775bc036069d"
+      "fingerprint": "af32ddb6e0b1349b989e95bc90401beb6cb086f5426d1bf4b36ca99b7bca540a"
     },
     {
       "id": "evidence_journey_k05",
@@ -5001,17 +5000,19 @@
       "source_id": "source_journey_k06",
       "subject": "Kits, bills of material and variants",
       "title": "Bundle price split across components (revenue, tax)",
-      "search_text": "K06 Kits, bills of material and variants Bundle price split across components (revenue, tax) Split stated or derived? Bundle price split across components (revenue, tax) Split stated or derived?",
-      "claim_text": "Reality evaluates: Split stated or derived?",
-      "support": "unavailable",
+      "search_text": "K06 Kits, bills of material and variants Bundle price split across components (revenue, tax) Split stated or derived? bundle price split revenue split Preisaufteilung Bundle price split across components (revenue, tax) Split stated or derived? How much of the bike kit's invoice is revenue and tax for the frame? Wie viel der Set-Rechnung ist Umsatz und Steuer für den Rahmen?",
+      "claim_text": "Reality evaluates: Split stated or derived? The shares are stated on the kit; the split is derived at read time from the line's stated net, tax and gross, rounded to the cent with the remainder on the largest share, so the parts add up exactly to the line.",
+      "support": "proven",
       "limitations": [
-        "A bundle price is not split into component revenue or tax; lines carry only the amounts the source states."
+        "The line's stated tax is split by the shares; per-component tax rates are not modelled.",
+        "Revenue reports keep the kit line; the split is a read beside them."
       ],
       "references": [
-        "K06"
+        "K06",
+        "kit_split"
       ],
       "language": "en",
-      "fingerprint": "183ef047b373b18f168c11c4c83226135fc66e0f2e31fd22f21a775cb3b271dd"
+      "fingerprint": "b3ff1086ccdc66b3d0026d6bc0e182b69c25b71804e69d7ae736df82e41bdc59"
     },
     {
       "id": "evidence_journey_l01",
@@ -5047,28 +5048,25 @@
         "source_ingest_propose"
       ],
       "language": "en",
-      "fingerprint": "46e10d1dbb28a9c6b8e112e61c366e4a96ed5456d08e1b685e4116f17a2c1072"
+      "fingerprint": "1b590da65daaaeb77fe2f19a730d824576be4b944c233d9cddce9f35062de4c2"
     },
     {
       "id": "evidence_journey_l03",
       "source_id": "source_journey_l03",
       "subject": "E-commerce and marketplaces",
       "title": "Marketplace payout: one payment for hundreds of orders minus fees and refunds",
-      "search_text": "L03 E-commerce and marketplaces Marketplace payout: one payment for hundreds of orders minus fees and refunds Each order settled, fees as charges? marketplace payout payout statement settlement report Amazon payout Auszahlung Marktplatzauszahlung Sammelzahlung Marketplace payout: one payment for hundreds of orders minus fees and refunds Each order settled, fees as charges? Amazon pays out once a fortnight minus its fees, which orders does it cover? Eine Marktplatzauszahlung bezahlt hunderte Aufträge abzüglich Gebühren, wie wird sie verbucht?",
-      "claim_text": "Reality evaluates: Each order settled, fees as charges? A person or agent states the payout statement; every charge pays its order's invoice on the provider's own cash account, a refund settles the order's credit note, a chargeback returns the payment, fees are payment-fee expense, and the stated net payout moves to the bank.",
-      "support": "proven",
+      "search_text": "L03 E-commerce and marketplaces Marketplace payout: one payment for hundreds of orders minus fees and refunds Each order settled, fees as charges? Marketplace payout: one payment for hundreds of orders minus fees and refunds Each order settled, fees as charges?",
+      "claim_text": "Reality evaluates: Each order settled, fees as charges?",
+      "support": "unavailable",
       "limitations": [
-        "The statement is stated through the reviewed command (from a JSON file by CLI or by an agent); provider report formats and APIs are not read yet.",
-        "A line whose references name nothing Reality holds stays unbooked and is reported until the statement is settled again."
+        "Marketplace and payment provider payouts are not matched to orders yet.",
+        "Fees, refunds and chargebacks within a payout are not allocated."
       ],
       "references": [
-        "L03",
-        "finance_payout_settle_propose",
-        "finance_payouts",
-        "finance_payout"
+        "L03"
       ],
       "language": "en",
-      "fingerprint": "8173376263602e876e243574058d28252ee33670e4efa6859589f901da14be7b"
+      "fingerprint": "c438b8b149e6dd6c058a7e82e552128f5a49257ee09cefa29fb8aa549e9112ed"
     },
     {
       "id": "evidence_journey_l04",
@@ -5138,7 +5136,7 @@
         "exceptions_list"
       ],
       "language": "en",
-      "fingerprint": "bfa0fc33ffee70da776053e1fe2cddad94cb47cf21f82a9759a9bf69e322c93b"
+      "fingerprint": "b18b966027df666d3acf8568eeadcbad331cc9c85c13326371c3daa3fa68ff28"
     },
     {
       "id": "evidence_journey_l08",
@@ -5831,7 +5829,7 @@
         "month_end_billing"
       ],
       "language": "en",
-      "fingerprint": "a91da00ce2398c7425c470e57adaf0c8349a652b9685cdd1e9ffb199718075f8"
+      "fingerprint": "3f32432b19b09917516508c8d3cd8ffd006e7a4b556449084d0b20f68b201a14"
     },
     {
       "id": "evidence_journey_q02",
@@ -5963,19 +5961,17 @@
       "source_id": "source_journey_r04",
       "subject": "Combined stress stories",
       "title": "Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees",
-      "search_text": "R04 Combined stress stories Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees Every position allocated. 400 orders payout payout with chargebacks payout refunds chargebacks fees Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees Every position allocated. Eine Auszahlung über 400 Bestellungen mit Erstattungen und Rückbelastungen",
-      "claim_text": "Reality evaluates: Every position allocated. One reviewed settlement books 400 charges against their invoices, 12 refunds against their credit notes, 3 chargebacks as returned payments and the fees, and the provider's account is empty afterwards.",
-      "support": "proven",
+      "search_text": "R04 Combined stress stories Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees Every position allocated. Marketplace payout with 400 orders, 12 refunds, 3 chargebacks and fees Every position allocated.",
+      "claim_text": "Reality evaluates: Every position allocated.",
+      "support": "unavailable",
       "limitations": [
-        "The settlement reads and writes each line through the shared payment primitives, so its cost grows with the lines; a statement holds at most 2000 lines."
+        "Payouts, fees and chargebacks are not allocated across orders; see L03."
       ],
       "references": [
-        "R04",
-        "finance_payout_settle_propose",
-        "finance_payout"
+        "R04"
       ],
       "language": "en",
-      "fingerprint": "b20b4da4a45bd4e4d56fd59e03c52b79ba82bd25b80eff0bd776dc92ef734925"
+      "fingerprint": "7f5d146656dc5e0d86204dafd3081ff32b67cfe252d859f1b69ba87d072f993d"
     },
     {
       "id": "evidence_journey_r05",
@@ -7330,6 +7326,66 @@
       "fingerprint": "baad7c7072d86bb48624ba7631aa62ad18637842ffc8c75871a3e815ffffd491"
     },
     {
+      "id": "evidence_command_define_kit",
+      "source_id": "source_executable_commands",
+      "subject": "Define a kit",
+      "title": "Define a kit",
+      "search_text": "define_kit Define a kit States the components of a kit once, with how many one kit takes and optionally each component's share of the kit's price. mutation",
+      "claim_text": "define_kit is a governed mutation command for States the components of a kit once, with how many one kit takes and optionally each component's share of the kit's price..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "define_kit"
+      ],
+      "language": "en",
+      "fingerprint": "befc6b1a0cadc517d37f54278edc82ee019dfd547eb4c227c633252cac053586"
+    },
+    {
+      "id": "evidence_command_assemble_kit",
+      "source_id": "source_executable_commands",
+      "subject": "Assemble kits",
+      "title": "Assemble kits",
+      "search_text": "assemble_kit Assemble kits Consumes every component and produces whole kits at one location under one assembly statement, all or nothing; a component short of free stock refuses the whole assembly. mutation",
+      "claim_text": "assemble_kit is a governed mutation command for Consumes every component and produces whole kits at one location under one assembly statement, all or nothing; a component short of free stock refuses the whole assembly..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "assemble_kit"
+      ],
+      "language": "en",
+      "fingerprint": "3657df82efb3b202ab5eda89fc948c09d176c1a19e73b452110cee3084a22716"
+    },
+    {
+      "id": "evidence_command_kits",
+      "source_id": "source_executable_commands",
+      "subject": "Read kits",
+      "title": "Read kits",
+      "search_text": "kits Read kits Lists the kits with their components and, per location, the free kits on hand, the whole kits the free components build and the component that limits them. query",
+      "claim_text": "kits is a governed query command for Lists the kits with their components and, per location, the free kits on hand, the whole kits the free components build and the component that limits them..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "kits"
+      ],
+      "language": "en",
+      "fingerprint": "c54c66d5718dc4f28f17a1fb058241e933f200b4e1837c5fbbe9cafd3e448443"
+    },
+    {
+      "id": "evidence_command_kit_split",
+      "source_id": "source_executable_commands",
+      "subject": "Read a kit line's split",
+      "title": "Read a kit line's split",
+      "search_text": "kit_split Read a kit line's split Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up exactly to the line. query",
+      "claim_text": "kit_split is a governed query command for Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up exactly to the line..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "kit_split"
+      ],
+      "language": "en",
+      "fingerprint": "3c47f3aa58f1060572900fd12a10f334fe3928e9b23e83919b4adda137481bb3"
+    },
+    {
       "id": "evidence_command_purchase_match",
       "source_id": "source_executable_commands",
       "subject": "Read the three-way match of a purchase order",
@@ -8020,96 +8076,6 @@
       "fingerprint": "513933754f7a9815013a2638442b246c68fc843b0e9ab834c3be7b6c42d493d8"
     },
     {
-      "id": "evidence_command_settle_payout",
-      "source_id": "source_executable_commands",
-      "subject": "Settle a payout",
-      "title": "Settle a payout",
-      "search_text": "settle_payout Settle a payout Books a stated marketplace or provider payout line by line on the provider's cash account (payments, refunds against credit notes, chargebacks, fees), moves the net payout to the bank and leaves lines that lead nowhere unbooked. mutation",
-      "claim_text": "settle_payout is a governed mutation command for Books a stated marketplace or provider payout line by line on the provider's cash account (payments, refunds against credit notes, chargebacks, fees), moves the net payout to the bank and leaves lines that lead nowhere unbooked..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "settle_payout"
-      ],
-      "language": "en",
-      "fingerprint": "478d251c3f7d3f53ea5407b0a96a1ac612cc6b2d596f17c58a72be0c36132007"
-    },
-    {
-      "id": "evidence_command_payouts",
-      "source_id": "source_executable_commands",
-      "subject": "List payouts",
-      "title": "List payouts",
-      "search_text": "payouts List payouts Lists payouts with their net amount and the lines nothing booked yet. query",
-      "claim_text": "payouts is a governed query command for Lists payouts with their net amount and the lines nothing booked yet..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "payouts"
-      ],
-      "language": "en",
-      "fingerprint": "104c3153c9dd73b1a8f62387edec025f025b3603434d10997dda97396217f6b8"
-    },
-    {
-      "id": "evidence_command_payout_detail",
-      "source_id": "source_executable_commands",
-      "subject": "Read a payout",
-      "title": "Read a payout",
-      "search_text": "payout_detail Read a payout Reads one payout with every stated line, what it booked, the invoices it settled and the shipment a tracking number names. query",
-      "claim_text": "payout_detail is a governed query command for Reads one payout with every stated line, what it booked, the invoices it settled and the shipment a tracking number names..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "payout_detail"
-      ],
-      "language": "en",
-      "fingerprint": "cab09e8f0b0813be3b8cb0106bd1ef306d63ac5bad240c3a08876b021759357b"
-    },
-    {
-      "id": "evidence_command_record_authorization",
-      "source_id": "source_executable_commands",
-      "subject": "Record a payment authorization",
-      "title": "Record a payment authorization",
-      "search_text": "record_authorization Record a payment authorization Records what a card or wallet provider authorized for one sales order, until when. mutation",
-      "claim_text": "record_authorization is a governed mutation command for Records what a card or wallet provider authorized for one sales order, until when..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "record_authorization"
-      ],
-      "language": "en",
-      "fingerprint": "38de58df0783fbe7663ab35a2a35e9a4bfd266daa767ecacf0b8d935f4eb04a0"
-    },
-    {
-      "id": "evidence_command_record_capture",
-      "source_id": "source_executable_commands",
-      "subject": "Record a payment capture",
-      "title": "Record a payment capture",
-      "search_text": "record_capture Record a payment capture Records an amount captured against an authorization, never more than is left and not after it lapsed. mutation",
-      "claim_text": "record_capture is a governed mutation command for Records an amount captured against an authorization, never more than is left and not after it lapsed..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "record_capture"
-      ],
-      "language": "en",
-      "fingerprint": "69cc3980778fdb265d8aaec30e7eda9e97a1048a014a7460850c06c1f5157ded"
-    },
-    {
-      "id": "evidence_command_authorizations",
-      "source_id": "source_executable_commands",
-      "subject": "List payment authorizations",
-      "title": "List payment authorizations",
-      "search_text": "authorizations List payment authorizations Lists authorizations with what was captured, what is left and whether each is live, expired or captured. query",
-      "claim_text": "authorizations is a governed query command for Lists authorizations with what was captured, what is left and whether each is live, expired or captured..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "authorizations"
-      ],
-      "language": "en",
-      "fingerprint": "35202028c68fcf1730c7b95cfe261856dee5beb5989cab6ac9531b12b0e20f9f"
-    },
-    {
       "id": "evidence_command_handovers",
       "source_id": "source_executable_commands",
       "subject": "List collection handovers",
@@ -8498,21 +8464,6 @@
       ],
       "language": "en",
       "fingerprint": "f4dcd7a9d5de42bf638b2504dee545f12faf4ad057d7de28edce73678644825c"
-    },
-    {
-      "id": "evidence_command_record_delivery_failure",
-      "source_id": "source_executable_commands",
-      "subject": "Record a failed delivery",
-      "title": "Record a failed delivery",
-      "search_text": "record_delivery_failure Record a failed delivery Records that a customer shipment came back undeliverable, was refused or was lost; reverses its movements so the promise is open again, brings the goods back or writes them off, and may open a carrier claim. mutation",
-      "claim_text": "record_delivery_failure is a governed mutation command for Records that a customer shipment came back undeliverable, was refused or was lost; reverses its movements so the promise is open again, brings the goods back or writes them off, and may open a carrier claim..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "record_delivery_failure"
-      ],
-      "language": "en",
-      "fingerprint": "a8d4c40b3403c859361d5a81344d7a6fdd5b205768f3fc344a0d160ac113f3dc"
     },
     {
       "id": "evidence_command_assign_line_item",

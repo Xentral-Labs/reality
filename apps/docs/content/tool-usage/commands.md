@@ -37,29 +37,30 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation                    | Company & access           | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation                    | Company & access           | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`business_journey_guide`](#command-business_journey_guide)                       | Ask the Business Journey Guide               | Cross-functional           | `business_journey_guide`                                                                                                                                                                     | Web · API · MCP · Chat                  |
+| [`assemble_kit`](#command-assemble_kit)                                           | Assemble kits                                | Cross-functional           | `kit_assemble_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`assign_line_item`](#command-assign_line_item)                                   | Assign an item to an order line              | Cross-functional           | `order_line_item_assign_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`assign_supply`](#command-assign_supply)                                         | Assign incoming supply to customer demand    | Cross-functional           | `supply_assign_propose`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report                  | Cross-functional           | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision       | Cross-functional           | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
 | [`confirm_run`](#command-confirm_run)                                             | Confirm dunning run                          | Cross-functional           | `finance_dunning_run_propose`                                                                                                                                                                | Web · MCP · Chat                        |
+| [`define_kit`](#command-define_kit)                                               | Define a kit                                 | Cross-functional           | `kit_define_propose`                                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`cost_review_draft`](#command-cost_review_draft)                                 | Draft a cost review                          | Cross-functional           | `cost_review_draft`                                                                                                                                                                          | Web · MCP · Chat                        |
 | [`record_customer_exchange`](#command-record_customer_exchange)                   | Exchange returned goods for a replacement    | Cross-functional           | `customer_exchange_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`record_handover`](#command-record_handover)                                     | Hand over to collection                      | Cross-functional           | `finance_dunning_collection_propose`                                                                                                                                                         | Web · MCP · Chat                        |
 | [`cost_record`](#command-cost_record)                                             | Inspect retained cost record                 | Cross-functional           | `cost_record_get`                                                                                                                                                                            | CLI · Web · MCP · Chat                  |
 | [`handovers`](#command-handovers)                                                 | List collection handovers                    | Cross-functional           | `finance_dunning_collection_handovers`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`notices`](#command-notices)                                                     | List dunning notices                         | Cross-functional           | `finance_dunning_notices`                                                                                                                                                                    | Web · MCP · Chat                        |
-| [`authorizations`](#command-authorizations)                                       | List payment authorizations                  | Cross-functional           | `finance_payment_authorizations`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
-| [`payouts`](#command-payouts)                                                     | List payouts                                 | Cross-functional           | `finance_payouts`                                                                                                                                                                            | Web · MCP · Chat · CLI                  |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Cross-functional           | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`run_context`](#command-run_context)                                             | Preview dunning run                          | Cross-functional           | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review                | Cross-functional           | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
-| [`payout_detail`](#command-payout_detail)                                         | Read a payout                                | Cross-functional           | `finance_payout`                                                                                                                                                                             | Web · MCP · Chat · CLI                  |
+| [`kit_split`](#command-kit_split)                                                 | Read a kit line's split                      | Cross-functional           | `kit_split`                                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`handover_detail`](#command-handover_detail)                                     | Read collection handover                     | Cross-functional           | `finance_dunning_collection_handover`                                                                                                                                                        | Web · MCP · Chat                        |
 | [`cost_query`](#command-cost_query)                                               | Read cost query context                      | Cross-functional           | `cost_query_get`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
 | [`customer_item_numbers`](#command-customer_item_numbers)                         | Read customer item numbers                   | Cross-functional           | `customer_item_numbers`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`dunning_context`](#command-dunning_context)                                     | Read dunning context                         | Cross-functional           | `finance_dunning_context`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`notice_detail`](#command-notice_detail)                                         | Read dunning notice                          | Cross-functional           | `finance_dunning_notice`                                                                                                                                                                     | Web · MCP · Chat                        |
 | [`schedule`](#command-schedule)                                                   | Read dunning schedule                        | Cross-functional           | `finance_dunning_schedule`                                                                                                                                                                   | Web · MCP · Chat                        |
+| [`kits`](#command-kits)                                                           | Read kits                                    | Cross-functional           | `kits`                                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs               | Cross-functional           | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`cost_evidence`](#command-cost_evidence)                                         | Read received acquisition-cost evidence      | Cross-functional           | `cost_evidence_get`                                                                                                                                                                          | CLI · Web · MCP · Chat                  |
 | [`reviewed_contribution`](#command-reviewed_contribution)                         | Read reviewed commercial contribution        | Cross-functional           | `cost_contribution_get`                                                                                                                                                                      | CLI · Web · MCP · Chat                  |
@@ -67,14 +68,11 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`company_currency_state`](#command-company_currency_state)                       | Read the company currency                    | Cross-functional           | `company_currency`                                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`month_end_billing`](#command-month_end_billing)                                 | Read the month-end billing lists             | Cross-functional           | `month_end_billing`                                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
 | [`purchase_match`](#command-purchase_match)                                       | Read the three-way match of a purchase order | Cross-functional           | `purchase_match`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
-| [`record_authorization`](#command-record_authorization)                           | Record a payment authorization               | Cross-functional           | `finance_payment_authorization_record_propose`                                                                                                                                               | Web · MCP · Chat · CLI                  |
-| [`record_capture`](#command-record_capture)                                       | Record a payment capture                     | Cross-functional           | `finance_payment_capture_record_propose`                                                                                                                                                     | Web · MCP · Chat · CLI                  |
 | [`record_notice`](#command-record_notice)                                         | Record dunning notice                        | Cross-functional           | `finance_dunning_record_propose`                                                                                                                                                             | Web · MCP · Chat                        |
 | [`propose_company_party`](#command-propose_company_party)                         | Record the company as its business partner   | Cross-functional           | `company_party_record_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`reverse_notice`](#command-reverse_notice)                                       | Reverse dunning notice                       | Cross-functional           | `finance_dunning_reverse_propose`                                                                                                                                                            | Web · MCP · Chat                        |
 | [`business_journey_vote_set`](#command-business_journey_vote_set)                 | Set a Business Journey suggestion vote       | Cross-functional           | `business_journey_vote_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
 | [`set_schedule`](#command-set_schedule)                                           | Set dunning schedule                         | Cross-functional           | `finance_dunning_schedule_set_propose`                                                                                                                                                       | Web · MCP · Chat                        |
-| [`settle_payout`](#command-settle_payout)                                         | Settle a payout                              | Cross-functional           | `finance_payout_settle_propose`                                                                                                                                                              | Web · MCP · Chat · CLI                  |
 | [`set_customer_item_number`](#command-set_customer_item_number)                   | State a customer item number                 | Cross-functional           | `customer_item_number_set_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`set_supplier_item_terms`](#command-set_supplier_item_terms)                     | State supplier item terms                    | Cross-functional           | `supplier_item_terms_set_propose`                                                                                                                                                            | CLI · Web · API · MCP · Chat            |
 | [`set_company_currency`](#command-set_company_currency)                           | State the company currency                   | Cross-functional           | `company_currency_set_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
@@ -7451,6 +7449,53 @@ explicit limitations.
 
 **See also:** command [`business_journey_guide`](./commands#command-business_journey_guide)
 
+### `assemble_kit` — Assemble kits {#command-assemble_kit}
+
+Consumes every component and produces whole kits at one location under one assembly statement, all
+or nothing; a component short of free stock refuses the whole assembly.
+
+**Synopsis**
+
+```text
+kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `item`, `location`, `kit_component`, `movement`, `reservation`, `stock_block` ·
+Writes: `movement`, `source_record`, `business_event` · Emits: `kit.assembled`
+
+**See also:** agent tool [`kit_assemble_propose`](./commands#tool-kit_assemble_propose), event
+[`kit.assembled`](./events#event-kit-assembled)
+
+#### `kit_assemble_propose` — Assemble kits {#tool-kit_assemble_propose}
+
+Prepare assembling whole kits at a location for confirmation: every component leaves the location by
+its quantity per kit and the kits enter it, all or nothing, optionally at a stated earlier time (ISO
+8601 with its offset). The review shows what each component gives and what is free; a component
+short of free stock refuses the whole assembly. Packing a kit order assembles it this way before it
+ships. A person confirms.
+
+**Synopsis**
+
+```text
+kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name          | Type     | Required | Description                                                                 | Default |
+| ------------- | -------- | -------- | --------------------------------------------------------------------------- | ------- |
+| `kit_item_id` | `string` | yes      | Opaque same-tenant identity of the stocked item that is the kit (spec 333). | —       |
+| `location_id` | `string` | yes      | Opaque identity of the operational or physical location.                    | —       |
+| `quantity`    | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                     | —       |
+| `occurred_at` | `string` | no       | UTC instant at which the physical or business event occurred.               | —       |
+| `note`        | `string` | no       | Free-text record of what the counterparty said, kept with the statement.    | —       |
+
+**See also:** command [`assemble_kit`](./commands#command-assemble_kit)
+
 ### `assign_line_item` — Assign an item to an order line {#command-assign_line_item}
 
 Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its
@@ -7930,6 +7975,52 @@ Reminded items now wait for their next level.
 
 **See also:** command [`confirm_run`](./commands#command-confirm_run)
 
+### `define_kit` — Define a kit {#command-define_kit}
+
+States the components of a kit once, with how many one kit takes and optionally each component's
+share of the kit's price.
+
+**Synopsis**
+
+```text
+kit_define_propose kit_item_id components
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `item`, `kit_component` · Writes: `kit_component`, `source_record`,
+`business_event` · Emits: `kit.defined`
+
+**See also:** agent tool [`kit_define_propose`](./commands#tool-kit_define_propose), event
+[`kit.defined`](./events#event-kit-defined)
+
+#### `kit_define_propose` — Define kit {#tool-kit_define_propose}
+
+Prepare the components of a kit for confirmation: per component the item, how many one kit takes in
+the component's stock unit and optionally its share of the kit's price (shares for all or none,
+adding up to exactly 1). The kit and its components are stocked, untracked items; a component is
+never a kit. The components are stated once. A person confirms.
+
+**Synopsis**
+
+```text
+kit_define_propose kit_item_id components
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                    | Type     | Required | Description                                                                                                                                                                                   | Default |
+| ----------------------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `kit_item_id`           | `string` | yes      | Opaque same-tenant identity of the stocked item that is the kit (spec 333).                                                                                                                   | —       |
+| `components`            | `array`  | yes      | The kit's components, each an item, how many one kit takes in that item's stock unit, and optionally its share of the kit's price; shares are stated for all or none and add up to exactly 1. | —       |
+| `components[].item_id`  | `string` | yes      | Opaque identity of the operational item reference.                                                                                                                                            | —       |
+| `components[].quantity` | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                                                       | —       |
+| `components[].share`    | `string` | no       | A component's share of the kit's price, between 0 and 1, as stated; the bundle split divides a kit line's stated amounts by it.                                                               | —       |
+
+**See also:** command [`define_kit`](./commands#command-define_kit)
+
 ### `cost_review_draft` — Draft a cost review {#command-cost_review_draft}
 
 Draft the inventory or contribution review the held records support, or name the inputs a person
@@ -8299,119 +8390,6 @@ No parameters.
 
 **See also:** command [`notices`](./commands#command-notices)
 
-### `authorizations` — List payment authorizations {#command-authorizations}
-
-Lists authorizations with what was captured, what is left and whether each is live, expired or
-captured.
-
-**Synopsis**
-
-```text
-finance_payment_authorizations [order_document_id] [as_of]
-```
-
-**Reach via:** Web · MCP · Chat · CLI
-
-**Effect:** Reads: `payment_authorization`, `payment_capture` · Writes: —
-
-**See also:** agent tool
-[`finance_payment_authorizations`](./commands#tool-finance_payment_authorizations)
-
-#### `finance_payment_authorizations` — Payment authorizations {#tool-finance_payment_authorizations}
-
-List payment authorizations, optionally for one order, with what was captured, what is left and
-whether each is live, expired or captured at the instant.
-
-**Synopsis**
-
-```text
-finance_payment_authorizations [order_document_id] [as_of]
-```
-
-**Access:** `read`
-
-**How this query runs**
-
-| Concrete query                       | Kind                        | Default |
-| ------------------------------------ | --------------------------- | ------- |
-| `MCP finance_payment_authorizations` | Live — read at request time | yes     |
-
-[How this query runs](./views#read-execution)
-
-List payment authorizations with what was captured, what is left and whether each is live, expired
-or captured.
-
-**Use when**
-
-- Before a late shipment
-- to see whether the payment is still authorized.
-
-**Do not use when**
-
-- The question is whether an invoice is paid; read the invoice.
-
-**Parameters**
-
-| Name                | Type     | Required | Description                                                                  | Default |
-| ------------------- | -------- | -------- | ---------------------------------------------------------------------------- | ------- |
-| `order_document_id` | `string` | no       | Opaque same-tenant identity of a sales order.                                | —       |
-| `as_of`             | `string` | no       | UTC instant the derivation is evaluated at; the current instant when absent. | —       |
-
-**See also:** command [`authorizations`](./commands#command-authorizations)
-
-### `payouts` — List payouts {#command-payouts}
-
-Lists payouts with their net amount and the lines nothing booked yet.
-
-**Synopsis**
-
-```text
-finance_payouts
-```
-
-**Reach via:** Web · MCP · Chat · CLI
-
-**Effect:** Reads: `document`, `source_record`, `payment_return` · Writes: —
-
-**See also:** agent tool [`finance_payouts`](./commands#tool-finance_payouts)
-
-#### `finance_payouts` — Payouts {#tool-finance_payouts}
-
-List marketplace and payment-provider payouts with their net amount and the lines nothing booked
-yet.
-
-**Synopsis**
-
-```text
-finance_payouts
-```
-
-**Access:** `read`
-
-**How this query runs**
-
-| Concrete query        | Kind                        | Default |
-| --------------------- | --------------------------- | ------- |
-| `MCP finance_payouts` | Live — read at request time | yes     |
-
-[How this query runs](./views#read-execution)
-
-List payouts with their net amount and the lines nothing booked yet.
-
-**Use when**
-
-- Payouts must be reconciled with the bank or followed up.
-
-**Do not use when**
-
-- One payout is known; read it.
-
-**Parameters**
-
-No parameters.
-
-**See also:** command [`payouts`](./commands#command-payouts)
-
 ### `contribution_preview` — Preview current contribution candidate {#command-contribution_preview}
 
 Follow an exact whole invoice/order/shipment scope to received net revenue and reviewed consumption;
@@ -8602,64 +8580,63 @@ the proposal.
 
 **See also:** command [`propose_cost_review`](./commands#command-propose_cost_review)
 
-### `payout_detail` — Read a payout {#command-payout_detail}
+### `kit_split` — Read a kit line's split {#command-kit_split}
 
-Reads one payout with every stated line, what it booked, the invoices it settled and the shipment a
-tracking number names.
+Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up
+exactly to the line.
 
 **Synopsis**
 
 ```text
-finance_payout payout_id
+kit_split document_line_id
 ```
 
-**Reach via:** Web · MCP · Chat · CLI
+**Reach via:** CLI · Web · API · MCP · Chat
 
-**Effect:** Reads: `document`, `source_record`, `ledger_entry`, `settlement_allocation`,
-`payment_return`, `shipment_package` · Writes: —
+**Effect:** Reads: `document_line`, `item`, `kit_component` · Writes: —
 
-**See also:** agent tool [`finance_payout`](./commands#tool-finance_payout)
+**See also:** agent tool [`kit_split`](./commands#tool-kit_split)
 
-#### `finance_payout` — Payout {#tool-finance_payout}
+#### `kit_split` — Kit split {#tool-kit_split}
 
-Read one payout: every stated line with what it booked, the invoices or credit notes it settled, the
-shipment a tracking number names, or why it stays unbooked.
+Read how a kit's order or invoice line (document_line_id) splits its stated gross, and its stated
+net and tax where the line states them, across the components by the kit's stated shares, with the
+gross per component piece. A kit without stated shares has no split.
 
 **Synopsis**
 
 ```text
-finance_payout payout_id
+kit_split document_line_id
 ```
 
 **Access:** `read`
 
 **How this query runs**
 
-| Concrete query       | Kind                        | Default |
-| -------------------- | --------------------------- | ------- |
-| `MCP finance_payout` | Live — read at request time | yes     |
+| Concrete query  | Kind                        | Default |
+| --------------- | --------------------------- | ------- |
+| `MCP kit_split` | Live — read at request time | yes     |
 
 [How this query runs](./views#read-execution)
 
-Read one payout with every stated line, what it booked, the invoices it settled and the shipment a
-tracking number names.
+Show how a kit's order or invoice line splits its price, revenue and tax across the components.
 
 **Use when**
 
-- One payout needs reconciliation
-- or a line stayed unbooked.
+- Someone asks what share of a bundle's revenue or tax a component carries
+- or what to credit for one returned component.
 
 **Do not use when**
 
-- The payout is not known yet; list them first.
+- The line is not a kit line.
 
 **Parameters**
 
-| Name        | Type     | Required | Description                                      | Default |
-| ----------- | -------- | -------- | ------------------------------------------------ | ------- |
-| `payout_id` | `string` | yes      | Opaque same-tenant identity of a settled payout. | —       |
+| Name               | Type     | Required | Description                                                                               | Default |
+| ------------------ | -------- | -------- | ----------------------------------------------------------------------------------------- | ------- |
+| `document_line_id` | `string` | yes      | Opaque same-tenant received document line identity; must belong to the selected document. | —       |
 
-**See also:** command [`payout_detail`](./commands#command-payout_detail)
+**See also:** command [`kit_split`](./commands#command-kit_split)
 
 ### `handover_detail` — Read collection handover {#command-handover_detail}
 
@@ -9012,6 +8989,66 @@ Read the company's dunning schedule and the finance revision required to change 
 No parameters.
 
 **See also:** command [`schedule`](./commands#command-schedule)
+
+### `kits` — Read kits {#command-kits}
+
+Lists the kits with their components and, per location, the free kits on hand, the whole kits the
+free components build and the component that limits them.
+
+**Synopsis**
+
+```text
+kits [item_id]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `kit_component`, `item`, `location`, `movement`, `reservation`, `stock_block` ·
+Writes: —
+
+**See also:** agent tool [`kits`](./commands#tool-kits)
+
+#### `kits` — Kits {#tool-kits}
+
+Read the kits of the company, or the kit an item is or is part of (item_id): the components, how
+many one kit takes, the stated price shares, and per location the free kits on hand, the whole kits
+the free components build and the component that limits them.
+
+**Synopsis**
+
+```text
+kits [item_id]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query | Kind                        | Default |
+| -------------- | --------------------------- | ------- |
+| `MCP kits`     | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Show the kits, their components and how many each location can build.
+
+**Use when**
+
+- Someone asks whether a set can be sold or packed
+- what a kit is made of
+- or which part is missing.
+
+**Do not use when**
+
+- The item is not a kit; read the item's stock.
+
+**Parameters**
+
+| Name      | Type     | Required | Description                                        | Default |
+| --------- | -------- | -------- | -------------------------------------------------- | ------- |
+| `item_id` | `string` | no       | Opaque identity of the operational item reference. | —       |
+
+**See also:** command [`kits`](./commands#command-kits)
 
 ### `receipt_cost` — Read receipt acquisition costs {#command-receipt_cost}
 
@@ -9421,139 +9458,6 @@ Show whether a purchase order's lines are matched across order, receipt and invo
 
 **See also:** command [`purchase_match`](./commands#command-purchase_match)
 
-### `record_authorization` — Record a payment authorization {#command-record_authorization}
-
-Records what a card or wallet provider authorized for one sales order, until when.
-
-**Synopsis**
-
-```text
-finance_payment_authorization_record_propose order_document_id amount currency authorized_at valid_until reference
-```
-
-**Reach via:** Web · MCP · Chat · CLI
-
-**Effect:** Reads: `document`, `payment_authorization` · Writes: `payment_authorization`,
-`source_record`, `business_event` · Emits: `payment.authorized`
-
-**See also:** agent tool
-[`finance_payment_authorization_record_propose`](./commands#tool-finance_payment_authorization_record_propose),
-event [`payment.authorized`](./events#event-payment-authorized)
-
-#### `finance_payment_authorization_record_propose` — Record a payment authorization {#tool-finance_payment_authorization_record_propose}
-
-Prepare what a card or wallet provider authorized for one sales order, and until when, for owner
-confirmation. Captures are recorded against it separately.
-
-**Synopsis**
-
-```text
-finance_payment_authorization_record_propose order_document_id amount currency authorized_at valid_until reference
-```
-
-**Access:** `propose`
-
-Record what a card or wallet provider authorized for one sales order, for owner confirmation.
-
-**Use when**
-
-- The provider authorized an amount for an order before shipment.
-
-**Do not use when**
-
-- Money was captured or paid out; record the capture or settle the payout.
-
-**Preconditions**
-
-- A sales order of the tenant in the same currency; the reference is new for the order.
-
-**Refused when**
-
-- `payment_authorization_currency_mismatch` — The currency differs from the order's.
-- `payment_authorization_duplicate` — The reference is already recorded for the order.
-
-**Parameters**
-
-| Name                | Type                | Required | Description                                                                   | Default |
-| ------------------- | ------------------- | -------- | ----------------------------------------------------------------------------- | ------- |
-| `order_document_id` | `string`            | yes      | Opaque same-tenant identity of the authorized sales order.                    | —       |
-| `amount`            | `string \| integer` | yes      | The amount the provider authorized.                                           | —       |
-| `currency`          | `string`            | yes      | The order's currency.                                                         | —       |
-| `authorized_at`     | `string`            | yes      | When the provider authorized, as an ISO date-time.                            | —       |
-| `valid_until`       | `string`            | yes      | When the authorization lapses as the provider states it, as an ISO date-time. | —       |
-| `reference`         | `string`            | yes      | The provider's authorization identity, once per order.                        | —       |
-
-**Verify with:** `finance.payment_authorizations` — The authorization and what is left of it are
-retained.
-
-**See also:** command [`record_authorization`](./commands#command-record_authorization)
-
-### `record_capture` — Record a payment capture {#command-record_capture}
-
-Records an amount captured against an authorization, never more than is left and not after it
-lapsed.
-
-**Synopsis**
-
-```text
-finance_payment_capture_record_propose authorization_id amount captured_at [reference]
-```
-
-**Reach via:** Web · MCP · Chat · CLI
-
-**Effect:** Reads: `payment_authorization`, `payment_capture` · Writes: `payment_capture`,
-`source_record`, `business_event` · Emits: `payment.captured`
-
-**See also:** agent tool
-[`finance_payment_capture_record_propose`](./commands#tool-finance_payment_capture_record_propose),
-event [`payment.captured`](./events#event-payment-captured)
-
-#### `finance_payment_capture_record_propose` — Record a payment capture {#tool-finance_payment_capture_record_propose}
-
-Prepare an amount captured against a recorded authorization for owner confirmation; never more than
-is left and not after the authorization lapsed.
-
-**Synopsis**
-
-```text
-finance_payment_capture_record_propose authorization_id amount captured_at [reference]
-```
-
-**Access:** `propose`
-
-Record an amount captured against an authorization, for owner confirmation.
-
-**Use when**
-
-- The provider captured part or all of an authorization
-- typically at shipment.
-
-**Do not use when**
-
-- The authorization lapsed; a new authorization is needed first.
-
-**Preconditions**
-
-- The capture lies between the authorization and its lapse and is no more than is left.
-
-**Refused when**
-
-- `payment_capture_exceeds_authorization` — More than is left of the authorization.
-- `payment_capture_after_expiry` — The authorization had lapsed.
-
-**Parameters**
-
-| Name               | Type                | Required | Description                                                        | Default |
-| ------------------ | ------------------- | -------- | ------------------------------------------------------------------ | ------- |
-| `authorization_id` | `string`            | yes      | Opaque same-tenant identity of the recorded authorization.         | —       |
-| `amount`           | `string \| integer` | yes      | The amount captured; never more than is left of the authorization. | —       |
-| `captured_at`      | `string`            | yes      | When the provider captured, as an ISO date-time.                   | —       |
-| `reference`        | `string`            | no       | The provider's capture identity, as stated.                        | —       |
-
-**Verify with:** `finance.payment_authorizations` — The capture and the remainder are retained.
-
-**See also:** command [`record_capture`](./commands#command-record_capture)
-
 ### `record_notice` — Record dunning notice {#command-record_notice}
 
 Records one explicitly reviewed manual reminder and optional exact stated fee without sending a
@@ -9855,95 +9759,6 @@ Set the company's dunning schedule for owner confirmation.
 **Verify with:** `finance.dunning.schedule` — The confirmed waiting days and fees are retained.
 
 **See also:** command [`set_schedule`](./commands#command-set_schedule)
-
-### `settle_payout` — Settle a payout {#command-settle_payout}
-
-Books a stated marketplace or provider payout line by line on the provider's cash account (payments,
-refunds against credit notes, chargebacks, fees), moves the net payout to the bank and leaves lines
-that lead nowhere unbooked.
-
-**Synopsis**
-
-```text
-finance_payout_settle_propose provider_party_id payout_reference paid_on currency amount clearing_account_id [bank_account_id] lines
-```
-
-**Reach via:** Web · MCP · Chat · CLI
-
-**Effect:** Reads: `document`, `document_line`, `ledger_entry`, `settlement_allocation`,
-`ledger_reversal`, `payment_return`, `shipment_package`, `movement`, `commitment`, `source_record`,
-`subledger_account` · Writes: `source_record`, `document`, `ledger_entry`, `settlement_allocation`,
-`payment_return`, `ledger_reversal`, `business_event` · Emits: `payout.settled`
-
-**See also:** agent tool
-[`finance_payout_settle_propose`](./commands#tool-finance_payout_settle_propose), event
-[`payout.settled`](./events#event-payout-settled)
-
-#### `finance_payout_settle_propose` — Settle a payout {#tool-finance_payout_settle_propose}
-
-Prepare a marketplace, payment-provider or cash-on-delivery payout statement for owner confirmation:
-every line is booked against the order, invoice or shipment it names on the provider's cash account
-(payments, refunds against credit notes, chargebacks, fees), the net payout moves to the bank, and
-lines that lead nowhere stay unbooked and are reported. The lines must add up to the stated net
-payout.
-
-**Synopsis**
-
-```text
-finance_payout_settle_propose provider_party_id payout_reference paid_on currency amount clearing_account_id [bank_account_id] lines
-```
-
-**Access:** `propose`
-
-Settle a marketplace or payment-provider payout statement for owner confirmation.
-
-**Use when**
-
-- A marketplace
-- payment provider or carrier paid one amount for many orders
-- minus refunds
-- chargebacks and fees.
-
-**Do not use when**
-
-- A customer paid one invoice directly; record a payment. The statement does not add up; ask the
-  provider.
-
-**Preconditions**
-
-- The provider is a business partner; its balance is held on an active cash account apart from the
-  bank; the lines add up to the net payout.
-
-**Refused when**
-
-- `payout_total_mismatch` — The lines do not add up to the stated net payout.
-- `payout_clearing_is_bank` — The provider's account is the bank account.
-- `payout_clearing_account_invalid` — The provider's account is not an active cash account.
-- `payout_statement_changed` — The payout was settled before with other content.
-
-**Parameters**
-
-| Name                         | Type                | Required | Description                                                                                                                                                                        | Default |
-| ---------------------------- | ------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `provider_party_id`          | `string`            | yes      | The marketplace, provider or carrier Party that paid.                                                                                                                              | —       |
-| `payout_reference`           | `string`            | yes      | The provider's payout identity; settling the same statement again books only unbooked lines.                                                                                       | —       |
-| `paid_on`                    | `string`            | yes      | Calendar date the payout reached the bank.                                                                                                                                         | —       |
-| `currency`                   | `string`            | yes      | Currency of the payout and its lines.                                                                                                                                              | —       |
-| `amount`                     | `string \| integer` | yes      | The net payout the provider states; the lines must add up to it.                                                                                                                   | —       |
-| `clearing_account_id`        | `string`            | yes      | The active cash account that holds the provider's balance, apart from the bank.                                                                                                    | —       |
-| `bank_account_id`            | `string`            | no       | The cash account the payout reached; the cash default when omitted.                                                                                                                | `None`  |
-| `lines`                      | `array`             | yes      | Every line of the payout statement as the provider states it.                                                                                                                      | —       |
-| `lines[].line_id`            | `string`            | yes      | The provider's own identity of the line, unique within the statement.                                                                                                              | —       |
-| `lines[].kind`               | `string`            | yes      | A charge the provider collected, a refund or chargeback it paid back, or a fee it kept. `charge`, `refund`, `chargeback`, `fee`                                                    | —       |
-| `lines[].amount`             | `string \| integer` | yes      | The positive amount the line states; its kind gives the sign.                                                                                                                      | —       |
-| `lines[].references`         | `array`             | no       | The order, invoice or shipment the line names; a fee may name none.                                                                                                                | —       |
-| `lines[].references[].type`  | `string`            | yes      | What the stated value identifies; a tracking number names a shipment. `invoice_number`, `shop_id`, `shop_order_number`, `customer_reference`, `customer_number`, `tracking_number` | —       |
-| `lines[].references[].value` | `string`            | yes      | The identifier exactly as the provider states it; looked up, never stored as a link.                                                                                               | —       |
-| `lines[].reason`             | `string`            | no       | The provider's stated reason, kept on a chargeback.                                                                                                                                | —       |
-
-**Verify with:** `finance.payout` — Every line's booking and the invoices it settled are retained.
-
-**See also:** command [`settle_payout`](./commands#command-settle_payout)
 
 ### `set_customer_item_number` — State a customer item number {#command-set_customer_item_number}
 

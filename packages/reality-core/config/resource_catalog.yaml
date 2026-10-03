@@ -67,9 +67,9 @@ resources:
         Die operative Identität eines Produkts mit seiner Einheit. Bestand wird nie am Artikel
         gespeichert, sondern beim Lesen aus Bewegungen und Reservierungen abgeleitet. Deshalb
         stehen die Bestandslisten hier.
-    synonyms: [product, SKU, stock, inventory, Produkt, Bestand, Lagerbestand, Verfügbarkeit]
-    tables: [item, supply_assignment, item_reorder_point, stock_block, stock_block_resolution, stock_count, stock_count_line]
-    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand|supply_(assign|coverage)|reorder_point|stock_block|backorder|available_to_promise|stock_count"
+    synonyms: [product, SKU, stock, inventory, kit, bundle, Produkt, Bestand, Lagerbestand, Verfügbarkeit, Set, Stückliste]
+    tables: [item, supply_assignment, item_reorder_point, stock_block, stock_block_resolution, stock_count, stock_count_line, kit_component]
+    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand|supply_(assign|coverage)|reorder_point|stock_block|backorder|available_to_promise|stock_count|^kits?(_|$)|_kit$"
     views: [items, inventory, supply_demand]
     projections: [inventory, item_supply_demand]
     exceptions: [units_not_comparable, reservation_exceeds_stock, item_oversold, reorder_point_reached, stock_in_another_location, missing_acquisition_cost]
@@ -592,6 +592,10 @@ labels:
       remove_supplier_item_terms: Lieferantenkonditionen entfernen
       supplier_item_terms: Lieferantenkonditionen anzeigen
       purchase_match: Bestellabgleich anzeigen
+      define_kit: Stückliste festlegen
+      assemble_kit: Sets montieren
+      kits: Stücklisten anzeigen
+      kit_split: Set-Aufteilung anzeigen
       set_customer_item_number: Kundenartikelnummer festlegen
       remove_customer_item_number: Kundenartikelnummer entfernen
       customer_item_numbers: Kundenartikelnummern anzeigen

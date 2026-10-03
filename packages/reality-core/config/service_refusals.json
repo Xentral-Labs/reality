@@ -2326,6 +2326,93 @@
       "values": {
         "remaining": "amount"
       }
+    },
+    "kit_item_not_stocked": {
+      "message": "A kit is an active stocked item; {sku} is not.",
+      "values": {
+        "sku": "text"
+      }
+    },
+    "kit_item_tracked": {
+      "message": "Kits and their components are untracked; {sku} is tracked by lot or serial.",
+      "values": {
+        "sku": "text"
+      }
+    },
+    "kit_already_defined": {
+      "message": "The components of {sku} are already stated; a different set is a new kit item.",
+      "values": {
+        "sku": "text"
+      }
+    },
+    "kit_component_is_kit": {
+      "message": "{sku} is a kit or the kit itself; a kit takes only plain components.",
+      "values": {
+        "sku": "text"
+      }
+    },
+    "kit_components_required": {
+      "message": "Name at least one component with its quantity."
+    },
+    "kit_components_too_many": {
+      "message": "A kit takes at most 50 components."
+    },
+    "kit_component_repeated": {
+      "message": "{sku} is named twice; state its quantity once.",
+      "values": {
+        "sku": "text"
+      }
+    },
+    "kit_component_not_stocked": {
+      "message": "A component is an active stocked item; {sku} is not.",
+      "values": {
+        "sku": "text"
+      }
+    },
+    "kit_component_quantity_invalid": {
+      "message": "A component quantity is above zero, with at most four decimal places."
+    },
+    "kit_shares_invalid": {
+      "message": "Shares are stated for every component or for none, between 0 and 1, and add up to exactly 1."
+    },
+    "kit_not_defined": {
+      "message": "{sku} has no stated components.",
+      "values": {
+        "sku": "text"
+      }
+    },
+    "kit_assembly_location_not_stock": {
+      "message": "Kits are assembled at an active location that holds stock."
+    },
+    "kit_assembly_quantity_invalid": {
+      "message": "Kits are assembled in whole numbers above zero."
+    },
+    "kit_assembly_time_invalid": {
+      "message": "State when the kits were assembled as a time with its offset."
+    },
+    "kit_assembly_time_future": {
+      "message": "When the kits were assembled cannot lie in the future."
+    },
+    "kit_component_short": {
+      "message": "{sku} is short: {needed} needed and {free} free, in {unit}. Nothing was assembled.",
+      "values": {
+        "sku": "text",
+        "needed": "quantity",
+        "free": "quantity",
+        "unit": "text"
+      }
+    },
+    "kit_split_line_not_kit": {
+      "message": "Only a line of a kit with stated components is split."
+    },
+    "movement_assembly_shape_invalid": {
+      "message": "Assembly movements are written only by an assembly, under its statement."
+    },
+    "movement_assembly_not_correctable": {
+      "message": "An assembly movement is not corrected on its own; it belongs to its assembly."
+    },
+    "inventory_assembly_not_costed": {
+      "message": "This item has assembly movements, which inventory cost reviews do not cost yet."
     }
   },
   "terms": [

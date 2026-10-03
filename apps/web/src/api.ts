@@ -3138,6 +3138,71 @@ export const supplierItemTerms = {
       { method: "POST", body: JSON.stringify({ confirmed: true }) },
     ),
 };
+/** Spec 333: a kit, its components and what each location can build. */
+export type KitPart = {
+  item_id: string;
+  sku: string;
+  name: string;
+  unit: string;
+  quantity: string;
+  share: string | null;
+};
+export type KitAvailability = {
+  location_id: string;
+  location: string;
+  kits_on_hand: string;
+  buildable: string;
+  available: string;
+  limited_by: string[];
+};
+export type Kit = {
+  kit_item_id: string;
+  sku: string;
+  name: string;
+  unit: string;
+  has_shares: boolean;
+  source_record_id: string;
+  components: KitPart[];
+  availability: KitAvailability[];
+};
+export type KitReview =
+  | { operation: "define"; sku: string; name: string; components: KitPart[] }
+  | {
+      operation: "assemble";
+      sku: string;
+      name: string;
+      unit: string;
+      location: string;
+      quantity: string;
+      consumes: (Omit<KitPart, "share"> & { free: string })[];
+    };
+export const kits = {
+  list: (tenant: string, item = "") =>
+    request<{ rows: Kit[] }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/kits?${new URLSearchParams(
+        item ? { item_id: item } : {},
+      )}`,
+    ),
+  prepare: (
+    tenant: string,
+    body:
+      | {
+          operation: "define";
+          kit_item_id: string;
+          components: { item_id: string; quantity: string; share?: string }[];
+        }
+      | { operation: "assemble"; kit_item_id: string; location_id: string; quantity: string },
+  ) =>
+    request<{ id: string; status: string; preview: { kit: KitReview } }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/kits/proposals`,
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+  confirm: (tenant: string, id: string) =>
+    request<{ id: string; status: string }>(
+      `/api/tenants/${encodeURIComponent(tenant)}/change-proposals/${encodeURIComponent(id)}/approve`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
+};
 export type PurchaseMatchLine = {
   document_line_id: string;
   item: string;

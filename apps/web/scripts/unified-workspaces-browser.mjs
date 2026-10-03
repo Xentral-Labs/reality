@@ -163,6 +163,48 @@ await page.route("**/api/**", async (route) => {
   if (path.includes("/suggestions/")) return reply({ items: [], allow_custom: true });
   // Spec 302: an item's reorder points, none stated in this fixture.
   if (path.endsWith("/reorder-points")) return reply({ rows: [] });
+  // Spec 333: the item is a kit of a frame and two wheels, buildable twice.
+  if (path.endsWith("/kits"))
+    return reply({
+      rows: [
+        {
+          kit_item_id: "item_one",
+          sku: "LAMP",
+          name: "Desk lamp",
+          unit: "pcs",
+          has_shares: true,
+          source_record_id: "src_kit",
+          components: [
+            {
+              item_id: "itm_shade",
+              sku: "SHADE",
+              name: "Lamp shade",
+              unit: "pcs",
+              quantity: "1",
+              share: "0.6",
+            },
+            {
+              item_id: "itm_bulb",
+              sku: "BULB",
+              name: "Bulb",
+              unit: "pcs",
+              quantity: "2",
+              share: "0.4",
+            },
+          ],
+          availability: [
+            {
+              location_id: "location_one",
+              location: "Main warehouse",
+              kits_on_hand: "1",
+              buildable: "2",
+              available: "3",
+              limited_by: ["BULB"],
+            },
+          ],
+        },
+      ],
+    });
   if (path.endsWith("/delivery-rules"))
     return reply({
       subject: "party",
@@ -236,6 +278,8 @@ try {
     assert.equal(confirmed, before + 1);
   }
   await page.goto(`${base}/app/master-data?tenant=${tenant}&family=item&record=item_one`);
+  // Spec 333: the kit section names the parts and what the warehouse can build.
+  await page.locator("[data-kit-availability]").getByText("Limited by BULB").waitFor();
   await page.getByRole("button", { name: "Edit details", exact: true }).click();
   let dialog = page.getByRole("dialog");
   assert.equal(

@@ -32,6 +32,7 @@ from reality.services import dunning_runs as dunning_run_service_module
 from reality.services import file_interpreters as interpreter_service_module
 from reality.services import invoice_actions as invoice_action_service_module
 from reality.services import invoice_billing as invoice_billing_service_module
+from reality.services import kits as kit_service_module
 from reality.services import memberships as membership_service_module
 from reality.services import month_end_billing as month_end_billing_service_module
 from reality.services import notifications as notification_service_module
@@ -1123,6 +1124,7 @@ def _service(name: str) -> Any:
         customer_item_service_module,
         supplier_terms_service_module,
         purchase_match_service_module,
+        kit_service_module,
         company_currency_service_module,
         delivery_failure_service_module,
         payout_service_module,
@@ -1338,6 +1340,7 @@ def _literal_business_events() -> set[str]:
         customer_item_service_module,
         supplier_terms_service_module,
         purchase_match_service_module,
+        kit_service_module,
         company_currency_service_module,
         delivery_failure_service_module,
         finance_account_service_module,

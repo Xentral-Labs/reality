@@ -1725,6 +1725,50 @@ def _reorder_point_remove(
     )
 
 
+def _kits(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.kits import kits
+
+    return kits(session, tenant_id, item_id=arguments.get("item_id") or None)
+
+
+def _kit_split(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.kits import kit_split
+
+    return kit_split(session, tenant_id, str(arguments.get("document_line_id") or ""))
+
+
+def _kit_define(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.kits import define_kit
+
+    components = define_kit(
+        session,
+        tenant_id,
+        arguments["kit_item_id"],
+        arguments["components"],
+        action_id=arguments.get("_action_id"),
+    )
+    return {
+        "kit_item_id": arguments["kit_item_id"],
+        "component_ids": [component.id for component in components],
+        "source_record_id": components[0].source_record_id,
+    }
+
+
+def _kit_assemble(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.kits import assemble_kit
+
+    return assemble_kit(
+        session,
+        tenant_id,
+        arguments["kit_item_id"],
+        arguments["location_id"],
+        arguments["quantity"],
+        occurred_at=arguments.get("occurred_at"),
+        note=arguments.get("note"),
+        action_id=arguments.get("_action_id"),
+    )
+
+
 def _order_line_item_assign(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2997,6 +3041,30 @@ TOOLS = {
         True,
         _reorder_point_remove,
     ),
+    "kits": Tool(
+        "kits",
+        "Read the kits of the company, or of one item, with their components and what each location can build.",
+        False,
+        _kits,
+    ),
+    "kit_split": Tool(
+        "kit_split",
+        "Read how a kit's order or invoice line splits its stated net, tax and gross across the components.",
+        False,
+        _kit_split,
+    ),
+    "kit_define": Tool(
+        "kit_define",
+        "State the components of a kit: each component item, how many one kit takes and optionally its share of the price.",
+        True,
+        _kit_define,
+    ),
+    "kit_assemble": Tool(
+        "kit_assemble",
+        "Assemble kits at a location: consume the components and produce the kits, all or nothing.",
+        True,
+        _kit_assemble,
+    ),
     "credit_hold_release": Tool(
         "credit_hold_release",
         "Release an order's credit holds with a stated reason; an owner confirms.",
@@ -3828,6 +3896,13 @@ def create_change_proposal(
         normalized_arguments, delivery_rule_review = review_delivery_rule(
             session, tenant_id, arguments
         )
+    kit_review = None
+    if tool_name in {"kit_define", "kit_assemble"}:
+        from reality.services.kits import review_kit
+
+        normalized_arguments, kit_review = review_kit(
+            session, tenant_id, tool_name, arguments
+        )
     reorder_review = None
     if tool_name in {"reorder_point_set", "reorder_point_remove"}:
         from reality.services.reorder_points import review_reorder_point
@@ -3899,6 +3974,8 @@ def create_change_proposal(
         from reality.services.dunning import preview_notice
 
         preview["dunning"] = preview_notice(session, tenant_id, normalized_arguments)
+    if kit_review is not None:
+        preview["kit"] = kit_review
     if reorder_review is not None:
         preview["reorder_point"] = reorder_review
     if delivery_rule_review is not None:
@@ -4513,6 +4590,8 @@ def approve_and_execute_proposal(
         "credit_hold_release",
         "reorder_point_set",
         "reorder_point_remove",
+        "kit_define",
+        "kit_assemble",
         "stock_block",
         "stock_block_release",
         "stock_block_scrap",

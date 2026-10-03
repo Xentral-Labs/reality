@@ -1358,7 +1358,9 @@ the other direction, reservations that lost their stock. Quantities are counted 
 unit, using the purchase unit and factor the item states; a promise in a unit the item says nothing
 about is named in the entry and left out, and Units not comparable reports the pair that cannot be
 reconciled. Only stocked items are judged; a service or a charge is never oversold. Stock is counted
-across locations; whether the right location holds it is a question for the reservation.
+across locations; whether the right location holds it is a question for the reservation. For a kit,
+the whole kits its free components build count as stock beside the kits already assembled (spec
+333).
 
 - **Owner:** Order fulfilment, with purchasing for the supply
 - **Clears through:** Receiving or ordering more, or shipping, reducing or cancelling the demand
@@ -1368,7 +1370,8 @@ across locations; whether the right location holds it is a question for the rese
 - **Authority:** `300/FR-001`
 - **Evidence:**
   `tests/test_item_oversold.py::test_orders_from_two_channels_above_stock_are_reported_by_channel`,
-  `tests/test_item_oversold.py::test_an_open_purchase_order_covering_the_shortfall_clears_it`
+  `tests/test_item_oversold.py::test_an_open_purchase_order_covering_the_shortfall_clears_it`,
+  `tests/test_kits.py::test_a_kit_the_components_build_is_not_oversold`
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool

@@ -2280,3 +2280,16 @@ Command `finance.payout.settle` books a stated payout statement line by line on 
   - A changed statement is refused, a replay books nothing twice; the provider account is a cash account apart from the bank; a charge for an order not invoiced is recorded for its customer; isolation.
 - `packages/reality-core/tests/finance/test_payment_authorizations.py`: authorization and capture as separate records, refusals, the expired finding and how it clears, isolation.
 - `packages/reality-core/tests/scenarios/test_catalog_finance.py`: stories L03, R04 (400 orders with a bounded statement count), C09, C10 and C13.
+## Kits, bundles and light assembly — Spec 333
+
+Table `kit_component` (the stated bill of materials) and the internal movement types `assembly_input` and `assembly_output`. Availability and the bundle split are derived at read time.
+
+- `packages/reality-core/tests/test_kits.py`:
+  - Availability is the minimum the free components build; a part reserved elsewhere is not free.
+  - An assembly consumes and produces under one statement and refuses whole when a part is short, in review and execution.
+  - Definition and assembly refusals; assembly movements are not corrected one by one, and inventory cost reviews refuse items that have them.
+  - The split adds up to the stated line; a kit without shares has no split.
+  - *Oversold* counts buildable kits; another company sees no kit.
+- `packages/reality-core/tests/test_kit_adapters.py`: strict MCP schemas, agent proposals confirmed by a person, a review refusing what execution refuses, the web API, the CLI and isolation.
+- `packages/reality-core/tests/scenarios/test_catalog_kits.py`: stories K01, K02, K04 and K06, and K03 pinned as partial.
+- `apps/web/scripts/unified-workspaces-browser.mjs`: the kit section on the item page names its parts and the limiting one.

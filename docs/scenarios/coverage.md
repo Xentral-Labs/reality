@@ -2,13 +2,13 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 157 covered, 8 partial, 0 missing, 60 gap, 3 out.
+228 scenarios: 161 covered, 9 partial, 0 missing, 55 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -22,7 +22,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | H Receipt and supplier deviations | 14 |  |  | 5 |  |
 | I Supplier invoice and payment | 12 |  |  |  |  |
 | J Warehouse and stock | 6 | 1 |  | 4 |  |
-| K Kits and variants | 1 |  |  | 5 |  |
+| K Kits and variants | 5 | 1 |  |  |  |
 | L E-commerce and marketplaces | 8 |  |  | 4 |  |
 | M B2B specifics | 3 | 2 |  | 7 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
@@ -75,7 +75,7 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
     (C15 covered); since spec 336 a stated payout statement settles marketplace, provider and
     cash-on-delivery payouts, and authorizations and captures are recorded (C09, C10, C13, L03,
     R04 covered).
-11. **No kits or bills of material.** K01, K02, K03, K04, K06.
+11. **Kits are one level deep since spec 333.** A returned component is not linked to its kit's delivery (K03 partial); component cost is not rolled into the kit.
 12. **No period record (spec 184 is a stub).** Q02, Q04. There is also no sales-side
     "invoiced not shipped" class (E03, Q01 partial).
 13. **Foreign currency on the purchase side only.** Supplier invoices and payments convert at
@@ -90,7 +90,7 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
 
 Several gaps may be deliberate. They should become an explicit **out** with a reason in a scope
 document rather than stay open (candidates: M07 labels, L11/N08 tax determination, J06 negative
-stock, K kits if the core stays trading-only).
+stock).
 
 ## Tests added for the former "missing" rows
 
@@ -333,12 +333,12 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 
 | ID | Status | Evidence | Note |
 |---|---|---|---|
-| K01 | gap | services/core.py create_item (`item_type` in stocked/service/charge) | There is no kit or bill-of-materials structure, so kit availability cannot be derived from components. |
-| K02 | gap | services/core.py create_item | There is no kit concept, so the whole kit cannot be held when one component is missing. |
-| K03 | gap | services/core.py create_item | A component can be returned as its own item, but there is no kit link, so no partial kit credit can be derived. |
-| K04 | gap | specs/242-inventory-cost-contribution/spec.md (Non-Goals: no production/WIP) | There is no assembly or production movement that pairs components consumed with the finished item produced. |
+| K01 | covered | packages/reality-core/tests/scenarios/test_catalog_kits.py::test_a_kit_is_sold_and_shipped_from_its_components | Availability is the free kits plus what the free parts build, limited by the scarcest part; packing assembles the kit, which then ships as itself (spec 333). |
+| K02 | covered | packages/reality-core/tests/scenarios/test_catalog_kits.py::test_a_kit_missing_one_component_is_held_back_whole | One part short refuses the whole assembly naming it; nothing is consumed and the order waits whole (spec 333). |
+| K03 | partial | packages/reality-core/tests/scenarios/test_catalog_kits.py::test_a_single_component_comes_back_from_a_kit | The part comes back to stock and its credit share is read from the split, but the return is not linked to the kit's delivery and reads as Unexplained movement (spec 333). |
+| K04 | covered | packages/reality-core/tests/scenarios/test_catalog_kits.py::test_a_light_assembly_consumes_components_and_produces_the_item | One reviewed assembly writes paired movements under one statement; they are not corrected one by one. Cost is not rolled up (spec 333). |
 | K05 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_variants_bought_together_each_hold_and_reserve_their_own_stock | Three sizes on one purchase, one receipt; each size holds its own stock and reserves only its own, with a shortage only on the over-reserved size. |
-| K06 | gap | tests/test_commercial_matching_services.py::test_shipping_kit_production_direct_cost_and_unresolved_wip_are_explicit | A `kit_input` role exists for cost matching only; there is no bundle-to-component revenue or tax split, so lines carry only stated amounts. |
+| K06 | covered | packages/reality-core/tests/scenarios/test_catalog_kits.py::test_a_bundle_price_is_split_across_its_components | Shares are stated on the kit; the line's stated net, tax and gross split at read time and add up exactly (spec 333). |
 
 ## L. E-commerce and marketplaces
 
