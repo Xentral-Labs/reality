@@ -259,6 +259,18 @@ def _current_mandate(
         or token.created_by_user_id != grant.decided_by_user_id
     ):
         raise core.InvalidOperation(code="intake_approval_required")
+    try:
+        granted = MandateGrant.model_validate_json(grant.input)
+        scope = MandateScope.model_validate(row.scope)
+    except ValidationError as error:
+        raise core.InvalidOperation(code="intake_review_invalid") from error
+    if (
+        granted.agent_token_id != row.agent_token_id
+        or granted.scope != scope
+        or granted.expires_at != row.expires_at
+        or row.revision != 1
+    ):
+        raise core.InvalidOperation(code="intake_approval_required")
     permissions = json.loads(token.allowed_tools)
     if not {
         "*",
@@ -291,10 +303,6 @@ def _current_mandate(
         .execution_options(populate_existing=True)
     )
     require_owner(session, tenant_id, principal)
-    try:
-        scope = MandateScope.model_validate(row.scope)
-    except ValidationError as error:
-        raise core.InvalidOperation(code="intake_review_invalid") from error
     return row, scope, principal
 
 

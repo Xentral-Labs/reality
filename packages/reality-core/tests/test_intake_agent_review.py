@@ -18,7 +18,7 @@ from reality.tools.application import (
 )
 
 
-def owner_mandate(session, business, owner, *, daily_units=10):
+def owner_mandate(session, business, owner, *, daily_units=10, scope_overrides=None):
     token, _ = create_mcp_access_token(
         session, business.tenant.id, "Named review agent", issued_by_user_id=owner.id
     )
@@ -41,6 +41,7 @@ def owner_mandate(session, business, owner, *, daily_units=10):
             "max_amount_per_day": "100000",
         },
     }
+    scope.update(scope_overrides or {})
     proposal = create_change_proposal(
         session,
         business.tenant.id,
@@ -369,35 +370,44 @@ def test_agent_scope_and_commercial_limits_cannot_be_bypassed(
     session, business, scheduled_owner, change
 ):
     from reality.db.core import TenantMembership
-    from reality.db.intake_review import IntakeReviewMandate
     from reality.services.intake_review import submit_agent_review
 
-    mandate_id, token = owner_mandate(session, business, scheduled_owner)
+    overrides = {}
+    amounts = {
+        "currency": "EUR",
+        "max_amount_per_unit": "10000",
+        "max_amount_per_day": "100000",
+    }
+    if change == "currency":
+        amounts["currency"] = "USD"
+    elif change == "unit_amount":
+        amounts["max_amount_per_unit"] = "1"
+    elif change == "daily_amount":
+        amounts["max_amount_per_day"] = "1"
+    elif change == "effects":
+        overrides["effects"] = ["document"]
+    overrides["amount_rule"] = amounts
+    mandate_id, token = owner_mandate(
+        session, business, scheduled_owner, scope_overrides=overrides
+    )
     _, _, proposal = prepare(session, business)
     with agent_context(business, token):
-        evidence = reviewed_evidence(session, business, mandate_id, proposal)
-        mandate = session.get(IntakeReviewMandate, (business.tenant.id, mandate_id))
-        scope = json.loads(json.dumps(mandate.scope))
-        if change == "currency":
-            scope["amount_rule"]["currency"] = "USD"
-        elif change == "unit_amount":
-            scope["amount_rule"]["max_amount_per_unit"] = "1"
-        elif change == "daily_amount":
-            scope["amount_rule"]["max_amount_per_day"] = "1"
-        elif change == "effects":
-            scope["effects"] = ["document"]
+        if change == "effects":
+            with pytest.raises(core.InvalidOperation):
+                reviewed_evidence(session, business, mandate_id, proposal)
         else:
-            membership = session.scalar(
-                select(TenantMembership).where(
-                    TenantMembership.tenant_id == business.tenant.id,
-                    TenantMembership.user_id == scheduled_owner.id,
+            evidence = reviewed_evidence(session, business, mandate_id, proposal)
+            if change == "owner_demotion":
+                membership = session.scalar(
+                    select(TenantMembership).where(
+                        TenantMembership.tenant_id == business.tenant.id,
+                        TenantMembership.user_id == scheduled_owner.id,
+                    )
                 )
-            )
-            membership.role = "member"
-        mandate.scope = scope
-        session.flush()
-        with pytest.raises(core.InvalidOperation):
-            submit_agent_review(session, business.tenant.id, evidence)
+                membership.role = "member"
+                session.flush()
+            with pytest.raises(core.InvalidOperation):
+                submit_agent_review(session, business.tenant.id, evidence)
     assert session.scalar(select(Document)) is None
 
 
@@ -411,3 +421,38 @@ def test_agent_settlement_is_a_mutating_mcp_confirmation_tool():
     )
     assert tool.access == "confirm"
     assert tool.mutating
+
+
+@pytest.mark.parametrize("change", ["scope", "expiry", "token", "revision"])
+def test_current_mandate_cannot_expand_original_owner_decision(
+    session, business, scheduled_owner, change
+):
+    from reality.db.intake_review import IntakeReviewMandate
+    from reality.services.intake_review import submit_agent_review
+
+    mandate_id, token = owner_mandate(session, business, scheduled_owner)
+    _, _, proposal = prepare(session, business)
+    with agent_context(business, token):
+        evidence = reviewed_evidence(session, business, mandate_id, proposal)
+    mandate = session.get(IntakeReviewMandate, (business.tenant.id, mandate_id))
+    if change == "scope":
+        mandate.scope = {**mandate.scope, "max_units_per_day": 100000}
+    elif change == "expiry":
+        mandate.expires_at += timedelta(days=100)
+    elif change == "token":
+        replacement, _ = create_mcp_access_token(
+            session,
+            business.tenant.id,
+            "Unapproved replacement",
+            issued_by_user_id=scheduled_owner.id,
+        )
+        mandate.agent_token_id = replacement.id
+        token = replacement
+    else:
+        mandate.revision += 1
+        evidence = {**evidence, "revision": mandate.revision}
+    session.flush()
+    with agent_context(business, token), pytest.raises(core.InvalidOperation):
+        submit_agent_review(session, business.tenant.id, evidence)
+    assert proposal.status == "proposed"
+    assert session.scalar(select(Document)) is None
