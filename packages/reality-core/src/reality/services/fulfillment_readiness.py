@@ -183,7 +183,8 @@ def stock_cover(
     reserved_by_location: dict[str, Decimal],
     physical_at: Callable[[str | None], Decimal],
 ) -> tuple[Decimal, Decimal]:
-    """What stock stands behind a promise, and how much of it is ready (spec 303).
+    """
+    What stock stands behind a promise, and how much of it is ready (spec 303).
 
     The promise's own location counts with all it holds, as it always has; a
     reservation at another location counts only with what that location still
@@ -191,9 +192,22 @@ def stock_cover(
     the reserved quantity that is physically there. With every reservation at
     home both are what they were before: the own location's stock, and the
     smaller of reserved and stock.
+
+    BUSINESS PURPOSE:
+    Calculate stock backing a delivery promise and its quantity ready to ship across reservation locations.
+
+    BUSINESS RULE readiness.stock_cover.home:
+    Count all physical stock reported for the promise's own warehouse as its initial stock basis. Ready quantity there is the smaller of its active reserved quantity and that physical stock.
+
+    BUSINESS RULE fulfillment_readiness.stock_cover.guard-192:
+    IF a reservation belongs to the promise's own warehouse, skip it here because that warehouse was already counted.
+
+    BUSINESS RULE readiness.stock_cover.other:
+    For every other reservation warehouse, add only the smaller of reserved quantity and physical stock to both the stock basis and ready quantity. Return both totals.
     """
     # A promise without a warehouse reads what the reader reads for "no
     # location", exactly as before.
+    # reality-rule: readiness.stock_cover.home
     own = physical_at(own_location_id)
     basis = own
     ready = min(reserved_by_location.get(own_location_id or "", ZERO), own)
@@ -201,6 +215,7 @@ def stock_cover(
         # reality-rule: fulfillment_readiness.stock_cover.guard-192
         if location_id == own_location_id:
             continue
+        # reality-rule: readiness.stock_cover.other
         here = min(reserved, physical_at(location_id))
         basis += here
         ready += here
@@ -212,12 +227,20 @@ def ready_by_location(
     reserved_by_location: dict[str, Decimal],
     physical_at: Callable[[str | None], Decimal],
 ) -> dict[str, Decimal]:
-    """What could ship now from each warehouse: reserved there and on hand there.
+    """
+    What could ship now from each warehouse: reserved there and on hand there.
 
     The parts add up to the ready quantity of `stock_cover`, so a person can
     prepare one shipment per warehouse for exactly what the promise shows as
     ready (spec 303).
+
+    BUSINESS PURPOSE:
+    Show how much of this promise can ship from each warehouse with a reservation.
+
+    BUSINESS RULE readiness.ready_by_location.quantities:
+    For each reservation warehouse, ready quantity is the smaller of its reserved quantity and physical stock reported there. Return only warehouses with a positive ready quantity; no reservation is moved or created.
     """
+    # reality-rule: readiness.ready_by_location.quantities
     return {
         location_id: here
         for location_id, reserved in reserved_by_location.items()
@@ -234,10 +257,89 @@ def fulfillment_readiness(
     from_location_id: str | None = None,
     _delivery_rule: bool = True,
 ) -> FulfillmentReadiness:
-    """Derive payment readiness for one customer-delivery commitment.
+    """
+    Derive payment readiness for one customer-delivery commitment.
 
     Amounts are stated document and allocation values. This function never creates
     payment or fulfillment authority and never infers policy from a term label.
+
+    BUSINESS PURPOSE:
+    Derive whether a customer delivery can ship from held reservations, unblocked stock, delivery policy and qualifying prepayment evidence. This read creates no shipment or payment.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-237:
+    IF the commitment is absent from this company, refuse with fulfillment_commitment_not_found.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-239:
+    IF the commitment is not a customer delivery, refuse with fulfillment_readiness_customer_commitment_required.
+
+    BUSINESS RULE readiness.open_quantity:
+    Open delivery quantity is revised commitment quantity minus qualifying shipped quantity, with a minimum of zero.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-249:
+    IF a proposed shipment quantity is zero, negative or greater than the open quantity, refuse with fulfillment_shipment_quantity_invalid. Without a proposal, check the whole open quantity.
+
+    BUSINESS RULE readiness.reservations:
+    Read this company's active reservations for this commitment, summing quantities separately for each warehouse.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-276:
+    IF a departure warehouse is supplied, use only its reservation and physical stock less stock blocks; ready quantity is their smaller value. ELSE combine reservation quantities and the shared stock-cover calculation across warehouses.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-305:
+    IF the commitment has active holds, report commitment_hold.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-307:
+    IF the customer has an active delivery hold, report party_delivery_hold.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-309:
+    IF reserved quantity is below the checked delivery quantity, report insufficient_reservation.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-311:
+    IF stock backing the promise is below the checked quantity, or total reservation is sufficient but ready quantity at those warehouses is insufficient, report insufficient_stock.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-315:
+    IF no order is linked, return only operational readiness: a positive open quantity and no operational blockers are required; no prepayment policy is inferred.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-341:
+    IF the linked document is absent from this company or is not a sales order, refuse with customer_delivery_order_not_found.
+
+    BUSINESS RULE readiness.delivery_policy:
+    When delivery-policy checking is enabled, use the shared ship-complete check. IF it fails, report ship_complete_incomplete.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-354:
+    IF no payment term requires prepayment, return operational readiness without a payment blocker. The stated order gross amount is shown; no received payment is claimed by this branch.
+
+    BUSINESS RULE readiness.invoice_candidates:
+    Find sales invoices for this company, the order's customer and currency, linked through billed order lines. Include the order's down-payment invoices through their shared service.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-436:
+    IF an invoice also bills an order of another customer or currency, mark payment attribution ambiguous; no allocation is counted automatically.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-441:
+    ELSE IF an invoice also bills another order of the same customer and currency, treat it as consolidated.
+
+    BUSINESS RULE readiness.qualifying_allocations:
+    Count active settlement allocations only for candidate receivable entries and payment entries of this company, customer and currency. Exclude consolidated invoice entries from this direct sum, and count nothing if attribution is ambiguous.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-494:
+    IF a consolidated invoice is still open, retain its identity, number and open amount as a blocker. ELSE add its stated line amounts for this order, subtracting live offsets of this order's down payments to avoid counting those amounts twice.
+
+    BUSINESS RULE readiness.remaining_payment:
+    Remaining prepayment is stated order gross amount minus qualifying received amount, with a minimum of zero.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-526:
+    IF no candidate receivable invoice entries exist, report prepayment_invoice_missing.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-528:
+    IF attribution is ambiguous, report prepayment_attribution_ambiguous.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-530:
+    IF a consolidated invoice remains open, report prepayment_consolidated_invoice_open.
+
+    BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-532:
+    IF required prepayment remains positive, report prepayment_required.
+
+    BUSINESS RULE readiness.result:
+    Return quantities, payment amounts, invoice/allocation identities, active hold identities and consolidated invoice evidence. Ship-ready requires positive open quantity and no blockers.
     """
     commitment = session.scalar(
         select(Commitment).where(
@@ -253,6 +355,7 @@ def fulfillment_readiness(
         raise InvalidOperation(
             code="fulfillment_readiness_customer_commitment_required"
         )
+    # reality-rule: readiness.open_quantity
     open_quantity = max(
         commitment_quantity(session, tenant_id, commitment.id)
         - movement_quantity(session, tenant_id, commitment.id, "shipment"),
@@ -264,6 +367,7 @@ def fulfillment_readiness(
         checked_quantity <= ZERO or checked_quantity > open_quantity
     ):
         raise InvalidOperation(code="fulfillment_shipment_quantity_invalid")
+    # reality-rule: readiness.reservations
     reserved_by_location = {
         location_id: Decimal(quantity)
         for location_id, quantity in session.execute(
@@ -361,6 +465,7 @@ def fulfillment_readiness(
     # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-341
     if order is None or order.type != "sales_order":
         raise InvalidOperation(code="customer_delivery_order_not_found")
+    # reality-rule: readiness.delivery_policy
     if _delivery_rule:
         # Spec 306: under ship complete a line is ready only with the whole
         # order, every open line in full.
@@ -411,6 +516,7 @@ def fulfillment_readiness(
             )
         )
     )
+    # reality-rule: readiness.invoice_candidates
     invoice_rows = list(
         session.execute(
             select(DocumentLine.document_id, DocumentLine.billed_document_line_id)
@@ -503,6 +609,7 @@ def fulfillment_readiness(
     consolidated_entries = {
         entry.id for entry in invoice_entries if entry.document_id in consolidated
     }
+    # reality-rule: readiness.qualifying_allocations
     qualifying = (
         []
         if ambiguous
@@ -556,6 +663,7 @@ def fulfillment_readiness(
                 ),
                 ZERO,
             )
+    # reality-rule: readiness.remaining_payment
     remaining = max(required - received, ZERO)
     blockers = list(operational_blockers)
     # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-526
@@ -570,6 +678,7 @@ def fulfillment_readiness(
     # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-532
     if remaining > ZERO:
         blockers.append("prepayment_required")
+    # reality-rule: readiness.result
     return FulfillmentReadiness(
         commitment.id,
         order.id,

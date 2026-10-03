@@ -1,10 +1,11 @@
 """Authored descriptions are current evidence, never inferred business authority."""
 
 import pytest
+from test_business_blueprint_release import loaded
+
 from reality.domain.business_blueprints import TestScenario as Scenario
 from reality.services.business_blueprint_analysis import analyze_function
 from reality.services.business_blueprint_source import SourceUnavailable, capture_source
-from test_business_blueprint_release import loaded
 
 
 def present(tmp_path, code, scenarios=()):
@@ -138,6 +139,7 @@ def test_public_and_application_reads_share_authored_descriptions_without_provid
     session, business, monkeypatch
 ):
     from fastapi.testclient import TestClient
+
     from reality.services import business_blueprint_presentation
     from reality.tools.application import run_read_tool
     from reality.web.app import app
@@ -218,6 +220,7 @@ def test_repository_annotations_pass_the_repeatable_authoring_audit():
     spec.loader.exec_module(module)
     report = module.audit()
     assert report["errors"] == []
+    assert module.coverage_failures(report) == []
     assert report["context"] == "repository_authoring_audit"
     assert (
         len(
@@ -231,3 +234,23 @@ def test_repository_annotations_pass_the_repeatable_authoring_audit():
     )
     assert isinstance(report["missing_root_descriptions"], dict)
     assert report["entries"] >= report["root_functions"]
+
+
+def test_named_finance_accounts_adapter_preserves_the_original_service_call(
+    monkeypatch,
+):
+    from reality.tools import application
+
+    session = object()
+    expected = {"accounts": []}
+    calls = []
+
+    def list_accounts(actual_session, actual_company):
+        calls.append((actual_session, actual_company))
+        return expected
+
+    monkeypatch.setattr(application, "list_accounts", list_accounts)
+    handler = application.TOOLS["finance.accounts.list"].handler
+    assert handler.__name__ == "_finance_accounts_read"
+    assert handler(session, "company-a", {"ignored": "as before"}) is expected
+    assert calls == [(session, "company-a")]

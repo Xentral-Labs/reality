@@ -37,7 +37,21 @@ from reality.services.supply_assignments import supply_coverage
 
 
 def effective_value(field: str):
+    """
+    BUSINESS PURPOSE:
+    Read a promise field from its latest explicit revision, falling back to the original promise when no revision states that field.
+
+    BUSINESS RULE services.delivery_reads.effective_value.latest:
+    For this company and promise, select the latest revision that states the requested field. Order by statement time descending and then revision identity descending; ignore revisions where that field is absent.
+
+    BUSINESS RULE services.delivery_reads.effective_value.fallback:
+    IF a qualifying revision states the field:
+        Use that revised value.
+    ELSE:
+        Use the original promise's value. A revision of another field does not erase this field.
+    """
     column = getattr(CommitmentRevision, field)
+    # reality-rule: services.delivery_reads.effective_value.latest
     latest = (
         select(column)
         .where(
@@ -50,10 +64,37 @@ def effective_value(field: str):
         .correlate(Commitment)
         .scalar_subquery()
     )
+    # reality-rule: services.delivery_reads.effective_value.fallback
     return func.coalesce(latest, getattr(Commitment, field))
 
 
 def fulfillment_expressions():
+    """
+    BUSINESS PURPOSE:
+    Calculate reserved, fulfilled and remaining delivery quantities from the company's actual reservations, warehouse movements and recorded movement corrections.
+
+    BUSINESS RULE services.delivery_reads.fulfillment_expressions.active_reservations:
+    Reserved quantity is the sum of active reservations for this company and promise. Released or consumed reservations do not count; no active reservations means zero.
+
+    BUSINESS RULE services.delivery_reads.fulfillment_expressions.recorded_delivery:
+    For a customer-delivery promise, count shipment movements. For a supplier-delivery promise, count receipt movements. Sum their stated quantities within this company and promise; other movement types do not fulfill these promises.
+
+    BUSINESS RULE services.delivery_reads.fulfillment_expressions.corrected_delivery:
+    Sum the original qualifying shipment or receipt quantities named by this company's recorded movement corrections. These original movements must not remain counted as delivery fulfillment.
+
+    BUSINESS RULE services.delivery_reads.fulfillment_expressions.net_fulfillment:
+    Fulfilled quantity is recorded qualifying movement quantity minus the qualifying original quantity reversed by movement corrections.
+
+    BUSINESS RULE services.delivery_reads.fulfillment_expressions.remaining:
+    Remaining quantity is the effective promised quantity, including its latest quantity revision, minus fulfilled quantity.
+
+    BUSINESS RULE services.delivery_reads.fulfillment_expressions.nonnegative_open:
+    IF remaining quantity is positive:
+        Report it as open quantity.
+    ELSE:
+        Report zero open quantity. Keep reserved and fulfilled quantities separate.
+    """
+    # reality-rule: services.delivery_reads.fulfillment_expressions.active_reservations
     reserved = (
         select(func.coalesce(func.sum(Reservation.quantity), 0))
         .where(
@@ -64,6 +105,7 @@ def fulfillment_expressions():
         .correlate(Commitment)
         .scalar_subquery()
     )
+    # reality-rule: services.delivery_reads.fulfillment_expressions.recorded_delivery
     recorded_fulfillment = (
         select(func.coalesce(func.sum(Movement.quantity), 0))
         .where(
@@ -81,6 +123,7 @@ def fulfillment_expressions():
         .correlate(Commitment)
         .scalar_subquery()
     )
+    # reality-rule: services.delivery_reads.fulfillment_expressions.corrected_delivery
     reversed_fulfillment = (
         select(func.coalesce(func.sum(Movement.quantity), 0))
         .select_from(MovementCorrection)
@@ -101,8 +144,11 @@ def fulfillment_expressions():
         .correlate(Commitment)
         .scalar_subquery()
     )
+    # reality-rule: services.delivery_reads.fulfillment_expressions.net_fulfillment
     fulfilled = recorded_fulfillment - reversed_fulfillment
+    # reality-rule: services.delivery_reads.fulfillment_expressions.remaining
     remaining = effective_value("quantity") - fulfilled
+    # reality-rule: services.delivery_reads.fulfillment_expressions.nonnegative_open
     open_quantity = case((remaining > 0, remaining), else_=0)
     return reserved, fulfilled, open_quantity
 
@@ -207,7 +253,9 @@ def _purchase_unit_view(
 
     return {
         "unit": line.unit,
-        "conversion_factor": plain(Decimal(commitment.quantity) / Decimal(line.quantity)),
+        "conversion_factor": plain(
+            Decimal(commitment.quantity) / Decimal(line.quantity)
+        ),
         # The promise in force, so a revision is read here as well.
         "ordered": cartons(detail["promised"]),
         "open": cartons(detail["open"]),

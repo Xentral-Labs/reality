@@ -186,7 +186,16 @@ def _credit_context(session: Session, tenant: str, invoice_id: str) -> dict[str,
 def invoice_credit_context(
     session: Session, tenant_id: str, invoice_id: str
 ) -> dict[str, Any]:
-    """Public tenant-scoped read contract for preparing an invoice-linked credit."""
+    """
+    Public tenant-scoped read contract for preparing an invoice-linked credit.
+
+    BUSINESS PURPOSE:
+    Public tenant-scoped read contract for preparing an invoice-linked credit.
+
+    BUSINESS RULE services.credit_actions.invoice_credit_context.result:
+    Return the selected invoice's credit context from the common credit reader rather than calculating an alternative credit balance.
+    """
+    # reality-rule: services.credit_actions.invoice_credit_context.result
     return _credit_context(session, tenant_id, invoice_id)
 
 

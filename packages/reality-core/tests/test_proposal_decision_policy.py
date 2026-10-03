@@ -92,6 +92,16 @@ def _member(session, tenant_id, *, admin=False):
 def test_action_policy_separates_authority_decision_and_channels(
     tool, arguments, authority
 ):
+    """
+    BUSINESS TEST:
+    Action policy separates authority decision and channels.
+    GIVEN:
+    Parameterized tool/arguments/authority cases cover owner, member, report author, account user, action context and retired actions.
+    WHEN:
+    Resolve next-step policy for each proposal.
+    THEN:
+    Approval authority matches parameter; rejection stays action_context; explicit decision and external confirmation channels are required without built-in chat confirmation or autonomous delegation claims.
+    """
     proposal = ChangeProposal(type=f"tool:{tool}", input=json.dumps(arguments))
     step = proposal_next_step(proposal)
     policy = step["decision_policy"]
@@ -111,6 +121,16 @@ def test_action_policy_separates_authority_decision_and_channels(
 def test_credit_owner_guidance_and_execution_agree(
     session, business, scheduled_owner, monkeypatch
 ):
+    """
+    BUSINESS TEST:
+    Credit owner guidance and execution agree.
+    GIVEN:
+    Credit-release proposal exists with a member and active owner.
+    WHEN:
+    Compare delivery/proposal guidance and confirm as member then owner with authentication required.
+    THEN:
+    Guidance agrees on owner authority; member is refused and hold stays; owner confirmation clears it.
+    """
     from reality.services.credit_exposure import active_credit_holds
 
     proposal, commitments = _held_release(session, business)
@@ -153,6 +173,16 @@ def test_credit_owner_guidance_and_execution_agree(
 def test_owner_only_approval_does_not_add_owner_only_rejection(
     session, business, monkeypatch
 ):
+    """
+    BUSINESS TEST:
+    Owner only approval does not add owner only rejection.
+    GIVEN:
+    Credit-release proposal needs owner approval and a member principal exists.
+    WHEN:
+    Reject as member with authentication required.
+    THEN:
+    Policy keeps action-context rejection and proposal is rejected.
+    """
     proposal, _ = _held_release(session, business)
     member, _ = _member(session, business.tenant.id)
     monkeypatch.setenv("REALITY_AUTH_MODE", "required")
@@ -172,6 +202,16 @@ def test_owner_only_approval_does_not_add_owner_only_rejection(
 def test_shared_member_check_rechecks_current_membership_and_preserves_admin(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    Shared member check rechecks current membership and preserves admin.
+    GIVEN:
+    Shipment decision policy and member principal exist.
+    WHEN:
+    Check authority, remove membership, recheck and check admin/unauthenticated compatibility paths.
+    THEN:
+    Removed member is not found; active admin and existing no-principal compatibility path are accepted.
+    """
     from reality.services.proposal_decisions import (
         require_decision_authority,
         resolve_decision_policy,
@@ -200,6 +240,16 @@ def test_shared_member_check_rechecks_current_membership_and_preserves_admin(
 def test_policy_preserves_cost_and_finance_identity_exceptions(
     session, business, monkeypatch
 ):
+    """
+    BUSINESS TEST:
+    Policy preserves cost and finance identity exceptions.
+    GIVEN:
+    Finance account and cost change decision policies exist.
+    WHEN:
+    Check missing-principal authority with authentication disabled and required.
+    THEN:
+    Finance permits disabled-auth compatibility but refuses required-auth; cost still refuses missing principal in confirmed preflight.
+    """
     from reality.services.proposal_decisions import (
         require_decision_authority,
         resolve_decision_policy,
@@ -224,12 +274,32 @@ def test_policy_preserves_cost_and_finance_identity_exceptions(
 
 
 def test_unknown_and_malformed_policy_never_claims_approval_authority():
+    """
+    BUSINESS TEST:
+    Unknown and malformed policy never claims approval authority.
+    GIVEN:
+    Retired tool or malformed JSON reserve payload is used.
+    WHEN:
+    Resolve proposal next-step policy.
+    THEN:
+    Approval authority is unavailable for both cases.
+    """
     for tool, payload in [("retired_action", "{}"), ("reserve", "not-json")]:
         step = proposal_next_step(ChangeProposal(type=f"tool:{tool}", input=payload))
         assert step["decision_policy"]["approval"]["authority"] == "unavailable"
 
 
 def test_retired_executed_review_rechecks_membership_before_replay(session, business):
+    """
+    BUSINESS TEST:
+    Retired executed review rechecks membership before replay.
+    GIVEN:
+    An executed retired reviewed proposal exists and its member was removed.
+    WHEN:
+    Attempt confirmation replay and inspect next-step policy.
+    THEN:
+    Removed member is not found and retired approval authority remains unavailable.
+    """
     user, membership = _member(session, business.tenant.id)
     proposal = ChangeProposal(
         tenant_id=business.tenant.id,
@@ -258,6 +328,16 @@ def test_retired_executed_review_rechecks_membership_before_replay(session, busi
 
 
 def test_member_removal_requires_owner_even_when_removing_self(session, business):
+    """
+    BUSINESS TEST:
+    Member removal requires owner even when removing self.
+    GIVEN:
+    A member creates a proposal to remove their own membership.
+    WHEN:
+    Inspect policy and attempt self-confirmation.
+    THEN:
+    Owner authority is required, confirmation is refused and membership stays active.
+    """
     from reality.tools.application import create_change_proposal
 
     user, membership = _member(session, business.tenant.id)
@@ -281,6 +361,16 @@ def test_member_removal_requires_owner_even_when_removing_self(session, business
 
 
 def test_shipment_member_guidance_and_execution_agree(session, business):
+    """
+    BUSINESS TEST:
+    Shipment member guidance and execution agree.
+    GIVEN:
+    Delivery fixture has two reserved units and an active member.
+    WHEN:
+    Prepare shipment and confirm using its review token as member.
+    THEN:
+    Policy requires company_member; proposal executes and returns shipment identity.
+    """
     from unified_fixtures import delivery_fixture
 
     from reality.tools.application import create_change_proposal
@@ -325,6 +415,16 @@ def test_shipment_member_guidance_and_execution_agree(session, business):
 def test_private_report_requires_original_author_but_rejection_does_not(
     session, business, scheduled_owner, admin_outsider
 ):
+    """
+    BUSINESS TEST:
+    Private report requires original author but rejection does not.
+    GIVEN:
+    A member authored a private report proposal; admin_outsider parameter controls another owner's admin flag.
+    WHEN:
+    Attempt approval as outsider, approve as author, then reject delete proposal as outsider.
+    THEN:
+    Outsider approval is refused even as admin; author creates report and outsider may reject deletion.
+    """
     from uuid import uuid4
 
     from reality.services.analytics.errors import AnalyticsError

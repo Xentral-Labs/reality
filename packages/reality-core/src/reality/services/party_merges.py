@@ -117,44 +117,93 @@ def validate_party_merge(
     surviving_party_id: Any,
     reason: Any,
 ) -> tuple[Party, Party, str]:
-    """The two partners and the reason, or the coded refusal that stops the merge."""
+    """
+    The two partners and the reason, or the coded refusal that stops the merge.
+
+    BUSINESS PURPOSE:
+    The two partners and the reason, or the coded refusal that stops the merge.
+
+    BUSINESS RULE services.party_merges.validate_party_merge.refusal-12:
+    IF the merge reason is empty after trimming whitespace:
+        Refuse with party_merge_reason_required.
+
+    BUSINESS RULE services.party_merges.validate_party_merge.refusal-14:
+    IF the merge reason exceeds REASON_LIMIT characters:
+        Refuse with party_merge_reason_too_long.
+
+    BUSINESS RULE services.party_merges.validate_party_merge.refusal-16:
+    IF the duplicate and surviving partner are the same record:
+        Refuse with party_merge_same_party.
+
+    BUSINESS RULE services.party_merges.validate_party_merge.refusal-26:
+    IF the surviving partner is inactive:
+        Refuse with party_merge_survivor_inactive.
+
+    BUSINESS RULE services.party_merges.validate_party_merge.refusal-31:
+    IF either partner represents the company itself:
+        Refuse with party_merge_company_party.
+
+    BUSINESS RULE services.party_merges.validate_party_merge.refusal-36:
+    IF the surviving partner lacks a business role held by the duplicate:
+        Refuse with party_merge_roles_missing.
+
+    BUSINESS RULE services.party_merges.validate_party_merge.refusal-41:
+    IF the duplicate partner still has an active delivery hold:
+        Refuse with party_merge_hold_open.
+
+    BUSINESS RULE services.party_merges.validate_party_merge.refusal-20:
+    IF the duplicate already has a surviving partner:
+        Refuse with party_merge_already_merged.
+
+    BUSINESS RULE services.party_merges.validate_party_merge.result:
+    Return duplicate, survivor, text, as prepared by the preceding checks and service calls.
+    """
     get_tenant(session, tenant_id)
     duplicate = _party(session, tenant_id, duplicate_party_id)
     survivor = _party(session, tenant_id, surviving_party_id)
     text = str(reason or "").strip()
+    # reality-rule: services.party_merges.validate_party_merge.refusal-12
     if not text:
         raise InvalidOperation(code="party_merge_reason_required")
+    # reality-rule: services.party_merges.validate_party_merge.refusal-14
     if len(text) > REASON_LIMIT:
         raise InvalidOperation(code="party_merge_reason_too_long")
+    # reality-rule: services.party_merges.validate_party_merge.refusal-16
     if duplicate.id == survivor.id:
         raise InvalidOperation(code="party_merge_same_party")
     for party in (duplicate, survivor):
         target = merged_into(session, tenant_id, party.id)
+        # reality-rule: services.party_merges.validate_party_merge.refusal-20
         if target:
             name = session.get(Party, (tenant_id, target))
             raise InvalidOperation(
                 code="party_merge_already_merged",
                 values={"party": party.name, "survivor": name.name if name else target},
             )
+    # reality-rule: services.party_merges.validate_party_merge.refusal-26
     if not survivor.is_active:
         raise InvalidOperation(
             code="party_merge_survivor_inactive", values={"party": survivor.name}
         )
     duplicate_roles = _roles(session, tenant_id, duplicate.id)
+    # reality-rule: services.party_merges.validate_party_merge.refusal-31
     if "company" in duplicate_roles or "company" in _roles(
         session, tenant_id, survivor.id
     ):
         raise InvalidOperation(code="party_merge_company_party")
     missing = sorted(duplicate_roles - _roles(session, tenant_id, survivor.id))
+    # reality-rule: services.party_merges.validate_party_merge.refusal-36
     if missing:
         raise InvalidOperation(
             code="party_merge_roles_missing",
             values={"party": survivor.name, "roles": ", ".join(missing)},
         )
+    # reality-rule: services.party_merges.validate_party_merge.refusal-41
     if active_party_delivery_hold(session, tenant_id, duplicate.id) is not None:
         raise InvalidOperation(
             code="party_merge_hold_open", values={"party": duplicate.name}
         )
+    # reality-rule: services.party_merges.validate_party_merge.result
     return duplicate, survivor, text
 
 
@@ -197,9 +246,26 @@ def _summary(session: Session, tenant_id: str, party: Party) -> dict[str, Any]:
 def review_party_merge(
     session: Session, tenant_id: str, tool_name: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown."""
+    """
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS PURPOSE:
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS RULE services.party_merges.review_party_merge.refusal-4:
+    IF the requested operation is not registered for this review service:
+        Refuse with proposal_tool_not_found.
+
+    BUSINESS RULE services.party_merges.review_party_merge.step-6:
+    Run the shared validate party merge check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.party_merges.review_party_merge.result:
+    Return normalized merge arguments and both partners' review summaries. Preserve the duplicate's stated history under the survivor and explain that execution makes the duplicate inactive.
+    """
+    # reality-rule: services.party_merges.review_party_merge.refusal-4
     if tool_name not in MERGE_TOOLS:
         raise InvalidOperation(code="proposal_tool_not_found")
+    # reality-rule: services.party_merges.review_party_merge.step-6
     duplicate, survivor, reason = validate_party_merge(
         session,
         tenant_id,
@@ -207,6 +273,7 @@ def review_party_merge(
         arguments.get("surviving_party_id"),
         arguments.get("reason"),
     )
+    # reality-rule: services.party_merges.review_party_merge.result
     return (
         {
             "duplicate_party_id": duplicate.id,
@@ -234,11 +301,37 @@ def merge_party(
     *,
     action_id: str | None = None,
 ) -> PartyMerge:
-    """Record that one business partner is a duplicate of another."""
+    """
+    Record that one business partner is a duplicate of another.
+
+    BUSINESS PURPOSE:
+    Record that one business partner is a duplicate of another.
+
+    BUSINESS RULE services.party_merges.merge_party.step-10:
+    Require the business permission for 'merge_party' before changing company records.
+
+    BUSINESS RULE services.party_merges.merge_party.step-11:
+    Run the shared validate party merge check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.party_merges.merge_party.step-14:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.party_merges.merge_party.step-28:
+    Run the shared validate party merge check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.party_merges.merge_party.step-39:
+    Record the party.merged audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.party_merges.merge_party.result:
+    Return merge, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.party_merges.merge_party.step-10
     _require_business_mutation(session, tenant_id, "merge_party")
+    # reality-rule: services.party_merges.merge_party.step-11
     duplicate, survivor, text = validate_party_merge(
         session, tenant_id, duplicate_party_id, surviving_party_id, reason
     )
+    # reality-rule: services.party_merges.merge_party.step-14
     source, _, _ = store_source_record(
         session,
         tenant_id,
@@ -253,6 +346,7 @@ def merge_party(
         },
     )
     # The source identity is locked; a merge confirmed meanwhile is visible now.
+    # reality-rule: services.party_merges.merge_party.step-28
     validate_party_merge(session, tenant_id, duplicate.id, survivor.id, text)
     merge = PartyMerge(
         id=uid("pmg"),
@@ -264,6 +358,7 @@ def merge_party(
     )
     session.add(merge)
     session.flush()
+    # reality-rule: services.party_merges.merge_party.step-39
     emit_business_event(
         session,
         tenant_id,
@@ -287,6 +382,7 @@ def merge_party(
         )
     else:
         session.commit()
+    # reality-rule: services.party_merges.merge_party.result
     return merge
 
 
@@ -306,7 +402,15 @@ def _merge_row(merge: PartyMerge, names: dict[str, str]) -> dict[str, Any]:
 def party_merges(
     session: Session, tenant_id: str, *, party_id: str | None = None
 ) -> list[dict[str, Any]]:
-    """The merges of the company, or those one party took part in, newest first."""
+    """
+    The merges of the company, or those one party took part in, newest first.
+
+    BUSINESS PURPOSE:
+    The merges of the company, or those one party took part in, newest first.
+
+    BUSINESS RULE services.party_merges.party_merges.result:
+    Return the selected records in the displayed response structure; preserve the source identifiers and stated values used by this comprehension.
+    """
     get_tenant(session, tenant_id)
     query = select(PartyMerge).where(PartyMerge.tenant_id == tenant_id)
     if party_id:
@@ -332,4 +436,5 @@ def party_merges(
         if ids
         else {}
     )
+    # reality-rule: services.party_merges.party_merges.result
     return [_merge_row(merge, names) for merge in merges]

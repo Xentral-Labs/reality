@@ -80,12 +80,21 @@ def offer(session: Session, tenant_id: str) -> dict[str, Any] | None:
 
 
 def propose_company_party(session: Session, tenant_id: str) -> ChangeProposal:
-    """Propose recording the company partner, or return the one already waiting."""
+    """
+    Propose recording the company partner, or return the one already waiting.
+
+    BUSINESS PURPOSE:
+    Propose recording the company partner, or return the one already waiting.
+
+    BUSINESS RULE services.company_party.propose_company_party.step-7:
+    Pass the stated inputs to the shared create change proposal service. Its own source describes validation and record changes.
+    """
     from reality.tools.application import create_change_proposal
 
     pending = waiting(session, tenant_id)
     if pending is not None:
         return pending
+    # reality-rule: services.company_party.propose_company_party.step-7
     return create_change_proposal(session, tenant_id, TOOL, {}, actor_type="user")
 
 

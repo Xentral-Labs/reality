@@ -111,7 +111,27 @@ def record_free_supplier_invoice(
     exchange_rate: Decimal | str | None = None,
     action_id: str | None = None,
 ) -> dict[str, Any]:
-    """Atomically retain free invoice evidence and post its stated payable."""
+    """
+    Atomically retain free invoice evidence and post its stated payable.
+
+    BUSINESS PURPOSE:
+    Atomically retain free invoice evidence and post its stated payable.
+
+    BUSINESS RULE services.invoice_actions.record_free_supplier_invoice.step-25:
+    Run the shared preview free supplier invoice check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.invoice_actions.record_free_supplier_invoice.result:
+    Return identities of the retained source record, supplier-invoice document, document lines and payable ledger entries. These records are created together inside a nested transaction and committed only after the invoice-recorded event is emitted; gross amount remains the supplier's stated amount.
+
+    BUSINESS RULE services.invoice_actions.record_free_supplier_invoice.effect-39:
+    Pass the stated inputs to the shared create master source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.invoice_actions.record_free_supplier_invoice.effect-49:
+    Pass the stated inputs to the shared create manual document with lines service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.invoice_actions.record_free_supplier_invoice.effect-80:
+    Record the invoice.recorded audit or business-event evidence with the supplied record and confirmation identity.
+    """
     arguments = {
         "supplier_id": supplier_id,
         "number": number,
@@ -122,8 +142,10 @@ def record_free_supplier_invoice(
         **({"effective_at": effective_at} if effective_at else {}),
         **({"exchange_rate": str(exchange_rate)} if exchange_rate is not None else {}),
     }
+    # reality-rule: services.invoice_actions.record_free_supplier_invoice.step-25
     creation = preview_free_supplier_invoice(session, tenant_id, arguments)
     with session.begin_nested():
+        # reality-rule: services.invoice_actions.record_free_supplier_invoice.effect-39
         source = core.create_master_source_record(
             session,
             tenant_id,
@@ -134,6 +156,7 @@ def record_free_supplier_invoice(
             action_id=action_id,
             _commit=False,
         )
+        # reality-rule: services.invoice_actions.record_free_supplier_invoice.effect-49
         document, created_lines = core.create_manual_document_with_lines(
             session,
             tenant_id,
@@ -165,6 +188,7 @@ def record_free_supplier_invoice(
                 *[{"family": "ledger_entry", "id": entry.id} for entry in entries],
             ]
         }
+        # reality-rule: services.invoice_actions.record_free_supplier_invoice.effect-80
         core.emit_business_event(
             session,
             tenant_id,
@@ -177,6 +201,7 @@ def record_free_supplier_invoice(
             correlation_id=action_id,
         )
     session.commit()
+    # reality-rule: services.invoice_actions.record_free_supplier_invoice.result
     return receipt
 
 

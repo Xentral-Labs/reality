@@ -312,12 +312,30 @@ def preview_down_payment_invoice(
     net_amount: Any = None,
     tax_amount: Any = None,
 ) -> dict[str, Any]:
-    """What recording this down-payment invoice would do, recording nothing."""
+    """
+    What recording this down-payment invoice would do, recording nothing.
+
+    BUSINESS PURPOSE:
+    What recording this down-payment invoice would do, recording nothing.
+
+    BUSINESS RULE services.down_payments.preview_down_payment_invoice.refusal-14:
+    IF the down-payment invoice number is empty after trimming whitespace:
+        Refuse with down_payment_number_missing.
+
+    BUSINESS RULE services.down_payments.preview_down_payment_invoice.refusal-18:
+    IF a currency was supplied and its normalized value differs from the sales order currency:
+        Refuse with down_payment_currency_mismatch.
+
+    BUSINESS RULE services.down_payments.preview_down_payment_invoice.result:
+    Return the current result with order_id, order_number, party_id, currency, order_gross, number, gross_amount, stated, effective_at, earlier_down_payments.
+    """
     order = _sales_order(session, tenant_id, order_id)
+    # reality-rule: services.down_payments.preview_down_payment_invoice.refusal-14
     if not str(number or "").strip():
         raise core.InvalidOperation(code="down_payment_number_missing")
     amount = _amount(gross_amount, "down_payment_amount_invalid")
     # The invoice is in its order's currency; a stated other one is refused.
+    # reality-rule: services.down_payments.preview_down_payment_invoice.refusal-18
     if currency and str(currency).strip().upper() != order.currency:
         raise core.InvalidOperation(code="down_payment_currency_mismatch")
     stated = {}
@@ -331,6 +349,7 @@ def preview_down_payment_invoice(
                 ) from error
     moment = core.utc_datetime(effective_at) or core.now()
     earlier = down_payment_invoices(session, tenant_id, order.id)
+    # reality-rule: services.down_payments.preview_down_payment_invoice.result
     return {
         "order_id": order.id,
         "order_number": order.number,
@@ -368,9 +387,31 @@ def record_down_payment_invoice(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Record and post a down-payment invoice for its order."""
+    """
+    Record and post a down-payment invoice for its order.
+
+    BUSINESS PURPOSE:
+    Record and post a down-payment invoice for its order.
+
+    BUSINESS RULE services.down_payments.record_down_payment_invoice.step-15:
+    Require the business permission for 'record_down_payment_invoice' before changing company records.
+
+    BUSINESS RULE services.down_payments.record_down_payment_invoice.step-17:
+    Run the shared preview down payment invoice check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.down_payments.record_down_payment_invoice.step-45:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.down_payments.record_down_payment_invoice.step-55:
+    Pass the stated inputs to the shared create document service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.down_payments.record_down_payment_invoice.result:
+    Return the recorded down-payment invoice and its posting receipt using the common invoice result reader.
+    """
+    # reality-rule: services.down_payments.record_down_payment_invoice.step-15
     core._require_business_mutation(session, tenant_id, "record_down_payment_invoice")
     lock_finance(session, tenant_id)
+    # reality-rule: services.down_payments.record_down_payment_invoice.step-17
     preview = preview_down_payment_invoice(
         session,
         tenant_id,
@@ -399,6 +440,7 @@ def record_down_payment_invoice(
     )
     if existing:
         return _result(existing)
+    # reality-rule: services.down_payments.record_down_payment_invoice.step-45
     source, _, _ = core.store_source_record(
         session,
         tenant_id,
@@ -409,6 +451,7 @@ def record_down_payment_invoice(
     )
     amount = Decimal(preview["gross_amount"])
     moment = core.utc_datetime(preview["effective_at"])
+    # reality-rule: services.down_payments.record_down_payment_invoice.step-55
     document = core.create_document(
         session,
         tenant_id,
@@ -466,6 +509,7 @@ def record_down_payment_invoice(
     session.flush()
     if _commit:
         session.commit()
+    # reality-rule: services.down_payments.record_down_payment_invoice.result
     return _result(document)
 
 
@@ -654,21 +698,62 @@ def order_down_payment_invoice_ids(
 def preview_proforma_invoice(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
-    """What recording this pro-forma would record; it posts nothing."""
+    """
+    What recording this pro-forma would record; it posts nothing.
+
+    BUSINESS PURPOSE:
+    What recording this pro-forma would record; it posts nothing.
+
+    BUSINESS RULE services.down_payments.preview_proforma_invoice.refusal-4:
+    IF required proforma fields are missing or unsupported fields were supplied:
+        Refuse with proforma_fields_invalid.
+
+    BUSINESS RULE services.down_payments.preview_proforma_invoice.refusal-9:
+    IF the selected document is not a sales order with a customer:
+        Refuse with proforma_order_required.
+
+    BUSINESS RULE services.down_payments.preview_proforma_invoice.refusal-12:
+    IF a currency was supplied and its normalized value differs from the sales order currency:
+        Refuse with proforma_currency_mismatch.
+
+    BUSINESS RULE services.down_payments.preview_proforma_invoice.refusal-15:
+    IF the proforma number is empty after trimming whitespace:
+        Refuse with proforma_number_missing.
+
+    BUSINESS RULE services.down_payments.preview_proforma_invoice.refusal-18:
+    IF the proforma amount cannot be parsed as a valid amount:
+        Refuse with proforma_amount_invalid.
+
+    BUSINESS RULE services.down_payments.preview_proforma_invoice.refusal-38:
+    IF the proforma lines are missing, not a nonempty list, or contain invalid fields or an empty description:
+        Refuse with proforma_line_fields_invalid.
+
+    BUSINESS RULE services.down_payments.preview_proforma_invoice.refusal-41:
+    IF the proforma lines are missing, not a nonempty list, or contain invalid fields or an empty description:
+        Refuse with proforma_line_fields_invalid.
+
+    BUSINESS RULE services.down_payments.preview_proforma_invoice.result:
+    Return the current result with order_id, order_number, party_id, currency, number, gross_amount, document_date, lines.
+    """
+    # reality-rule: services.down_payments.preview_proforma_invoice.refusal-4
     if not PROFORMA_FIELDS <= set(arguments) or set(arguments) - (
         PROFORMA_FIELDS | PROFORMA_OPTIONAL
     ):
         raise core.InvalidOperation(code="proforma_fields_invalid")
     order = core._tenant_record(session, Document, tenant_id, arguments["order_id"])
+    # reality-rule: services.down_payments.preview_proforma_invoice.refusal-9
     if order.type != "sales_order" or not order.party_id:
         raise core.InvalidOperation(code="proforma_order_required")
     currency = arguments.get("currency")
+    # reality-rule: services.down_payments.preview_proforma_invoice.refusal-12
     if currency and str(currency).strip().upper() != order.currency:
         raise core.InvalidOperation(code="proforma_currency_mismatch")
     number = str(arguments["number"] or "").strip()
+    # reality-rule: services.down_payments.preview_proforma_invoice.refusal-15
     if not number:
         raise core.InvalidOperation(code="proforma_number_missing")
     amount = _positive(arguments["gross_amount"])
+    # reality-rule: services.down_payments.preview_proforma_invoice.refusal-18
     if amount is None:
         raise core.InvalidOperation(code="proforma_amount_invalid")
     document_date = arguments.get("document_date")
@@ -689,9 +774,11 @@ def preview_proforma_invoice(
             }
         ]
     stated_lines = []
+    # reality-rule: services.down_payments.preview_proforma_invoice.refusal-38
     if not isinstance(lines, list) or not lines:
         raise core.InvalidOperation(code="proforma_line_fields_invalid")
     for line in lines:
+        # reality-rule: services.down_payments.preview_proforma_invoice.refusal-41
         if (
             not isinstance(line, dict)
             or not PROFORMA_LINE_FIELDS <= set(line)
@@ -714,6 +801,7 @@ def preview_proforma_invoice(
                     code="proforma_line_fields_invalid"
                 ) from error
         stated_lines.append(stated)
+    # reality-rule: services.down_payments.preview_proforma_invoice.result
     return {
         "order_id": order.id,
         "order_number": order.number,
@@ -739,7 +827,28 @@ def record_proforma_invoice(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Record a pro-forma for its order as evidence only: nothing is posted."""
+    """
+    Record a pro-forma for its order as evidence only: nothing is posted.
+
+    BUSINESS PURPOSE:
+    Record a pro-forma for its order as evidence only: nothing is posted.
+
+    BUSINESS RULE services.down_payments.record_proforma_invoice.step-14:
+    Require the business permission for 'record_proforma_invoice' before changing company records.
+
+    BUSINESS RULE services.down_payments.record_proforma_invoice.step-23:
+    Run the shared preview proforma invoice check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.down_payments.record_proforma_invoice.step-41:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.down_payments.record_proforma_invoice.step-49:
+    Pass the stated inputs to the shared create document service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.down_payments.record_proforma_invoice.result:
+    Return the recorded proforma document and its evidence through the common invoice result reader. Its effect remains that of a proforma, not a financial posting.
+    """
+    # reality-rule: services.down_payments.record_proforma_invoice.step-14
     core._require_business_mutation(session, tenant_id, "record_proforma_invoice")
     arguments = {
         "order_id": order_id,
@@ -749,6 +858,7 @@ def record_proforma_invoice(
         **({"document_date": document_date} if document_date is not None else {}),
         **({"lines": lines} if lines is not None else {}),
     }
+    # reality-rule: services.down_payments.record_proforma_invoice.step-23
     preview = preview_proforma_invoice(session, tenant_id, arguments)
     external_id = action_id or uid("proforma")
     existing = session.scalar(
@@ -767,6 +877,7 @@ def record_proforma_invoice(
     )
     if existing:
         return _result(existing)
+    # reality-rule: services.down_payments.record_proforma_invoice.step-41
     source, _, _ = core.store_source_record(
         session,
         tenant_id,
@@ -775,6 +886,7 @@ def record_proforma_invoice(
         external_id,
         preview,
     )
+    # reality-rule: services.down_payments.record_proforma_invoice.step-49
     document = core.create_document(
         session,
         tenant_id,
@@ -811,6 +923,7 @@ def record_proforma_invoice(
     session.flush()
     if _commit:
         session.commit()
+    # reality-rule: services.down_payments.record_proforma_invoice.result
     return _result(document)
 
 

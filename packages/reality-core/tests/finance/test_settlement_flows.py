@@ -63,6 +63,16 @@ def execute(session, tenant, proposal):
 def test_underpayment_optional_reduction_and_independent_inverse(
     session, business, side, accept
 ):
+    """
+    BUSINESS TEST:
+    Underpayment optional reduction and independent inverse.
+    GIVEN:
+    Customer or supplier invoice 100; accept parameter controls an agreed reduction of 2.
+    WHEN:
+    Propose and confirm payment 98, replay confirmation and optionally reverse reduction.
+    THEN:
+    Proposal changes no balance; claim remains 2 without reduction or zero with it; replay is identical and reduction reversal leaves payment active.
+    """
     tenant = business.tenant.id
     if accept:
         initialize_accounts(session, tenant)
@@ -104,6 +114,16 @@ def test_underpayment_optional_reduction_and_independent_inverse(
 
 @pytest.mark.parametrize("side", ["customer", "supplier"])
 def test_excess_credit_reuse_refund_and_refund_inverse(session, business, side):
+    """
+    BUSINESS TEST:
+    Excess credit reuse refund and refund inverse.
+    GIVEN:
+    Customer or supplier invoice 100 is paid 102.
+    WHEN:
+    Allocate one unit of excess to another invoice, refund one and reverse refund.
+    THEN:
+    Credit starts at 2, allocation creates no cash entry, other claim becomes 9, refund consumes remaining credit and reversal restores 1.
+    """
     tenant = business.tenant.id
     invoice = invoice_for(session, business, side)
     paid = execute(
@@ -152,6 +172,16 @@ def test_excess_credit_reuse_refund_and_refund_inverse(session, business, side):
 def test_stale_and_failed_confirmation_leave_no_partial_cash(
     session, business, monkeypatch
 ):
+    """
+    BUSINESS TEST:
+    Stale and failed confirmation leave no partial cash.
+    GIVEN:
+    A customer payment proposal exists and the invoice changes before confirmation.
+    WHEN:
+    Confirm stale proposal, then inject failure after settlement allocation in a fresh proposal.
+    THEN:
+    Stale confirmation conflicts; injected failure leaves source, document, ledger and allocation counts unchanged.
+    """
     tenant = business.tenant.id
     invoice = invoice_for(session, business, "customer")
     proposal = propose(
@@ -182,6 +212,16 @@ def test_stale_and_failed_confirmation_leave_no_partial_cash(
 
 
 def test_settlement_tenant_boundary(session, business):
+    """
+    BUSINESS TEST:
+    Settlement tenant boundary.
+    GIVEN:
+    An invoice belongs to the business tenant.
+    WHEN:
+    Read settlement context and propose payment using another tenant.
+    THEN:
+    Both requests report not found.
+    """
     invoice = invoice_for(session, business, "customer")
     tenant = core.create_tenant(session, "Other")
     with pytest.raises(core.NotFound):
@@ -204,6 +244,16 @@ def test_settlement_tenant_boundary(session, business):
 def test_invalid_payment_intent_rejected_before_proposal(
     session, business, amount, allocation
 ):
+    """
+    BUSINESS TEST:
+    Invalid payment intent rejected before proposal.
+    GIVEN:
+    Parameterized amount/allocation pairs include nonfinite, zero, excessive precision, negative or excessive allocations.
+    WHEN:
+    Prepare a customer invoice payment proposal.
+    THEN:
+    Each invalid pair raises InvalidOperation.
+    """
     invoice = invoice_for(session, business, "customer")
     with pytest.raises(core.InvalidOperation):
         propose(
@@ -216,6 +266,16 @@ def test_invalid_payment_intent_rejected_before_proposal(
 
 
 def test_payment_source_effect_cannot_repeat_across_versions(session, business):
+    """
+    BUSINESS TEST:
+    Payment source effect cannot repeat across versions.
+    GIVEN:
+    A bank source effect has already produced a confirmed payment.
+    WHEN:
+    Create a newer version of the same bank line and propose the same cash effect.
+    THEN:
+    The repeated effect conflicts despite the newer source version.
+    """
     tenant = business.tenant.id
     invoice = invoice_for(session, business, "customer")
     source, _, _ = core.store_source_record(
@@ -239,6 +299,16 @@ def test_payment_source_effect_cannot_repeat_across_versions(session, business):
 
 @pytest.mark.parametrize("side", ["customer", "supplier"])
 def test_credit_note_can_be_reused_and_refunded(session, business, side):
+    """
+    BUSINESS TEST:
+    Credit note can be reused and refunded.
+    GIVEN:
+    Customer or supplier credit note 10 and an invoice exist.
+    WHEN:
+    Allocate 4 of credit, refund 6 and request another refund of 1.
+    THEN:
+    Available credit becomes zero and the additional refund is refused.
+    """
     tenant = business.tenant.id
     party = business.customer if side == "customer" else business.supplier
     note = core.create_document(
@@ -275,6 +345,16 @@ def test_credit_note_can_be_reused_and_refunded(session, business, side):
 
 
 def test_rejects_foreign_party_blocked_and_reversed_credit(session, business):
+    """
+    BUSINESS TEST:
+    Rejects foreign party blocked and reversed credit.
+    GIVEN:
+    A customer payment leaves excess credit 2.
+    WHEN:
+    Try another customer's invoice, another tenant, a blocked account refund and reversed payment context.
+    THEN:
+    Each request is refused with the asserted party, tenant, account or reversal restriction.
+    """
     from reality.services.finance.accounts import update_account
 
     tenant = business.tenant.id
@@ -312,6 +392,16 @@ def test_rejects_foreign_party_blocked_and_reversed_credit(session, business):
 
 
 def test_supplier_reduction_requires_agreement_and_combined_limit(session, business):
+    """
+    BUSINESS TEST:
+    Supplier reduction requires agreement and combined limit.
+    GIVEN:
+    Supplier invoice 100 and proposed reduction 2 exist.
+    WHEN:
+    Prepare payment 98 without agreement, then payment 99 with agreement and reduction 2.
+    THEN:
+    Missing agreement and combined amount exceeding the invoice are refused.
+    """
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     invoice = invoice_for(session, business, "supplier")
@@ -341,6 +431,16 @@ def test_supplier_reduction_requires_agreement_and_combined_limit(session, busin
 
 
 def test_payment_diagnostics_name_missing_cash_account_role(session, business):
+    """
+    BUSINESS TEST:
+    Payment diagnostics name missing cash account role.
+    GIVEN:
+    A customer invoice exists and cash account default is removed.
+    WHEN:
+    Prepare payment 100.
+    THEN:
+    Refusal explicitly names the missing cash account default.
+    """
     tenant = business.tenant.id
     invoice = invoice_for(session, business, "customer")
     session.query(SubledgerAccount).filter_by(tenant_id=tenant, role="cash").update(
@@ -364,6 +464,16 @@ def test_payment_diagnostics_name_missing_cash_account_role(session, business):
 def test_payment_without_reduction_does_not_require_reduction_account(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    Payment without reduction does not require reduction account.
+    GIVEN:
+    A customer invoice exists but reduction account default is absent.
+    WHEN:
+    Prepare and confirm a full payment without reduction.
+    THEN:
+    Review has no reduction, uses cash and confirmation leaves no claim.
+    """
     tenant = business.tenant.id
     invoice = invoice_for(session, business, "customer")
     session.query(SubledgerAccount).filter_by(
@@ -385,6 +495,16 @@ def test_payment_without_reduction_does_not_require_reduction_account(
 
 
 def test_http_and_mcp_proposals_share_service_without_early_effects(session, business):
+    """
+    BUSINESS TEST:
+    Http and mcp proposals share service without early effects.
+    GIVEN:
+    A customer invoice 100 is exposed through HTTP and MCP.
+    WHEN:
+    Prepare payment 102 allocating 100 through both channels, then approve HTTP proposal.
+    THEN:
+    Preparation leaves claim 100; approval returns excess 2; MCP declares proposal access and supported settlement modes.
+    """
     from fastapi.testclient import TestClient
 
     from reality.mcp.catalog import MCP_TOOL_REGISTRY
@@ -437,6 +557,16 @@ def test_http_and_mcp_proposals_share_service_without_early_effects(session, bus
 
 
 def test_confirmation_requires_owner_when_auth_enabled(session, business, monkeypatch):
+    """
+    BUSINESS TEST:
+    Confirmation requires owner when auth enabled.
+    GIVEN:
+    A customer payment proposal exists and authentication is enabled.
+    WHEN:
+    Confirm without an owner principal.
+    THEN:
+    Owner refusal occurs and invoice remains open for 100.
+    """
     tenant = business.tenant.id
     invoice = invoice_for(session, business, "customer")
     proposal = propose(session, tenant, invoice.id, amount="10", allocation_amount="10")
@@ -447,6 +577,16 @@ def test_confirmation_requires_owner_when_auth_enabled(session, business, monkey
 
 
 def test_concurrent_payment_confirmations_only_consume_once(postgres_database):
+    """
+    BUSINESS TEST:
+    Concurrent payment confirmations only consume once.
+    GIVEN:
+    Two separate proposals each offer payment 102 against the same invoice 100.
+    WHEN:
+    Confirm both concurrently in independent database sessions.
+    THEN:
+    One executes and one is stale; invoice is settled with four ledger entries.
+    """
     from concurrent.futures import ThreadPoolExecutor
     from threading import Barrier
     from types import SimpleNamespace
@@ -504,6 +644,16 @@ def test_concurrent_payment_confirmations_only_consume_once(postgres_database):
 def test_payment_rejects_unrepresentable_amount_or_ambiguous_time(
     session, business, changes
 ):
+    """
+    BUSINESS TEST:
+    Payment rejects unrepresentable amount or ambiguous time.
+    GIVEN:
+    Parameterized changes supply an oversized amount, timezone-free timestamp or invalid date.
+    WHEN:
+    Prepare payment against a customer invoice.
+    THEN:
+    Each unrepresentable or ambiguous input is refused.
+    """
     invoice = invoice_for(session, business, "customer")
     values = {"amount": "10", "allocation_amount": "10", **changes}
     with pytest.raises(core.InvalidOperation):
@@ -511,7 +661,18 @@ def test_payment_rejects_unrepresentable_amount_or_ambiguous_time(
 
 
 def test_payment_credit_context_carries_candidate_reasons(session, business):
-    """Feature 168 FR-014/FR-015: candidates reach the guided flow and MCP with reasons."""
+    """
+    Feature 168 FR-014/FR-015: candidates reach the guided flow and MCP with reasons.
+
+    BUSINESS TEST:
+    Payment credit context carries candidate reasons.
+    GIVEN:
+    Unallocated customer payment 100 references a second invoice 250 in remittance text.
+    WHEN:
+    Read service/tool candidates, allocate to the matching 100 invoice and read again.
+    THEN:
+    Candidates explain amount or reference matches, tool agrees with service, and consumed credit has no remaining candidates.
+    """
     from reality.services.payment_intake import (
         NormalisedPayment,
         Reference,

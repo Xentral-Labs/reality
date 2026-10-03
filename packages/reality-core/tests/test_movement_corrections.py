@@ -23,6 +23,16 @@ from reality.services.core import (
 def test_void_receipt_appends_exact_correction_and_preserves_original(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    Void receipt appends exact correction and preserves original.
+    GIVEN:
+    Receipt records ten units into the warehouse.
+    WHEN:
+    Correct it without replacement.
+    THEN:
+    Original remains unchanged; linked outward correction compensates ten, preserves reason and leaves net stock zero.
+    """
     original = record_movement(
         session,
         business.tenant.id,
@@ -60,6 +70,16 @@ def test_void_receipt_appends_exact_correction_and_preserves_original(
 
 
 def test_replacement_is_atomic_and_becomes_the_only_net_effect(session, business):
+    """
+    BUSINESS TEST:
+    Replacement is atomic and becomes the only net effect.
+    GIVEN:
+    Receipt records ten units.
+    WHEN:
+    Preview and confirm correction replacing it with receipt seven using revision/fingerprint.
+    THEN:
+    Replacement records seven and net stock is seven.
+    """
     original = record_movement(
         session,
         business.tenant.id,
@@ -100,6 +120,16 @@ def test_replacement_is_atomic_and_becomes_the_only_net_effect(session, business
 def test_shipment_correction_restores_fulfilment_without_rewriting_original(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    Shipment correction restores fulfilment without rewriting original.
+    GIVEN:
+    Five stock units fulfill a five-unit customer commitment through shipment.
+    WHEN:
+    Correct the shipment.
+    THEN:
+    Fulfilled quantity becomes zero, commitment reopens and stock returns to five.
+    """
     record_movement(
         session,
         business.tenant.id,
@@ -145,6 +175,16 @@ def test_shipment_correction_restores_fulfilment_without_rewriting_original(
 def test_identical_retry_ignores_actor_context_and_divergent_retry_conflicts(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    Identical retry ignores actor context and divergent retry conflicts.
+    GIVEN:
+    A receipt has been corrected for Duplicate scan from Web.
+    WHEN:
+    Repeat same correction from CLI, then request a different reason.
+    THEN:
+    Identical retry reuses correction with replay flag; changed request conflicts.
+    """
     original = record_movement(
         session,
         business.tenant.id,
@@ -181,6 +221,16 @@ def test_identical_retry_ignores_actor_context_and_divergent_retry_conflicts(
 def test_compensation_cannot_be_corrected_and_foreign_movement_is_not_found(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    Compensation cannot be corrected and foreign movement is not found.
+    GIVEN:
+    A receipt has a compensating correction.
+    WHEN:
+    Try correcting compensation and read original through a foreign tenant.
+    THEN:
+    Compensation correction is invalid; foreign snapshot is not found.
+    """
     original = record_movement(
         session,
         business.tenant.id,

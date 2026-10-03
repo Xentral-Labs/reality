@@ -147,9 +147,28 @@ def set_supplier_item_terms(
     _expected: Any = UNCHECKED,
     _commit: bool = True,
 ) -> SupplierItemTerms:
-    """State, or restate, a supplier's minimum order quantity and order multiple."""
+    """
+    State, or restate, a supplier's minimum order quantity and order multiple.
+
+    BUSINESS PURPOSE:
+    State, or restate, a supplier's minimum order quantity and order multiple.
+
+    BUSINESS RULE services.supplier_item_terms.set_supplier_item_terms.step-13:
+    Require the business permission for 'set_supplier_item_terms' before changing company records.
+
+    BUSINESS RULE services.supplier_item_terms.set_supplier_item_terms.step-15:
+    Run the shared validate supplier item terms check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.supplier_item_terms.set_supplier_item_terms.step-43:
+    Record the supplier_item_terms.set audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.supplier_item_terms.set_supplier_item_terms.result:
+    Return row, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.supplier_item_terms.set_supplier_item_terms.step-13
     _require_business_mutation(session, tenant_id, "set_supplier_item_terms")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.supplier_item_terms.set_supplier_item_terms.step-15
     party, item, minimum, multiple = validate_supplier_item_terms(
         session, tenant_id, party_id, item_id, minimum_quantity, order_multiple
     )
@@ -178,6 +197,7 @@ def set_supplier_item_terms(
         # The same confirmation again: it already stated this.
         return row
     session.flush()
+    # reality-rule: services.supplier_item_terms.set_supplier_item_terms.step-43
     emit_business_event(
         session,
         tenant_id,
@@ -196,6 +216,7 @@ def set_supplier_item_terms(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.supplier_item_terms.set_supplier_item_terms.result
     return row
 
 
@@ -209,9 +230,28 @@ def remove_supplier_item_terms(
     _expected: Any = UNCHECKED,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Withdraw a supplier's terms for an item."""
+    """
+    Withdraw a supplier's terms for an item.
+
+    BUSINESS PURPOSE:
+    Withdraw a supplier's terms for an item.
+
+    BUSINESS RULE services.supplier_item_terms.remove_supplier_item_terms.step-11:
+    Require the business permission for 'remove_supplier_item_terms' before changing company records.
+
+    BUSINESS RULE services.supplier_item_terms.remove_supplier_item_terms.step-13:
+    Run the shared validate supplier item terms check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.supplier_item_terms.remove_supplier_item_terms.step-27:
+    Record the supplier_item_terms.removed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.supplier_item_terms.remove_supplier_item_terms.result:
+    Return the current result with source_record_id.
+    """
+    # reality-rule: services.supplier_item_terms.remove_supplier_item_terms.step-11
     _require_business_mutation(session, tenant_id, "remove_supplier_item_terms")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.supplier_item_terms.remove_supplier_item_terms.step-13
     party, item, _, _ = validate_supplier_item_terms(
         session, tenant_id, party_id, item_id, removing=True
     )
@@ -226,6 +266,7 @@ def remove_supplier_item_terms(
     source = _state(session, tenant_id, party, item, {"removed": True}, action_id)
     session.delete(row)
     session.flush()
+    # reality-rule: services.supplier_item_terms.remove_supplier_item_terms.step-27
     emit_business_event(
         session,
         tenant_id,
@@ -239,6 +280,7 @@ def remove_supplier_item_terms(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.supplier_item_terms.remove_supplier_item_terms.result
     return {**removed, "source_record_id": source.id}
 
 
@@ -249,7 +291,15 @@ def supplier_item_terms(
     party_id: str | None = None,
     item_id: str | None = None,
 ) -> list[dict[str, Any]]:
-    """The company's supplier item terms, of one supplier or one item."""
+    """
+    The company's supplier item terms, of one supplier or one item.
+
+    BUSINESS PURPOSE:
+    The company's supplier item terms, of one supplier or one item.
+
+    BUSINESS RULE services.supplier_item_terms.supplier_item_terms.result:
+    Return the selected records in the displayed response structure; preserve the source identifiers and stated values used by this comprehension.
+    """
     query = (
         select(SupplierItemTerms, Item, Party)
         .join(
@@ -268,6 +318,7 @@ def supplier_item_terms(
         query = query.where(SupplierItemTerms.party_id == party_id)
     if item_id:
         query = query.where(SupplierItemTerms.item_id == item_id)
+    # reality-rule: services.supplier_item_terms.supplier_item_terms.result
     return [
         {
             "id": row.id,
@@ -293,7 +344,8 @@ def order_terms_check(
     quantity: Decimal,
     unit: str | None = None,
 ) -> dict[str, Any] | None:
-    """How a purchase quantity meets the supplier's terms, or None without terms.
+    """
+    How a purchase quantity meets the supplier's terms, or None without terms.
 
     The terms are in the item's purchase unit. A line in the stock unit is
     compared through the item's stated factor (spec 301), and the suggestion is
@@ -301,6 +353,12 @@ def order_terms_check(
     comparable rather than guessed. The suggestion is the smallest quantity at or
     above both the minimum and the asked quantity that is a whole number of
     multiples.
+
+    BUSINESS PURPOSE:
+    How a purchase quantity meets the supplier's terms, or None without terms.
+
+    BUSINESS RULE services.supplier_item_terms.order_terms_check.result:
+    Return the current result with unit, below_minimum, off_multiple, suggested_quantity.
     """
     row = _current(session, tenant_id, party_id, item_id)
     if row is None:
@@ -334,6 +392,7 @@ def order_terms_check(
         multiple is not None
         and (asked / multiple) != (asked / multiple).to_integral_value()
     )
+    # reality-rule: services.supplier_item_terms.order_terms_check.result
     return {
         **terms_values(row),
         "unit": purchase_unit,
@@ -350,10 +409,27 @@ SUPPLIER_ITEM_TERMS_TOOLS = {"supplier_item_terms_set", "supplier_item_terms_rem
 def review_supplier_item_terms(
     session: Session, tenant_id: str, tool_name: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown."""
+    """
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS PURPOSE:
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS RULE services.supplier_item_terms.review_supplier_item_terms.refusal-4:
+    IF the requested operation is not registered for this review service:
+        Refuse with proposal_tool_not_found.
+
+    BUSINESS RULE services.supplier_item_terms.review_supplier_item_terms.step-7:
+    Run the shared validate supplier item terms check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.supplier_item_terms.review_supplier_item_terms.result:
+    Return normalized, preview, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.supplier_item_terms.review_supplier_item_terms.refusal-4
     if tool_name not in SUPPLIER_ITEM_TERMS_TOOLS:
         raise InvalidOperation(code="proposal_tool_not_found")
     removing = tool_name == "supplier_item_terms_remove"
+    # reality-rule: services.supplier_item_terms.review_supplier_item_terms.step-7
     party, item, minimum, multiple = validate_supplier_item_terms(
         session,
         tenant_id,
@@ -383,4 +459,5 @@ def review_supplier_item_terms(
         "current": current,
         "proposed": proposed,
     }
+    # reality-rule: services.supplier_item_terms.review_supplier_item_terms.result
     return normalized, preview

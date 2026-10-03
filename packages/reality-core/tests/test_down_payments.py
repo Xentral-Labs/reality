@@ -83,6 +83,16 @@ def _down_payment(session, business, order, amount="300.00", number="AR-299-1"):
 
 
 def test_the_down_payment_role_exists_and_gets_a_default(session, business):
+    """
+    BUSINESS TEST:
+    The down payment role exists and gets a default.
+    GIVEN:
+    The business tenant needs initialized finance accounts.
+    WHEN:
+    Initialize accounts and inspect declared roles/defaults.
+    THEN:
+    customer_down_payments exists as a role and gets a default account.
+    """
     assert "customer_down_payments" in ACCOUNT_ROLES
     initialize_accounts(session, business.tenant.id)
 
@@ -93,6 +103,16 @@ def test_the_down_payment_role_exists_and_gets_a_default(session, business):
 
 
 def test_an_offset_must_state_a_positive_amount(session, business):
+    """
+    BUSINESS TEST:
+    An offset must state a positive amount.
+    GIVEN:
+    An order and source record provide offset identities.
+    WHEN:
+    Insert offset amount 1, then amount zero in a nested transaction.
+    THEN:
+    Positive amount is accepted; zero violates the offset amount constraint.
+    """
     tenant = business.tenant.id
     order, _, _ = _order(session, business)
     source = core.create_master_source_record(
@@ -120,6 +140,16 @@ def test_an_offset_must_state_a_positive_amount(session, business):
 
 
 def test_a_document_names_only_an_order_of_its_own_company(session, business):
+    """
+    BUSINESS TEST:
+    A document names only an order of its own company.
+    GIVEN:
+    An order belongs to one company and a second company has its own document.
+    WHEN:
+    Assign the first company's order to each company's document.
+    THEN:
+    Own-company link is accepted; cross-company link violates the tenant-aware foreign key.
+    """
     tenant = business.tenant.id
     other = core.create_tenant(session, "Other GmbH")
     order, _, _ = _order(session, business)
@@ -146,6 +176,16 @@ def test_a_document_names_only_an_order_of_its_own_company(session, business):
 
 
 def test_a_down_payment_invoice_is_a_receivable_for_its_order(session, business):
+    """
+    BUSINESS TEST:
+    A down payment invoice is a receivable for its order.
+    GIVEN:
+    An order 1000 and initialized accounts exist.
+    WHEN:
+    Confirm a down-payment invoice 300.
+    THEN:
+    Document links its order, receivable is 300, down-payment account balance is -300 and no order quantity is billed.
+    """
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     order, line, _ = _order(session, business)
@@ -167,6 +207,16 @@ def test_a_down_payment_invoice_is_a_receivable_for_its_order(session, business)
 
 
 def test_a_paid_down_payment_counts_towards_prepayment(session, business):
+    """
+    BUSINESS TEST:
+    A paid down payment counts towards prepayment.
+    GIVEN:
+    Prepayment order 1000 initially lacks an invoice.
+    WHEN:
+    Record down-payment invoice 300 and pay it.
+    THEN:
+    Missing-invoice blocker disappears; received amount is 300, remaining amount 700 and prepayment remains required.
+    """
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     order, _, commitment = _order(session, business, prepay=True)
@@ -191,6 +241,16 @@ def test_a_paid_down_payment_counts_towards_prepayment(session, business):
 
 
 def test_a_reversed_down_payment_no_longer_counts(session, business):
+    """
+    BUSINESS TEST:
+    A reversed down payment no longer counts.
+    GIVEN:
+    Prepayment order has a paid down-payment invoice 300.
+    WHEN:
+    Reverse payment posting and down-payment invoice posting.
+    THEN:
+    Readiness received amount becomes zero.
+    """
     from reality.db.core import LedgerEntry
 
     tenant = business.tenant.id
@@ -229,6 +289,16 @@ def test_a_reversed_down_payment_no_longer_counts(session, business):
 def test_a_down_payment_invoice_states_a_sales_order_and_an_amount(
     session, business, change, code
 ):
+    """
+    BUSINESS TEST:
+    A down payment invoice states a sales order and an amount.
+    GIVEN:
+    An order exists; change/code variants specify nonpositive amount, blank number, purchase order or currency mismatch.
+    WHEN:
+    Prepare the changed down-payment invoice.
+    THEN:
+    Each variant is refused with its parameterized expected code.
+    """
     initialize_accounts(session, business.tenant.id)
     order, _, _ = _order(session, business)
     arguments = {
@@ -273,6 +343,16 @@ def test_a_down_payment_invoice_states_a_sales_order_and_an_amount(
 def test_the_migration_upgrades_downgrades_and_keeps_recorded_down_payments(
     postgres_database, monkeypatch
 ):
+    """
+    BUSINESS TEST:
+    The migration upgrades downgrades and keeps recorded down payments.
+    GIVEN:
+    A PostgreSQL database can migrate to the current schema.
+    WHEN:
+    Downgrade empty schema, upgrade, record down-payment invoice and later initialize accounts.
+    THEN:
+    Empty downgrade removes schema; recorded down-payment invoices or accounts prevent destructive downgrade.
+    """
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import create_engine, inspect, text
@@ -354,6 +434,16 @@ def _invoice_document(receipt):
 
 
 def test_the_final_invoice_offers_the_paid_down_payment(session, business):
+    """
+    BUSINESS TEST:
+    The final invoice offers the paid down payment.
+    GIVEN:
+    Order 1000 has a fully paid down-payment invoice 300.
+    WHEN:
+    Prepare final invoice review.
+    THEN:
+    Offer identifies the invoice with paid and offsettable 300, offset zero and original currency/gross.
+    """
     initialize_accounts(session, business.tenant.id)
     order, line, _ = _order(session, business)
     down_payment = _paid_down_payment(session, business, order)
@@ -385,6 +475,16 @@ def test_the_final_invoice_offers_the_paid_down_payment(session, business):
 def test_an_order_without_down_payments_reviews_its_invoice_as_before(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    An order without down payments reviews its invoice as before.
+    GIVEN:
+    Order 1000 has no down-payment invoices.
+    WHEN:
+    Confirm its final invoice.
+    THEN:
+    Review has no offers/offsets and invoice remains open for 1000.
+    """
     initialize_accounts(session, business.tenant.id)
     _, line, _ = _order(session, business)
 
@@ -401,6 +501,16 @@ def test_an_order_without_down_payments_reviews_its_invoice_as_before(
 
 
 def test_a_stated_offset_is_posted_and_recorded(session, business):
+    """
+    BUSINESS TEST:
+    A stated offset is posted and recorded.
+    GIVEN:
+    Order 1000 has paid down payment 300.
+    WHEN:
+    Confirm final invoice explicitly offsetting 300.
+    THEN:
+    Final claim becomes 700, down-payment account clears, offset links both documents, down payment remains paid and proposal verification traces offset.
+    """
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     order, line, _ = _order(session, business)
@@ -448,6 +558,16 @@ def test_a_stated_offset_is_posted_and_recorded(session, business):
 
 
 def test_a_second_final_invoice_offers_only_what_is_left(session, business):
+    """
+    BUSINESS TEST:
+    A second final invoice offers only what is left.
+    GIVEN:
+    Paid down payment 300 was offset 200 against a first partial final invoice.
+    WHEN:
+    Prepare a second final invoice.
+    THEN:
+    Offer reports offset 200 and only 100 still offsettable.
+    """
     initialize_accounts(session, business.tenant.id)
     order, line, _ = _order(session, business)
     down_payment = _paid_down_payment(session, business, order)
@@ -480,6 +600,16 @@ def test_a_second_final_invoice_offers_only_what_is_left(session, business):
 
 
 def test_a_consolidated_final_invoice_offsets_too(session, business):
+    """
+    BUSINESS TEST:
+    A consolidated final invoice offsets too.
+    GIVEN:
+    Order 1000 has paid down payment 300.
+    WHEN:
+    Confirm final invoice using the lines-list form and stated offset 300.
+    THEN:
+    Invoice remains open for 700.
+    """
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     order, line, _ = _order(session, business)
@@ -509,6 +639,16 @@ def test_a_consolidated_final_invoice_offsets_too(session, business):
 
 
 def test_the_rest_paid_makes_the_prepayment_order_ready(session, business):
+    """
+    BUSINESS TEST:
+    The rest paid makes the prepayment order ready.
+    GIVEN:
+    Prepayment order 1000 has down payment 300 offset against final invoice.
+    WHEN:
+    Pay remaining final invoice claim 700.
+    THEN:
+    Readiness receives 1000 and has neither missing-invoice nor prepayment-required blocker.
+    """
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     order, line, commitment = _order(session, business, prepay=True)
@@ -552,6 +692,16 @@ def _refused(session, business, arguments):
 
 
 def test_an_offset_beyond_what_was_paid_is_refused(session, business):
+    """
+    BUSINESS TEST:
+    An offset beyond what was paid is refused.
+    GIVEN:
+    Order has paid down payment 300 and another unpaid down-payment invoice.
+    WHEN:
+    Prepare offsets 300.01, unpaid amount 1, and positive control 300.
+    THEN:
+    Excess and unpaid offsets are refused; exactly paid amount is accepted for review.
+    """
     initialize_accounts(session, business.tenant.id)
     order, line, _ = _order(session, business)
     down_payment = _paid_down_payment(session, business, order)
@@ -579,6 +729,16 @@ def test_an_offset_beyond_what_was_paid_is_refused(session, business):
 
 
 def test_an_offset_beyond_the_invoice_is_refused(session, business):
+    """
+    BUSINESS TEST:
+    An offset beyond the invoice is refused.
+    GIVEN:
+    Paid down payment 300 exists and final invoice amount is 100.
+    WHEN:
+    Prepare offset 200.
+    THEN:
+    Refusal code is down_payment_offset_exceeds_invoice.
+    """
     initialize_accounts(session, business.tenant.id)
     order, line, _ = _order(session, business)
     down_payment = _paid_down_payment(session, business, order)
@@ -599,6 +759,16 @@ def test_an_offset_beyond_the_invoice_is_refused(session, business):
 
 
 def test_an_offset_of_another_orders_down_payment_is_refused(session, business):
+    """
+    BUSINESS TEST:
+    An offset of another orders down payment is refused.
+    GIVEN:
+    Another order has a paid down-payment invoice and the target order has a goods invoice.
+    WHEN:
+    Offer either document as the target order's down-payment offset.
+    THEN:
+    Both are refused with down_payment_offset_other_order.
+    """
     initialize_accounts(session, business.tenant.id)
     _, line, _ = _order(session, business)
     other, _, _ = _order(session, business, number="SO-299-B")
@@ -639,6 +809,16 @@ def test_an_offset_of_another_orders_down_payment_is_refused(session, business):
 
 
 def test_an_offset_of_a_reversed_down_payment_is_refused(session, business):
+    """
+    BUSINESS TEST:
+    An offset of a reversed down payment is refused.
+    GIVEN:
+    Down-payment invoice 300 was paid, then payment and invoice postings were reversed.
+    WHEN:
+    Prepare final invoice offset against it.
+    THEN:
+    Refusal code is down_payment_offset_reversed.
+    """
     from reality.db.core import LedgerEntry
 
     tenant = business.tenant.id
@@ -687,6 +867,16 @@ def test_an_offset_of_a_reversed_down_payment_is_refused(session, business):
 def test_offsets_are_stated_as_a_list_of_documents_and_amounts(
     session, business, offsets
 ):
+    """
+    BUSINESS TEST:
+    Offsets are stated as a list of documents and amounts.
+    GIVEN:
+    Parameterized offsets include a scalar, empty list, missing amount, extra field or zero amount.
+    WHEN:
+    Prepare final invoice with those offsets.
+    THEN:
+    Each malformed form returns down_payment_offset_fields_invalid.
+    """
     initialize_accounts(session, business.tenant.id)
     _, line, _ = _order(session, business)
 
@@ -738,6 +928,16 @@ def _offers(session, business, line):
 def test_a_final_invoice_is_reversed_after_its_offset_and_frees_the_down_payment(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    A final invoice is reversed after its offset and frees the down payment.
+    GIVEN:
+    Paid down payment 300 is offset against a final invoice.
+    WHEN:
+    Try invoice reversal before offset reversal, then reverse offset and invoice and invoice again.
+    THEN:
+    First reversal is refused; offset reversal restores offsettable 300 and balance -300, permitting invoice reversal and later reuse.
+    """
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     order, line, _ = _order(session, business)
@@ -766,6 +966,16 @@ def test_a_final_invoice_is_reversed_after_its_offset_and_frees_the_down_payment
 
 
 def test_an_offset_down_payment_and_its_payment_cannot_be_reversed(session, business):
+    """
+    BUSINESS TEST:
+    An offset down payment and its payment cannot be reversed.
+    GIVEN:
+    Paid down-payment invoice has an active final-invoice offset.
+    WHEN:
+    Try reversing payment and down-payment posting, then reverse offset and payment.
+    THEN:
+    Active offset blocks both reversals; payment reversal is allowed after offset reversal.
+    """
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     order, line, _ = _order(session, business)
@@ -797,6 +1007,16 @@ def test_an_offset_down_payment_and_its_payment_cannot_be_reversed(session, busi
 
 
 def test_a_down_payment_settled_by_a_credit_is_not_paid(session, business):
+    """
+    BUSINESS TEST:
+    A down payment settled by a credit is not paid.
+    GIVEN:
+    Down-payment invoice 300 and credit note 300 exist.
+    WHEN:
+    Allocate credit note to settle down-payment receivable.
+    THEN:
+    Open claim is zero but offer reports paid zero and offsettable zero.
+    """
     from reality.db.core import LedgerEntry
 
     tenant = business.tenant.id
@@ -836,6 +1056,16 @@ def test_a_down_payment_settled_by_a_credit_is_not_paid(session, business):
 def test_a_consolidated_invoice_offsetting_the_down_payment_counts_it_once(
     session, business
 ):
+    """
+    BUSINESS TEST:
+    A consolidated invoice offsetting the down payment counts it once.
+    GIVEN:
+    Prepayment order 1000 has paid down payment 400; consolidated final invoice 1100 bills 600 of this order and 500 of another.
+    WHEN:
+    Offset 400 and pay remaining consolidated claim 700.
+    THEN:
+    Invoice settles; target readiness counts received 600 and remaining 400, without counting down payment twice.
+    """
     tenant = business.tenant.id
     initialize_accounts(session, tenant)
     order, line, commitment = _order(session, business, prepay=True)
@@ -878,6 +1108,16 @@ def test_a_consolidated_invoice_offsetting_the_down_payment_counts_it_once(
 
 
 def test_a_received_down_payment_lowers_the_credit_exposure(session, business):
+    """
+    BUSINESS TEST:
+    A received down payment lowers the credit exposure.
+    GIVEN:
+    Order 1000 has a down-payment invoice 400.
+    WHEN:
+    Pay 400, read exposure and offset that down payment against final invoice.
+    THEN:
+    Exposure falls from 1000 to 600 with down_payment credit origin and remains 600 after offset.
+    """
     from reality.services.credit_exposure import credit_exposure
 
     tenant = business.tenant.id
@@ -921,6 +1161,16 @@ def _queued(session, tenant, order_id):
 def test_the_narrowed_queue_follows_an_invoice_and_its_payment(
     session, business, down_payment
 ):
+    """
+    BUSINESS TEST:
+    The narrowed queue follows an invoice and its payment.
+    GIVEN:
+    Prepayment order has no invoice; down_payment parameter selects down-payment or final invoice path.
+    WHEN:
+    Invoice, pay, refresh incrementally/full, reverse payment and refresh both ways.
+    THEN:
+    Narrowed queue agrees with full derivation; missing-invoice blocker disappears and reversal restores prepayment-required blocker.
+    """
     from reality.services import projections
 
     tenant = business.tenant.id

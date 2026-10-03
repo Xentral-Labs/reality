@@ -61,6 +61,13 @@ def list_source_mappings(
     limit: int = 50,
     offset: int = 0,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read configured mappings from source values to financial references for this company.
+
+    BUSINESS RULE services.finance.source_mappings.list_source_mappings.result:
+    Return the current result with revision, limit, offset, total, items, sources, sources_total, references.
+    """
     core.get_tenant(session, tenant_id)
     _page(limit, offset)
     clauses = [Mapping.tenant_id == tenant_id, Mapping.is_current.is_(True)]
@@ -87,6 +94,7 @@ def list_source_mappings(
             .limit(200)
         )
     )
+    # reality-rule: services.finance.source_mappings.list_source_mappings.result
     return {
         "revision": _revision(session, tenant_id),
         "limit": limit,
@@ -138,9 +146,17 @@ def source_mapping_history(
     limit: int = 50,
     offset: int = 0,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read the recorded revisions of a source-to-financial-reference mapping.
+
+    BUSINESS RULE services.finance.source_mappings.source_mapping_history.result:
+    Return the current result with total, limit, offset, items.
+    """
     _page(limit, offset)
     row = core._tenant_record(session, Mapping, tenant_id, mapping_id)
     clauses = _scope(tenant_id, _row(row))
+    # reality-rule: services.finance.source_mappings.source_mapping_history.result
     return {
         "total": session.scalar(
             select(func.count()).select_from(Mapping).where(*clauses)
@@ -231,8 +247,26 @@ def set_source_mapping(
     action_id: str,
     actor_id: str | None = None,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Record a reviewed mapping from a source value to a company financial reference.
+
+    BUSINESS RULE services.finance.source_mappings.set_source_mapping.step-8:
+    Require the business permission for 'finance_source_mapping_set' before changing company records.
+
+    BUSINESS RULE services.finance.source_mappings.set_source_mapping.step-10:
+    Run the shared preview source mapping check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.finance.source_mappings.set_source_mapping.step-26:
+    Record the finance.source_mapping_changed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.finance.source_mappings.set_source_mapping.result:
+    Return the recorded source-mapping identity and source scope, selected reference, revision, replacement link, state, retained reference snapshot, reason and actor/confirmation evidence.
+    """
+    # reality-rule: services.finance.source_mappings.set_source_mapping.step-8
     core._require_business_mutation(session, tenant_id, "finance_source_mapping_set")
     coordinator = lock_finance(session, tenant_id)
+    # reality-rule: services.finance.source_mappings.set_source_mapping.step-10
     review = preview_source_mapping(session, tenant_id, arguments)
     if review["before"]:
         old = core._tenant_record(session, Mapping, tenant_id, review["before"]["id"])
@@ -249,6 +283,7 @@ def set_source_mapping(
     session.add(row)
     coordinator.revision += 1
     session.flush()
+    # reality-rule: services.finance.source_mappings.set_source_mapping.step-26
     emit_business_event(
         session,
         tenant_id,
@@ -264,6 +299,7 @@ def set_source_mapping(
         action_id=action_id,
     )
     session.flush()
+    # reality-rule: services.finance.source_mappings.set_source_mapping.result
     return _row(row)
 
 

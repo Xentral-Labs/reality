@@ -60,6 +60,14 @@ def model_count(session, model, tenant_id: str, *criteria) -> int:
 
 
 def _fulfillment_expressions():
+    """
+    BUSINESS PURPOSE:
+    Reuse the shared delivery-quantity formulas when displaying the promise register.
+
+    BUSINESS RULE web.read_models._fulfillment_expressions.shared_formulas:
+    Read reserved, fulfilled and open quantities from reality.services.delivery_reads.fulfillment_expressions. This web adapter does not implement a second fulfillment calculation.
+    """
+    # reality-rule: web.read_models._fulfillment_expressions.shared_formulas
     return fulfillment_expressions()
 
 
@@ -96,22 +104,67 @@ def commitment_page(
     due_from: str = "",
     due_to: str = "",
 ):
+    """
+    BUSINESS PURPOSE:
+    Read a filtered page of this company's delivery promises with active reservations, remaining delivery quantity and reservation-shortage risk.
+
+    BUSINESS RULE web.read_models.commitment_page.company_scope:
+    Select promises only from the requested company. Joined partner and item names remain company-scoped; missing names display as a dash. The partner join prefers the receiving partner and falls back to the supplying partner.
+
+    BUSINESS RULE web.read_models.commitment_page.type_filter:
+    IF a promise type was selected:
+        Include only that type. Without a type filter, this reader does not restrict promise type.
+
+    BUSINESS RULE web.read_models.commitment_page.due_from:
+    IF a start date was supplied:
+        Include promises whose effective due date is on or after that date. Use the latest stated due-date revision.
+
+    BUSINESS RULE web.read_models.commitment_page.due_to:
+    IF an end date was supplied:
+        Include promises whose effective due date is on or before that date.
+
+    BUSINESS RULE web.read_models.commitment_page.status_filter:
+    IF status is open, fulfilled or cancelled:
+        Include only promises with that stored promise status. Other status values add no status restriction; this filter does not itself recalculate status from open quantity.
+
+    BUSINESS RULE web.read_models.commitment_page.search:
+    IF search text was supplied:
+        Match it within the promise identity, counterparty name or item name, ignoring case and surrounding whitespace.
+
+    BUSINESS RULE web.read_models.commitment_page.page_order:
+    Count the complete filtered result, apply the shared page bounds, then read the selected page ordered by effective due date and promise identity.
+
+    BUSINESS RULE web.read_models.commitment_page.reservation_risk:
+    IF a customer-delivery promise is open AND active reserved quantity is less than its remaining delivery quantity:
+        Mark it AT RISK.
+    ELSE:
+        Mark it OK. This indicator compares reservations with open quantity; it does not prove physical stock or shipment readiness.
+
+    BUSINESS RULE web.read_models.commitment_page.result:
+    Return the page's promise records, reservation-risk indicator, counterparty and item names, reserved quantity, open quantity and pagination evidence.
+    """
     reserved, _, open_quantity = _fulfillment_expressions()
     counterparty_name = func.coalesce(Party.name, "—")
     item_name = func.coalesce(Item.name, "—")
+    # reality-rule: web.read_models.commitment_page.company_scope
     criteria: list[Any] = [Commitment.tenant_id == tenant_id]
+    # reality-rule: web.read_models.commitment_page.type_filter
     if commitment_type:
         criteria.append(Commitment.type == commitment_type)
+    # reality-rule: web.read_models.commitment_page.due_from
     if due_from:
         criteria.append(
             func.date(effective_value("due_at")) >= date.fromisoformat(due_from)
         )
+    # reality-rule: web.read_models.commitment_page.due_to
     if due_to:
         criteria.append(
             func.date(effective_value("due_at")) <= date.fromisoformat(due_to)
         )
+    # reality-rule: web.read_models.commitment_page.status_filter
     if status in {"open", "fulfilled", "cancelled"}:
         criteria.append(Commitment.status == status)
+    # reality-rule: web.read_models.commitment_page.search
     if query:
         pattern = f"%{query.strip().lower()}%"
         criteria.append(
@@ -145,6 +198,7 @@ def commitment_page(
     )
     total = int(session.scalar(select(func.count()).select_from(base.subquery())) or 0)
     pager = page_for(total, page, size)
+    # reality-rule: web.read_models.commitment_page.page_order
     records = session.execute(
         base.order_by(effective_value("due_at"), Commitment.id)
         .limit(pager.size)
@@ -152,6 +206,7 @@ def commitment_page(
     )
     rows = []
     for commitment, counterparty, item, reserved_value, open_value in records:
+        # reality-rule: web.read_models.commitment_page.reservation_risk
         risk = (
             "AT RISK"
             if commitment.type == "customer_delivery"
@@ -169,6 +224,7 @@ def commitment_page(
                 Decimal(open_value or 0),
             )
         )
+    # reality-rule: web.read_models.commitment_page.result
     return rows, pager
 
 

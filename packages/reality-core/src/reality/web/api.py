@@ -1127,7 +1127,9 @@ def post_stock_block_proposal(
     arguments = {
         name: getattr(body, name) for name in fields if getattr(body, name) is not None
     }
-    tool = "stock_block" if body.operation == "block" else f"stock_block_{body.operation}"
+    tool = (
+        "stock_block" if body.operation == "block" else f"stock_block_{body.operation}"
+    )
     try:
         proposal = create_change_proposal(
             session, tenant_id, tool, arguments, actor_type="human"
@@ -2389,6 +2391,13 @@ def tenant_commitment_control(
     due_from: str = "",
     due_to: str = "",
 ):
+    """
+    BUSINESS PURPOSE:
+    Read a filtered, paginated company promise register including derived open quantity, reservation quantity and risk.
+
+    BUSINESS RULE web.api.tenant_commitment_control.result:
+    Return the selected promises with open quantity, reserved quantity and normalized risk from the shared paginated commitment reader. Include original record identities and pagination metadata.
+    """
     get_tenant(session, tenant_id)
     rows, pager = commitment_page(
         session,
@@ -2401,6 +2410,7 @@ def tenant_commitment_control(
         due_from=due_from,
         due_to=due_to,
     )
+    # reality-rule: web.api.tenant_commitment_control.result
     return {
         "items": [
             {
@@ -2440,6 +2450,16 @@ def tenant_evidence_documents(
     ] = "",
     sort_direction: Literal["asc", "desc"] = "asc",
 ):
+    """
+    BUSINESS PURPOSE:
+    Read a filtered, paginated company evidence-document register with source origins and links to business reality.
+
+    BUSINESS RULE web.api.tenant_evidence_documents.step-44:
+    Pass the stated inputs to the shared record origins service. Its own source describes validation and record changes.
+
+    BUSINESS RULE web.api.tenant_evidence_documents.result:
+    Return evidence documents with stated gross amount, source system/type/identity, original provenance, line count and number of linked promises. Document status remains documentary status.
+    """
     get_tenant(session, tenant_id)
     rows, pager = document_page(
         session,
@@ -2469,12 +2489,14 @@ def tenant_evidence_documents(
     )
     from reality.services.provenance import record_origins
 
+    # reality-rule: web.api.tenant_evidence_documents.step-44
     origins = record_origins(
         session,
         tenant_id,
         [document for document, _, _, _ in rows],
         subject_type="document",
     )
+    # reality-rule: web.api.tenant_evidence_documents.result
     return {
         "items": [
             {
@@ -2620,6 +2642,13 @@ def tenant_payments(
     sort: Literal["", "id", "date", "amount", "currency"] = "",
     sort_direction: Literal["asc", "desc"] = "asc",
 ):
+    """
+    BUSINESS PURPOSE:
+    Read the filtered company payment page, including allocated and unallocated amounts and separately derived totals.
+
+    BUSINESS RULE web.api.tenant_payments.result:
+    Return the selected cash-entry page with allocated and unallocated amounts, recorded reversal role and matching totals from the shared payment-total service.
+    """
     get_tenant(session, tenant_id)
     rows, pager = payment_page(
         session,
@@ -2631,6 +2660,7 @@ def tenant_payments(
         query=q,
         direction=direction,
     )
+    # reality-rule: web.api.tenant_payments.result
     return {
         "items": [
             {
@@ -2671,6 +2701,13 @@ def tenant_journal(
     sort: Literal["", "id", "date", "amount", "currency", "account", "side"] = "",
     sort_direction: Literal["asc", "desc"] = "asc",
 ):
+    """
+    BUSINESS PURPOSE:
+    Read the company journal page and its currency-separated debit, credit and balance totals.
+
+    BUSINESS RULE web.api.tenant_journal.result:
+    Return the selected journal page and totals separated by currency. The displayed balance is debit minus credit within each currency, with original ledger and source identities retained.
+    """
     get_tenant(session, tenant_id)
     rows, pager, totals = journal_page(
         session,
@@ -2684,6 +2721,7 @@ def tenant_journal(
         date_from=date_from,
         date_to=date_to,
     )
+    # reality-rule: web.api.tenant_journal.result
     return {
         "items": [
             {
@@ -2731,7 +2769,16 @@ def tenant_timeline(
     record_type: str = "",
     after_sequence: int | None = Query(None, ge=0),
 ):
-    """Bounded operational activity from the shared business-event projection."""
+    """
+    Bounded operational activity from the shared business-event projection.
+
+    BUSINESS PURPOSE:
+    Bounded operational activity from the shared business-event projection.
+
+    BUSINESS RULE web.api.tenant_timeline.result:
+    Return the result from timeline activity; inspect that called function for its calculation and eligibility rules.
+    """
+    # reality-rule: web.api.tenant_timeline.result
     return timeline_activity(
         session,
         tenant_id,
@@ -3978,7 +4025,15 @@ def post_import_work(tenant_id: str, session: DatabaseSession, limit: int = 100)
 
 @router.get("/payment-terms", response_model=list[PaymentTermRead])
 def list_payment_terms(tenant_id: str, session: DatabaseSession):
+    """
+    BUSINESS PURPOSE:
+    Read this company's payment-term definitions through the shared application service.
+
+    BUSINESS RULE web.api.list_payment_terms.result:
+    Return the company payment-term definitions from the shared service; translate domain refusals into API errors.
+    """
     try:
+        # reality-rule: web.api.list_payment_terms.result
         return payment_terms(session, tenant_id)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4042,6 +4097,14 @@ def patch_payment_term_active(
 
 @router.get("/price-lists", response_model=list[PriceListRead])
 def list_price_lists(tenant_id: str, session: DatabaseSession):
+    """
+    BUSINESS PURPOSE:
+    Read this company's stated price-list definitions through the shared application service.
+
+    BUSINESS RULE web.api.list_price_lists.result:
+    Return the company price lists from the shared service without implementing alternative pricing rules.
+    """
+    # reality-rule: web.api.list_price_lists.result
     return price_lists(session, tenant_id)
 
 
@@ -4138,6 +4201,14 @@ def put_pricing_group(
 
 @router.get("/pricing-groups")
 def list_pricing_groups(tenant_id: str, session: DatabaseSession):
+    """
+    BUSINESS PURPOSE:
+    Read this company's business-partner pricing groups through the shared application service.
+
+    BUSINESS RULE web.api.list_pricing_groups.result:
+    Return the company business-partner pricing groups from the shared service.
+    """
+    # reality-rule: web.api.list_pricing_groups.result
     return party_groups(session, tenant_id)
 
 
@@ -4244,17 +4315,25 @@ def specialized_projection_view(
 
 
 @router.get("/business-logic/{kind}/{key}")
-def get_business_logic(tenant_id: str, kind: str, key: str, language: str = "en", brief: bool = False):
+def get_business_logic(
+    tenant_id: str, kind: str, key: str, language: str = "en", brief: bool = False
+):
     from reality.services.business_blueprints import explain
+
     try:
-        return explain(kind, key, language=language, brief=brief).model_dump(mode="json")
+        return explain(kind, key, language=language, brief=brief).model_dump(
+            mode="json"
+        )
     except ValueError:
         raise HTTPException(404, "Business entry not found.") from None
 
 
 @router.post("/business-logic/compare")
-def compare_business_logic(tenant_id: str, session: DatabaseSession, arguments: dict[str, Any]):
+def compare_business_logic(
+    tenant_id: str, session: DatabaseSession, arguments: dict[str, Any]
+):
     from reality.services.business_blueprints import compare
+
     try:
         return compare(session, tenant_id, arguments)
     except ValueError:
@@ -4297,7 +4376,15 @@ def application_reference(tenant_id: str):
 
 @router.get("/parties", response_model=list[PartyRead])
 def list_parties(tenant_id: str, session: DatabaseSession):
+    """
+    BUSINESS PURPOSE:
+    Read the company's business-partner master data through the shared service.
+
+    BUSINESS RULE web.api.list_parties.result:
+    Return the company business partners in the common partner response format; translate domain refusals into API errors.
+    """
     try:
+        # reality-rule: web.api.list_parties.result
         return [party_response(session, party) for party in parties(session, tenant_id)]
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4377,7 +4464,15 @@ def patch_party_active(
 
 @router.get("/items", response_model=list[ItemRead])
 def list_items(tenant_id: str, session: DatabaseSession):
+    """
+    BUSINESS PURPOSE:
+    Read company item master data through the shared service and serialize the item evidence.
+
+    BUSINESS RULE web.api.list_items.result:
+    Return the company items in the common item response format; translate domain refusals into API errors.
+    """
     try:
+        # reality-rule: web.api.list_items.result
         return [item_response(session, item) for item in items(session, tenant_id)]
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -4457,7 +4552,15 @@ def patch_item_active(
 
 @router.get("/locations", response_model=list[LocationRead])
 def list_locations(tenant_id: str, session: DatabaseSession):
+    """
+    BUSINESS PURPOSE:
+    Read company warehouse-location master data through the shared service.
+
+    BUSINESS RULE web.api.list_locations.result:
+    Return the company locations in the common location response format; translate domain refusals into API errors.
+    """
     try:
+        # reality-rule: web.api.list_locations.result
         return [
             location_response(session, row) for row in locations(session, tenant_id)
         ]
@@ -4705,6 +4808,13 @@ def post_movement(tenant_id: str, body: MovementWrite, session: DatabaseSession)
 def list_movements(
     tenant_id: str, session: DatabaseSession, limit: int = Query(100, ge=1, le=500)
 ):
+    """
+    BUSINESS PURPOSE:
+    Read the most recent company warehouse movements, including their correction relationships and recorded traceability identities.
+
+    BUSINESS RULE web.api.list_movements.result:
+    Return the latest company movements with their stated quantities, locations, occurrence times, traceability identities and correction status from the shared correction snapshot.
+    """
     get_tenant(session, tenant_id)
     rows = session.scalars(
         select(Movement)
@@ -4712,6 +4822,7 @@ def list_movements(
         .order_by(Movement.occurred_at.desc())
         .limit(limit)
     ).all()
+    # reality-rule: web.api.list_movements.result
     return [
         {
             "id": row.id,
@@ -4911,6 +5022,13 @@ def list_reservations(
     limit: int = Query(100, ge=1, le=500),
     status: str = "",
 ):
+    """
+    BUSINESS PURPOSE:
+    Read company stock reservations, optionally restricted to a status, newest first and bounded by the requested limit.
+
+    BUSINESS RULE web.api.list_reservations.result:
+    Return company reservations ordered newest first, limited to the requested maximum and optional status. Each row preserves its promise, article, location, quantity and traceability identities.
+    """
     get_tenant(session, tenant_id)
     rows = session.scalars(
         select(Reservation)
@@ -4921,6 +5039,7 @@ def list_reservations(
         .order_by(Reservation.reserved_at.desc())
         .limit(limit)
     ).all()
+    # reality-rule: web.api.list_reservations.result
     return [
         {
             "id": row.id,
@@ -7727,7 +7846,10 @@ def get_change_proposal_review(
 
     try:
         return proposal_review(
-            session, tenant_id, proposal_id, principal=optional_request_principal(request)
+            session,
+            tenant_id,
+            proposal_id,
+            principal=optional_request_principal(request),
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -8620,9 +8742,7 @@ def get_collection_handovers(tenant_id: str, session: DatabaseSession):
 
 
 @router.get("/finance/dunning/collection-handovers/{handover_id}")
-def get_collection_handover(
-    tenant_id: str, handover_id: str, session: DatabaseSession
-):
+def get_collection_handover(tenant_id: str, handover_id: str, session: DatabaseSession):
     from reality.services.dunning_runs import handover_detail
 
     try:

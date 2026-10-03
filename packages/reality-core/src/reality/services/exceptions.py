@@ -2798,15 +2798,19 @@ def _payment_authorization_expired_exceptions(
     from reality.services.payment_authorizations import uncovered_orders
 
     findings = uncovered_orders(session, tenant_id, as_of=as_of)
-    orders = {
-        document.id: document
-        for document in session.scalars(
-            select(Document).where(
-                Document.tenant_id == tenant_id,
-                Document.id.in_([row["order_document_id"] for row in findings]),
+    orders = (
+        {
+            document.id: document
+            for document in session.scalars(
+                select(Document).where(
+                    Document.tenant_id == tenant_id,
+                    Document.id.in_([row["order_document_id"] for row in findings]),
+                )
             )
-        )
-    } if findings else {}
+        }
+        if findings
+        else {}
+    )
     result: list[OperationalException] = []
     for row in findings:
         order = orders[row["order_document_id"]]
@@ -5431,6 +5435,14 @@ def operational_exception_rows(
     as_of: datetime | None = None,
     classes: list[str] | None = None,
 ) -> list[dict[str, Any]]:
+    """
+    BUSINESS PURPOSE:
+    Read current operational attention conditions from the shared exception derivation, optionally restricted to selected classes and a stated evaluation time.
+
+    BUSINESS RULE services.exceptions.operational_exception_rows.result:
+    Return current attention conditions from reality.services.exceptions.operational_exceptions, preserving the requested evaluation time and selected classes. Each condition is serialized as an evidence row. The selected class's registered evaluator owns its trigger; this adapter adds no alternative rule. An empty result alone does not prove every possible business problem is absent.
+    """
+    # reality-rule: services.exceptions.operational_exception_rows.result
     return [
         row.to_dict()
         for row in operational_exceptions(

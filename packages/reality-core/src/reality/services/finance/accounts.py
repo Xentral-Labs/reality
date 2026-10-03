@@ -73,6 +73,13 @@ def _result(account: SubledgerAccount) -> dict[str, Any]:
 
 
 def list_accounts(session: Session, tenant_id: str) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read this company's subledger accounts and their current configuration.
+
+    BUSINESS RULE services.finance.accounts.list_accounts.result:
+    Return the current result with revision, roles, defaults, accounts.
+    """
     from reality.services.core import get_tenant
 
     get_tenant(session, tenant_id)
@@ -87,6 +94,7 @@ def list_accounts(session: Session, tenant_id: str) -> dict:
             .execution_options(populate_existing=True)
         )
     }
+    # reality-rule: services.finance.accounts.list_accounts.result
     return {
         "revision": state.revision if state else 0,
         "roles": ACCOUNT_ROLES,
@@ -136,12 +144,32 @@ def create_account(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Create a company subledger account after validating its code, name and supported business role.
+
+    BUSINESS RULE services.finance.accounts.create_account.refusal-15:
+    IF account code or name is empty after trimming, or the role is unsupported:
+        Refuse: Account code, name and supported role are required.
+
+    BUSINESS RULE services.finance.accounts.create_account.refusal-17:
+    IF the proposed account code already belongs to another account in this company:
+        Refuse: Account code already exists.
+
+    BUSINESS RULE services.finance.accounts.create_account.step-33:
+    Record finance.account_changed with operation create and the account values; advance the company finance revision.
+
+    BUSINESS RULE services.finance.accounts.create_account.result:
+    Return the created account identity, code, name, role, active state and revision. Preserve its company scope and record the account-change audit.
+    """
     from reality.services.core import Conflict, InvalidOperation
 
     state = _mutation(session, tenant_id, expected_revision)
     code, name = code.strip(), name.strip()
+    # reality-rule: services.finance.accounts.create_account.refusal-15
     if not code or not name or role not in ACCOUNT_ROLES:
         raise InvalidOperation("Account code, name and supported role are required.")
+    # reality-rule: services.finance.accounts.create_account.refusal-17
     if session.scalar(
         select(SubledgerAccount.id).where(
             SubledgerAccount.tenant_id == tenant_id, SubledgerAccount.code == code
@@ -158,9 +186,11 @@ def create_account(
         revision=1,
     )
     session.add(account)
+    # reality-rule: services.finance.accounts.create_account.step-33
     _audit(session, tenant_id, state, account, "create", action_id)
     if _commit:
         session.commit()
+    # reality-rule: services.finance.accounts.create_account.result
     return _result(account)
 
 
@@ -176,16 +206,41 @@ def update_account(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Update a company account configuration after validating the supplied changes.
+
+    BUSINESS RULE services.finance.accounts.update_account.refusal-16:
+    IF an account state was supplied other than active or blocked:
+        Refuse: Account state must be active or blocked.
+
+    BUSINESS RULE services.finance.accounts.update_account.refusal-18:
+    IF a supplied account code or name is empty after trimming whitespace:
+        Refuse: Account code and name cannot be empty.
+
+    BUSINESS RULE services.finance.accounts.update_account.refusal-22:
+    IF the proposed account code already belongs to another account in this company:
+        Refuse: Account code already exists.
+
+    BUSINESS RULE services.finance.accounts.update_account.step-34:
+    Record finance.account_changed with operation update and the account values; advance the company finance revision.
+
+    BUSINESS RULE services.finance.accounts.update_account.result:
+    Return the updated account identity, code, name, role, state and revision. Record the account-change audit through the common account service.
+    """
     from reality.services.core import Conflict, InvalidOperation
 
     coordinator = _mutation(session, tenant_id, expected_revision)
     account = _get(session, tenant_id, account_id)
+    # reality-rule: services.finance.accounts.update_account.refusal-16
     if state is not None and state not in {"active", "blocked"}:
         raise InvalidOperation("Account state must be active or blocked.")
+    # reality-rule: services.finance.accounts.update_account.refusal-18
     if (code is not None and not code.strip()) or (
         name is not None and not name.strip()
     ):
         raise InvalidOperation("Account code and name cannot be empty.")
+    # reality-rule: services.finance.accounts.update_account.refusal-22
     if code is not None and session.scalar(
         select(SubledgerAccount.id).where(
             SubledgerAccount.tenant_id == tenant_id,
@@ -198,9 +253,11 @@ def update_account(
         if value is not None:
             setattr(account, key, value.strip())
     account.revision += 1
+    # reality-rule: services.finance.accounts.update_account.step-34
     _audit(session, tenant_id, coordinator, account, "update", action_id)
     if _commit:
         session.commit()
+    # reality-rule: services.finance.accounts.update_account.result
     return _result(account)
 
 
@@ -214,10 +271,25 @@ def set_default_account(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Choose a validated company account as the default for the requested business role.
+
+    BUSINESS RULE services.finance.accounts.set_default_account.refusal-14:
+    IF the chosen default account is inactive or has a different business role:
+        Refuse: Default requires an active account with the matching role.
+
+    BUSINESS RULE services.finance.accounts.set_default_account.step-34:
+    Record finance.account_changed with operation default and the account values; advance the company finance revision.
+
+    BUSINESS RULE services.finance.accounts.set_default_account.result:
+    Return the selected account identity, code, name, role, state and revision after recording it as the default for the matching role.
+    """
     from reality.services.core import InvalidOperation
 
     state = _mutation(session, tenant_id, expected_revision)
     account = _get(session, tenant_id, account_id)
+    # reality-rule: services.finance.accounts.set_default_account.refusal-14
     if account.role != role or account.state != "active":
         raise InvalidOperation(
             "Default requires an active account with the matching role."
@@ -238,9 +310,11 @@ def set_default_account(
         # before transferring its identity within the same locked transaction.
         session.flush()
     account.default_destination_id = destination_id
+    # reality-rule: services.finance.accounts.set_default_account.step-34
     _audit(session, tenant_id, state, account, "default", action_id)
     if _commit:
         session.commit()
+    # reality-rule: services.finance.accounts.set_default_account.result
     return _result(account)
 
 
@@ -252,6 +326,16 @@ def initialize_accounts(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Initialize the company subledger accounts from the registered account definitions.
+
+    BUSINESS RULE services.finance.accounts.initialize_accounts.result:
+    Return the result from list accounts; inspect that called function for its calculation and eligibility rules.
+
+    BUSINESS RULE services.finance.accounts.initialize_accounts.effect-40:
+    Pass the stated inputs to the shared create account service. Its own source describes validation and record changes.
+    """
     _mutation(session, tenant_id, expected_revision)
     from reality.services.core import (
         _company_amounts_stored,
@@ -277,6 +361,7 @@ def initialize_accounts(
             )
             if dest is not None:
                 continue
+            # reality-rule: services.finance.accounts.initialize_accounts.effect-40
             account = create_account(
                 session,
                 tenant_id,
@@ -296,6 +381,7 @@ def initialize_accounts(
             )
     if _commit:
         session.commit()
+    # reality-rule: services.finance.accounts.initialize_accounts.result
     return list_accounts(session, tenant_id)
 
 
@@ -353,7 +439,15 @@ def _bootstrap_accounts(session: Session, tenant_id: str) -> None:
 
 
 def transaction_matrix(session: Session, tenant_id: str) -> dict:
-    """Describe current defaults; a specific action still validates its own evidence."""
+    """
+    Describe current defaults; a specific action still validates its own evidence.
+
+    BUSINESS PURPOSE:
+    Describe current defaults; a specific action still validates its own evidence.
+
+    BUSINESS RULE services.finance.accounts.transaction_matrix.result:
+    Return the current result with revision, operations.
+    """
     from reality.domain.finance import TRANSACTION_MATRIX
 
     configured = list_accounts(session, tenant_id)
@@ -390,4 +484,5 @@ def transaction_matrix(session: Session, tenant_id: str) -> dict:
                 "legs": legs,
             }
         )
+    # reality-rule: services.finance.accounts.transaction_matrix.result
     return {"revision": configured["revision"], "operations": operations}

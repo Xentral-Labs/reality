@@ -10,6 +10,16 @@ from reality.services.finance.credits import available_credit_items
 
 @pytest.mark.parametrize("side", ["customer", "supplier"])
 def test_credit_availability_refund_reversal_and_scope(session, business, side):
+    """
+    BUSINESS TEST:
+    Credit availability refund reversal and scope.
+    GIVEN:
+    Customer or supplier payment 120 is allocated 100 to an invoice.
+    WHEN:
+    Read credit, allocate an 8 refund, reverse it, add USD credit and read another tenant.
+    THEN:
+    Available credit changes 20 to 12 to 20; currencies stay separate, paging/filtering work, foreign tenant sees nothing and reversed payment disappears.
+    """
     tenant = business.tenant.id
     party = business.customer if side == "customer" else business.supplier
     role = "accounts_receivable" if side == "customer" else "accounts_payable"
@@ -56,6 +66,16 @@ def test_credit_availability_refund_reversal_and_scope(session, business, side):
 
 @pytest.mark.parametrize("side", ["customer", "supplier"])
 def test_note_credit_target_endpoint_blocked_account_and_http(session, business, side):
+    """
+    BUSINESS TEST:
+    Note credit target endpoint blocked account and http.
+    GIVEN:
+    Customer or supplier credit note 20 has a refund of 8 and its control account is blocked.
+    WHEN:
+    Read available credit through service and HTTP open-items endpoint.
+    THEN:
+    Both expose remaining credit 12, original gross 20, source identity and allocation; service names blocked account state.
+    """
     from fastapi.testclient import TestClient
     from sqlalchemy.orm import sessionmaker
 

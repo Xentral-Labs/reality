@@ -337,9 +337,64 @@ def assign_supply(
     request_id: str,
     _commit: bool = True,
 ) -> SupplyAssignment:
+    """
+    BUSINESS PURPOSE:
+    Assign a stated quantity of an open supplier delivery promise either to customer demand or to stock replenishment.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.step-11:
+    Require the business permission for 'assign_supply' before changing company records.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.refusal-12:
+    IF purpose is neither customer demand nor stock replenishment:
+        Refuse with supply_assignment_purpose_unsupported.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.refusal-14:
+    IF customer demand was requested without a customer promise, or stock replenishment was requested with one:
+        Refuse with supply_assignment_customer_commitment_count.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.refusal-26:
+    IF the selected supplier promise does not exist in this company:
+        Refuse with supplier_commitment_not_found.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.refusal-28:
+    IF the selected supplier promise is not an open supplier delivery:
+        Refuse with supply_assignment_supplier_commitment_not_open.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.refusal-42:
+    IF a customer promise was supplied but cannot be found in this company:
+        Refuse with customer_commitment_not_found.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.refusal-44:
+    IF a customer promise was supplied but is not an open customer delivery:
+        Refuse with supply_assignment_customer_commitment_not_open.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.refusal-48:
+    IF customer demand is selected and the supplier and customer promises refer to different items:
+        Refuse with supply_assignment_items_mismatch.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.refusal-50:
+    IF customer demand is selected, both promises name a location, and those locations differ:
+        Refuse with supply_assignment_locations_mismatch.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.refusal-79:
+    IF an existing source and assignment use this request identity but retain different assignment values:
+        Refuse with supply_assignment_request_identity_conflict.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.result:
+    Return row, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.effect-140:
+    Run the shared preview supply assignment check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.supply_assignments.assign_supply.effect-154:
+    Pass the stated inputs to the shared create master source record service. Its own source describes validation and record changes.
+    """
+    # reality-rule: services.supply_assignments.assign_supply.step-11
     core._require_business_mutation(session, tenant_id, "assign_supply")
+    # reality-rule: services.supply_assignments.assign_supply.refusal-12
     if purpose not in {"customer_demand", "stock_replenishment"}:
         raise core.InvalidOperation(code="supply_assignment_purpose_unsupported")
+    # reality-rule: services.supply_assignments.assign_supply.refusal-14
     if (purpose == "customer_demand") != bool(customer_commitment_id):
         raise core.InvalidOperation(code="supply_assignment_customer_commitment_count")
     qty = _decimal(quantity)
@@ -352,8 +407,10 @@ def assign_supply(
             )
             .with_for_update()
         )
+        # reality-rule: services.supply_assignments.assign_supply.refusal-26
         if supplier is None:
             raise core.NotFound(code="supplier_commitment_not_found")
+        # reality-rule: services.supply_assignments.assign_supply.refusal-28
         if supplier.type != "supplier_delivery" or supplier.status != "open":
             raise core.InvalidOperation(
                 code="supply_assignment_supplier_commitment_not_open"
@@ -368,14 +425,18 @@ def assign_supply(
                 )
                 .with_for_update()
             )
+            # reality-rule: services.supply_assignments.assign_supply.refusal-42
             if customer is None:
                 raise core.NotFound(code="customer_commitment_not_found")
+            # reality-rule: services.supply_assignments.assign_supply.refusal-44
             if customer.type != "customer_delivery" or customer.status != "open":
                 raise core.InvalidOperation(
                     code="supply_assignment_customer_commitment_not_open"
                 )
+            # reality-rule: services.supply_assignments.assign_supply.refusal-48
             if supplier.item_id != customer.item_id:
                 raise core.InvalidOperation(code="supply_assignment_items_mismatch")
+            # reality-rule: services.supply_assignments.assign_supply.refusal-50
             if (
                 supplier.location_id
                 and customer.location_id
@@ -405,11 +466,13 @@ def assign_supply(
                     "purpose": purpose,
                     "quantity": str(qty),
                 }
+                # reality-rule: services.supply_assignments.assign_supply.refusal-79
                 if json.loads(stated) != expected:
                     raise core.InvalidOperation(
                         code="supply_assignment_request_identity_conflict"
                     )
                 return existing
+        # reality-rule: services.supply_assignments.assign_supply.effect-140
         preview_supply_assignment(
             session,
             tenant_id,
@@ -424,6 +487,7 @@ def assign_supply(
             "purpose": purpose,
             "quantity": str(qty),
         }
+        # reality-rule: services.supply_assignments.assign_supply.effect-154
         source = core.create_master_source_record(
             session,
             tenant_id,
@@ -446,6 +510,7 @@ def assign_supply(
         session.flush()
     if _commit:
         session.commit()
+    # reality-rule: services.supply_assignments.assign_supply.result
     return row
 
 

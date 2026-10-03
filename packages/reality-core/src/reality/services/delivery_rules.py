@@ -136,9 +136,35 @@ def state_delivery_rule(
     _expected: Any = UNCHECKED,
     _commit: bool = True,
 ) -> DeliveryRule:
-    """State, or restate, the delivery rule of a customer or an order."""
+    """
+    State, or restate, the delivery rule of a customer or an order.
+
+    BUSINESS PURPOSE:
+    State, or restate, the delivery rule of a customer or an order.
+
+    BUSINESS RULE services.delivery_rules.state_delivery_rule.step-13:
+    Require the business permission for 'state_delivery_rule' before changing company records.
+
+    BUSINESS RULE services.delivery_rules.state_delivery_rule.step-15:
+    Run the shared validate delivery rule check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.delivery_rules.state_delivery_rule.refusal-29:
+    IF a reviewed prior delivery rule was supplied and its current stored values differ:
+        Refuse with delivery_rule_changed_since_review.
+
+    BUSINESS RULE services.delivery_rules.state_delivery_rule.step-35:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.delivery_rules.state_delivery_rule.step-68:
+    Record the delivery_rule.stated audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.delivery_rules.state_delivery_rule.result:
+    Return current, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.delivery_rules.state_delivery_rule.step-13
     _require_business_mutation(session, tenant_id, "state_delivery_rule")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.delivery_rules.state_delivery_rule.step-15
     kind, identity, rule, stated = validate_delivery_rule(
         session, tenant_id, rule, reason, party_id=party_id, document_id=document_id
     )
@@ -153,12 +179,14 @@ def state_delivery_rule(
         )
         if in_force and json.loads(in_force).get("statement_id") == action_id:
             return current
+    # reality-rule: services.delivery_rules.state_delivery_rule.refusal-29
     if _expected is not UNCHECKED and rule_values(current) != _expected:
         raise InvalidOperation(code="delivery_rule_changed_since_review")
     previous = rule_values(current)
     # The statement id makes each confirmation its own version, so restating
     # an earlier rule is not taken for that earlier statement, while a replay
     # of the same confirmation is.
+    # reality-rule: services.delivery_rules.state_delivery_rule.step-35
     source, _, _ = store_source_record(
         session,
         tenant_id,
@@ -192,6 +220,7 @@ def state_delivery_rule(
         # The same confirmation again: it already stated this.
         return current
     session.flush()
+    # reality-rule: services.delivery_rules.state_delivery_rule.step-68
     emit_business_event(
         session,
         tenant_id,
@@ -210,6 +239,7 @@ def state_delivery_rule(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.delivery_rules.state_delivery_rule.result
     return current
 
 
@@ -234,8 +264,26 @@ def effective_delivery_rule(
 def effective_rules(
     session: Session, tenant_id: str, document_ids: list[str]
 ) -> dict[str, dict[str, Any]]:
-    """The effective rule of many orders in three reads, for readers that need many."""
+    """
+    The effective rule of many orders in three reads, for readers that need many.
+
+    BUSINESS PURPOSE:
+    Resolve each requested order's current delivery policy from its own statement, then its customer's statement, then the default partial-delivery rule.
+
+    BUSINESS RULE delivery_policy.effective.empty:
+    IF no orders are requested, return no policies.
+
+    BUSINESS RULE delivery_policy.effective.own:
+    IF an order has its own delivery-rule statement, use that statement and its source evidence. It overrides the customer's statement.
+
+    BUSINESS RULE delivery_policy.effective.customer:
+    ELSE IF the order's customer has a delivery-rule statement in this company, use that customer statement and its source evidence.
+
+    BUSINESS RULE delivery_policy.effective.default:
+    ELSE return partial_allowed with default origin, no stated reason and no source-record identity.
+    """
     ids = set(document_ids)
+    # reality-rule: delivery_policy.effective.empty
     if not ids:
         return {}
     # The order's own party is its customer: the shortest true link.
@@ -259,13 +307,16 @@ def effective_rules(
     by_party = {row.party_id: row for row in rules if row.party_id}
     result = {}
     for identity in ids:
+        # reality-rule: delivery_policy.effective.own
         if identity in by_document:
             result[identity] = _entry(by_document[identity], "order", identity)
             continue
         customer = customers.get(identity)
+        # reality-rule: delivery_policy.effective.customer
         if customer in by_party:
             result[identity] = _entry(by_party[customer], "customer", customer)
             continue
+        # reality-rule: delivery_policy.effective.default
         result[identity] = {
             "rule": DEFAULT_RULE,
             "source": "default",
@@ -283,7 +334,15 @@ def delivery_rules(
     party_id: str | None = None,
     document_id: str | None = None,
 ) -> dict[str, Any]:
-    """The rule in force for a customer or an order, and every statement before it."""
+    """
+    The rule in force for a customer or an order, and every statement before it.
+
+    BUSINESS PURPOSE:
+    The rule in force for a customer or an order, and every statement before it.
+
+    BUSINESS RULE services.delivery_rules.delivery_rules.result:
+    Return the current result with subject, subject_id, own, effective, history.
+    """
     kind, identity = _subject(session, tenant_id, party_id, document_id)
     current = _current(session, tenant_id, kind, identity)
     history = [
@@ -321,6 +380,7 @@ def delivery_rules(
             }
         )
     )
+    # reality-rule: services.delivery_rules.delivery_rules.result
     return {
         "subject": kind,
         "subject_id": identity,
@@ -356,20 +416,36 @@ def order_ships_complete(
     checked_quantity: Any,
     open_quantity: Any,
 ) -> bool:
-    """Whether a line may ship as checked under its order's rule.
+    """
+    Whether a line may ship as checked under its order's rule.
 
     Only ship complete restricts: the line ships its whole open quantity, and
     every other open line of the order is ready to ship its whole open
     quantity too. Cancelled and fulfilled lines have nothing left to wait for.
+
+    BUSINESS PURPOSE:
+    Check whether the proposed delivery of one order line respects the order's effective ship-complete policy.
+
+    BUSINESS RULE delivery_policy.complete.partial_allowed:
+    IF the effective rule is not ship_complete, permit this check without requiring the whole order.
+
+    BUSINESS RULE delivery_policy.complete.full_line:
+    IF the checked quantity is less than this line's open quantity under ship_complete, reject readiness.
+
+    BUSINESS RULE delivery_policy.complete.other_lines:
+    Require every other open customer-delivery line of this order to be ship-ready in full. Use shared fulfillment readiness without re-entering this delivery-policy check. Cancelled and fulfilled lines are excluded by the open-lines reader.
     """
+    # reality-rule: delivery_policy.complete.partial_allowed
     if effective_rules(session, tenant_id, [order_id])[order_id]["rule"] != (
         "ship_complete"
     ):
         return True
+    # reality-rule: delivery_policy.complete.full_line
     if checked_quantity < open_quantity:
         return False
     from reality.services.fulfillment_readiness import fulfillment_readiness
 
+    # reality-rule: delivery_policy.complete.other_lines
     return all(
         fulfillment_readiness(
             session, tenant_id, identity, _delivery_rule=False
@@ -455,13 +531,24 @@ def _affected_orders(
 def review_delivery_rule(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown.
+    """
+    The arguments a confirmation executes and what the person is shown.
 
     The review shows the subject's own rule now, or none, beside what it
     becomes, and the open orders it governs with the rule each would ship
     under. It carries the current rule into the arguments: executing them
     later refuses if the rule has changed in between.
+
+    BUSINESS PURPOSE:
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS RULE services.delivery_rules.review_delivery_rule.step-10:
+    Run the shared validate delivery rule check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.delivery_rules.review_delivery_rule.result:
+    Return normalized, preview, as prepared by the preceding checks and service calls.
     """
+    # reality-rule: services.delivery_rules.review_delivery_rule.step-10
     kind, identity, rule, stated = validate_delivery_rule(
         session,
         tenant_id,
@@ -513,4 +600,5 @@ def review_delivery_rule(
             for order_id in orders
         ],
     }
+    # reality-rule: services.delivery_rules.review_delivery_rule.result
     return normalized, preview

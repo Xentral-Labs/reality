@@ -126,39 +126,109 @@ def validate_kit_definition(
     kit_item_id: str,
     components: Any,
 ) -> tuple[Item, list[tuple[Item, Decimal, Decimal | None]]]:
-    """The checks a definition makes, also run by its review so both refuse alike."""
+    """
+    The checks a definition makes, also run by its review so both refuse alike.
+
+    BUSINESS PURPOSE:
+    The checks a definition makes, also run by its review so both refuse alike.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-9:
+    IF the kit is not an active stocked item:
+        Refuse with kit_item_not_stocked.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-11:
+    IF the kit already has a component definition:
+        Refuse with kit_already_defined.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-13:
+    IF the proposed kit already serves as a component of another kit:
+        Refuse with kit_component_is_kit.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-16:
+    IF components are not supplied as a nonempty list of component records:
+        Refuse with kit_components_required.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-18:
+    IF the component count exceeds MAX_COMPONENTS:
+        Refuse with kit_components_too_many.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-58:
+    IF any component share was supplied, but another share is missing or the shares do not sum to one:
+        Refuse with kit_shares_invalid.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-23:
+    IF components are not supplied as a nonempty list of component records:
+        Refuse with kit_components_required.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-28:
+    IF a component is the kit itself:
+        Refuse with kit_component_is_kit.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-30:
+    IF the same component item appears more than once:
+        Refuse with kit_component_repeated.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-35:
+    IF a component is not an active stocked item:
+        Refuse with kit_component_not_stocked.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-39:
+    IF a proposed component is itself a defined kit:
+        Refuse with kit_component_is_kit.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-46:
+    IF the stated component quantity is zero or negative:
+        Refuse with kit_component_quantity_invalid.
+
+    BUSINESS RULE services.kits.validate_kit_definition.refusal-54:
+    IF a component share was supplied and lies outside the inclusive range zero to one:
+        Refuse with kit_shares_invalid.
+
+    BUSINESS RULE services.kits.validate_kit_definition.result:
+    Return kit, rows, as prepared by the preceding checks and service calls.
+    """
     get_tenant(session, tenant_id)
     kit = _tenant_record(session, Item, tenant_id, str(kit_item_id or ""))
+    # reality-rule: services.kits.validate_kit_definition.refusal-9
     if not _held(kit):
         raise InvalidOperation(code="kit_item_not_stocked", values={"sku": kit.sku})
+    # reality-rule: services.kits.validate_kit_definition.refusal-11
     if kit_components(session, tenant_id, kit.id):
         raise InvalidOperation(code="kit_already_defined", values={"sku": kit.sku})
+    # reality-rule: services.kits.validate_kit_definition.refusal-13
     if _is_component(session, tenant_id, kit.id):
         # One level only: a kit inside a kit would need its own assembly first.
         raise InvalidOperation(code="kit_component_is_kit", values={"sku": kit.sku})
+    # reality-rule: services.kits.validate_kit_definition.refusal-16
     if not isinstance(components, list) or not components:
         raise InvalidOperation(code="kit_components_required")
+    # reality-rule: services.kits.validate_kit_definition.refusal-18
     if len(components) > MAX_COMPONENTS:
         raise InvalidOperation(code="kit_components_too_many")
     rows: list[tuple[Item, Decimal, Decimal | None]] = []
     seen: set[str] = set()
     for entry in components:
+        # reality-rule: services.kits.validate_kit_definition.refusal-23
         if not isinstance(entry, dict):
             raise InvalidOperation(code="kit_components_required")
         component = _tenant_record(
             session, Item, tenant_id, str(entry.get("item_id") or "")
         )
+        # reality-rule: services.kits.validate_kit_definition.refusal-28
         if component.id == kit.id:
             raise InvalidOperation(code="kit_component_is_kit", values={"sku": kit.sku})
+        # reality-rule: services.kits.validate_kit_definition.refusal-30
         if component.id in seen:
             raise InvalidOperation(
                 code="kit_component_repeated", values={"sku": component.sku}
             )
         seen.add(component.id)
+        # reality-rule: services.kits.validate_kit_definition.refusal-35
         if not _held(component):
             raise InvalidOperation(
                 code="kit_component_not_stocked", values={"sku": component.sku}
             )
+        # reality-rule: services.kits.validate_kit_definition.refusal-39
         if kit_components(session, tenant_id, component.id):
             raise InvalidOperation(
                 code="kit_component_is_kit", values={"sku": component.sku}
@@ -166,6 +236,7 @@ def validate_kit_definition(
         quantity = _decimal(
             entry.get("quantity"), "kit_component_quantity_invalid", places=4
         )
+        # reality-rule: services.kits.validate_kit_definition.refusal-46
         if quantity <= ZERO:
             raise InvalidOperation(code="kit_component_quantity_invalid")
         raw_share = entry.get("share")
@@ -174,15 +245,18 @@ def validate_kit_definition(
             if raw_share in (None, "")
             else _decimal(raw_share, "kit_shares_invalid", places=6)
         )
+        # reality-rule: services.kits.validate_kit_definition.refusal-54
         if share is not None and not ZERO <= share <= ONE:
             raise InvalidOperation(code="kit_shares_invalid")
         rows.append((component, quantity, share))
     shares = [share for _, _, share in rows]
+    # reality-rule: services.kits.validate_kit_definition.refusal-58
     if any(share is not None for share in shares) and (
         any(share is None for share in shares) or sum(shares) != ONE  # type: ignore[arg-type]
     ):
         # A split must give the whole line away, no more and no less.
         raise InvalidOperation(code="kit_shares_invalid")
+    # reality-rule: services.kits.validate_kit_definition.result
     return kit, rows
 
 
@@ -195,9 +269,31 @@ def define_kit(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> list[KitComponent]:
-    """State the components of a kit, once."""
+    """
+    State the components of a kit, once.
+
+    BUSINESS PURPOSE:
+    State the components of a kit, once.
+
+    BUSINESS RULE services.kits.define_kit.step-10:
+    Require the business permission for 'define_kit' before changing company records.
+
+    BUSINESS RULE services.kits.define_kit.step-12:
+    Run the shared validate kit definition check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.kits.define_kit.step-21:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.kits.define_kit.step-48:
+    Record the kit.defined audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.kits.define_kit.result:
+    Return created, as prepared by the preceding checks and service calls.
+    """
+    # reality-rule: services.kits.define_kit.step-10
     _require_business_mutation(session, tenant_id, "define_kit")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.kits.define_kit.step-12
     kit, rows = validate_kit_definition(session, tenant_id, kit_item_id, components)
     stated = [
         {
@@ -207,6 +303,7 @@ def define_kit(
         }
         for component, quantity, share in rows
     ]
+    # reality-rule: services.kits.define_kit.step-21
     source, _, _ = store_source_record(
         session,
         tenant_id,
@@ -234,6 +331,7 @@ def define_kit(
     ]
     session.add_all(created)
     session.flush()
+    # reality-rule: services.kits.define_kit.step-48
     emit_business_event(
         session,
         tenant_id,
@@ -247,6 +345,7 @@ def define_kit(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.kits.define_kit.result
     return created
 
 
@@ -337,9 +436,22 @@ def kit_availability(
     kit_item_id: str,
     location_id: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Per location: free kits on hand, what free components build, the limit."""
+    """
+    Per location: free kits on hand, what free components build, the limit.
+
+    BUSINESS PURPOSE:
+    Per location: free kits on hand, what free components build, the limit.
+
+    BUSINESS RULE services.kits.kit_availability.refusal-9:
+    IF the selected item has no kit component definition:
+        Refuse with kit_not_defined.
+
+    BUSINESS RULE services.kits.kit_availability.result:
+    Return the selected records in the displayed response structure; preserve the source identifiers and stated values used by this comprehension.
+    """
     kit = _tenant_record(session, Item, tenant_id, kit_item_id)
     components = kit_components(session, tenant_id, kit.id)
+    # reality-rule: services.kits.kit_availability.refusal-9
     if not components:
         raise NotFound(code="kit_not_defined", values={"sku": kit.sku})
     items = _items(session, tenant_id, {row.component_item_id for row in components})
@@ -350,6 +462,7 @@ def kit_availability(
             session, tenant_id, [kit.id, *(row.component_item_id for row in components)]
         )
     )
+    # reality-rule: services.kits.kit_availability.result
     return [
         _availability_at(session, tenant_id, kit, components, items, location)
         for location in locations
@@ -423,7 +536,15 @@ def _definition(
 def kits(
     session: Session, tenant_id: str, *, item_id: str | None = None
 ) -> list[dict[str, Any]]:
-    """Every kit of the company, or the one an item is or is part of, with availability."""
+    """
+    Every kit of the company, or the one an item is or is part of, with availability.
+
+    BUSINESS PURPOSE:
+    Every kit of the company, or the one an item is or is part of, with availability.
+
+    BUSINESS RULE services.kits.kits.result:
+    Return result, as prepared by the preceding checks and service calls.
+    """
     get_tenant(session, tenant_id)
     query = select(KitComponent.kit_item_id).where(KitComponent.tenant_id == tenant_id)
     if item_id:
@@ -444,6 +565,7 @@ def kits(
                 "availability": kit_availability(session, tenant_id, kit.id),
             }
         )
+    # reality-rule: services.kits.kits.result
     return result
 
 
@@ -482,20 +604,46 @@ def validate_kit_assembly(
     quantity: Any,
     occurred_at: Any = None,
 ) -> dict[str, Any]:
-    """What an assembly consumes and produces, refused whole when a part is short.
+    """
+    What an assembly consumes and produces, refused whole when a part is short.
 
     The review runs the same checks, so what it shows is what the
     confirmation does, and a component that runs short in between refuses the
     confirmation the same way.
+
+    BUSINESS PURPOSE:
+    What an assembly consumes and produces, refused whole when a part is short.
+
+    BUSINESS RULE services.kits.validate_kit_assembly.refusal-17:
+    IF the selected item has no kit component definition:
+        Refuse with kit_not_defined.
+
+    BUSINESS RULE services.kits.validate_kit_assembly.refusal-19:
+    IF the kit is not an active stocked item:
+        Refuse with kit_item_not_stocked.
+
+    BUSINESS RULE services.kits.validate_kit_assembly.refusal-22:
+    IF the assembly location is inactive or does not allow stock:
+        Refuse with kit_assembly_location_not_stock.
+
+    BUSINESS RULE services.kits.validate_kit_assembly.refusal-32:
+    IF available component stock is less than the quantity needed for the requested assembly:
+        Refuse with kit_component_short.
+
+    BUSINESS RULE services.kits.validate_kit_assembly.result:
+    Return the current result with kit_item_id, sku, name, unit, location_id, location, quantity, occurred_at, consumes.
     """
     get_tenant(session, tenant_id)
     kit = _tenant_record(session, Item, tenant_id, str(kit_item_id or ""))
     components = kit_components(session, tenant_id, kit.id)
+    # reality-rule: services.kits.validate_kit_assembly.refusal-17
     if not components:
         raise InvalidOperation(code="kit_not_defined", values={"sku": kit.sku})
+    # reality-rule: services.kits.validate_kit_assembly.refusal-19
     if not _held(kit):
         raise InvalidOperation(code="kit_item_not_stocked", values={"sku": kit.sku})
     location = _tenant_record(session, Location, tenant_id, str(location_id or ""))
+    # reality-rule: services.kits.validate_kit_assembly.refusal-22
     if not location.is_active or not location.allows_stock:
         raise InvalidOperation(code="kit_assembly_location_not_stock")
     kits_wanted = _whole(quantity)
@@ -506,6 +654,7 @@ def validate_kit_assembly(
         component = items[row.component_item_id]
         needed = row.quantity * kits_wanted
         free = _free(session, tenant_id, component.id, location.id)
+        # reality-rule: services.kits.validate_kit_assembly.refusal-32
         if free < needed:
             raise InvalidOperation(
                 code="kit_component_short",
@@ -526,6 +675,7 @@ def validate_kit_assembly(
                 "free": _plain(free),
             }
         )
+    # reality-rule: services.kits.validate_kit_assembly.result
     return {
         "kit_item_id": kit.id,
         "sku": kit.sku,
@@ -551,13 +701,36 @@ def assemble_kit(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Consume the components and produce the kits at one location, all or nothing."""
+    """
+    Consume the components and produce the kits at one location, all or nothing.
+
+    BUSINESS PURPOSE:
+    Consume the components and produce the kits at one location, all or nothing.
+
+    BUSINESS RULE services.kits.assemble_kit.step-13:
+    Require the business permission for 'assemble_kit' before changing company records.
+
+    BUSINESS RULE services.kits.assemble_kit.step-15:
+    Run the shared validate kit assembly check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.kits.assemble_kit.step-19:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.kits.assemble_kit.step-81:
+    Record the kit.assembled audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.kits.assemble_kit.result:
+    Return the retained assembly source identity, checked component-consumption plan and recorded input/output warehouse movements.
+    """
+    # reality-rule: services.kits.assemble_kit.step-13
     _require_business_mutation(session, tenant_id, "assemble_kit")
     lock_delivery_state(session, tenant_id)
+    # reality-rule: services.kits.assemble_kit.step-15
     plan = validate_kit_assembly(
         session, tenant_id, kit_item_id, location_id, quantity, occurred_at
     )
     statement = action_id or uid("stm")
+    # reality-rule: services.kits.assemble_kit.step-19
     source, inserted, _ = store_source_record(
         session,
         tenant_id,
@@ -620,6 +793,7 @@ def assemble_kit(
             _commit=False,
         )
     )
+    # reality-rule: services.kits.assemble_kit.step-81
     emit_business_event(
         session,
         tenant_id,
@@ -639,6 +813,7 @@ def assemble_kit(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.kits.assemble_kit.result
     return _assembly_result(source.id, plan, movements)
 
 
@@ -682,17 +857,34 @@ def _apportion(total: Decimal, shares: list[Decimal]) -> list[Decimal]:
 def kit_split(
     session: Session, tenant_id: str, document_line_id: str
 ) -> dict[str, Any]:
-    """How an order or invoice line of a kit splits across its components.
+    """
+    How an order or invoice line of a kit splits across its components.
 
     Read at read time from the line's stated amounts and the kit's stated
     shares; nothing is recomputed from a rate and nothing is stored. A kit
     without stated shares has no split, and the read says so.
+
+    BUSINESS PURPOSE:
+    How an order or invoice line of a kit splits across its components.
+
+    BUSINESS RULE services.kits.kit_split.refusal-10:
+    IF the order line has no item or its item has no kit component definition:
+        Refuse with kit_split_line_not_kit.
+
+    BUSINESS RULE services.kits.kit_split.refusal-14:
+    IF the order line has no item or its item has no kit component definition:
+        Refuse with kit_split_line_not_kit.
+
+    BUSINESS RULE services.kits.kit_split.result:
+    Return the current result with stated, split.
     """
     line = _tenant_record(session, DocumentLine, tenant_id, document_line_id)
+    # reality-rule: services.kits.kit_split.refusal-10
     if not line.item_id:
         raise InvalidOperation(code="kit_split_line_not_kit")
     kit = _tenant_record(session, Item, tenant_id, line.item_id)
     components = kit_components(session, tenant_id, kit.id)
+    # reality-rule: services.kits.kit_split.refusal-14
     if not components:
         raise InvalidOperation(code="kit_split_line_not_kit")
     base = {
@@ -733,6 +925,7 @@ def kit_split(
                 else None,
             }
         )
+    # reality-rule: services.kits.kit_split.result
     return {
         **base,
         "stated": {key: _plain(value) for key, value in stated.items()},
@@ -743,10 +936,31 @@ def kit_split(
 def review_kit(
     session: Session, tenant_id: str, tool_name: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown."""
+    """
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS PURPOSE:
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS RULE services.kits.review_kit.refusal-4:
+    IF the requested operation is not registered for this review service:
+        Refuse with proposal_tool_not_found.
+
+    BUSINESS RULE services.kits.review_kit.step-48:
+    Run the shared validate kit assembly check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.kits.review_kit.result:
+    Return normalized, {'operation': 'assemble', **plan}, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.kits.review_kit.effect-23:
+    IF the requested operation defines a kit:
+        Run the shared validate kit definition check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+    """
+    # reality-rule: services.kits.review_kit.refusal-4
     if tool_name not in KIT_TOOLS:
         raise InvalidOperation(code="proposal_tool_not_found")
     if tool_name == "kit_define":
+        # reality-rule: services.kits.review_kit.effect-23
         kit, rows = validate_kit_definition(
             session,
             tenant_id,
@@ -788,6 +1002,7 @@ def review_kit(
                 "components": components,
             },
         )
+    # reality-rule: services.kits.review_kit.step-48
     plan = validate_kit_assembly(
         session,
         tenant_id,
@@ -806,4 +1021,5 @@ def review_kit(
     note = str(arguments.get("note") or "").strip()
     if note:
         normalized["note"] = note
+    # reality-rule: services.kits.review_kit.result
     return normalized, {"operation": "assemble", **plan}

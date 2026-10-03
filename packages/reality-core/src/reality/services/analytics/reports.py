@@ -207,7 +207,16 @@ def list_reports(
 
 
 def change_graph_report(session, tenant_id, principal, arguments):
-    """The same journey for a graph question, sharing one retry implementation."""
+    """
+    The same journey for a graph question, sharing one retry implementation.
+
+    BUSINESS PURPOSE:
+    The same journey for a graph question, sharing one retry implementation.
+
+    BUSINESS RULE services.analytics.reports.change_graph_report.result:
+    Return the saved private graph-report change from the shared report service, which owns author access, revision and retry checks.
+    """
+    # reality-rule: services.analytics.reports.change_graph_report.result
     return _change(session, tenant_id, principal, arguments, kind("graph"))
 
 

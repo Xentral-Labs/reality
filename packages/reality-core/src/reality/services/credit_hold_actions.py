@@ -47,16 +47,35 @@ def _order_holds(
 def preview_credit_release(
     session: Session, tenant_id: str, *, document_id: str, reason: str
 ) -> dict[str, Any]:
-    """What releasing this order's credit holds would do, recording nothing."""
+    """
+    What releasing this order's credit holds would do, recording nothing.
+
+    BUSINESS PURPOSE:
+    What releasing this order's credit holds would do, recording nothing.
+
+    BUSINESS RULE services.credit_hold_actions.preview_credit_release.refusal-6:
+    IF there are no active credit holds for the selected scope:
+        Refuse with credit_hold_not_found.
+
+    BUSINESS RULE services.credit_hold_actions.preview_credit_release.refusal-10:
+    IF the release reason is empty after trimming whitespace:
+        Refuse with credit_hold_release_reason_missing.
+
+    BUSINESS RULE services.credit_hold_actions.preview_credit_release.result:
+    Return the current result with document_id, number, party_id, reason, holds, exposure.
+    """
     order, holds = _order_holds(session, tenant_id, document_id)
     # reality-rule: credit_hold_actions.preview_credit_release.guard-51
+    # reality-rule: services.credit_hold_actions.preview_credit_release.refusal-6
     if not holds:
         raise core.InvalidOperation(code="credit_hold_not_found")
     stated = str(reason or "").strip()
     # reality-rule: credit_hold_actions.preview_credit_release.guard-54
+    # reality-rule: services.credit_hold_actions.preview_credit_release.refusal-10
     if not stated:
         raise core.InvalidOperation(code="credit_hold_release_reason_missing")
     exposure = credit_exposure(session, tenant_id, order.party_id)
+    # reality-rule: services.credit_hold_actions.preview_credit_release.result
     return {
         "document_id": order.id,
         "number": order.number,
@@ -85,8 +104,27 @@ def release_credit_holds(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Lift the order's credit holds; callers check that an owner confirmed."""
+    """
+    Lift the order's credit holds; callers check that an owner confirmed.
+
+    BUSINESS PURPOSE:
+    Lift the order's credit holds; callers check that an owner confirmed.
+
+    BUSINESS RULE services.credit_hold_actions.release_credit_holds.step-10:
+    Require the business permission for 'release_credit_hold' before changing company records.
+
+    BUSINESS RULE services.credit_hold_actions.release_credit_holds.step-11:
+    Run the shared preview credit release check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.credit_hold_actions.release_credit_holds.result:
+    Return the current result with document_id, hold_ids, reason.
+
+    BUSINESS RULE services.credit_hold_actions.release_credit_holds.effect-37:
+    Record the commitment.hold_released audit or business-event evidence with the supplied record and confirmation identity.
+    """
+    # reality-rule: services.credit_hold_actions.release_credit_holds.step-10
     core._require_business_mutation(session, tenant_id, "release_credit_hold")
+    # reality-rule: services.credit_hold_actions.release_credit_holds.step-11
     preview = preview_credit_release(
         session, tenant_id, document_id=document_id, reason=reason
     )
@@ -97,6 +135,7 @@ def release_credit_holds(
         hold.released_at = released_at
         by_commitment.setdefault(hold.commitment_id, []).append(hold.id)
     for commitment_id, hold_ids in by_commitment.items():
+        # reality-rule: services.credit_hold_actions.release_credit_holds.effect-37
         core.emit_business_event(
             session,
             tenant_id,
@@ -117,6 +156,7 @@ def release_credit_holds(
         session.commit()
     else:
         session.flush()
+    # reality-rule: services.credit_hold_actions.release_credit_holds.result
     return {
         "document_id": document_id,
         "hold_ids": sorted(hold.id for hold in holds),

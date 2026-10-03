@@ -69,10 +69,22 @@ def list_references(
     limit: int = 50,
     offset: int = 0,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read the company's registered financial references, with the requested kind filter.
+
+    BUSINESS RULE services.finance.references.list_references.refusal-14:
+    IF a supplied reference kind is unregistered or its state is neither active nor blocked:
+        Refuse: Unsupported reference kind or state.
+
+    BUSINESS RULE services.finance.references.list_references.result:
+    Return the current result with revision, total, limit, offset, items.
+    """
     from reality.services.core import InvalidOperation, get_tenant
 
     get_tenant(session, tenant_id)
     _page(limit, offset)
+    # reality-rule: services.finance.references.list_references.refusal-14
     if (
         kind is not None
         and kind not in REFERENCE_KINDS
@@ -92,6 +104,7 @@ def list_references(
                 FinanceReference.name.icontains(query.strip(), autoescape=True),
             )
         )
+    # reality-rule: services.finance.references.list_references.result
     return {
         "revision": _revision(session, tenant_id),
         "total": session.scalar(
@@ -122,6 +135,13 @@ def reference_history(
     limit: int = 50,
     offset: int = 0,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Read recorded revisions of the selected company financial reference.
+
+    BUSINESS RULE services.finance.references.reference_history.result:
+    Return the current result with reference, total, limit, offset, items.
+    """
     _page(limit, offset)
     row = _get(session, tenant_id, reference_id)
     clauses = [
@@ -130,6 +150,7 @@ def reference_history(
         BusinessEvent.subject_id == row.id,
         BusinessEvent.event_type == "finance.reference_changed",
     ]
+    # reality-rule: services.finance.references.reference_history.result
     return {
         "reference": _result(row),
         "total": session.scalar(
@@ -229,10 +250,28 @@ def maintain_reference(
     action_id: str,
     actor_id: str | None = None,
 ) -> dict:
+    """
+    BUSINESS PURPOSE:
+    Record a validated company financial reference and preserve its configuration history.
+
+    BUSINESS RULE services.finance.references.maintain_reference.step-10:
+    Require the business permission for 'finance_reference_maintain' before changing company records.
+
+    BUSINESS RULE services.finance.references.maintain_reference.step-12:
+    Run the shared preview reference check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.finance.references.maintain_reference.step-24:
+    Record the finance.reference_changed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.finance.references.maintain_reference.result:
+    Return the maintained financial reference identity, kind, code, name, state and revision.
+    """
     from reality.services.core import _require_business_mutation, emit_business_event
 
+    # reality-rule: services.finance.references.maintain_reference.step-10
     _require_business_mutation(session, tenant_id, "finance_reference_maintain")
     coordinator = lock_finance(session, tenant_id)
+    # reality-rule: services.finance.references.maintain_reference.step-12
     review = preview_reference(session, tenant_id, arguments)
     if review["before"]:
         row = _get(session, tenant_id, arguments["reference_id"])
@@ -245,6 +284,7 @@ def maintain_reference(
     session.flush()
     review["after"] = _result(row)
     coordinator.revision += 1
+    # reality-rule: services.finance.references.maintain_reference.step-24
     emit_business_event(
         session,
         tenant_id,
@@ -255,4 +295,5 @@ def maintain_reference(
         action_id=action_id,
     )
     session.flush()
+    # reality-rule: services.finance.references.maintain_reference.result
     return _result(row)

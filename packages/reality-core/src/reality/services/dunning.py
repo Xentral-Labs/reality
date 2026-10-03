@@ -25,7 +25,39 @@ SOURCE_SYSTEM = "internal_dunning"
 
 
 def preview_notice(session: Session, tenant_id: str, values: dict) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Preview the selected invoice dunning notice using the same eligibility checks as recording it.
+
+    BUSINESS RULE services.dunning.preview_notice.refusal-2:
+    IF no overdue customer invoice was selected:
+        Refuse: Select at least one overdue customer invoice.
+
+    BUSINESS RULE services.dunning.preview_notice.refusal-10:
+    IF the requested dunning level is not 1, 2 or 3:
+        Refuse: Dunning level must be 1, 2 or 3.
+
+    BUSINESS RULE services.dunning.preview_notice.refusal-12:
+    IF the dunning fee is negative or has more than four decimal places:
+        Refuse: Dunning fee must be non-negative with at most four decimals.
+
+    BUSINESS RULE services.dunning.preview_notice.refusal-18:
+    IF any selected document is neither a customer invoice nor an opening customer debt:
+        Refuse: Dunning requires customer invoices.
+
+    BUSINESS RULE services.dunning.preview_notice.refusal-24:
+    IF the selected invoices name different customers or different currencies:
+        Refuse: One notice cannot mix customers or currencies.
+
+    BUSINESS RULE services.dunning.preview_notice.refusal-31:
+    IF any selected invoice is not among the current open overdue invoices:
+        Refuse: Every reminded invoice must be open and overdue.
+
+    BUSINESS RULE services.dunning.preview_notice.result:
+    Return the current result with invoice_ids, party_id, currency, notice_date, level, fee_amount, reason, number, accounts, invoice_open.
+    """
     invoice_ids = list(dict.fromkeys(values.get("invoice_ids") or []))
+    # reality-rule: services.dunning.preview_notice.refusal-2
     if not invoice_ids:
         raise core.InvalidOperation("Select at least one overdue customer invoice.")
     try:
@@ -33,21 +65,29 @@ def preview_notice(session: Session, tenant_id: str, values: dict) -> dict[str, 
         fee = core.decimal(values.get("fee_amount") or "0")
         notice_date = date.fromisoformat(values["notice_date"])
     except (KeyError, TypeError, ValueError) as error:
-        raise core.InvalidOperation("Enter a valid notice date, level and fee.") from error
+        raise core.InvalidOperation(
+            "Enter a valid notice date, level and fee."
+        ) from error
+    # reality-rule: services.dunning.preview_notice.refusal-10
     if level not in {1, 2, 3}:
         raise core.InvalidOperation("Dunning level must be 1, 2 or 3.")
+    # reality-rule: services.dunning.preview_notice.refusal-12
     if fee < 0 or fee.as_tuple().exponent < -4:
-        raise core.InvalidOperation("Dunning fee must be non-negative with at most four decimals.")
+        raise core.InvalidOperation(
+            "Dunning fee must be non-negative with at most four decimals."
+        )
     invoices = [
         core._tenant_record(session, Document, tenant_id, invoice_id)
         for invoice_id in invoice_ids
     ]
+    # reality-rule: services.dunning.preview_notice.refusal-18
     if any(
         invoice.type not in {"sales_invoice", "opening_customer_debt"}
         for invoice in invoices
     ):
         raise core.InvalidOperation("Dunning requires customer invoices.")
     party_id, currency = invoices[0].party_id, invoices[0].currency
+    # reality-rule: services.dunning.preview_notice.refusal-24
     if any(
         invoice.party_id != party_id or invoice.currency != currency
         for invoice in invoices
@@ -55,6 +95,7 @@ def preview_notice(session: Session, tenant_id: str, values: dict) -> dict[str, 
         raise core.InvalidOperation("One notice cannot mix customers or currencies.")
     as_of = datetime.combine(notice_date, time.max, tzinfo=UTC)
     overdue = overdue_document_ids(session, tenant_id, as_of=as_of)
+    # reality-rule: services.dunning.preview_notice.refusal-31
     if any(invoice.id not in overdue for invoice in invoices):
         raise core.InvalidOperation("Every reminded invoice must be open and overdue.")
     accounts = None
@@ -65,6 +106,7 @@ def preview_notice(session: Session, tenant_id: str, values: dict) -> dict[str, 
             "accounts_receivable": receivable.account_id,
             "dunning_fee_revenue": revenue.id,
         }
+    # reality-rule: services.dunning.preview_notice.result
     return {
         "invoice_ids": invoice_ids,
         "party_id": party_id,
@@ -85,9 +127,18 @@ def preview_notice(session: Session, tenant_id: str, values: dict) -> dict[str, 
 def dunning_context(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
-    """Return the current finance revision and a validated reminder preview."""
+    """
+    Return the current finance revision and a validated reminder preview.
+
+    BUSINESS PURPOSE:
+    Return the current finance revision and a validated reminder preview.
+
+    BUSINESS RULE services.dunning.dunning_context.result:
+    Return the current result with revision, preview.
+    """
     from reality.services.finance.accounts import list_accounts
 
+    # reality-rule: services.dunning.dunning_context.result
     return {
         "revision": list_accounts(session, tenant_id)["revision"],
         "preview": preview_notice(session, tenant_id, arguments),
@@ -108,11 +159,32 @@ def record_notice(
     number: str = "",
     expected_revision: int,
 ) -> dict[str, Any]:
-    """Record one confirmed notice atomically; callers own the outer transaction."""
+    """
+    Record one confirmed notice atomically; callers own the outer transaction.
+
+    BUSINESS PURPOSE:
+    Record one confirmed notice atomically; callers own the outer transaction.
+
+    BUSINESS RULE services.dunning.record_notice.step-15:
+    Require the business permission for 'record_dunning_notice' before changing company records.
+
+    BUSINESS RULE services.dunning.record_notice.refusal-17:
+    IF the current finance revision differs from the confirmed review revision:
+        Refuse: Finance preview is stale; reload and confirm again.
+
+    BUSINESS RULE services.dunning.record_notice.step-19:
+    Run the shared preview notice check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.dunning.record_notice.result:
+    Return the recorded notice receipt from the common dunning service after the reviewed finance revision was checked.
+    """
+    # reality-rule: services.dunning.record_notice.step-15
     core._require_business_mutation(session, tenant_id, "record_dunning_notice")
     state = lock_finance(session, tenant_id)
+    # reality-rule: services.dunning.record_notice.refusal-17
     if state.revision != expected_revision:
         raise core.Conflict("Finance preview is stale; reload and confirm again.")
+    # reality-rule: services.dunning.record_notice.step-19
     values = preview_notice(
         session,
         tenant_id,
@@ -125,6 +197,7 @@ def record_notice(
             "number": number,
         },
     )
+    # reality-rule: services.dunning.record_notice.result
     return _record_notice(
         session,
         tenant_id,
@@ -275,6 +348,13 @@ def _record_notice(
 
 
 def notice_detail(session: Session, tenant_id: str, notice_id: str) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Read one recorded dunning notice and the related invoice context.
+
+    BUSINESS RULE services.dunning.notice_detail.result:
+    Return the current result with id, document_id, number, source_record_id, party_id, currency, notice_date, level, fee_amount, invoice_ids, fee_document_id, fee_posting_group_id, reversed, reversal_event_id.
+    """
     notice = core._tenant_record(session, DunningNotice, tenant_id, notice_id)
     document = core._tenant_record(session, Document, tenant_id, notice.document_id)
     invoice_ids = list(
@@ -316,6 +396,7 @@ def notice_detail(session: Session, tenant_id: str, notice_id: str) -> dict[str,
         )
         .order_by(BusinessEvent.sequence.desc())
     )
+    # reality-rule: services.dunning.notice_detail.result
     return {
         "id": notice.id,
         "document_id": notice.document_id,
@@ -328,15 +409,26 @@ def notice_detail(session: Session, tenant_id: str, notice_id: str) -> dict[str,
         "fee_amount": str(notice.fee_amount),
         "invoice_ids": invoice_ids,
         "fee_document_id": fee_document.id if fee_document else None,
-        "fee_posting_group_id": fee_entries[0].posting_group_id if fee_entries else None,
+        "fee_posting_group_id": fee_entries[0].posting_group_id
+        if fee_entries
+        else None,
         "reversed": reversal is not None,
         "reversal_event_id": reversal.id if reversal else None,
     }
 
 
 def notices(session: Session, tenant_id: str) -> list[dict[str, Any]]:
-    """List notices newest first with their invoice and fee trace."""
+    """
+    List notices newest first with their invoice and fee trace.
+
+    BUSINESS PURPOSE:
+    List notices newest first with their invoice and fee trace.
+
+    BUSINESS RULE services.dunning.notices.result:
+    Return the selected records in the displayed response structure; preserve the source identifiers and stated values used by this comprehension.
+    """
     core.get_tenant(session, tenant_id)
+    # reality-rule: services.dunning.notices.result
     return [
         notice_detail(session, tenant_id, notice_id)
         for notice_id in session.scalars(
@@ -361,11 +453,36 @@ def reverse_notice(
     reason: str,
     expected_revision: int,
 ) -> dict[str, Any]:
-    """Reverse a notice's financial fee and retain the original reminder evidence."""
+    """
+    Reverse a notice's financial fee and retain the original reminder evidence.
+
+    BUSINESS PURPOSE:
+    Reverse a notice's financial fee and retain the original reminder evidence.
+
+    BUSINESS RULE services.dunning.reverse_notice.step-11:
+    Require the business permission for 'reverse_dunning_notice' before changing company records.
+
+    BUSINESS RULE services.dunning.reverse_notice.refusal-12:
+    IF the current finance revision differs from the confirmed review revision:
+        Refuse: Finance preview is stale; reload and confirm again.
+
+    BUSINESS RULE services.dunning.reverse_notice.refusal-15:
+    IF the selected notice already has a reversal:
+        Refuse: Dunning notice is already reversed.
+
+    BUSINESS RULE services.dunning.reverse_notice.step-29:
+    Record the dunning.notice_reversed audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.dunning.reverse_notice.result:
+    Return the current result with reversal_id, reversed.
+    """
+    # reality-rule: services.dunning.reverse_notice.step-11
     core._require_business_mutation(session, tenant_id, "reverse_dunning_notice")
+    # reality-rule: services.dunning.reverse_notice.refusal-12
     if lock_finance(session, tenant_id).revision != expected_revision:
         raise core.Conflict("Finance preview is stale; reload and confirm again.")
     detail = notice_detail(session, tenant_id, notice_id)
+    # reality-rule: services.dunning.reverse_notice.refusal-15
     if detail["reversed"]:
         raise core.InvalidOperation("Dunning notice is already reversed.")
     reversal_id = None
@@ -380,6 +497,7 @@ def reverse_notice(
             _commit=False,
         )
         reversal_id = reversal.reversal_id
+    # reality-rule: services.dunning.reverse_notice.step-29
     emit_business_event(
         session,
         tenant_id,
@@ -390,4 +508,5 @@ def reverse_notice(
         source_record_id=detail["source_record_id"],
         action_id=action_id,
     )
+    # reality-rule: services.dunning.reverse_notice.result
     return {**detail, "reversal_id": reversal_id, "reversed": True}

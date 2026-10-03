@@ -542,7 +542,15 @@ def _replace_party_emails(
 
 
 def positive(value: Decimal | float | str, field: str = "quantity") -> Decimal:
+    """
+    BUSINESS PURPOSE:
+    Validate a stated amount or quantity that must be strictly positive.
+
+    BUSINESS RULE core.positive.1:
+    Refuse zero or a negative decimal value; the field name identifies the refused business input.
+    """
     result = decimal(value)
+    # reality-rule: core.positive.1
     if result <= ZERO:
         raise InvalidOperation(
             code="master_data_field_not_positive", values={"field": field.capitalize()}
@@ -822,7 +830,18 @@ def observe_fact(
     idempotency_key: str,
     action_id: str | None = None,
 ) -> Fact:
-    """Append one validated, source-supported observation exactly once."""
+    """
+    Append one validated, source-supported observation exactly once.
+
+    BUSINESS PURPOSE:
+    Record a source-supported contextual observation against an existing company record.
+
+    BUSINESS RULE core.observe_fact.1:
+    Use the registered predicate contract to validate the subject type and value; unsupported subjects are refused.
+
+    BUSINESS RULE core.observe_fact.2:
+    Persist the validated observation with its source, observation time and tenant-specific idempotency fingerprint; the persistence helper decides safe replay.
+    """
     _require_business_mutation(session, tenant_id, "observe_fact")
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     if not source_record_id.strip():
@@ -842,6 +861,7 @@ def observe_fact(
         raise InvalidOperation("Fact subject, subject ID and predicate are required.")
     if not normalized_key:
         raise InvalidOperation("Fact idempotency key is required.")
+    # reality-rule: core.observe_fact.1
     contract = _fact_contract(normalized_predicate)
     if normalized_subject_type not in contract["subject_types"]:
         raise InvalidOperation("Fact predicate does not support this subject type.")
@@ -868,6 +888,7 @@ def observe_fact(
     request_fingerprint = hashlib.sha256(
         f"{tenant_id}\x1f{normalized_key}".encode()
     ).hexdigest()
+    # reality-rule: core.observe_fact.2
     fact, _created = _persist_fact_observation(
         session,
         tenant_id,
@@ -1251,11 +1272,18 @@ def _usage_sources() -> tuple[tuple[str | None, Any, Any], ...]:
 def tenant_usage_summaries(
     session: OrmSession, *, tenant_id: str | None = None
 ) -> dict[str, dict[str, Any]]:
-    """Return one cheap, grouped usage projection for every tenant.
+    """
+    Return one cheap, grouped usage projection for every tenant.
 
     Every table is asked in the same statement. The figures are identical to the
     per-table form this replaces: a count of rows per tenant, and the latest of the
     timestamps the tables carry.
+
+    BUSINESS PURPOSE:
+    Summarize stored source, evidence, reality and configuration records per company, optionally limited to one company.
+
+    BUSINESS RULE core.tenant_usage_summaries.1:
+    IF source, evidence or reality records exist, classify the company as in use. ELSE IF configuration records exist, classify it as configured; otherwise it remains empty.
     """
     tenant_rows = (
         [get_tenant(session, tenant_id)]
@@ -1303,6 +1331,7 @@ def tenant_usage_summaries(
         if last_at is not None and (current is None or last_at > current):
             summary["last_activity_at"] = last_at
 
+    # reality-rule: core.tenant_usage_summaries.1
     for summary in summaries.values():
         operational_count = (
             summary["source_count"]
@@ -1388,13 +1417,29 @@ def create_payment_term(
     requires_prepayment: bool = False,
     _commit: bool = True,
 ) -> PaymentTerm:
+    """
+    BUSINESS PURPOSE:
+    Record a new payment term with stated maturity and early-payment conditions.
+
+    BUSINESS RULE core.create_payment_term.1:
+    Refuse a blank code or name after trimming; the code is normalized to uppercase.
+
+    BUSINESS RULE core.create_payment_term.2:
+    Refuse negative maturity days; zero means no additional due days.
+
+    BUSINESS RULE core.create_payment_term.3:
+    Validate the stated discount rate and discount window together through the shared discount helper.
+    """
     _require_business_mutation(session, tenant_id, "create_payment_term")
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     code, name = code.strip().upper(), name.strip()
+    # reality-rule: core.create_payment_term.1
     if not code or not name:
         raise InvalidOperation("Payment term code and name are required.")
+    # reality-rule: core.create_payment_term.2
     if due_days < 0:
         raise InvalidOperation("Payment term due days cannot be negative.")
+    # reality-rule: core.create_payment_term.3
     rate, window = _early_payment_discount(discount_percent, discount_days)
     if session.scalar(
         select(PaymentTerm.id).where(
@@ -1462,11 +1507,26 @@ def update_payment_term(
     discount_days: int | None = None,
     requires_prepayment: bool = False,
 ) -> PaymentTerm:
+    """
+    BUSINESS PURPOSE:
+    Record changes to an existing payment term with stated maturity and early-payment conditions.
+
+    BUSINESS RULE core.update_payment_term.1:
+    Refuse a blank code or name after trimming; the code is normalized to uppercase.
+
+    BUSINESS RULE core.update_payment_term.2:
+    Refuse negative maturity days; zero means no additional due days.
+
+    BUSINESS RULE core.update_payment_term.3:
+    Validate the stated discount rate and discount window together through the shared discount helper.
+    """
     _require_business_mutation(session, tenant_id, "update_payment_term")
     term = _tenant_record(session, PaymentTerm, tenant_id, payment_term_id)
     code, name = code.strip().upper(), name.strip()
+    # reality-rule: core.update_payment_term.1
     if not code or not name:
         raise InvalidOperation("Payment term code and name are required.")
+    # reality-rule: core.update_payment_term.2
     if due_days < 0:
         raise InvalidOperation("Payment term due days cannot be negative.")
     duplicate = session.scalar(
@@ -1478,6 +1538,7 @@ def update_payment_term(
     )
     if duplicate:
         raise InvalidOperation(f"Payment term code '{code}' already exists.")
+    # reality-rule: core.update_payment_term.3
     rate, window = _early_payment_discount(discount_percent, discount_days)
     term.code, term.name, term.due_days = code, name, due_days
     term.discount_percent, term.discount_days = rate, window
@@ -1565,14 +1626,29 @@ def create_price_list(
     external_id: str = "",
     source_payload: dict[str, Any] | None = None,
 ) -> PriceList:
+    """
+    BUSINESS PURPOSE:
+    Record a new sales or purchase price list in its stated currency.
+
+    BUSINESS RULE core.create_price_list.1:
+    Accept only sales or purchase direction.
+
+    BUSINESS RULE core.create_price_list.2:
+    Require a three-character currency identifier.
+
+    BUSINESS RULE core.create_price_list.3:
+    IF this list is to be the default, refuse another active default for the same direction and currency.
+    """
     _require_business_mutation(session, tenant_id, "create_price_list")
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     code, name = code.strip().upper(), name.strip()
     direction, currency = direction.strip().lower(), currency.strip().upper()
     if not code or not name:
         raise InvalidOperation("Price-list code and name are required.")
+    # reality-rule: core.create_price_list.1
     if direction not in {"sales", "purchase"}:
         raise InvalidOperation("Price-list direction must be sales or purchase.")
+    # reality-rule: core.create_price_list.2
     if len(currency) != 3:
         raise InvalidOperation("Price-list currency must be a three-letter ISO code.")
     starts, ends = utc_datetime(valid_from), utc_datetime(valid_until)
@@ -1584,6 +1660,7 @@ def create_price_list(
         )
     ):
         raise InvalidOperation(f"Price-list code '{code}' already exists.")
+    # reality-rule: core.create_price_list.3
     if is_default and session.scalar(
         select(PriceList.id).where(
             PriceList.tenant_id == tenant_id,
@@ -1642,14 +1719,29 @@ def update_price_list(
     *,
     is_default: bool = False,
 ) -> PriceList:
+    """
+    BUSINESS PURPOSE:
+    Record changes to an existing sales or purchase price list in its stated currency.
+
+    BUSINESS RULE core.update_price_list.1:
+    Accept only sales or purchase direction.
+
+    BUSINESS RULE core.update_price_list.2:
+    Require a three-character currency identifier.
+
+    BUSINESS RULE core.update_price_list.3:
+    IF this list is to be the default, refuse another active default for the same direction and currency.
+    """
     _require_business_mutation(session, tenant_id, "update_price_list")
     result = _tenant_record(session, PriceList, tenant_id, price_list_id)
     code, name = code.strip().upper(), name.strip()
     direction, currency = direction.strip().lower(), currency.strip().upper()
     if not code or not name:
         raise InvalidOperation("Price-list code and name are required.")
+    # reality-rule: core.update_price_list.1
     if direction not in {"sales", "purchase"}:
         raise InvalidOperation("Price-list direction must be sales or purchase.")
+    # reality-rule: core.update_price_list.2
     if len(currency) != 3:
         raise InvalidOperation("Price-list currency must be a three-letter ISO code.")
     duplicate = session.scalar(
@@ -1661,6 +1753,7 @@ def update_price_list(
     )
     if duplicate:
         raise InvalidOperation(f"Price-list code '{code}' already exists.")
+    # reality-rule: core.update_price_list.3
     if is_default:
         other_default = session.scalar(
             select(PriceList.id).where(
@@ -1713,11 +1806,26 @@ def create_price_list_entry(
     valid_from: datetime | str | None = None,
     valid_until: datetime | str | None = None,
 ) -> PriceListEntry:
+    """
+    BUSINESS PURPOSE:
+    Record an item price tier in an existing company price list.
+
+    BUSINESS RULE core.create_price_list_entry.1:
+    Require a positive minimum quantity and preserve the stated unit price as a decimal.
+
+    BUSINESS RULE core.create_price_list_entry.2:
+    Refuse a negative unit price; zero is accepted.
+
+    BUSINESS RULE core.create_price_list_entry.3:
+    Refuse an existing tier for the same price list, item and minimum quantity.
+    """
     _require_business_mutation(session, tenant_id, "create_price_list_entry")
     _tenant_record(session, PriceList, tenant_id, price_list_id)
     _tenant_record(session, Item, tenant_id, item_id)
+    # reality-rule: core.create_price_list_entry.1
     minimum = positive(min_quantity, "minimum quantity")
     price = decimal(unit_price)
+    # reality-rule: core.create_price_list_entry.2
     if price < ZERO:
         raise InvalidOperation("Unit price cannot be negative.")
     unit = unit.strip()
@@ -1726,6 +1834,7 @@ def create_price_list_entry(
     starts, ends = utc_datetime(valid_from), utc_datetime(valid_until)
     if starts and ends and ends <= starts:
         raise InvalidOperation("Entry valid-until must be after valid-from.")
+    # reality-rule: core.create_price_list_entry.3
     if session.scalar(
         select(PriceListEntry.id).where(
             PriceListEntry.tenant_id == tenant_id,
@@ -1772,9 +1881,17 @@ def assign_party_price_list(
     price_list_id: str,
     priority: int = 100,
 ) -> PartyPriceList:
+    """
+    BUSINESS PURPOSE:
+    Assign an existing price list to an existing business partner with the stated priority.
+
+    BUSINESS RULE core.assign_party_price_list.1:
+    Create a separate assignment retaining both opaque identities and the stated priority; no price is copied to the partner or group.
+    """
     _require_business_mutation(session, tenant_id, "assign_party_price_list")
     _tenant_record(session, Party, tenant_id, party_id)
     _tenant_record(session, PriceList, tenant_id, price_list_id)
+    # reality-rule: core.assign_party_price_list.1
     assignment = PartyPriceList(
         id=uid("ppl"),
         tenant_id=tenant_id,
@@ -1798,11 +1915,23 @@ def assign_party_price_list(
 def create_party_group(
     session: OrmSession, tenant_id: str, code: str, name: str
 ) -> PartyGroup:
+    """
+    BUSINESS PURPOSE:
+    Record a new business partner group.
+
+    BUSINESS RULE core.create_party_group.1:
+    Require a nonblank uppercase-normalized code and trimmed name.
+
+    BUSINESS RULE core.create_party_group.2:
+    Refuse another group using the same code in this company.
+    """
     _require_business_mutation(session, tenant_id, "create_party_group")
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     code, name = code.strip().upper(), name.strip()
+    # reality-rule: core.create_party_group.1
     if not code or not name:
         raise InvalidOperation("Party-group code and name are required.")
+    # reality-rule: core.create_party_group.2
     if session.scalar(
         select(PartyGroup.id).where(
             PartyGroup.tenant_id == tenant_id, PartyGroup.code == code
@@ -1826,9 +1955,20 @@ def create_party_group(
 def update_party_group(
     session: OrmSession, tenant_id: str, party_group_id: str, code: str, name: str
 ) -> PartyGroup:
+    """
+    BUSINESS PURPOSE:
+    Record changes to an existing business partner group.
+
+    BUSINESS RULE core.update_party_group.1:
+    Require a nonblank uppercase-normalized code and trimmed name.
+
+    BUSINESS RULE core.update_party_group.2:
+    Refuse another group using the same code in this company.
+    """
     _require_business_mutation(session, tenant_id, "update_party_group")
     group = _tenant_record(session, PartyGroup, tenant_id, party_group_id)
     code, name = code.strip().upper(), name.strip()
+    # reality-rule: core.update_party_group.1
     if not code or not name:
         raise InvalidOperation("Party-group code and name are required.")
     duplicate = session.scalar(
@@ -1838,6 +1978,7 @@ def update_party_group(
             PartyGroup.id != party_group_id,
         )
     )
+    # reality-rule: core.update_party_group.2
     if duplicate:
         raise InvalidOperation(f"Party-group code '{code}' already exists.")
     group.code, group.name = code, name
@@ -1857,11 +1998,23 @@ def update_party_group(
 def add_party_group_member(
     session: OrmSession, tenant_id: str, party_group_id: str, party_id: str
 ) -> PartyGroupMember:
+    """
+    BUSINESS PURPOSE:
+    Add an existing business partner to an existing company group.
+
+    BUSINESS RULE core.add_party_group_member.1:
+    Refuse membership changes to an inactive group.
+
+    BUSINESS RULE core.add_party_group_member.2:
+    Store membership as a relation between the group and partner; their records remain separate.
+    """
     _require_business_mutation(session, tenant_id, "add_party_group_member")
     group = _tenant_record(session, PartyGroup, tenant_id, party_group_id)
+    # reality-rule: core.add_party_group_member.1
     if not group.is_active:
         raise InvalidOperation("Cannot add members to an inactive party group.")
     _tenant_record(session, Party, tenant_id, party_id)
+    # reality-rule: core.add_party_group_member.2
     member = PartyGroupMember(
         id=uid("pgm"),
         tenant_id=tenant_id,
@@ -1888,9 +2041,17 @@ def assign_group_price_list(
     price_list_id: str,
     priority: int = 100,
 ) -> PartyGroupPriceList:
+    """
+    BUSINESS PURPOSE:
+    Assign an existing price list to an existing business partner group with the stated priority.
+
+    BUSINESS RULE core.assign_group_price_list.1:
+    Create a separate assignment retaining both opaque identities and the stated priority; no price is copied to the partner or group.
+    """
     _require_business_mutation(session, tenant_id, "assign_group_price_list")
     _tenant_record(session, PartyGroup, tenant_id, party_group_id)
     _tenant_record(session, PriceList, tenant_id, price_list_id)
+    # reality-rule: core.assign_group_price_list.1
     assignment = PartyGroupPriceList(
         id=uid("gpl"),
         tenant_id=tenant_id,
@@ -1927,6 +2088,22 @@ def resolve_price(
     *,
     at: datetime | str | None = None,
 ) -> PriceResult | None:
+    """
+    BUSINESS PURPOSE:
+    Find the first applicable stated price for a partner, item, quantity, direction, currency and unit at the evaluation time.
+
+    BUSINESS RULE core.resolve_price.1:
+    Try valid direct partner assignments first, then valid memberships in active partner groups; each category is ordered by assignment priority.
+
+    BUSINESS RULE core.resolve_price.2:
+    Append active default lists for the requested direction and currency after assigned lists.
+
+    BUSINESS RULE core.resolve_price.3:
+    For each candidate, skip inactive lists, wrong direction or currency, and lists outside their validity period. Select the highest eligible quantity tier in the requested unit that is valid at the evaluation time; return its stated price and provenance.
+
+    BUSINESS RULE core.resolve_price.4:
+    IF no eligible tier exists in any candidate list, return no resolved price.
+    """
     _tenant_record(session, Party, tenant_id, party_id)
     _tenant_record(session, Item, tenant_id, item_id)
     requested_quantity = positive(quantity)
@@ -1965,6 +2142,7 @@ def resolve_price(
             .order_by(PartyGroupPriceList.priority)
         )
     )
+    # reality-rule: core.resolve_price.1
     candidates = [
         (link.price_list_id, "party", link.id, None) for link in direct if valid(link)
     ] + [
@@ -1983,7 +2161,9 @@ def resolve_price(
             )
         )
     )
+    # reality-rule: core.resolve_price.2
     candidates.extend((price_list.id, "default", None, None) for price_list in defaults)
+    # reality-rule: core.resolve_price.3
     for price_list_id, source, assignment_id, party_group_id in candidates:
         price_list = _tenant_record(session, PriceList, tenant_id, price_list_id)
         if (
@@ -2019,6 +2199,7 @@ def resolve_price(
                 party_group_id,
                 moment,
             )
+    # reality-rule: core.resolve_price.4
     return None
 
 
@@ -2356,14 +2537,32 @@ def create_party(
     source_record_id: str | None = None,
     _commit: bool = True,
 ) -> Party:
+    """
+    BUSINESS PURPOSE:
+    Create a company-scoped business partner with stated roles, credit conditions and source provenance.
+
+    BUSINESS RULE core.create_party.1:
+    Refuse a blank name after trimming.
+
+    BUSINESS RULE core.create_party.2:
+    Require at least one supported role: company, customer or supplier; repeated roles are removed.
+
+    BUSINESS RULE core.create_party.3:
+    Refuse a negative stated credit limit; zero is accepted.
+
+    BUSINESS RULE core.create_party.4:
+    Record the selected roles separately against the new opaque partner identity.
+    """
     _require_business_mutation(session, tenant_id, "create_party")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     name = name.strip()
+    # reality-rule: core.create_party.1
     if not name:
         raise InvalidOperation(code="party_name_required")
     selected_roles = list(dict.fromkeys(roles or [party_type]))
+    # reality-rule: core.create_party.2
     if not selected_roles or any(
         role not in {"company", "customer", "supplier"} for role in selected_roles
     ):
@@ -2399,10 +2598,12 @@ def create_party(
         credit_limit=decimal(credit_limit),
         tax_identifier=tax_identifier.strip(),
     )
+    # reality-rule: core.create_party.3
     if party.credit_limit < ZERO:
         raise InvalidOperation(code="party_credit_limit_negative")
     session.add(party)
     session.flush()
+    # reality-rule: core.create_party.4
     session.add_all(
         PartyRole(id=uid("pro"), tenant_id=tenant_id, party_id=party.id, role=role)
         for role in selected_roles
@@ -2445,20 +2646,44 @@ def create_item(
     source_record_id: str | None = None,
     _commit: bool = True,
 ) -> Item:
+    """
+    BUSINESS PURPOSE:
+    Create an item with stated stock unit, purchasing conversion and tracking behavior.
+
+    BUSINESS RULE core.create_item.1:
+    Require a nonblank item number, name and stock unit.
+
+    BUSINESS RULE core.create_item.2:
+    Accept stocked, service or charge items only.
+
+    BUSINESS RULE core.create_item.3:
+    Accept no tracking, lot tracking or serial tracking only.
+
+    BUSINESS RULE core.create_item.4:
+    Require a positive stated purchase-to-stock conversion factor.
+
+    BUSINESS RULE core.create_item.5:
+    Refuse a negative lead time.
+    """
     _require_business_mutation(session, tenant_id, "create_item")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     sku, name, unit = sku.strip(), name.strip(), unit.strip()
+    # reality-rule: core.create_item.1
     if not sku or not name or not unit:
         raise InvalidOperation(code="item_sku_name_unit_required")
+    # reality-rule: core.create_item.2
     if item_type not in {"stocked", "service", "charge"}:
         raise InvalidOperation(code="item_type_invalid")
+    # reality-rule: core.create_item.3
     if tracking_type not in {"none", "lot", "serial"}:
         raise InvalidOperation(code="item_tracking_type_invalid")
     if default_location_id:
         _tenant_record(session, Location, tenant_id, default_location_id)
+    # reality-rule: core.create_item.4
     factor = positive(conversion_factor, "conversion factor")
+    # reality-rule: core.create_item.5
     if lead_time_days < 0:
         raise InvalidOperation(code="item_lead_time_negative")
     source = (
@@ -2521,13 +2746,28 @@ def create_location(
     source_record_id: str | None = None,
     _commit: bool = True,
 ) -> Location:
+    """
+    BUSINESS PURPOSE:
+    Create a company location with an optional existing parent and stated permission to hold stock.
+
+    BUSINESS RULE core.create_location.1:
+    Require a nonblank name and location type.
+
+    BUSINESS RULE core.create_location.2:
+    IF a parent is supplied, require that location in the same company.
+
+    BUSINESS RULE core.create_location.3:
+    Store the parent relation and stock permission exactly as supplied; this does not record any goods movement.
+    """
     _require_business_mutation(session, tenant_id, "create_location")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     name, location_type = name.strip(), location_type.strip()
+    # reality-rule: core.create_location.1
     if not name or not location_type:
         raise InvalidOperation(code="location_name_type_required")
+    # reality-rule: core.create_location.2
     if parent_location_id:
         _tenant_record(session, Location, tenant_id, parent_location_id)
     source = (
@@ -2544,6 +2784,7 @@ def create_location(
             action_id=action_id,
         )
     )
+    # reality-rule: core.create_location.3
     location = Location(
         id=uid("loc"),
         tenant_id=tenant_id,
@@ -2577,15 +2818,27 @@ def create_parties(
     *,
     action_id: str | None = None,
 ) -> list[Party]:
+    """
+    BUSINESS PURPOSE:
+    Create a reviewed batch of parties through the same single-record creation service.
+
+    BUSINESS RULE core.create_parties.1:
+    Refuse an empty batch.
+
+    BUSINESS RULE core.create_parties.2:
+    Create every record without an intermediate commit; commit the batch once. IF any record fails, roll back the entire batch.
+    """
     _require_business_mutation(session, tenant_id, "create_parties")
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "party_create", records, action_id)
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
+    # reality-rule: core.create_parties.1
     if not records:
         raise InvalidOperation(code="party_batch_empty")
     created: list[Party] = []
+    # reality-rule: core.create_parties.2
     try:
         for record in records:
             roles = list(record["roles"])
@@ -2623,15 +2876,27 @@ def create_items(
     *,
     action_id: str | None = None,
 ) -> list[Item]:
+    """
+    BUSINESS PURPOSE:
+    Create a reviewed batch of items through the same single-record creation service.
+
+    BUSINESS RULE core.create_items.1:
+    Refuse an empty batch.
+
+    BUSINESS RULE core.create_items.2:
+    Create every record without an intermediate commit; commit the batch once. IF any record fails, roll back the entire batch.
+    """
     _require_business_mutation(session, tenant_id, "create_items")
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "item_create", records, action_id)
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
+    # reality-rule: core.create_items.1
     if not records:
         raise InvalidOperation(code="item_batch_empty")
     created: list[Item] = []
+    # reality-rule: core.create_items.2
     try:
         for record in records:
             created.append(
@@ -2668,16 +2933,28 @@ def create_locations(
     *,
     action_id: str | None = None,
 ) -> list[Location]:
+    """
+    BUSINESS PURPOSE:
+    Create a reviewed batch of locations through the same single-record creation service.
+
+    BUSINESS RULE core.create_locations.1:
+    Refuse an empty batch.
+
+    BUSINESS RULE core.create_locations.2:
+    Create every record without an intermediate commit; commit the batch once. IF any record fails, roll back the entire batch.
+    """
     _require_business_mutation(session, tenant_id, "create_locations")
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "location_create", records, action_id)
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
+    # reality-rule: core.create_locations.1
     if not records:
         raise InvalidOperation(code="location_batch_empty")
     created: list[Location] = []
     local_references: dict[str, str] = {}
+    # reality-rule: core.create_locations.2
     try:
         for record in records:
             reference = str(record.get("ref") or "").strip()
@@ -2927,6 +3204,19 @@ def update_party(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> Party:
+    """
+    BUSINESS PURPOSE:
+    Update partner master data and preserve changes in source provenance and business events.
+
+    BUSINESS RULE core.update_party.1:
+    Require supported company, customer or supplier roles and synchronize the separate role records.
+
+    BUSINESS RULE core.update_party.2:
+    IF a credit limit is supplied, preserve its decimal value and refuse negative limits; omitted financial fields remain unchanged.
+
+    BUSINESS RULE core.update_party.3:
+    Emit a partner-updated event only when the before/after snapshot contains changes.
+    """
     _require_business_mutation(session, tenant_id, "update_party")
     party = _tenant_record(session, Party, tenant_id, party_id)
     before = _party_update_snapshot(session, tenant_id, party)
@@ -2934,6 +3224,7 @@ def update_party(
     if not name:
         raise InvalidOperation(code="party_name_required")
     selected_roles = list(dict.fromkeys(roles or [party_type]))
+    # reality-rule: core.update_party.1
     if not selected_roles or any(
         role not in {"company", "customer", "supplier"} for role in selected_roles
     ):
@@ -2986,6 +3277,7 @@ def update_party(
         )
     if default_currency is not None:
         party.default_currency = default_currency.strip().upper() or "EUR"
+    # reality-rule: core.update_party.2
     if credit_limit is not None:
         party.credit_limit = decimal(credit_limit)
         if party.credit_limit < ZERO:
@@ -2996,6 +3288,7 @@ def update_party(
         _replace_party_emails(session, tenant_id, party.id, emails)
     session.flush()
     changes = _field_changes(before, _party_update_snapshot(session, tenant_id, party))
+    # reality-rule: core.update_party.3
     if changes:
         emit_business_event(
             session,
@@ -3032,10 +3325,30 @@ def update_item(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> Item:
+    """
+    BUSINESS PURPOSE:
+    Update stated item master data without recording a physical movement.
+
+    BUSINESS RULE core.update_item.1:
+    Require a nonblank item number, name and stock unit.
+
+    BUSINESS RULE core.update_item.2:
+    IF tracking is supplied, accept only none, lot or serial tracking.
+
+    BUSINESS RULE core.update_item.3:
+    IF purchasing conversion is supplied, require a positive factor.
+
+    BUSINESS RULE core.update_item.4:
+    IF lead time is supplied, refuse negative days.
+
+    BUSINESS RULE core.update_item.5:
+    Emit an item-updated event only for actual before/after changes.
+    """
     _require_business_mutation(session, tenant_id, "update_item")
     item = _tenant_record(session, Item, tenant_id, item_id)
     before = _item_update_snapshot(item)
     sku, name, unit = sku.strip(), name.strip(), unit.strip()
+    # reality-rule: core.update_item.1
     if not sku or not name or not unit:
         raise InvalidOperation(code="item_sku_name_unit_required")
     source = update_master_source_reference(
@@ -3054,6 +3367,7 @@ def update_item(
         if item_type not in {"stocked", "service", "charge"}:
             raise InvalidOperation(code="item_type_invalid")
         item.item_type = item_type
+    # reality-rule: core.update_item.2
     if tracking_type is not None:
         if tracking_type not in {"none", "lot", "serial"}:
             raise InvalidOperation(code="item_tracking_type_invalid")
@@ -3063,13 +3377,16 @@ def update_item(
         item.default_location_id = default_location_id
     if purchase_unit is not None:
         item.purchase_unit = purchase_unit.strip() or unit
+    # reality-rule: core.update_item.3
     if conversion_factor is not None:
         item.conversion_factor = positive(conversion_factor, "conversion factor")
+    # reality-rule: core.update_item.4
     if lead_time_days is not None:
         if lead_time_days < 0:
             raise InvalidOperation(code="item_lead_time_negative")
         item.lead_time_days = lead_time_days
     changes = _field_changes(before, _item_update_snapshot(item))
+    # reality-rule: core.update_item.5
     if changes:
         emit_business_event(
             session,
@@ -3101,15 +3418,30 @@ def update_location(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> Location:
+    """
+    BUSINESS PURPOSE:
+    Update a location and its hierarchy while preventing circular parent relationships.
+
+    BUSINESS RULE core.update_location.1:
+    Refuse a location as its own parent.
+
+    BUSINESS RULE core.update_location.2:
+    Walk the proposed parent chain in the same company; refuse a cycle that reaches the location being updated.
+
+    BUSINESS RULE core.update_location.3:
+    Emit a location-updated event only when the snapshot changed.
+    """
     _require_business_mutation(session, tenant_id, "update_location")
     location = _tenant_record(session, Location, tenant_id, location_id)
     before = _location_update_snapshot(location)
     name, location_type = name.strip(), location_type.strip()
     if not name or not location_type:
         raise InvalidOperation(code="location_name_type_required")
+    # reality-rule: core.update_location.1
     if parent_location_id == location.id:
         raise InvalidOperation(code="location_own_parent")
     ancestor_id = parent_location_id
+    # reality-rule: core.update_location.2
     while ancestor_id:
         ancestor = _tenant_record(session, Location, tenant_id, ancestor_id)
         if ancestor.id == location.id:
@@ -3131,6 +3463,7 @@ def update_location(
     if allows_stock is not None:
         location.allows_stock = allows_stock
     changes = _field_changes(before, _location_update_snapshot(location))
+    # reality-rule: core.update_location.3
     if changes:
         emit_business_event(
             session,
@@ -3168,14 +3501,26 @@ def update_parties(
     *,
     action_id: str | None = None,
 ) -> list[Party]:
+    """
+    BUSINESS PURPOSE:
+    Update a reviewed batch of parties through the same single-record update service.
+
+    BUSINESS RULE core.update_parties.1:
+    Validate the batch through the shared preview before applying changes.
+
+    BUSINESS RULE core.update_parties.2:
+    Check each supplied expected revision before updating. Commit all updates once; IF any record fails, roll back the batch.
+    """
     _require_business_mutation(session, tenant_id, "update_parties")
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "party_update", records, action_id)
     if not records:
         raise InvalidOperation(code="party_batch_empty")
+    # reality-rule: core.update_parties.1
     preview_master_data_updates(session, tenant_id, "party", records)
     updated: list[Party] = []
+    # reality-rule: core.update_parties.2
     try:
         for record in records:
             _assert_update_revision(session, tenant_id, "party", record)
@@ -3214,14 +3559,26 @@ def update_items(
     *,
     action_id: str | None = None,
 ) -> list[Item]:
+    """
+    BUSINESS PURPOSE:
+    Update a reviewed batch of items through the same single-record update service.
+
+    BUSINESS RULE core.update_items.1:
+    Validate the batch through the shared preview before applying changes.
+
+    BUSINESS RULE core.update_items.2:
+    Check each supplied expected revision before updating. Commit all updates once; IF any record fails, roll back the batch.
+    """
     _require_business_mutation(session, tenant_id, "update_items")
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "item_update", records, action_id)
     if not records:
         raise InvalidOperation(code="item_batch_empty")
+    # reality-rule: core.update_items.1
     preview_master_data_updates(session, tenant_id, "item", records)
     updated: list[Item] = []
+    # reality-rule: core.update_items.2
     try:
         for record in records:
             _assert_update_revision(session, tenant_id, "item", record)
@@ -3260,14 +3617,26 @@ def update_locations(
     *,
     action_id: str | None = None,
 ) -> list[Location]:
+    """
+    BUSINESS PURPOSE:
+    Update a reviewed batch of locations through the same single-record update service.
+
+    BUSINESS RULE core.update_locations.1:
+    Validate the batch through the shared preview before applying changes.
+
+    BUSINESS RULE core.update_locations.2:
+    Check each supplied expected revision before updating. Commit all updates once; IF any record fails, roll back the batch.
+    """
     _require_business_mutation(session, tenant_id, "update_locations")
     from reality.services.tenant_policy import require_master_call
 
     require_master_call(session, tenant_id, "location_update", records, action_id)
     if not records:
         raise InvalidOperation(code="location_batch_empty")
+    # reality-rule: core.update_locations.1
     preview_master_data_updates(session, tenant_id, "location", records)
     updated: list[Location] = []
+    # reality-rule: core.update_locations.2
     try:
         for record in records:
             _assert_update_revision(session, tenant_id, "location", record)
@@ -3308,12 +3677,24 @@ def set_master_data_active(
     *,
     action_id: str | None = None,
 ) -> Party | Item | Location | PaymentTerm:
+    """
+    BUSINESS PURPOSE:
+    Activate or deactivate a supported partner, item, location or payment term.
+
+    BUSINESS RULE core.set_master_data_active.1:
+    Refuse other master-data families.
+
+    BUSINESS RULE core.set_master_data_active.2:
+    IF the active flag changes, emit a lifecycle event with its before and after values; an unchanged flag produces no lifecycle event.
+    """
     _require_business_mutation(session, tenant_id, "set_master_data_active")
+    # reality-rule: core.set_master_data_active.1
     if model not in {Party, Item, Location, PaymentTerm}:
         raise InvalidOperation("Unsupported master data type.")
     record = _tenant_record(session, model, tenant_id, record_id)
     before = record.is_active
     record.is_active = is_active
+    # reality-rule: core.set_master_data_active.2
     if before != is_active:
         emit_business_event(
             session,
@@ -3414,25 +3795,46 @@ def create_commitment(
 def commitments(
     session: OrmSession, tenant_id: str, commitment_ids: Iterable[str] | None = None
 ) -> list[Commitment]:
-    """Every promise of the company, or the named ones, in the same order."""
+    """
+    Every promise of the company, or the named ones, in the same order.
+
+    BUSINESS PURPOSE:
+    Read company delivery promises, optionally limited to named identities.
+
+    BUSINESS RULE core.commitments.1:
+    An explicitly empty identity selection returns no promises.
+
+    BUSINESS RULE core.commitments.2:
+    Return company-scoped promises ordered by their original due date; filtering does not change their meaning.
+    """
     ids = None if commitment_ids is None else set(commitment_ids)
+    # reality-rule: core.commitments.1
     if ids is not None and not ids:
         return []
     statement = select(Commitment).where(Commitment.tenant_id == tenant_id)
     if ids is not None:
         statement = statement.where(Commitment.id.in_(ids))
+    # reality-rule: core.commitments.2
     return list(session.scalars(statement.order_by(Commitment.due_at)))
 
 
 def movement_quantity(
     session: OrmSession, tenant_id: str, commitment_id: str, movement_type: str
 ) -> Decimal:
-    """How much of one movement type stands against a promise.
+    """
+    How much of one movement type stands against a promise.
 
     Movements a correction has voided do not count. Every caller reads the
     figure here — the service layer and the operational exception queue alike —
     so the two can never disagree about how much moved.
+
+    BUSINESS PURPOSE:
+    Read the correction-aware quantity of a particular movement type against one promise.
+
+    BUSINESS RULE core.movement_quantity.1:
+    Read the shared movement totals for this company promise and type; an absent total is zero.
     """
+    # reality-rule: core.movement_quantity.1
     return _movement_quantities(session, tenant_id, commitment_id).get(
         (commitment_id, movement_type), ZERO
     )
@@ -3441,12 +3843,28 @@ def movement_quantity(
 def _movement_quantities(
     session: OrmSession, tenant_id: str, commitment_id: str | None = None
 ) -> dict[tuple[str | None, str], Decimal]:
-    """Batch the same correction-aware quantities used by the scalar reader."""
+    """
+    Batch the same correction-aware quantities used by the scalar reader.
+
+    BUSINESS PURPOSE:
+    Sum physical fulfillment quantities by promise and movement type, excluding voided original movements.
+
+    BUSINESS RULE core._movement_quantities.1:
+    Sum recorded movement quantities in this company by linked promise and type.
+
+    BUSINESS RULE core._movement_quantities.2:
+    Read original movement quantities named by company movement corrections in the same groups.
+
+    BUSINESS RULE core._movement_quantities.3:
+    Subtract each corrected original quantity from its recorded group; replacement movements count through the ordinary recorded sum.
+    """
+    # reality-rule: core._movement_quantities.1
     recorded = (
         select(Movement.commitment_id, Movement.type, func.sum(Movement.quantity))
         .where(Movement.tenant_id == tenant_id)
         .group_by(Movement.commitment_id, Movement.type)
     )
+    # reality-rule: core._movement_quantities.2
     reversed_values = (
         select(Movement.commitment_id, Movement.type, func.sum(Movement.quantity))
         .select_from(MovementCorrection)
@@ -3464,6 +3882,7 @@ def _movement_quantities(
         (identity, kind): decimal(value)
         for identity, kind, value in session.execute(recorded)
     }
+    # reality-rule: core._movement_quantities.3
     for identity, kind, value in session.execute(reversed_values):
         key = (identity, kind)
         quantities[key] = quantities.get(key, ZERO) - decimal(value)
@@ -3541,7 +3960,8 @@ def returned_quantity(
 def returnable_quantity(
     session: OrmSession, tenant_id: str, commitment_id: str
 ) -> Decimal:
-    """How much can still come back against a customer delivery.
+    """
+    How much can still come back against a customer delivery.
 
     What went out, less what has already returned, both read the correction-aware
     way so a voided shipment protects nothing and a return recorded in error
@@ -3551,8 +3971,15 @@ def returnable_quantity(
     zero, and every return would be refused. What actually went out is the only
     honest bound, and it is asked here by the returning-movement path and by an
     announcement of a return that has not left the customer yet.
+
+    BUSINESS PURPOSE:
+    Read how much of a customer delivery may still return.
+
+    BUSINESS RULE core.returnable_quantity.1:
+    Subtract correction-aware returned quantity from correction-aware shipped quantity; this is based on what physically went out, not the current open promise.
     """
     shipped = movement_quantity(session, tenant_id, commitment_id, "shipment")
+    # reality-rule: core.returnable_quantity.1
     return shipped - returned_quantity(session, tenant_id, commitment_id)
 
 
@@ -3566,11 +3993,19 @@ def supplier_returned_quantity(
 def commitment_revisions(
     session: OrmSession, tenant_id: str, commitment_id: str
 ) -> list[CommitmentRevision]:
-    """Every date a counterparty has stated for one promise, oldest first.
+    """
+    Every date a counterparty has stated for one promise, oldest first.
 
     Ordered by when it was stated and then by identity, so two statements in the
     same instant resolve the same way on every read.
+
+    BUSINESS PURPOSE:
+    Read the dated statements that revise a company promise.
+
+    BUSINESS RULE core.commitment_revisions.1:
+    Select revisions for the exact company promise and sort by statement time then opaque identity, oldest first; this gives deterministic latest-value precedence.
     """
+    # reality-rule: core.commitment_revisions.1
     return list(
         session.scalars(
             select(CommitmentRevision)
@@ -3586,18 +4021,32 @@ def commitment_revisions(
 def _effective_commitment_value(
     commitment: Commitment, revisions: list[CommitmentRevision], field: str
 ) -> Any:
-    """Read the latest stated non-null value from chronologically ordered revisions."""
+    """
+    Read the latest stated non-null value from chronologically ordered revisions.
+
+    BUSINESS PURPOSE:
+    Resolve a promise field from the latest revision that actually states it.
+
+    BUSINESS RULE core._effective_commitment_value.1:
+    Walk chronological revisions newest first and use the first non-null field value; a revision of another field does not erase an earlier statement.
+
+    BUSINESS RULE core._effective_commitment_value.2:
+    When no revision states this field, retain the original promise value.
+    """
+    # reality-rule: core._effective_commitment_value.1
     for revision in reversed(revisions):
         value = getattr(revision, field)
         if value is not None:
             return value
+    # reality-rule: core._effective_commitment_value.2
     return getattr(commitment, field)
 
 
 def commitment_due_at(
     session: OrmSession, tenant_id: str, commitment_id: str
 ) -> datetime | None:
-    """The date a promise is actually due on: the last one anybody stated.
+    """
+    The date a promise is actually due on: the last one anybody stated.
 
     One rule for every caller, because the date in force is now a derived figure
     several classes depend on and two copies of it would eventually disagree —
@@ -3610,8 +4059,15 @@ def commitment_due_at(
 
     The promise's own date is the fallback, never the answer where a
     counterparty has said something later.
+
+    BUSINESS PURPOSE:
+    Read the currently stated due date of one company promise.
+
+    BUSINESS RULE core.commitment_due_at.1:
+    Use the shared latest-non-null revision rule for due_at; fall back to the original promise only when no revision states that field.
     """
     commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
+    # reality-rule: core.commitment_due_at.1
     return _effective_commitment_value(
         commitment, commitment_revisions(session, tenant_id, commitment_id), "due_at"
     )
@@ -3629,6 +4085,14 @@ class CommitmentTerms:
 
     @property
     def risk(self) -> str:
+        """
+        BUSINESS PURPOSE:
+        Compare the promise's current open quantity with its active reserved quantity.
+
+        BUSINESS RULE core.CommitmentTerms.risk.1:
+        IF reserved quantity is strictly below open quantity, report AT RISK. ELSE report OK; equality covers the open quantity.
+        """
+        # reality-rule: core.CommitmentTerms.risk.1
         return "AT RISK" if self.reserved < self.open else "OK"
 
 
@@ -3637,12 +4101,22 @@ def commitment_terms(
     tenant_id: str,
     commitment_ids: Iterable[str] | None = None,
 ) -> dict[str, CommitmentTerms]:
-    """`commitment_quantity`, `commitment_due_at`, `fulfilled_quantity`, `open_quantity`
+    """
+    `commitment_quantity`, `commitment_due_at`, `fulfilled_quantity`, `open_quantity`
     and the active reservation for many promises in four reads.
 
     The projection builders asked those four questions once per commitment; on a
     1,000-order company that was 11,000 to 18,000 reads per builder (spec 181).
     Same revisions rule, same correction-aware movements, same reservation sum.
+
+    BUSINESS PURPOSE:
+    Derive current quantities, due dates, fulfillment, open work and reservations consistently for company promises.
+
+    BUSINESS RULE core.commitment_terms.1:
+    Sum active reservation quantities by company promise; released or consumed reservations are excluded.
+
+    BUSINESS RULE core.commitment_terms.2:
+    Resolve quantity and due date from latest stated revisions. Count shipments for customer delivery and receipts otherwise. Open quantity is the effective quantity minus correction-aware fulfillment, floored at zero; retain the active reservation sum.
     """
     ids = None if commitment_ids is None else set(commitment_ids)
     if ids is not None and not ids:
@@ -3653,6 +4127,7 @@ def commitment_terms(
         .where(CommitmentRevision.tenant_id == tenant_id)
         .order_by(CommitmentRevision.stated_at, CommitmentRevision.id)
     )
+    # reality-rule: core.commitment_terms.1
     reserved_query = (
         select(Reservation.commitment_id, func.sum(Reservation.quantity))
         .where(Reservation.tenant_id == tenant_id, Reservation.status == "active")
@@ -3672,6 +4147,7 @@ def commitment_terms(
         identity: decimal(value) for identity, value in session.execute(reserved_query)
     }
     terms: dict[str, CommitmentTerms] = {}
+    # reality-rule: core.commitment_terms.2
     for commitment in session.scalars(rows):
         stated = revisions.get(commitment.id, [])
         quantity = decimal(_effective_commitment_value(commitment, stated, "quantity"))
@@ -3814,7 +4290,8 @@ def _agreed_line_prices(
 def commitment_quantity(
     session: OrmSession, tenant_id: str, commitment_id: str
 ) -> Decimal:
-    """How much a promise is actually for: the last quantity anybody stated.
+    """
+    How much a promise is actually for: the last quantity anybody stated.
 
     The latest revision that stated a quantity, which is not necessarily the
     latest revision — a later statement about the date alone leaves an earlier
@@ -3823,8 +4300,15 @@ def commitment_quantity(
     One rule for every caller, beside the one that answers the date. This is the
     fourth derived figure this work has had to keep single-sourced, and by now
     the pattern is to write it once rather than find copies later.
+
+    BUSINESS PURPOSE:
+    Read the currently stated quantity of one company promise.
+
+    BUSINESS RULE core.commitment_quantity.1:
+    Use the shared latest-non-null revision rule for quantity; fall back to the original promise only when no revision states that field.
     """
     commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
+    # reality-rule: core.commitment_quantity.1
     return decimal(
         _effective_commitment_value(
             commitment,
@@ -3849,7 +4333,8 @@ def revise_commitment(
     unit_price: Decimal | float | str | None = None,
     _commit: bool = True,
 ) -> CommitmentRevision:
-    """Record that the other side now says a promise is due on another day.
+    """
+    Record that the other side now says a promise is due on another day.
 
     Spec 310: a supplier may also confirm another unit price, in the order
     line's unit; the latest one stated is the agreed price from then on.
@@ -3864,6 +4349,27 @@ def revise_commitment(
 
     A date already past is accepted: a supplier admitting it will be three days
     late is a real statement and the most useful kind.
+
+    BUSINESS PURPOSE:
+    Append the counterparty's revised delivery date, quantity or supplier unit price while retaining the original promise.
+
+    BUSINESS RULE core.revise_commitment.1:
+    Require an open promise except the specifically permitted fulfilled-promise cases checked here and by the shipped-quantity helper.
+
+    BUSINESS RULE core.revise_commitment.2:
+    A stated price is accepted only for a supplier delivery with an order line; refuse negative prices, values at or above 10^14 and more than four decimal places.
+
+    BUSINESS RULE core.revise_commitment.3:
+    When reducing a customer promise below current allocations, derive revised open quantity as revised quantity minus fulfilled quantity, floored at zero. If allocations exceed it and multiple stock identities remain, require an explicit choice of retained allocations.
+
+    BUSINESS RULE core.revise_commitment.4:
+    Release the superseded allocations and recreate only the retained quantities and identities; emit release and creation evidence.
+
+    BUSINESS RULE core.revise_commitment.5:
+    When an unfulfilled customer order quantity increases, recheck credit exposure through the shared credit-limit service.
+
+    BUSINESS RULE core.revise_commitment.6:
+    IF the revised quantity leaves no open quantity, mark the promise fulfilled and release all its holds, including credit-check holds.
     """
     _require_business_mutation(session, tenant_id, "revise_commitment")
     commitment = session.scalar(
@@ -3880,12 +4386,19 @@ def revise_commitment(
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     # Spec 310: a price-only statement is the one revision a fulfilled
     # purchase takes, since a supplier may confirm a price after delivering.
-    if commitment.status != "open" and not (
-        commitment.status == "fulfilled"
-        and unit_price is not None
-        and due_at is None
-        and quantity is None
-    ) and not _keeps_what_was_shipped(session, tenant_id, commitment, due_at, quantity, unit_price):
+    # reality-rule: core.revise_commitment.1
+    if (
+        commitment.status != "open"
+        and not (
+            commitment.status == "fulfilled"
+            and unit_price is not None
+            and due_at is None
+            and quantity is None
+        )
+        and not _keeps_what_was_shipped(
+            session, tenant_id, commitment, due_at, quantity, unit_price
+        )
+    ):
         raise InvalidOperation(code="commitment_revise_not_open")
     stated_due = utc_datetime(due_at) if due_at is not None else None
     if due_at is not None and stated_due is None:
@@ -3894,6 +4407,7 @@ def revise_commitment(
         positive(quantity, "revised quantity") if quantity is not None else None
     )
     stated_price = None
+    # reality-rule: core.revise_commitment.2
     if unit_price is not None:
         if commitment.type != "supplier_delivery":
             raise InvalidOperation(code="commitment_price_purchase_only")
@@ -3922,6 +4436,7 @@ def revise_commitment(
     retained_quantity = ZERO
     retained_specs: list[tuple[Reservation, Decimal]] = []
     reconcile_allocations = False
+    # reality-rule: core.revise_commitment.3
     if stated_quantity is not None and commitment.type == "customer_delivery":
         active_allocations = list(
             session.scalars(
@@ -3996,6 +4511,7 @@ def revise_commitment(
         **({"unit_price": stated_price} if stated_price is not None else {}),
     )
     session.add(revision)
+    # reality-rule: core.revise_commitment.4
     if reconcile_allocations:
         template = active_allocations[0]
         for reservation in active_allocations:
@@ -4078,6 +4594,7 @@ def revise_commitment(
     )
     session.flush()
     # More of a customer promise is an order entering on credit too (spec 298).
+    # reality-rule: core.revise_commitment.5
     if (
         stated_quantity is not None
         and previous_quantity is not None
@@ -4097,6 +4614,7 @@ def revise_commitment(
     # settled here rather than at the next movement, because there may not be a
     # next movement. This is the one stored thing a revision writes, and it is
     # the same field the movement path sets for the same reason.
+    # reality-rule: core.revise_commitment.6
     if (
         stated_quantity is not None
         and open_quantity(session, tenant_id, commitment.id) == ZERO
@@ -4132,7 +4650,18 @@ def open_quantity(session: OrmSession, tenant_id: str, commitment_id: str) -> De
 def stock_at(
     session: OrmSession, tenant_id: str, item_id: str, location_id: str | None = None
 ) -> Decimal:
+    """
+    BUSINESS PURPOSE:
+    Read physical stock for an item across the company or at one location.
+
+    BUSINESS RULE core.stock_at.1:
+    When a location is supplied, require that location in the same company.
+
+    BUSINESS RULE core.stock_at.2:
+    Physical stock equals all recorded quantities entering the selected location scope minus all recorded quantities leaving it; inverse correction movements participate in these totals.
+    """
     _tenant_record(session, Item, tenant_id, item_id)
+    # reality-rule: core.stock_at.1
     if location_id:
         _tenant_record(session, Location, tenant_id, location_id)
     incoming = select(func.coalesce(func.sum(Movement.quantity), 0)).where(
@@ -4148,6 +4677,7 @@ def stock_at(
     if location_id:
         incoming = incoming.where(Movement.to_location_id == location_id)
         outgoing = outgoing.where(Movement.from_location_id == location_id)
+    # reality-rule: core.stock_at.2
     return decimal(session.scalar(incoming) or ZERO) - decimal(
         session.scalar(outgoing) or ZERO
     )
@@ -4265,12 +4795,22 @@ def reserved_by_identity(
 
 
 def _open_stock_blocks(tenant_id: str):
-    """The company's stock blocks that still hold something back (spec 316).
+    """
+    The company's stock blocks that still hold something back (spec 316).
 
     One row per open block with its identity and `quantity`, which is the
     stated quantity less every release and scrap of it. Every reader that
     subtracts blocked stock selects from this; whether a block is open is
     never stored.
+
+    BUSINESS PURPOSE:
+    Select stock blocks that still withhold a positive quantity.
+
+    BUSINESS RULE core._open_stock_blocks.1:
+    Outstanding blocked quantity is the original block quantity minus all recorded release and scrap resolution quantities.
+
+    BUSINESS RULE core._open_stock_blocks.2:
+    Select this company's blocks only when the resulting quantity is greater than zero; preserve location and tracking identities.
     """
     from reality.db.core import StockBlock, StockBlockResolution
 
@@ -4283,7 +4823,9 @@ def _open_stock_blocks(tenant_id: str):
         .group_by(StockBlockResolution.block_id)
         .subquery()
     )
+    # reality-rule: core._open_stock_blocks.1
     open_quantity = StockBlock.quantity - func.coalesce(resolved.c.quantity, 0)
+    # reality-rule: core._open_stock_blocks.2
     return (
         select(
             StockBlock.id,
@@ -4310,18 +4852,33 @@ def blocked_quantity(
     lot_id: str | None = None,
     serial_unit_id: str | None = None,
 ) -> Decimal:
-    """What is held back by open stock blocks (spec 304, spec 316).
+    """
+    What is held back by open stock blocks (spec 304, spec 316).
 
     Available is physical less reserved less blocked, at a location and at an
     identity alike; every reader that reserves, moves or reports availability
     takes the third term from here, beside `stock_at` and `active_reserved`.
+
+    BUSINESS PURPOSE:
+    Read quantities withheld by currently open stock blocks for an item and optional stock identity.
+
+    BUSINESS RULE core.blocked_quantity.1:
+    When a location is supplied, restrict blocks to that location.
+
+    BUSINESS RULE core.blocked_quantity.2:
+    For each supplied handling-unit, lot or serial identity, restrict blocks to that exact identity.
+
+    BUSINESS RULE core.blocked_quantity.3:
+    Sum the remaining positive quantities selected by the shared open-block query; no matching blocks means zero.
     """
     blocks = _open_stock_blocks(tenant_id)
     query = select(func.coalesce(func.sum(blocks.c.quantity), 0)).where(
         blocks.c.item_id == item_id
     )
+    # reality-rule: core.blocked_quantity.1
     if location_id:
         query = query.where(blocks.c.location_id == location_id)
+    # reality-rule: core.blocked_quantity.2
     for field, value in (
         (blocks.c.handling_unit_id, handling_unit_id),
         (blocks.c.lot_id, lot_id),
@@ -4329,6 +4886,7 @@ def blocked_quantity(
     ):
         if value:
             query = query.where(field == value)
+    # reality-rule: core.blocked_quantity.3
     return decimal(session.scalar(query) or ZERO)
 
 
@@ -4503,9 +5061,23 @@ def reserve(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> ReservationResult:
+    """
+    BUSINESS PURPOSE:
+    Allocate available goods against a delivery promise using the shared reservation preview.
+
+    BUSINESS RULE core.reserve.1:
+    Use the shared preview to validate the promise, requested quantity, stock identity and location and determine the quantity actually allocatable.
+
+    BUSINESS RULE core.reserve.2:
+    IF an allocatable quantity is positive, create an active reservation and its event. ELSE create no reservation.
+
+    BUSINESS RULE core.reserve.3:
+    Return requested, allocated and shortage quantities; shortage is requested minus allocated.
+    """
     _require_business_mutation(session, tenant_id, "reserve")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
+    # reality-rule: core.reserve.1
     preview = _preview_reservation(
         session,
         tenant_id,
@@ -4525,6 +5097,7 @@ def reserve(
     )
     reservation = None
     event = None
+    # reality-rule: core.reserve.2
     if allocated > ZERO:
         reservation = Reservation(
             id=uid("res"),
@@ -4561,6 +5134,7 @@ def reserve(
             session.commit()
         else:
             session.flush()
+    # reality-rule: core.reserve.3
     return ReservationResult(
         reservation, requested, allocated, requested - allocated, event
     )
@@ -4574,6 +5148,13 @@ def release_reservation(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> Reservation:
+    """
+    BUSINESS PURPOSE:
+    Release an existing stock allocation through the shared decision policy.
+
+    BUSINESS RULE core.release_reservation.1:
+    IF the reservation is active, mark it released and emit its release event. ELSE return the existing reservation unchanged.
+    """
     from reality.services.tenant_policy import require_decision_release
 
     _require_business_mutation(session, tenant_id, "release_reservation")
@@ -4581,6 +5162,7 @@ def release_reservation(
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     reservation = _tenant_record(session, Reservation, tenant_id, reservation_id)
+    # reality-rule: core.release_reservation.1
     if reservation.status == "active":
         reservation.status = "released"
         emit_business_event(
@@ -4794,9 +5376,20 @@ def create_handling_unit(
     *,
     source_record_id: str | None = None,
 ) -> HandlingUnit:
+    """
+    BUSINESS PURPOSE:
+    Record a physical handling-unit identity with an optional stated NVE.
+
+    BUSINESS RULE core.create_handling_unit.1:
+    Refuse an NVE already used in this company; an absent or blank NVE remains absent.
+
+    BUSINESS RULE core.create_handling_unit.2:
+    Create the handling-unit identity and preserve its optional source reference; no stock movement is inferred.
+    """
     _require_business_mutation(session, tenant_id, "create_handling_unit")
     get_tenant(session, tenant_id)
     normalized_nve = nve.strip() if nve and nve.strip() else None
+    # reality-rule: core.create_handling_unit.1
     if normalized_nve and session.scalar(
         select(HandlingUnit).where(
             HandlingUnit.tenant_id == tenant_id,
@@ -4806,6 +5399,7 @@ def create_handling_unit(
         raise InvalidOperation("NVE already exists for this tenant.")
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
+    # reality-rule: core.create_handling_unit.2
     handling_unit = HandlingUnit(
         id=uid("hu"),
         tenant_id=tenant_id,
@@ -4865,13 +5459,32 @@ def create_lot(
     source_record_id: str | None = None,
     _commit: bool = True,
 ) -> Lot:
+    """
+    BUSINESS PURPOSE:
+    Record a stated lot number and optional stated best-before date for a tracked item.
+
+    BUSINESS RULE core.create_lot.1:
+    Require lot or serial tracking on the item.
+
+    BUSINESS RULE core.create_lot.2:
+    Refuse a blank lot number.
+
+    BUSINESS RULE core.create_lot.3:
+    Refuse the same lot number already held for that item in this company.
+
+    BUSINESS RULE core.create_lot.4:
+    Read the supplied calendar date without calculating shelf life; leave expiry absent when no date was stated.
+    """
     _require_business_mutation(session, tenant_id, "create_lot")
     item = _tenant_record(session, Item, tenant_id, item_id)
+    # reality-rule: core.create_lot.1
     if item.tracking_type not in {"lot", "serial"}:
         raise InvalidOperation("Lots require an item with lot or serial tracking.")
     number = lot_number.strip()
+    # reality-rule: core.create_lot.2
     if not number:
         raise InvalidOperation("Lot number is required.")
+    # reality-rule: core.create_lot.3
     if session.scalar(
         select(Lot).where(
             Lot.tenant_id == tenant_id,
@@ -4880,6 +5493,7 @@ def create_lot(
         )
     ):
         raise InvalidOperation("Lot number already exists for this item.")
+    # reality-rule: core.create_lot.4
     stated_expiry = _stated_date(expires_at) if expires_at is not None else None
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
@@ -4920,7 +5534,8 @@ def state_lot_expiry(
     *,
     _commit: bool = True,
 ) -> Lot:
-    """Record the best-before date somebody read off the goods.
+    """
+    Record the best-before date somebody read off the goods.
 
     Statable after the lot exists because goods arrive before anybody reads the
     label, and the alternative would be recreating the lot.
@@ -4933,18 +5548,33 @@ def state_lot_expiry(
 
     Nothing is computed. A shelf life multiplied out from a production date would
     be a date nobody stated.
+
+    BUSINESS PURPOSE:
+    Record the best-before date read from the goods without inventing or silently replacing a date.
+
+    BUSINESS RULE core.state_lot_expiry.1:
+    Refuse a different date when an expiry is already stated; use the explicit correction path instead.
+
+    BUSINESS RULE core.state_lot_expiry.2:
+    IF the same date is already held, return unchanged; a retry emits no new event.
+
+    BUSINESS RULE core.state_lot_expiry.3:
+    Otherwise store the stated date and emit its expiry-stated event.
     """
     _require_business_mutation(session, tenant_id, "state_lot_expiry")
     lot = _tenant_record(session, Lot, tenant_id, lot_id)
     stated = _stated_date(expires_at)
+    # reality-rule: core.state_lot_expiry.1
     if lot.expires_at is not None and lot.expires_at != stated:
         raise InvalidOperation(
             "A lot's best-before date is already stated as "
             f"{lot.expires_at.isoformat()}; it is a received value and is not adjusted. "
             "Correct it instead, saying what is stated now and why it was wrong."
         )
+    # reality-rule: core.state_lot_expiry.2
     if lot.expires_at == stated:
         return lot
+    # reality-rule: core.state_lot_expiry.3
     lot.expires_at = stated
     emit_business_event(
         session,
@@ -4974,7 +5604,8 @@ def correct_lot_expiry(
     actor_context: dict[str, Any] | None = None,
     _commit: bool = True,
 ) -> Lot:
-    """Say the stated best-before was read wrong, and what it says instead.
+    """
+    Say the stated best-before was read wrong, and what it says instead.
 
     A correction rather than a restatement, and the difference decides the shape.
     A counterparty moving a delivery date is the world moving, which is why that
@@ -4999,26 +5630,45 @@ def correct_lot_expiry(
 
     Nothing is judged. Reality cannot know which label was misread; it records
     that somebody says the first reading was wrong.
+
+    BUSINESS PURPOSE:
+    Correct a wrongly recorded best-before date with an explicit reason and reviewed previous value.
+
+    BUSINESS RULE core.correct_lot_expiry.1:
+    Require a nonblank correction reason.
+
+    BUSINESS RULE core.correct_lot_expiry.2:
+    Refuse a stale correction when the stored date differs from the reviewed expected date, including an expected absence.
+
+    BUSINESS RULE core.correct_lot_expiry.3:
+    Refuse a correction that changes nothing.
+
+    BUSINESS RULE core.correct_lot_expiry.4:
+    Replace the date with the stated correction, including absence, and retain before/after, reason and actor context in the event.
     """
     _require_business_mutation(session, tenant_id, "correct_lot_expiry")
     lot = _tenant_record(session, Lot, tenant_id, lot_id)
     stated_reason = (reason or "").strip()
+    # reality-rule: core.correct_lot_expiry.1
     if not stated_reason:
         raise InvalidOperation("A best-before correction requires a reason.")
     corrected = _stated_date(expires_at) if expires_at is not None else None
     confirmed = (
         _stated_date(expected_expires_at) if expected_expires_at is not None else None
     )
+    # reality-rule: core.correct_lot_expiry.2
     if lot.expires_at != confirmed:
         raise InvalidOperation(
             "The best-before correction no longer matches what is stated: "
             f"{lot.expires_at.isoformat() if lot.expires_at else 'none'} is stored, "
             f"{confirmed.isoformat() if confirmed else 'none'} was confirmed."
         )
+    # reality-rule: core.correct_lot_expiry.3
     if corrected == confirmed:
         raise InvalidOperation(
             "A correction must change the best-before date; this one changes nothing."
         )
+    # reality-rule: core.correct_lot_expiry.4
     lot.expires_at = corrected
     emit_business_event(
         session,
@@ -5046,14 +5696,22 @@ def correct_lot_expiry(
 def expired_lots(
     session: OrmSession, tenant_id: str, *, as_of: datetime | None = None
 ) -> list[Lot]:
-    """Lots whose stated best-before has passed, oldest first.
+    """
+    Lots whose stated best-before has passed, oldest first.
 
     A lot with no stated date is absent in both directions: there is no way to
     tell an item with no shelf life from one whose label nobody read, so nothing
     is asserted about it.
+
+    BUSINESS PURPOSE:
+    List lots whose stated best-before date has passed.
+
+    BUSINESS RULE core.expired_lots.1:
+    Select this company's lots with an existing expiry strictly earlier than the evaluation day; sort oldest expiry first and then by identity. Lots without a stated date are not classified as expired.
     """
     get_tenant(session, tenant_id)
     today = (as_of or now()).date()
+    # reality-rule: core.expired_lots.1
     return list(
         session.scalars(
             select(Lot)
@@ -5077,16 +5735,32 @@ def create_serial_unit(
     source_record_id: str | None = None,
     _commit: bool = True,
 ) -> SerialUnit:
+    """
+    BUSINESS PURPOSE:
+    Record an individual serial-number identity for a serial-tracked item.
+
+    BUSINESS RULE core.create_serial_unit.1:
+    Require serial tracking on the item.
+
+    BUSINESS RULE core.create_serial_unit.2:
+    IF a lot is supplied, require that it belongs to this item.
+
+    BUSINESS RULE core.create_serial_unit.3:
+    Refuse the same serial number already recorded for this item in the company.
+    """
     _require_business_mutation(session, tenant_id, "create_serial_unit")
     item = _tenant_record(session, Item, tenant_id, item_id)
+    # reality-rule: core.create_serial_unit.1
     if item.tracking_type != "serial":
         raise InvalidOperation("Serial units require an item with serial tracking.")
     number = serial_number.strip()
     if not number:
         raise InvalidOperation("Serial number is required.")
     lot = _tenant_record(session, Lot, tenant_id, lot_id) if lot_id else None
+    # reality-rule: core.create_serial_unit.2
     if lot and lot.item_id != item_id:
         raise InvalidOperation("Lot does not belong to the serial item.")
+    # reality-rule: core.create_serial_unit.3
     if session.scalar(
         select(SerialUnit).where(
             SerialUnit.tenant_id == tenant_id,
@@ -5149,18 +5823,34 @@ def return_announcements(
     commitment_id: str | None = None,
     status: str | None = None,
 ) -> list[ReturnAnnouncement]:
-    """Every return a customer has announced, in the order they said so.
+    """
+    Every return a customer has announced, in the order they said so.
 
     Ordered by when it was announced and then by identity, so two identical
     reads of an unchanged tenant return the same list in the same order.
+
+    BUSINESS PURPOSE:
+    Read customer statements that goods are expected to return, without treating them as receipts.
+
+    BUSINESS RULE core.return_announcements.1:
+    IF a promise identity is supplied, require it in this company and narrow announcements to it.
+
+    BUSINESS RULE core.return_announcements.2:
+    IF a status is supplied, filter to that status.
+
+    BUSINESS RULE core.return_announcements.3:
+    Return announcements ordered by statement time and then opaque identity.
     """
     get_tenant(session, tenant_id)
     query = select(ReturnAnnouncement).where(ReturnAnnouncement.tenant_id == tenant_id)
+    # reality-rule: core.return_announcements.1
     if commitment_id:
         _tenant_record(session, Commitment, tenant_id, commitment_id)
         query = query.where(ReturnAnnouncement.commitment_id == commitment_id)
+    # reality-rule: core.return_announcements.2
     if status:
         query = query.where(ReturnAnnouncement.status == status)
+    # reality-rule: core.return_announcements.3
     return list(
         session.scalars(
             query.order_by(ReturnAnnouncement.announced_at, ReturnAnnouncement.id)
@@ -5171,10 +5861,17 @@ def return_announcements(
 def arrived_against_announcement(
     session: OrmSession, tenant_id: str, announcement_id: str
 ) -> Decimal:
-    """How much has come back against one announcement.
+    """
+    How much has come back against one announcement.
 
     Correction-aware on this side as on every other, so a return recorded in
     error stops counting as having arrived.
+
+    BUSINESS PURPOSE:
+    Read the correction-aware quantity physically received against one return announcement.
+
+    BUSINESS RULE core.arrived_against_announcement.1:
+    Subtract quantities of corrected original movements from recorded movement quantities naming this announcement; voided arrivals no longer count.
     """
     recorded = session.scalar(
         select(func.coalesce(func.sum(Movement.quantity), 0)).where(
@@ -5192,29 +5889,45 @@ def arrived_against_announcement(
             Movement.return_announcement_id == announcement_id,
         )
     )
+    # reality-rule: core.arrived_against_announcement.1
     return decimal(recorded or ZERO) - decimal(reversed_value or ZERO)
 
 
 def announcement_outstanding(
     session: OrmSession, tenant_id: str, announcement: ReturnAnnouncement
 ) -> Decimal:
-    """What an announcement is still waiting for, never below nothing.
+    """
+    What an announcement is still waiting for, never below nothing.
 
     A customer who said two and sent three has nothing outstanding rather than
     minus one: the extra item physically exists and is an ordinary return.
+
+    BUSINESS PURPOSE:
+    Read how much of an announced customer return is still expected.
+
+    BUSINESS RULE core.announcement_outstanding.1:
+    Outstanding quantity is the stated announcement quantity minus correction-aware arrivals, with a minimum of zero. Extra goods received never create negative outstanding quantity.
     """
     arrived = arrived_against_announcement(session, tenant_id, announcement.id)
+    # reality-rule: core.announcement_outstanding.1
     return max(decimal(announcement.quantity) - arrived, ZERO)
 
 
 def announceable_quantity(
     session: OrmSession, tenant_id: str, commitment_id: str
 ) -> Decimal:
-    """How much may still be announced against a customer delivery.
+    """
+    How much may still be announced against a customer delivery.
 
     What can still come back, less what open announcements are already claiming.
     Without that second term a customer could announce the same five items twice
     and the receiving desk would expect ten.
+
+    BUSINESS PURPOSE:
+    Read the delivery quantity not already returned or claimed by open return announcements.
+
+    BUSINESS RULE core.announceable_quantity.1:
+    Subtract outstanding quantities of open announcements from the correction-aware quantity still returnable against the delivery.
     """
     claimed = sum(
         (
@@ -5225,6 +5938,7 @@ def announceable_quantity(
         ),
         ZERO,
     )
+    # reality-rule: core.announceable_quantity.1
     return returnable_quantity(session, tenant_id, commitment_id) - claimed
 
 
@@ -5242,7 +5956,8 @@ def announce_customer_return(
     source_record_id: str | None = None,
     _commit: bool = True,
 ) -> ReturnAnnouncement:
-    """Record that a customer says goods are coming back.
+    """
+    Record that a customer says goods are coming back.
 
     Until now a return was only recordable once it was standing on the dock, so
     everything before that — how much, why, the number the parcel will carry,
@@ -5252,13 +5967,30 @@ def announce_customer_return(
     promise is refused. Nothing here is generated: the reference least of all,
     because a number this product invented would be a number somebody has to
     tell the customer, and there is no way to do that from here.
+
+    BUSINESS PURPOSE:
+    Record a customer's stated intention to return delivered goods; no receipt is created.
+
+    BUSINESS RULE core.announce_customer_return.1:
+    Require a customer-delivery promise.
+
+    BUSINESS RULE core.announce_customer_return.2:
+    Refuse cancelled promises; completed deliveries may still have returns announced.
+
+    BUSINESS RULE core.announce_customer_return.3:
+    Refuse a positive announced quantity exceeding what can still return after existing open announcements.
+
+    BUSINESS RULE core.announce_customer_return.4:
+    Preserve the stated quantity, reference, reason, expected date and source as an open announcement.
     """
     _require_business_mutation(session, tenant_id, "announce_customer_return")
     commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
+    # reality-rule: core.announce_customer_return.1
     if commitment.type != "customer_delivery":
         raise InvalidOperation(
             "A customer return is announced against a customer delivery."
         )
+    # reality-rule: core.announce_customer_return.2
     if commitment.status == "cancelled":
         raise InvalidOperation(
             "A cancelled promise cannot have a return announced against it."
@@ -5268,12 +6000,14 @@ def announce_customer_return(
     if expected_by is not None and stated_expectation is None:
         raise InvalidOperation("An announcement must state a readable expected day.")
     available = announceable_quantity(session, tenant_id, commitment.id)
+    # reality-rule: core.announce_customer_return.3
     if qty > available:
         raise InvalidOperation(
             "More is announced than can still come back against the delivery."
         )
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
+    # reality-rule: core.announce_customer_return.4
     announcement = ReturnAnnouncement(
         id=uid("ann"),
         tenant_id=tenant_id,
@@ -5318,18 +6052,30 @@ def withdraw_return_announcement(
     note: str = "",
     _commit: bool = True,
 ) -> ReturnAnnouncement:
-    """Record that the customer is not sending the goods back after all.
+    """
+    Record that the customer is not sending the goods back after all.
 
     What they announced is kept. A withdrawal is another statement about the
     same conversation, not a reason to forget the first one, and what may be
     announced against the delivery returns to what the delivery allows.
+
+    BUSINESS PURPOSE:
+    Record that a previously announced return is no longer expected.
+
+    BUSINESS RULE core.withdraw_return_announcement.1:
+    Allow withdrawal only while the announcement is open.
+
+    BUSINESS RULE core.withdraw_return_announcement.2:
+    Mark it withdrawn and retain the original announcement; record the closure time and optional note.
     """
     _require_business_mutation(session, tenant_id, "withdraw_return_announcement")
     announcement = _tenant_record(
         session, ReturnAnnouncement, tenant_id, announcement_id
     )
+    # reality-rule: core.withdraw_return_announcement.1
     if announcement.status != "open":
         raise InvalidOperation("Only an open announcement can be withdrawn.")
+    # reality-rule: core.withdraw_return_announcement.2
     announcement.status = "withdrawn"
     announcement.closed_at = now()
     if note:
@@ -6026,6 +6772,16 @@ def record_movement(
     _commit: bool = True,
     _movement_id: str | None = None,
 ) -> Movement:
+    """
+    BUSINESS PURPOSE:
+    Record a stated physical goods movement through the shared policy and movement service.
+
+    BUSINESS RULE core.record_movement.1:
+    Validate decision policy against the movement type, item, quantity, locations, promise and time, including whether extra identity or exceptional receipt fields are present.
+
+    BUSINESS RULE core.record_movement.2:
+    Delegate physical validation, stock identity, commitment effects and append-only movement recording to the canonical movement service.
+    """
     _require_business_mutation(session, tenant_id, "record_movement")
     from reality.services.tenant_policy import (
         require_decision_action,
@@ -6033,6 +6789,7 @@ def record_movement(
     )
 
     require_decision_action(session, tenant_id, action_id)
+    # reality-rule: core.record_movement.1
     require_decision_movement(
         session,
         tenant_id,
@@ -6065,6 +6822,7 @@ def record_movement(
             )
         ),
     )
+    # reality-rule: core.record_movement.2
     return _append_movement(
         session,
         tenant_id,
@@ -6153,6 +6911,16 @@ def _movement_correction_relation_for_member(
 def movement_correction_snapshot(
     session: OrmSession, tenant_id: str, movement_id: str
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Read the movement and its correction chain for review without changing records.
+
+    BUSINESS RULE core.movement_correction_snapshot.1:
+    Determine whether the selected movement is the original, compensation, replacement or an ordinary recorded movement.
+
+    BUSINESS RULE core.movement_correction_snapshot.2:
+    Return original, compensating and replacement evidence with a revision fingerprint. An already-corrected original or compensating movement cannot be corrected through this snapshot; a replacement may be reviewed.
+    """
     movement = session.scalar(
         select(Movement).where(
             Movement.tenant_id == tenant_id, Movement.id == movement_id
@@ -6160,6 +6928,7 @@ def movement_correction_snapshot(
     )
     if movement is None:
         raise NotFound(code="movement_not_found")
+    # reality-rule: core.movement_correction_snapshot.1
     relation, role = _movement_correction_relation_for_member(
         session, tenant_id, movement_id
     )
@@ -6186,6 +6955,7 @@ def movement_correction_snapshot(
             "request_fingerprint": relation.request_fingerprint if relation else None,
         }
     )
+    # reality-rule: core.movement_correction_snapshot.2
     return {
         "movement_id": movement_id,
         "revision": revision,
@@ -6224,19 +6994,41 @@ def preview_movement_correction(
     reason: str,
     replacement: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Preview a complete inverse movement and optional replacement without recording either.
+
+    BUSINESS RULE core.preview_movement_correction.1:
+    Refuse a compensating movement or an already-corrected original.
+
+    BUSINESS RULE core.preview_movement_correction.2:
+    Refuse individual assembly-movement correction.
+
+    BUSINESS RULE core.preview_movement_correction.3:
+    Refuse reversal when later movements have left less destination stock than the original quantity.
+
+    BUSINESS RULE core.preview_movement_correction.4:
+    Validate the proposed replacement through the canonical movement service in validation-only mode.
+
+    BUSINESS RULE core.preview_movement_correction.5:
+    Preview the full original quantity with source and destination reversed; the compensation has no commitment or source authority.
+    """
     if not isinstance(reason, str):
         raise InvalidOperation(code="movement_correction_reason_required")
     normalized_reason = reason.strip()
     if not normalized_reason:
         raise InvalidOperation(code="movement_correction_reason_required")
     snapshot = movement_correction_snapshot(session, tenant_id, movement_id)
+    # reality-rule: core.preview_movement_correction.1
     if not snapshot["correctable"]:
         if snapshot["role"] == "compensation":
             raise InvalidOperation(code="movement_compensation_not_correctable")
         raise InvalidOperation(code="movement_correction_chain_exists")
     original = _tenant_record(session, Movement, tenant_id, movement_id)
+    # reality-rule: core.preview_movement_correction.2
     if original.type in ASSEMBLY_MOVEMENT_TYPES:
         raise InvalidOperation(code="movement_assembly_not_correctable")
+    # reality-rule: core.preview_movement_correction.3
     if original.to_location_id and stock_at(
         session, tenant_id, original.item_id, original.to_location_id
     ) < decimal(original.quantity):
@@ -6290,6 +7082,7 @@ def preview_movement_correction(
             normalized_replacement["occurred_at"] = utc_datetime(
                 normalized_replacement["occurred_at"]
             ).isoformat()
+    # reality-rule: core.preview_movement_correction.4
     if normalized_replacement is not None:
         values = dict(normalized_replacement)
         kind, item, quantity = (
@@ -6310,6 +7103,7 @@ def preview_movement_correction(
     fingerprint = _movement_correction_fingerprint(
         tenant_id, movement_id, normalized_reason, normalized_replacement
     )
+    # reality-rule: core.preview_movement_correction.5
     compensation = {
         **_movement_values(original),
         "id": None,
@@ -6363,6 +7157,25 @@ def correct_movement(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> MovementCorrectionResult:
+    """
+    BUSINESS PURPOSE:
+    Correct an erroneous movement by retaining the original and appending its full inverse and optional replacement.
+
+    BUSINESS RULE core.correct_movement.1:
+    Lock and recheck the original; refuse assembly or compensating movements, mismatched previews, stale revisions, later stock dependencies and protected blocked stock. Replay a matching existing correction instead of adding another.
+
+    BUSINESS RULE core.correct_movement.2:
+    Append a correction movement for the full original quantity with reversed locations and the original tracked identity.
+
+    BUSINESS RULE core.correct_movement.3:
+    IF a replacement was supplied, append it through the shared movement service and link it to the correction; refuse unsupported remaining fields.
+
+    BUSINESS RULE core.correct_movement.4:
+    Recompute each affected noncancelled promise's fulfilled/open status from its corrected movements.
+
+    BUSINESS RULE core.correct_movement.5:
+    Record the correction reason, actor context and inverse/replacement identities in one correction event and capture the costing correction.
+    """
     _require_business_mutation(session, tenant_id, "correct_movement")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
@@ -6382,6 +7195,7 @@ def correct_movement(
     fingerprint = _movement_correction_fingerprint(
         tenant_id, movement_id, normalized_reason, normalized_replacement
     )
+    # reality-rule: core.correct_movement.1
     try:
         original = session.scalar(
             select(Movement)
@@ -6466,6 +7280,7 @@ def correct_movement(
             < decimal(original.quantity)
         ):
             raise InvalidOperation(code="movement_correction_takes_blocked_stock")
+        # reality-rule: core.correct_movement.2
         compensation = Movement(
             id=uid("mov"),
             tenant_id=tenant_id,
@@ -6502,6 +7317,7 @@ def correct_movement(
         session.flush()
 
         replacement_movement = None
+        # reality-rule: core.correct_movement.3
         if normalized_replacement is not None:
             replacement_data = dict(normalized_replacement)
             replacement_movement = _append_movement(
@@ -6547,6 +7363,7 @@ def correct_movement(
             )
             if value
         }
+        # reality-rule: core.correct_movement.4
         for commitment_id in affected_commitments:
             commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
             if commitment.status != "cancelled":
@@ -6555,6 +7372,7 @@ def correct_movement(
                     if open_quantity(session, tenant_id, commitment.id) == ZERO
                     else "open"
                 )
+        # reality-rule: core.correct_movement.5
         correction_event = emit_business_event(
             session,
             tenant_id,
@@ -6603,8 +7421,25 @@ def cancel_commitment(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> Commitment:
+    """
+    BUSINESS PURPOSE:
+    Cancel an open promise with a stated reason and release its active allocations and holds.
+
+    BUSINESS RULE core.cancel_commitment.1:
+    Require a nonblank cancellation reason.
+
+    BUSINESS RULE core.cancel_commitment.2:
+    Refuse cancellation unless the promise is open.
+
+    BUSINESS RULE core.cancel_commitment.3:
+    Release every active reservation naming this promise.
+
+    BUSINESS RULE core.cancel_commitment.4:
+    Release all holds, including protected credit-check holds, because the promise is being cancelled.
+    """
     _require_business_mutation(session, tenant_id, "cancel_commitment")
     stated_reason = reason.strip()
+    # reality-rule: core.cancel_commitment.1
     if not stated_reason:
         raise InvalidOperation(code="commitment_cancel_reason_required")
     commitment = session.scalar(
@@ -6621,11 +7456,13 @@ def cancel_commitment(
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
+    # reality-rule: core.cancel_commitment.2
     if commitment.status != "open":
         raise InvalidOperation(code="commitment_cancel_not_open")
     commitment.status = "cancelled"
     commitment.cancelled_at = now()
     released_reservation_ids = []
+    # reality-rule: core.cancel_commitment.3
     for reservation in session.scalars(
         select(Reservation).where(
             Reservation.tenant_id == tenant_id,
@@ -6644,6 +7481,7 @@ def cancel_commitment(
     # Nothing anybody said is erased: a release sets one timestamp, and the
     # reason, the note, who raised it and when all stay. That is what makes
     # doing this automatically safe.
+    # reality-rule: core.cancel_commitment.4
     released_holds = release_commitment_hold(
         session, tenant_id, commitment.id, _keep_reason_codes=frozenset(), _commit=False
     )
@@ -6714,13 +7552,29 @@ def hold_commitment(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> CommitmentHold:
+    """
+    BUSINESS PURPOSE:
+    Place an execution hold on a delivery promise using the shared hold validation.
+
+    BUSINESS RULE core.hold_commitment.1:
+    Read the existing active hold after validating the requested promise and reason.
+
+    BUSINESS RULE core.hold_commitment.2:
+    IF a hold already exists, return it without creating another.
+
+    BUSINESS RULE core.hold_commitment.3:
+    Otherwise record the reason, note and creator and emit a promise-held event.
+    """
     _require_business_mutation(session, tenant_id, "hold_commitment")
     _validate_commitment_hold(session, tenant_id, commitment_id, reason_code)
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
+    # reality-rule: core.hold_commitment.1
     existing = active_commitment_hold(session, tenant_id, commitment_id)
+    # reality-rule: core.hold_commitment.2
     if existing:
         return existing
+    # reality-rule: core.hold_commitment.3
     hold = CommitmentHold(
         id=uid("hld"),
         tenant_id=tenant_id,
@@ -6823,11 +7677,24 @@ def preview_stale_promise_closure(
     direction: str,
     due_before: datetime | str,
 ) -> dict[str, Any]:
-    """What a closure would do, without doing any of it."""
+    """
+    What a closure would do, without doing any of it.
+
+    BUSINESS PURPOSE:
+    Preview the count, reservation quantity and bounded identity sample of stale promises eligible for closure.
+
+    BUSINESS RULE core.preview_stale_promise_closure.1:
+    Use the shared stale-promise selector for the requested direction and strict due-before cutoff; its movement and hold exclusions also govern execution.
+
+    BUSINESS RULE core.preview_stale_promise_closure.2:
+    Sum active reserved quantities against the matching promises; no reservation is released by this preview.
+    """
     get_tenant(session, tenant_id)
+    # reality-rule: core.preview_stale_promise_closure.1
     matches = _stale_promises(
         session, tenant_id, direction=direction, due_before=due_before
     )
+    # reality-rule: core.preview_stale_promise_closure.2
     released = sum(
         (_reserved_against(session, tenant_id, row.id) for row in matches), ZERO
     )
@@ -6848,25 +7715,41 @@ def close_stale_promises(
     reason: str,
     actor_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Close the promises somebody previewed, counted and gave a reason for.
+    """
+    Close the promises somebody previewed, counted and gave a reason for.
 
     The confirmed count is the safety: what a person looked at may not be what
     is there. This is the only operation in the product that closes many records
     at once, and it is deliberately hard to run by accident.
+
+    BUSINESS PURPOSE:
+    Cancel exactly the stale promises reviewed by a person, atomically with a reason.
+
+    BUSINESS RULE core.close_stale_promises.1:
+    Require a nonblank reason.
+
+    BUSINESS RULE core.close_stale_promises.2:
+    Refuse when the current eligible promise count differs from the confirmed count.
+
+    BUSINESS RULE core.close_stale_promises.3:
+    Cancel each selected promise without intermediate commits, record the closure event and commit once; on failure roll back the complete closure.
     """
     _require_business_mutation(session, tenant_id, "close_stale_promises")
     get_tenant(session, tenant_id)
     stated_reason = (reason or "").strip()
+    # reality-rule: core.close_stale_promises.1
     if not stated_reason:
         raise InvalidOperation("A closure requires a reason.")
     matches = _stale_promises(
         session, tenant_id, direction=direction, due_before=due_before
     )
+    # reality-rule: core.close_stale_promises.2
     if len(matches) != expected_count:
         raise InvalidOperation(
             "The closure no longer matches the confirmed count: "
             f"{len(matches)} match, {expected_count} were confirmed."
         )
+    # reality-rule: core.close_stale_promises.3
     try:
         for row in matches:
             cancel_commitment(
@@ -6907,7 +7790,8 @@ def release_commitment_hold(
     _keep_reason_codes: frozenset[str] = OWNER_RELEASED_HOLD_REASONS,
     _commit: bool = True,
 ) -> list[CommitmentHold]:
-    """Lift every hold on one promise, except holds with a kept reason.
+    """
+    Lift every hold on one promise, except holds with a kept reason.
 
     Every generic release — tool, document, web, CLI — keeps credit holds, which
     only an owner lifts with a reason (spec 298). Only a closure that ends the
@@ -6917,11 +7801,24 @@ def release_commitment_hold(
     promise, which is how a bulk closure releases forty sets of holds or none.
     There is one release path on purpose: two copies of "set the timestamp and
     emit the event" is how the two copies stop agreeing.
+
+    BUSINESS PURPOSE:
+    Release eligible holds on a promise while preserving protected credit-check reasons.
+
+    BUSINESS RULE core.release_commitment_hold.1:
+    Select unreleased holds for this promise, excluding kept reason codes only when created by the credit check; human-created holds with the same reason remain releasable.
+
+    BUSINESS RULE core.release_commitment_hold.2:
+    Record one release time on each eligible hold.
+
+    BUSINESS RULE core.release_commitment_hold.3:
+    Emit a release event only when holds were actually released.
     """
     _require_business_mutation(session, tenant_id, "release_commitment_hold")
     _tenant_record(session, Commitment, tenant_id, commitment_id)
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
+    # reality-rule: core.release_commitment_hold.1
     holds = list(
         session.scalars(
             select(CommitmentHold).where(
@@ -6938,8 +7835,10 @@ def release_commitment_hold(
         )
     )
     released_at = now()
+    # reality-rule: core.release_commitment_hold.2
     for hold in holds:
         hold.released_at = released_at
+    # reality-rule: core.release_commitment_hold.3
     if holds:
         emit_business_event(
             session,
@@ -6965,8 +7864,22 @@ def hold_document_commitments(
     *,
     created_by: str = "human",
 ) -> list[CommitmentHold]:
+    """
+    BUSINESS PURPOSE:
+    Place holds on open promises linked to a document; the document itself is not given fulfillment state.
+
+    BUSINESS RULE core.hold_document_commitments.1:
+    Select only open promises in this company naming the document.
+
+    BUSINESS RULE core.hold_document_commitments.2:
+    Refuse a document with no open promises to hold.
+
+    BUSINESS RULE core.hold_document_commitments.3:
+    Apply the canonical single-promise hold service to each selected promise.
+    """
     _require_business_mutation(session, tenant_id, "hold_document_commitments")
     _tenant_record(session, Document, tenant_id, document_id)
+    # reality-rule: core.hold_document_commitments.1
     linked = list(
         session.scalars(
             select(Commitment).where(
@@ -6976,8 +7889,10 @@ def hold_document_commitments(
             )
         )
     )
+    # reality-rule: core.hold_document_commitments.2
     if not linked:
         raise InvalidOperation("Document has no open commitments to hold.")
+    # reality-rule: core.hold_document_commitments.3
     return [
         hold_commitment(
             session,
@@ -6994,8 +7909,19 @@ def hold_document_commitments(
 def release_document_holds(
     session: OrmSession, tenant_id: str, document_id: str
 ) -> list[CommitmentHold]:
+    """
+    BUSINESS PURPOSE:
+    Release eligible holds on every promise linked to a company document.
+
+    BUSINESS RULE core.release_document_holds.1:
+    Read the opaque identities of promises naming the document.
+
+    BUSINESS RULE core.release_document_holds.2:
+    Use the shared promise-hold release service for each identity, preserving its protected credit-check holds.
+    """
     _require_business_mutation(session, tenant_id, "release_document_holds")
     _tenant_record(session, Document, tenant_id, document_id)
+    # reality-rule: core.release_document_holds.1
     linked_ids = list(
         session.scalars(
             select(Commitment.id).where(
@@ -7005,6 +7931,7 @@ def release_document_holds(
         )
     )
     released = []
+    # reality-rule: core.release_document_holds.2
     for commitment_id in linked_ids:
         released.extend(release_commitment_hold(session, tenant_id, commitment_id))
     return released
@@ -7013,7 +7940,15 @@ def release_document_holds(
 def active_party_delivery_hold(
     session: OrmSession, tenant_id: str, party_id: str
 ) -> PartyHold | None:
+    """
+    BUSINESS PURPOSE:
+    Read the latest unreleased delivery hold for an existing company partner.
+
+    BUSINESS RULE core.active_party_delivery_hold.1:
+    Select company and partner identity, delivery hold type and absent release time; newest hold creation time takes precedence.
+    """
     _tenant_record(session, Party, tenant_id, party_id)
+    # reality-rule: core.active_party_delivery_hold.1
     return session.scalar(
         select(PartyHold)
         .where(
@@ -7050,15 +7985,31 @@ def hold_party_delivery(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> PartyHold:
+    """
+    BUSINESS PURPOSE:
+    Place a partner-level delivery hold with a supported reason.
+
+    BUSINESS RULE core.hold_party_delivery.1:
+    Refuse unsupported hold reasons.
+
+    BUSINESS RULE core.hold_party_delivery.2:
+    IF an active delivery hold already exists, return it without adding another.
+
+    BUSINESS RULE core.hold_party_delivery.3:
+    Otherwise retain partner identity, reason, note and creator and emit delivery-hold evidence.
+    """
     _require_business_mutation(session, tenant_id, "hold_party_delivery")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Party, tenant_id, party_id)
+    # reality-rule: core.hold_party_delivery.1
     if reason_code not in HOLD_REASONS:
         raise InvalidOperation(code="hold_reason_unsupported")
     existing = active_party_delivery_hold(session, tenant_id, party_id)
+    # reality-rule: core.hold_party_delivery.2
     if existing:
         return existing
+    # reality-rule: core.hold_party_delivery.3
     hold = PartyHold(
         id=uid("phd"),
         tenant_id=tenant_id,
@@ -7093,10 +8044,24 @@ def hold_party_delivery(
 def release_party_delivery_hold(
     session: OrmSession, tenant_id: str, party_id: str, *, action_id: str | None = None
 ) -> list[PartyHold]:
+    """
+    BUSINESS PURPOSE:
+    Lift all current delivery holds for an existing business partner.
+
+    BUSINESS RULE core.release_party_delivery_hold.1:
+    Select this company's unreleased delivery holds for the partner.
+
+    BUSINESS RULE core.release_party_delivery_hold.2:
+    Set the same release time on every selected hold.
+
+    BUSINESS RULE core.release_party_delivery_hold.3:
+    Emit a delivery-hold-released event containing the affected hold identities and snapshots only when holds existed.
+    """
     _require_business_mutation(session, tenant_id, "release_party_delivery_hold")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
     _tenant_record(session, Party, tenant_id, party_id)
+    # reality-rule: core.release_party_delivery_hold.1
     holds = list(
         session.scalars(
             select(PartyHold)
@@ -7110,8 +8075,10 @@ def release_party_delivery_hold(
         )
     )
     released_at = now()
+    # reality-rule: core.release_party_delivery_hold.2
     for hold in holds:
         hold.released_at = released_at
+    # reality-rule: core.release_party_delivery_hold.3
     if holds:
         emit_business_event(
             session,
@@ -7135,10 +8102,22 @@ def release_party_delivery_hold(
 def inventory_rows(
     session: OrmSession, tenant_id: str, *, item_ids: set[str] | None = None
 ) -> list[dict[str, Any]]:
-    """Read shared inventory observations and retain their movement provenance."""
+    """
+    Read shared inventory observations and retain their movement provenance.
+
+    BUSINESS PURPOSE:
+    Read inventory positions using the shared inventory calculation and retain movement provenance.
+
+    BUSINESS RULE core.inventory_rows.1:
+    IF an item identity set is supplied, narrow the inventory query to those items.
+
+    BUSINESS RULE core.inventory_rows.2:
+    Attach movements as receipt provenance when they have a destination and issue provenance when they have a source; a transfer may appear in both.
+    """
     from reality.services.inventory_reads import inventory_position_query, position_row
 
     query = inventory_position_query(tenant_id)
+    # reality-rule: core.inventory_rows.1
     if item_ids is not None:
         query = query.where(Item.id.in_(item_ids))
     rows = [
@@ -7151,6 +8130,7 @@ def inventory_rows(
         .where(Movement.tenant_id == tenant_id, Movement.item_id.in_(by_item))
         .order_by(Movement.occurred_at.desc())
     )
+    # reality-rule: core.inventory_rows.2
     for movement in session.scalars(movements):
         row = by_item[movement.item_id]
         if movement.to_location_id:
@@ -7194,9 +8174,18 @@ def name(session: OrmSession, model, record_id: str | None, tenant_id: str) -> s
 def operational_exceptions(
     session: OrmSession, tenant_id: str
 ) -> list[tuple[str, str, str, str]]:
-    """Compatibility tuple view backed by the canonical exception service."""
+    """
+    Compatibility tuple view backed by the canonical exception service.
+
+    BUSINESS PURPOSE:
+    Read current registered operational exceptions through the canonical exception evaluator.
+
+    BUSINESS RULE core.operational_exceptions.1:
+    Return severity, title, identity and impact from the shared evaluator; this compatibility adapter introduces no additional exception rules.
+    """
     from reality.services.exceptions import operational_exception_rows
 
+    # reality-rule: core.operational_exceptions.1
     return [
         (row["severity"], row["title"], row["id"], row["impact"])
         for row in operational_exception_rows(session, tenant_id)
@@ -7210,14 +8199,25 @@ issues = operational_exceptions
 def commitment_rows(
     session: OrmSession, tenant_id: str, commitment_ids: Iterable[str] | None = None
 ):
-    """Every promise with its risk, counterparty, item and reservation, in six reads.
+    """
+    Every promise with its risk, counterparty, item and reservation, in six reads.
 
     `commitment_ids` narrows every read to the promises the caller names. It changes
     which rows come back, never how one is derived: each promise's risk, counterparty
     and reservation are worked out from its own records.
+
+    BUSINESS PURPOSE:
+    Read promises with derived risk, counterparty, item label and active reserved quantity.
+
+    BUSINESS RULE core.commitment_rows.1:
+    Read shared commitment terms for exactly the listed company promises.
+
+    BUSINESS RULE core.commitment_rows.2:
+    Use the recipient as counterparty for customer deliveries and the sender otherwise. Apply derived risk only to open customer deliveries; other promises are labeled OK here. Return labels and the shared reserved quantity.
     """
     rows = []
     listed = commitments(session, tenant_id, commitment_ids)
+    # reality-rule: core.commitment_rows.1
     terms = commitment_terms(session, tenant_id, [row.id for row in listed])
     party_ids = {
         row.to_party_id if row.type == "customer_delivery" else row.from_party_id
@@ -7256,6 +8256,7 @@ def commitment_rows(
             else record_id
         )
 
+    # reality-rule: core.commitment_rows.2
     for commitment in listed:
         term = terms[commitment.id]
         counterparty_id = (
@@ -7326,12 +8327,23 @@ def commitment_control_accounts(
 def document_rows(
     session: OrmSession, tenant_id: str, document_ids: Collection[str] | None = None
 ):
-    """Every document with its source, lines and linked promises, in four reads.
+    """
+    Every document with its source, lines and linked promises, in four reads.
 
     `document_ids` bounds all four to a named set, for a caller that already knows
     which documents it has to account for. `None` means the whole company.
+
+    BUSINESS PURPOSE:
+    Read document evidence together with its source, lines and linked promises.
+
+    BUSINESS RULE core.document_rows.1:
+    Select company documents, optionally restricted by opaque document identities, ordered by document date and identity.
+
+    BUSINESS RULE core.document_rows.2:
+    Return each document with its source if held, its recorded lines and linked promises; missing related records remain absent or empty rather than invented.
     """
     scope = [Document.id.in_(document_ids)] if document_ids is not None else []
+    # reality-rule: core.document_rows.1
     documents = list(
         session.scalars(
             select(Document)
@@ -7374,6 +8386,7 @@ def document_rows(
         .order_by(Commitment.id)
     ):
         linked.setdefault(commitment.document_id, []).append(commitment)
+    # reality-rule: core.document_rows.2
     return [
         (
             document,
@@ -7798,29 +8811,56 @@ def add_chat_assistant_message(
 def business_journey_guide(
     session: OrmSession, tenant_id: str, arguments: dict[str, Any]
 ) -> dict[str, object]:
-    """Expose the canonical read tool to the executable application catalog."""
+    """
+    Expose the canonical read tool to the executable application catalog.
+
+    BUSINESS PURPOSE:
+    Read canonical business-journey guidance through the application catalog.
+
+    BUSINESS RULE core.business_journey_guide.1:
+    Delegate unchanged tenant identity and arguments to the registered journey tool; this adapter supplies no parallel business rules.
+    """
     from reality.tools.business_journeys import business_journey_guide as read_guide
 
+    # reality-rule: core.business_journey_guide.1
     return read_guide(session, tenant_id, arguments)
 
 
 def business_journey_proposal_create(
     session: OrmSession, tenant_id: str, arguments: dict[str, Any]
 ) -> dict[str, object]:
-    """Expose confirmed journey suggestion execution to the command catalog."""
+    """
+    Expose confirmed journey suggestion execution to the command catalog.
+
+    BUSINESS PURPOSE:
+    Execute a confirmed business-journey suggestion through its canonical application tool.
+
+    BUSINESS RULE core.business_journey_proposal_create.1:
+    Delegate unchanged tenant identity and arguments to the registered journey tool; this adapter supplies no parallel business rules.
+    """
     from reality.tools.business_journeys import (
         business_journey_proposal_create as create,
     )
 
+    # reality-rule: core.business_journey_proposal_create.1
     return create(session, tenant_id, arguments)
 
 
 def business_journey_vote_set(
     session: OrmSession, tenant_id: str, arguments: dict[str, Any]
 ) -> dict[str, object]:
-    """Expose confirmed journey voting to the command catalog."""
+    """
+    Expose confirmed journey voting to the command catalog.
+
+    BUSINESS PURPOSE:
+    Record a confirmed business-journey vote through its canonical application tool.
+
+    BUSINESS RULE core.business_journey_vote_set.1:
+    Delegate unchanged tenant identity and arguments to the registered journey tool; this adapter supplies no parallel business rules.
+    """
     from reality.tools.business_journeys import business_journey_vote_set as set_vote
 
+    # reality-rule: core.business_journey_vote_set.1
     return set_vote(session, tenant_id, arguments)
 
 
@@ -8357,15 +9397,29 @@ def create_manual_document_with_lines(
     _carry_unstated_price: bool = False,
     _commit: bool = True,
 ) -> tuple[Document, list[DocumentLine]]:
-    """Atomically record manual document evidence and its normalized lines.
+    """
+    Atomically record manual document evidence and its normalized lines.
 
     This deliberately creates evidence only. Operational commitments are created
     through their explicit application command, rather than being guessed from a
     manually entered document type.
+
+    BUSINESS PURPOSE:
+    Record manually supplied document evidence and its normalized lines atomically; do not infer operational promises.
+
+    BUSINESS RULE core.create_manual_document_with_lines.1:
+    Validate header and line inputs through the shared manual-document preview.
+
+    BUSINESS RULE core.create_manual_document_with_lines.2:
+    Preserve normalized line quantities, stated prices and totals, units and source-line references under the document identity.
+
+    BUSINESS RULE core.create_manual_document_with_lines.3:
+    Emit document-recorded evidence identifying the document and created lines; no commitment is created here.
     """
     _require_business_mutation(session, tenant_id, "create_manual_document_with_lines")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
+    # reality-rule: core.create_manual_document_with_lines.1
     values, normalized = _preview_manual_document_input(
         session,
         tenant_id,
@@ -8390,6 +9444,7 @@ def create_manual_document_with_lines(
     )
     session.add(document)
     session.flush()
+    # reality-rule: core.create_manual_document_with_lines.2
     created_lines = [
         DocumentLine(
             id=uid("lin"),
@@ -8413,6 +9468,7 @@ def create_manual_document_with_lines(
         for row in normalized
     ]
     session.add_all(created_lines)
+    # reality-rule: core.create_manual_document_with_lines.3
     emit_business_event(
         session,
         tenant_id,
@@ -8584,7 +9640,24 @@ def create_manual_order(
     payment_term_code: str = "",
     ship_to_party_id: str | None = None,
 ) -> tuple[SourceRecord, Document, list[DocumentLine], list[Commitment]]:
-    """Atomically turn one manual order payload into Evidence and Reality."""
+    """
+    Atomically turn one manual order payload into Evidence and Reality.
+
+    BUSINESS PURPOSE:
+    Record one manual sales or purchase order as source, document evidence and delivery promises in one transaction.
+
+    BUSINESS RULE core.create_manual_order.1:
+    Validate the complete manual order payload through the shared order preview.
+
+    BUSINESS RULE core.create_manual_order.2:
+    Create a customer delivery for sales or supplier delivery for purchase, linked to each evidence line. For purchase items convert the stated purchase quantity through the shared purchase-quantity helper into the stock unit.
+
+    BUSINESS RULE core.create_manual_order.3:
+    For a sales order, check current credit exposure and place applicable holds through the shared credit-limit service.
+
+    BUSINESS RULE core.create_manual_order.4:
+    Roll back source, evidence and promise changes if recording the order fails.
+    """
     _require_business_mutation(session, tenant_id, "create_manual_order")
     if action_id:
         _tenant_record(session, ChangeProposal, tenant_id, action_id)
@@ -8612,9 +9685,11 @@ def create_manual_order(
         "ship_to_party_id": ship_to_party_id,
         "lines": lines,
     }
+    # reality-rule: core.create_manual_order.1
     preview = _preview_manual_order(session, tenant_id, payload)
     direction = preview["direction"]
     document_type = preview["document"]["type"]
+    # reality-rule: core.create_manual_order.4
     try:
         source = create_master_source_record(
             session,
@@ -8649,6 +9724,7 @@ def create_manual_order(
             action_id=action_id,
         )
         commitments = []
+        # reality-rule: core.create_manual_order.2
         for line in document_lines:
             purchased = (
                 _tenant_record(session, Item, tenant_id, line.item_id)
@@ -8720,6 +9796,7 @@ def create_manual_order(
             action_id=action_id,
             correlation_id=action_id,
         )
+        # reality-rule: core.create_manual_order.3
         if direction == "sales":
             from reality.services.credit_exposure import hold_if_over_credit_limit
 
@@ -9092,7 +10169,21 @@ def _document_line_reality_exists(
 def manual_document_line_snapshot(
     session: OrmSession, tenant_id: str, document_id: str
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Read manually entered line evidence with the revision and restrictions needed for a correction.
+
+    BUSINESS RULE core.manual_document_line_snapshot.1:
+    External source-backed evidence cannot be overwritten here; return guidance to record a new source version.
+
+    BUSINESS RULE core.manual_document_line_snapshot.2:
+    Determine whether linked Reality already exists for these lines.
+
+    BUSINESS RULE core.manual_document_line_snapshot.3:
+    Return the current line revision and stored lines; linked Reality blocks economic changes but does not erase the evidence.
+    """
     document = _tenant_record(session, Document, tenant_id, document_id)
+    # reality-rule: core.manual_document_line_snapshot.1
     if document.source_record_id:
         return {
             "document_id": document.id,
@@ -9116,9 +10207,11 @@ def manual_document_line_snapshot(
         )
     )
     rows = [_stored_manual_line(line) for line in stored]
+    # reality-rule: core.manual_document_line_snapshot.2
     has_reality = _document_line_reality_exists(
         session, tenant_id, document.id, {line.id for line in stored}
     )
+    # reality-rule: core.manual_document_line_snapshot.3
     return {
         "document_id": document.id,
         "revision": _line_revision(rows),
@@ -9146,6 +10239,25 @@ def correct_manual_document_lines(
     lines: list[dict[str, Any]],
     actor_context: dict[str, str] | None = None,
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Correct manually entered lines only while respecting reviewed revisions and downstream Reality.
+
+    BUSINESS RULE core.correct_manual_document_lines.1:
+    Refuse overwriting source-backed external evidence.
+
+    BUSINESS RULE core.correct_manual_document_lines.2:
+    IF the requested lines already match, return an unchanged snapshot without another correction.
+
+    BUSINESS RULE core.correct_manual_document_lines.3:
+    Refuse changes based on a stale line revision.
+
+    BUSINESS RULE core.correct_manual_document_lines.4:
+    Refuse adding, removing or economically changing lines after linked Reality was derived; use its owning correction workflow.
+
+    BUSINESS RULE core.correct_manual_document_lines.5:
+    Apply permitted additions, removals and updates, retain before/after evidence in the correction event and commit once; roll back on failure.
+    """
     _require_business_mutation(session, tenant_id, "correct_manual_document_lines")
     document = session.scalar(
         select(Document)
@@ -9154,6 +10266,7 @@ def correct_manual_document_lines(
     )
     if not document:
         raise NotFound("Document was not found.")
+    # reality-rule: core.correct_manual_document_lines.1
     if document.source_record_id:
         raise InvalidOperation(
             "External evidence cannot be overwritten. Record a new source version instead."
@@ -9182,9 +10295,9 @@ def correct_manual_document_lines(
     # correction states another one.
     for raw, row in zip(lines, normalized, strict=True):
         if raw.get("customer_item_number") is None and row["id"] in stored_by_id:
-            row["customer_item_number"] = _stored_manual_line(
-                stored_by_id[row["id"]]
-            )["customer_item_number"]
+            row["customer_item_number"] = _stored_manual_line(stored_by_id[row["id"]])[
+                "customer_item_number"
+            ]
     entries_to_validate = [
         row
         for row in normalized
@@ -9225,9 +10338,11 @@ def correct_manual_document_lines(
     identical = not any(row["id"] is None for row in normalized) and {
         _line_revision(current_rows)
     } == {_line_revision(existing_requested)}
+    # reality-rule: core.correct_manual_document_lines.2
     if identical:
         snapshot = manual_document_line_snapshot(session, tenant_id, document.id)
         return {**snapshot, "changed": False, "added": 0, "updated": 0, "removed": 0}
+    # reality-rule: core.correct_manual_document_lines.3
     if expected_revision != current_revision:
         raise Conflict("The document lines are stale. Reload before saving.")
 
@@ -9259,6 +10374,7 @@ def correct_manual_document_lines(
             _line_wire_value(before)[field] != _line_wire_value(after)[field]
             for field in _LINE_ECONOMIC_FIELDS
         )
+    # reality-rule: core.correct_manual_document_lines.4
     if economic_change and _document_line_reality_exists(
         session, tenant_id, document.id, set(stored_by_id)
     ):
@@ -9271,6 +10387,7 @@ def correct_manual_document_lines(
 
     _protect_document(session, tenant_id, document.id)
 
+    # reality-rule: core.correct_manual_document_lines.5
     try:
         audit = {"added": [], "removed": [], "changed": []}
         for line_id in sorted(removed_ids):
@@ -9370,9 +10487,24 @@ def correct_manual_document(
     payment_term_code: str = "",
     ship_to_party_id: str | None = None,
 ) -> Document:
-    """Correct manually recorded evidence without bypassing derived Reality."""
+    """
+    Correct manually recorded evidence without bypassing derived Reality.
+
+    BUSINESS PURPOSE:
+    Correct manual document metadata without contradicting commitments or ledger evidence.
+
+    BUSINESS RULE core.correct_manual_document.1:
+    Refuse overwriting external evidence; record a new source version instead.
+
+    BUSINESS RULE core.correct_manual_document.2:
+    IF commitments or ledger entries already exist, refuse changes to document type, party, currency or gross amount.
+
+    BUSINESS RULE core.correct_manual_document.3:
+    When fields actually change, invoke costing protection before applying corrections and recording their changed-field evidence.
+    """
     _require_business_mutation(session, tenant_id, "correct_manual_document")
     document = _tenant_record(session, Document, tenant_id, document_id)
+    # reality-rule: core.correct_manual_document.1
     if document.source_record_id:
         raise InvalidOperation(
             "External evidence cannot be overwritten. Record a new source version instead."
@@ -9419,6 +10551,7 @@ def correct_manual_document(
     changed_protected = [
         name for name, (before, after) in protected_changes.items() if before != after
     ]
+    # reality-rule: core.correct_manual_document.2
     if has_downstream_reality and changed_protected:
         raise InvalidOperation(
             "Cannot change type, party, currency, or gross amount after Reality "
@@ -9441,6 +10574,7 @@ def correct_manual_document(
     changed_fields = [
         field for field, value in changes.items() if getattr(document, field) != value
     ]
+    # reality-rule: core.correct_manual_document.3
     if changed_fields:
         from reality.services.costing import _protect_document
 
@@ -9469,9 +10603,21 @@ def record_corrected_document_source(
     *,
     source_version_at: datetime | str | None = None,
 ) -> tuple[SourceRecord, ImportJob]:
-    """Append a source version for external evidence; never mutate the old payload."""
+    """
+    Append a source version for external evidence; never mutate the old payload.
+
+    BUSINESS PURPOSE:
+    Append a corrected upstream source version for an externally sourced document.
+
+    BUSINESS RULE core.record_corrected_document_source.1:
+    Refuse manual evidence with no source stream; it uses manual correction instead.
+
+    BUSINESS RULE core.record_corrected_document_source.2:
+    Enqueue the new payload under the same source system, type and external identity, with the supplied upstream version time; retain the original source unchanged.
+    """
     _require_business_mutation(session, tenant_id, "record_corrected_document_source")
     document = _tenant_record(session, Document, tenant_id, document_id)
+    # reality-rule: core.record_corrected_document_source.1
     if not document.source_record_id:
         raise InvalidOperation(
             "Manual evidence has no source stream. Use document correction instead."
@@ -9490,6 +10636,7 @@ def record_corrected_document_source(
         except json.JSONDecodeError:
             context = {}
         context.pop("disposition", None)
+    # reality-rule: core.record_corrected_document_source.2
     return enqueue_source(
         session,
         tenant_id,
@@ -9519,7 +10666,8 @@ def post_ledger(
     _line_account_ids: list[str | None] | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
-    """Post one balanced group in one currency.
+    """
+    Post one balanced group in one currency.
 
     Spec 309: every entry also carries its amount in the company currency. In the
     company currency that is the amount itself at rate 1. A foreign group is
@@ -9528,6 +10676,27 @@ def post_ledger(
     different rates). A foreign group with neither stays unconverted, as every
     foreign posting did before. Only an `exchange_difference` entry may have no
     amount in the group's currency: it carries the realised difference alone.
+
+    BUSINESS PURPOSE:
+    Record a balanced posting group from stated amounts using shared accounts and company-currency rules.
+
+    BUSINESS RULE core.post_ledger.1:
+    Permit only debit and credit sides.
+
+    BUSINESS RULE core.post_ledger.2:
+    Require positive amounts except an exchange-difference line may carry zero in the posting currency.
+
+    BUSINESS RULE core.post_ledger.3:
+    Refuse a posting group whose debit sum differs from its credit sum in the posting currency.
+
+    BUSINESS RULE core.post_ledger.4:
+    Validate company-currency amounts and exchange information through the shared conversion rules.
+
+    BUSINESS RULE core.post_ledger.5:
+    Refuse an empty posting group.
+
+    BUSINESS RULE core.post_ledger.6:
+    Retain each resolved account, party, stated posting amount, currency, side, document/source and any validated company amount/rate in a new common posting-group identity.
     """
     _require_business_mutation(session, tenant_id, "post_ledger")
     if action_id:
@@ -9539,8 +10708,10 @@ def post_ledger(
     _tenant_record(session, Party, tenant_id, party_id)
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
+    # reality-rule: core.post_ledger.1
     if any(side not in {"debit", "credit"} for _, side, _ in postings):
         raise InvalidOperation(code="ledger_posting_group_must_balance")
+    # reality-rule: core.post_ledger.2
     amounts = [
         decimal(amount)
         if role == "exchange_difference" and decimal(amount) == ZERO
@@ -9548,15 +10719,25 @@ def post_ledger(
         for role, _, amount in postings
     ]
     debit = sum(
-        (a for a, (_, side, _) in zip(amounts, postings, strict=True) if side == "debit"),
+        (
+            a
+            for a, (_, side, _) in zip(amounts, postings, strict=True)
+            if side == "debit"
+        ),
         ZERO,
     )
     credit = sum(
-        (a for a, (_, side, _) in zip(amounts, postings, strict=True) if side == "credit"),
+        (
+            a
+            for a, (_, side, _) in zip(amounts, postings, strict=True)
+            if side == "credit"
+        ),
         ZERO,
     )
+    # reality-rule: core.post_ledger.3
     if debit != credit:
         raise InvalidOperation(code="ledger_posting_group_must_balance")
+    # reality-rule: core.post_ledger.4
     converted, rates = _company_amounts(
         session, tenant_id, currency, postings, amounts, exchange_rate, company_amounts
     )
@@ -9566,6 +10747,7 @@ def post_ledger(
         role: resolve_account(session, tenant_id, role, (account_ids or {}).get(role))
         for role, _, _ in postings
     }
+    # reality-rule: core.post_ledger.5
     if not postings:
         raise InvalidOperation(code="ledger_posting_group_empty")
     # Spec 336: a transfer between two accounts of one role (the provider's cash
@@ -9582,6 +10764,7 @@ def post_ledger(
     ]
     group_id = uid("pst")
     posting_time = effective_at or now()
+    # reality-rule: core.post_ledger.6
     entries = [
         LedgerEntry(
             id=uid("led"),
@@ -9661,12 +10844,20 @@ CENT = Decimal("0.01")
 
 
 def _company_amounts_stored(session: OrmSession) -> bool:
-    """Whether the schema has the spec 309 columns.
+    """
+    Whether the schema has the spec 309 columns.
 
     Only the historical migration tests run the services on a schema from before
     them; there every posting stays unconverted, as it was then.
+
+    BUSINESS PURPOSE:
+    Determine whether the schema supports recording company-currency amounts.
+
+    BUSINESS RULE core._company_amounts_stored.1:
+    When schema capability is not cached in this session, inspect whether company_currency exists and retain that result. Historical schemas without it keep postings unconverted.
     """
     known = session.info.get("reality_company_amounts")
+    # reality-rule: core._company_amounts_stored.1
     if known is None:
         from sqlalchemy import inspect as sa_inspect
 
@@ -9690,16 +10881,36 @@ def _delivery_failures_stored(session: OrmSession) -> bool:
 
 
 def _book_currency(session: OrmSession, tenant_id: str) -> str | None:
+    """
+    BUSINESS PURPOSE:
+    Read the company's stated accounting currency when supported by the current schema.
+
+    BUSINESS RULE core._book_currency.1:
+    Return no company currency for a historical schema without company-currency support.
+
+    BUSINESS RULE core._book_currency.2:
+    Otherwise read the company currency through the canonical company-currency service.
+    """
+    # reality-rule: core._book_currency.1
     if not _company_amounts_stored(session):
         return None
     from reality.services.finance.company_currency import company_currency
 
+    # reality-rule: core._book_currency.2
     return company_currency(session, tenant_id)
 
 
 def _round_cents(value: Decimal) -> Decimal:
+    """
+    BUSINESS PURPOSE:
+    Round a derived accounting conversion to monetary cents.
+
+    BUSINESS RULE core._round_cents.1:
+    Round to the cent with ROUND_HALF_UP; a half-cent is rounded away from zero.
+    """
     from decimal import ROUND_HALF_UP
 
+    # reality-rule: core._round_cents.1
     return value.quantize(CENT, rounding=ROUND_HALF_UP)
 
 
@@ -9712,8 +10923,32 @@ def _company_amounts(
     exchange_rate: Decimal | str | None,
     stated: list[Decimal | str] | None,
 ) -> tuple[list[Decimal | None], list[Decimal | None]]:
-    """Each entry's amount in the company currency and the rate it carries."""
+    """
+    Each entry's amount in the company currency and the rate it carries.
+
+    BUSINESS PURPOSE:
+    Validate or derive balanced company-currency values for a posting group.
+
+    BUSINESS RULE core._company_amounts.1:
+    Without a configured/supported company currency, leave values and rates absent; refuse zero posting amounts.
+
+    BUSINESS RULE core._company_amounts.2:
+    In company currency, retain the original amounts with rate one; refuse a different supplied rate or different stated company amounts.
+
+    BUSINESS RULE core._company_amounts.3:
+    When company amounts are stated explicitly, require one nonnegative value per posting line and refuse a zero company value for a nonzero posting amount; derive per-line rates to eight decimal places.
+
+    BUSINESS RULE core._company_amounts.4:
+    Otherwise, when a positive exchange rate is supplied, convert each amount and round to cents. Adjust the last line on each side to the rounded debit-group total so converted debit and credit remain balanced.
+
+    BUSINESS RULE core._company_amounts.5:
+    Refuse unequal company-currency debit and credit totals.
+
+    BUSINESS RULE core._company_amounts.6:
+    A zero posting-currency amount is allowed only for exchange_difference carrying a positive company-currency value.
+    """
     book = _book_currency(session, tenant_id)
+    # reality-rule: core._company_amounts.1
     if book is None:
         if ZERO in amounts:
             raise InvalidOperation(code="ledger_posting_group_must_balance")
@@ -9721,22 +10956,28 @@ def _company_amounts(
     if ZERO in amounts and (currency == book or stated is None):
         # Only a converted foreign group can carry a difference alone.
         raise InvalidOperation(code="ledger_posting_group_must_balance")
+    # reality-rule: core._company_amounts.2
     if currency == book:
         if exchange_rate is not None and decimal(exchange_rate) != 1:
             raise InvalidOperation(code="exchange_rate_not_applicable")
         if stated is not None and [decimal(v) for v in stated] != amounts:
             raise InvalidOperation(code="exchange_rate_not_applicable")
         return list(amounts), [Decimal(1)] * len(amounts)
+    # reality-rule: core._company_amounts.3
     if stated is not None:
         converted = [decimal(value) for value in stated]
         if len(converted) != len(amounts) or any(value < ZERO for value in converted):
             raise InvalidOperation(code="ledger_company_amounts_invalid")
-        if any(value == ZERO and amount for value, amount in zip(converted, amounts, strict=True)):
+        if any(
+            value == ZERO and amount
+            for value, amount in zip(converted, amounts, strict=True)
+        ):
             raise InvalidOperation(code="exchange_value_too_small")
         rates: list[Decimal | None] = [
             (value / amount).quantize(Decimal("0.00000001")) if amount else None
             for value, amount in zip(converted, amounts, strict=True)
         ]
+    # reality-rule: core._company_amounts.4
     elif exchange_rate is not None:
         rate = decimal(exchange_rate)
         if rate <= ZERO:
@@ -9747,7 +10988,10 @@ def _company_amounts(
         # The last entry of each side takes the rounding remainder, so the
         # group balances in the company currency too.
         total = _round_cents(
-            sum((a for a, p in zip(amounts, postings, strict=True) if p[1] == "debit"), ZERO)
+            sum(
+                (a for a, p in zip(amounts, postings, strict=True) if p[1] == "debit"),
+                ZERO,
+            )
             * rate
         )
         for side in ("debit", "credit"):
@@ -9764,8 +11008,10 @@ def _company_amounts(
         )
         for side in ("debit", "credit")
     }
+    # reality-rule: core._company_amounts.5
     if sides["debit"] != sides["credit"]:
         raise InvalidOperation(code="ledger_posting_group_must_balance")
+    # reality-rule: core._company_amounts.6
     for value, amount, (role, _, _) in zip(converted, amounts, postings, strict=True):
         if amount == ZERO and (role != "exchange_difference" or value <= ZERO):
             raise InvalidOperation(code="ledger_posting_group_must_balance")
@@ -9881,12 +11127,23 @@ def _ledger_reversal_for_group(
 def _ledger_reversal_read(
     session: OrmSession, tenant_id: str, posting_group_id: str
 ) -> tuple[LedgerReversal | None, str]:
+    """
+    BUSINESS PURPOSE:
+    Read whether a posting group was reversed or is itself the inverse group.
+
+    BUSINESS RULE core._ledger_reversal_for_group.1:
+    A relation naming this group as the original takes precedence and classifies it reversed_original.
+
+    BUSINESS RULE core._ledger_reversal_for_group.2:
+    Otherwise classify a relation naming it as the reversing group as reversing; without either relation classify it normal.
+    """
     relation = session.scalar(
         select(LedgerReversal).where(
             LedgerReversal.tenant_id == tenant_id,
             LedgerReversal.original_posting_group_id == posting_group_id,
         )
     )
+    # reality-rule: core._ledger_reversal_for_group.1
     if relation:
         return relation, "reversed_original"
     relation = session.scalar(
@@ -9895,6 +11152,7 @@ def _ledger_reversal_read(
             LedgerReversal.reversing_posting_group_id == posting_group_id,
         )
     )
+    # reality-rule: core._ledger_reversal_for_group.2
     return (relation, "reversing") if relation else (None, "normal")
 
 
@@ -9929,6 +11187,16 @@ def _allocations_for_entries(
 def ledger_reversal_snapshot(
     session: OrmSession, tenant_id: str, posting_group_id: str
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Read an entire posting group and its reversal and settlement relationships for review.
+
+    BUSINESS RULE core.ledger_reversal_snapshot.1:
+    Fingerprint the original entries, affected allocations and existing reversal identity to detect later changes.
+
+    BUSINESS RULE core.ledger_reversal_snapshot.2:
+    Return original and reversing entries plus affected allocations. A group with a reversal relation is not reversible through this snapshot.
+    """
     entries = _ledger_group_entries(session, tenant_id, posting_group_id)
     relation, role = _ledger_reversal_for_group(session, tenant_id, posting_group_id)
     original_group_id = (
@@ -9947,6 +11215,7 @@ def ledger_reversal_snapshot(
     allocations = _allocations_for_entries(
         session, tenant_id, {entry.id for entry in original_entries}
     )
+    # reality-rule: core.ledger_reversal_snapshot.1
     revision = canonical_payload_hash(
         {
             "entries": [_ledger_entry_values(entry) for entry in original_entries],
@@ -9954,6 +11223,7 @@ def ledger_reversal_snapshot(
             "reversal_id": relation.id if relation else None,
         }
     )
+    # reality-rule: core.ledger_reversal_snapshot.2
     return {
         "posting_group_id": posting_group_id,
         "revision": revision,
@@ -10001,21 +11271,41 @@ def _ledger_reversal_fingerprint(
 def preview_ledger_reversal(
     session: OrmSession, tenant_id: str, posting_group_id: str, *, reason: str
 ) -> dict[str, Any]:
+    """
+    BUSINESS PURPOSE:
+    Preview the complete inverse of a posting group without writing ledger entries.
+
+    BUSINESS RULE core.preview_ledger_reversal.1:
+    Require a nonblank reversal reason.
+
+    BUSINESS RULE core.preview_ledger_reversal.2:
+    Refuse an already reversed original or a reversing posting group.
+
+    BUSINESS RULE core.preview_ledger_reversal.3:
+    Require that reversing the group preserves the shared down-payment offset invariants.
+
+    BUSINESS RULE core.preview_ledger_reversal.4:
+    Preview each original amount and account with debit/credit exchanged and no document/source authority on the inverse entry.
+    """
     normalized_reason = reason.strip()
+    # reality-rule: core.preview_ledger_reversal.1
     if not normalized_reason:
         raise InvalidOperation(code="ledger_reversal_reason_required")
     snapshot = ledger_reversal_snapshot(session, tenant_id, posting_group_id)
+    # reality-rule: core.preview_ledger_reversal.2
     if not snapshot["reversible"]:
         if snapshot["role"] == "reversing":
             raise InvalidOperation(code="posting_group_reversing_not_reversible")
         raise InvalidOperation(code="posting_group_already_reversed")
     from reality.services.down_payments import assert_reversal_keeps_offsets
 
+    # reality-rule: core.preview_ledger_reversal.3
     assert_reversal_keeps_offsets(
         session,
         tenant_id,
         _ledger_group_entries(session, tenant_id, posting_group_id),
     )
+    # reality-rule: core.preview_ledger_reversal.4
     inverse = [
         {
             **entry,
@@ -10052,6 +11342,22 @@ def reverse_ledger_posting_group(
     preview_fingerprint: str | None = None,
     _commit: bool = True,
 ) -> LedgerReversalResult:
+    """
+    BUSINESS PURPOSE:
+    Reverse a whole posting group append-only, preserving the original accounting evidence.
+
+    BUSINESS RULE core.reverse_ledger_posting_group.1:
+    Replay a matching reversal of the original group; refuse reversing a reversing group or issuing a conflicting second reversal.
+
+    BUSINESS RULE core.reverse_ledger_posting_group.2:
+    Refuse a reviewed reversal whose current snapshot revision has changed.
+
+    BUSINESS RULE core.reverse_ledger_posting_group.3:
+    Append a new posting group containing every original account, party, amount and currency with debit/credit exchanged, retaining company amounts and exchange rates when stored.
+
+    BUSINESS RULE core.reverse_ledger_posting_group.4:
+    Retain the reason, actor context, original/inverse entries and affected allocation identities in the reversal event.
+    """
     _require_business_mutation(session, tenant_id, "reverse_ledger_posting_group")
     from reality.services.business_locks import lock_delivery_state
 
@@ -10071,6 +11377,7 @@ def reverse_ledger_posting_group(
         existing, role = _ledger_reversal_for_group(
             session, tenant_id, posting_group_id
         )
+        # reality-rule: core.reverse_ledger_posting_group.1
         if existing:
             if (
                 role == "reversed_original"
@@ -10091,10 +11398,12 @@ def reverse_ledger_posting_group(
         # Spec 299: a standing down-payment offset keeps its basis.
         assert_reversal_keeps_offsets(session, tenant_id, entries)
         snapshot = ledger_reversal_snapshot(session, tenant_id, posting_group_id)
+        # reality-rule: core.reverse_ledger_posting_group.2
         if expected_revision and expected_revision != snapshot["revision"]:
             raise Conflict(code="ledger_reversal_preview_stale")
         reversing_group_id = uid("pst")
         reversed_at = now()
+        # reality-rule: core.reverse_ledger_posting_group.3
         inverse_entries = [
             LedgerEntry(
                 id=uid("led"),
@@ -10149,6 +11458,7 @@ def reverse_ledger_posting_group(
         affected_allocations = _allocations_for_entries(
             session, tenant_id, {entry.id for entry in entries}
         )
+        # reality-rule: core.reverse_ledger_posting_group.4
         emit_business_event(
             session,
             tenant_id,
@@ -10201,10 +11511,22 @@ def record_sales_invoice(
     reality_finance_v1: dict[str, Any] | None = None,
     down_payment_offsets: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Record stated invoice evidence and its receivable, never generate a total."""
+    """
+    Record stated invoice evidence and its receivable, never generate a total.
+
+    BUSINESS PURPOSE:
+    Record stated customer invoice evidence and its financial posting through the shared invoice service.
+
+    BUSINESS RULE core.record_sales_invoice.1:
+    IF explicit invoice positions are supplied, refuse mixing them with legacy order-line/quantity arguments or header-level financial detail; delegate to the multi-position invoice service.
+
+    BUSINESS RULE core.record_sales_invoice.2:
+    Otherwise delegate the single-order-line invoice to the shared recorder, retaining the stated amount, quantity and optional financial inputs.
+    """
     _require_business_mutation(session, tenant_id, "record_sales_invoice")
     if lines is not None and delivery_guard is not None:
         raise InvalidOperation(code="invoice_delivery_guard_single_order_line")
+    # reality-rule: core.record_sales_invoice.1
     if lines is not None:
         arguments = {
             "lines": lines,
@@ -10224,6 +11546,7 @@ def record_sales_invoice(
         return _record_multi_order_invoice(
             session, tenant_id, "sales", arguments, action_id
         )
+    # reality-rule: core.record_sales_invoice.2
     return _record_order_invoice(
         session,
         tenant_id,
@@ -10254,8 +11577,20 @@ def record_supplier_invoice(
     reality_finance_v1: dict[str, Any] | None = None,
     exchange_rate: Decimal | str | None = None,
 ) -> dict[str, Any]:
-    """Record received supplier invoice evidence and its payable atomically."""
+    """
+    Record received supplier invoice evidence and its payable atomically.
+
+    BUSINESS PURPOSE:
+    Record stated supplier invoice evidence and its financial posting through the shared invoice service.
+
+    BUSINESS RULE core.record_supplier_invoice.1:
+    IF explicit invoice positions are supplied, refuse mixing them with legacy order-line/quantity arguments or header-level financial detail; delegate to the multi-position invoice service.
+
+    BUSINESS RULE core.record_supplier_invoice.2:
+    Otherwise delegate the single-order-line invoice to the shared recorder, retaining the stated amount, quantity and optional financial inputs.
+    """
     _require_business_mutation(session, tenant_id, "record_supplier_invoice")
+    # reality-rule: core.record_supplier_invoice.1
     if lines is not None:
         arguments = {
             "lines": lines,
@@ -10271,6 +11606,7 @@ def record_supplier_invoice(
         return _record_multi_order_invoice(
             session, tenant_id, "purchase", arguments, action_id
         )
+    # reality-rule: core.record_supplier_invoice.2
     return _record_order_invoice(
         session,
         tenant_id,
@@ -10584,13 +11920,29 @@ def _invoice_exchange_rate(
     currency: str,
     rate: Any,
 ) -> Decimal | None:
-    """The stated rate of an invoice, required exactly when it is foreign."""
+    """
+    The stated rate of an invoice, required exactly when it is foreign.
+
+    BUSINESS PURPOSE:
+    Validate the stated exchange rate required for a foreign supplier invoice.
+
+    BUSINESS RULE core._invoice_exchange_rate.1:
+    Outside foreign purchase invoices, refuse a supplied rate and otherwise leave it absent.
+
+    BUSINESS RULE core._invoice_exchange_rate.2:
+    Require a nonblank rate for a purchase invoice whose currency differs from the company currency.
+
+    BUSINESS RULE core._invoice_exchange_rate.3:
+    Require a positive decimal rate below 10^10 with no more than eight decimal places.
+    """
     book = _book_currency(session, tenant_id)
     foreign = book is not None and currency != book
+    # reality-rule: core._invoice_exchange_rate.1
     if direction != "purchase" or not foreign:
         if rate is not None:
             raise InvalidOperation(code="exchange_rate_not_applicable")
         return None
+    # reality-rule: core._invoice_exchange_rate.2
     if rate is None or str(rate).strip() == "":
         raise InvalidOperation(code="exchange_rate_required")
     try:
@@ -10599,6 +11951,7 @@ def _invoice_exchange_rate(
     except (ArithmeticError, ValueError, TypeError) as error:
         raise InvalidOperation(code="exchange_rate_invalid") from error
     # Numeric(18, 8): at most ten integer digits.
+    # reality-rule: core._invoice_exchange_rate.3
     if stated <= ZERO or not exact or stated >= Decimal("1e10"):
         raise InvalidOperation(code="exchange_rate_invalid")
     return stated
@@ -11015,7 +12368,9 @@ def _record_order_invoice(
     )
     if exchange_rate is not None and credit:
         raise InvalidOperation(code="exchange_rate_not_applicable")
-    rate_argument = {"exchange_rate": exchange_rate} if exchange_rate is not None else {}
+    rate_argument = (
+        {"exchange_rate": exchange_rate} if exchange_rate is not None else {}
+    )
     if down_payment_offsets is not None:
         if credit:
             raise InvalidOperation(code="invoice_fields_invalid")
@@ -11257,8 +12612,23 @@ def record_sales_credit(
     effective_at: datetime | None = None,
     action_id: str | None = None,
 ) -> dict[str, Any]:
-    """Record an invoice-linked financial credit or a legacy return credit."""
+    """
+    Record an invoice-linked financial credit or a legacy return credit.
+
+    BUSINESS PURPOSE:
+    Record an invoice-position credit or the legacy order-line return credit through the appropriate shared recorder.
+
+    BUSINESS RULE core.record_sales_credit.1:
+    IF an invoice or explicit positions are supplied, use the invoice-credit service and refuse simultaneous legacy order-line/quantity arguments.
+
+    BUSINESS RULE core.record_sales_credit.2:
+    Refuse invoice-specific reason or allocation arguments when no invoice-position credit was requested.
+
+    BUSINESS RULE core.record_sales_credit.3:
+    Otherwise delegate the legacy order-line credit to the shared invoice recorder with credit mode enabled.
+    """
     _require_business_mutation(session, tenant_id, "record_sales_credit")
+    # reality-rule: core.record_sales_credit.1
     if invoice_id is not None or lines is not None:
         from reality.services.credit_actions import _record_invoice_credit
 
@@ -11278,8 +12648,10 @@ def record_sales_credit(
             },
             action_id,
         )
+    # reality-rule: core.record_sales_credit.2
     if reason is not None or allocation_amount is not None:
         raise InvalidOperation(code="sales_credit_invoice_fields_incomplete")
+    # reality-rule: core.record_sales_credit.3
     return _record_order_invoice(
         session,
         tenant_id,
@@ -11303,12 +12675,28 @@ def post_sales_invoice(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
+    """
+    BUSINESS PURPOSE:
+    Book an existing sales invoice through the shared ledger service.
+
+    BUSINESS RULE core.post_sales_invoice.1:
+    Require the matching document type.
+
+    BUSINESS RULE core.post_sales_invoice.2:
+    Refuse a document whose sales revenue balance is already nonzero.
+
+    BUSINESS RULE core.post_sales_invoice.3:
+    Debit accounts receivable and credit sales revenue for the document's stated gross amount. Preserve the document currency and source provenance; the ledger service validates the posting.
+    """
     _require_business_mutation(session, tenant_id, "post_sales_invoice")
     document = _tenant_record(session, Document, tenant_id, document_id)
+    # reality-rule: core.post_sales_invoice.1
     if document.type != "sales_invoice":
         raise InvalidOperation(code="sales_invoice_document_type_invalid")
+    # reality-rule: core.post_sales_invoice.2
     if account_balance(session, tenant_id, "sales_revenue", document.id) != ZERO:
         raise InvalidOperation(code="sales_invoice_already_posted")
+    # reality-rule: core.post_sales_invoice.3
     return post_ledger(
         session,
         tenant_id,
@@ -11444,7 +12832,9 @@ def _settled_company_value(
             other = _tenant_record(session, LedgerEntry, tenant_id, other_id)
             share = decimal(row.amount)
             settled += (
-                _round_cents(decimal(other.company_amount) * share / decimal(other.amount))
+                _round_cents(
+                    decimal(other.company_amount) * share / decimal(other.amount)
+                )
                 if other.company_amount is not None and other.amount
                 else _round_cents(share * rate)
             )
@@ -11526,7 +12916,18 @@ def post_customer_payment(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
-    """Record and allocate one customer payment as a single financial transaction."""
+    """
+    Record and allocate one customer payment as a single financial transaction.
+
+    BUSINESS PURPOSE:
+    Record and allocate a customer payment against an invoice as one financial transaction.
+
+    BUSINESS RULE core.post_customer_payment.1:
+    Require a positive settlement amount no greater than the document's current open amount.
+
+    BUSINESS RULE core.post_customer_payment.2:
+    Link the payment/refund control entry to the invoice/credit control entry using the shared settlement allocator; record and allocation participate in the same nested transaction.
+    """
     _require_business_mutation(session, tenant_id, "post_customer_payment")
     from reality.services.tenant_policy import require_decision_finance
 
@@ -11566,6 +12967,7 @@ def post_customer_payment(
         source_record_id = preview["creation"]["source_record_id"]
         invoice = _tenant_record(session, Document, tenant_id, invoice_id)
         amount = positive(amount, "amount")
+        # reality-rule: core.post_customer_payment.1
         if amount > open_invoice_amount(session, tenant_id, invoice.id):
             raise InvalidOperation(code="payment_exceeds_open_receivable")
         entries = record_customer_payment(
@@ -11583,6 +12985,7 @@ def post_customer_payment(
             action_id=action_id,
             _commit=False,
         )
+        # reality-rule: core.post_customer_payment.2
         allocate_settlement(
             session,
             tenant_id,
@@ -11663,20 +13066,36 @@ def post_sales_credit_note(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
-    """Book a credit note as the exact reverse of a sales invoice.
+    """
+    Book a credit note as the exact reverse of a sales invoice.
 
     It needs no invoice. The obligation exists whether or not anything is open,
     and a receivable going negative is the statement that the company owes this
     customer — which is the ordinary consumer return, paid at checkout and sent
     back a week later.
+
+    BUSINESS PURPOSE:
+    Book an existing credit note through the shared ledger service.
+
+    BUSINESS RULE core.post_sales_credit_note.1:
+    Require the matching document type.
+
+    BUSINESS RULE core.post_sales_credit_note.2:
+    Refuse a document whose sales revenue balance is already nonzero.
+
+    BUSINESS RULE core.post_sales_credit_note.3:
+    Debit sales revenue and credit accounts receivable for the positive stated credit-note total. Preserve the document currency and source provenance; the ledger service validates the posting.
     """
     _require_business_mutation(session, tenant_id, "post_sales_credit_note")
     document = _tenant_record(session, Document, tenant_id, credit_note_id)
+    # reality-rule: core.post_sales_credit_note.1
     if document.type != "credit_note":
         raise InvalidOperation(code="credit_note_document_type_invalid")
+    # reality-rule: core.post_sales_credit_note.2
     if account_balance(session, tenant_id, "sales_revenue", document.id) != ZERO:
         raise InvalidOperation(code="credit_note_already_posted")
     amount = positive(document.gross_amount, "credit note total")
+    # reality-rule: core.post_sales_credit_note.3
     return post_ledger(
         session,
         tenant_id,
@@ -11709,10 +13128,23 @@ def record_customer_refund(
     _cash_account_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
-    """Money going back to a customer, the mirror of a customer payment."""
+    """
+    Money going back to a customer, the mirror of a customer payment.
+
+    BUSINESS PURPOSE:
+    Record money returned to a customer without assuming a particular credit-note allocation.
+
+    BUSINESS RULE core.record_customer_refund.1:
+    Require a positive stated amount.
+
+    BUSINESS RULE core.record_customer_refund.2:
+    Create refund evidence, debit accounts receivable and credit cash for the stated positive amount. Keep document recording and posting within the shared atomic transaction boundary.
+    """
     _require_business_mutation(session, tenant_id, "record_customer_refund")
+    # reality-rule: core.record_customer_refund.1
     amount = positive(amount, "amount")
     effective_at = utc_datetime(effective_at)
+    # reality-rule: core.record_customer_refund.2
     with _atomic(session):
         refund = create_document(
             session,
@@ -11789,7 +13221,18 @@ def post_customer_refund(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
-    """Give a credited customer their money, and settle the credit note."""
+    """
+    Give a credited customer their money, and settle the credit note.
+
+    BUSINESS PURPOSE:
+    Record a customer refund and settle the corresponding credit note atomically.
+
+    BUSINESS RULE core.post_customer_refund.1:
+    Require a positive settlement amount no greater than the document's current open amount.
+
+    BUSINESS RULE core.post_customer_refund.2:
+    Link the payment/refund control entry to the invoice/credit control entry using the shared settlement allocator; record and allocation participate in the same nested transaction.
+    """
     _require_business_mutation(session, tenant_id, "post_customer_refund")
     from reality.services.tenant_policy import require_decision_finance
 
@@ -11829,6 +13272,7 @@ def post_customer_refund(
         if note.type != "credit_note":
             raise InvalidOperation(code="credit_note_document_type_invalid")
         amount = positive(amount, "amount")
+        # reality-rule: core.post_customer_refund.1
         if amount > open_invoice_amount(session, tenant_id, note.id):
             raise InvalidOperation(code="refund_exceeds_credit_note_owed")
         entries = record_customer_refund(
@@ -11846,6 +13290,7 @@ def post_customer_refund(
             action_id=action_id,
             _commit=False,
         )
+        # reality-rule: core.post_customer_refund.2
         allocate_settlement(
             session,
             tenant_id,
@@ -11869,19 +13314,31 @@ def allocate_credit_note(
     *,
     _commit: bool = True,
 ) -> SettlementAllocation:
-    """Net a posted credit note against an invoice the customer still owes.
+    """
+    Net a posted credit note against an invoice the customer still owes.
 
     The other way to settle a credit is to refund it. Both go through the one
     settlement relation, so an invoice falls exactly as a payment makes it fall
     and nothing downstream needs telling that a credit was involved.
+
+    BUSINESS PURPOSE:
+    Settle a posted customer credit note against an invoice using the shared allocation relation.
+
+    BUSINESS RULE core.allocate_credit_note.1:
+    Refuse allocating a credit to another customer.
+
+    BUSINESS RULE core.allocate_credit_note.2:
+    Allocate the stated amount between the credit and invoice control entries; shared settlement validation checks their compatibility and remaining amounts.
     """
     _require_business_mutation(session, tenant_id, "allocate_credit_note")
     note = _tenant_record(session, Document, tenant_id, credit_note_id)
     if note.type != "credit_note":
         raise InvalidOperation("Document is not a credit note.")
     invoice = _tenant_record(session, Document, tenant_id, invoice_id)
+    # reality-rule: core.allocate_credit_note.1
     if note.party_id != invoice.party_id:
         raise InvalidOperation("A credit note settles only its own customer.")
+    # reality-rule: core.allocate_credit_note.2
     return allocate_settlement(
         session,
         tenant_id,
@@ -11902,16 +13359,32 @@ def post_supplier_invoice(
     exchange_rate: Decimal | str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
+    """
+    BUSINESS PURPOSE:
+    Book an existing supplier invoice through the shared ledger service.
+
+    BUSINESS RULE core.post_supplier_invoice.1:
+    Require the matching document type.
+
+    BUSINESS RULE core.post_supplier_invoice.2:
+    Refuse a document whose accounts payable balance is already nonzero.
+
+    BUSINESS RULE core.post_supplier_invoice.3:
+    Debit inventory and credit accounts payable for the document's stated gross amount. Preserve the document currency and source provenance; the ledger service validates the posting.
+    """
     _require_business_mutation(session, tenant_id, "post_supplier_invoice")
     document = _tenant_record(session, Document, tenant_id, document_id)
+    # reality-rule: core.post_supplier_invoice.1
     if document.type != "supplier_invoice":
         raise InvalidOperation(code="supplier_invoice_document_type_invalid")
+    # reality-rule: core.post_supplier_invoice.2
     if account_balance(session, tenant_id, "accounts_payable", document.id) != ZERO:
         raise InvalidOperation(code="supplier_invoice_already_posted")
     # Spec 309: an invoice in another currency is posted at its stated rate.
     exchange_rate = _invoice_exchange_rate(
         session, tenant_id, "purchase", document.currency, exchange_rate
     )
+    # reality-rule: core.post_supplier_invoice.3
     return post_ledger(
         session,
         tenant_id,
@@ -11943,6 +13416,16 @@ def post_supplier_payment(
     paid_amount: Decimal | str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
+    """
+    BUSINESS PURPOSE:
+    Record and allocate a supplier payment against an invoice as one financial transaction.
+
+    BUSINESS RULE core.post_supplier_payment.1:
+    Require a positive settlement amount no greater than the document's current open amount.
+
+    BUSINESS RULE core.post_supplier_payment.2:
+    Link the payment/refund control entry to the invoice/credit control entry using the shared settlement allocator; record and allocation participate in the same nested transaction.
+    """
     _require_business_mutation(session, tenant_id, "post_supplier_payment")
     from reality.services.tenant_policy import require_decision_finance
 
@@ -11987,6 +13470,7 @@ def post_supplier_payment(
             raise InvalidOperation(code="supplier_invoice_document_type_invalid")
         amount = positive(amount, "amount")
         open_payable = open_invoice_amount(session, tenant_id, invoice.id)
+        # reality-rule: core.post_supplier_payment.1
         if amount > open_payable:
             raise InvalidOperation(code="payment_exceeds_open_payable")
         entries = record_supplier_payment(
@@ -12005,6 +13489,7 @@ def post_supplier_payment(
             _exchange=preview.get("exchange"),
             _commit=False,
         )
+        # reality-rule: core.post_supplier_payment.2
         allocate_settlement(
             session,
             tenant_id,
@@ -12034,8 +13519,20 @@ def record_supplier_payment(
     _exchange: dict[str, Any] | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
+    """
+    BUSINESS PURPOSE:
+    Record money paid to a supplier without assuming a particular invoice allocation.
+
+    BUSINESS RULE core.record_supplier_payment.1:
+    Require a positive stated amount.
+
+    BUSINESS RULE core.record_supplier_payment.2:
+    Create payment evidence, debit accounts payable and credit cash for the stated positive amount. When exchange information is supplied, retain its company amounts and record its stated gain/loss treatment. Keep document recording and posting within the shared atomic transaction boundary.
+    """
     _require_business_mutation(session, tenant_id, "record_supplier_payment")
+    # reality-rule: core.record_supplier_payment.1
     amount = positive(amount, "amount")
+    # reality-rule: core.record_supplier_payment.2
     with session.begin_nested():
         payment = create_document(
             session,
@@ -12146,8 +13643,19 @@ def _settlement_control_entry(
 def _settlement_control_entry_read(
     session: OrmSession, tenant_id: str, invoice_id: str
 ) -> LedgerEntry:
+    """
+    BUSINESS PURPOSE:
+    Read the posted control-account entry required to settle a document.
+
+    BUSINESS RULE core._settlement_control_entry.1:
+    Refuse a document type without a registered settlement account and side.
+
+    BUSINESS RULE core._settlement_control_entry.2:
+    Refuse a document with no posted entry matching its company, document identity and registered control-account side.
+    """
     invoice = _tenant_record(session, Document, tenant_id, invoice_id)
     control = SETTLEMENT_CONTROL.get(invoice.type)
+    # reality-rule: core._settlement_control_entry.1
     if control is None:
         raise InvalidOperation(code="settlement_target_not_settleable")
     account, side = control
@@ -12159,6 +13667,7 @@ def _settlement_control_entry_read(
             LedgerEntry.debit_credit == side,
         )
     )
+    # reality-rule: core._settlement_control_entry.2
     if entry is None:
         raise InvalidOperation(code="invoice_control_entry_missing")
     return entry
@@ -12171,11 +13680,22 @@ def _settlement_control_entries(
     *,
     effective_before: datetime | None = None,
 ) -> dict[str, LedgerEntry]:
-    """The control-account entry per settleable document, read once for many.
+    """
+    The control-account entry per settleable document, read once for many.
 
     A document whose type has no control account, or that nobody has posted, is
     absent here: the two cases `_settlement_control_entry` refuses one at a time.
+
+    BUSINESS PURPOSE:
+    Read settlement control entries for an exact group of company documents.
+
+    BUSINESS RULE core._settlement_control_entries.1:
+    Consider only document types with a registered settlement control account and side.
+
+    BUSINESS RULE core._settlement_control_entries.2:
+    Read entries for the selected documents and company, before the strict effective cutoff when supplied; retain only entries matching each document's registered account and side.
     """
+    # reality-rule: core._settlement_control_entries.1
     wanted = {
         document.id: SETTLEMENT_CONTROL[document.type]
         for document in documents
@@ -12184,6 +13704,7 @@ def _settlement_control_entries(
     if not wanted:
         return {}
     entries: dict[str, LedgerEntry] = {}
+    # reality-rule: core._settlement_control_entries.2
     for entry in session.scalars(
         select(LedgerEntry).where(
             LedgerEntry.tenant_id == tenant_id,
@@ -12204,10 +13725,20 @@ def _ledger_reversal_roles(
     *,
     effective_before: datetime | None = None,
 ) -> dict[str, tuple[LedgerReversal, str]]:
-    """What `_ledger_reversal_for_group` answers, for many posting groups at once.
+    """
+    What `_ledger_reversal_for_group` answers, for many posting groups at once.
 
     A group that was reversed reports the reversal even when it also reverses
     another group, the same precedence the single-group read applies.
+
+    BUSINESS PURPOSE:
+    Read posting-group reversal roles at the optional effective cutoff.
+
+    BUSINESS RULE core._ledger_reversal_roles.1:
+    First classify selected inverse groups as reversing without overwriting an existing role.
+
+    BUSINESS RULE core._ledger_reversal_roles.2:
+    Then classify selected original groups as reversed_original; this role overrides reversing when both relationships exist.
     """
     if not posting_group_ids:
         return {}
@@ -12226,11 +13757,13 @@ def _ledger_reversal_roles(
         )
     )
     roles: dict[str, tuple[LedgerReversal, str]] = {}
+    # reality-rule: core._ledger_reversal_roles.1
     for relation in relations:
         if relation.reversing_posting_group_id in posting_group_ids:
             roles.setdefault(
                 relation.reversing_posting_group_id, (relation, "reversing")
             )
+    # reality-rule: core._ledger_reversal_roles.2
     for relation in relations:
         if relation.original_posting_group_id in posting_group_ids:
             roles[relation.original_posting_group_id] = (relation, "reversed_original")
@@ -12245,10 +13778,19 @@ def _document_account_balances(
     *,
     effective_before: datetime | None = None,
 ) -> dict[tuple[str, str], Decimal]:
-    """`account_balance` per (account, document) for many documents in one read."""
+    """
+    `account_balance` per (account, document) for many documents in one read.
+
+    BUSINESS PURPOSE:
+    Derive debit-minus-credit balances per account and document at the optional effective cutoff.
+
+    BUSINESS RULE core._document_account_balances.1:
+    Sum company-scoped selected account/document entries by side, strictly before the supplied effective cutoff. Add debits and subtract credits to produce each balance.
+    """
     if not accounts or not document_ids:
         return {}
     balances: dict[tuple[str, str], Decimal] = {}
+    # reality-rule: core._document_account_balances.1
     for account, document_id, side, amount in session.execute(
         select(
             LedgerEntry.account,
@@ -12274,8 +13816,17 @@ def _document_account_balances(
 
 
 def _allocated_per_entry(allocations: list[SettlementAllocation]) -> dict[str, Decimal]:
-    """How much of each ledger entry the active allocations already consume."""
+    """
+    How much of each ledger entry the active allocations already consume.
+
+    BUSINESS PURPOSE:
+    Sum settlement quantities against both ends of each selected allocation.
+
+    BUSINESS RULE core._allocated_per_entry.1:
+    Add the stated allocation amount to each distinct invoice/payment ledger-entry endpoint; the caller supplies only applicable allocations.
+    """
     allocated: dict[str, Decimal] = {}
+    # reality-rule: core._allocated_per_entry.1
     for row in allocations:
         for entry_id in {row.invoice_ledger_entry_id, row.payment_ledger_entry_id}:
             allocated[entry_id] = allocated.get(entry_id, ZERO) + decimal(row.amount)
@@ -12299,11 +13850,21 @@ def settlement_positions(
     *,
     effective_before: datetime | None = None,
 ) -> dict[str, SettlementPosition]:
-    """`open_invoice_amount` and its inputs for many documents in five reads.
+    """
+    `open_invoice_amount` and its inputs for many documents in five reads.
 
     Documents without a control account or never posted are absent. The reads are
     bounded by the documents passed, never by the company: allocations are read for
     these control entries only.
+
+    BUSINESS PURPOSE:
+    Derive current or cutoff settlement positions from posted control entries and active allocations.
+
+    BUSINESS RULE core.settlement_positions.1:
+    Sum active allocation amounts only for the selected control-entry identities, applying the same effective cutoff.
+
+    BUSINESS RULE core.settlement_positions.2:
+    Combine the control entry, reversal role, account balance and allocated amount through the shared open-amount calculation; documents without a control entry remain absent.
     """
     controls = _settlement_control_entries(
         session, tenant_id, documents, effective_before=effective_before
@@ -12321,6 +13882,7 @@ def settlement_positions(
         list(controls),
         effective_before=effective_before,
     )
+    # reality-rule: core.settlement_positions.1
     allocated = _allocated_per_entry(
         active_settlement_allocations(
             session,
@@ -12330,6 +13892,7 @@ def settlement_positions(
         )
     )
     positions = {}
+    # reality-rule: core.settlement_positions.2
     for document_id, control in controls.items():
         relation, role = roles.get(control.posting_group_id, (None, "normal"))
         positions[document_id] = SettlementPosition(
@@ -12361,10 +13924,27 @@ def open_invoice_amounts(
 def _open_amount(
     control: LedgerEntry, role: str, balance: Decimal, allocated: Decimal
 ) -> Decimal:
-    """The one arithmetic behind an open amount, shared by the single and the bulk read."""
+    """
+    The one arithmetic behind an open amount, shared by the single and the bulk read.
+
+    BUSINESS PURPOSE:
+    Calculate a settleable document's remaining amount from its control balance and allocations.
+
+    BUSINESS RULE core._open_amount.1:
+    A reversed original posting has zero open amount.
+
+    BUSINESS RULE core._open_amount.2:
+    Use the balance directly for a debit control entry and negate it for a credit control entry.
+
+    BUSINESS RULE core._open_amount.3:
+    Subtract the applicable allocated amount from the signed control balance; do not clamp a remaining negative result.
+    """
+    # reality-rule: core._open_amount.1
     if role == "reversed_original":
         return ZERO
+    # reality-rule: core._open_amount.2
     gross_open = balance if control.debit_credit == "debit" else -balance
+    # reality-rule: core._open_amount.3
     return gross_open - decimal(allocated)
 
 
@@ -12460,7 +14040,8 @@ def post_supplier_credit_note(
     effective_at: datetime | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
-    """Book a credit a supplier sent as the exact reverse of its invoice.
+    """
+    Book a credit a supplier sent as the exact reverse of its invoice.
 
     It needs no invoice. The claim exists whether or not anything is open, and a
     payable going the other way is the statement that the supplier owes this
@@ -12470,14 +14051,29 @@ def post_supplier_credit_note(
     judgement. Whether a rebate rather than a returned item ought to land
     somewhere other than inventory is an accounting argument, and adjudicating
     it would mean Reality authoring a treatment nobody stated.
+
+    BUSINESS PURPOSE:
+    Book an existing supplier credit note through the shared ledger service.
+
+    BUSINESS RULE core.post_supplier_credit_note.1:
+    Require the matching document type.
+
+    BUSINESS RULE core.post_supplier_credit_note.2:
+    Refuse a document whose accounts payable balance is already nonzero.
+
+    BUSINESS RULE core.post_supplier_credit_note.3:
+    Debit accounts payable and credit inventory for the positive stated supplier-credit total. Preserve the document currency and source provenance; the ledger service validates the posting.
     """
     _require_business_mutation(session, tenant_id, "post_supplier_credit_note")
     document = _tenant_record(session, Document, tenant_id, credit_note_id)
+    # reality-rule: core.post_supplier_credit_note.1
     if document.type != "supplier_credit_note":
         raise InvalidOperation("Document is not a supplier credit note.")
+    # reality-rule: core.post_supplier_credit_note.2
     if account_balance(session, tenant_id, "accounts_payable", document.id) != ZERO:
         raise InvalidOperation("Supplier credit note is already posted.")
     amount = positive(document.gross_amount, "supplier credit note total")
+    # reality-rule: core.post_supplier_credit_note.3
     return post_ledger(
         session,
         tenant_id,
@@ -12508,9 +14104,22 @@ def record_supplier_refund(
     _control_account_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
-    """Money coming back from a supplier, the mirror of a supplier payment."""
+    """
+    Money coming back from a supplier, the mirror of a supplier payment.
+
+    BUSINESS PURPOSE:
+    Record money returned by a supplier without assuming a particular credit-note allocation.
+
+    BUSINESS RULE core.record_supplier_refund.1:
+    Require a positive stated amount.
+
+    BUSINESS RULE core.record_supplier_refund.2:
+    Create refund evidence, debit cash and credit accounts payable for the stated positive amount. Keep document recording and posting within the shared atomic transaction boundary.
+    """
     _require_business_mutation(session, tenant_id, "record_supplier_refund")
+    # reality-rule: core.record_supplier_refund.1
     amount = positive(amount, "amount")
+    # reality-rule: core.record_supplier_refund.2
     with session.begin_nested():
         refund = create_document(
             session,
@@ -12560,13 +14169,25 @@ def post_supplier_refund(
     effective_at: datetime | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
-    """Take the money back from a supplier, and settle the credit note."""
+    """
+    Take the money back from a supplier, and settle the credit note.
+
+    BUSINESS PURPOSE:
+    Record a supplier refund and settle the corresponding supplier credit note atomically.
+
+    BUSINESS RULE core.post_supplier_refund.1:
+    Require a positive settlement amount no greater than the document's current open amount.
+
+    BUSINESS RULE core.post_supplier_refund.2:
+    Link the payment/refund control entry to the invoice/credit control entry using the shared settlement allocator; record and allocation participate in the same nested transaction.
+    """
     _require_business_mutation(session, tenant_id, "post_supplier_refund")
     with session.begin_nested():
         note = _tenant_record(session, Document, tenant_id, credit_note_id)
         if note.type != "supplier_credit_note":
             raise InvalidOperation("Document is not a supplier credit note.")
         amount = positive(amount, "amount")
+        # reality-rule: core.post_supplier_refund.1
         if amount > open_invoice_amount(session, tenant_id, note.id):
             raise InvalidOperation("Refund exceeds what the credit note still claims.")
         entries = record_supplier_refund(
@@ -12583,6 +14204,7 @@ def post_supplier_refund(
             effective_at=effective_at,
             _commit=False,
         )
+        # reality-rule: core.post_supplier_refund.2
         allocate_settlement(
             session,
             tenant_id,
@@ -12605,12 +14227,22 @@ def allocate_supplier_credit_note(
     *,
     _commit: bool = True,
 ) -> SettlementAllocation:
-    """Net a posted supplier credit against an invoice the company still owes.
+    """
+    Net a posted supplier credit against an invoice the company still owes.
 
     The other way to settle one is to have the supplier refund it. Both go
     through the one settlement relation, so a payable falls exactly as a payment
     makes it fall and nothing downstream needs telling that a credit was
     involved.
+
+    BUSINESS PURPOSE:
+    Settle a posted supplier credit note against an invoice using the shared allocation relation.
+
+    BUSINESS RULE core.allocate_supplier_credit_note.1:
+    Refuse allocating a credit to another supplier.
+
+    BUSINESS RULE core.allocate_supplier_credit_note.2:
+    Allocate the stated amount between the credit and invoice control entries; shared settlement validation checks their compatibility and remaining amounts.
     """
     _require_business_mutation(session, tenant_id, "allocate_supplier_credit_note")
     note = _tenant_record(session, Document, tenant_id, credit_note_id)
@@ -12619,8 +14251,10 @@ def allocate_supplier_credit_note(
     invoice = _tenant_record(session, Document, tenant_id, invoice_id)
     if invoice.type != "supplier_invoice":
         raise InvalidOperation("A supplier credit settles only a supplier invoice.")
+    # reality-rule: core.allocate_supplier_credit_note.1
     if note.party_id != invoice.party_id:
         raise InvalidOperation("A supplier credit settles only its own supplier.")
+    # reality-rule: core.allocate_supplier_credit_note.2
     return allocate_settlement(
         session,
         tenant_id,
@@ -12638,12 +14272,22 @@ def open_invoice_amount(
     *,
     allocations: list[SettlementAllocation] | None = None,
 ) -> Decimal:
-    """What a settleable document still owes or claims.
+    """
+    What a settleable document still owes or claims.
 
     "Invoice" in the name is narrower than what this answers: a credit note and
     a customer refund are settled the same way and are measured here too. The
     name is kept because renaming a function the aging register, the isolation
     catalog and four exception classes depend on would ripple far for no gain.
+
+    BUSINESS PURPOSE:
+    Read what a posted invoice, credit or refund still owes or claims.
+
+    BUSINESS RULE core.open_invoice_amount.1:
+    When allocations were not supplied, read active allocations touching this document's control entry.
+
+    BUSINESS RULE core.open_invoice_amount.2:
+    Use the shared open-amount formula with the control entry's reversal role, document account balance and allocation sum.
     """
     invoice = _tenant_record(session, Document, tenant_id, invoice_id)
     control = _settlement_control_entry(session, tenant_id, invoice.id)
@@ -12658,10 +14302,12 @@ def open_invoice_amount(
     # quadratic in the number of invoices (feature 170 measured 578 invoices at
     # 23 seconds, 18 of them here). `financial_open_items` goes further and reads
     # the control entries, reversals and balances for all its documents at once.
+    # reality-rule: core.open_invoice_amount.1
     if allocations is None:
         allocations = active_settlement_allocations(
             session, tenant_id, entry_ids={control.id}
         )
+    # reality-rule: core.open_invoice_amount.2
     return _open_amount(
         control,
         role,
@@ -12673,12 +14319,24 @@ def open_invoice_amount(
 def account_balance(
     session: OrmSession, tenant_id: str, account: str, document_id: str | None = None
 ) -> Decimal:
+    """
+    BUSINESS PURPOSE:
+    Read the signed ledger balance of one company account, optionally restricted to a document.
+
+    BUSINESS RULE core.account_balance.1:
+    When a document identity is supplied, select only its entries in this company account.
+
+    BUSINESS RULE core.account_balance.2:
+    Add each debit amount and subtract each credit amount; the result is a debit-minus-credit balance of the stored entries.
+    """
     query = select(LedgerEntry).where(
         LedgerEntry.tenant_id == tenant_id, LedgerEntry.account == account
     )
+    # reality-rule: core.account_balance.1
     if document_id:
         query = query.where(LedgerEntry.document_id == document_id)
     balance = ZERO
+    # reality-rule: core.account_balance.2
     for entry in session.scalars(query):
         signed = (
             decimal(entry.amount)
@@ -12697,6 +14355,14 @@ def financial_open_items(
     effective_before: datetime | None = None,
     party_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
+    """
+    BUSINESS PURPOSE:
+    Read financial open items from the canonical settlement derivation.
+
+    BUSINESS RULE core.financial_open_items.1:
+    Delegate to the shared reader with the supplied document, party and effective-time filters; this public adapter does not implement a second balance calculation.
+    """
+    # reality-rule: core.financial_open_items.1
     return _financial_open_items(
         session,
         tenant_id,
@@ -12714,14 +14380,25 @@ def _financial_open_items(
     effective_before: datetime | None = None,
     party_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
-    """Open items, optionally for named documents or named parties.
+    """
+    Open items, optionally for named documents or named parties.
 
     Both narrowings select rows; neither changes how one is derived. An item's
     open amount comes from its own postings and its own allocations, so asking
     about fewer documents returns fewer rows of the same arithmetic.
+
+    BUSINESS PURPOSE:
+    Read company invoice, credit and fee obligations with their derived settlement amounts.
+
+    BUSINESS RULE core._financial_open_items.1:
+    Select registered open-item document types in this company, optionally restricted by document and partner identities; order by document date and number.
+
+    BUSINESS RULE core._financial_open_items.2:
+    Skip documents without posted settlement control. Use shared settlement positions for open amount; settled is gross minus open. Classify reversed originals first, then zero-open as paid, below-gross as partial, otherwise open. Preserve opening/fee/invoice provenance.
     """
     get_tenant(session, tenant_id)
     rows = []
+    # reality-rule: core._financial_open_items.1
     documents = list(
         session.scalars(
             select(Document)
@@ -12778,6 +14455,7 @@ def _financial_open_items(
     positions = settlement_positions(
         session, tenant_id, documents, effective_before=effective_before
     )
+    # reality-rule: core._financial_open_items.2
     for document in documents:
         party = parties.get(document.party_id or "")
         position = positions.get(document.id)
@@ -12824,7 +14502,8 @@ def duplicate_supplier_invoices(
     *,
     _open_items: list[dict[str, Any]] | None = None,
 ) -> list[tuple[Document, Document]]:
-    """Every supplier invoice recorded under a number its supplier already used.
+    """
+    Every supplier invoice recorded under a number its supplier already used.
 
     Returns each duplicate paired with the document it duplicates, so a caller can
     both know that a document is one and say which earlier document it repeats.
@@ -12837,6 +14516,15 @@ def duplicate_supplier_invoices(
     Spec 078 because a payment run needs exactly the same set, and two answers to
     "is this a duplicate" is how a queue and an operation start disagreeing about
     money.
+
+    BUSINESS PURPOSE:
+    Identify repeated supplier invoice numbers without relying on posting state.
+
+    BUSINESS RULE core.duplicate_supplier_invoices.1:
+    Group nonblank trimmed, case-insensitive invoice numbers by supplier within the company; exclude invoices whose open-item status is reversed.
+
+    BUSINESS RULE core.duplicate_supplier_invoices.2:
+    For groups containing multiple invoices, pair each later member with the first member in document-date/identity order.
     """
     # A withdrawn invoice cannot be paid twice, and a supplier reissuing a
     # corrected invoice under its original number is ordinary rather than a
@@ -12854,6 +14542,7 @@ def duplicate_supplier_invoices(
         .order_by(Document.document_date, Document.id)
     ).all()
     groups: dict[tuple[str, str], list[Document]] = {}
+    # reality-rule: core.duplicate_supplier_invoices.1
     for document in documents:
         number = document.number.strip().casefold()
         # An empty string is not a number two documents can share; grouping on it
@@ -12862,6 +14551,7 @@ def duplicate_supplier_invoices(
             continue
         groups.setdefault((document.party_id or "", number), []).append(document)
     pairs: list[tuple[Document, Document]] = []
+    # reality-rule: core.duplicate_supplier_invoices.2
     for members in groups.values():
         if len(members) < 2:
             continue
@@ -12901,22 +14591,40 @@ def open_item_control_accounts(
 def payment_rows(
     session: OrmSession, tenant_id: str, cash_entry_ids: set[str] | None = None
 ) -> list[dict[str, Any]]:
-    """Every payment with what it settled, or the named ones alone.
+    """
+    Every payment with what it settled, or the named ones alone.
 
     `cash_entry_ids` selects rows and nothing else: a payment's allocated and
     unallocated amounts come from its own control entry and its own allocations.
+
+    BUSINESS PURPOSE:
+    Read recorded payments and their settlement allocations through the canonical payment derivation.
+
+    BUSINESS RULE core.payment_rows.1:
+    Return the shared payment rows, optionally narrowed by cash-entry identities; allocation and unallocated amounts are derived by the shared reader.
     """
+    # reality-rule: core.payment_rows.1
     return _payment_rows(session, tenant_id, cash_entry_ids=cash_entry_ids)
 
 
 def _payment_rows(
     session: OrmSession, tenant_id: str, *, cash_entry_ids: set[str] | None = None
 ) -> list[dict[str, Any]]:
-    """Every payment with what it settled, in six reads for the whole company.
+    """
+    Every payment with what it settled, in six reads for the whole company.
 
     The per-payment form read the control entry, the reversal, every allocation of
     the company, the document and the party once per payment; on a 1,400-order
     company that was 11,000 reads and four minutes (spec 181).
+
+    BUSINESS PURPOSE:
+    Read eligible company payments and their remaining settlement credit.
+
+    BUSINESS RULE core._payment_rows.1:
+    Sum active allocation amounts against the payment control-entry endpoints.
+
+    BUSINESS RULE core._payment_rows.2:
+    Skip cash entries lacking their control entry or document. Cash debits are incoming and credits outgoing. Unallocated equals cash amount minus allocated, except a reversed original has zero unallocated. Retain the reversal role and partner provenance.
     """
     from reality.db.search import payment_eligibility
 
@@ -12952,6 +14660,7 @@ def _payment_rows(
     roles = _ledger_reversal_roles(session, tenant_id, groups)
     # Only the payment side counts: what this control entry has given to invoices.
     allocated_by_payment: dict[str, Decimal] = {}
+    # reality-rule: core._payment_rows.1
     for row in active_settlement_allocations(
         session, tenant_id, entry_ids={entry.id for entry in controls.values()}
     ):
@@ -12981,6 +14690,7 @@ def _payment_rows(
         else {}
     )
     rows = []
+    # reality-rule: core._payment_rows.2
     for cash in cash_entries:
         control = controls.get(cash.posting_group_id)
         document = documents.get(cash.document_id)
@@ -13021,7 +14731,8 @@ def active_settlement_allocations(
     entry_ids: set[str] | None = None,
     effective_before: datetime | None = None,
 ) -> list[SettlementAllocation]:
-    """Return immutable allocations whose linked posting groups remain active.
+    """
+    Return immutable allocations whose linked posting groups remain active.
 
     `entry_ids` narrows the read to allocations touching those ledger entries. A
     caller measuring one invoice or one payment passes them; reading every
@@ -13031,8 +14742,21 @@ def active_settlement_allocations(
     With `effective_before`, an allocation counts once both of its endpoint entries
     are effective. `allocated_at` is when it was recorded, which is knowledge time,
     so it is no cutoff (spec 232 FR-003).
+
+    BUSINESS PURPOSE:
+    Read immutable settlement allocations whose endpoint posting groups remain effective and unreversed.
+
+    BUSINESS RULE core.active_settlement_allocations.1:
+    Read both endpoint entries in this company; with a cutoff, each endpoint must be effective strictly before it. Allocation recording time is not the effective cutoff.
+
+    BUSINESS RULE core.active_settlement_allocations.2:
+    Read original posting groups reversed strictly before the same effective cutoff, or all current reversals when no cutoff is supplied.
+
+    BUSINESS RULE core.active_settlement_allocations.3:
+    Retain an allocation only when both endpoints exist in the effective selection and neither endpoint belongs to a reversed original posting group.
     """
     if entry_ids is not None and not entry_ids:
+        # reality-rule: core.active_settlement_allocations.3
         return []
     query = select(SettlementAllocation).where(
         SettlementAllocation.tenant_id == tenant_id,
@@ -13055,6 +14779,7 @@ def active_settlement_allocations(
             row.invoice_ledger_entry_id,
         )
     }
+    # reality-rule: core.active_settlement_allocations.1
     entries = {
         row.id: row
         for row in session.scalars(
@@ -13067,6 +14792,7 @@ def active_settlement_allocations(
             )
         )
     }
+    # reality-rule: core.active_settlement_allocations.2
     reversed_groups = set(
         session.scalars(
             select(LedgerReversal.original_posting_group_id).where(
@@ -13091,7 +14817,15 @@ def active_settlement_allocations(
 
 
 def journal_rows(session: OrmSession, tenant_id: str) -> list[LedgerEntry]:
+    """
+    BUSINESS PURPOSE:
+    Read this company's immutable ledger entries in journal order.
+
+    BUSINESS RULE core.journal_rows.1:
+    Select only this company's ledger entries, newest effective time first and then posting-group identity.
+    """
     get_tenant(session, tenant_id)
+    # reality-rule: core.journal_rows.1
     return list(
         session.scalars(
             select(LedgerEntry)
@@ -13349,9 +15083,7 @@ def party_detail(session: OrmSession, tenant_id: str, party_id: str) -> dict[str
         )
     )
     merged = [m for m in merges if m.surviving_party_id == party.id]
-    merged_into = next(
-        (m for m in merges if m.duplicate_party_id == party.id), None
-    )
+    merged_into = next((m for m in merges if m.duplicate_party_id == party.id), None)
     members = [party.id, *(m.duplicate_party_id for m in merged)]
     names = (
         dict(
@@ -13683,6 +15415,19 @@ def enqueue_source(
     source_artifact_id: str | None = None,
     _commit: bool = True,
 ) -> tuple[SourceRecord, ImportJob]:
+    """
+    BUSINESS PURPOSE:
+    Preserve an incoming source payload and register its interpretation job without inventing Reality.
+
+    BUSINESS RULE core.enqueue_source.1:
+    Store the lossless payload through the version-aware source service; retain its created/replayed/stale/conflict disposition.
+
+    BUSINESS RULE core.enqueue_source.2:
+    Create one interpretation job per stored source. Use pending for a registered interpreter and unmapped otherwise; stale versions are completed without interpretation and conflicting versions fail. Record the corresponding unsupported/stale/conflict outcome.
+
+    BUSINESS RULE core.enqueue_source.3:
+    For a newly received Shopify order, route embedded refund payloads through the shared refund splitter.
+    """
     _require_business_mutation(session, tenant_id, "enqueue_source")
     source_system, source_type, external_id = (
         source_system.strip().lower(),
@@ -13697,6 +15442,7 @@ def enqueue_source(
         raise InvalidOperation("Source payload must be a JSON object.")
     if source_artifact_id:
         _tenant_record(session, SourceArtifact, tenant_id, source_artifact_id)
+    # reality-rule: core.enqueue_source.1
     source, created, disposition = store_source_record(
         session,
         tenant_id,
@@ -13713,6 +15459,7 @@ def enqueue_source(
             ImportJob.source_record_id == source.id,
         )
     )
+    # reality-rule: core.enqueue_source.2
     if job is None:
         # Artifact-backed uploads require an explicit file parser before a JSON
         # object interpreter may run. Never feed the artifact envelope into a
@@ -13798,6 +15545,7 @@ def enqueue_source(
                     {"source_system": source_system, "source_type": source_type},
                     source_record_id=source.id,
                 )
+    # reality-rule: core.enqueue_source.3
     if created and (source_system, source_type) == ("shopify", "order"):
         # Spec 296: refunds are their own sources, recorded even when this
         # version's order changes wait for review.
@@ -13820,11 +15568,22 @@ def create_source_system(
     *,
     _commit: bool = True,
 ) -> SourceSystem:
+    """
+    BUSINESS PURPOSE:
+    Register a source-system definition for this company; this does not connect to an external service.
+
+    BUSINESS RULE core.create_source_system.1:
+    Require a lowercase-normalized nonblank source code and trimmed name.
+
+    BUSINESS RULE core.create_source_system.2:
+    Refuse a source-system code already registered in this company.
+    """
     from reality.services.tenant_policy import require_business_operation
 
     require_business_operation(session, tenant_id, "source_system_create")
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     code, name = code.strip().lower(), name.strip()
+    # reality-rule: core.create_source_system.1
     if not code or not name:
         raise InvalidOperation("Source system code and name are required.")
     existing = session.scalar(
@@ -13832,6 +15591,7 @@ def create_source_system(
             SourceSystem.tenant_id == tenant_id, SourceSystem.code == code
         )
     )
+    # reality-rule: core.create_source_system.2
     if existing:
         raise InvalidOperation(f"Source system code already exists: {code}")
     system = SourceSystem(
@@ -13857,6 +15617,20 @@ def install_connector_shell(
     system_code: str | None = None,
     system_name: str | None = None,
 ) -> SourceSystem:
+    """
+    BUSINESS PURPOSE:
+    Install a connector's supported source definitions without creating an external connection.
+
+    BUSINESS RULE core.install_connector_shell.1:
+    Refuse Demo Data here; it requires its confirmed Sandbox-specific connection flow.
+
+    BUSINESS RULE core.install_connector_shell.2:
+    Require source types supported by the selected connector shell.
+
+    BUSINESS RULE core.install_connector_shell.3:
+    Register each distinct selected source type with the target type declared by the connector shell.
+    """
+    # reality-rule: core.install_connector_shell.1
     if connector_code == "demo_data":
         raise InvalidOperation(
             "Use the confirmed Demo Data connection preview in a compatible Sandbox."
@@ -13871,6 +15645,7 @@ def install_connector_shell(
         raise NotFound("Connector shell not found.") from error
     selected_types = source_types or list(shell["capabilities"])
     unknown = set(selected_types) - set(shell["capabilities"])
+    # reality-rule: core.install_connector_shell.2
     if not selected_types or unknown:
         detail = f": {', '.join(sorted(unknown))}" if unknown else ""
         raise InvalidOperation(f"Select valid source types{detail}.")
@@ -13896,6 +15671,7 @@ def install_connector_shell(
     )
     session.add(system)
     session.flush()
+    # reality-rule: core.install_connector_shell.3
     for source_type in dict.fromkeys(selected_types):
         target_type = shell["capabilities"][source_type]
         session.add(
@@ -13952,10 +15728,18 @@ def source_capabilities(session: OrmSession, tenant_id: str) -> list[SourceCapab
 def set_source_system_active(
     session: OrmSession, tenant_id: str, source_system_id: str, is_active: bool
 ) -> SourceSystem:
+    """
+    BUSINESS PURPOSE:
+    Activate or deactivate an existing company source-system definition.
+
+    BUSINESS RULE core.set_source_system_active.1:
+    Store the requested active flag and update timestamp on the existing company-scoped definition; no interpretation is executed by this change.
+    """
     from reality.services.tenant_policy import require_business_operation
 
     require_business_operation(session, tenant_id, "source_system_update")
     system = _tenant_record(session, SourceSystem, tenant_id, source_system_id)
+    # reality-rule: core.set_source_system_active.1
     system.is_active = is_active
     system.updated_at = now()
     session.commit()
@@ -13993,12 +15777,23 @@ def create_source_capability(
     *,
     _commit: bool = True,
 ) -> SourceCapability:
+    """
+    BUSINESS PURPOSE:
+    Register a source-type to target-type capability on an existing source-system definition.
+
+    BUSINESS RULE core.create_source_capability.1:
+    Require nonblank source and target type names.
+
+    BUSINESS RULE core.create_source_capability.2:
+    Refuse another capability for the same company source-system identity and source type.
+    """
     from reality.services.tenant_policy import require_business_operation
 
     require_business_operation(session, tenant_id, "source_capability_create")
     _tenant_record(session, Tenant, tenant_id, tenant_id)
     system = _tenant_record(session, SourceSystem, tenant_id, source_system_id)
     source_type, target_type = source_type.strip(), target_type.strip()
+    # reality-rule: core.create_source_capability.1
     if not source_type or not target_type:
         raise InvalidOperation("Source type and target type are required.")
     existing = session.scalar(
@@ -14008,6 +15803,7 @@ def create_source_capability(
             SourceCapability.source_type == source_type,
         )
     )
+    # reality-rule: core.create_source_capability.2
     if existing:
         raise InvalidOperation(
             f"Source capability already exists: {system.code}/{source_type}"
@@ -14030,10 +15826,18 @@ def create_source_capability(
 def set_source_capability_active(
     session: OrmSession, tenant_id: str, capability_id: str, is_active: bool
 ) -> SourceCapability:
+    """
+    BUSINESS PURPOSE:
+    Activate or deactivate an existing company source capability.
+
+    BUSINESS RULE core.set_source_capability_active.1:
+    Store the requested active flag and update timestamp on the existing company-scoped definition; no interpretation is executed by this change.
+    """
     from reality.services.tenant_policy import require_business_operation
 
     require_business_operation(session, tenant_id, "source_capability_update")
     capability = _tenant_record(session, SourceCapability, tenant_id, capability_id)
+    # reality-rule: core.set_source_capability_active.1
     capability.is_active = is_active
     capability.updated_at = now()
     session.commit()
@@ -14444,6 +16248,19 @@ def process_import_job_bound(
 
 
 def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any | None:
+    """
+    BUSINESS PURPOSE:
+    Interpret a stored source through its registered interpreter and retain the outcome without partial business writes.
+
+    BUSINESS RULE core.process_import_job.1:
+    IF no interpreter is available, mark the job unmapped and record an unsupported outcome; create no Reality.
+
+    BUSINESS RULE core.process_import_job.2:
+    Handle completed jobs through the explicit replay branches: retain completed file-item identities, skip stale/review outcomes, or use the registered interpreter's replay behavior.
+
+    BUSINESS RULE core.process_import_job.3:
+    Run the registered interpreter and record completed/interpreted outcome and returned Reality references. If meaning needs review, roll back business changes and retain a needs-review outcome; other failures roll back business changes, retain a failed outcome and set a bounded exponential retry time.
+    """
     _require_business_mutation(session, tenant_id, "process_import_job")
     job = session.scalar(
         select(ImportJob)
@@ -14474,6 +16291,7 @@ def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any 
         interpreter = SOURCE_INTERPRETERS.get(
             (source.source_system, source.source_type)
         )
+    # reality-rule: core.process_import_job.1
     if interpreter is None:
         job.status = "unmapped"
         job.error = "No interpreter registered for this source system and type."
@@ -14489,6 +16307,7 @@ def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any 
         )
         session.commit()
         return None
+    # reality-rule: core.process_import_job.2
     if job.status == "completed":
         if source.source_artifact_id and context.get("expected_target") == "item":
             identities = list(
@@ -14519,6 +16338,7 @@ def process_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Any 
     job.status = "processing"
     job.attempts = attempt
     job.error = ""
+    # reality-rule: core.process_import_job.3
     try:
         result = interpreter(session, tenant_id, source, context)
         job.status = "completed"
@@ -14779,6 +16599,16 @@ def interpretation_coverage(
 
 
 def retry_import_job(session: OrmSession, tenant_id: str, job_id: str) -> ImportJob:
+    """
+    BUSINESS PURPOSE:
+    Requeue a stored source interpretation using its current interpreter availability.
+
+    BUSINESS RULE core.retry_import_job.1:
+    Leave an already completed file-item import unchanged.
+
+    BUSINESS RULE core.retry_import_job.2:
+    IF neither a supported file target nor registered source interpreter exists, mark the job unmapped. ELSE reset it to pending, clear the prior error and retry time.
+    """
     _require_business_mutation(session, tenant_id, "retry_import_job")
     job = _tenant_record(session, ImportJob, tenant_id, job_id)
     source = _tenant_record(session, SourceRecord, tenant_id, job.source_record_id)
@@ -14787,12 +16617,14 @@ def retry_import_job(session: OrmSession, tenant_id: str, job_id: str) -> Import
         bool(source.source_artifact_id)
         and context.get("expected_target") in FILE_INTERPRETER_TARGETS
     )
+    # reality-rule: core.retry_import_job.1
     if (
         job.status == "completed"
         and source.source_artifact_id
         and context.get("expected_target") == "item"
     ):
         return job
+    # reality-rule: core.retry_import_job.2
     if (
         not supported_file
         and (source.source_system, source.source_type) not in SOURCE_INTERPRETERS
@@ -14888,12 +16720,22 @@ def timeline(
     tenant_id: str,
     records: dict[str, Iterable[str]] | None = None,
 ) -> list[tuple[Any, str, str, str]]:
-    """The company's records in time order — all of them, or the named ones.
+    """
+    The company's records in time order — all of them, or the named ones.
 
     `records` maps a record kind (`source_record`, `commitment`, `reservation`,
     `movement`, `ledger_entry`) to the ids to read. It changes which rows come back,
     never how one is derived: a row prints its own record's fields and, where the
     record names an article, that article's name (spec 181 FR-002).
+
+    BUSINESS PURPOSE:
+    Read source, promise, reservation, movement and ledger records in one company timeline.
+
+    BUSINESS RULE core.timeline.1:
+    Read company-scoped records, optionally restricted by the supplied opaque identities for each record kind.
+
+    BUSINESS RULE core.timeline.2:
+    Sort combined rows by their own record timestamps, newest first; displayed item names come from the linked item rather than inferred document status.
     """
 
     def read(model, kind):
@@ -14905,6 +16747,7 @@ def timeline(
             return []
         return list(session.scalars(statement.where(model.id.in_(ids))))
 
+    # reality-rule: core.timeline.1
     sources = read(SourceRecord, "source_record")
     promises = read(Commitment, "commitment")
     reservations = read(Reservation, "reservation")
@@ -14981,6 +16824,7 @@ def timeline(
                 record.id,
             )
         )
+    # reality-rule: core.timeline.2
     return sorted(rows, key=lambda row: utc_datetime(row[0]), reverse=True)
 
 
@@ -15306,7 +17150,8 @@ def _payment_run_needed_on(row: dict[str, Any], today: date) -> date | None:
 def payable_supplier_invoices(
     session: OrmSession, tenant_id: str, *, as_of: datetime | None = None
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Every supplier invoice a payment run may pay, and every one it may not.
+    """
+    Every supplier invoice a payment run may pay, and every one it may not.
 
     One rule, asked by the preview and by the run. Two answers to "may this be
     paid" is how a proposal and the operation that executes it start disagreeing
@@ -15320,6 +17165,12 @@ def payable_supplier_invoices(
 
     A sales invoice is absent from both lists rather than withheld. It was never
     a candidate, and reporting it as one would bury the invoices that were.
+
+    BUSINESS PURPOSE:
+    Separate supplier invoices eligible for payment from invoices withheld by the shared accounting conditions.
+
+    BUSINESS RULE core.payable_supplier_invoices.1:
+    Consider supplier invoices only. Withhold reversed invoices first, then known duplicates, then invoices with no positive open amount; other supplier invoices are payable.
     """
     moment = as_of or now()
     duplicates = {
@@ -15327,6 +17178,7 @@ def payable_supplier_invoices(
     }
     payable: list[dict[str, Any]] = []
     withheld: list[dict[str, Any]] = []
+    # reality-rule: core.payable_supplier_invoices.1
     for row in aging_register(session, tenant_id, as_of=moment):
         if row["document"].type != "supplier_invoice":
             continue
@@ -15384,7 +17236,8 @@ def preview_payment_run(
     pay_by: datetime | str,
     as_of: datetime | None = None,
 ) -> dict[str, Any]:
-    """What is worth paying now, without paying any of it.
+    """
+    What is worth paying now, without paying any of it.
 
     Two kinds of invoice belong in the answer: one that is due by the stated day,
     and one whose early-payment window has not closed yet. The second is why the
@@ -15395,6 +17248,15 @@ def preview_payment_run(
     Every figure comes from the aging register, so this proposal, that register
     and the operational exception queue cannot disagree about what an invoice
     owes.
+
+    BUSINESS PURPOSE:
+    Preview payable supplier invoices due by a stated day or still eligible for early-payment discount, without paying them.
+
+    BUSINESS RULE core.preview_payment_run.1:
+    Include a payable invoice when its due date is on or before the cutoff OR its discount deadline is today or later.
+
+    BUSINESS RULE core.preview_payment_run.2:
+    Aggregate invoice count and stated open amounts separately by supplier/currency and by currency; do not mix currencies or calculate a discount amount.
     """
     get_tenant(session, tenant_id)
     moment = as_of or now()
@@ -15405,6 +17267,7 @@ def preview_payment_run(
     cutoff = cutoff_moment.date()
     payable, withheld = payable_supplier_invoices(session, tenant_id, as_of=moment)
     proposed = []
+    # reality-rule: core.preview_payment_run.1
     for row in payable:
         due_date = row["due_date"]
         deadline = row["discount_date"]
@@ -15424,6 +17287,7 @@ def preview_payment_run(
     )
     suppliers: dict[tuple[str, str], dict[str, Any]] = {}
     totals: dict[str, dict[str, Any]] = {}
+    # reality-rule: core.preview_payment_run.2
     for entry in proposed:
         supplier = suppliers.setdefault(
             (entry["party_id"] or "", entry["currency"]),
@@ -15487,7 +17351,8 @@ def execute_payment_run(
     action_id: str | None = None,
     actor_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Pay what somebody confirmed, all of it or none of it.
+    """
+    Pay what somebody confirmed, all of it or none of it.
 
     Every amount here was stated by the caller. Nothing multiplies a gross amount
     by a discount rate, because that produces money nobody agreed to; the preview
@@ -15501,6 +17366,21 @@ def execute_payment_run(
     Everything is refused before anything is written, and the whole run commits
     once. The alternative is a Friday where nineteen payments went out and
     twenty-one did not and somebody has to work out which.
+
+    BUSINESS PURPOSE:
+    Record the reviewed supplier payments atomically, with an exact confirmed total and reason.
+
+    BUSINESS RULE core.execute_payment_run.1:
+    Require each invoice identity only once and a positive stated payment amount.
+
+    BUSINESS RULE core.execute_payment_run.2:
+    Refuse when the sum of stated amounts differs from the confirmed total.
+
+    BUSINESS RULE core.execute_payment_run.3:
+    Before writing, require each invoice to remain payable, match the single run currency, and have an open amount at least as large as the stated payment.
+
+    BUSINESS RULE core.execute_payment_run.4:
+    Record and allocate every supplier payment without intermediate commits, emit one run event and commit once; roll back the complete run on failure.
     """
     _require_business_mutation(session, tenant_id, "execute_payment_run")
     get_tenant(session, tenant_id)
@@ -15515,6 +17395,7 @@ def execute_payment_run(
     confirmed_total = decimal(expected_total)
     stated: list[tuple[str, Decimal, str | None]] = []
     seen: set[str] = set()
+    # reality-rule: core.execute_payment_run.1
     for item in payments:
         invoice_id = item["invoice_id"]
         if invoice_id in seen:
@@ -15524,6 +17405,7 @@ def execute_payment_run(
             (invoice_id, positive(item["amount"], "amount"), item.get("payment_number"))
         )
     total = sum((amount for _, amount, _ in stated), ZERO)
+    # reality-rule: core.execute_payment_run.2
     if total != confirmed_total:
         raise InvalidOperation(
             "The payment run no longer matches the confirmed total: "
@@ -15532,6 +17414,7 @@ def execute_payment_run(
     payable, withheld = payable_supplier_invoices(session, tenant_id)
     rows = {row["document"].id: row for row in payable}
     refusals = {row["document"].id: row["withheld_because"] for row in withheld}
+    # reality-rule: core.execute_payment_run.3
     for invoice_id, amount, _ in stated:
         row = rows.get(invoice_id)
         if row is None:
@@ -15549,6 +17432,7 @@ def execute_payment_run(
         if amount > decimal(row["open"]):
             raise InvalidOperation("Payment exceeds the open supplier payable.")
     paid: list[dict[str, Any]] = []
+    # reality-rule: core.execute_payment_run.4
     try:
         for invoice_id, amount, payment_number in stated:
             entries = post_supplier_payment(

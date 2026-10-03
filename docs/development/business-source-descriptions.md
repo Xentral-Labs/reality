@@ -70,14 +70,13 @@ visible with its original setup and assertions, without invented business prose.
 ## Review and preparation
 
 Run `make business-annotations-check` for format/reference validation. Missing
-annotations are preparation gaps, not validation errors during incremental adoption.
+registered root or approved test descriptions fail the gate, as do missing source bindings.
 Run `PYTHONPATH=packages/reality-core/src .venv/bin/python
 scripts/check_business_annotations.py --coverage` for a complete current root/test
 worklist. This is a repository audit, not a claim about deployed source or passing tests.
 
-The initial authored reference is credit exposure and all six direct tests in
-`test_credit_exposure.py`. Other registered entry roots and approved test sources are
-explicitly reported as remaining preparation; no complete narrative coverage is claimed.
+All current registered roots and approved direct test sources are prepared in source.
+This does not claim that every helper branch or other repository test is described.
 Review description changes with code changes. Format/reference validation cannot
 prove semantic agreement between prose and code. New roots/tests require descriptions
 before advertising them as professionally explained. Preserve unknowns and inspect

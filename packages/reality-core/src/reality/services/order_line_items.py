@@ -166,11 +166,45 @@ def _file_order_context(
 def preview_item_assignment(
     session: Session, tenant_id: str, *, document_line_id: str, item_id: str
 ) -> dict[str, Any]:
-    """What assigning this item would create, recording nothing."""
+    """
+    What assigning this item would create, recording nothing.
+
+    BUSINESS PURPOSE:
+    What assigning this item would create, recording nothing.
+
+    BUSINESS RULE services.order_line_items.preview_item_assignment.refusal-6:
+    IF the document is not a sales order:
+        Refuse with order_line_item_assign_not_sales_order.
+
+    BUSINESS RULE services.order_line_items.preview_item_assignment.refusal-8:
+    IF the selected line is not an item line:
+        Refuse with order_line_item_not_item_line.
+
+    BUSINESS RULE services.order_line_items.preview_item_assignment.refusal-16:
+    IF the line already has an item or already has a delivery promise:
+        Refuse with order_line_item_already_assigned.
+
+    BUSINESS RULE services.order_line_items.preview_item_assignment.refusal-18:
+    IF the sales order is closed:
+        Refuse with order_line_item_order_closed.
+
+    BUSINESS RULE services.order_line_items.preview_item_assignment.refusal-21:
+    IF the selected item is inactive:
+        Refuse with order_line_item_item_inactive.
+
+    BUSINESS RULE services.order_line_items.preview_item_assignment.refusal-44:
+    IF the supplying company partner or warehouse location cannot be resolved from the order context:
+        Refuse with order_line_item_location_unknown.
+
+    BUSINESS RULE services.order_line_items.preview_item_assignment.result:
+    Return the current result with customer_item_number, document_line_id, order_id, order_number, stated_sku, item_id, item_sku, quantity, unit_price, currency, from_party_id, to_party_id, location_id, due_at.
+    """
     line = core._tenant_record(session, DocumentLine, tenant_id, document_line_id)
     order = core._tenant_record(session, Document, tenant_id, line.document_id)
+    # reality-rule: services.order_line_items.preview_item_assignment.refusal-6
     if order.type != "sales_order":
         raise core.InvalidOperation(code="order_line_item_assign_not_sales_order")
+    # reality-rule: services.order_line_items.preview_item_assignment.refusal-8
     if line.line_type != "item":
         raise core.InvalidOperation(code="order_line_item_not_item_line")
     promised = session.scalar(
@@ -179,11 +213,14 @@ def preview_item_assignment(
             Commitment.document_line_id == line.id,
         )
     )
+    # reality-rule: services.order_line_items.preview_item_assignment.refusal-16
     if line.item_id is not None or promised:
         raise core.InvalidOperation(code="order_line_item_already_assigned")
+    # reality-rule: services.order_line_items.preview_item_assignment.refusal-18
     if _order_closed(session, tenant_id, order.id):
         raise core.InvalidOperation(code="order_line_item_order_closed")
     item = core._tenant_record(session, Item, tenant_id, item_id)
+    # reality-rule: services.order_line_items.preview_item_assignment.refusal-21
     if not item.is_active:
         raise core.InvalidOperation(code="order_line_item_item_inactive")
     sibling = session.scalar(
@@ -207,11 +244,13 @@ def preview_item_assignment(
         sibling.from_party_id if sibling else context.get("company_party_id")
     )
     location_id = sibling.location_id if sibling else context.get("location_id")
+    # reality-rule: services.order_line_items.preview_item_assignment.refusal-44
     if not from_party_id or not location_id:
         raise core.InvalidOperation(code="order_line_item_location_unknown")
     due_at = line.requested_at or (sibling.due_at if sibling else None)
     from reality.services.customer_item_numbers import stated_number
 
+    # reality-rule: services.order_line_items.preview_item_assignment.result
     return {
         "customer_item_number": stated_number(line),
         "document_line_id": line.id,
@@ -273,11 +312,35 @@ def assign_line_item(
     action_id: str | None = None,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """Give an unknown order line its item and create its delivery promise.
+    """
+    Give an unknown order line its item and create its delivery promise.
 
     With `remember_for_customer`, the customer number the line was ordered by
     is stated for the order's customer in the same confirmation (spec 308).
+
+    BUSINESS PURPOSE:
+    Give an unknown order line its item and create its delivery promise.
+
+    BUSINESS RULE services.order_line_items.assign_line_item.step-15:
+    Require the business permission for 'assign_order_line_item' before changing company records.
+
+    BUSINESS RULE services.order_line_items.assign_line_item.refusal-56:
+    IF remembering the item for this customer was requested but the order line has no customer item number:
+        Refuse with order_line_item_no_customer_number.
+
+    BUSINESS RULE services.order_line_items.assign_line_item.result:
+    Return result, as prepared by the preceding checks and service calls.
+
+    BUSINESS RULE services.order_line_items.assign_line_item.effect-40:
+    Run the shared preview item assignment check and use its normalized inputs and current review evidence. Inspect that called function for its detailed eligibility rules.
+
+    BUSINESS RULE services.order_line_items.assign_line_item.effect-49:
+    Pass the stated inputs to the shared create commitment service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.order_line_items.assign_line_item.effect-88:
+    Record the document_line.item_assigned audit or business-event evidence with the supplied record and confirmation identity.
     """
+    # reality-rule: services.order_line_items.assign_line_item.step-15
     core._require_business_mutation(session, tenant_id, "assign_order_line_item")
     with session.begin_nested():
         session.scalar(
@@ -288,6 +351,7 @@ def assign_line_item(
             )
             .with_for_update()
         )
+        # reality-rule: services.order_line_items.assign_line_item.effect-40
         preview = preview_item_assignment(
             session, tenant_id, document_line_id=document_line_id, item_id=item_id
         )
@@ -297,6 +361,7 @@ def assign_line_item(
             session, Item, tenant_id, preview["item_id"]
         ).unit
         quantity = core.decimal(preview["quantity"])
+        # reality-rule: services.order_line_items.assign_line_item.effect-49
         commitment = core.create_commitment(
             session,
             tenant_id,
@@ -319,6 +384,7 @@ def assign_line_item(
         )
         _hold_like_its_order(session, tenant_id, preview["order_id"], commitment)
         if remember_for_customer:
+            # reality-rule: services.order_line_items.assign_line_item.refusal-56
             if not preview["customer_item_number"]:
                 raise core.InvalidOperation(code="order_line_item_no_customer_number")
             from reality.services.customer_item_numbers import (
@@ -335,6 +401,7 @@ def assign_line_item(
                 action_id=action_id,
                 _commit=False,
             )
+        # reality-rule: services.order_line_items.assign_line_item.effect-88
         emit_business_event(
             session,
             tenant_id,
@@ -354,6 +421,7 @@ def assign_line_item(
         session.commit()
     else:
         session.flush()
+    # reality-rule: services.order_line_items.assign_line_item.result
     return result
 
 

@@ -29,13 +29,29 @@ UNCHECKED: Any = object()
 
 
 def _row(session: Session, tenant_id: str) -> CompanyCurrency | None:
+    """
+    BUSINESS PURPOSE:
+    Read the company's stored bookkeeping-currency statement without changing it.
+
+    BUSINESS RULE company_currency.read.statement:
+    Return this company's currency record if one is stored, otherwise no record. This lookup applies no default and does not inspect postings.
+    """
+    # reality-rule: company_currency.read.statement
     return session.scalar(
         select(CompanyCurrency).where(CompanyCurrency.tenant_id == tenant_id)
     )
 
 
 def company_currency(session: Session, tenant_id: str) -> str:
-    """The company currency, EUR when none was stated."""
+    """
+    The company currency, EUR when none was stated.
+
+    BUSINESS PURPOSE:
+    Read the currency in which the company keeps its books.
+
+    BUSINESS RULE services.finance.company_currency.company_currency.result:
+    IF the company has a stored currency statement, return that currency. ELSE return EUR, the configured default.
+    """
     from reality.services.core import _batch_memo
 
     memo = _batch_memo(session)
@@ -43,6 +59,7 @@ def company_currency(session: Session, tenant_id: str) -> str:
         # A batch does not state the company currency (spec 342).
         return memo[("company_currency", tenant_id)]
     row = _row(session, tenant_id)
+    # reality-rule: services.finance.company_currency.company_currency.result
     currency = row.currency if row else DEFAULT_CURRENCY
     if memo is not None:
         memo[("company_currency", tenant_id)] = currency
@@ -50,8 +67,17 @@ def company_currency(session: Session, tenant_id: str) -> str:
 
 
 def company_currency_state(session: Session, tenant_id: str) -> dict[str, Any]:
-    """What a read shows and a review compares."""
+    """
+    What a read shows and a review compares.
+
+    BUSINESS PURPOSE:
+    What a read shows and a review compares.
+
+    BUSINESS RULE services.finance.company_currency.company_currency_state.result:
+    Return the current result with currency, source_record_id, has_postings.
+    """
     row = _row(session, tenant_id)
+    # reality-rule: services.finance.company_currency.company_currency_state.result
     return {
         "currency": row.currency if row else DEFAULT_CURRENCY,
         "source_record_id": row.source_record_id if row else None,
@@ -100,7 +126,28 @@ def set_company_currency(
     _expected: Any = UNCHECKED,
     _commit: bool = True,
 ) -> dict[str, Any]:
-    """State the company currency; refused once the company has posted anything."""
+    """
+    State the company currency; refused once the company has posted anything.
+
+    BUSINESS PURPOSE:
+    State the company currency; refused once the company has posted anything.
+
+    BUSINESS RULE services.finance.company_currency.set_company_currency.step-18:
+    Require the business permission for 'set_company_currency' before changing company records.
+
+    BUSINESS RULE services.finance.company_currency.set_company_currency.refusal-22:
+    IF a prior company-currency value was checked and the current stored value differs from that reviewed value:
+        Refuse with company_currency_changed_since_review.
+
+    BUSINESS RULE services.finance.company_currency.set_company_currency.step-25:
+    Pass the stated inputs to the shared store source record service. Its own source describes validation and record changes.
+
+    BUSINESS RULE services.finance.company_currency.set_company_currency.step-59:
+    Record the company_currency.set audit or business-event evidence with the supplied record and confirmation identity.
+
+    BUSINESS RULE services.finance.company_currency.set_company_currency.result:
+    Return the result from company currency state; inspect that called function for its calculation and eligibility rules.
+    """
     from reality.services.business_locks import lock_delivery_state
     from reality.services.core import (
         InvalidOperation,
@@ -109,13 +156,16 @@ def set_company_currency(
         store_source_record,
     )
 
+    # reality-rule: services.finance.company_currency.set_company_currency.step-18
     _require_business_mutation(session, tenant_id, "set_company_currency")
     lock_delivery_state(session, tenant_id)
     stated = _validate(session, tenant_id, currency)
     row = _row(session, tenant_id)
+    # reality-rule: services.finance.company_currency.set_company_currency.refusal-22
     if _expected is not UNCHECKED and (row.currency if row else None) != _expected:
         raise InvalidOperation(code="company_currency_changed_since_review")
     previous = row.currency if row else DEFAULT_CURRENCY
+    # reality-rule: services.finance.company_currency.set_company_currency.step-25
     source, _, _ = store_source_record(
         session,
         tenant_id,
@@ -150,6 +200,7 @@ def set_company_currency(
         # The same confirmation again: it already stated this.
         return company_currency_state(session, tenant_id)
     session.flush()
+    # reality-rule: services.finance.company_currency.set_company_currency.step-59
     emit_business_event(
         session,
         tenant_id,
@@ -163,6 +214,7 @@ def set_company_currency(
     )
     if _commit:
         session.commit()
+    # reality-rule: services.finance.company_currency.set_company_currency.result
     return company_currency_state(session, tenant_id)
 
 
@@ -172,10 +224,19 @@ COMPANY_CURRENCY_TOOLS = {"company_currency_set"}
 def review_company_currency(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """The arguments a confirmation executes and what the person is shown."""
+    """
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS PURPOSE:
+    The arguments a confirmation executes and what the person is shown.
+
+    BUSINESS RULE services.finance.company_currency.review_company_currency.result:
+    Return {'currency': stated, 'reviewed': current}, {'current': current or DEFAULT_CURRENCY, 'proposed': stated}, as prepared by the preceding checks and service calls.
+    """
     stated = _validate(session, tenant_id, str(arguments.get("currency") or ""))
     row = _row(session, tenant_id)
     current = row.currency if row else None
+    # reality-rule: services.finance.company_currency.review_company_currency.result
     return (
         {"currency": stated, "reviewed": current},
         {"current": current or DEFAULT_CURRENCY, "proposed": stated},

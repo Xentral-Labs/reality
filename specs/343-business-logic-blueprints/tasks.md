@@ -244,3 +244,11 @@ UX correction analysis: FR-026 maps T060/T062; FR-027 maps T061/T062. Scope appr
 - [x] T080 [FR-042, FR-046] Route shared live explanations through the annotation reader without provider calls; update Docs/Inspector wording and contract types.
 - [x] T081 [FR-045, FR-046] Add authoring contract and repeatable annotation lint/root coverage audit; report unprepared inventory without fabricated content.
 - [x] T082 [FR-042–FR-046] Verify parser/service/adapter/credit regression tests, Docs/Web checks, freshness and actual browser output; review and update PR.
+
+- [ ] T083 [FR-047, FR-049] Prepare real rule-linked descriptions for registered core service roots; preserve executable ASTs.
+- [ ] T084 [FR-047, FR-049] Prepare remaining service/view/projection/tool/adapter roots, including shared physical templates and true routing behavior; preserve executable ASTs.
+- [ ] T085 [FR-047, FR-049] Prepare every approved test definition with source-grounded business title and GIVEN/WHEN/THEN; preserve assertions and variants.
+- [ ] T086 [FR-048] Strengthen shared-template/root classification and missing-description regression gates; confirm no missing current roots/tests and fail future gaps.
+- [ ] T087 [FR-047–049] Integrate parallel edits, validate references and unchanged executable ASTs, run required suites/builds/browser reads and update PR with exact coverage evidence.
+
+- [ ] T088 [FR-050] Prepare actual captured commitment-list and fulfillment-queue helpers; validate rule bindings, unchanged executable AST and representative source/steps/browser reads.

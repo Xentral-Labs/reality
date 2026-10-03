@@ -32,16 +32,25 @@ def audit(root: Path = ROOT) -> dict:
     errors, descriptions, tests, missing_tests = [], [], [], []
     global_rules = set()
     test_references = []
+    marker_locations: dict[str, list[str]] = {}
     files = [
         *source_root.rglob("*.py"),
         *[test_root / name for name in APPROVED_TESTS if name != "conftest.py"],
     ]
     for path in sorted(files):
         if not path.exists():
+            missing_tests.append(f"{path.relative_to(root)}:missing approved file")
             continue
         raw = path.read_text()
         tree = ast.parse(raw)
         is_test = path.is_relative_to(test_root)
+        if not is_test:
+            for number, line in enumerate(raw.splitlines(), 1):
+                marker = re.search(r"#\s*reality-rule:\s*([\w.:-]+)", line)
+                if marker:
+                    marker_locations.setdefault(marker.group(1), []).append(
+                        f"{path.relative_to(root)}:{number}"
+                    )
         for function in ast.walk(tree):
             if not isinstance(function, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
@@ -88,6 +97,11 @@ def audit(root: Path = ROOT) -> dict:
             except (ValueError, SyntaxError, StopIteration) as error:
                 errors.append(location + ": " + str(error))
     errors.extend(
+        f"Duplicate global rule marker {marker}: {', '.join(locations)}"
+        for marker, locations in marker_locations.items()
+        if len(locations) > 1
+    )
+    errors.extend(
         location + ": Unknown rule reference: " + ref
         for location, ref in test_references
         if ref not in global_rules
@@ -119,8 +133,9 @@ def audit(root: Path = ROOT) -> dict:
                 "entries"
             ].append(f"{kind}:{key}")
             try:
-                root_functions[identity]["described"] = bool(
-                    sections(inspect.getsource(fn))
+                doc = sections(inspect.getsource(fn))
+                root_functions[identity]["described"] = bool(doc) and any(
+                    key.startswith("BUSINESS RULE ") for key in doc
                 )
             except (OSError, TypeError, ValueError, SyntaxError, StopIteration):
                 pass
@@ -133,6 +148,14 @@ def audit(root: Path = ROOT) -> dict:
         "context": "repository_authoring_audit",
         "entries": len(inventory),
         "root_functions": len(root_functions),
+        "root_bindings": sum(
+            len(value["entries"]) for value in root_functions.values()
+        ),
+        "shared_root_templates": {
+            identity: value["entries"]
+            for identity, value in root_functions.items()
+            if len(value["entries"]) > 1
+        },
         "described_functions": descriptions,
         "described_tests": tests,
         "missing_root_descriptions": missing_roots,
@@ -140,6 +163,20 @@ def audit(root: Path = ROOT) -> dict:
         "missing_root_bindings": missing_bindings,
         "errors": errors,
     }
+
+
+def coverage_failures(report: dict) -> list[str]:
+    """Require descriptions for every registered root and approved direct test."""
+    return [
+        f"{key}: {len(report[key])} unresolved entries"
+        for key in (
+            "errors",
+            "missing_root_descriptions",
+            "missing_test_descriptions",
+            "missing_root_bindings",
+        )
+        if report[key]
+    ]
 
 
 if __name__ == "__main__":
@@ -160,4 +197,6 @@ if __name__ == "__main__":
         )
         for error in report["errors"]:
             print(error, file=sys.stderr)
-    sys.exit(bool(report["errors"]))
+    for failure in coverage_failures(report):
+        print(failure, file=sys.stderr)
+    sys.exit(bool(coverage_failures(report)))
