@@ -3543,3 +3543,12 @@ Search, filters, row density and columns share one flexible toolbar. Search shri
 with the actual register width, including docked chat, and stays next to table tools
 when they fit. Narrow surfaces wrap controls in order without page overflow. Existing
 search submission, labels, URL state, table preferences and filter behavior remain.
+
+### Workspace priority over docked chat (spec 225 FR-022)
+
+Persistent chat requires a viewport of at least 1280px. Below that width chat starts
+closed and crossing the breakpoint closes it automatically, keeping the workspace
+visible. An explicit chat action opens the existing overlay without reserving a
+workspace column. Growing the window does not reopen closed chat. The mounted chat
+retains drafts, history and existing tenant/session boundaries. Standalone Chat and
+Storyline retain their own behavior. This supersedes narrower desktop docking rules.

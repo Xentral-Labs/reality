@@ -651,3 +651,10 @@ test("shared register search and table controls share a responsive flex flow", (
   assert.match(css, /\.register-search\s*\{[^}]*flex: 1 1 160px;/s);
   assert.match(css, /\.register-toolbar > \.register-table-options\s*\{[^}]*display: contents;/s);
 });
+
+test("workspace priority closes chat below the persistent dock breakpoint", () => {
+  const shell = source("../src/unified/Shell.tsx");
+  assert.match(shell, /matchMedia\("\(min-width: 1280px\)"\)/);
+  assert.match(shell, /if \(!event.matches\) setChatOpen\(false\)/);
+  assert.match(shell, /data-chat-docked=\{chatCanDock\}/);
+});

@@ -160,6 +160,28 @@ try {
   await header.getByRole("button", { name: "Hide chat", exact: true }).click();
   await header.getByRole("button", { name: "Show chat", exact: true }).click();
   assert.equal(await draft.inputValue(), "Preserve the current company draft");
+  for (const width of [1168, 1024, 768, 390]) {
+    await draft.focus();
+    await page.setViewportSize({ width, height: 900 });
+    await chat.waitFor({ state: "hidden" });
+    await page.waitForFunction(
+      () => document.querySelector(".shell-chat-toggle") === document.activeElement,
+    );
+    const main = page.locator("#main-content");
+    const before = await box(main);
+    assert.ok(
+      before.width >= (width >= 1024 ? width - 201 : width - 1),
+      `Workspace priority at ${width}: ${JSON.stringify(before)}`,
+    );
+    await header.getByRole("button", { name: "Show chat", exact: true }).click();
+    await chat.waitFor({ state: "visible" });
+    assert.equal(await draft.inputValue(), "Preserve the current company draft");
+    assert.deepEqual(await box(main), before, "Overlay must not consume workspace width");
+    await chat.getByRole("button", { name: "Hide chat", exact: true }).click();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await chat.waitFor({ state: "hidden" });
+    await header.getByRole("button", { name: "Show chat", exact: true }).click();
+  }
   await nav.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
   assert.equal((await box(nav)).width, 60);
   await company.click();
@@ -310,6 +332,7 @@ try {
   await touchPage.route("**/api/**", fixture);
   await touchPage.goto(`${base}/app?tenant=tenant_a&lang=en`);
   await touchPage.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
+  await touchPage.getByRole("button", { name: "Show chat", exact: true }).click();
   for (const selector of [
     "[data-company-id]",
     "[data-navigation-toggle]",

@@ -278,3 +278,20 @@ controls keeps search and tools aligned vertically and search is narrower with c
 At 390px controls remain accessible and the toolbar stays within the register.
 Scope review: user approved the shared solution after screenshots of Purchasing.
 No unresolved clarification, schema, service or new dependency.
+
+## Workspace priority over docked chat (2026-10-03)
+
+FR-022: Operational workspace content has priority over the conversation panel. A
+persistent chat dock is available only at viewport widths of at least 1280px. Below
+that width chat starts closed, and resizing from a dock-capable viewport closes chat
+automatically. If focus was inside chat, it returns to the chat button. An explicit chat action may open the existing overlay at narrow widths;
+it never reserves a workspace column. Resizing wide again does not reopen a closed
+chat. Draft, history, session and tenant boundaries remain unchanged. Standalone Chat
+and Storyline retain their existing rules.
+Acceptance: a 1440px workspace with an open chat and a draft, resized to 1168, 1024,
+768 and 390px, closes chat and keeps workspace content visible. Explicit narrow chat
+opening preserves workspace geometry and the draft. Returning wide keeps chat closed
+until explicitly opened. Touch controls retain their target sizes.
+Scope approved by the user's request; no unresolved clarification or new service,
+record, persistence setting or dependency. FR-021's 1168px docking assumption is
+superseded: at that width an explicit chat is an overlay and does not shrink search.
