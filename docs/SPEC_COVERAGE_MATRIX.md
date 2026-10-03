@@ -2414,6 +2414,17 @@ Exception class `reservation_awaiting_prepayment`, derived at read time: an open
   - Payment, release of the reservation or cancellation clear it; a part payment names the rest; another company sees nothing.
 - `packages/reality-core/tests/scenarios/test_catalog_prepayment_reservations.py`: story B12.
 
+## Agent email handoffs (351)
+
+Specification: `specs/351-agent-email-handoffs/spec.md`.
+Contract: `docs/features/agent-email-handoffs.md`.
+Evidence: `packages/reality-core/tests/test_agent_email_handoffs.py` and
+`packages/reality-core/tests/test_agent_email_migration.py` cover lossless messages,
+attachment provenance, bounded chunk retries/checksums, exact Decisions,
+actor/tenant boundaries, concurrent claims, truthful outcomes, API/MCP parity and
+migration rollback guards. Browser proof covers review and original-file navigation.
+Implementation/verification status is recorded in the feature tasks and evidence;
+this entry does not assert a completed release gate.
 ## Unconfirmed purchase orders — Spec 346
 
 Exception class `purchase_order_unconfirmed`, derived at read time: an open purchase line with no supplier revision and no receipt three days after its order was placed.

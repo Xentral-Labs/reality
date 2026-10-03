@@ -4431,6 +4431,94 @@ MCP_TOOL_CATALOG += (
     ),
 )
 
+# Spec 351: evidence intake/dispatch handoff are independently permissioned mutations,
+# not approval operations. No handler here can settle the outgoing proposal.
+from reality.domain.emails import (
+    CaptureEmail,
+    ClaimDispatch,
+    DispatchProposal,
+    EmailChunk,
+    EmailFile,
+    EmailHistory,
+    ReportDispatch,
+)
+from reality.tools.email_handoffs import email_mutation_handler as _email_mutation
+
+MCP_TOOL_CATALOG += (
+    MCPToolDefinition(
+        "email_workflow",
+        "Email handoff contract",
+        "Read this before handling email. Discover capture, file staging, exact send decisions, claim/report permissions and uncertainty reconciliation. Reality never sends mail.",
+        "read",
+        "Email",
+        _object_schema(),
+        _read("email_workflow"),
+    ),
+    MCPToolDefinition(
+        "email_history",
+        "Email evidence and decision history",
+        "Read one source, proposal or execution and its original evidence, attachment download links and reported outcome. Provider acceptance is not recipient delivery.",
+        "read",
+        "Email",
+        EmailHistory.model_json_schema(),
+        _read("email_history"),
+    ),
+    MCPToolDefinition(
+        "email_dispatch_propose",
+        "Propose an outgoing email",
+        "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it.",
+        "propose",
+        "Email",
+        DispatchProposal.model_json_schema(),
+        _propose("email_dispatch_authorize"),
+    ),
+    MCPToolDefinition(
+        "email_file_chunk",
+        "Stage an email file chunk",
+        "Permission-scoped file intake, not proposal approval. Submit up to one MiB as base64. Retrying identical content returns the same artifact. Complete the ordered chunks with email_file_complete.",
+        "confirm",
+        "Email",
+        EmailChunk.model_json_schema(),
+        _email_mutation("stage_email_chunk"),
+    ),
+    MCPToolDefinition(
+        "email_file_complete",
+        "Complete an original email file",
+        "Permission-scoped file intake, not proposal approval. Assemble ordered staged part IDs and verify SHA-256. Keep filename/media type on each email attachment occurrence. Retry the same ordered IDs after interrupted transfer.",
+        "confirm",
+        "Email",
+        EmailFile.model_json_schema(),
+        _email_mutation("complete_email_file"),
+    ),
+    MCPToolDefinition(
+        "email_capture",
+        "Capture original email evidence",
+        "Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace original contents. Use stable origin/account/message identity or retry key.",
+        "confirm",
+        "Email",
+        CaptureEmail.model_json_schema(),
+        _email_mutation("capture_email"),
+    ),
+    MCPToolDefinition(
+        "email_dispatch_claim",
+        "Claim an approved external email dispatch",
+        "Permission-scoped execution handoff, not approval. Only an executed email authorization with the exact fingerprint can be claimed. Send the returned snapshot once using provider idempotency. A repeated claim is the same instruction, never permission to send twice. Never retry an uncertain send without reconciliation.",
+        "confirm",
+        "Email",
+        ClaimDispatch.model_json_schema(),
+        _email_mutation("claim_dispatch"),
+    ),
+    MCPToolDefinition(
+        "email_dispatch_report",
+        "Report or reconcile external email execution",
+        "Permission-scoped evidence intake, not approval. The claiming authenticated executor reports accepted, failed or unknown with observed time, actual message and provider evidence. This does not verify delivery. Deviations and conflicting receipts remain visible; no claim is automatically released.",
+        "confirm",
+        "Email",
+        ReportDispatch.model_json_schema(),
+        _email_mutation("report_dispatch"),
+    ),
+)
+
 MCP_TOOL_REGISTRY = {tool.name: tool for tool in MCP_TOOL_CATALOG}
 if len(MCP_TOOL_REGISTRY) != len(MCP_TOOL_CATALOG):
     raise RuntimeError("MCP tool names must be unique.")

@@ -1292,3 +1292,16 @@ families:
       - id: tests/test_business_blueprint_cases.py::test_authorized_current_read_creates_no_business_authority
         assertion: boundary
         operations: *business_logic_case_operations
+
+  - key: agent_email_handoffs
+    description: Email evidence, file references and exact external dispatch authorizations remain company scoped.
+    classification: mutation_relationship
+    authority: 351/FR-012
+    operations:
+      - tool:email_dispatch_authorize
+      - tool:email_history
+      - tool:email_workflow
+    evidence:
+      - id: tests/test_agent_email_handoffs.py::test_history_and_executor_are_tenant_scoped
+        assertion: mutation_relationship
+        operations: [tool:email_dispatch_authorize, tool:email_history, tool:email_workflow]

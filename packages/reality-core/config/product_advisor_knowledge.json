@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:0857a52df1e9c739bdda932aa4d72d24516206c36d1dcca2d42c4dd0d584e086",
+  "knowledge_version": "advisor-v1:sha256:ff9e92f94389ccd35febea0534fb52c4eee365fbb7684579b97640bbd92ea187",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "a9a577dcd6d411e40f8e8cf27fcf628715978961c081104a29ecee4e6d2de6c9"
+      "fingerprint": "45f5465fd16299602b45136a7f411fa12016e9913199ef21cdb05f81446282f9"
     },
     {
       "id": "source_document_product_evaluation",
@@ -6121,6 +6121,51 @@
       ],
       "language": "en",
       "fingerprint": "b593b97aa5d9e126f7e804b459a90061e305a7e576733498d75ae539b145a583"
+    },
+    {
+      "id": "evidence_command_email_dispatch_authorize",
+      "source_id": "source_executable_commands",
+      "subject": "Authorize external email dispatch",
+      "title": "Authorize external email dispatch",
+      "search_text": "email_dispatch_authorize Authorize external email dispatch Authorize the exact approved email snapshot without sending it. mutation",
+      "claim_text": "email_dispatch_authorize is a governed mutation command for Authorize the exact approved email snapshot without sending it..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "email_dispatch_authorize"
+      ],
+      "language": "en",
+      "fingerprint": "ca985667bf9150e93410b92ad171d4b3325085ec7519b286e0be692d5ebab038"
+    },
+    {
+      "id": "evidence_command_email_history",
+      "source_id": "source_executable_commands",
+      "subject": "Read email history",
+      "title": "Read email history",
+      "search_text": "email_history Read email history Read original messages and files, decisions and reported external execution. read",
+      "claim_text": "email_history is a governed read command for Read original messages and files, decisions and reported external execution..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "email_history"
+      ],
+      "language": "en",
+      "fingerprint": "37a7f185a0c05df82ee978a350c9570c9336abc5d6e461b3f4767bf2ea972605"
+    },
+    {
+      "id": "evidence_command_email_workflow",
+      "source_id": "source_executable_commands",
+      "subject": "Read email workflow",
+      "title": "Read email workflow",
+      "search_text": "email_workflow Read email workflow Discover email transfer limits and the canonical evidence, decision and execution contract. read",
+      "claim_text": "email_workflow is a governed read command for Discover email transfer limits and the canonical evidence, decision and execution contract..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "email_workflow"
+      ],
+      "language": "en",
+      "fingerprint": "be1132c35bb95318bf9cb95a879d6a638347750d788a5da083a6aa43678ff357"
     },
     {
       "id": "evidence_command_business_journey_guide",

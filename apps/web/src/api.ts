@@ -2295,6 +2295,20 @@ export const api = {
       `/api/tenants/${tenant}/change-proposals?status=${status}&page=${page}&size=${size}` +
         `&q=${encodeURIComponent(query)}&tool=${encodeURIComponent(tool)}`,
     ),
+  emailHistory: (tenant: string, identity: { source_id?: string; proposal_id?: string }) =>
+    request<{
+      source: { id: string; payload: Record<string, unknown> } | null;
+      attachments: {
+        id: string;
+        payload: Record<string, unknown>;
+        file?: { download_url: string };
+      }[];
+      supporting_sources: { id: string; payload: Record<string, unknown> }[];
+      reports: { id: string; payload: Record<string, unknown> }[];
+      original_file?: { download_url: string };
+      outgoing_files?: { part_id: string; filename: string; download_url: string }[];
+      state?: string;
+    }>(`/api/tenants/${tenant}/email/history?${new URLSearchParams(identity)}`),
   proposalReview: (tenant: string, proposalId: string) =>
     shareInFlight(proposalReviewReads, `${tenant}:${proposalId}`, () =>
       request<ProposalReview>(

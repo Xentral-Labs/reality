@@ -8,13 +8,14 @@ the technical key stands beside each one.
 
 | Object                                                           | Lists | Actions | Exceptions to clear |
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
+| [Email](#resource-email)                                         | 0     | 1       | 0                   |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 15      | 2                   |
 | [Item](#resource-item)                                           | 5     | 14      | 7                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
 | [Order](#resource-order)                                         | 8     | 17      | 18                  |
-| [Delivery and goods receipt](#resource-delivery)                 | 2     | 12      | 3                   |
+| [Delivery and goods receipt](#resource-delivery)                 | 2     | 13      | 3                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 2                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 12      | 5                   |
@@ -24,6 +25,32 @@ the technical key stands beside each one.
 | [Document and source system](#resource-source)                   | 3     | 13      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 5       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
+
+## Email {#resource-email}
+
+_Correspondence evidence and send decisions_
+
+Agents hand over original messages and files, propose exact outgoing messages and report external
+execution.
+
+**Also called:** email, mail, correspondence, E-Mail, Korrespondenz
+
+**Actions**
+
+- [Authorize external email dispatch](./commands#command-email_dispatch_authorize)
+  (`email_dispatch_authorize`)
+
+**Look up**
+
+- [Read email history](./commands#command-email_history) (`email_history`)
+- [Read email workflow](./commands#command-email_workflow) (`email_workflow`)
+
+**Underneath:** Tables: `email_dispatch`, `email_dispatch_receipt` · Agent Tools without a command:
+[`email_file_chunk`](./commands#tool-email_file_chunk),
+[`email_file_complete`](./commands#tool-email_file_complete),
+[`email_capture`](./commands#tool-email_capture),
+[`email_dispatch_claim`](./commands#tool-email_dispatch_claim),
+[`email_dispatch_report`](./commands#tool-email_dispatch_report)
 
 ## Analytics report {#resource-analytics}
 
@@ -427,6 +454,8 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 
 **Actions**
 
+- [Authorize external email dispatch](./commands#command-email_dispatch_authorize)
+  (`email_dispatch_authorize`)
 - [Record movement](./commands#command-record_movement) (`record_movement`)
 - [Correct movement](./commands#command-correct_movement) (`correct_movement`)
 - [Plan an outbound delivery](./commands#command-plan_outbound_delivery) (`plan_outbound_delivery`)
@@ -483,7 +512,9 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 [`shipment_explain`](./commands#tool-shipment_explain),
 [`movement_explanation`](./commands#tool-movement_explanation),
 [`drop_shipments`](./commands#tool-drop_shipments),
-[`delivery_failure_summary`](./commands#tool-delivery_failure_summary)
+[`delivery_failure_summary`](./commands#tool-delivery_failure_summary),
+[`email_dispatch_claim`](./commands#tool-email_dispatch_claim),
+[`email_dispatch_report`](./commands#tool-email_dispatch_report)
 
 ## Lot, serial number and pallet {#resource-lot}
 

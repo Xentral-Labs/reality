@@ -3641,6 +3641,48 @@ class ChangeProposal(Base):
     )
 
 
+class EmailDispatch(Base):
+    """One authorized external execution; a claim is never automatically released."""
+
+    __tablename__ = "email_dispatch"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        UniqueConstraint("tenant_id", "proposal_id", name="uq_email_dispatch_proposal"),
+        ForeignKeyConstraint(
+            ["tenant_id", "proposal_id"], ["action.tenant_id", "action.id"]
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    proposal_id: Mapped[str] = mapped_column(String)
+    fingerprint: Mapped[str] = mapped_column(String(64))
+    executor: Mapped[str | None] = mapped_column(String, default=None)
+    claim_key: Mapped[str | None] = mapped_column(String, default=None)
+    claimed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class EmailDispatchReceipt(Base):
+    """Bind only executor-reported Sources to dispatch outcome derivation."""
+
+    __tablename__ = "email_dispatch_receipt"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "source_record_id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "dispatch_id"],
+            ["email_dispatch.tenant_id", "email_dispatch.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        Index("ix_email_dispatch_receipt_dispatch", "tenant_id", "dispatch_id"),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
+    source_record_id: Mapped[str] = mapped_column(String)
+    dispatch_id: Mapped[str] = mapped_column(String)
+
+
 # Transitional import alias for older adapters. New domain code uses
 # ChangeProposal; this can be removed after downstream integrations migrate.
 Action = ChangeProposal

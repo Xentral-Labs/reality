@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { formatDateTime, t } from "../localization";
 import { DecisionLine } from "./DecisionLine";
+import { EmailEvidencePanel, emailReviewInput } from "./EmailEvidencePanel";
 import { ActionCard } from "./ActionCard";
 import { ReadState } from "./ReadState";
 import { useRead } from "./useCompanyContext";
@@ -157,7 +158,23 @@ export function ProposalReviewCard({
               </p>
             )
           ) : (
-            <BusinessFieldList record={data.input} />
+            <>
+              <div
+                data-original-content={data.tool === "email_dispatch_authorize" || undefined}
+                className={data.tool === "email_dispatch_authorize" ? "whitespace-pre-wrap" : ""}
+              >
+                <BusinessFieldList
+                  record={
+                    data.tool === "email_dispatch_authorize"
+                      ? emailReviewInput(data.input)
+                      : data.input
+                  }
+                />
+              </div>
+              {data.tool === "email_dispatch_authorize" && (
+                <EmailEvidencePanel tenant={tenant} proposalId={proposalId} />
+              )}
+            </>
           )}
         </div>
       </section>
@@ -172,7 +189,7 @@ export function ProposalReviewCard({
           )}
         </p>
       )}
-      {(!privateChange || readablePrivate) && (
+      {(!privateChange || readablePrivate) && data.tool !== "email_dispatch_authorize" && (
         <section className="mt-5">
           <h3 className="font-semibold">
             {t(data.status === "proposed" ? "Prepared preview" : "Stored receipt")}

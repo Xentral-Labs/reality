@@ -13,6 +13,18 @@ generic_tables:
   [tenant, business_event, source_record, source_stream, action, finance_state, security_audit_event, import_job]
 
 resources:
+  - key: email
+    label: {en: "Email", de: "E-Mail"}
+    subtitle: {en: "Correspondence evidence and send decisions", de: "Korrespondenzbelege und Versandentscheidungen"}
+    description:
+      en: "Agents hand over original messages and files, propose exact outgoing messages and report external execution."
+      de: "Agenten übergeben Originalnachrichten und Dateien, schlagen genaue ausgehende Nachrichten vor und melden den externen Versand."
+    synonyms: [email, mail, correspondence, E-Mail, Korrespondenz]
+    tables: [email_dispatch, email_dispatch_receipt]
+    match: "email_"
+    views: []
+    projections: []
+    exceptions: []
   - key: analytics
     label: {en: "Analytics report", de: "Auswertung"}
     subtitle: {en: "Composable questions and private definitions", de: "Flexible Fragen und private Auswertungen"}
@@ -573,8 +585,19 @@ processes:
 labels:
   de:
     tools:
+      email_workflow: E-Mail-Ablauf lesen
+      email_history: E-Mail-Belege und Entscheidungen lesen
+      email_dispatch_propose: E-Mail-Versand vorschlagen
+      email_capture: E-Mail als Beleg ablegen
+      email_file_chunk: E-Mail-Dateiteil ablegen
+      email_file_complete: E-Mail-Datei vervollständigen
+      email_dispatch_claim: Freigegebenen E-Mail-Versand abrufen
+      email_dispatch_report: E-Mail-Versandergebnis ablegen
       reorder_points: Meldebestände anzeigen
     commands:
+      email_dispatch_authorize: E-Mail-Versand freigeben
+      email_history: E-Mail-Verlauf lesen
+      email_workflow: E-Mail-Ablauf lesen
       reorder_points: Meldebestände anzeigen
       business_journey_guide: Reality-Fähigkeit im Business Journey Guide prüfen
       business_journey_proposal_create: Business Journey vorschlagen

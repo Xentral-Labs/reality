@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:0857a52df1e9c739bdda932aa4d72d24516206c36d1dcca2d42c4dd0d584e086",
+  "knowledge_version": "advisor-v1:sha256:ff9e92f94389ccd35febea0534fb52c4eee365fbb7684579b97640bbd92ea187",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -758,6 +758,37 @@
         {
           "name": "external_stock",
           "mode": "query"
+        }
+      ]
+    },
+    {
+      "id": "capability_resource_email",
+      "label": "Email",
+      "description": "Agents hand over original messages and files, propose exact outgoing messages and report external execution.",
+      "aliases": [
+        "email",
+        "mail",
+        "correspondence",
+        "E-Mail",
+        "Korrespondenz"
+      ],
+      "evidence_ids": [
+        "evidence_command_email_dispatch_authorize",
+        "evidence_command_email_history",
+        "evidence_command_email_workflow"
+      ],
+      "tools": [
+        {
+          "name": "email_dispatch_authorize",
+          "mode": "mutation"
+        },
+        {
+          "name": "email_history",
+          "mode": "read"
+        },
+        {
+          "name": "email_workflow",
+          "mode": "read"
         }
       ]
     },
@@ -1880,6 +1911,7 @@
         "Direktlieferung"
       ],
       "evidence_ids": [
+        "evidence_command_email_dispatch_authorize",
         "evidence_command_propose_cost_review",
         "evidence_command_cost_review_draft",
         "evidence_command_cost_record",
@@ -1925,6 +1957,10 @@
         "evidence_command_record_return_disposition"
       ],
       "tools": [
+        {
+          "name": "email_dispatch_authorize",
+          "mode": "mutation"
+        },
         {
           "name": "propose_cost_review",
           "mode": "mutation"

@@ -85,11 +85,13 @@
     "unified-tool-catalog-browser.mjs": 12,
     "unified-workspaces-browser.mjs": 67,
     "verification-return-browser.mjs": 2,
-    "workspace-tab-counts-browser.mjs": 27
+    "workspace-tab-counts-browser.mjs": 27,
+    "agent-email-handoffs-browser.mjs": 5
   },
   "scripts": [
     "access-deletion-browser.mjs",
     "action-discovery-browser.mjs",
+    "agent-email-handoffs-browser.mjs",
     "analytics-save-clarity-browser.mjs",
     "business-blueprints-browser.mjs",
     "chat-scoped-proposals-browser.mjs",

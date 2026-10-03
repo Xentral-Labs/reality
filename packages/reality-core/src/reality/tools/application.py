@@ -4305,7 +4305,69 @@ def _business_logic_compare(session, tenant_id, arguments):
     return compare(session, tenant_id, arguments)
 
 
+def _email_authorize(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Use the canonical email service without implementing alternative email rules.
+
+    BUSINESS RULE application._email_authorize.service:
+    Return the shared service result; this adapter never contacts a mail provider.
+    """
+    from reality.services.emails import authorize_dispatch
+
+    # reality-rule: application._email_authorize.service
+    return authorize_dispatch(session, tenant_id, arguments)
+
+
+def _email_history(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Use the canonical email service without implementing alternative email rules.
+
+    BUSINESS RULE application._email_history.service:
+    Return the shared service result; this adapter never contacts a mail provider.
+    """
+    from reality.services.emails import email_history
+
+    # reality-rule: application._email_history.service
+    return email_history(session, tenant_id, arguments)
+
+
+def _email_workflow(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Use the canonical email service without implementing alternative email rules.
+
+    BUSINESS RULE application._email_workflow.service:
+    Return the shared service result; this adapter never contacts a mail provider.
+    """
+    from reality.services.emails import email_workflow
+
+    # reality-rule: application._email_workflow.service
+    return email_workflow()
+
+
 TOOLS = {
+    "email_dispatch_authorize": Tool(
+        "email_dispatch_authorize",
+        "Authorize the exact email for external dispatch; this does not send it.",
+        True,
+        _email_authorize,
+    ),
+    "email_history": Tool(
+        "email_history",
+        "Read original email evidence, attachments, decisions and reported execution.",
+        False,
+        _email_history,
+    ),
+    "email_workflow": Tool(
+        "email_workflow",
+        "Discover the canonical email handoff and external execution contract.",
+        False,
+        _email_workflow,
+    ),
     "business_logic_discover": Tool(
         "business_logic_discover",
         "Discover actual registered business logic and live source availability.",
@@ -6427,6 +6489,10 @@ def create_change_proposal(
         normalized_arguments, preview = prepare_request(
             session, tenant_id, CALLER.get(), arguments
         )
+    if tool_name == "email_dispatch_authorize":
+        from reality.services.emails import prepare_dispatch
+
+        normalized_arguments, preview = prepare_dispatch(session, tenant_id, arguments)
     # reality-rule: application.create_change_proposal.7
     proposal = ChangeProposal(
         id=uid("act"),

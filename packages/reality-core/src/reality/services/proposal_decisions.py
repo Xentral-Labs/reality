@@ -57,6 +57,10 @@ def resolve_decision_policy(
     elif tool in ACCOUNT_MUTATION_TOOLS:
         authority = "account_user"
         checks.append("account_identity")
+    if tool == "email_dispatch_authorize":
+        authority = "company_member"
+        checks.append("reviewed_member")
+        exceptions.extend(["delivery_platform_admin", "delivery_trusted_local"])
     if "_delivery_review" in arguments:
         checks.append("reviewed_member")
         if authority == "action_context":

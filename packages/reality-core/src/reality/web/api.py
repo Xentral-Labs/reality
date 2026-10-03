@@ -9429,3 +9429,239 @@ def resolve_company_search(
         raise HTTPException(
             503, "Search is temporarily unavailable. Please retry."
         ) from error
+
+
+# Spec 351: external agents own mail transport; these routes only retain evidence
+# and hand over explicitly approved immutable dispatch instructions.
+from reality.domain.emails import (
+    CaptureEmail,
+    ClaimDispatch,
+    DispatchProposal,
+    EmailChunk,
+    EmailFile,
+    ReportDispatch,
+)
+
+
+def _email_executor(request: Request, session: OrmSession, tenant_id: str) -> str:
+    from reality.services.delivery_actions import require_delivery_principal
+
+    principal = optional_request_principal(request)
+    if principal is None and os.environ.get("REALITY_AUTH_MODE") != "disabled":
+        raise HTTPException(401, "Authentication required.")
+    require_delivery_principal(session, tenant_id, principal)
+    return "user:" + principal.user_id if principal else "local:trusted"
+
+
+@router.get("/email/workflow")
+def get_email_workflow(tenant_id: str, session: DatabaseSession):
+    from reality.tools.application import run_read_tool
+
+    return run_read_tool(session, tenant_id, "email_workflow")
+
+
+@router.get("/email/history")
+def get_email_history(
+    tenant_id: str,
+    session: DatabaseSession,
+    source_id: str | None = None,
+    proposal_id: str | None = None,
+    execution_id: str | None = None,
+):
+    from reality.tools.application import run_read_tool
+
+    try:
+        return run_read_tool(
+            session,
+            tenant_id,
+            "email_history",
+            {
+                "source_id": source_id,
+                "proposal_id": proposal_id,
+                "execution_id": execution_id,
+            },
+        )
+    except (InvalidOperation, NotFound) as error:
+        raise api_error(error) from error
+
+
+@router.post("/email/capture")
+def post_email_capture(
+    tenant_id: str, body: CaptureEmail, request: Request, session: DatabaseSession
+):
+    from reality.services.emails import capture_email
+
+    try:
+        _email_executor(request, session, tenant_id)
+        # Keep exactly the message representation supplied by the external caller.
+        return capture_email(
+            session, tenant_id, body.model_dump(mode="json", exclude_unset=True)
+        )
+    except (InvalidOperation, NotFound) as error:
+        raise api_error(error) from error
+
+
+@router.post("/email/dispatch-proposals")
+def post_email_dispatch_proposal(
+    tenant_id: str, body: DispatchProposal, request: Request, session: DatabaseSession
+):
+    from reality.tools.application import create_change_proposal
+
+    try:
+        _email_executor(request, session, tenant_id)
+        proposal = create_change_proposal(
+            session,
+            tenant_id,
+            "email_dispatch_authorize",
+            body.model_dump(mode="json"),
+            actor_type="human",
+        )
+        return {
+            "proposal_id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (InvalidOperation, NotFound) as error:
+        raise api_error(error) from error
+
+
+@router.post("/email/dispatch-claims")
+def post_email_dispatch_claim(
+    tenant_id: str, body: ClaimDispatch, request: Request, session: DatabaseSession
+):
+    from reality.services.emails import claim_dispatch
+
+    try:
+        return claim_dispatch(
+            session,
+            tenant_id,
+            body.model_dump(mode="json"),
+            executor=_email_executor(request, session, tenant_id),
+        )
+    except (InvalidOperation, NotFound) as error:
+        raise api_error(error) from error
+
+
+@router.post("/email/dispatch-reports")
+def post_email_dispatch_report(
+    tenant_id: str, body: ReportDispatch, request: Request, session: DatabaseSession
+):
+    from reality.services.emails import report_dispatch
+
+    try:
+        return report_dispatch(
+            session,
+            tenant_id,
+            body.model_dump(mode="json", exclude_unset=True),
+            executor=_email_executor(request, session, tenant_id),
+        )
+    except (InvalidOperation, NotFound) as error:
+        raise api_error(error) from error
+
+
+@router.post("/email/files/chunks")
+def post_email_file_chunk(
+    tenant_id: str, body: EmailChunk, request: Request, session: DatabaseSession
+):
+    from reality.services.emails import stage_email_chunk
+
+    try:
+        _email_executor(request, session, tenant_id)
+        return stage_email_chunk(session, tenant_id, body.model_dump(mode="json"))
+    except (InvalidOperation, NotFound) as error:
+        raise api_error(error) from error
+
+
+@router.post("/email/files/complete")
+def post_email_file_complete(
+    tenant_id: str, body: EmailFile, request: Request, session: DatabaseSession
+):
+    from reality.services.emails import complete_email_file
+
+    try:
+        _email_executor(request, session, tenant_id)
+        return complete_email_file(session, tenant_id, body.model_dump(mode="json"))
+    except (InvalidOperation, NotFound) as error:
+        raise api_error(error) from error
+
+
+@router.get("/email/files/{artifact_id}/download")
+def get_email_original_file(
+    tenant_id: str,
+    artifact_id: str,
+    session: DatabaseSession,
+    source_id: str | None = None,
+    proposal_id: str | None = None,
+    part_id: str | None = None,
+):
+    from urllib.parse import quote
+
+    from fastapi.responses import StreamingResponse
+
+    from reality.services.artifacts import get_artifact, materialize_artifact
+
+    try:
+        artifact = get_artifact(session, tenant_id, artifact_id)
+        filename = artifact.filename
+        if (source_id and proposal_id) or bool(proposal_id) != bool(part_id):
+            raise InvalidOperation(code="email_input_invalid")
+        if proposal_id:
+            proposal = session.scalar(
+                select(ChangeProposal).where(
+                    ChangeProposal.tenant_id == tenant_id,
+                    ChangeProposal.id == proposal_id,
+                    ChangeProposal.type == "tool:email_dispatch_authorize",
+                )
+            )
+            if proposal is None:
+                raise NotFound(code="email_dispatch_not_found")
+            parts = json.loads(proposal.input)["message"]["attachments"]
+            part = next(
+                (
+                    part
+                    for part in parts
+                    if part["part_id"] == part_id and part["artifact_id"] == artifact_id
+                ),
+                None,
+            )
+            if part is None:
+                raise NotFound(code="email_evidence_not_found")
+            filename = part["filename"]
+        if source_id:
+            source = session.scalar(
+                select(SourceRecord).where(
+                    SourceRecord.tenant_id == tenant_id,
+                    SourceRecord.id == source_id,
+                    SourceRecord.source_artifact_id == artifact_id,
+                )
+            )
+            if source is None:
+                raise NotFound(code="email_evidence_not_found")
+            payload = json.loads(source.payload)
+            occurrence = payload.get("filename") or payload.get("message", {}).get(
+                "original_filename"
+            )
+            filename = (
+                occurrence
+                if isinstance(occurrence, str)
+                else "message.eml"
+                if source.source_type == "email_message"
+                else filename
+            )
+    except (InvalidOperation, NotFound) as error:
+        raise api_error(error) from error
+
+    def chunks():
+        with materialize_artifact(artifact) as path, path.open("rb") as stream:
+            while chunk := stream.read(1024 * 1024):
+                yield chunk
+
+    return StreamingResponse(
+        chunks(),
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": "attachment; filename*=UTF-8''"
+            + quote(filename, safe=""),
+            "X-Content-Type-Options": "nosniff",
+        },
+    )

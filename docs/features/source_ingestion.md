@@ -127,3 +127,12 @@ so worker execution is reproducible. Mapping never changes the immutable file.
 An external Copilot may later suggest this same mapping, but it is optional. If
 the tenant has no external provider and API key configured, the screen states
 that AI suggestions are unavailable and continues to offer full manual mapping.
+
+## Agent email evidence
+
+[Agent email handoffs](agent-email-handoffs.md) reuse SourceRecord/SourceStream and
+SourceArtifact for complete received/sent messages, original files, attachment
+occurrences and provider receipts. Arbitrary message metadata remains lossless
+payload. Evidence intake does not approve an outgoing email; that exact proposal
+uses Decisions. Missing original bytes are explicit. No mailbox or mail transport
+runs inside Reality.

@@ -31,6 +31,7 @@ from reality.services import down_payments as down_payment_service_module
 from reality.services import drop_shipping as drop_shipping_service_module
 from reality.services import dunning as dunning_service_module
 from reality.services import dunning_runs as dunning_run_service_module
+from reality.services import emails as email_service_module
 from reality.services import external_stock as external_stock_service_module
 from reality.services import file_interpreters as interpreter_service_module
 from reality.services import invoice_actions as invoice_action_service_module
@@ -1113,6 +1114,8 @@ def load_tenant_isolation_catalog() -> TenantIsolationCatalog:
 
 
 def _service(name: str) -> Any:
+    if name == "email_dispatch_authorize":
+        return email_service_module.authorize_dispatch
     if hasattr(costing_service_module, name):
         return getattr(costing_service_module, name)
     if hasattr(credit_action_service_module, name):
@@ -1149,6 +1152,7 @@ def _service(name: str) -> Any:
         authorization_service_module,
         receipt_deviation_service_module,
         external_stock_service_module,
+        email_service_module,
         prepayment_release_module,
     ):
         own = getattr(module, name, None)
@@ -1371,6 +1375,7 @@ def _literal_business_events() -> set[str]:
         drop_shipping_service_module,
         receipt_deviation_service_module,
         external_stock_service_module,
+        email_service_module,
         prepayment_release_module,
         finance_account_service_module,
         finance_reference_service_module,

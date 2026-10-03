@@ -188,3 +188,22 @@ populated rollback, original header protection and complete FK indexes.
 
 See [verification](../specs/327-consolidate-census-members/verification.md) for
 acceptance evidence.
+
+## Agent email handoffs (spec 351)
+
+`email_dispatch` records one external execution authorization for an existing
+Change Proposal: composite tenant identity, unique proposal link, exact payload
+fingerprint and an optional authenticated executor claim/key/time. It supports
+atomic claim and exact-version enforcement; it never asserts recipient delivery.
+A claim is not automatically released. Original email/attachment/send-result
+SourceRecords and existing SourceArtifacts preserve immutable evidence; email
+occurrence filenames remain in their source payload rather than the deduplicated
+artifact metadata. Reported outcome is derived from retained result sources;
+conflicting receipts and approval deviations remain visible. No business Document
+or operational fulfilment state is created from correspondence alone.
+
+`email_dispatch_receipt` is the shortest typed relation between an authorized
+execution and its immutable reported result SourceRecord. Only the claiming
+executor's report service writes it. Outcome derivation and reverse navigation use
+this relation, never caller-selected source origin/type labels; arbitrary imported
+receipts cannot close a dispatch claim. It stores no duplicated payload or status.

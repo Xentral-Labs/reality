@@ -13,6 +13,48 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Email decision pending": "E-Mail-Entscheidung ausstehend",
+    "Email decision rejected": "E-Mail-Entscheidung abgelehnt",
+    "Email decision failed": "E-Mail-Entscheidung fehlgeschlagen",
+    "Email dispatch authorized": "E-Mail-Versand freigegeben",
+    "Email dispatch claimed": "E-Mail-Versand vom Agenten abgerufen",
+    "Email execution uncertain": "E-Mail-Versandergebnis unklar",
+    "Email execution failed": "E-Mail-Versand fehlgeschlagen",
+    "Email accepted by provider": "E-Mail vom Anbieter angenommen",
+    "Email differs from approved version": "E-Mail weicht von der freigegebenen Version ab",
+    "Conflicting email execution evidence": "Widersprüchliche E-Mail-Versandbelege",
+    "The external agent sends the email after approval. Provider acceptance does not verify recipient delivery.":
+      "Der externe Agent versendet die E-Mail nach der Freigabe. Die Annahme durch den Anbieter bestätigt keine Zustellung beim Empfänger.",
+
+    "Check the email handoff fields.": "Prüfe die Felder der E-Mail-Übergabe.",
+    "Supply a valid, nonempty base64 chunk of at most one MiB.":
+      "Gib einen gültigen, nicht leeren Base64-Dateiteil mit höchstens einem MiB an.",
+    "The email file exceeds the configured upload limit.":
+      "Die E-Mail-Datei überschreitet das konfigurierte Upload-Limit.",
+    "The supplied email file checksum does not match the stored contents.":
+      "Die angegebene Prüfsumme der E-Mail-Datei stimmt nicht mit dem gespeicherten Inhalt überein.",
+    "Every outgoing attachment must have stored file contents.":
+      "Für jeden ausgehenden Anhang muss der Dateiinhalt gespeichert sein.",
+    "An outgoing email needs at least one recipient.":
+      "Eine ausgehende E-Mail braucht mindestens einen Empfänger.",
+    "The email payload does not match the approved version.":
+      "Der E-Mail-Inhalt stimmt nicht mit der freigegebenen Version überein.",
+    "An explicitly approved email proposal is required before dispatch.":
+      "Vor dem Versand muss ein E-Mail-Vorschlag ausdrücklich freigegeben sein.",
+    "This email dispatch has already been claimed. Reconcile it before proposing another send.":
+      "Dieser E-Mail-Versand wurde bereits abgerufen. Kläre das Ergebnis, bevor du einen weiteren Versand vorschlägst.",
+    "This dispatch already has execution evidence. Read and reconcile its history; do not send again.":
+      "Für diesen Versand liegen bereits Ausführungsbelege vor. Lies den Verlauf und kläre das Ergebnis; sende nicht erneut.",
+    "Only the authenticated executor that claimed this dispatch may report its outcome.":
+      "Nur der authentifizierte Executor, der diesen Versand abgerufen hat, darf das Ergebnis melden.",
+    "Email evidence not found.": "E-Mail-Beleg nicht gefunden.",
+    "Email dispatch not found.": "E-Mail-Versandauftrag nicht gefunden.",
+
+    "Email evidence history": "E-Mail-Belegverlauf",
+    "Open original evidence": "Originalbeleg öffnen",
+    "Download original file": "Originaldatei herunterladen",
+    "Return to email decision": "Zur E-Mail-Entscheidung zurück",
+
     "Platform admin access": "Zugang als Plattformadmin",
     "You can access this company as a platform administrator. Private reports remain personal to their author.":
       "Du kannst als Plattformadministrator auf diese Firma zugreifen. Private Berichte bleiben persönlich für ihren Autor.",
@@ -2132,6 +2174,48 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Email decision pending": "E-mailbeslissing in behandeling",
+    "Email decision rejected": "E-mailbeslissing afgewezen",
+    "Email decision failed": "E-mailbeslissing mislukt",
+    "Email dispatch authorized": "E-mailverzending goedgekeurd",
+    "Email dispatch claimed": "E-mailverzending door de agent opgehaald",
+    "Email execution uncertain": "Resultaat van e-mailverzending onzeker",
+    "Email execution failed": "E-mailverzending mislukt",
+    "Email accepted by provider": "E-mail door de aanbieder geaccepteerd",
+    "Email differs from approved version": "E-mail wijkt af van de goedgekeurde versie",
+    "Conflicting email execution evidence": "Tegenstrijdig bewijs van e-mailverzending",
+    "The external agent sends the email after approval. Provider acceptance does not verify recipient delivery.":
+      "De externe agent verzendt de e-mail na goedkeuring. Acceptatie door de aanbieder bevestigt geen bezorging bij de ontvanger.",
+
+    "Check the email handoff fields.": "Controleer de velden voor de e-mailoverdracht.",
+    "Supply a valid, nonempty base64 chunk of at most one MiB.":
+      "Geef een geldig, niet-leeg base64-bestandsdeel van maximaal één MiB op.",
+    "The email file exceeds the configured upload limit.":
+      "Het e-mailbestand overschrijdt de ingestelde uploadlimiet.",
+    "The supplied email file checksum does not match the stored contents.":
+      "De opgegeven controlesom van het e-mailbestand komt niet overeen met de opgeslagen inhoud.",
+    "Every outgoing attachment must have stored file contents.":
+      "Voor elke uitgaande bijlage moet de bestandsinhoud zijn opgeslagen.",
+    "An outgoing email needs at least one recipient.":
+      "Een uitgaande e-mail heeft minstens één ontvanger nodig.",
+    "The email payload does not match the approved version.":
+      "De e-mailinhoud komt niet overeen met de goedgekeurde versie.",
+    "An explicitly approved email proposal is required before dispatch.":
+      "Voor verzending moet een e-mailvoorstel uitdrukkelijk zijn goedgekeurd.",
+    "This email dispatch has already been claimed. Reconcile it before proposing another send.":
+      "Deze e-mailverzending is al opgehaald. Controleer het resultaat voordat je een nieuwe verzending voorstelt.",
+    "This dispatch already has execution evidence. Read and reconcile its history; do not send again.":
+      "Voor deze verzending bestaat al uitvoeringsbewijs. Lees de geschiedenis en controleer het resultaat; verzend niet opnieuw.",
+    "Only the authenticated executor that claimed this dispatch may report its outcome.":
+      "Alleen de geauthenticeerde uitvoerder die deze verzending heeft opgehaald mag het resultaat melden.",
+    "Email evidence not found.": "E-mailbewijs niet gevonden.",
+    "Email dispatch not found.": "E-mailverzendopdracht niet gevonden.",
+
+    "Email evidence history": "E-mailbewijsgeschiedenis",
+    "Open original evidence": "Origineel bewijs openen",
+    "Download original file": "Origineel bestand downloaden",
+    "Return to email decision": "Terug naar e-mailbeslissing",
+
     "Platform admin access": "Toegang als platformbeheerder",
     "You can access this company as a platform administrator. Private reports remain personal to their author.":
       "Je hebt als platformbeheerder toegang tot dit bedrijf. Privérapporten blijven persoonlijk voor hun auteur.",
@@ -3946,6 +4030,48 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Email decision pending": "Decisión del correo pendiente",
+    "Email decision rejected": "Decisión del correo rechazada",
+    "Email decision failed": "Decisión del correo fallida",
+    "Email dispatch authorized": "Envío del correo autorizado",
+    "Email dispatch claimed": "Envío del correo reclamado por el agente",
+    "Email execution uncertain": "Resultado del envío del correo incierto",
+    "Email execution failed": "Envío del correo fallido",
+    "Email accepted by provider": "Correo aceptado por el proveedor",
+    "Email differs from approved version": "El correo difiere de la versión aprobada",
+    "Conflicting email execution evidence": "Evidencias contradictorias del envío del correo",
+    "The external agent sends the email after approval. Provider acceptance does not verify recipient delivery.":
+      "El agente externo envía el correo tras la aprobación. La aceptación del proveedor no confirma la entrega al destinatario.",
+
+    "Check the email handoff fields.": "Revisa los campos de la transferencia del correo.",
+    "Supply a valid, nonempty base64 chunk of at most one MiB.":
+      "Proporciona un fragmento base64 válido y no vacío de como máximo un MiB.",
+    "The email file exceeds the configured upload limit.":
+      "El archivo del correo supera el límite de carga configurado.",
+    "The supplied email file checksum does not match the stored contents.":
+      "La suma de comprobación del archivo no coincide con el contenido guardado.",
+    "Every outgoing attachment must have stored file contents.":
+      "Debe guardarse el contenido de cada archivo adjunto saliente.",
+    "An outgoing email needs at least one recipient.":
+      "Un correo saliente necesita al menos un destinatario.",
+    "The email payload does not match the approved version.":
+      "El contenido del correo no coincide con la versión aprobada.",
+    "An explicitly approved email proposal is required before dispatch.":
+      "Antes del envío debe aprobarse explícitamente una propuesta de correo.",
+    "This email dispatch has already been claimed. Reconcile it before proposing another send.":
+      "Este envío de correo ya se ha reclamado. Aclara el resultado antes de proponer otro envío.",
+    "This dispatch already has execution evidence. Read and reconcile its history; do not send again.":
+      "Este envío ya tiene evidencias de ejecución. Lee el historial y aclara el resultado; no vuelvas a enviarlo.",
+    "Only the authenticated executor that claimed this dispatch may report its outcome.":
+      "Solo el ejecutor autenticado que reclamó este envío puede informar del resultado.",
+    "Email evidence not found.": "No se encontró la evidencia del correo.",
+    "Email dispatch not found.": "No se encontró la orden de envío del correo.",
+
+    "Email evidence history": "Historial de evidencias de correo",
+    "Open original evidence": "Abrir evidencia original",
+    "Download original file": "Descargar archivo original",
+    "Return to email decision": "Volver a la decisión del correo",
+
     "Platform admin access": "Acceso como administrador de la plataforma",
     "You can access this company as a platform administrator. Private reports remain personal to their author.":
       "Puedes acceder a esta empresa como administrador de la plataforma. Los informes privados siguen siendo personales para su autor.",
