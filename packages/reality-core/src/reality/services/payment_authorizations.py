@@ -60,8 +60,12 @@ def _text(amount: Decimal) -> str:
 
 
 def _captured(
-    session: Session, tenant_id: str, authorization_ids: set[str]
+    session: Session,
+    tenant_id: str,
+    authorization_ids: set[str],
+    as_of: datetime | None = None,
 ) -> dict[str, Decimal]:
+    """What was captured per authorization, up to the instant when one is given."""
     if not authorization_ids:
         return {}
     return {
@@ -71,6 +75,7 @@ def _captured(
             .where(
                 PaymentCapture.tenant_id == tenant_id,
                 PaymentCapture.authorization_id.in_(authorization_ids),
+                *([PaymentCapture.captured_at <= as_of] if as_of else []),
             )
             .group_by(PaymentCapture.authorization_id)
         )
@@ -346,7 +351,7 @@ def authorizations(
             .order_by(PaymentAuthorization.authorized_at, PaymentAuthorization.id)
         )
     )
-    captured = _captured(session, tenant_id, {row.id for row in rows})
+    captured = _captured(session, tenant_id, {row.id for row in rows}, as_of)
     return [_row(row, captured.get(row.id, Decimal(0)), as_of) for row in rows]
 
 

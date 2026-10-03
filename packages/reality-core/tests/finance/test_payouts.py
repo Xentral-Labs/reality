@@ -79,7 +79,7 @@ def _invoiced_order(session, business, number, amount, customer=None, invoice=Tr
     )
     if not invoice:
         return order, None
-    document, (invoice_line,) = core.create_manual_document_with_lines(
+    document, _ = core.create_manual_document_with_lines(
         session,
         tenant,
         "sales_invoice",
@@ -377,7 +377,7 @@ def test_an_unmatched_line_waits_and_settling_again_books_only_it(
     assert finding.causal_values["unmatched_lines"] == 1
     assert finding.causal_values["unmatched_amount"] == 35
     # The 35 the provider paid for an order Reality does not hold stay on its account.
-    assert _account_balance(session, tenant, clearing) == Decimal("-35")
+    assert _account_balance(session, tenant, clearing) == Decimal(-35)
 
     _, missing = _invoiced_order(session, business, "AMZ-41", "35")
     review, receipt = _settle(session, tenant, values)

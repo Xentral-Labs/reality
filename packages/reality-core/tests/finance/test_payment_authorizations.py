@@ -186,7 +186,7 @@ def test_an_expired_authorization_leaves_the_rest_uncovered_until_authorized_aga
     session, business
 ):
     tenant = business.tenant.id
-    order, promise = _order(session, business)
+    order, _ = _order(session, business)
     authorization = _authorize(session, tenant, order, days=7)
     _capture(session, tenant, authorization, "60")
 
