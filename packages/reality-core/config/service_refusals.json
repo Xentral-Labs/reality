@@ -2235,6 +2235,97 @@
     },
     "delivery_failure_unresolved": {
       "message": "This shipment's failed delivery is still being recorded."
+    },
+    "payout_reference_missing": {
+      "message": "A payout names the provider's payout reference."
+    },
+    "payout_paid_on_invalid": {
+      "message": "The payout date must be a date (YYYY-MM-DD)."
+    },
+    "payout_paid_on_future": {
+      "message": "A payout cannot be paid in the future."
+    },
+    "payout_currency_invalid": {
+      "message": "The payout currency must be a three-letter code."
+    },
+    "payout_amount_invalid": {
+      "message": "The net payout must be a positive amount with at most four decimals."
+    },
+    "payout_lines_invalid": {
+      "message": "A payout states between 1 and 2000 lines."
+    },
+    "payout_line_duplicate": {
+      "message": "Every payout line needs its own line id."
+    },
+    "payout_line_kind_invalid": {
+      "message": "A payout line is a charge, refund, chargeback or fee."
+    },
+    "payout_line_amount_invalid": {
+      "message": "A payout line amount must be positive with at most four decimals."
+    },
+    "payout_line_reference_invalid": {
+      "message": "A payout line reference names a known reference type and a value."
+    },
+    "payout_line_reference_missing": {
+      "message": "A charge, refund or chargeback names the order, invoice or shipment it is for."
+    },
+    "payout_total_mismatch": {
+      "message": "The payout lines add up to {lines}, not to the stated net payout of {stated}.",
+      "values": {
+        "stated": "amount",
+        "lines": "amount"
+      }
+    },
+    "payout_clearing_account_invalid": {
+      "message": "The provider's account must be an active cash account."
+    },
+    "payout_clearing_is_bank": {
+      "message": "The provider's account cannot be the bank account the payout goes to."
+    },
+    "payout_statement_changed": {
+      "message": "This payout was already settled with other content. A changed statement needs its own payout reference."
+    },
+    "payout_not_found": {
+      "message": "Payout not found."
+    },
+    "payment_authorization_order_invalid": {
+      "message": "An authorization is recorded for a sales order."
+    },
+    "payment_authorization_amount_invalid": {
+      "message": "The authorized amount must be positive with at most four decimals."
+    },
+    "payment_authorization_currency_mismatch": {
+      "message": "The authorization must be in the order's currency."
+    },
+    "payment_authorization_time_invalid": {
+      "message": "Authorization times must be date-times."
+    },
+    "payment_authorization_expiry_invalid": {
+      "message": "An authorization expires after it was authorized."
+    },
+    "payment_authorization_reference_missing": {
+      "message": "An authorization names the provider's reference."
+    },
+    "payment_authorization_duplicate": {
+      "message": "This authorization reference is already recorded for the order."
+    },
+    "payment_capture_amount_invalid": {
+      "message": "The captured amount must be positive with at most four decimals."
+    },
+    "payment_capture_time_invalid": {
+      "message": "The capture time must be a date-time."
+    },
+    "payment_capture_before_authorization": {
+      "message": "A capture cannot come before its authorization."
+    },
+    "payment_capture_after_expiry": {
+      "message": "The authorization had expired when this was captured."
+    },
+    "payment_capture_exceeds_authorization": {
+      "message": "Only {remaining} of this authorization is left to capture.",
+      "values": {
+        "remaining": "amount"
+      }
     }
   },
   "terms": [

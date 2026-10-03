@@ -98,6 +98,9 @@ PAYMENT_RETURN_COMMAND = "finance.payment.return"
 COLLECTION_HANDOVER_COMMAND = "finance.dunning.collection.handover"
 DEPOSIT_RECORD_COMMAND = "finance.deposit.record"
 DEPOSIT_CLEAR_COMMAND = "finance.deposit.clear"
+PAYOUT_SETTLE_COMMAND = "finance.payout.settle"
+AUTHORIZATION_RECORD_COMMAND = "finance.payment.authorization.record"
+CAPTURE_RECORD_COMMAND = "finance.payment.capture.record"
 
 
 class DunningRequest(AccountRequest):
@@ -159,6 +162,60 @@ class PaymentReturnRequest(BaseModel):
     fee_bearer: Literal["customer", "company", "none"] | None = None
 
 
+class PayoutReferenceRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    type: Literal[
+        "invoice_number",
+        "shop_id",
+        "shop_order_number",
+        "customer_reference",
+        "customer_number",
+        "tracking_number",
+    ]
+    value: str = Field(min_length=1, max_length=200)
+
+
+class PayoutLineRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    line_id: str = Field(min_length=1, max_length=200)
+    kind: Literal["charge", "refund", "chargeback", "fee"]
+    amount: StrictStr | StrictInt
+    references: list[PayoutReferenceRequest] = Field(default_factory=list, max_length=10)
+    reason: str = Field(default="", max_length=4000)
+
+
+class PayoutSettleRequest(BaseModel):
+    # No finance revision: a statement settles under the finance lock, and every
+    # line is resolved again there (spec 336).
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    provider_party_id: str = Field(min_length=1)
+    payout_reference: str = Field(min_length=1, max_length=200)
+    paid_on: str
+    currency: str = Field(pattern=r"^[A-Z]{3}$")
+    amount: StrictStr | StrictInt
+    clearing_account_id: str = Field(min_length=1)
+    bank_account_id: str | None = Field(default=None, min_length=1)
+    lines: list[PayoutLineRequest] = Field(min_length=1, max_length=2000)
+
+
+class AuthorizationRecordRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    order_document_id: str = Field(min_length=1)
+    amount: StrictStr | StrictInt
+    currency: str = Field(pattern=r"^[A-Z]{3}$")
+    authorized_at: str
+    expires_at: str
+    reference: str = Field(min_length=1, max_length=200)
+
+
+class CaptureRecordRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    authorization_id: str = Field(min_length=1)
+    amount: StrictStr | StrictInt
+    captured_at: str
+    reference: str = Field(default="", max_length=200)
+
+
 class CollectionHandoverRequest(AccountRequest):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     invoice_ids: list[str] = Field(min_length=1, max_length=100)
@@ -192,6 +249,9 @@ EDGE_COMMANDS = {
     PAYMENT_RETURN_COMMAND: PaymentReturnRequest,
     DEPOSIT_RECORD_COMMAND: DepositRecordRequest,
     DEPOSIT_CLEAR_COMMAND: DepositClearRequest,
+    PAYOUT_SETTLE_COMMAND: PayoutSettleRequest,
+    AUTHORIZATION_RECORD_COMMAND: AuthorizationRecordRequest,
+    CAPTURE_RECORD_COMMAND: CaptureRecordRequest,
 }
 
 
@@ -499,6 +559,36 @@ def execute_finance_command(
         from reality.services.payment_returns import record_return
 
         return record_return(
+            session,
+            tenant_id,
+            **validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
+    if name == PAYOUT_SETTLE_COMMAND:
+        from reality.services.payouts import settle_payout
+
+        return settle_payout(
+            session,
+            tenant_id,
+            **validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
+    if name == AUTHORIZATION_RECORD_COMMAND:
+        from reality.services.payment_authorizations import record_authorization
+
+        return record_authorization(
+            session,
+            tenant_id,
+            **validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
+    if name == CAPTURE_RECORD_COMMAND:
+        from reality.services.payment_authorizations import record_capture
+
+        return record_capture(
             session,
             tenant_id,
             **validate_finance_request(name, arguments),

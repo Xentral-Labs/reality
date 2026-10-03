@@ -9195,6 +9195,7 @@ def post_ledger(
     account_ids: dict[str, str] | None = None,
     exchange_rate: Decimal | str | None = None,
     company_amounts: list[Decimal | str] | None = None,
+    _line_account_ids: list[str | None] | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     """Post one balanced group in one currency.
@@ -9246,6 +9247,18 @@ def post_ledger(
     }
     if not postings:
         raise InvalidOperation(code="ledger_posting_group_empty")
+    # Spec 336: a transfer between two accounts of one role (the provider's cash
+    # account to the bank) names each line's account; the rest keep the role's.
+    line_accounts = [
+        resolve_account(session, tenant_id, role, line_account)
+        if line_account
+        else resolved[role]
+        for (role, _, _), line_account in zip(
+            postings,
+            _line_account_ids or [None] * len(postings),
+            strict=True,
+        )
+    ]
     group_id = uid("pst")
     posting_time = effective_at or now()
     entries = [
@@ -9253,8 +9266,8 @@ def post_ledger(
             id=uid("led"),
             tenant_id=tenant_id,
             posting_group_id=group_id,
-            account_id=resolved[account].id,
-            account_record=resolved[account],
+            account_id=line_account.id,
+            account_record=line_account,
             party_id=party_id,
             amount=amount,
             currency=currency,
@@ -9268,8 +9281,8 @@ def post_ledger(
                 else {}
             ),
         )
-        for (account, side, _), amount, company_amount, rate in zip(
-            postings, amounts, converted, rates, strict=True
+        for (_, side, _), amount, company_amount, rate, line_account in zip(
+            postings, amounts, converted, rates, line_accounts, strict=True
         )
     ]
     session.add_all(entries)
@@ -11251,6 +11264,7 @@ def record_customer_payment(
     effective_at: datetime | None = None,
     action_id: str | None = None,
     _control_account_id: str | None = None,
+    _cash_account_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     _require_business_mutation(session, tenant_id, "record_customer_payment")
@@ -11275,9 +11289,15 @@ def record_customer_payment(
             payment.id,
             party_id,
             [("cash", "debit", amount), ("accounts_receivable", "credit", amount)],
-            account_ids={"accounts_receivable": _control_account_id}
-            if _control_account_id
-            else None,
+            account_ids={
+                role: account
+                for role, account in (
+                    ("accounts_receivable", _control_account_id),
+                    ("cash", _cash_account_id),
+                )
+                if account
+            }
+            or None,
             currency=currency,
             source_record_id=source_record_id,
             effective_at=effective_at,
@@ -11341,6 +11361,7 @@ def record_customer_refund(
     effective_at: datetime | None = None,
     action_id: str | None = None,
     _control_account_id: str | None = None,
+    _cash_account_id: str | None = None,
     _commit: bool = True,
 ) -> list[LedgerEntry]:
     """Money going back to a customer, the mirror of a customer payment."""
@@ -11367,9 +11388,15 @@ def record_customer_refund(
             refund.id,
             party_id,
             [("accounts_receivable", "debit", amount), ("cash", "credit", amount)],
-            account_ids={"accounts_receivable": _control_account_id}
-            if _control_account_id
-            else None,
+            account_ids={
+                role: account
+                for role, account in (
+                    ("accounts_receivable", _control_account_id),
+                    ("cash", _cash_account_id),
+                )
+                if account
+            }
+            or None,
             currency=currency,
             source_record_id=source_record_id,
             effective_at=effective_at,

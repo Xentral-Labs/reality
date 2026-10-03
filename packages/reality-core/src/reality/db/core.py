@@ -1799,6 +1799,89 @@ class PaymentReturn(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class PaymentAuthorization(Base):
+    """An amount a card or wallet provider authorized for one sales order (spec 336).
+
+    Reality, append-only: what the provider stated, with its expiry. Captures
+    against it are their own records; what is left is derived.
+    """
+
+    __tablename__ = "payment_authorization"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "order_document_id"], ["document.tenant_id", "document.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint(
+            "tenant_id",
+            "order_document_id",
+            "reference",
+            name="uq_payment_authorization_reference",
+        ),
+        CheckConstraint("amount > 0", name="ck_payment_authorization_amount"),
+        CheckConstraint(
+            "expires_at > authorized_at", name="ck_payment_authorization_expiry"
+        ),
+        CheckConstraint(
+            "btrim(reference) <> ''", name="ck_payment_authorization_reference"
+        ),
+        Index(
+            "ix_payment_authorization_order_document_id",
+            "tenant_id",
+            "order_document_id",
+        ),
+        Index(
+            "ix_payment_authorization_source_record_id",
+            "tenant_id",
+            "source_record_id",
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    order_document_id: Mapped[str] = mapped_column(String)
+    amount: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    currency: Mapped[str] = mapped_column(String(3))
+    authorized_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    reference: Mapped[str] = mapped_column(String)
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class PaymentCapture(Base):
+    """An amount captured against an authorization (spec 336); never more than is left."""
+
+    __tablename__ = "payment_capture"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "authorization_id"],
+            ["payment_authorization.tenant_id", "payment_authorization.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        CheckConstraint("amount > 0", name="ck_payment_capture_amount"),
+        Index(
+            "ix_payment_capture_authorization_id", "tenant_id", "authorization_id"
+        ),
+        Index("ix_payment_capture_source_record_id", "tenant_id", "source_record_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    authorization_id: Mapped[str] = mapped_column(String)
+    amount: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    captured_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    reference: Mapped[str] = mapped_column(String, default="")
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class Commitment(Base):
     __tablename__ = "commitment"
     __table_args__ = (

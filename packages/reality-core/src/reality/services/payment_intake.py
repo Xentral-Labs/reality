@@ -46,6 +46,7 @@ ReferenceType = Literal[
     "shop_order_number",
     "customer_reference",
     "customer_number",
+    "tracking_number",
 ]
 
 
@@ -320,6 +321,50 @@ def _orders_by(
     return list(session.scalars(query))
 
 
+def _orders_shipped_under(
+    session: Session, tenant_id: str, tracking_number: str, party_id: str | None
+) -> list[Document]:
+    """The sales orders a parcel's shipment carried goods for (spec 336).
+
+    The tracking number is looked up, never stored: package, its shipment, every
+    package of that shipment, their movements, the promises they served.
+    """
+    from reality.db.core import Commitment, Movement, ShipmentPackage
+
+    shipments = select(ShipmentPackage.shipment_id).where(
+        ShipmentPackage.tenant_id == tenant_id,
+        ShipmentPackage.tracking_number == tracking_number,
+    )
+    packages = select(ShipmentPackage.id).where(
+        ShipmentPackage.tenant_id == tenant_id,
+        ShipmentPackage.shipment_id.in_(shipments),
+    )
+    orders = (
+        select(Commitment.document_id)
+        .join(
+            Movement,
+            and_(
+                Movement.tenant_id == Commitment.tenant_id,
+                Movement.commitment_id == Commitment.id,
+            ),
+        )
+        .where(
+            Commitment.tenant_id == tenant_id,
+            Movement.shipment_package_id.in_(packages),
+        )
+    )
+    return list(
+        session.scalars(
+            select(Document).where(
+                Document.tenant_id == tenant_id,
+                Document.type == "sales_order",
+                Document.id.in_(orders),
+                *([Document.party_id == party_id] if party_id else []),
+            )
+        )
+    )
+
+
 def _bills_other_orders(
     session: Session, tenant_id: str, invoice: Document, order_ids: set[str]
 ) -> bool:
@@ -415,6 +460,21 @@ def resolve_references(
                 )
             elif not invoices:
                 reasons.append(f"order {reference.value} is not invoiced yet")
+        elif reference.type == "tracking_number":
+            orders = _orders_shipped_under(
+                session, tenant_id, reference.value, party_id
+            )
+            invoices = [
+                inv
+                for order in orders
+                for inv in _invoices_billing(session, tenant_id, order)
+            ]
+            if not orders:
+                reasons.append(
+                    f"no shipment {reference.value} for this customer's orders"
+                )
+            elif not invoices:
+                reasons.append(f"shipment {reference.value} is not invoiced yet")
         elif reference.type in {"shop_order_number", "customer_reference"}:
             column = (
                 "number"

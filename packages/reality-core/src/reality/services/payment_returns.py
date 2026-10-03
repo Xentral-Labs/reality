@@ -239,11 +239,14 @@ def record_return(
     fee_bearer: str | None = None,
     action_id: str,
     actor_id: str | None,
+    _source_record: SourceRecord | None = None,
 ) -> dict[str, Any]:
     """Reverse a returned payment and keep what was stated; callers own the transaction.
 
     It re-checks everything under the finance lock instead of comparing a revision:
     every posting raises the revision, and an unrelated payment must not refuse this.
+    A payout's chargeback line (spec 336) passes its own source record: the line is
+    what the provider stated, and the return carries it.
     """
     core._require_business_mutation(session, tenant_id, "record_payment_return")
     lock_finance(session, tenant_id)
@@ -251,13 +254,17 @@ def record_return(
         select(PaymentReturn.id).where(
             PaymentReturn.tenant_id == tenant_id,
             PaymentReturn.source_record_id
-            == select(SourceRecord.id)
-            .where(
-                SourceRecord.tenant_id == tenant_id,
-                SourceRecord.source_system == SOURCE_SYSTEM,
-                SourceRecord.external_id == action_id,
-            )
-            .scalar_subquery(),
+            == (
+                _source_record.id
+                if _source_record is not None
+                else select(SourceRecord.id)
+                .where(
+                    SourceRecord.tenant_id == tenant_id,
+                    SourceRecord.source_system == SOURCE_SYSTEM,
+                    SourceRecord.external_id == action_id,
+                )
+                .scalar_subquery()
+            ),
         )
     )
     if replay:
@@ -275,13 +282,15 @@ def record_return(
             "fee_bearer": fee_bearer,
         },
     )
-    source, _, _ = core.store_source_record(
-        session,
-        tenant_id,
-        SOURCE_SYSTEM,
-        "payment_return",
-        action_id,
-        {**preview, "actor_id": actor_id, "confirmation_id": action_id},
+    source = _source_record or (
+        core.store_source_record(
+            session,
+            tenant_id,
+            SOURCE_SYSTEM,
+            "payment_return",
+            action_id,
+            {**preview, "actor_id": actor_id, "confirmation_id": action_id},
+        )[0]
     )
     record_id = uid("prt")
     reversal = core.reverse_ledger_posting_group(

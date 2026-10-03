@@ -355,6 +355,31 @@ def _payment_return(
     return return_detail(session, tenant_id, str(arguments.get("return_id") or ""))
 
 
+def _payouts(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.payouts import payouts
+
+    return payouts(session, tenant_id)
+
+
+def _payout(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.payouts import payout_detail
+
+    return payout_detail(session, tenant_id, str(arguments.get("payout_id") or ""))
+
+
+def _payment_authorizations(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.payment_authorizations import authorizations
+
+    return authorizations(
+        session,
+        tenant_id,
+        order_document_id=arguments.get("order_document_id") or None,
+        as_of=arguments.get("as_of") or None,
+    )
+
+
 def _dunning_run_context(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -2508,6 +2533,24 @@ TOOLS = {
         False,
         _payment_return,
     ),
+    "finance.payouts": Tool(
+        "finance.payouts",
+        "List marketplace and payment-provider payouts with their net amount and the lines nothing booked yet.",
+        False,
+        _payouts,
+    ),
+    "finance.payout": Tool(
+        "finance.payout",
+        "Read one payout: every stated line with what it booked (payment, refund, chargeback, fee), the invoices it settled, the shipment a tracking number names, or why it stays unbooked.",
+        False,
+        _payout,
+    ),
+    "finance.payment_authorizations": Tool(
+        "finance.payment_authorizations",
+        "List card and wallet payment authorizations, optionally for one order, with what was captured, what is left and whether each is live, expired or captured.",
+        False,
+        _payment_authorizations,
+    ),
     "finance.dunning.run_context": Tool(
         "finance.dunning.run_context",
         "Preview a dunning run: overdue items per customer, currency and level, items ready for collection and items left out with their reason.",
@@ -3324,7 +3367,10 @@ from reality.tools.finance import (
     DUNNING_SCHEDULE_COMMAND,
     FINANCE_COMMANDS,
     OPENING_COMMAND,
+    AUTHORIZATION_RECORD_COMMAND,
+    CAPTURE_RECORD_COMMAND,
     PAYMENT_RETURN_COMMAND,
+    PAYOUT_SETTLE_COMMAND,
     REFERENCE_COMMANDS,
     SETTLEMENT_COMMAND,
     SOURCE_MAPPING_COMMAND,
@@ -3918,6 +3964,22 @@ def create_change_proposal(
         from reality.services.payment_returns import preview_return
 
         preview["payment_return"] = preview_return(
+            session, tenant_id, normalized_arguments
+        )
+    if tool_name == PAYOUT_SETTLE_COMMAND:
+        from reality.services.payouts import preview_payout
+
+        preview["payout"] = preview_payout(session, tenant_id, normalized_arguments)
+    if tool_name == AUTHORIZATION_RECORD_COMMAND:
+        from reality.services.payment_authorizations import preview_authorization
+
+        preview["payment_authorization"] = preview_authorization(
+            session, tenant_id, normalized_arguments
+        )
+    if tool_name == CAPTURE_RECORD_COMMAND:
+        from reality.services.payment_authorizations import preview_capture
+
+        preview["payment_capture"] = preview_capture(
             session, tenant_id, normalized_arguments
         )
     if tool_name == COLLECTION_HANDOVER_COMMAND:
