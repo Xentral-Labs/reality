@@ -39,11 +39,13 @@ angegeben.
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation                    | Unternehmen & Zugang    | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation                    | Unternehmen & Zugang    | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`business_journey_guide`](#command-business_journey_guide)                       | Ask the Business Journey Guide               | Bereichsübergreifend    | `business_journey_guide`                                                                                                                                                                     | Web · API · MCP · Chat                  |
+| [`assemble_kit`](#command-assemble_kit)                                           | Assemble kits                                | Bereichsübergreifend    | `kit_assemble_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`assign_line_item`](#command-assign_line_item)                                   | Assign an item to an order line              | Bereichsübergreifend    | `order_line_item_assign_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`assign_supply`](#command-assign_supply)                                         | Assign incoming supply to customer demand    | Bereichsübergreifend    | `supply_assign_propose`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report                  | Bereichsübergreifend    | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision       | Bereichsübergreifend    | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
 | [`confirm_run`](#command-confirm_run)                                             | Confirm dunning run                          | Bereichsübergreifend    | `finance_dunning_run_propose`                                                                                                                                                                | Web · MCP · Chat                        |
+| [`define_kit`](#command-define_kit)                                               | Define a kit                                 | Bereichsübergreifend    | `kit_define_propose`                                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`cost_review_draft`](#command-cost_review_draft)                                 | Draft a cost review                          | Bereichsübergreifend    | `cost_review_draft`                                                                                                                                                                          | Web · MCP · Chat                        |
 | [`record_customer_exchange`](#command-record_customer_exchange)                   | Exchange returned goods for a replacement    | Bereichsübergreifend    | `customer_exchange_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`record_handover`](#command-record_handover)                                     | Hand over to collection                      | Bereichsübergreifend    | `finance_dunning_collection_propose`                                                                                                                                                         | Web · MCP · Chat                        |
@@ -55,6 +57,7 @@ angegeben.
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Bereichsübergreifend    | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`run_context`](#command-run_context)                                             | Preview dunning run                          | Bereichsübergreifend    | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review                | Bereichsübergreifend    | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
+| [`kit_split`](#command-kit_split)                                                 | Read a kit line's split                      | Bereichsübergreifend    | `kit_split`                                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`payout_detail`](#command-payout_detail)                                         | Read a payout                                | Bereichsübergreifend    | `finance_payout`                                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`handover_detail`](#command-handover_detail)                                     | Read collection handover                     | Bereichsübergreifend    | `finance_dunning_collection_handover`                                                                                                                                                        | Web · MCP · Chat                        |
 | [`cost_query`](#command-cost_query)                                               | Read cost query context                      | Bereichsübergreifend    | `cost_query_get`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -62,6 +65,7 @@ angegeben.
 | [`dunning_context`](#command-dunning_context)                                     | Read dunning context                         | Bereichsübergreifend    | `finance_dunning_context`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`notice_detail`](#command-notice_detail)                                         | Read dunning notice                          | Bereichsübergreifend    | `finance_dunning_notice`                                                                                                                                                                     | Web · MCP · Chat                        |
 | [`schedule`](#command-schedule)                                                   | Read dunning schedule                        | Bereichsübergreifend    | `finance_dunning_schedule`                                                                                                                                                                   | Web · MCP · Chat                        |
+| [`kits`](#command-kits)                                                           | Read kits                                    | Bereichsübergreifend    | `kits`                                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`outbound_deliveries`](#command-outbound_deliveries)                             | Read planned deliveries                      | Bereichsübergreifend    | `outbound_deliveries`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs               | Bereichsübergreifend    | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`cost_evidence`](#command-cost_evidence)                                         | Read received acquisition-cost evidence      | Bereichsübergreifend    | `cost_evidence_get`                                                                                                                                                                          | CLI · Web · MCP · Chat                  |
@@ -7766,6 +7770,53 @@ explicit limitations.
 
 **Siehe auch:** Command [`business_journey_guide`](./commands#command-business_journey_guide)
 
+### `assemble_kit` — Assemble kits {#command-assemble_kit}
+
+Consumes every component and produces whole kits at one location under one assembly statement, all
+or nothing; a component short of free stock refuses the whole assembly.
+
+**Aufruf**
+
+```text
+kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `item`, `location`, `kit_component`, `movement`, `reservation`, `stock_block` ·
+Schreibt: `movement`, `source_record`, `business_event` · Erzeugt: `kit.assembled`
+
+**Siehe auch:** Agenten-Tool [`kit_assemble_propose`](./commands#tool-kit_assemble_propose), Event
+[`kit.assembled`](./events#event-kit-assembled)
+
+#### `kit_assemble_propose` — Assemble kits {#tool-kit_assemble_propose}
+
+Prepare assembling whole kits at a location for confirmation: every component leaves the location by
+its quantity per kit and the kits enter it, all or nothing, optionally at a stated earlier time (ISO
+8601 with its offset). The review shows what each component gives and what is free; a component
+short of free stock refuses the whole assembly. Packing a kit order assembles it this way before it
+ships. A person confirms.
+
+**Aufruf**
+
+```text
+kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                                | Standard |
+| ------------- | -------- | ------- | --------------------------------------------------------------------------- | -------- |
+| `kit_item_id` | `string` | ja      | Opaque same-tenant identity of the stocked item that is the kit (spec 333). | —        |
+| `location_id` | `string` | ja      | Opaque identity of the operational or physical location.                    | —        |
+| `quantity`    | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                     | —        |
+| `occurred_at` | `string` | nein    | UTC instant at which the physical or business event occurred.               | —        |
+| `note`        | `string` | nein    | Free-text record of what the counterparty said, kept with the statement.    | —        |
+
+**Siehe auch:** Command [`assemble_kit`](./commands#command-assemble_kit)
+
 ### `assign_line_item` — Assign an item to an order line {#command-assign_line_item}
 
 Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its
@@ -8244,6 +8295,52 @@ Record the reviewed dunning run's notices for owner confirmation.
 Reminded items now wait for their next level.
 
 **Siehe auch:** Command [`confirm_run`](./commands#command-confirm_run)
+
+### `define_kit` — Define a kit {#command-define_kit}
+
+States the components of a kit once, with how many one kit takes and optionally each component's
+share of the kit's price.
+
+**Aufruf**
+
+```text
+kit_define_propose kit_item_id components
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `item`, `kit_component` · Schreibt: `kit_component`, `source_record`,
+`business_event` · Erzeugt: `kit.defined`
+
+**Siehe auch:** Agenten-Tool [`kit_define_propose`](./commands#tool-kit_define_propose), Event
+[`kit.defined`](./events#event-kit-defined)
+
+#### `kit_define_propose` — Define kit {#tool-kit_define_propose}
+
+Prepare the components of a kit for confirmation: per component the item, how many one kit takes in
+the component's stock unit and optionally its share of the kit's price (shares for all or none,
+adding up to exactly 1). The kit and its components are stocked, untracked items; a component is
+never a kit. The components are stated once. A person confirms.
+
+**Aufruf**
+
+```text
+kit_define_propose kit_item_id components
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                    | Typ      | Pflicht | Beschreibung                                                                                                                                                                                  | Standard |
+| ----------------------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `kit_item_id`           | `string` | ja      | Opaque same-tenant identity of the stocked item that is the kit (spec 333).                                                                                                                   | —        |
+| `components`            | `array`  | ja      | The kit's components, each an item, how many one kit takes in that item's stock unit, and optionally its share of the kit's price; shares are stated for all or none and add up to exactly 1. | —        |
+| `components[].item_id`  | `string` | ja      | Opaque identity of the operational item reference.                                                                                                                                            | —        |
+| `components[].quantity` | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                                                                                                                       | —        |
+| `components[].share`    | `string` | nein    | A component's share of the kit's price, between 0 and 1, as stated; the bundle split divides a kit line's stated amounts by it.                                                               | —        |
+
+**Siehe auch:** Command [`define_kit`](./commands#command-define_kit)
 
 ### `cost_review_draft` — Draft a cost review {#command-cost_review_draft}
 
@@ -8919,6 +9016,64 @@ the proposal.
 
 **Siehe auch:** Command [`propose_cost_review`](./commands#command-propose_cost_review)
 
+### `kit_split` — Read a kit line's split {#command-kit_split}
+
+Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up
+exactly to the line.
+
+**Aufruf**
+
+```text
+kit_split document_line_id
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `document_line`, `item`, `kit_component` · Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`kit_split`](./commands#tool-kit_split)
+
+#### `kit_split` — Kit split {#tool-kit_split}
+
+Read how a kit's order or invoice line (document_line_id) splits its stated gross, and its stated
+net and tax where the line states them, across the components by the kit's stated shares, with the
+gross per component piece. A kit without stated shares has no split.
+
+**Aufruf**
+
+```text
+kit_split document_line_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage | Art                        | Standard |
+| ---------------- | -------------------------- | -------- |
+| `MCP kit_split`  | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Show how a kit's order or invoice line splits its price, revenue and tax across the components.
+
+**Verwenden, wenn**
+
+- Someone asks what share of a bundle's revenue or tax a component carries
+- or what to credit for one returned component.
+
+**Nicht verwenden, wenn**
+
+- The line is not a kit line.
+
+**Parameter**
+
+| Name               | Typ      | Pflicht | Beschreibung                                                                              | Standard |
+| ------------------ | -------- | ------- | ----------------------------------------------------------------------------------------- | -------- |
+| `document_line_id` | `string` | ja      | Opaque same-tenant received document line identity; must belong to the selected document. | —        |
+
+**Siehe auch:** Command [`kit_split`](./commands#command-kit_split)
+
 ### `payout_detail` — Read a payout {#command-payout_detail}
 
 Reads one payout with every stated line, what it booked, the invoices it settled and the shipment a
@@ -9329,6 +9484,66 @@ Read the company's dunning schedule and the finance revision required to change 
 Keine Parameter.
 
 **Siehe auch:** Command [`schedule`](./commands#command-schedule)
+
+### `kits` — Read kits {#command-kits}
+
+Lists the kits with their components and, per location, the free kits on hand, the whole kits the
+free components build and the component that limits them.
+
+**Aufruf**
+
+```text
+kits [item_id]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `kit_component`, `item`, `location`, `movement`, `reservation`, `stock_block` ·
+Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`kits`](./commands#tool-kits)
+
+#### `kits` — Kits {#tool-kits}
+
+Read the kits of the company, or the kit an item is or is part of (item_id): the components, how
+many one kit takes, the stated price shares, and per location the free kits on hand, the whole kits
+the free components build and the component that limits them.
+
+**Aufruf**
+
+```text
+kits [item_id]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage | Art                        | Standard |
+| ---------------- | -------------------------- | -------- |
+| `MCP kits`       | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Show the kits, their components and how many each location can build.
+
+**Verwenden, wenn**
+
+- Someone asks whether a set can be sold or packed
+- what a kit is made of
+- or which part is missing.
+
+**Nicht verwenden, wenn**
+
+- The item is not a kit; read the item's stock.
+
+**Parameter**
+
+| Name      | Typ      | Pflicht | Beschreibung                                       | Standard |
+| --------- | -------- | ------- | -------------------------------------------------- | -------- |
+| `item_id` | `string` | nein    | Opaque identity of the operational item reference. | —        |
+
+**Siehe auch:** Command [`kits`](./commands#command-kits)
 
 ### `outbound_deliveries` — Read planned deliveries {#command-outbound_deliveries}
 
