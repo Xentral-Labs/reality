@@ -78,7 +78,7 @@ A payload-only event would need a JSONB search for each of these. The role is ne
    - web pass-through and a form in `ShipmentActions`.
 4. **Finance:**
    - `carrier_claim` in `SETTLEMENT_CONTROL`, `FEE_RECEIVABLE_TYPES` and `TRANSACTION_MATRIX`;
-   - the role in `ACCOUNT_ROLES` and the tool's role list.
+   - the role in `ACCOUNT_ROLES` and the tool's role list, so setting up accounts creates its default.
 5. **Shipment read:** `delivery_failure` on the shipment detail and on register rows.
 6. **Gates:**
    - isolation catalog;
@@ -96,4 +96,6 @@ A payload-only event would need a JSONB search for each of these. The role is ne
 
 ## Rollback
 
-The migration's downgrade drops the table and restores the role check. It refuses while carrier-claim accounts exist.
+- The migration gives every company whose accounts are set up a default carrier-claim account, as setting up accounts now does.
+- Its downgrade removes those accounts, drops the table and restores the role check.
+- It refuses while failed deliveries or carrier-claim postings exist.
