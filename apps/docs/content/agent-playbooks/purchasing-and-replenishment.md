@@ -33,6 +33,9 @@ Exceptions that belong to this area: `overdue_incoming_supplier_commitment`, `bi
 `purchase_discount_available`, `supplier_credit_unposted`, `supplier_credit_unclaimed`,
 `supplier_return_not_credited`, `supplier_credit_not_returned`, `stock_expired`.
 
+An `overdue_payable` names the supplier and the invoice in its trace: `document_number`,
+`customer_reference`, `party_id` and `party_name`, beside `document_id`.
+
 The examples use one supplier, Alpine Components, one item, Cedar Desk Lamp (`ITEM-004`), and small
 quantities.
 

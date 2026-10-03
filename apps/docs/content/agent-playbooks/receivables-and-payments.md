@@ -32,6 +32,10 @@ Exceptions that belong to this area: `shipped_not_billed`, `sales_invoice_unpost
 short payment), `unmatched_financial_event`, `credit_limit_exceeded`, `credit_note_unposted`,
 `credit_note_unsettled`.
 
+An `overdue_receivable` names who owes and on which invoice in its trace: `document_number`,
+`customer_reference`, `party_id` and `party_name`, beside `document_id`. Say who owes what on which
+invoice from the entry itself; `finance_settlement_context` is for the settlement detail.
+
 The examples use one customer, Maple Retail, and small round numbers so the steps stay visible.
 
 ## Situations
