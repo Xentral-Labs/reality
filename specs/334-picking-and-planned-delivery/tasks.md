@@ -10,7 +10,7 @@
 
 ## Phase 2: Planned deliveries and picking (FR-001 to FR-004)
 
-- [ ] T004 Tests first in `tests/test_outbound_deliveries.py`:
+- [x] T004 Tests first in `tests/test_outbound_deliveries.py`:
   - plan with recipient, address and slot;
   - quantity bound across deliveries;
   - other customer refused;
@@ -20,30 +20,30 @@
   - put-back moves both back;
   - cancellation leaves goods waiting to be put back;
   - tenant isolation.
-- [ ] T005 Migration `0124_outbound_deliveries`, models and indexes
-- [ ] T006 Service, reads and refusals with translations
+- [x] T005 Migration `0124_outbound_deliveries`, models and indexes
+- [x] T006 Service, reads and refusals with translations
 
 ## Phase 3: Dispatch (FR-005)
 
-- [ ] T007 Tests:
+- [x] T007 Tests:
   - dispatch through a planned delivery records the link, address and slot;
   - mismatching movements refused in review and at confirmation;
   - unpicked delivery refused;
   - a waiting put-back refused;
   - no change without a delivery.
-- [ ] T008 `shipment_dispatch` field, review and confirmation checks, shipment read
+- [x] T008 `shipment_dispatch` field, review and confirmation checks, shipment read
 
 ## Phase 4: Adapters and Web (FR-006)
 
-- [ ] T009 Application tools, MCP, CLI, Web API, catalog gates, adapter tests
-- [ ] T010 Web card on the shipments page with pick, put-back and dispatch; translations
+- [x] T009 Application tools, MCP, CLI, Web API, catalog gates, adapter tests
+- [x] T010 Web card on the shipments page with pick, put-back and dispatch; translations
 
 ## Phase 5: Stories and Guide (FR-007)
 
-- [ ] T011 Business stories A08, A11, A21, A24, D04, D13, M05
-- [ ] T012 Promote them: Guide catalog, coverage, roadmap, matrix, docs generation
+- [x] T011 Business stories A08, A11, A21, A24, D04, D13, M05
+- [x] T012 Promote them: Guide catalog, coverage, roadmap, matrix, docs generation
 
 ## Phase 6: Verification
 
-- [ ] T013 Full backend suite and web checks
-- [ ] T014 Review of the diff; fix findings
+- [x] T013 Full backend suite and web checks
+- [x] T014 Review of the diff; fix findings

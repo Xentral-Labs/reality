@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:2d5c4e3baded290d93419b4e646baffb694ad751bbbceceaa1babbc6130ea2ca",
+  "knowledge_version": "advisor-v1:sha256:221efe21a20d7572860c61dbe77b1e2cc9e0b005d802c13e9dcae893be23a060",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -657,7 +657,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D13",
-      "fingerprint": "2a777fbfb678279699effbdbb1f11b1cec1508cc2d1899962248d75d737016da"
+      "fingerprint": "2bd3ab626821e094aec28bc91240e3a7850eebb821c995b9e0e6e11df93c3c6f"
     },
     {
       "id": "source_journey_d14",
@@ -3373,7 +3373,7 @@
       "source_id": "source_journey_d13",
       "subject": "Picking, shipment, split and merge",
       "title": "Pallet freight with booked delivery slot",
-      "search_text": "D13 Picking, shipment, split and merge Pallet freight with booked delivery slot Shipment dated to the slot? booked slot delivery slot time slot pallet freight Zeitfenster Anlieferzeitfenster Speditionsavis Palettenware Pallet freight with booked delivery slot Shipment dated to the slot? The pallets are booked for Thursday 8 to 10; does the shipment show that slot? Die Paletten sind für Donnerstag 8 bis 10 Uhr avisiert; zeigt die Sendung das Zeitfenster?",
+      "search_text": "D13 Picking, shipment, split and merge Pallet freight with booked delivery slot Shipment dated to the slot? booked slot delivery slot time slot pallet freight Zeitfenster Anlieferzeitfenster Speditionsavis Palettenware Pallet freight with booked delivery slot Shipment dated to the slot? The pallets are booked for Thursday 8 to 10; does the shipment show that slot? Paletten mit Anlieferzeitfenster Donnerstag 8 bis 10 Uhr: steht das Zeitfenster an der Sendung?",
       "claim_text": "Reality evaluates: Shipment dated to the slot? A planned delivery states its booked slot; the shipment keeps the slot it was booked for, and a slot that closed before anything shipped is shown as missed.",
       "support": "proven",
       "limitations": [
@@ -3387,7 +3387,7 @@
         "shipment_explain"
       ],
       "language": "en",
-      "fingerprint": "4b678559bb91e4039e1ec7c15ecaf5a60518bfbf23c52a36d1eec8fcaecb5c12"
+      "fingerprint": "6d167096fbf669bbddadb8aa2153478d48751eeece0c7ad4d41f18a238ee9817"
     },
     {
       "id": "evidence_journey_d14",

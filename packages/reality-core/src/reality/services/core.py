@@ -1119,9 +1119,15 @@ def _purge_tenant_records(session: OrmSession, tenant_id: str) -> None:
     confirmations; platform administration (spec 192) guards it with the
     platform-admin role and two confirmations of its own.
     """
+    from sqlalchemy import inspect as schema_inspect
+
+    # Only the tables the connected schema has: a historical schema in the
+    # migration tests predates the newest stores and must reach its own guards.
+    present = set(schema_inspect(session.connection()).get_table_names())
     for table in reversed(Base.metadata.sorted_tables):
         if (
             table.name == Tenant.__tablename__
+            or table.name not in present
             or "tenant_id" not in table.c
             or table.info.get("compatibility_view_sql")
         ):
