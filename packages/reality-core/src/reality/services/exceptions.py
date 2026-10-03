@@ -137,6 +137,7 @@ CLASS_ORDER = {
     "received_beyond_order": 53,
     "misdelivery_outstanding": 54,
     "external_stock_differs": 55,
+    "reservation_awaiting_prepayment": 56,
 }
 
 
@@ -2719,6 +2720,57 @@ def _external_stock_differs_exceptions(
     return result
 
 
+def _reservation_awaiting_prepayment_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Spec 348: reserved stock has waited past the floor for an unpaid prepayment.
+
+    Nothing is released: a person chases the payment or releases the
+    reservation. It ends when the prepayment is paid, the reservation is
+    released or the order is cancelled.
+    """
+    from reality.services.prepayment_reservations import (
+        PREPAYMENT_RESERVATION_FLOOR,
+        reservations_awaiting_prepayment,
+    )
+
+    result: list[OperationalException] = []
+    for row in reservations_awaiting_prepayment(session, tenant_id, as_of):
+        result.append(
+            OperationalException(
+                _identity("reservation_awaiting_prepayment", row["commitment_id"]),
+                "reservation_awaiting_prepayment",
+                (),
+                "normal",
+                "Reservation waiting for prepayment",
+                f"{row['reserved_quantity'].normalize():f} reserved for order "
+                f"{row['order_number']} for {row['waiting_days']} days while "
+                f"{row['unpaid_amount'].normalize():f} {row['currency']} of its "
+                "prepayment is unpaid",
+                "commitment",
+                row["commitment_id"],
+                {
+                    "order_id": row["order_id"],
+                    "reserved_quantity": row["reserved_quantity"],
+                    "unit": row["unit"],
+                    "reserved_since": row["reserved_since"],
+                    "waiting_days": row["waiting_days"],
+                    "threshold_days": PREPAYMENT_RESERVATION_FLOOR.days,
+                    "unpaid_amount": row["unpaid_amount"],
+                    "currency": row["currency"],
+                },
+                {
+                    "commitment_id": row["commitment_id"],
+                    "order_id": row["order_id"],
+                    "party_id": row["party_id"],
+                    "item_id": row["item_id"],
+                },
+                row["reserved_since"],
+            )
+        )
+    return result
+
+
 def _misdelivery_outstanding_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
@@ -5273,6 +5325,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "payment_authorization_expired": _payment_authorization_expired_exceptions,
     "received_beyond_order": _received_beyond_order_exceptions,
     "external_stock_differs": _external_stock_differs_exceptions,
+    "reservation_awaiting_prepayment": _reservation_awaiting_prepayment_exceptions,
     "misdelivery_outstanding": _misdelivery_outstanding_exceptions,
     "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,

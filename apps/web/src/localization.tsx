@@ -25364,6 +25364,9 @@ Object.assign(dictionaries.de, {
   received: "erhalten",
   "in transit": "unterwegs",
   "External stock differs": "Fremdbestand weicht ab",
+  "Reservation waiting for prepayment": "Reservierung wartet auf Vorkasse",
+  "Payment of the open prepayment, releasing the reservation so the stock serves other orders, or cancelling the order.":
+    "Die offene Vorkasse wird bezahlt, die Reservierung wird gelöst, damit der Bestand anderen Aufträgen dient, oder der Auftrag wird storniert.",
   "A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.":
     "Eine Inventur zum angegebenen Zeitpunkt, die die Differenz übernimmt, das Erfassen der fehlenden Bewegung oder eine neuere Angabe, die übereinstimmt.",
   "A stated stock quantity is zero or more, with at most four decimals.":
@@ -26110,6 +26113,9 @@ Object.assign(dictionaries.nl, {
   received: "ontvangen",
   "in transit": "onderweg",
   "External stock differs": "Externe voorraad wijkt af",
+  "Reservation waiting for prepayment": "Reservering wacht op vooruitbetaling",
+  "Payment of the open prepayment, releasing the reservation so the stock serves other orders, or cancelling the order.":
+    "De openstaande vooruitbetaling wordt betaald, de reservering wordt vrijgegeven zodat de voorraad andere orders dient, of de order wordt geannuleerd.",
   "A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.":
     "Een voorraadtelling op het opgegeven tijdstip die het verschil overneemt, het vastleggen van de ontbrekende beweging, of een nieuwere opgave die overeenkomt.",
   "A stated stock quantity is zero or more, with at most four decimals.":
@@ -26855,6 +26861,9 @@ Object.assign(dictionaries.es, {
   received: "recibido",
   "in transit": "en tránsito",
   "External stock differs": "El stock externo difiere",
+  "Reservation waiting for prepayment": "Reserva a la espera del pago anticipado",
+  "Payment of the open prepayment, releasing the reservation so the stock serves other orders, or cancelling the order.":
+    "Se paga el pago anticipado pendiente, se libera la reserva para que el stock sirva a otros pedidos o se cancela el pedido.",
   "A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.":
     "Un recuento de inventario fechado en el momento indicado que asume la diferencia, el registro del movimiento que falta o una declaración más reciente que coincida.",
   "A stated stock quantity is zero or more, with at most four decimals.":

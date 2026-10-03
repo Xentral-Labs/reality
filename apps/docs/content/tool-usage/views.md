@@ -755,7 +755,8 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`payment_authorization_expired`](./exceptions#exception-payment_authorization_expired), exception
 [`received_beyond_order`](./exceptions#exception-received_beyond_order), exception
 [`misdelivery_outstanding`](./exceptions#exception-misdelivery_outstanding), exception
-[`external_stock_differs`](./exceptions#exception-external_stock_differs)
+[`external_stock_differs`](./exceptions#exception-external_stock_differs), exception
+[`reservation_awaiting_prepayment`](./exceptions#exception-reservation_awaiting_prepayment)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

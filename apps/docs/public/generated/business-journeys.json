@@ -910,18 +910,27 @@
       "section": "Availability, reservation and backorder",
       "title": "Reservation lapses because prepayment did not arrive",
       "question": "Is the reservation released after the deadline?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Is the reservation released after the deadline?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Is the reservation released after the deadline? Stock reserved for a prepayment order whose prepayment is still unpaid after a week is reported as Reservation waiting for prepayment, with the order, the reserved quantity and the unpaid amount; a person releases the reservation or chases the payment, and nothing is released by itself.",
       "limitations": [
-        "Missing prepayment blocks the shipment, but a reservation has no expiry date and is never released automatically."
+        "The reservation never lapses automatically; the deadline is a fixed week, not a company setting."
       ],
-      "keywords": [],
+      "keywords": [
+        "reservation waiting for prepayment",
+        "unpaid prepayment reservation",
+        "Reservierung Vorkasse",
+        "Vorkasse nicht bezahlt Reservierung"
+      ],
       "question_examples": [
         "Reservation lapses because prepayment did not arrive",
-        "Is the reservation released after the deadline?"
+        "Is the reservation released after the deadline?",
+        "Which reserved orders are still waiting for their prepayment?",
+        "Welche Reservierungen warten noch auf Vorkasse?"
       ],
-      "tools": [],
+      "tools": [
+        "reservation_release_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

@@ -57,6 +57,7 @@ WITHOUT_A_SCENARIO = {
     "received_beyond_order",
     "misdelivery_outstanding",
     "external_stock_differs",
+    "reservation_awaiting_prepayment",
     "missing_acquisition_cost",
     "unassigned_cost_component",
     "stale_cost_review",

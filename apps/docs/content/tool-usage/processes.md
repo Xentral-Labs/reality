@@ -49,7 +49,9 @@ From a customer order through reservation, dispatch and invoice to the settled p
 (`outgoing_commitment_due_soon`),
 [Reservation exceeds stock](./exceptions#exception-reservation_exceeds_stock)
 (`reservation_exceeds_stock`), [Item oversold](./exceptions#exception-item_oversold)
-(`item_oversold`)
+(`item_oversold`),
+[Reservation waiting for prepayment](./exceptions#exception-reservation_awaiting_prepayment)
+(`reservation_awaiting_prepayment`)
 
 ### 3. Hold or revise when the customer or credit requires it
 
