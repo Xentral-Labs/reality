@@ -30,6 +30,7 @@ import { PurchaseMatchSection } from "./PurchaseMatchSection";
 import { RegisterPager } from "./WarehousePage";
 import { useRead } from "./useCompanyContext";
 import type { Selection } from "./routing";
+import { PlannedDeliveries } from "./PlannedDeliveries";
 import { ShipmentsRegister } from "./ShipmentsRegister";
 
 type Register =
@@ -521,7 +522,12 @@ export function OrdersPage({
               </div>
             )}
             {view === "shipments" ? (
-              <ShipmentsRegister selection={selection} navigate={navigate} />
+              <>
+                {selection.deliveryType !== "supplier_delivery" && (
+                  <PlannedDeliveries tenant={selection.tenant} />
+                )}
+                <ShipmentsRegister selection={selection} navigate={navigate} />
+              </>
             ) : !data ? (
               <ReadState loading={read.loading} error={read.error} retry={read.refresh} rows={8} />
             ) : (
