@@ -389,7 +389,7 @@ commands:
     effect: Read one tenant-scoped frozen interpretation, digest and status without refreshing or executing it.
   - name: Accept reviewed source interpretation
     service: apply_prepared_intake
-    related_services: [submit_agent_review, reject_prepared_intake, approve_batch, settle_chunk, reject_batch, stop_batch, enqueue_intake_batch_run]
+    related_services: [submit_agent_batch_review, submit_agent_review, reject_prepared_intake, approve_batch, settle_chunk, reject_batch, stop_batch, enqueue_intake_batch_run]
     mode: mutation
     adapters: [CLI, Web, API, MCP, Chat]
     confirmation: required
@@ -6332,7 +6332,7 @@ agent_command_coverage:
   revoke_review_mandate: {classification: eligible, tools: [intake_mandate_revoke_propose]}
   prepare_intake: {classification: eligible, tools: [intake_prepare_propose, intake_reprepare_propose]}
   review_intake: {classification: eligible, tools: [intake_review, intake_agent_review_material, intake_agent_review_source_page]}
-  apply_prepared_intake: {classification: eligible, tools: [proposal_approve_and_execute, intake_agent_review_and_execute]}
+  apply_prepared_intake: {classification: eligible, tools: [proposal_approve_and_execute, intake_agent_review_and_execute, intake_agent_batch_review_and_queue]}
   enqueue_source: {classification: eligible, tools: [source_ingest_propose, source_record_ingest_propose]}
   correct_manual_document: {classification: eligible, tools: [document_correct_propose, document_lines_correct_propose]}
   record_corrected_document_source: {classification: eligible, tools: [document_source_correct_propose]}

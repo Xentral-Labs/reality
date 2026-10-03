@@ -23,13 +23,14 @@ from reality.services.core import (
 )
 from reality.services.delivery_actions import PUBLIC_MOVEMENT_TYPES
 from reality.tools.application import (
-    _intake_agent_review_submit as _agent_review_submit,
-)
-from reality.tools.application import (
+    _intake_agent_batch_review_submit,
     approve_and_execute_proposal,
     create_change_proposal,
     reject_proposal,
     run_read_tool,
+)
+from reality.tools.application import (
+    _intake_agent_review_submit as _agent_review_submit,
 )
 
 ToolAccess = Literal["read", "propose", "confirm"]
@@ -178,6 +179,12 @@ def _mandate_grant_schema():
     for name, description in descriptions.items():
         schema["properties"][name]["description"] = description
     return schema
+
+
+def _agent_batch_review_schema():
+    from reality.domain.intake_review import AgentBatchReviewEvidence
+
+    return AgentBatchReviewEvidence.model_json_schema()
 
 
 def _agent_review_schema():
@@ -854,6 +861,15 @@ MCP_TOOL_CATALOG = (
             required=("mandate_id", "proposal_id"),
         ),
         _read("intake_agent_review_source_page"),
+    ),
+    MCPToolDefinition(
+        "intake_agent_batch_review_and_queue",
+        "Submit exact delegated batch verdicts",
+        "Submit complete structured verdicts for every member of one fixed manifest. Current owner delegation and global quotas bind the actual named token; database-only workers recheck each child before acceptance. Uncertainty retains evidence without queuing acceptance.",
+        "confirm",
+        "Sources",
+        _agent_batch_review_schema(),
+        _intake_agent_batch_review_submit,
     ),
     MCPToolDefinition(
         "intake_agent_review_and_execute",

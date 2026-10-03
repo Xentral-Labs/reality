@@ -2376,6 +2376,157 @@
       "resources": ["source"]
     },
     {
+      "id": "tool:intake_agent_batch_review_and_queue",
+      "kind": "tool",
+      "key": "intake_agent_batch_review_and_queue",
+      "label": "Submit exact delegated batch verdicts",
+      "area": "cross_functional",
+      "summary": "Submit complete structured verdicts for every member of one fixed manifest. Current owner delegation and global quotas bind the actual named token; database-only workers recheck each child before acceptance. Uncertainty retains evidence without queuing acceptance.",
+      "access": "confirm",
+      "group": "Sources",
+      "synopsis": "intake_agent_batch_review_and_queue [schema_version] batch_id manifest_digest manifest_revision reviews",
+      "parameters": [
+        {
+          "name": "schema_version",
+          "type": "integer",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": 1
+        },
+        {
+          "name": "batch_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained selected manifest.",
+          "depth": 0
+        },
+        {
+          "name": "manifest_digest",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "manifest_revision",
+          "type": "integer",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "reviews",
+          "type": "array",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "reviews[].schema_version",
+          "type": "integer",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": 1
+        },
+        {
+          "name": "reviews[].mandate_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the retained owner-granted review mandate.",
+          "depth": 1
+        },
+        {
+          "name": "reviews[].revision",
+          "type": "integer",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reviews[].proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
+          "depth": 1
+        },
+        {
+          "name": "reviews[].digest",
+          "type": "string",
+          "required": true,
+          "description": "Exact content digest of the retained interpretation explicitly reviewed for this decision.",
+          "depth": 1
+        },
+        {
+          "name": "reviews[].source_digest",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reviews[].reviewed_references",
+          "type": "array",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reviews[].checks",
+          "type": "array",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "reviews[].checks[].code",
+          "type": "string",
+          "required": true,
+          "description": "Short tenant-scoped business code used to find the record operationally.",
+          "depth": 2,
+          "enum": [
+            "exact_source",
+            "exact_plan",
+            "full_source_coverage",
+            "closed_effects",
+            "current_state",
+            "uncertainties"
+          ]
+        },
+        {
+          "name": "reviews[].checks[].result",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2,
+          "enum": ["pass", "fail", "uncertain"]
+        },
+        {
+          "name": "reviews[].verdict",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1,
+          "enum": ["approve", "reject", "uncertain"]
+        },
+        {
+          "name": "reviews[].reasons",
+          "type": "array",
+          "required": true,
+          "description": "",
+          "depth": 1
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "apply_prepared_intake",
+      "projections": [],
+      "links": ["command:apply_prepared_intake"],
+      "label_de": "Submit exact delegated batch verdicts",
+      "resources": ["source"]
+    },
+    {
       "id": "tool:intake_agent_review_and_execute",
       "kind": "tool",
       "key": "intake_agent_review_and_execute",
@@ -22435,6 +22586,7 @@
       ],
       "confirmation": "required",
       "related_services": [
+        "submit_agent_batch_review",
         "submit_agent_review",
         "reject_prepared_intake",
         "approve_batch",
@@ -22443,10 +22595,15 @@
         "stop_batch",
         "enqueue_intake_batch_run"
       ],
-      "tools": ["proposal_approve_and_execute", "intake_agent_review_and_execute"],
+      "tools": [
+        "proposal_approve_and_execute",
+        "intake_agent_review_and_execute",
+        "intake_agent_batch_review_and_queue"
+      ],
       "synopses": [
         "proposal_approve_and_execute proposal_id [approved] [review_token]",
-        "intake_agent_review_and_execute [schema_version] mandate_id revision proposal_id digest source_digest reviewed_references checks verdict reasons"
+        "intake_agent_review_and_execute [schema_version] mandate_id revision proposal_id digest source_digest reviewed_references checks verdict reasons",
+        "intake_agent_batch_review_and_queue [schema_version] batch_id manifest_digest manifest_revision reviews"
       ],
       "events": [],
       "actions": [],
@@ -22497,7 +22654,11 @@
           "guidance": "An executed replay returns the stored receipt without executing again; never retry an executing proposal blindly."
         }
       },
-      "links": ["tool:proposal_approve_and_execute", "tool:intake_agent_review_and_execute"],
+      "links": [
+        "tool:proposal_approve_and_execute",
+        "tool:intake_agent_review_and_execute",
+        "tool:intake_agent_batch_review_and_queue"
+      ],
       "label_de": "Geprüfte Quellinterpretation übernehmen",
       "resources": ["source"]
     },

@@ -193,3 +193,18 @@ externally; provider calls never occur in database-only continuation handlers.
 Review evidence freezes every byte-range and original row/line reference, required
 server validation checks and structured approve/reject/uncertain verdict. Evidence
 proves binding and current scope, not independent human review or model cognition.
+
+### Delegated fixed-batch execution
+
+External agents submit one bounded, complete set of per-unit structured verdicts
+for an exact manifest digest/revision. All entries must name the same current
+mandate revision and actual authenticated token. Parent authority retains those
+exact verdicts and a content digest; queues still carry only opaque run identities.
+Uncertain/contradicted entries prevent unattended acceptance and remain reviewable.
+A private transaction-bound batch-child scope authorizes a worker to revalidate a
+retained verdict, never to infer a new verdict or authenticate caller-supplied
+actor fields. The worker rechecks current mandate/token/issuer/source scope,
+exact child evidence, current state and global UTC-day quota before each unit.
+Accepted child receipts retain token attribution and mandate revision; rejected
+children have no business effects. Known refusals retain review-required results;
+unknown infrastructure errors roll back the whole provisional chunk.

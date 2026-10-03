@@ -211,6 +211,18 @@ def prepare_batch(
 
 
 def _reviewer(session, tenant_id, authorization):
+    if "agent_review" in authorization:
+        from reality.services.intake_review import _current_mandate
+
+        retained = authorization["agent_review"]
+        return _current_mandate(
+            session,
+            tenant_id,
+            retained["mandate_id"],
+            retained["token_id"],
+            retained["revision"],
+            required_tool="intake_agent_batch_review_and_queue",
+        )[2]
     principal = Principal(authorization["reviewer_user_id"])
     require_delivery_principal(session, tenant_id, principal)
     token_id = authorization.get("token_id")
@@ -430,27 +442,39 @@ def settle_chunk(session, tenant_id, batch_id, *, continuation_id, _commit=False
                     if progress["stopped"]:
                         disposition = "stopped"
                     else:
-                        principal = _reviewer(session, tenant_id, authorization)
-                        previous = core._tenant_record_read(
-                            session, ChangeProposal, tenant_id, entry.proposal_id
-                        ).status
-                        with _child_scope(
-                            session, tenant_id, entry.proposal_id, authorization
-                        ):
-                            apply_prepared_intake(
-                                session,
-                                tenant_id,
-                                entry.proposal_id,
-                                entry.digest,
-                                confirmed=True,
-                                principal=principal,
-                                settling_token_id=authorization.get("token_id"),
-                                settling_channel=authorization.get("channel"),
-                                _commit=False,
+                        if "agent_review" in authorization:
+                            from reality.services.intake_review import (
+                                _settle_agent_batch_child,
                             )
-                        disposition = (
-                            "replayed" if previous == "executed" else "applied"
-                        )
+
+                            with _child_scope(
+                                session, tenant_id, entry.proposal_id, authorization
+                            ):
+                                disposition = _settle_agent_batch_child(
+                                    session, tenant_id, entry.proposal_id, authorization
+                                )
+                        else:
+                            principal = _reviewer(session, tenant_id, authorization)
+                            previous = core._tenant_record_read(
+                                session, ChangeProposal, tenant_id, entry.proposal_id
+                            ).status
+                            with _child_scope(
+                                session, tenant_id, entry.proposal_id, authorization
+                            ):
+                                apply_prepared_intake(
+                                    session,
+                                    tenant_id,
+                                    entry.proposal_id,
+                                    entry.digest,
+                                    confirmed=True,
+                                    principal=principal,
+                                    settling_token_id=authorization.get("token_id"),
+                                    settling_channel=authorization.get("channel"),
+                                    _commit=False,
+                                )
+                            disposition = (
+                                "replayed" if previous == "executed" else "applied"
+                            )
             except core.RealityError as error:
                 from reality.services.intake import _retain_apply_failure
 
