@@ -2404,3 +2404,15 @@ Table `external_stock_statement` (migration 0133): stock someone outside states 
 - `packages/reality-core/tests/test_external_stock_migration.py`: the table comes and goes, and recorded rows block a rollback.
 - `packages/reality-core/tests/scenarios/test_catalog_external_stock.py`: story J07.
 - `packages/reality-core/tests/test_reporting_graph_coverage.py`: the table is a deferred operational workflow record.
+
+## Releasing a partly prepaid order — Spec 347
+
+Table `prepayment_release`: a company owner's decision to ship a prepayment order before it is paid, covering the order's stated gross amount.
+
+- `packages/reality-core/tests/test_prepayment_release.py`:
+  - An owner releases a partly paid order with a reason and it ships; the unpaid rest stays open; the delivery case names the release.
+  - A member who is not an owner cannot release it.
+  - A release is refused without prepayment terms, for a paid order, without a reason, with extra fields, for a non-order document, and once one covers the order.
+  - A release covers only the amount it was given for; another company sees nothing.
+- `packages/reality-core/tests/test_prepayment_release_migration.py`: the table comes and goes, and recorded rows block a rollback.
+- `packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_is_released_by_an_owner`: the R01 combined story.

@@ -46,6 +46,7 @@ from reality.services import payment_intake as payment_intake_service_module
 from reality.services import payment_returns as payment_return_service_module
 from reality.services import payouts as payout_service_module
 from reality.services import playground as playground_service_module
+from reality.services import prepayment_release_actions as prepayment_release_module
 from reality.services import projection_jobs as projection_job_service_module
 from reality.services import projections as projection_service_module
 from reality.services import purchase_match as purchase_match_service_module
@@ -1142,6 +1143,7 @@ def _service(name: str) -> Any:
         authorization_service_module,
         receipt_deviation_service_module,
         external_stock_service_module,
+        prepayment_release_module,
     ):
         own = getattr(module, name, None)
         if own is not None and getattr(own, "__module__", None) == module.__name__:
@@ -1361,6 +1363,7 @@ def _literal_business_events() -> set[str]:
         drop_shipping_service_module,
         receipt_deviation_service_module,
         external_stock_service_module,
+        prepayment_release_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

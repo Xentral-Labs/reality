@@ -54,6 +54,8 @@ class FulfillmentReadiness:
     #: Consolidated invoices billing this order that are still open, as
     #: (invoice id, invoice number, open amount); spec 283 FR-004.
     consolidated_open: tuple[tuple[str, str, Decimal], ...] = ()
+    #: The owner's release that lets the order ship before it is paid (spec 347).
+    prepayment_release_id: str | None = None
 
     def as_dict(self) -> dict[str, object]:
         payment_policy = "prepayment" if self.requires_prepayment else "standard"
@@ -103,6 +105,7 @@ class FulfillmentReadiness:
                 "payment_term_id": self.payment_term_id,
                 "invoice_ids": list(self.invoice_ids),
                 "allocation_ids": list(self.allocation_ids),
+                "prepayment_release_id": self.prepayment_release_id,
             },
             "lines": [
                 {
@@ -124,6 +127,12 @@ class FulfillmentReadiness:
                     ("settlement_allocation", self.allocation_ids),
                     ("commitment_hold", self.commitment_hold_ids),
                     ("party_hold", self.party_hold_ids),
+                    (
+                        "prepayment_release",
+                        (self.prepayment_release_id,)
+                        if self.prepayment_release_id
+                        else (),
+                    ),
                 )
                 for identity in identities
             ],
@@ -337,6 +346,9 @@ def fulfillment_readiness(
 
     BUSINESS RULE fulfillment_readiness.fulfillment_readiness.guard-532:
     IF required prepayment remains positive, report prepayment_required.
+
+    BUSINESS RULE readiness.prepayment_release:
+    IF the order is not (fully) paid and a company owner released its prepayment for at least the order's stated gross amount, drop prepayment_required and prepayment_invoice_missing and name the release. An invoice shared with other orders still blocks. An order raised past the released amount is blocked again.
 
     BUSINESS RULE readiness.result:
     Return quantities, payment amounts, invoice/allocation identities, active hold identities and consolidated invoice evidence. Ship-ready requires positive open quantity and no blockers.
@@ -678,6 +690,12 @@ def fulfillment_readiness(
     # reality-rule: fulfillment_readiness.fulfillment_readiness.guard-532
     if remaining > ZERO:
         blockers.append("prepayment_required")
+    release_id = None
+    # reality-rule: readiness.prepayment_release
+    if {"prepayment_required", "prepayment_invoice_missing"} & set(blockers):
+        release_id = covering_prepayment_release(session, tenant_id, order.id, required)
+        if release_id:
+            blockers = [code for code in blockers if code not in RELEASABLE_BLOCKERS]
     # reality-rule: readiness.result
     return FulfillmentReadiness(
         commitment.id,
@@ -698,6 +716,35 @@ def fulfillment_readiness(
         commitment_hold_ids,
         party_hold_ids,
         tuple(consolidated_open),
+        release_id,
+    )
+
+
+#: What an owner's prepayment release lifts: the order is not (fully) paid. An
+#: invoice that also bills other orders stays a blocker, because it leaves open
+#: what was paid for this one (spec 347).
+RELEASABLE_BLOCKERS = frozenset({"prepayment_required", "prepayment_invoice_missing"})
+
+
+def covering_prepayment_release(
+    session: Session, tenant_id: str, order_id: str, required: Decimal
+) -> str | None:
+    """The owner's release that still covers this order's stated amount (spec 347).
+
+    A release covers the order's gross amount as it stood when the owner decided;
+    an order raised past it, by a larger quantity or a new line, asks again.
+    """
+    from reality.db.core import PrepaymentRelease
+
+    return session.scalar(
+        select(PrepaymentRelease.id)
+        .where(
+            PrepaymentRelease.tenant_id == tenant_id,
+            PrepaymentRelease.document_id == order_id,
+            PrepaymentRelease.covered_amount >= required,
+        )
+        .order_by(PrepaymentRelease.created_at.desc(), PrepaymentRelease.id)
+        .limit(1)
     )
 
 

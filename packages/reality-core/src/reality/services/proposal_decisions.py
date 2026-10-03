@@ -16,6 +16,10 @@ from reality.domain.proposal_decisions import (
 from reality.services.core import InvalidOperation
 from reality.services.memberships import Principal
 
+#: Releases only a company owner confirms: credit holds (spec 298) and shipping a
+#: prepayment order before it is paid (spec 347).
+OWNER_RELEASE_TOOLS = frozenset({"credit_hold_release", "prepayment_release"})
+
 
 def resolve_decision_policy(
     tool: str,
@@ -32,10 +36,10 @@ def resolve_decision_policy(
     checks: list[AuthorityCheck] = []
     exceptions: list[str] = []
     authority: ApprovalAuthority = "action_context"
-    if tool in FINANCE_COMMANDS or tool == "credit_hold_release":
+    if tool in FINANCE_COMMANDS or tool in OWNER_RELEASE_TOOLS:
         authority = "company_owner"
         checks.append(
-            "credit_owner" if tool == "credit_hold_release" else "finance_owner"
+            "credit_owner" if tool in OWNER_RELEASE_TOOLS else "finance_owner"
         )
         exceptions.append("identity_free_only_when_auth_disabled")
     if tool == "cost.change":

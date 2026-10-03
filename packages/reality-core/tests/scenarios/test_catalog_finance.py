@@ -990,14 +990,17 @@ def test_a_reverse_charge_supplier_invoice_keeps_its_stated_amounts(session, bus
 # --- R01 (spec 294) ----------------------------------------------------------
 
 
-def test_a_partly_paid_prepayment_order_cannot_be_released_anyway(session, business):
-    """R01 stays partial: the catalog story releases an 80 % prepaid order anyway.
+def test_a_partly_paid_prepayment_order_is_released_by_an_owner(session, business):
+    """R01: 80 % paid, refused to ship; an owner releases it with a reason and it ships.
 
-    Spec 275 FR-005 keeps a prepayment order non-shippable until paid, and no
-    reviewed release overrides that. Both shipping routes refuse, so the
-    combined story stops at its third step. The day a reviewed release exists,
-    this test turns red and R01 can be written end to end.
+    Spec 275 FR-005 keeps a prepayment order unshippable until paid. Spec 347 lets
+    a company owner ship it anyway, for this order and with a stated reason; the
+    unpaid rest stays an open receivable.
     """
+    from reality.db.core import AppUser, BusinessEvent, TenantMembership, uid
+    from reality.services.decision_attribution import record_decisions
+    from reality.services.memberships import Principal
+
     tenant = business.tenant.id
     core.create_payment_term(
         session, tenant, "PREPAY", "Prepayment", 0, requires_prepayment=True
@@ -1010,7 +1013,7 @@ def test_a_partly_paid_prepayment_order_cannot_be_released_anyway(session, busin
         "4",
         to_location_id=business.location.id,
     )
-    _, _, lines, commitments = _sales_order(
+    _, order, lines, commitments = _sales_order(
         session,
         business,
         "SO-R01",
@@ -1030,23 +1033,20 @@ def test_a_partly_paid_prepayment_order_cannot_be_released_anyway(session, busin
     )
     assert "prepayment_required" in readiness.blocker_codes
     assert readiness.remaining_amount == Decimal("20.00")
-
-    for tool, arguments in (
-        (
-            "shipment_dispatch",
+    dispatch = {
+        "purpose": "customer_delivery",
+        "counterparty_id": business.customer.id,
+        "movements": [
             {
-                "purpose": "customer_delivery",
-                "counterparty_id": business.customer.id,
-                "movements": [
-                    {
-                        "commitment_id": commitment.id,
-                        "item_id": business.item.id,
-                        "from_location_id": business.location.id,
-                        "quantity": "4",
-                    }
-                ],
-            },
-        ),
+                "commitment_id": commitment.id,
+                "item_id": business.item.id,
+                "from_location_id": business.location.id,
+                "quantity": "4",
+            }
+        ],
+    }
+    for tool, arguments in (
+        ("shipment_dispatch", dispatch),
         (
             "movement_create",
             {
@@ -1063,7 +1063,168 @@ def test_a_partly_paid_prepayment_order_cannot_be_released_anyway(session, busin
                 session, tenant, tool, arguments, request_id=f"r01-{tool}"
             )
         assert refused.value.code == "shipment_blocked_readiness", tool
-    assert core.fulfilled_quantity(session, tenant, commitment.id) == 0
+
+    def person(role):
+        user = AppUser(
+            id=uid("usr"),
+            email=f"{uid('m')}@example.test",
+            password_hash="x",
+            display_name=role,
+            status="active",
+            email_verified_at=core.now(),
+        )
+        session.add(user)
+        session.flush()
+        session.add(
+            TenantMembership(
+                id=uid("mem"),
+                tenant_id=tenant,
+                user_id=user.id,
+                role=role,
+                status="active",
+            )
+        )
+        session.flush()
+        return Principal(user.id)
+
+    reason = "Long-standing customer, the remaining 20 come with the next order"
+    proposal = prepare_delivery_action(
+        session,
+        tenant,
+        "prepayment_release",
+        {"document_id": order.id, "reason": reason},
+        request_id="r01-release",
+    )
+    token = json.loads(proposal.input)["_delivery_review"]["token"]
+    # A member who is not an owner cannot release it.
+    with pytest.raises(core.InvalidOperation) as refused:
+        approve_and_execute_proposal(
+            session,
+            tenant,
+            proposal.id,
+            review_token=token,
+            confirmed=True,
+            confirming_principal=person("member"),
+        )
+    assert refused.value.code == "company_owner_access_required"
+    approve_and_execute_proposal(
+        session,
+        tenant,
+        proposal.id,
+        review_token=token,
+        confirmed=True,
+        confirming_principal=person("owner"),
+    )
+    released = session.scalars(
+        select(BusinessEvent).where(
+            BusinessEvent.tenant_id == tenant,
+            BusinessEvent.event_type == "order.prepayment_released",
+            BusinessEvent.action_id == proposal.id,
+        )
+    ).one()
+    assert json.loads(released.payload)["reason"] == reason
+    assert (proposal.id, "prepayment_release") in {
+        (row["id"], row["tool"])
+        for row in record_decisions(session, tenant, "document", order.id)
+    }
+
+    _reviewed(session, business, "shipment_dispatch", dispatch, "r01-ship")
+    assert core.fulfilled_quantity(session, tenant, commitment.id) == 4
+    # The unpaid rest stays an ordinary open receivable.
+    assert core.open_invoice_amount(session, tenant, invoice_id) == Decimal("20.00")
+
+    # 6 are reordered; the supplier delivers 5 on two dates.
+    _, _, _, (purchase,) = core.create_manual_order(
+        session,
+        tenant,
+        "purchase",
+        "PO-R01",
+        business.company.id,
+        business.supplier.id,
+        business.location.id,
+        [_order_line(business, "6", "6.00", "36.00")],
+        "36.00",
+    )
+    for received in ("3", "2"):
+        core.record_movement(
+            session,
+            tenant,
+            "receipt",
+            business.item.id,
+            received,
+            to_location_id=business.location.id,
+            commitment_id=purchase.id,
+        )
+    # The customer cancels 1 of the 6 still open.
+    core.revise_commitment(
+        session, tenant, commitment.id, quantity="9", note="Customer cancels one"
+    )
+    # The rest ships; the release still covers the order.
+    core.reserve(session, tenant, commitment.id)
+    rest = {**dispatch, "movements": [{**dispatch["movements"][0], "quantity": "5"}]}
+    _reviewed(session, business, "shipment_dispatch", rest, "r01-ship-rest")
+    # 2 come back damaged and are scrapped.
+    from reality.services.return_dispositions import record_return_disposition
+
+    returns_area = core.create_location(session, tenant, "R01 Returns")
+    goods_back = core.record_movement(
+        session,
+        tenant,
+        "return",
+        business.item.id,
+        "2",
+        to_location_id=returns_area.id,
+        commitment_id=commitment.id,
+    )
+    record_return_disposition(
+        session, tenant, goods_back.id, "scrap_loss", "2", reason="Damaged in transit"
+    )
+    # The cancelled one and the two damaged ones are credited: 30 settles the 20
+    # still open, and the 10 paid too much is refunded.
+    invoice_line_id = session.scalar(
+        select(DocumentLine.id).where(
+            DocumentLine.tenant_id == tenant, DocumentLine.document_id == invoice_id
+        )
+    )
+    credited = _reviewed(
+        session,
+        business,
+        "sales_credit_record",
+        {
+            "invoice_id": invoice_id,
+            "lines": [
+                {
+                    "invoice_line_id": invoice_line_id,
+                    "quantity": "3",
+                    "gross_amount": "30.00",
+                }
+            ],
+            "gross_amount": "30.00",
+            "number": "GS-R01",
+            "reason": "One cancelled, two returned damaged",
+            "allocation_amount": "20.00",
+        },
+        "r01-credit",
+    )
+    credit_note_id = _document_id(credited)
+    _reviewed(
+        session,
+        business,
+        "customer_refund_post",
+        {"credit_note_id": credit_note_id, "amount": "10.00"},
+        "r01-refund",
+    )
+
+    # Every quantity reconciles.
+    assert core.commitment_quantity(session, tenant, commitment.id) == 9
+    assert core.fulfilled_quantity(session, tenant, commitment.id) == 9
+    assert core.fulfilled_quantity(session, tenant, purchase.id) == 5
+    assert core.open_quantity(session, tenant, purchase.id) == 1
+    for location in (business.location, returns_area):
+        assert core.stock_at(session, tenant, business.item.id, location.id) == 0
+    # Every euro reconciles: 80 paid less 10 refunded pays the 7 kept at 10.
+    assert core.open_invoice_amount(session, tenant, invoice_id) == 0
+    assert core.open_invoice_amount(session, tenant, credit_note_id) == 0
 
 
 # --- N04 (spec 295) ------------------------------------------------------------
@@ -2159,7 +2320,9 @@ def test_a_marketplace_payout_settles_each_order_and_books_the_fees(session, bus
     """L03: one payment for many orders minus fees and a refund: each order settled,
     the refund settles its credit note, the fees are charges."""
     tenant = business.tenant.id
-    amazon, account = _provider(session, business, "Amazon EU S.a.r.l.", "Amazon Payments")
+    amazon, account = _provider(
+        session, business, "Amazon EU S.a.r.l.", "Amazon Payments"
+    )
     invoices = [
         _billed_order(session, business, f"AMZ-L03-{n}", "39.90")[0] for n in range(5)
     ]
@@ -2191,9 +2354,7 @@ def test_a_marketplace_payout_settles_each_order_and_books_the_fees(session, bus
     bank = list_accounts(session, tenant)["defaults"]["cash"]
     bank_before = _cash_on(session, business, bank)
 
-    lines = [
-        _charge(str(n), "charge", "39.90", f"AMZ-L03-{n}") for n in range(5)
-    ] + [
+    lines = [_charge(str(n), "charge", "39.90", f"AMZ-L03-{n}") for n in range(5)] + [
         _charge("R", "charge", "20.00", "AMZ-L03-R"),
         _charge("R-refund", "refund", "20.00", "AMZ-L03-R"),
         _charge("fees", "fee", "29.93"),
@@ -2228,7 +2389,9 @@ def test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_li
     from sqlalchemy import event
 
     tenant = business.tenant.id
-    amazon, account = _provider(session, business, "Amazon EU S.a.r.l.", "Amazon Payments")
+    amazon, account = _provider(
+        session, business, "Amazon EU S.a.r.l.", "Amazon Payments"
+    )
     # Three orders paid in an earlier payout come back as chargebacks.
     earlier = [
         _billed_order(session, business, f"AMZ-R04-E{n}", "40.00")[0] for n in range(3)
@@ -2247,7 +2410,8 @@ def test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_li
         ),
     )
     billed = [
-        _billed_order(session, business, f"AMZ-R04-{n:03d}", "25.00") for n in range(R04_ORDERS)
+        _billed_order(session, business, f"AMZ-R04-{n:03d}", "25.00")
+        for n in range(R04_ORDERS)
     ]
     for n, (_, line) in enumerate(billed[:12]):
         note, _ = core.create_manual_document_with_lines(
@@ -2271,8 +2435,14 @@ def test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_li
         core.post_sales_credit_note(session, tenant, note.id, _commit=False)
     session.commit()
     lines = (
-        [_charge(f"C{n:03d}", "charge", "25.00", f"AMZ-R04-{n:03d}") for n in range(R04_ORDERS)]
-        + [_charge(f"R{n:03d}", "refund", "25.00", f"AMZ-R04-{n:03d}") for n in range(12)]
+        [
+            _charge(f"C{n:03d}", "charge", "25.00", f"AMZ-R04-{n:03d}")
+            for n in range(R04_ORDERS)
+        ]
+        + [
+            _charge(f"R{n:03d}", "refund", "25.00", f"AMZ-R04-{n:03d}")
+            for n in range(12)
+        ]
         + [_charge(f"B{n}", "chargeback", "40.00", f"AMZ-R04-E{n}") for n in range(3)]
         + [_charge("commission", "fee", "1500.00"), _charge("ads", "fee", "80.00")]
     )
@@ -2287,7 +2457,13 @@ def test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_li
             session,
             business,
             "finance.payout.settle",
-            _payout(amazon, account, "AMZ-R04-0930", f"{R04_ORDERS * 25 - 300 - 120 - 1580:.2f}", lines),
+            _payout(
+                amazon,
+                account,
+                "AMZ-R04-0930",
+                f"{R04_ORDERS * 25 - 300 - 120 - 1580:.2f}",
+                lines,
+            ),
         )
     finally:
         event.remove(session.bind, "before_cursor_execute", count)
@@ -2302,9 +2478,9 @@ def test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_li
     assert [core.open_invoice_amount(session, tenant, i.id) for i in earlier] == [
         Decimal(40)
     ] * 3
-    assert {row.record_id for row in _findings(session, business, "payment_returned")} == {
-        invoice.id for invoice in earlier
-    }
+    assert {
+        row.record_id for row in _findings(session, business, "payment_returned")
+    } == {invoice.id for invoice in earlier}
     assert core.account_balance(session, tenant, "payment_fee_expense") == Decimal(
         "1580.00"
     )
@@ -2315,14 +2491,14 @@ def test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_li
     assert len(statements) < (R04_ORDERS + 17) * 20, len(statements)
 
 
-def test_cash_on_delivery_is_tied_to_the_parcel_it_was_collected_for(
-    session, business
-):
+def test_cash_on_delivery_is_tied_to_the_parcel_it_was_collected_for(session, business):
     """C13: the carrier remits the collected amount minus its fee; the line names
     the parcel's tracking number, which leads to the order and its invoice."""
     tenant = business.tenant.id
     dhl, account = _provider(session, business, "DHL Paket GmbH", "DHL Nachnahme")
-    _, order_line, commitment = _stocked_order(session, business, "SO-C13", quantity="1")
+    _, order_line, commitment = _stocked_order(
+        session, business, "SO-C13", quantity="1"
+    )
     tool, arguments = _dispatch(business, commitment, "1")
     shipped = _reviewed(
         session,
@@ -2409,12 +2585,22 @@ def test_authorization_and_capture_are_separate_facts(session, business):
     tenant = business.tenant.id
     order, _, _ = _stocked_order(session, business, "SO-C09", quantity="1")
     authorized = _authorization(
-        session, business, order, "100.00", 30, "pi_3Q0C09", at=core.now() - timedelta(days=2)
+        session,
+        business,
+        order,
+        "100.00",
+        30,
+        "pi_3Q0C09",
+        at=core.now() - timedelta(days=2),
     )
     first = _capture(
         session, business, authorized, "60.00", core.now() - timedelta(days=1)
     )
-    assert (first["captured"], first["remaining"], first["state"]) == ("60", "40", "live")
+    assert (first["captured"], first["remaining"], first["state"]) == (
+        "60",
+        "40",
+        "live",
+    )
 
     second = _capture(session, business, authorized, "40.00", core.now())
 
@@ -2456,9 +2642,7 @@ def test_an_expired_authorization_shows_the_uncovered_rest_of_a_late_shipment(
     assert found[order.id].causal_values["uncovered_amount"] == 400
     assert found[order.id].causal_values["captured_amount"] == 600
 
-    _authorization(
-        session, business, order, "400.00", 7, "pi_3Q0C10-re", at=core.now()
-    )
+    _authorization(session, business, order, "400.00", 7, "pi_3Q0C10-re", at=core.now())
 
     assert order.id not in {
         row.record_id

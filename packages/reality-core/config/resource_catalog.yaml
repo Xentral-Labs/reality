@@ -135,7 +135,7 @@ resources:
         Auftragsbeleg ist der Nachweis; offene Menge, Versandfähigkeit und Verzug werden aus der
         Verpflichtung, ihren Reservierungen und den erfüllenden Bewegungen abgeleitet.
     synonyms: [sales order, purchase order, commitment, reservation, backlog, Kundenauftrag, Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefersperre]
-    tables: [commitment, commitment_hold, commitment_revision, reservation, delivery_rule, commitment_substitute]
+    tables: [commitment, commitment_hold, commitment_revision, reservation, delivery_rule, commitment_substitute, prepayment_release]
     match: "commitment|reserv|order|promise|stale|fulfillment|hold|delivery_rule|backorder_against"
     views: [orders, commitments, reservations, fulfillment_blockers, warehouse_queue]
     projections: [fulfillment_queue, fulfillment_blockers, commitment_register]
@@ -747,6 +747,7 @@ labels:
       record_drop_shipment: Streckengeschäft erfassen
       assign_line_item: Artikel für Auftragszeile zuordnen
       release_credit_holds: Kreditsperre freigeben
+      release_prepayment: Vorkasse freigeben
       credit_exposure: Kreditobligo anzeigen
       record_down_payment_invoice: Anzahlungsrechnung erfassen
       record_proforma_invoice: Proforma-Rechnung erfassen

@@ -217,6 +217,7 @@
     "record_drop_shipment": "tracking",
     "assign_line_item": "orders",
     "release_credit_holds": "holds",
+    "release_prepayment": "holds",
     "credit_exposure": "holds",
     "record_down_payment_invoice": "customer-invoices",
     "record_proforma_invoice": "customer-invoices",

@@ -5419,25 +5419,32 @@ entries:
   section: Combined stress stories
   title: Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged
   question: Every quantity and every euro reconciles at the end.
-  status: partial
-  evidence_level: reviewed
-  summary: 'Reality evaluates: Every quantity and every euro reconciles at the end.'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Every quantity and every euro reconciles at the end. An 80 % prepaid order is refused until a company owner releases it with a reason; it ships in two parts while the supplier delivers 5 of 6 on two dates, one unit is cancelled and two come back damaged and are scrapped, and a credit for three settles the open 20 and refunds the 10 paid too much.'
   limitations:
-  - A prepayment order stays unshippable until paid in full, and no reviewed release overrides that, so the story cannot ship the 80 % prepaid order.
-  - Revision, cancellation, partial receipt and damaged returns each work on their own.
-  keywords: []
+  - The release covers the order's stated amount and lets the order ship before it is paid; the unpaid rest stays an ordinary open receivable until it is paid or credited.
+  - Raising a line's quantity does not raise the prepayment the order requires, because the gate measures the order's stated gross amount.
+  keywords:
+  - prepayment release
+  - ship before paid
+  - Vorkasse freigeben
+  - Teilzahlung Vorkasse
   question_examples:
   - Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged
   - Every quantity and every euro reconciles at the end.
-  tools: []
+  - Can an owner ship a partly prepaid order anyway?
+  - Kann ein Inhaber einen teilweise bezahlten Vorkasse-Auftrag trotzdem liefern?
+  tools:
+  - prepayment_release_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_cannot_be_released_anyway
-    note: The 80 % prepaid order is refused by shipment_dispatch and by movement_create (spec 294 fix); spec 275 FR-005 keeps it unshippable and no reviewed release exists.
-  - reference: tests/scenarios/test_fulfillment_safety_parity.py::test_two_order_story_keeps_unpaid_prepayment_stock_inside; tests/scenarios/test_b2b_operational_integrity.py::test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly; tests/scenarios/test_procure_to_pay.py::test_procure_to_pay_business_story; tests/test_returns.py::test_return_disposition_reconciles_four_partial_outcomes
-    note: Prepayment gating, revise/cancel, partial receipt and damaged-return pieces exist separately; no one test reconciles every quantity and euro.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_partly_paid_prepayment_order_is_released_by_an_owner
+    note: Both shipping routes refuse the 80 % prepaid order; a member cannot release it and an owner does with a reason; 4 ship, 5 of 6 reordered arrive on two dates, 1 is cancelled, the rest ships, 2 come back damaged and are scrapped, and a credit for 3 settles the open 20 and refunds 10. Quantities, stock and open amounts end at their reconciled values.
+  - reference: packages/reality-core/tests/test_prepayment_release.py
+    note: The release, owner-only confirmation, refusals, the amount it covers and tenant isolation (spec 347).
 - id: R02
   section: Combined stress stories
   title: Two customers wait for one item; under-delivery; key customer re-reserved; the other cancels
