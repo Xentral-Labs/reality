@@ -2293,3 +2293,15 @@ Table `kit_component` (the stated bill of materials) and the internal movement t
 - `packages/reality-core/tests/test_kit_adapters.py`: strict MCP schemas, agent proposals confirmed by a person, a review refusing what execution refuses, the web API, the CLI and isolation.
 - `packages/reality-core/tests/scenarios/test_catalog_kits.py`: stories K01, K02, K04 and K06, and K03 pinned as partial.
 - `apps/web/scripts/unified-workspaces-browser.mjs`: the kit section on the item page names its parts and the limiting one.
+## Picking and planned outbound deliveries — Spec 334
+
+Tables `outbound_delivery`, `outbound_delivery_line` and `outbound_delivery_pick`. Each plan and revision is a version of one internal source stream; picking is a `transfer` into staging that moves the promise's reservation with it; planned, picked, to put back and shipped are derived. `shipment_dispatch` takes `outbound_delivery_id` and refuses movements that differ from what the delivery carries.
+
+- `packages/reality-core/tests/test_outbound_deliveries.py`:
+  - A delivery states its recipient, address and slot; planned quantities stay within what is open; another customer's promise is refused.
+  - A revision keeps every statement.
+  - Picking moves stock and reservation to staging; a pick beyond the plan is refused with nothing moved; a pick needs a reservation and a staging location.
+  - A put-back moves both back; a cancelled promise leaves its goods waiting to be put back.
+  - A dispatch through the delivery keeps the address and slot and refuses a shipment that differs; a dispatch without a delivery is unchanged; another company sees nothing.
+- `packages/reality-core/tests/test_outbound_delivery_adapters.py`: strict MCP schemas, an agent plans, picks and dispatches, the Web prepares, confirms and reads, another company cannot plan or read, the CLI asks before planning.
+- `packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py`: stories A08, A11, A21, A24, D04, D13 and M05.

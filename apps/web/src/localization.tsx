@@ -25176,6 +25176,52 @@ Object.assign(dictionaries.de, {
   Takes: "Verbraucht",
   "Used in assembly": "In Montage verbraucht",
   Assembled: "Montiert",
+  "No planned delivery was found.": "Keine geplante Lieferung gefunden.",
+  "A planned delivery names its promises, each with a quantity.":
+    "Eine geplante Lieferung nennt ihre Verpflichtungen, jede mit einer Menge.",
+  "A planned delivery carries customer deliveries only.":
+    "Eine geplante Lieferung trägt nur Kundenlieferungen.",
+  "Every promise on a planned delivery belongs to its customer.":
+    "Jede Verpflichtung einer geplanten Lieferung gehört zu deren Kunden.",
+  "Only an open promise can be planned or picked.":
+    "Nur eine offene Verpflichtung kann geplant oder kommissioniert werden.",
+  "More is planned than the promise still has open; {open} can still be planned.":
+    "Es ist mehr geplant, als die Verpflichtung noch offen hat; {open} kann noch geplant werden.",
+  "A promise appears once on a planned delivery.":
+    "Eine Verpflichtung steht nur einmal auf einer geplanten Lieferung.",
+  "A booked slot states when it opens and when it closes, and closes after it opens.":
+    "Ein gebuchtes Zeitfenster nennt Beginn und Ende, und das Ende liegt nach dem Beginn.",
+  "An address states name, street, postal code, city, country or a note, as text.":
+    "Eine Adresse nennt Name, Straße, Postleitzahl, Ort, Land oder einen Hinweis als Text.",
+  "The location must hold stock and differ from the staging location.":
+    "Der Lagerort muss Bestand führen und sich vom Bereitstellplatz unterscheiden.",
+  "This delivery has shipped; it cannot be changed, picked or put back.":
+    "Diese Lieferung ist versendet; sie kann nicht mehr geändert, kommissioniert oder zurückgelagert werden.",
+  "Goods are picked for this line; put them back before planning less or removing it.":
+    "Für diese Zeile ist Ware kommissioniert; lagern Sie sie zurück, bevor Sie weniger planen oder die Zeile entfernen.",
+  "Name a staging location before picking.":
+    "Nennen Sie vor dem Kommissionieren einen Bereitstellplatz.",
+  "This promise is not on the planned delivery.":
+    "Diese Verpflichtung steht nicht auf der geplanten Lieferung.",
+  "More is picked than is planned; {open} can still be picked.":
+    "Es wird mehr kommissioniert als geplant; {open} kann noch kommissioniert werden.",
+  "Only what is reserved for the promise can be picked from there.":
+    "Von dort kann nur kommissioniert werden, was für die Verpflichtung reserviert ist.",
+  "The promise is reserved at more than one location; name where the goods are taken from.":
+    "Die Verpflichtung ist an mehr als einem Lagerort reserviert; nennen Sie, woher die Ware genommen wird.",
+  "More is put back than is picked; {picked} is picked.":
+    "Es wird mehr zurückgelagert als kommissioniert; {picked} ist kommissioniert.",
+  "The planned delivery changed since this review. Review it again.":
+    "Die geplante Lieferung hat sich seit dieser Prüfung geändert. Prüfen Sie sie erneut.",
+  "The shipment differs from what the planned delivery carries.":
+    "Die Sendung weicht von dem ab, was die geplante Lieferung trägt.",
+  "Not everything planned is picked yet.": "Noch ist nicht alles Geplante kommissioniert.",
+  "Goods of a cancelled promise are still in staging; put them back first.":
+    "Ware einer stornierten Verpflichtung liegt noch am Bereitstellplatz; lagern Sie sie zuerst zurück.",
+  "Picked goods are in the staging location; put them back before changing it.":
+    "Am Bereitstellplatz liegt kommissionierte Ware; lagern Sie sie zurück, bevor Sie ihn ändern.",
+  "These fields cannot be revised: {fields}.":
+    "Diese Felder können nicht geändert werden: {fields}.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25716,6 +25762,51 @@ Object.assign(dictionaries.nl, {
   Takes: "Verbruikt",
   "Used in assembly": "Verbruikt bij samenstelling",
   Assembled: "Samengesteld",
+  "No planned delivery was found.": "Geen geplande levering gevonden.",
+  "A planned delivery names its promises, each with a quantity.":
+    "Een geplande levering noemt haar verplichtingen, elk met een hoeveelheid.",
+  "A planned delivery carries customer deliveries only.":
+    "Een geplande levering bevat alleen klantleveringen.",
+  "Every promise on a planned delivery belongs to its customer.":
+    "Elke verplichting op een geplande levering hoort bij haar klant.",
+  "Only an open promise can be planned or picked.":
+    "Alleen een openstaande verplichting kan worden gepland of verzameld.",
+  "More is planned than the promise still has open; {open} can still be planned.":
+    "Er is meer gepland dan de verplichting nog open heeft; {open} kan nog worden gepland.",
+  "A promise appears once on a planned delivery.":
+    "Een verplichting staat maar één keer op een geplande levering.",
+  "A booked slot states when it opens and when it closes, and closes after it opens.":
+    "Een geboekt tijdvak noemt begin en einde, en het einde ligt na het begin.",
+  "An address states name, street, postal code, city, country or a note, as text.":
+    "Een adres noemt naam, straat, postcode, plaats, land of een opmerking als tekst.",
+  "The location must hold stock and differ from the staging location.":
+    "De locatie moet voorraad houden en verschillen van de klaarzetlocatie.",
+  "This delivery has shipped; it cannot be changed, picked or put back.":
+    "Deze levering is verzonden; ze kan niet meer worden gewijzigd, verzameld of teruggelegd.",
+  "Goods are picked for this line; put them back before planning less or removing it.":
+    "Voor deze regel zijn goederen verzameld; leg ze terug voordat u minder plant of de regel verwijdert.",
+  "Name a staging location before picking.": "Noem een klaarzetlocatie voordat u verzamelt.",
+  "This promise is not on the planned delivery.":
+    "Deze verplichting staat niet op de geplande levering.",
+  "More is picked than is planned; {open} can still be picked.":
+    "Er wordt meer verzameld dan gepland; {open} kan nog worden verzameld.",
+  "Only what is reserved for the promise can be picked from there.":
+    "Van daar kan alleen worden verzameld wat voor de verplichting is gereserveerd.",
+  "The promise is reserved at more than one location; name where the goods are taken from.":
+    "De verplichting is op meer dan één locatie gereserveerd; noem waar de goederen vandaan komen.",
+  "More is put back than is picked; {picked} is picked.":
+    "Er wordt meer teruggelegd dan verzameld; {picked} is verzameld.",
+  "The planned delivery changed since this review. Review it again.":
+    "De geplande levering is sinds deze controle gewijzigd. Controleer haar opnieuw.",
+  "The shipment differs from what the planned delivery carries.":
+    "De zending wijkt af van wat de geplande levering bevat.",
+  "Not everything planned is picked yet.": "Nog niet alles wat gepland is, is verzameld.",
+  "Goods of a cancelled promise are still in staging; put them back first.":
+    "Goederen van een geannuleerde verplichting staan nog klaar; leg ze eerst terug.",
+  "Picked goods are in the staging location; put them back before changing it.":
+    "Op de klaarzetlocatie staan verzamelde goederen; leg ze terug voordat u haar wijzigt.",
+  "These fields cannot be revised: {fields}.":
+    "Deze velden kunnen niet worden gewijzigd: {fields}.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -26257,6 +26348,50 @@ Object.assign(dictionaries.es, {
   Takes: "Consume",
   "Used in assembly": "Consumido en montaje",
   Assembled: "Montado",
+  "No planned delivery was found.": "No se encontró ninguna entrega planificada.",
+  "A planned delivery names its promises, each with a quantity.":
+    "Una entrega planificada indica sus compromisos, cada uno con una cantidad.",
+  "A planned delivery carries customer deliveries only.":
+    "Una entrega planificada solo incluye entregas a clientes.",
+  "Every promise on a planned delivery belongs to its customer.":
+    "Cada compromiso de una entrega planificada pertenece a su cliente.",
+  "Only an open promise can be planned or picked.":
+    "Solo un compromiso abierto puede planificarse o prepararse.",
+  "More is planned than the promise still has open; {open} can still be planned.":
+    "Se planifica más de lo que el compromiso tiene abierto; aún se puede planificar {open}.",
+  "A promise appears once on a planned delivery.":
+    "Un compromiso aparece una sola vez en una entrega planificada.",
+  "A booked slot states when it opens and when it closes, and closes after it opens.":
+    "Una franja reservada indica cuándo empieza y cuándo termina, y termina después de empezar.",
+  "An address states name, street, postal code, city, country or a note, as text.":
+    "Una dirección indica nombre, calle, código postal, ciudad, país o una nota, como texto.",
+  "The location must hold stock and differ from the staging location.":
+    "La ubicación debe admitir stock y ser distinta de la zona de preparación.",
+  "This delivery has shipped; it cannot be changed, picked or put back.":
+    "Esta entrega ya se envió; no puede modificarse, prepararse ni devolverse al almacén.",
+  "Goods are picked for this line; put them back before planning less or removing it.":
+    "Hay mercancía preparada para esta línea; devuélvala al almacén antes de planificar menos o eliminarla.",
+  "Name a staging location before picking.": "Indique una zona de preparación antes de preparar.",
+  "This promise is not on the planned delivery.":
+    "Este compromiso no está en la entrega planificada.",
+  "More is picked than is planned; {open} can still be picked.":
+    "Se prepara más de lo planificado; aún se puede preparar {open}.",
+  "Only what is reserved for the promise can be picked from there.":
+    "Desde allí solo se puede preparar lo reservado para el compromiso.",
+  "The promise is reserved at more than one location; name where the goods are taken from.":
+    "El compromiso está reservado en más de una ubicación; indique de dónde se toma la mercancía.",
+  "More is put back than is picked; {picked} is picked.":
+    "Se devuelve más de lo preparado; hay {picked} preparado.",
+  "The planned delivery changed since this review. Review it again.":
+    "La entrega planificada cambió desde esta revisión. Revísela de nuevo.",
+  "The shipment differs from what the planned delivery carries.":
+    "El envío difiere de lo que incluye la entrega planificada.",
+  "Not everything planned is picked yet.": "Todavía no se ha preparado todo lo planificado.",
+  "Goods of a cancelled promise are still in staging; put them back first.":
+    "La mercancía de un compromiso cancelado sigue en la zona de preparación; devuélvala primero al almacén.",
+  "Picked goods are in the staging location; put them back before changing it.":
+    "Hay mercancía preparada en la zona de preparación; devuélvala antes de cambiarla.",
+  "These fields cannot be revised: {fields}.": "Estos campos no pueden modificarse: {fields}.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

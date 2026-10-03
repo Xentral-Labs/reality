@@ -684,6 +684,48 @@
       "effect": "Lists a customer's own article numbers, or the numbers customers use for one item."
     },
     {
+      "name": "Plan an outbound delivery",
+      "service": "plan_outbound_delivery",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Plans one delivery of a customer's open promises before dispatch, with its recipient, stated address, booked slot and staging location; a promise can be split across deliveries up to what is still open."
+    },
+    {
+      "name": "Revise a planned delivery",
+      "service": "revise_outbound_delivery",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "States a planned delivery anew before it ships, such as a changed address or a promise that rides along; every statement is kept as a version."
+    },
+    {
+      "name": "Pick a planned delivery",
+      "service": "pick_outbound_delivery",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Transfers goods from where a promise is reserved into the delivery's staging location; the reservation moves with them, so availability stays true."
+    },
+    {
+      "name": "Put back picked goods",
+      "service": "put_back_outbound_delivery",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Transfers picked goods out of staging to a stock location; an open promise's reservation moves back with them."
+    },
+    {
+      "name": "Read planned deliveries",
+      "service": "outbound_deliveries",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lists the planned deliveries, newest first, with recipient, address, slot, derived state and per line planned, picked, to put back and shipped."
+    },
+    {
+      "name": "Read a planned delivery",
+      "service": "outbound_delivery_detail",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Shows one planned delivery with its pick and put-back movements, every statement, its shipment and the dispatch arguments that ship exactly what it carries."
+    },
+    {
       "name": "Record a stock count",
       "service": "record_stock_count",
       "related_services": ["review_stock_count", "book_as_of"],

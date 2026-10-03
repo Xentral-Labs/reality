@@ -2,20 +2,20 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 161 covered, 9 partial, 0 missing, 55 gap, 3 out.
+228 scenarios: 168 covered, 9 partial, 0 missing, 48 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
-| A Order intake and changes | 16 |  |  | 8 |  |
+| A Order intake and changes | 20 |  |  | 4 |  |
 | B Availability and reservation | 12 |  |  | 6 |  |
 | C Payment and release | 17 |  |  | 1 |  |
-| D Shipment, split and merge | 10 | 1 |  | 8 |  |
+| D Shipment, split and merge | 12 | 1 |  | 6 |  |
 | E Customer invoice and credit | 12 |  |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
 | G Purchase demand and order | 12 |  |  | 5 |  |
@@ -24,7 +24,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | J Warehouse and stock | 6 | 1 |  | 4 |  |
 | K Kits and variants | 5 | 1 |  |  |  |
 | L E-commerce and marketplaces | 8 |  |  | 4 |  |
-| M B2B specifics | 3 | 2 |  | 7 |  |
+| M B2B specifics | 4 | 2 |  | 6 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 3 |  |  | 2 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
@@ -40,8 +40,10 @@ Shopify, and B2B structures.
 
 Most of the 74 gaps come from a few structural decisions or absences, not from single cases.
 
-1. **Nothing exists between reservation and dispatch.** No picking record, no planned outbound
-   delivery, no per-shipment address or recipient. A08, A11, A21, A24, D04, D13, M05.
+1. **Nothing existed between reservation and dispatch.** Since spec 334 a planned outbound
+   delivery states its recipient, address and booked slot, picking moves goods and their
+   reservation into staging, and the shipment keeps where it went (A08, A11, A21, A24, D04, D13,
+   M05). Pick lists by bin path, waves and handheld scanning are still not modelled.
 2. **A movement must match its commitment exactly.** Over-receipt, wrong item and substitutes
    cannot be tied to the purchase or order; they appear only as `unexplained_movement`.
    H04, H05, H06, H07, D05 (F03 related).
@@ -127,10 +129,10 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | A05 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_lowers_a_line_below_what_already_shipped | The revision stands, and Shipped beyond the order reports the excess until it comes back or the line is raised again (spec 313). |
 | A06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_cancelling_one_line_leaves_the_other_lines_open_and_reserved | Reviewed cancellation of one of three reserved lines: only that line is cancelled and unreserved; the other two stay open with their reservations. |
 | A07 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_cancelling_every_line_of_a_reserved_order_releases_all_its_stock | Every line of a reserved two-item order cancelled through the reviewed action: no active reservation remains and stock is unchanged. |
-| A08 | gap | packages/reality-core/src/reality/services/core.py (no picking concept) | There is no picking or staging record, so "picked but not shipped" and the stock going back cannot be represented. |
+| A08 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_order_cancelled_after_picking_goes_back_to_its_bin | Picking moves the goods into staging; after the cancellation they show as to put back until the put-back returns them to the bin (spec 334). |
 | A09 | covered | packages/reality-core/tests/scenarios/test_catalog_sources.py::test_a_cancellation_after_shipment_becomes_an_expected_return | After shipment the cancellation cancels nothing, waits with cancelled_after_shipment naming return_announce, and a confirmed announcement expects the goods back (spec 296). |
 | A10 | gap | packages/reality-core/tests/test_document_corrections.py::test_manual_line_economic_changes_lock_after_reality_but_description_remains_correctable | Adding a line is blocked once Reality exists, and Shopify changes are held for review, so no path swaps a variant on the same order while keeping its history. |
-| A11 | gap | packages/reality-core/src/reality/db/core.py (Document.ship_to_party_id; Shipment has only counterparty_id) | Ship-to exists only on the document. A shipment carries no address, so which address a shipment used cannot be answered. |
+| A11 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_changed_address_before_shipment_is_the_one_used | A revision before dispatch states the new address; both statements are kept and the shipment keeps the one it used (spec 334). |
 | A12 | gap | packages/reality-core/src/reality/services/core.py::reserve | Reservation is explicit, and no rule uses `due_at` or `requested_delivery_at` to decide when to reserve. |
 | A13 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_each_order_line_keeps_its_own_promised_date | Two lines carry their own promised date; a third falls back to the order's requested delivery date. |
 | A14 | gap | packages/reality-core/src/reality/services/core.py::MANUAL_OPERATIONAL_DOCUMENT_TYPES | There is no quote document type and no quote-to-order link. Spec 259 is a pricing preview only. |
@@ -140,10 +142,10 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | A18 | covered | packages/reality-core/tests/test_pricing.py::test_document_line_retains_agreed_entry_when_current_price_changes, ::test_manual_agreement_remains_valid_without_pricing_entry | The stated price is kept against the list price. Order entry also keeps a stated gross of 24.91 against 2 x 12.50. |
 | A19 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_zero_price_line_ships_and_is_invoiced_without_revenue | A zero-price line beside a priced one is reserved, shipped and invoiced at zero through document_create and sales_invoice_post; revenue is the priced line only and shipped_not_billed clears (positive control first). |
 | A20 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_one_shipment_fulfils_two_orders_of_the_same_customer | One shipment and one package fulfil two orders (3 and 5); 8 promised, 8 dispatched. |
-| A21 | gap | packages/reality-core/src/reality/db/core.py (Commitment.to_party_id, Shipment.counterparty_id) | A commitment has no per-line recipient or address, so lines cannot be split across two delivery addresses. |
+| A21 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_one_order_goes_to_two_addresses | One promise split across two planned deliveries up to what is open, each shipment with its own address (spec 334). |
 | A22 | covered | packages/reality-core/tests/test_commitment_holds.py::test_hold_blocks_reservation_and_movement_until_released, ::test_the_release_is_recorded_by_the_release_operation; tests/operational_exceptions/test_derivation.py (`commitment_hold_unreleased`) | The hold's reason code blocks execution, the release is recorded, and an unreleased hold is surfaced. |
 | A23 | gap | (see M01); no blanket or call-off concept in src/reality | There is no frame-contract or call-off structure. |
-| A24 | gap | packages/reality-core/src/reality/services/shipments.py::record_packaged_execution | Outbound shipments only exist at dispatch, with no pending delivery to join, and adding a line after Reality exists is blocked. |
+| A24 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_line_added_later_rides_with_the_open_delivery | A follow-up order's promise joins the open planned delivery and ships in the same shipment (spec 334). |
 
 ## B. Availability, reservation and backorder
 
@@ -198,7 +200,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | D01 | covered | packages/reality-core/tests/test_inventory_and_fulfillment.py::test_partial_shipments_derive_fulfillment_and_consume_reservations | Asserts fulfilled 10 / open 20, then fulfilled after the remainder ships; the remaining reservation is used up too. |
 | D02 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_two_warehouses_ship_one_order_line_as_two_parcels | Six reserved at home and four in Munich for one line: ready to ship, two parcels from their own warehouses fulfil the one promise (spec 303). |
 | D03 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_one_package_carries_several_commitments_of_one_customer | One package fulfils three commitments over two items by their own quantities (0, 0 and 1 open). |
-| D04 | gap | packages/reality-core/src/reality/db/core.py (no picking record; only Reservation → Movement) | Picking is not modelled, so there is no record for a caught picking error to correct. |
+| D04 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_picking_error_is_caught_before_shipment | An over-pick is refused before anything moves; a wrong pick goes back by a put-back; the dispatch waits until the delivery is picked (spec 334). |
 | D05 | gap | packages/reality-core/src/reality/services/core.py `_append_movement` ("Movement does not match the commitment") | A shipment of the wrong item cannot name the commitment it was meant for; it can only be recorded unlinked, as an unexplained movement. |
 | D06 | covered | packages/reality-core/tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock | A stocktake-loss adjustment raises reservation_exceeds_stock with the shortfall; the entry clears on receipt. |
 | D07 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again | A lost parcel is a failed delivery: the shipment no longer counts, the goods stay written off, the promise is open again, and a claim against the carrier is an open receivable its payment settles (spec 335). |
@@ -207,7 +209,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | D10 | gap | packages/reality-core/src/reality/services/core.py (fulfilment derives only from own stock `shipment` Movements) | No drop-ship path: a commitment cannot be fulfilled without a movement out of own stock. |
 | D11 | gap | same as D10 | Same as D10: no supplier-direct fulfilment path to combine with own stock. |
 | D12 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_3pl_confirms_on_thursday_what_left_on_monday | Movements carry when the goods left; the shipment shows when it was recorded and the lag, and overdue clears (spec 312). |
-| D13 | gap | packages/reality-core/src/reality/db/core.py Shipment/ShipmentEvent (no slot/appointment field) | There is no booked delivery slot record, only movement occurred_at and carrier events. |
+| D13 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_pallet_freight_ships_with_its_booked_slot | The planned delivery states its booked slot, the shipment keeps it, and a slot that closed unshipped shows as missed (spec 334). |
 | D14 | gap | db/core.py Shipment/Document (no customs or export-proof link) | Export evidence could only sit in a lossless payload; nothing typed links it to the shipment. |
 | D15 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_collects_the_order_at_the_counter | A pickup is a stated delivery mode with who collected, without carrier (spec 312). |
 | D16 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_free_replacement_ships_without_an_order_and_explains_itself | Free replacement recorded as an advance customer exchange against the announced faulty unit: a document-less zero-amount promise is reserved, shipped and explained; only the original unbilled order line is reported (positive control). |
@@ -365,7 +367,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | M02 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_orders_by_its_own_item_numbers; tests/test_pricing.py::test_pricing_resolves_direct_group_default_and_quantity_tiers | Customer prices are proven; per customer a number names an item, typed and imported orders resolve it, and an unknown number waits for an assignment that can remember it (spec 308). |
 | M03 | gap | tests/test_master_data_api.py::test_api_ingests_arbitrary_source_as_unmapped | EDI messages can only be stored as unmapped sources; there are no ORDERS/ORDRSP/DESADV/INVOIC/REMADV interpreters or links between messages. |
 | M04 | partial | tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated; tests/scenarios/test_b2b_operational_integrity.py::test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly; tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record | Manual `commitment_revise` is proven; a customer ORDCHG source does not create a revision (a changed Shopify order is held for review instead). |
-| M05 | gap | db/core.py Document.ship_to_party_id | Only one ship-to per document header, so several recipients per order can't be stated. |
+| M05 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_retail_chain_order_is_delivered_to_its_stores | Planned deliveries name a store each as recipient and split one order between them; each shipment keeps its recipient (spec 334). |
 | M06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_who_wants_no_backorders_has_the_rest_cancelled | No backorders stated for the customer: 6 of 10 ship, Backorder against the customer's rule reports the open 4 with its reason, and the reviewed cancellation clears it (spec 306). |
 | M07 | gap | docs/ideas/attachments.md (HandlingUnit label idea only) | No label or delivery-note output exists, and no doc states it is out of core scope, so "out" can't be cited. |
 | M08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_customer_deduction_with_an_agreed_reason_leaves_nothing_open | Customer short payment with an agreed_deduction reduction through finance.settlement.apply: invoice open 0, reason on the review and the adjustment source record. |
