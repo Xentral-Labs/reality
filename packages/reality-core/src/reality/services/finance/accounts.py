@@ -14,7 +14,13 @@ from reality.domain.finance import ACCOUNT_ROLES, BASE_ACCOUNT_ROLES
 
 def lock_finance(session: Session, tenant_id: str) -> FinanceState:
     from reality.services.business_locks import lock_delivery_state
+    from reality.services.core import _batch_memo
 
+    memo = _batch_memo(session)
+    if memo is not None and ("finance_lock", tenant_id) in memo:
+        # Locked for the rest of the transaction; callers raise the revision on
+        # the same row object (spec 342).
+        return memo[("finance_lock", tenant_id)]
     lock_delivery_state(session, tenant_id)
     session.execute(
         insert(FinanceState)
@@ -27,6 +33,8 @@ def lock_finance(session: Session, tenant_id: str) -> FinanceState:
         .with_for_update()
         .execution_options(populate_existing=True)
     )
+    if memo is not None:
+        memo[("finance_lock", tenant_id)] = state
     return state
 
 
@@ -294,8 +302,13 @@ def initialize_accounts(
 def resolve_account(
     session: Session, tenant_id: str, role: str, account_id: str | None = None
 ) -> SubledgerAccount:
-    from reality.services.core import InvalidOperation
+    from reality.services.core import InvalidOperation, _batch_memo
 
+    memo = _batch_memo(session)
+    key = ("account", tenant_id, role, account_id)
+    if memo is not None and key in memo:
+        # A batch changes no account or default (spec 342).
+        return memo[key]
     if account_id is None:
         dest = session.scalar(
             select(FinanceRoleDestination)
@@ -313,6 +326,8 @@ def resolve_account(
     account = _get(session, tenant_id, account_id)
     if account.role != role or account.state != "active":
         raise InvalidOperation(code="finance_account_blocked_or_wrong_role")
+    if memo is not None:
+        memo[key] = account
     return account
 
 

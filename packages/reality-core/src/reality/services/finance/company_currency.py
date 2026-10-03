@@ -36,8 +36,17 @@ def _row(session: Session, tenant_id: str) -> CompanyCurrency | None:
 
 def company_currency(session: Session, tenant_id: str) -> str:
     """The company currency, EUR when none was stated."""
+    from reality.services.core import _batch_memo
+
+    memo = _batch_memo(session)
+    if memo is not None and ("company_currency", tenant_id) in memo:
+        # A batch does not state the company currency (spec 342).
+        return memo[("company_currency", tenant_id)]
     row = _row(session, tenant_id)
-    return row.currency if row else DEFAULT_CURRENCY
+    currency = row.currency if row else DEFAULT_CURRENCY
+    if memo is not None:
+        memo[("company_currency", tenant_id)] = currency
+    return currency
 
 
 def company_currency_state(session: Session, tenant_id: str) -> dict[str, Any]:

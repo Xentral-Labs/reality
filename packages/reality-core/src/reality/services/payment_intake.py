@@ -140,6 +140,10 @@ def _existing(
 
 
 def _lines_of(session: Session, tenant_id: str, document_id: str) -> list[DocumentLine]:
+    memo = core._batch_memo(session)
+    if memo is not None and ("lines_of", tenant_id, document_id) in memo:
+        # Read for a whole payout statement at once (spec 342).
+        return memo[("lines_of", tenant_id, document_id)]
     return list(
         session.scalars(
             select(DocumentLine).where(
@@ -282,6 +286,9 @@ def _posted_control(
 def _invoices_billing(
     session: Session, tenant_id: str, order: Document
 ) -> list[Document]:
+    memo = core._batch_memo(session)
+    if memo is not None and ("invoices_billing", tenant_id, order.id) in memo:
+        return memo[("invoices_billing", tenant_id, order.id)]
     order_line_ids = [line.id for line in _lines_of(session, tenant_id, order.id)]
     if not order_line_ids:
         return []
@@ -311,6 +318,12 @@ def _invoices_billing(
 def _orders_by(
     session: Session, tenant_id: str, party_id: str, **where: str
 ) -> list[Document]:
+    memo = core._batch_memo(session)
+    if memo is not None and len(where) == 1:
+        ((column, value),) = where.items()
+        key = ("orders_by", tenant_id, party_id, column, value)
+        if key in memo:
+            return memo[key]
     query = select(Document).where(
         Document.tenant_id == tenant_id,
         Document.party_id == party_id,
@@ -369,6 +382,9 @@ def _bills_other_orders(
     session: Session, tenant_id: str, invoice: Document, order_ids: set[str]
 ) -> bool:
     """Whether an invoice also bills lines of orders outside ``order_ids``."""
+    memo = core._batch_memo(session)
+    if memo is not None and ("billed_orders", tenant_id, invoice.id) in memo:
+        return bool(memo[("billed_orders", tenant_id, invoice.id)] - order_ids)
     billed_orders = set(
         session.scalars(
             select(DocumentLine.document_id).where(
