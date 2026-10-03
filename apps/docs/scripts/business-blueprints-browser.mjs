@@ -191,11 +191,8 @@ try {
   await page.getByRole("tab", { name: "Source code", exact: true }).click();
   await page.locator("[data-direct-source]").waitFor();
   assert.equal(reads, 4, "Opening already loaded source must remain local");
-  const sourceRequest = page.waitForRequest((request) => request.url().includes("interpret=false"));
-  await page.getByRole("button", { name: "Refresh code", exact: true }).click();
-  await sourceRequest;
-  await page.locator("[data-direct-source]").waitFor();
-  assert.equal(reads, 5);
+  assert.equal(await page.getByRole("button", { name: "Refresh code", exact: true }).count(), 0);
+  assert.equal(reads, 4, "Source tab must not add a refresh request");
   await page.screenshot({ path: "/tmp/business-blueprints-docs.png", fullPage: true });
   console.log("Live docs browser: freshness, escaping, tests, graph and retry passed.");
 } finally {

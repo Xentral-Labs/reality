@@ -73,3 +73,61 @@ def test_registered_exception_source_discloses_shared_evaluator():
     assert any(
         "shared exception evaluator" in limitation for limitation in result.limitations
     )
+
+
+def test_projection_source_starts_with_real_stored_reader_and_registered_builder():
+    from reality.services import projections
+    from reality.services.business_blueprints import _inventory, _roots
+
+    inventory = _inventory()
+    for (kind, key), entry in inventory.items():
+        if kind != "projection":
+            continue
+        roots = _roots(entry, inventory)
+        assert roots[0].__name__ == "projection_rows"
+        builder = projections.NARROWED_BUILDERS.get(key)
+        if builder is not None:
+            assert builder in roots
+
+
+def test_all_registered_view_and_projection_sources_fit_public_response(monkeypatch):
+    import json
+
+    from reality.services import business_blueprint_presentation as presentation
+    from reality.services.business_blueprints import _inventory
+
+    def forbidden():
+        raise AssertionError("Source inspection must not invoke the interpreter")
+
+    monkeypatch.setattr(presentation, "deployment_provider", forbidden)
+    for kind, key in _inventory():
+        if kind not in {"view", "projection"}:
+            continue
+        result = explain(kind, key, interpret=False, brief=True)
+        assert result.sources, (kind, key, result.limitations)
+        assert (
+            len(json.dumps(result.model_dump(mode="json")).encode()) <= 2 * 1024 * 1024
+        )
+        for source in result.sources:
+            assert source.code and source.start_line > 0 and source.digest
+        if kind == "projection":
+            assert any("shared projection" in text for text in result.limitations)
+
+
+def test_public_rejection_handler_has_actual_source():
+    result = explain("tool", "proposal_reject", interpret=False)
+    assert any(
+        source.function.endswith("._reject_proposal") for source in result.sources
+    )
+
+
+def test_projection_builder_links_to_verified_called_calculation():
+    result = explain("projection", "fulfillment_queue", interpret=False)
+    builder = next(source for source in result.sources if source.role == "builder")
+    helper = next(
+        source
+        for source in result.sources
+        if source.function.endswith("._narrowed_open_work")
+    )
+    assert builder.function in helper.called_by
+    assert helper.digest and helper.code

@@ -180,3 +180,7 @@ User review supersedes FR-030's prominent separate initial card: lead with catal
 ### Direct code entry and exception coverage
 
 User requests clearer code access and checks read/exception coverage. Add a bounded public source-only request flag that delegates to the existing explain service with interpretation disabled, with a direct source tab in Docs. Keep the separate explicit interpretation action. Views/projections remain existing registered roots. Extend inventory to registered exception definitions and their actual shared exception evaluator; disclose shared scope and retain partial status. Never invoke the evaluator or query company records. Tests first: interpreter is forbidden during source-only reads, exception inventory/source scope, Vue code control and browser raw-source display. Constitution Check PASS; FR-032 maps T068; no unresolved clarification or critical conflict.
+
+### Source inspection audit
+
+Review: FR-035 restores accurate source navigation under FR-032; no unresolved clarification or critical finding. Constitution check passes: read-only inspection of existing callables and executable builder registry, no schema or business-rule changes. Verify catalog-wide view/projection source coverage and bounds, MCP rejection handler, original source line rendering and failure/retry behavior before completion. Preserve the user-approved primary function plus collapsed helpers and removal of redundant source controls.

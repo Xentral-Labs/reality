@@ -19,6 +19,8 @@ class SourceEvidence(EvidenceModel):
     end_line: int
     digest: str
     code: str
+    role: Literal["reader", "builder", "shared", "dependency"] = "dependency"
+    called_by: tuple[str, ...] = ()
     limitations: tuple[str, ...] = ()
 
 
