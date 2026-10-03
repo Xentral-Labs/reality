@@ -2413,3 +2413,13 @@ Exception class `reservation_awaiting_prepayment`, derived at read time: an open
   - Reported after a week with the reserved quantity and unpaid amount; not inside the week, not for an ordinary or unreserved order; nothing is released.
   - Payment, release of the reservation or cancellation clear it; a part payment names the rest; another company sees nothing.
 - `packages/reality-core/tests/scenarios/test_catalog_prepayment_reservations.py`: story B12.
+
+## Unconfirmed purchase orders — Spec 346
+
+Exception class `purchase_order_unconfirmed`, derived at read time: an open purchase line with no supplier revision and no receipt three days after its order was placed.
+
+- `packages/reality-core/tests/test_purchase_order_unconfirmed.py`:
+  - Reported after three days, with an order placed yesterday as the control.
+  - A confirmation as ordered, a receipt or a cancellation clears it; read as of before the confirmation it was still waiting.
+  - Another company sees nothing.
+- `packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_purchase_order_the_supplier_has_not_confirmed_is_flagged` (G10).

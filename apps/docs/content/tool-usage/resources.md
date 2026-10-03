@@ -369,8 +369,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Shipped beyond the order](./exceptions#exception-shipped_beyond_order) (`shipped_beyond_order`)
 - [Received beyond the order](./exceptions#exception-received_beyond_order)
   (`received_beyond_order`)
-- [Reservation waiting for prepayment](./exceptions#exception-reservation_awaiting_prepayment)
-  (`reservation_awaiting_prepayment`)
+- [Purchase order not confirmed](./exceptions#exception-purchase_order_unconfirmed)
+  (`purchase_order_unconfirmed`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay)
