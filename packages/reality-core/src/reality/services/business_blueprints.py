@@ -119,6 +119,55 @@ def _canonical_handler(function: Any) -> Any:
     return function
 
 
+def _bound_projection_keys(functions: list[Any], inventory: dict) -> set[str]:
+    """Read fixed arguments to the actual shared adapter without executing it."""
+    from reality.tools.application import _projection_read
+
+    result: set[str] = set()
+    for function in functions:
+        try:
+            tree = source_tree(capture_source(function))
+            bindings = {
+                **function.__globals__,
+                **inspect.getclosurevars(function).nonlocals,
+            }
+        except (SourceUnavailable, TypeError, ValueError):
+            continue
+        local_names = set(function.__code__.co_varnames) | set(
+            function.__code__.co_cellvars
+        )
+        for call in ast.walk(tree):
+            if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Name):
+                continue
+            if (
+                call.func.id in local_names
+                or bindings.get(call.func.id) is not _projection_read
+            ):
+                continue
+            argument = (
+                call.args[2]
+                if len(call.args) > 2
+                else next(
+                    (
+                        keyword.value
+                        for keyword in call.keywords
+                        if keyword.arg == "name"
+                    ),
+                    None,
+                )
+            )
+            value = (
+                argument.value
+                if isinstance(argument, ast.Constant)
+                else bindings.get(argument.id)
+                if isinstance(argument, ast.Name) and argument.id not in local_names
+                else None
+            )
+            if isinstance(value, str) and ("projection", value) in inventory:
+                result.add(value)
+    return result
+
+
 def _roots(entry: dict[str, Any], inventory: dict) -> list[Any]:
     from reality.catalogs import _service
     from reality.mcp.catalog import MCP_TOOL_CATALOG
@@ -178,6 +227,8 @@ def _roots(entry: dict[str, Any], inventory: dict) -> list[Any]:
             roots = [_canonical_handler(TOOLS[application_name].handler)]
             if approved_callable(handler):
                 roots.insert(0, handler)
+            for projection_key in sorted(_bound_projection_keys(roots, inventory)):
+                roots.extend(_roots(inventory["projection", projection_key], inventory))
             return roots
         return [_canonical_handler(handler)] if approved_callable(handler) else []
     return [
@@ -382,12 +433,19 @@ def explain(
             "Source includes the shared exception evaluator, not a class-isolated implementation."
         )
         status = "partial"
-    projection_key = key if kind == "projection" else entry.get("projection")
+    projection_keys = (
+        {key}
+        if kind == "projection"
+        else {entry["projection"]}
+        if entry.get("projection")
+        else _bound_projection_keys(roots, inventory)
+    )
+    projection_key = next(iter(sorted(projection_keys)), None)
     if projection_key:
         limitations.append(
             "Source includes shared projection readers and derivation branches; "
             "the registered change builder can fall back to full derivation. "
-            "Only branches for projection_name=" + str(projection_key) + " apply."
+            "Fixed projection bindings: " + ", ".join(sorted(projection_keys)) + "."
         )
         status = "partial"
     while queue:
@@ -425,7 +483,10 @@ def explain(
                 role = "dependency"
                 if function is _canonical_handler(projections.projection_rows):
                     role = "reader"
-                elif function is projections.NARROWED_BUILDERS.get(projection_key):
+                elif any(
+                    function is projections.NARROWED_BUILDERS.get(bound_key)
+                    for bound_key in projection_keys
+                ):
                     role = "builder"
                 elif function is projections.derive_projection_rows:
                     role = "shared"

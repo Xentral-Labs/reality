@@ -170,7 +170,7 @@ def _tool_result_content(name: str, value: Any) -> str:
     view["sources"] = [
         {
             k: source[k]
-            for k in ("id", "path", "function", "start_line", "end_line", "digest")
+            for k in ("id", "path", "function", "start_line", "end_line", "digest", "role", "called_by")
             if k in source
         }
         for source in value.get("sources", [])[:128]

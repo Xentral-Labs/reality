@@ -163,3 +163,67 @@ def test_public_source_only_read_never_calls_interpreter(monkeypatch, kind, key)
     assert response.status_code == 200
     assert response.json()["sources"]
     assert response.json()["business"] is None
+
+
+def test_mcp_projection_tool_includes_same_registered_calculation_as_docs(
+    session, business, monkeypatch
+):
+    from reality.mcp.catalog import MCP_TOOL_CATALOG
+    from reality.services import business_blueprint_presentation as presentation
+    from reality.tools.application import run_read_tool
+
+    monkeypatch.setattr(presentation, "deployment_provider", lambda: None)
+    public = run_read_tool(
+        session,
+        business.tenant.id,
+        "business_logic_explain",
+        {"kind": "projection", "key": "fulfillment_queue"},
+    )
+    tool = run_read_tool(
+        session,
+        business.tenant.id,
+        "business_logic_explain",
+        {"kind": "tool", "key": "fulfillment_queue"},
+    )
+    direct = next(
+        entry for entry in MCP_TOOL_CATALOG if entry.name == "business_logic_explain"
+    ).handler(
+        session, business.tenant.id, {"kind": "projection", "key": "fulfillment_queue"}
+    )
+    builders = {
+        source["function"]: source["digest"]
+        for source in public["sources"]
+        if source["role"] == "builder"
+    }
+    assert builders
+    assert {
+        source["function"]: source["digest"]
+        for source in tool["sources"]
+        if source["role"] == "builder"
+    } == builders
+    assert direct["evidence_digest"] == public["evidence_digest"]
+
+
+def test_chat_keeps_source_roles_and_verified_call_links():
+    import json
+
+    from reality.agent.mcp_chat import _tool_result_content
+
+    source = {
+        "id": "verified",
+        "function": "actual_builder",
+        "path": "current.py",
+        "digest": "current",
+        "role": "builder",
+        "called_by": ["entry_reader"],
+        "code": "omitted_body",
+    }
+    result = json.loads(
+        _tool_result_content(
+            "business_logic_explain",
+            {"sources": [source], "nodes": [], "scenarios": []},
+        )
+    )
+    assert result["sources"][0]["role"] == "builder"
+    assert result["sources"][0]["called_by"] == ["entry_reader"]
+    assert "code" not in result["sources"][0]

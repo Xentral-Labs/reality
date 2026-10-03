@@ -184,3 +184,7 @@ User requests clearer code access and checks read/exception coverage. Add a boun
 ### Source inspection audit
 
 Review: FR-035 restores accurate source navigation under FR-032; no unresolved clarification or critical finding. Constitution check passes: read-only inspection of existing callables and executable builder registry, no schema or business-rule changes. Verify catalog-wide view/projection source coverage and bounds, MCP rejection handler, original source line rendering and failure/retry behavior before completion. Preserve the user-approved primary function plus collapsed helpers and removal of redundant source controls.
+
+### Shared projection-tool routing
+
+FR-036 review: preserve one inspection service for every surface. Inspect approved loaded source AST for calls to the existing shared `_projection_read` callable and fixed name binding; append roots from the actual projection registry. Retain adapter roots and partial/shared-scope disclosure. No call execution, arbitrary attribute lookup, inferred name matching, data reads, schema changes or authorization changes. Constitution check passes; no unresolved clarification or critical finding. Red-first regression compares public tool, MCP and direct projection evidence; test future renamed adapters and reject dynamic-name inference.
