@@ -1,14 +1,14 @@
 """The company time zone: the zone business days are counted in (spec 349).
 
 Revision ID: 0138_company_time_zone
-Revises: 0133_external_stock
+Revises: 0137_supplier_item_number
 """
 
 import sqlalchemy as sa
 from alembic import op
 
 revision = "0138_company_time_zone"
-down_revision = "0133_external_stock"
+down_revision = "0137_supplier_item_number"
 branch_labels = None
 depends_on = None
 
