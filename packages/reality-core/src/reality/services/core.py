@@ -699,6 +699,10 @@ def _event_progress(session: OrmSession, tenant_id: str) -> TenantEventProgress 
         )
     if not _progress_table[url]:
         return None
+    memo = _batch_memo(session)
+    key = ("event_progress", tenant_id)
+    if memo is not None and key in memo:
+        return memo[key]
     progress = session.scalar(
         select(TenantEventProgress)
         .where(TenantEventProgress.tenant_id == tenant_id)
@@ -707,6 +711,8 @@ def _event_progress(session: OrmSession, tenant_id: str) -> TenantEventProgress 
     if progress is None:
         progress = TenantEventProgress(tenant_id=tenant_id, last_event_sequence=0)
         session.add(progress)
+    if memo is not None:
+        memo[key] = progress
     return progress
 
 
