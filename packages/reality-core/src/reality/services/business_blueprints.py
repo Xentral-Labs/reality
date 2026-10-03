@@ -53,7 +53,11 @@ VIEW_READERS = {
     "journal": "tenant_journal",
     "activity": "tenant_timeline",
     "sources_imports": "tenant_integrations",
-    "commercial_terms": "list_payment_terms",
+    "commercial_terms": (
+        "list_payment_terms",
+        "list_price_lists",
+        "list_pricing_groups",
+    ),
 }
 # Generic framework/storage mechanics do not contain an alternate business decision.
 MECHANICS = {
@@ -136,12 +140,22 @@ def _roots(entry: dict[str, Any], inventory: dict) -> list[Any]:
         if name:
             from reality.web import api
 
-            return [getattr(api, name)]
+            return [
+                getattr(api, item)
+                for item in (name if isinstance(name, tuple) else (name,))
+            ]
         return []
     if kind == "projection":
-        from reality.services.projections import derive_projection_rows
+        from reality.services.projections import (
+            NARROWED_BUILDERS,
+            derive_projection_rows,
+            projection_rows,
+        )
 
+        builder = NARROWED_BUILDERS.get(entry["key"])
         return [
+            _canonical_handler(projection_rows),
+            *([builder] if builder else []),
             derive_projection_rows,
             *[
                 function
@@ -360,11 +374,20 @@ def explain(
     limitations: list[str] = []
     runtime_values: dict[str, Any] = {}
     captured_functions = []
+    source_callers: dict[str, set[str]] = {}
     total_source_bytes = 0
     status = "complete"
     if kind == "exception":
         limitations.append(
             "Source includes the shared exception evaluator, not a class-isolated implementation."
+        )
+        status = "partial"
+    projection_key = key if kind == "projection" else entry.get("projection")
+    if projection_key:
+        limitations.append(
+            "Source includes shared projection readers and derivation branches; "
+            "the registered change builder can fall back to full derivation. "
+            "Only branches for projection_name=" + str(projection_key) + " apply."
         )
         status = "partial"
     while queue:
@@ -383,10 +406,11 @@ def explain(
             continue
         seen.add(identity)
         try:
-            if (
-                function.__module__ == "reality.web.api"
-                and function.__name__ in VIEW_READERS.values()
-            ):
+            if function.__module__ == "reality.web.api" and function.__name__ in {
+                name
+                for value in VIEW_READERS.values()
+                for name in (value if isinstance(value, tuple) else (value,))
+            }:
                 source = capture_source(function, approved_root=PACKAGE_ROOT)
             else:
                 source = capture_source(function)
@@ -395,6 +419,17 @@ def explain(
                     "Source response boundary reached; omitted dependency: " + identity
                 )
                 continue
+            if projection_key:
+                from reality.services import projections
+
+                role = "dependency"
+                if function is _canonical_handler(projections.projection_rows):
+                    role = "reader"
+                elif function is projections.NARROWED_BUILDERS.get(projection_key):
+                    role = "builder"
+                elif function is projections.derive_projection_rows:
+                    role = "shared"
+                source = source.model_copy(update={"role": role})
             total_source_bytes += len(source.code.encode())
             captured_functions.append(function)
             sources.append(source)
@@ -405,6 +440,9 @@ def explain(
             limitations.extend(limits)
             helpers, missing = _resolve_calls(function, source_tree(source))
             limitations.extend(missing)
+            for helper in helpers:
+                helper_identity = helper.__module__ + "." + helper.__qualname__
+                source_callers.setdefault(helper_identity, set()).add(identity)
             queue.extend((helper, depth + 1) for helper in helpers)
             effective_values = {
                 **function.__globals__,
@@ -436,6 +474,12 @@ def explain(
             limitations.append(str(error) + " (" + identity + ")")
             if "differ" in str(error):
                 status = "outdated"
+    sources = [
+        source.model_copy(
+            update={"called_by": tuple(sorted(source_callers.get(source.function, ())))}
+        )
+        for source in sources
+    ]
     if len({n.id for n in nodes}) != len(nodes):
         raise ValueError("Duplicate shared rule identity")
     if not roots:

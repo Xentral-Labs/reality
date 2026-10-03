@@ -15,6 +15,8 @@ export type LogicSource = {
   id: string;
   path: string;
   function: string;
+  role?: "reader" | "builder" | "shared" | "dependency";
+  called_by?: string[];
   start_line: number;
   code: string;
   digest: string;

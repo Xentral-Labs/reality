@@ -82,8 +82,8 @@ Foundation unlocks every story. No external source execution, ORM mutation or st
 - [x] T030 [US3] [FR-011] [FR-014] [DR-003] Register `business_logic_discover`, `business_logic_explain` and `business_logic_source` canonical reads in `packages/reality-core/src/reality/tools/application.py` and `packages/reality-core/src/reality/mcp/catalog.py`; adapters delegate to the same service and declare explicit nested input fields.
 - [x] T031 [US3] [FR-011] [FR-016] Update grounded explanation routing/instructions in `packages/reality-core/src/reality/agent/mcp_chat.py`; preserve exact rule references, unsupported limitations, historical/current distinction and existing provider/confirmation behavior.
 - [x] T032 [US3] [FR-010] [FR-016] [FR-017] [FR-018] [FR-019] Add live blueprint/test/source retrieval and matching diagram/text rendering in `apps/docs/.vitepress/theme/components/ToolUsage.vue`, configured via `apps/docs/.vitepress/config.mts`; display the responding target/revision and explicit unavailable state, with no generated final explanations.
-- [ ] T033 [US3] [FR-001] [FR-010] [FR-011] [FR-016] Add new tool resource membership and German ERP labels in `packages/reality-core/config/resource_catalog.yaml`; run `make docs-generate` and commit generated vocabulary pages under `apps/docs/content/tool-usage/`, `apps/docs/content/de/tool-usage/` and `apps/docs/.vitepress/data/tool-usage.json` without embedding live blueprint prose.
-- [ ] T034 [US3] [FR-010] [FR-011] [FR-017] [FR-018] [FR-019] Run the same reference questions through Web/docs/Chat/MCP and record rule/scenario/release parity plus inaccessible-live-target outcomes in `specs/343-business-logic-blueprints/verification.md`.
+- [x] T033 [US3] [FR-001] [FR-010] [FR-011] [FR-016] Add new tool resource membership and German ERP labels in `packages/reality-core/config/resource_catalog.yaml`; run `make docs-generate` and commit generated vocabulary pages under `apps/docs/content/tool-usage/`, `apps/docs/content/de/tool-usage/` and `apps/docs/.vitepress/data/tool-usage.json` without embedding live blueprint prose.
+- [x] T034 [US3] [FR-010] [FR-011] [FR-017] [FR-018] [FR-019] Run the same reference questions through Web/docs/Chat/MCP and record rule/scenario/release parity plus inaccessible-live-target outcomes in `specs/343-business-logic-blueprints/verification.md`.
 
 ## Phase 6: US4 — Compare my case and explain a decision (P2)
 
@@ -224,3 +224,5 @@ UX correction analysis: FR-026 maps T060/T062; FR-027 maps T061/T062. Scope appr
 - [x] T067 [FR-031] Test and implement business-first detail title/purpose, inline explanation action and optional catalog purpose translations; regenerate reference data and verify Docs tests/build/browser layout.
 
 - [x] T068 [FR-032] Test and implement direct source-only Docs entry plus registered exception coverage and shared-evaluator disclosure; verify Docs/backend/browser checks and update the PR.
+
+- [x] T069 [FR-035] Add regression tests first; audit all view/projection evidence and root availability, retain true reader/builders with shared-scope disclosure, render original source line numbers, improve error reporting, and verify backend/Docs/browser checks before updating the PR.
