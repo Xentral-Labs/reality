@@ -756,7 +756,8 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`received_beyond_order`](./exceptions#exception-received_beyond_order), exception
 [`misdelivery_outstanding`](./exceptions#exception-misdelivery_outstanding), exception
 [`external_stock_differs`](./exceptions#exception-external_stock_differs), exception
-[`purchase_order_unconfirmed`](./exceptions#exception-purchase_order_unconfirmed)
+[`reservation_awaiting_prepayment`](./exceptions#exception-reservation_awaiting_prepayment),
+exception [`purchase_order_unconfirmed`](./exceptions#exception-purchase_order_unconfirmed)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

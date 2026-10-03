@@ -63,6 +63,7 @@ it, and which agent tools list and explain it.
 | [`received_beyond_order`](#exception-received_beyond_order)                               | Received beyond the order                | Orders & fulfilment        | `normal` | Purchasing                                                                                  |
 | [`misdelivery_outstanding`](#exception-misdelivery_outstanding)                           | Wrong item delivered                     | Orders & fulfilment        | `normal` | Warehouse                                                                                   |
 | [`external_stock_differs`](#exception-external_stock_differs)                             | External stock differs                   | Warehouse & logistics      | `normal` | Warehouse                                                                                   |
+| [`reservation_awaiting_prepayment`](#exception-reservation_awaiting_prepayment)           | Reservation waiting for prepayment       | Finance                    | `normal` | Accounts receivable                                                                         |
 | [`purchase_order_unconfirmed`](#exception-purchase_order_unconfirmed)                     | Purchase order not confirmed             | Orders & fulfilment        | `normal` | Purchasing                                                                                  |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
@@ -1626,6 +1627,28 @@ and when.
 **See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
+
+## `reservation_awaiting_prepayment` — Reservation waiting for prepayment {#exception-reservation_awaiting_prepayment}
+
+Stock has been reserved for an order with prepayment terms for longer than a week while its
+prepayment is still unpaid, so the stock is withheld from every other order. Nothing is released by
+itself. The entry names the order, the reserved quantity, how long it has waited and the unpaid
+amount, so a person chases the payment or releases the reservation.
+
+- **Owner:** Accounts receivable
+- **Clears through:** Payment of the open prepayment, releasing the reservation so the stock serves
+  other orders, or cancelling the order.
+- **Severity:** `normal`
+- **Record type:** `commitment`
+- **Authority:** `348/FR-001`
+- **Evidence:**
+  `tests/test_prepayment_reservations.py::test_stock_reserved_for_an_unpaid_prepayment_is_reported_after_a_week`,
+  `tests/test_prepayment_reservations.py::test_payment_release_or_cancellation_clears_it`
+
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
+[`commitments`](./views#view-commitments)
 
 ## `purchase_order_unconfirmed` — Purchase order not confirmed {#exception-purchase_order_unconfirmed}
 

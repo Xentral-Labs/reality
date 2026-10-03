@@ -765,7 +765,8 @@ Ausnahme [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), Ausn
 [`received_beyond_order`](./exceptions#exception-received_beyond_order), Ausnahme
 [`misdelivery_outstanding`](./exceptions#exception-misdelivery_outstanding), Ausnahme
 [`external_stock_differs`](./exceptions#exception-external_stock_differs), Ausnahme
-[`purchase_order_unconfirmed`](./exceptions#exception-purchase_order_unconfirmed)
+[`reservation_awaiting_prepayment`](./exceptions#exception-reservation_awaiting_prepayment),
+Ausnahme [`purchase_order_unconfirmed`](./exceptions#exception-purchase_order_unconfirmed)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 

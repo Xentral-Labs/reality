@@ -13,7 +13,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 14       | 7         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 8      | 17       | 17        |
+| [Auftrag](#resource-order)                                     | 8      | 17       | 18        |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 12       | 3         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
@@ -379,6 +379,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`shipped_beyond_order`)
 - [Mehr erhalten als bestellt](./exceptions#exception-received_beyond_order)
   (`received_beyond_order`)
+- [Reservierung wartet auf Vorkasse](./exceptions#exception-reservation_awaiting_prepayment)
+  (`reservation_awaiting_prepayment`)
 - [Bestellung nicht bestätigt](./exceptions#exception-purchase_order_unconfirmed)
   (`purchase_order_unconfirmed`)
 
