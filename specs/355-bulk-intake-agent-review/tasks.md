@@ -73,3 +73,5 @@ by all required checks and honest unresolved-outcome reporting.
 
 - [ ] T023 Bind current mandate scope/token/expiry/revision to its original owner grant; prove refusal after retained-row alteration and genuine approved commercial limits in `tests/test_intake_agent_review.py`.
 - [ ] T024 Prove simultaneous competing quota claims and exact-review replay using independent PostgreSQL connections in `tests/test_intake_agent_concurrency.py`.
+
+- [ ] T025 Execute `reality.benchmarks.intake` with its disposable-target guard, genuine owner decisions and real durable worker runs; record warm-up plus three measured repetitions per workload/mode, timings, SQL counts, RSS, payload sizes and declared budgets.

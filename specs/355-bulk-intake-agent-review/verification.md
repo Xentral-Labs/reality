@@ -149,3 +149,14 @@ where the specified worker correctly retained two review-required dispositions.
 That assertion was corrected and covered by the final 40-test run. Ruff, generated
 catalogs and complete annotation coverage pass. Required PR gates remain pending.
 The controls slice's correctly permitted frontend run also passed all contracts.
+
+## Runnable controlled volume harness
+
+Failure-first checks observed the missing benchmark module. The new executable
+runner refuses non-disposable targets and absent explicit confirmation. Six tests
+pass in 12.90 seconds, including real single-unit and durable bulk-worker trials
+for three five-line orders and 501 items crossing the atomic package boundary.
+Every result checks actual evidence/effect counts and actual owner attribution.
+
+The declared 500-order/5,000-item repetitions remain to be measured. Small runner
+checks do not qualify those volume budgets or live reviewer/model quality.

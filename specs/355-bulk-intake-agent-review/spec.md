@@ -188,3 +188,14 @@ executed owner grant. Editing the retained mandate cannot enlarge or replace tha
 grant. Revocation remains a separate confirmed decision, not scope renewal. Tests
 must issue genuine narrower owner grants when testing commercial limits, rather
 than mutating a mandate after approval.
+
+## Reproducible controlled volume evidence
+
+FR-012 is qualified with the runnable `reality.benchmarks.intake` harness, restricted
+to an explicitly confirmed `reality_benchmark_intake_*` PostgreSQL database. It
+records one warm-up and three measured repetitions for each mode/workload in fresh
+processes. The single-unit baseline and bulk worker both execute exact confirmed
+owner decisions through the same services. Bulk measurements include real durable
+queue claim, handler execution and commits; configuration/result bytes are measured
+from retained runs. Actual effects and decision attribution must match every unit.
+Timing, SQL query counts and RSS are observations, not stored business authority.
