@@ -151,7 +151,7 @@ const checkPaths = [
   "/app/finance?tenant=finance_fixture&finance_view=payments",
   "/app/finance?tenant=finance_fixture&finance_view=journal",
 ];
-for (const width of [1440, 390]) {
+for (const width of [1440, 1168, 390]) {
   await page.setViewportSize({ width, height: 1000 });
   for (let index = 0; index < checkPaths.length; index++) {
     await page.goto((process.env.UNIFIED_APP_URL || "http://localhost:8087") + checkPaths[index], {
@@ -184,7 +184,39 @@ for (const width of [1440, 390]) {
         JSON.stringify(edges),
       );
     };
+    const checkToolbar = async () => {
+      const bounds = await page.locator(".register-toolbar-block").evaluate((el) => {
+        const search = el.querySelector(".register-search").getBoundingClientRect();
+        const tools = el.querySelector(".erp-table-tools").getBoundingClientRect();
+        const surface = el.getBoundingClientRect();
+        return {
+          search: {
+            left: search.left,
+            right: search.right,
+            top: search.top,
+            bottom: search.bottom,
+            width: search.width,
+          },
+          tools: { left: tools.left, right: tools.right, top: tools.top, bottom: tools.bottom },
+          surface: { left: surface.left, right: surface.right },
+        };
+      });
+      assert.ok(
+        bounds.search.left >= bounds.surface.left - 1 &&
+          bounds.tools.right <= bounds.surface.right + 1,
+        JSON.stringify(bounds),
+      );
+      if (width >= 1024) {
+        assert.ok(
+          bounds.search.top < bounds.tools.bottom && bounds.tools.top < bounds.search.bottom,
+          `Search and tools must share a row: ${JSON.stringify(bounds)}`,
+        );
+        assert.ok(bounds.search.right <= bounds.tools.left, JSON.stringify(bounds));
+      }
+      return bounds.search.width;
+    };
     await checkEdges();
+    await checkToolbar();
     assert.equal(await page.locator(".erp-selection-tools").count(), 0);
     await page.getByRole("checkbox", { name: "Select current page", exact: true }).check();
     assert.equal(await page.locator(".erp-selection-tools").count(), 1);
@@ -193,6 +225,7 @@ for (const width of [1440, 390]) {
       await page.locator(".shell-chat-toggle").click();
       await page.waitForTimeout(150);
       await checkEdges();
+      const closedSearchWidth = await checkToolbar();
       assert.ok(
         Math.abs(
           await footer.evaluate(
@@ -205,6 +238,9 @@ for (const width of [1440, 390]) {
       await page.getByRole("button", { name: "Show chat", exact: true }).click();
       await page.waitForTimeout(150);
       await checkEdges();
+      const openSearchWidth = await checkToolbar();
+      if (width === 1168)
+        assert.ok(openSearchWidth < closedSearchWidth, "Search must shrink when chat opens");
     }
     const bottom = await footer.evaluate((el) => el.getBoundingClientRect().bottom);
     assert.ok(bottom <= 1000 && bottom >= 900, `footer bottom ${bottom} at ${width}`);

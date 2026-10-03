@@ -147,3 +147,16 @@ User explicitly approved removing the sidebar indicator in a separate PR. T038â€
 
 ## FR-016 completion review
 Removed only the standalone shell indicator, its unused polling component and styles. Company-switcher context and simulation controls remain unchanged. Updated tests and documentation match the approved scope; checks pass and no critical findings remain. No extension hooks configured.
+
+## FR-021 responsive register toolbar review (2026-10-03)
+
+User-approved scope; Constitution PASS and no critical pre-implementation findings.
+The new structural regression failed before implementation and passes afterward
+(31 focused contracts). Browser geometry passes at 1440, 1168 and 390px across three
+Finance registers, including both dock states, row selection, table/footer alignment
+and independent scrolling. At 1168px search shrinks when docked chat opens while
+remaining beside table controls. Business filters retain their secondary row and an
+empty row is hidden. Existing density/column portals and service calls are unchanged.
+Screenshots: /private/tmp/content-heading-screens/finance-{0,1,2}-{1440,1168,390}.png.
+Full frontend contracts and final production build are being checked before T023
+completion. No catalogs, schema, dependencies or backend behavior changed.

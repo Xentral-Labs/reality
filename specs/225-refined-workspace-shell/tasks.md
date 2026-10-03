@@ -93,3 +93,9 @@ T044 precedes T045; existing functional and browser checks cover preserved behav
 - [x] T048 Run frontend gates and fixture browser, inspect desktop/mobile screenshots, review diff and record verification.md evidence.
 
 T046 precedes T047; T048 follows. FR-020 is covered by all three tasks.
+
+## Responsive register toolbar
+
+- [x] T021 Update register-footer-browser.mjs and unified-app-contract.test.mjs with FR-021 geometry/structure regression coverage before implementation.
+- [x] T022 Implement FR-021 in RegisterWorkbench.tsx and tailwind.css, preserving portal, filter and submission behavior.
+- [ ] T023 Verify browser geometry, contracts, formatting, build and spec policy; record review evidence and update docs/WEB_SPEC.md (FR-021).
