@@ -208,7 +208,7 @@ The user rejected the initial source-statement presentation as unreadable. The e
 
 Acceptance: credit exposure shows the source-derived exposure formula and the exact positive-limit/strict-excess condition, without initialization loops. Item creation shows required fields, allowed item/tracking values, nonnegative lead time and item/event effects. Changing a source expression or allowed value changes the next explanation without editing prose. Unknown business meanings stay explicit. Web/docs show those same server-derived sentences and keep source access. A real ERP-professional review remains required for SC-003; automated wording checks cannot substitute for it.
 
-### Live LLM clarification (user-approved)
+### Historical live LLM clarification (superseded by FR-042–046)
 
 The explanation must work generically for existing and future registered operations. The user explicitly permits LLM interpretation at read time, but prohibits pre-generation beside source code. Vocabulary-only translation is insufficient. The shared live service may use the configured deployment model with verified code/test evidence only, without company records or executing tools. Model text is identified as interpretation; validated citations prove reference identity, not semantic correctness. Source unavailable/outdated or provider failure must yield an explicit unavailable interpretation with technical evidence retained. No per-operation text files, saved model answers or keyed financial rules are permitted.
 
@@ -259,3 +259,18 @@ Acceptance: a statement far below the start of a long function opens with its co
 - **FR-040**: The Docs detail inspector must distinguish the function title, section headings, body text and provenance through a consistent typography hierarchy. Query execution labels must remain subordinate to section headings; narrow screens must expose all four inspector sections without horizontal navigation scrolling.
 
 - **FR-041**: Technical reference sections must have visible grouping boundaries and spacing. Execution mode values and related destination links must be visually subordinate to section headings, including in the German edition.
+
+### Source-authored explanations (supersedes LLM-default presentation)
+
+This accepted update supersedes the bilingual automatic summaries in FR-020/FR-022,
+the brief-inference policy in FR-025 and the historical LLM clarification. The
+interface remains localized; authored business text is English. Source provenance,
+unsupported-case disclosure and rule/test citation requirements remain in force.
+
+- **FR-042**: Shared live explanation reads for Docs, Inspector, Chat and MCP must use structured English descriptions in verified function/test docstrings, without provider calls. `interpret` retains compatibility as an include-description flag; source-only reads remain available. No generated narrative files are introduced.
+- **FR-043**: Function descriptions provide a purpose and business rule sections keyed to stable adjacent code markers. Only rules actually found in the captured function may be displayed, with source line citations. Duplicate, malformed or unresolved annotations must be reported without inventing text or changing execution.
+- **FR-044**: Test docstrings may provide a business title, GIVEN, WHEN, THEN and rule references. Descriptions are read from the same verified test file and variant as executable test evidence. Authored expectations do not establish a passing execution or measured assertion/branch coverage. Undescribed tests remain visible with their actual evidence.
+- **FR-045**: Ship the credit exposure reference functions and all direct credit exposure tests with reviewed descriptions. Audit other registered roots and approved test sources for missing/invalid descriptions; expose remaining preparation gaps explicitly. This incremental boundary must not be called complete narrative coverage.
+- **FR-046**: Provide a repository authoring contract and repeatable validation command for descriptions, references and inventory gaps. Documentation changes must participate in running-source freshness checks, even when bytecode other than the docstring is unchanged. UI loading/empty-state wording must describe local source reading, not live AI generation.
+
+Acceptance: disabling or replacing every configured provider with a failing sentinel must not affect shared authored explanations. A newly named annotated function works without a per-operation renderer; editing a rule marker or description invalidates affected evidence. Missing descriptions never invoke the provider. Credit test descriptions and original executable source remain visible together.

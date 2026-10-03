@@ -238,3 +238,9 @@ UX correction analysis: FR-026 maps T060/T062; FR-027 maps T061/T062. Scope appr
 - [x] T076 [FR-040] Apply scoped detail typography and narrow-screen section navigation; verify Docs tests, build and browser layout.
 
 - [x] T077 [FR-041] Distinguish technical section headings from execution values and related links; verify browser rendering and Docs tests/build.
+
+- [x] T078 [FR-042, FR-043] Add tests first and implement generic source-authored purpose/rule parsing, verified binding, bounded validation and explicit gaps.
+- [x] T079 [FR-044, FR-045] Describe credit exposure functions and direct tests; preserve original executable assertions, variants and unknown run state.
+- [x] T080 [FR-042, FR-046] Route shared live explanations through the annotation reader without provider calls; update Docs/Inspector wording and contract types.
+- [x] T081 [FR-045, FR-046] Add authoring contract and repeatable annotation lint/root coverage audit; report unprepared inventory without fabricated content.
+- [x] T082 [FR-042–FR-046] Verify parser/service/adapter/credit regression tests, Docs/Web checks, freshness and actual browser output; review and update PR.

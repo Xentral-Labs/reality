@@ -530,3 +530,6 @@ entire answer. The model cannot supply edges or run results. Up to 12 assertion-
 first test cases are sent; remaining definitions are available in technical evidence.
 Source-only and case-comparison reads omit interpretation. Evidence is revalidated
 after inference; drift discards prose and marks outdated.
+
+## Source-authored presentation override (FR-042–046)
+The shared explain path now returns mode authored from verified English docstrings, without invoking a model. interpret means include source descriptions; brief remains compatible without truncating authored rules. annotation_gaps identifies unprepared or invalid descriptions. Source citations bind actual markers in the same function; authored THEN text is not asserted as a measured assertion mapping. Existing run and coverage evidence remains independent. The earlier inference presentation above is historical and superseded for shared reads.
