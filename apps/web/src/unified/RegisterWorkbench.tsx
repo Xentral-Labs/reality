@@ -128,11 +128,11 @@ export function RegisterToolbar({
           {search}
         </div>
         {submit}
+        <div className="register-filter-row register-table-options">
+          <div className="register-tools-slot" ref={tools?.setTarget} />
+        </div>
       </div>
-      <div className="register-filter-row">
-        {filterChips(filters)}
-        <div className="register-tools-slot" ref={tools?.setTarget} />
-      </div>
+      <div className="register-filter-row">{filterChips(filters)}</div>
       <PageRecordCount count={count} description={countDescription} placement={countPlacement} />
     </div>
   );

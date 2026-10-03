@@ -207,3 +207,20 @@ spec-check, lint, docs-catalog-check and the fixture browser; inspect screenshot
 Backend/migration checks are inapplicable to these web-only paths. Rollback: revert
 adapter changes; no stored preferences or business data change. Review finds no
 unresolved clarification or critical coverage/Constitution findings.
+
+## FR-021 responsive toolbar refinement
+
+Constitution Check: all principles PASS; presentation only, no authority, data,
+tenant, service or schema changes. Move the table-tools slot into register-toolbar
+in RegisterWorkbench.tsx. Use display: contents for the filter wrapper to retain its
+style hooks while placing search, submit and the existing table-tools
+portal in one flex flow. Business filters keep their secondary row; an empty filter
+row is hidden so registers without filters have no extra gap. Search grows/shrinks from a usable 160px basis up to 480px;
+controls preserve their natural width and wrap only when needed. RegisterTable keeps
+its current portal and preference behavior. No browser business rules are added.
+Update register-footer-browser.mjs before implementation to assert geometry at 1168,
+1440 and 390px, including both dock states; add a shared-component contract.
+Run browser regression, frontend contracts/build/formatting and spec policy.
+Rollback restores the former markup and CSS; no migration or catalog generation.
+Pre-implementation analysis: FR-021 maps to T021–023, with geometry and existing
+interaction coverage. No critical findings; user scope is approved.

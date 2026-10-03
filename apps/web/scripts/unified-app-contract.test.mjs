@@ -639,3 +639,15 @@ test("current company settings has its own tenant-preserving navigation destinat
     /\["All companies", "company", Settings\]/,
   );
 });
+
+test("shared register search and table controls share a responsive flex flow", () => {
+  const workbench = source("../src/unified/RegisterWorkbench.tsx");
+  assert.match(
+    workbench,
+    /\{submit\}\s*<div className="register-filter-row register-table-options">/,
+  );
+  const css = source("../src/tailwind.css");
+  assert.match(css, /\.register-toolbar-block \.register-toolbar\s*\{[^}]*flex-wrap: wrap;/s);
+  assert.match(css, /\.register-search\s*\{[^}]*flex: 1 1 160px;/s);
+  assert.match(css, /\.register-toolbar > \.register-table-options\s*\{[^}]*display: contents;/s);
+});

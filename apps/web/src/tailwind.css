@@ -2516,12 +2516,19 @@ textarea {
 .register-toolbar-block .register-toolbar {
   align-items: center;
   justify-content: space-between;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+}
+.register-toolbar > .register-table-options {
+  display: contents;
+}
+.register-filter-row:empty {
+  display: none;
 }
 .register-search {
   position: relative;
   min-width: 0;
-  width: min(100%, 480px);
+  flex: 1 1 160px;
+  max-width: 480px;
 }
 .register-search > label {
   display: block;

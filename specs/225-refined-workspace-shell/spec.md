@@ -263,3 +263,18 @@ Archived-only access and retry remain available; switching company closes histor
 Scope review: requested by the owner to relocate history elegantly and make New chat
 easier to find. The owner approved directly visible header actions after reviewing discoverability;
 no unresolved clarification, schema, service or model change.
+
+## Responsive shared register toolbar (2026-10-03)
+
+FR-021: Shared register search, filters, row density and column controls occupy one
+responsive toolbar. Search and table options share the primary row; business filter
+chips retain a separate secondary row so they cannot displace table options. Search shrinks to available register width, including when docked
+chat is open. Search and table controls stay alongside when at least a usable search
+field and the controls fit; narrower surfaces wrap controls in order without horizontal
+page overflow. Search retains its accessible label, submission behavior and URL state;
+density, column preferences and filter semantics are unchanged.
+Acceptance: at 1168px and 1440px with chat open/closed, a register with only table
+controls keeps search and tools aligned vertically and search is narrower with chat.
+At 390px controls remain accessible and the toolbar stays within the register.
+Scope review: user approved the shared solution after screenshots of Purchasing.
+No unresolved clarification, schema, service or new dependency.

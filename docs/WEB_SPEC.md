@@ -3536,3 +3536,10 @@ Private report membership refusal is an access status with localized owner/switc
 An active platform administrator may use their own private reports and requested analyses in every visible, nonarchived business company without company membership. Current persisted account status/admin authority is checked by the same service used for interactive reads, shared tools, deferred admission, collection and worker execution. This eligibility never bypasses the selected company or exact report/request/proposal author. Other users' private reports, questions and sealed proposals remain inaccessible, including to company owners and platform administrators. Ordinary nonmembers retain the membership-required access state. No membership is created and delegated tool permissions, confirmation authorities and owner administration are unchanged.
 
 The company switcher and company cards show actual Owner/Member roles where held; otherwise an explicit authenticated administrator sees Platform admin access. Visibility or absent membership alone never implies admin authority. Access labels and explanatory copy are localized in all four supported languages.
+
+### Responsive shared register toolbar (spec 225 FR-021)
+
+Search, filters, row density and columns share one flexible toolbar. Search shrinks
+with the actual register width, including docked chat, and stays next to table tools
+when they fit. Narrow surfaces wrap controls in order without page overflow. Existing
+search submission, labels, URL state, table preferences and filter behavior remain.
