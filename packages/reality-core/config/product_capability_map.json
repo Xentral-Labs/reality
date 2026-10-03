@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:6932ffe32e9c96a5eb444e41de1d3be59c47bc1c480dc05813bd0473885de69e",
+  "knowledge_version": "advisor-v1:sha256:ad351cc34da131e12bb94a1cfd41cc13f359cef56e657da565301d1ad285a780",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -750,6 +750,10 @@
         {
           "name": "stock_count_detail",
           "mode": "query"
+        },
+        {
+          "name": "external_stock",
+          "mode": "query"
         }
       ]
     },
@@ -822,6 +826,8 @@
         "evidence_command_revise_outbound_delivery",
         "evidence_command_outbound_deliveries",
         "evidence_command_outbound_delivery_detail",
+        "evidence_command_record_external_stock",
+        "evidence_command_external_stock",
         "evidence_command_state_delivery_rule",
         "evidence_command_delivery_rules",
         "evidence_command_credit_exposure",
@@ -949,6 +955,14 @@
         },
         {
           "name": "outbound_delivery_detail",
+          "mode": "query"
+        },
+        {
+          "name": "record_external_stock",
+          "mode": "mutation"
+        },
+        {
+          "name": "external_stock",
           "mode": "query"
         },
         {
@@ -1081,6 +1095,8 @@
         "evidence_command_set_customer_item_number",
         "evidence_command_customer_item_numbers",
         "evidence_command_record_stock_count",
+        "evidence_command_record_external_stock",
+        "evidence_command_external_stock",
         "evidence_command_stock_counts",
         "evidence_command_stock_count_detail",
         "evidence_command_stock_blocks",
@@ -1228,6 +1244,14 @@
           "mode": "mutation"
         },
         {
+          "name": "record_external_stock",
+          "mode": "mutation"
+        },
+        {
+          "name": "external_stock",
+          "mode": "query"
+        },
+        {
           "name": "stock_counts",
           "mode": "query"
         },
@@ -1307,6 +1331,8 @@
         "evidence_command_outbound_deliveries",
         "evidence_command_outbound_delivery_detail",
         "evidence_command_record_stock_count",
+        "evidence_command_record_external_stock",
+        "evidence_command_external_stock",
         "evidence_command_stock_counts",
         "evidence_command_stock_count_detail",
         "evidence_command_stock_blocks",
@@ -1388,6 +1414,14 @@
         {
           "name": "record_stock_count",
           "mode": "mutation"
+        },
+        {
+          "name": "record_external_stock",
+          "mode": "mutation"
+        },
+        {
+          "name": "external_stock",
+          "mode": "query"
         },
         {
           "name": "stock_counts",
@@ -1831,6 +1865,8 @@
         "evidence_command_outbound_deliveries",
         "evidence_command_outbound_delivery_detail",
         "evidence_command_record_stock_count",
+        "evidence_command_record_external_stock",
+        "evidence_command_external_stock",
         "evidence_command_month_end_billing",
         "evidence_command_announce_customer_return",
         "evidence_command_return_announcements",
@@ -1945,6 +1981,14 @@
         {
           "name": "record_stock_count",
           "mode": "mutation"
+        },
+        {
+          "name": "record_external_stock",
+          "mode": "mutation"
+        },
+        {
+          "name": "external_stock",
+          "mode": "query"
         },
         {
           "name": "month_end_billing",
@@ -3491,9 +3535,7 @@
         "Nachvollziehbarkeit"
       ],
       "evidence_ids": [
-        "evidence_document_connector_contract_1",
-        "evidence_document_connector_contract_2",
-        "evidence_document_connector_contract_3"
+        "evidence_document_connector_contract_1"
       ],
       "tools": []
     },

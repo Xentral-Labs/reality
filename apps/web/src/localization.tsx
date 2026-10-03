@@ -25363,6 +25363,27 @@ Object.assign(dictionaries.de, {
   Advised: "Avisiert",
   received: "erhalten",
   "in transit": "unterwegs",
+  "External stock differs": "Fremdbestand weicht ab",
+  "A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.":
+    "Eine Inventur zum angegebenen Zeitpunkt, die die Differenz übernimmt, das Erfassen der fehlenden Bewegung oder eine neuere Angabe, die übereinstimmt.",
+  "A stated stock quantity is zero or more, with at most four decimals.":
+    "Eine angegebene Bestandsmenge ist null oder mehr, mit höchstens vier Nachkommastellen.",
+  "When the stock was there is not a valid time.":
+    "Wann der Bestand vorhanden war, ist kein gültiger Zeitpunkt.",
+  "A stated stock level cannot lie in the future.":
+    "Ein angegebener Bestand kann nicht in der Zukunft liegen.",
+  "Only a stocked item has stock to state.":
+    "Nur ein Lagerartikel hat einen Bestand, der angegeben werden kann.",
+  "The location is unknown, inactive or holds no stock.":
+    "Der Lagerort ist unbekannt, inaktiv oder führt keinen Bestand.",
+  "Name at least one item, location and quantity.":
+    "Nenne mindestens einen Artikel, einen Lagerort und eine Menge.",
+  "State lines with an item, a location, a quantity and optionally when, plus optionally who reported it and a note.":
+    "Gib Zeilen mit Artikel, Lagerort, Menge und optional dem Zeitpunkt an, dazu optional, wer ihn gemeldet hat, und eine Notiz.",
+  "An item and location are stated twice for the same time.":
+    "Ein Artikel und Lagerort sind für denselben Zeitpunkt doppelt angegeben.",
+  "The business partner who reported the stock was not found.":
+    "Der Geschäftspartner, der den Bestand gemeldet hat, wurde nicht gefunden.",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -26088,6 +26109,27 @@ Object.assign(dictionaries.nl, {
   Advised: "Geadviseerd",
   received: "ontvangen",
   "in transit": "onderweg",
+  "External stock differs": "Externe voorraad wijkt af",
+  "A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.":
+    "Een voorraadtelling op het opgegeven tijdstip die het verschil overneemt, het vastleggen van de ontbrekende beweging, of een nieuwere opgave die overeenkomt.",
+  "A stated stock quantity is zero or more, with at most four decimals.":
+    "Een opgegeven voorraadhoeveelheid is nul of meer, met hoogstens vier decimalen.",
+  "When the stock was there is not a valid time.":
+    "Wanneer de voorraad er was, is geen geldig tijdstip.",
+  "A stated stock level cannot lie in the future.":
+    "Een opgegeven voorraadniveau kan niet in de toekomst liggen.",
+  "Only a stocked item has stock to state.":
+    "Alleen een voorraadartikel heeft voorraad om op te geven.",
+  "The location is unknown, inactive or holds no stock.":
+    "De locatie is onbekend, inactief of houdt geen voorraad.",
+  "Name at least one item, location and quantity.":
+    "Noem ten minste één artikel, locatie en hoeveelheid.",
+  "State lines with an item, a location, a quantity and optionally when, plus optionally who reported it and a note.":
+    "Geef regels met een artikel, een locatie, een hoeveelheid en optioneel wanneer, plus optioneel wie het meldde en een notitie.",
+  "An item and location are stated twice for the same time.":
+    "Een artikel en locatie zijn twee keer voor hetzelfde tijdstip opgegeven.",
+  "The business partner who reported the stock was not found.":
+    "De zakenpartner die de voorraad meldde, is niet gevonden.",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -26812,6 +26854,26 @@ Object.assign(dictionaries.es, {
   Advised: "Avisado",
   received: "recibido",
   "in transit": "en tránsito",
+  "External stock differs": "El stock externo difiere",
+  "A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.":
+    "Un recuento de inventario fechado en el momento indicado que asume la diferencia, el registro del movimiento que falta o una declaración más reciente que coincida.",
+  "A stated stock quantity is zero or more, with at most four decimals.":
+    "Una cantidad de stock indicada es cero o más, con un máximo de cuatro decimales.",
+  "When the stock was there is not a valid time.":
+    "El momento en que había ese stock no es una fecha válida.",
+  "A stated stock level cannot lie in the future.":
+    "Un nivel de stock indicado no puede estar en el futuro.",
+  "Only a stocked item has stock to state.": "Solo un artículo de stock tiene stock que indicar.",
+  "The location is unknown, inactive or holds no stock.":
+    "La ubicación es desconocida, está inactiva o no tiene stock.",
+  "Name at least one item, location and quantity.":
+    "Indica al menos un artículo, una ubicación y una cantidad.",
+  "State lines with an item, a location, a quantity and optionally when, plus optionally who reported it and a note.":
+    "Indica líneas con un artículo, una ubicación, una cantidad y opcionalmente cuándo, además opcionalmente quién lo informó y una nota.",
+  "An item and location are stated twice for the same time.":
+    "Un artículo y una ubicación se indican dos veces para el mismo momento.",
+  "The business partner who reported the stock was not found.":
+    "No se encontró el socio comercial que informó el stock.",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

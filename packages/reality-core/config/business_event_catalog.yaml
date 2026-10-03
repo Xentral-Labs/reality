@@ -54,6 +54,7 @@ events:
   - {type: outbound_delivery.revised, producer: revise_outbound_delivery, subject: outbound_delivery, invalidates: [Fulfillment queue, Timeline, Tenant usage]}
   - {type: outbound_delivery.picked, producer: pick_outbound_delivery, subject: outbound_delivery, invalidates: [Inventory, Item supply and demand, Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
   - {type: outbound_delivery.put_back, producer: put_back_outbound_delivery, subject: outbound_delivery, invalidates: [Inventory, Item supply and demand, Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
+  - {type: external_stock.stated, producer: record_external_stock, subject: external_stock_statement, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
   - {type: stock_count.posted, producer: record_stock_count, subject: stock_count, invalidates: [Inventory, Item supply and demand, Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
   - {type: delivery_rule.stated, producer: state_delivery_rule, subject: delivery_rule, invalidates: [Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
   - {type: location.created, producer: create_location, subject: location, invalidates: [Inventory, Timeline, Item supply and demand, Tenant usage]}

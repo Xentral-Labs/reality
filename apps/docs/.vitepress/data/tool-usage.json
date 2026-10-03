@@ -376,7 +376,8 @@
         "stock_block_resolution",
         "stock_count",
         "stock_count_line",
-        "kit_component"
+        "kit_component",
+        "external_stock_statement"
       ],
       "lists": [
         "view:inventory",
@@ -396,6 +397,7 @@
         "command:define_kit",
         "command:assemble_kit",
         "command:record_stock_count",
+        "command:record_external_stock",
         "command:set_reorder_point",
         "command:remove_reorder_point",
         "command:assign_supply"
@@ -406,6 +408,7 @@
         "command:kits",
         "command:kit_split",
         "command:purchase_match",
+        "command:external_stock",
         "command:stock_counts",
         "command:stock_count_detail",
         "command:stock_blocks",
@@ -417,7 +420,8 @@
         "exception:missing_acquisition_cost",
         "exception:item_oversold",
         "exception:reorder_point_reached",
-        "exception:stock_in_another_location"
+        "exception:stock_in_another_location",
+        "exception:external_stock_differs"
       ],
       "tools": [
         "tool:inventory_read",
@@ -435,6 +439,7 @@
         "event:stock_block.scrapped",
         "event:kit.defined",
         "event:kit.assembled",
+        "event:external_stock.stated",
         "event:stock_count.posted",
         "event:master_data.lifecycle_changed"
       ],
@@ -11517,6 +11522,134 @@
       "projections": [],
       "links": ["command:record_stock_count"],
       "label_de": "Count stock",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:external_stock_state_propose",
+      "kind": "tool",
+      "key": "external_stock_state_propose",
+      "label": "State external stock",
+      "area": "warehouse",
+      "summary": "Prepare recording stock someone outside states, such as a 3PL's stock report or a shop's stock level: per line the item, the location, the stated quantity and optionally when it was there (ISO 8601 with its offset, default now), plus the business partner that reported it (reporter_party_id) where known. Nothing moves: the review shows what Reality's movements hold there at each stated time and the difference, and a difference becomes the finding External stock differs. To take a difference over, book a stock count at that time. A person confirms.",
+      "access": "propose",
+      "group": "Warehouse",
+      "synopsis": "external_stock_state_propose [reporter_party_id] [note] lines",
+      "parameters": [
+        {
+          "name": "reporter_party_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque same-tenant identity of the business partner that reported external stock, such as a 3PL (spec 344).",
+          "depth": 0
+        },
+        {
+          "name": "note",
+          "type": "string",
+          "required": false,
+          "description": "Free-text record of what the counterparty said, kept with the statement.",
+          "depth": 0
+        },
+        {
+          "name": "lines",
+          "type": "array",
+          "required": true,
+          "description": "Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.",
+          "depth": 0
+        },
+        {
+          "name": "lines[].item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].location_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].stated_at",
+          "type": "string",
+          "required": false,
+          "description": "When the counterparty stated the new date, defaulting to now.",
+          "depth": 1
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "record_external_stock",
+      "projections": [],
+      "links": ["command:record_external_stock"],
+      "label_de": "State external stock",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:external_stock",
+      "kind": "tool",
+      "key": "external_stock",
+      "label": "External stock",
+      "area": "warehouse",
+      "summary": "Read the latest external stock statement per item and location (optionally one item_id or location_id, or only those that differ with differing_only): the stated quantity and time, who stated it, what Reality's movements held there at that time, and the difference.",
+      "access": "read",
+      "group": "Warehouse",
+      "synopsis": "external_stock [item_id] [location_id] [differing_only]",
+      "parameters": [
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "differing_only",
+          "type": "boolean",
+          "required": false,
+          "description": "Read only the external stock statements whose stated quantity differs from Reality's stock at the stated time (spec 344).",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Compare stock someone outside states, such as a 3PL or a shop, with what Reality's movements held there at the stated time.",
+        "use_when": [
+          "Someone asks whether the 3PL's stock report matches Reality",
+          "or why External stock differs is reported."
+        ],
+        "do_not_use_when": ["The question is current stock in Reality; read inventory."],
+        "limitations": [
+          "Only the latest statement per item and location is compared; a statement is compared for all lots together."
+        ],
+        "empty_result": "No external stock was stated for the selection.",
+        "freshness": "Read at request time from the statements and movements."
+      },
+      "read_modes": [
+        {
+          "query": "MCP external_stock",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "external_stock",
+      "projections": [],
+      "links": ["command:external_stock"],
+      "label_de": "External stock",
       "resources": ["item"]
     },
     {
@@ -25021,6 +25154,70 @@
       "resources": ["item"]
     },
     {
+      "id": "command:record_external_stock",
+      "kind": "command",
+      "key": "record_external_stock",
+      "label": "State external stock",
+      "area": "warehouse",
+      "summary": "Records stock someone outside states per item and location, such as a 3PL's report, as stated; nothing moves, and a difference from Reality's stock at that time is reported.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["item", "location", "party", "movement", "movement_correction"],
+      "writes": ["external_stock_statement", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_external_stock"],
+      "tools": ["external_stock_state_propose"],
+      "synopses": ["external_stock_state_propose [reporter_party_id] [note] lines"],
+      "events": ["external_stock.stated"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:external_stock_state_propose", "event:external_stock.stated"],
+      "label_de": "Fremdbestand erfassen",
+      "resources": ["item"]
+    },
+    {
+      "id": "command:external_stock",
+      "kind": "command",
+      "key": "external_stock",
+      "label": "Read external stock",
+      "area": "warehouse",
+      "summary": "Lists the latest external stock statement per item and location with what Reality's movements held there at the stated time and the difference.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "external_stock_statement",
+        "item",
+        "location",
+        "party",
+        "movement",
+        "movement_correction",
+        "source_record"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["external_stock"],
+      "synopses": ["external_stock [item_id] [location_id] [differing_only]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Compare stock someone outside states, such as a 3PL or a shop, with what Reality's movements held there at the stated time.",
+        "use_when": [
+          "Someone asks whether the 3PL's stock report matches Reality",
+          "or why External stock differs is reported."
+        ],
+        "do_not_use_when": ["The question is current stock in Reality; read inventory."],
+        "limitations": [
+          "Only the latest statement per item and location is compared; a statement is compared for all lots together."
+        ],
+        "empty_result": "No external stock was stated for the selection.",
+        "freshness": "Read at request time from the statements and movements."
+      },
+      "links": ["tool:external_stock"],
+      "label_de": "Fremdbestand anzeigen",
+      "resources": ["item"]
+    },
+    {
       "id": "command:stock_counts",
       "kind": "command",
       "key": "stock_counts",
@@ -28913,6 +29110,7 @@
         "outbound_delivery.revised",
         "outbound_delivery.picked",
         "outbound_delivery.put_back",
+        "external_stock.stated",
         "stock_count.posted",
         "delivery_rule.stated",
         "location.created",
@@ -29117,6 +29315,7 @@
         "kit.assembled",
         "outbound_delivery.picked",
         "outbound_delivery.put_back",
+        "external_stock.stated",
         "stock_count.posted",
         "delivery_rule.stated",
         "location.updated",
@@ -29217,7 +29416,8 @@
         "exception:payout_line_unmatched",
         "exception:payment_authorization_expired",
         "exception:received_beyond_order",
-        "exception:misdelivery_outstanding"
+        "exception:misdelivery_outstanding",
+        "exception:external_stock_differs"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -29531,6 +29731,7 @@
         "outbound_delivery.revised",
         "outbound_delivery.picked",
         "outbound_delivery.put_back",
+        "external_stock.stated",
         "stock_count.posted",
         "delivery_rule.stated",
         "location.created",
@@ -30985,6 +31186,28 @@
       "resources": ["delivery"]
     },
     {
+      "id": "exception:external_stock_differs",
+      "kind": "exception",
+      "key": "external_stock_differs",
+      "label": "External stock differs",
+      "area": "warehouse",
+      "summary": "Someone outside, such as a 3PL or a shop, states stock for an item at a location that differs from what Reality's movements held there at the stated time. The statement is kept as stated and nothing is adjusted. The entry names the item, the location, both quantities, the difference, who stated it and when.",
+      "owner": "Warehouse",
+      "clears_through": "A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.",
+      "severity": "normal",
+      "record_type": "external_stock_statement",
+      "authority": "344/FR-003",
+      "evidence": [
+        "tests/test_external_stock.py::test_a_statement_that_differs_is_reported_and_moves_nothing",
+        "tests/test_external_stock.py::test_a_count_at_the_stated_time_clears_it",
+        "tests/test_external_stock.py::test_a_newer_statement_that_matches_clears_it"
+      ],
+      "causes": [],
+      "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
+      "label_de": "Fremdbestand weicht ab",
+      "resources": ["item"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -31873,6 +32096,20 @@
       "links": ["command:put_back_outbound_delivery"],
       "label_de": "outbound_delivery.put_back",
       "resources": ["delivery"]
+    },
+    {
+      "id": "event:external_stock.stated",
+      "kind": "event",
+      "key": "external_stock.stated",
+      "label": "external_stock.stated",
+      "area": "warehouse",
+      "summary": "",
+      "producer": "record_external_stock",
+      "subject": "external_stock_statement",
+      "invalidates": ["Operational Exceptions", "Timeline", "Tenant usage"],
+      "links": ["command:record_external_stock"],
+      "label_de": "external_stock.stated",
+      "resources": ["item"]
     },
     {
       "id": "event:stock_count.posted",
@@ -78742,6 +78979,7 @@
         "command:plan_outbound_delivery",
         "command:revise_outbound_delivery",
         "command:record_stock_count",
+        "command:record_external_stock",
         "command:state_delivery_rule",
         "command:record_down_payment_invoice",
         "command:record_proforma_invoice",

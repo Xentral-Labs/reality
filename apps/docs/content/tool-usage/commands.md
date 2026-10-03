@@ -211,6 +211,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`record_packaged_execution`](#command-record_packaged_execution)                 | Dispatch or receive shipment package         | Warehouse & logistics      | `shipment_dispatch_propose`, `shipment_receive_propose`                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`stock_count_detail`](#command-stock_count_detail)                               | Read a stock count                           | Warehouse & logistics      | `stock_count_detail`                                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`expired_lots`](#command-expired_lots)                                           | Read expired lots                            | Warehouse & logistics      | `expired_lots`                                                                                                                                                                               | Web · API · MCP · Chat                  |
+| [`external_stock`](#command-external_stock)                                       | Read external stock                          | Warehouse & logistics      | `external_stock`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`inventory_cost`](#command-inventory_cost)                                       | Read reviewed inventory acquisition costs    | Warehouse & logistics      | `cost_inventory_get`                                                                                                                                                                         | CLI · Web · MCP · Chat                  |
 | [`stock_blocks`](#command-stock_blocks)                                           | Read stock blocks                            | Warehouse & logistics      | `stock_blocks`                                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`stock_counts`](#command-stock_counts)                                           | Read stock counts                            | Warehouse & logistics      | `stock_counts`                                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
@@ -221,6 +222,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`record_shipment_notice`](#command-record_shipment_notice)                       | Record shipment notice                       | Warehouse & logistics      | `shipment_notice_record_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`release_stock_block`](#command-release_stock_block)                             | Release a stock block                        | Warehouse & logistics      | `stock_block_release_propose`                                                                                                                                                                | CLI · Web · API · MCP · Chat            |
 | [`scrap_stock_block`](#command-scrap_stock_block)                                 | Scrap blocked stock                          | Warehouse & logistics      | `stock_block_scrap_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
+| [`record_external_stock`](#command-record_external_stock)                         | State external stock                         | Warehouse & logistics      | `external_stock_state_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`state_lot_expiry`](#command-state_lot_expiry)                                   | State lot expiry                             | Warehouse & logistics      | `lot_expiry_state_propose`                                                                                                                                                                   | CLI · Web · API · MCP · Chat            |
 | [`supersede_shipment_event`](#command-supersede_shipment_event)                   | Supersede shipment event                     | Warehouse & logistics      | `shipment_event_supersede_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 
@@ -6557,6 +6559,68 @@ No parameters.
 
 **See also:** Command [`expired_lots`](./commands#command-expired_lots)
 
+### `external_stock` — Read external stock {#command-external_stock}
+
+Lists the latest external stock statement per item and location with what Reality's movements held
+there at the stated time and the difference.
+
+**Synopsis**
+
+```text
+external_stock [item_id] [location_id] [differing_only]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `external_stock_statement`, `item`, `location`, `party`, `movement`,
+`movement_correction`, `source_record` · Writes: —
+
+**See also:** agent tool [`external_stock`](./commands#tool-external_stock)
+
+#### `external_stock` — External stock {#tool-external_stock}
+
+Read the latest external stock statement per item and location (optionally one item_id or
+location_id, or only those that differ with differing_only): the stated quantity and time, who
+stated it, what Reality's movements held there at that time, and the difference.
+
+**Synopsis**
+
+```text
+external_stock [item_id] [location_id] [differing_only]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query       | Kind                        | Default |
+| -------------------- | --------------------------- | ------- |
+| `MCP external_stock` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Compare stock someone outside states, such as a 3PL or a shop, with what Reality's movements held
+there at the stated time.
+
+**Use when**
+
+- Someone asks whether the 3PL's stock report matches Reality
+- or why External stock differs is reported.
+
+**Do not use when**
+
+- The question is current stock in Reality; read inventory.
+
+**Parameters**
+
+| Name             | Type      | Required | Description                                                                                                               | Default |
+| ---------------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `item_id`        | `string`  | no       | Opaque identity of the operational item reference.                                                                        | —       |
+| `location_id`    | `string`  | no       | Opaque identity of the operational or physical location.                                                                  | —       |
+| `differing_only` | `boolean` | no       | Read only the external stock statements whose stated quantity differs from Reality's stock at the stated time (spec 344). | —       |
+
+**See also:** command [`external_stock`](./commands#command-external_stock)
+
 ### `inventory_cost` — Read reviewed inventory acquisition costs {#command-inventory_cost}
 
 Derive stock acquisition value and consumption from a bounded confirmed ownership/policy scope, and
@@ -7109,6 +7173,57 @@ stock_block_scrap_propose block_id [quantity] reason
 | `reason`   | `string` | yes      | Human-readable explanation for a hold, correction, or lifecycle change. | —       |
 
 **See also:** Command [`scrap_stock_block`](./commands#command-scrap_stock_block)
+
+### `record_external_stock` — State external stock {#command-record_external_stock}
+
+Records stock someone outside states per item and location, such as a 3PL's report, as stated;
+nothing moves, and a difference from Reality's stock at that time is reported.
+
+**Synopsis**
+
+```text
+external_stock_state_propose [reporter_party_id] [note] lines
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `item`, `location`, `party`, `movement`, `movement_correction` · Writes:
+`external_stock_statement`, `source_record`, `business_event` · Emits: `external_stock.stated`
+
+**See also:** agent tool
+[`external_stock_state_propose`](./commands#tool-external_stock_state_propose), event
+[`external_stock.stated`](./events#event-external_stock-stated)
+
+#### `external_stock_state_propose` — State external stock {#tool-external_stock_state_propose}
+
+Prepare recording stock someone outside states, such as a 3PL's stock report or a shop's stock
+level: per line the item, the location, the stated quantity and optionally when it was there (ISO
+8601 with its offset, default now), plus the business partner that reported it (reporter_party_id)
+where known. Nothing moves: the review shows what Reality's movements hold there at each stated time
+and the difference, and a difference becomes the finding External stock differs. To take a
+difference over, book a stock count at that time. A person confirms.
+
+**Synopsis**
+
+```text
+external_stock_state_propose [reporter_party_id] [note] lines
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                  | Type     | Required | Description                                                                                                 | Default |
+| --------------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------- | ------- |
+| `reporter_party_id`   | `string` | no       | Opaque same-tenant identity of the business partner that reported external stock, such as a 3PL (spec 344). | —       |
+| `note`                | `string` | no       | Free-text record of what the counterparty said, kept with the statement.                                    | —       |
+| `lines`               | `array`  | yes      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                | —       |
+| `lines[].item_id`     | `string` | yes      | Opaque identity of the operational item reference.                                                          | —       |
+| `lines[].location_id` | `string` | yes      | Opaque identity of the operational or physical location.                                                    | —       |
+| `lines[].quantity`    | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                     | —       |
+| `lines[].stated_at`   | `string` | no       | When the counterparty stated the new date, defaulting to now.                                               | —       |
+
+**See also:** command [`record_external_stock`](./commands#command-record_external_stock)
 
 ### `state_lot_expiry` — State lot expiry {#command-state_lot_expiry}
 

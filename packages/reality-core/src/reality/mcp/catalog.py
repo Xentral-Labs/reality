@@ -3048,6 +3048,50 @@ MCP_TOOL_CATALOG += (
         _propose("stock_count"),
     ),
     MCPToolDefinition(
+        "external_stock_state_propose",
+        "State external stock",
+        "Prepare recording stock someone outside states, such as a 3PL's stock report or a shop's stock level: per line the item, the location, the stated quantity and optionally when it was there (ISO 8601 with its offset, default now), plus the business partner that reported it (reporter_party_id) where known. Nothing moves: the review shows what Reality's movements hold there at each stated time and the difference, and a difference becomes the finding External stock differs. To take a difference over, book a stock count at that time. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {
+                "reporter_party_id": OPTIONAL_STRING,
+                "note": OPTIONAL_STRING,
+                "lines": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 500,
+                    "items": _object_schema(
+                        {
+                            "item_id": STRING,
+                            "location_id": STRING,
+                            "quantity": DECIMAL_STRING,
+                            "stated_at": OPTIONAL_STRING,
+                        },
+                        required=("item_id", "location_id", "quantity"),
+                    ),
+                },
+            },
+            required=("lines",),
+        ),
+        _propose("external_stock_state"),
+    ),
+    MCPToolDefinition(
+        "external_stock",
+        "External stock",
+        "Read the latest external stock statement per item and location (optionally one item_id or location_id, or only those that differ with differing_only): the stated quantity and time, who stated it, what Reality's movements held there at that time, and the difference.",
+        "read",
+        "Warehouse",
+        _object_schema(
+            {
+                "item_id": OPTIONAL_STRING,
+                "location_id": OPTIONAL_STRING,
+                "differing_only": {"type": ["boolean", "null"]},
+            }
+        ),
+        _read("external_stock"),
+    ),
+    MCPToolDefinition(
         "stock_counts",
         "Stock counts",
         "Read the counts of a location (location_id) or of the company, newest first, with how many lines each has.",

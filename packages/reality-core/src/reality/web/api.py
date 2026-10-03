@@ -1407,6 +1407,70 @@ def post_stock_count_proposal(
         raise api_error(error) from error
 
 
+class ExternalStockLineBody(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    item_id: str = Field(min_length=1, max_length=200)
+    location_id: str = Field(min_length=1, max_length=200)
+    quantity: str = Field(min_length=1, max_length=40)
+    stated_at: str | None = Field(default=None, max_length=40)
+
+
+class ExternalStockProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    reporter_party_id: str | None = Field(default=None, max_length=200)
+    note: str | None = Field(default=None, max_length=2000)
+    lines: list[ExternalStockLineBody] = Field(min_length=1, max_length=500)
+
+
+@router.get("/external-stock")
+def get_external_stock(
+    tenant_id: str,
+    session: DatabaseSession,
+    item_id: str | None = Query(default=None, max_length=200),
+    location_id: str | None = Query(default=None, max_length=200),
+    differing_only: bool = False,
+):
+    """Spec 344: the latest external statement per item and location, compared."""
+    from reality.services.external_stock import external_stock
+
+    try:
+        return {
+            "rows": external_stock(
+                session,
+                tenant_id,
+                item_id=item_id,
+                location_id=location_id,
+                differing_only=differing_only,
+            )
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/external-stock/proposals")
+def post_external_stock_proposal(
+    tenant_id: str, body: ExternalStockProposal, session: DatabaseSession
+):
+    """Spec 344: prepare stating external stock; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    try:
+        proposal = create_change_proposal(
+            session,
+            tenant_id,
+            "external_stock_state",
+            body.model_dump(exclude_none=True),
+            actor_type="human",
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 class OutboundDeliveryAddress(ApiModel):
     model_config = ConfigDict(extra="forbid")
     name: str | None = Field(default=None, max_length=200)

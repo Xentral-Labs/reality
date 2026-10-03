@@ -2659,6 +2659,33 @@
     },
     "shipment_receive_into_fields": {
       "message": "The announced shipment already says how it travels; leave carrier and tracking out."
+    },
+    "external_stock_quantity_invalid": {
+      "message": "A stated stock quantity is zero or more, with at most four decimals."
+    },
+    "external_stock_time_invalid": {
+      "message": "When the stock was there is not a valid time."
+    },
+    "external_stock_time_future": {
+      "message": "A stated stock level cannot lie in the future."
+    },
+    "external_stock_item_not_stocked": {
+      "message": "Only a stocked item has stock to state."
+    },
+    "external_stock_location_not_stock": {
+      "message": "The location is unknown, inactive or holds no stock."
+    },
+    "external_stock_lines_required": {
+      "message": "Name at least one item, location and quantity."
+    },
+    "external_stock_fields_invalid": {
+      "message": "State lines with an item, a location, a quantity and optionally when, plus optionally who reported it and a note."
+    },
+    "external_stock_line_repeated": {
+      "message": "An item and location are stated twice for the same time."
+    },
+    "external_stock_reporter_not_found": {
+      "message": "The business partner who reported the stock was not found."
     }
   },
   "terms": [

@@ -68,11 +68,11 @@ resources:
         gespeichert, sondern beim Lesen aus Bewegungen und Reservierungen abgeleitet. Deshalb
         stehen die Bestandslisten hier.
     synonyms: [product, SKU, stock, inventory, kit, bundle, Produkt, Bestand, Lagerbestand, Verfügbarkeit, Set, Stückliste]
-    tables: [item, supply_assignment, item_reorder_point, stock_block, stock_block_resolution, stock_count, stock_count_line, kit_component]
-    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand|supply_(assign|coverage)|reorder_point|stock_block|backorder|available_to_promise|stock_count|^kits?(_|$)|_kit$"
+    tables: [item, supply_assignment, item_reorder_point, stock_block, stock_block_resolution, stock_count, stock_count_line, kit_component, external_stock_statement]
+    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand|supply_(assign|coverage)|reorder_point|stock_block|backorder|available_to_promise|stock_count|external_stock|^kits?(_|$)|_kit$"
     views: [items, inventory, supply_demand]
     projections: [inventory, item_supply_demand]
-    exceptions: [units_not_comparable, reservation_exceeds_stock, item_oversold, reorder_point_reached, stock_in_another_location, missing_acquisition_cost]
+    exceptions: [units_not_comparable, reservation_exceeds_stock, item_oversold, reorder_point_reached, stock_in_another_location, missing_acquisition_cost, external_stock_differs]
 
   - key: location
     label:
@@ -583,6 +583,7 @@ labels:
       inventory_cost: Bestand zu Anschaffungskosten anzeigen
       state_delivery_rule: Lieferregel festlegen
       record_stock_count: Inventur erfassen
+      record_external_stock: Fremdbestand erfassen
       set_company_currency: Firmenwährung festlegen
       company_currency_state: Firmenwährung anzeigen
       set_supplier_item_terms: Lieferantenkonditionen festlegen
@@ -606,6 +607,7 @@ labels:
       remove_customer_item_number: Kundenartikelnummer entfernen
       customer_item_numbers: Kundenartikelnummern anzeigen
       stock_counts: Inventuren anzeigen
+      external_stock: Fremdbestand anzeigen
       stock_count_detail: Inventur anzeigen
       delivery_rules: Lieferregel anzeigen
       serve_backorders: Rückstände bedienen
@@ -809,6 +811,7 @@ labels:
       payment_authorization_expired: Zahlungsautorisierung abgelaufen
       received_beyond_order: Mehr erhalten als bestellt
       misdelivery_outstanding: Falscher Artikel geliefert
+      external_stock_differs: Fremdbestand weicht ab
       outgoing_commitment_due_soon: Liefertermin gefährdet
       silent_source: Quelle verstummt
       source_interpretation_failure: Quelle nicht interpretierbar

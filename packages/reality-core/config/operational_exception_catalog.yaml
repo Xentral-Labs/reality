@@ -1290,3 +1290,20 @@ classes:
       - tests/test_receipt_deviations.py::test_a_wrong_item_names_its_line_and_fulfils_nothing
       - tests/test_receipt_deviations.py::test_wrong_goods_go_back_against_the_same_line
       - tests/test_receipt_deviations.py::test_a_picking_error_is_corrected_into_a_wrong_item
+  - id: external_stock_differs
+    label: External stock differs
+    description: >-
+      Someone outside, such as a 3PL or a shop, states stock for an item at a location that
+      differs from what Reality's movements held there at the stated time. The statement is kept
+      as stated and nothing is adjusted. The entry names the item, the location, both quantities,
+      the difference, who stated it and when.
+    owner: Warehouse
+    clears_through: A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.
+    severity: normal
+    derivation: external_stock_differs
+    record_type: external_stock_statement
+    authority: 344/FR-003
+    evidence:
+      - tests/test_external_stock.py::test_a_statement_that_differs_is_reported_and_moves_nothing
+      - tests/test_external_stock.py::test_a_count_at_the_stated_time_clears_it
+      - tests/test_external_stock.py::test_a_newer_statement_that_matches_clears_it

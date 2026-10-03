@@ -28,7 +28,7 @@ sections:
     tables: [tenant, source_system, source_capability, source_artifact, source_stream, source_record, import_job, interpretation_outcome, interpretation_record_reference]
   - name: Master Data
     description: Operational identities and settings needed for joins and decisions.
-    tables: [accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, finance_reference, party, party_role, party_email_address, party_hold, delivery_rule, customer_item_number, supplier_item_terms, payment_term, item, kit_component, location, item_reorder_point, stock_count, stock_count_line, price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
+    tables: [accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, finance_reference, party, party_role, party_email_address, party_hold, delivery_rule, customer_item_number, supplier_item_terms, payment_term, item, kit_component, location, item_reorder_point, stock_count, stock_count_line, external_stock_statement, price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
   - name: Evidence
     description: Normalized business documents that connect source evidence to reality.
     tables: [financial_component, document, document_line, opening_scope, opening_item_detail]
@@ -737,6 +737,18 @@ tables:
       location_id: {description: The counted location.}
       note: {description: What the person noted about the count.}
       source_record_id: {description: "The count as stated: one version of the internal stock-count source stream."}
+      created_at: {}
+  external_stock_statement:
+    description: Stock someone outside states for an item at a location, such as a 3PL's report or a shop's level (spec 344); it never moves stock, and the latest per item and location is compared with Reality's stock at the stated time.
+    columns:
+      id: {}
+      tenant_id: {}
+      item_id: {description: The item whose stock is stated.}
+      location_id: {description: The location the stock is stated for.}
+      quantity: {description: "The stated quantity, in the item's stock unit, as stated."}
+      stated_at: {description: When the stock was there, as stated; the comparison reads Reality's movements up to this time.}
+      reporter_party_id: {description: The business partner that reported it, such as a 3PL, where known.}
+      source_record_id: {description: "The statement as received: the file it came in, or the reviewed statement."}
       created_at: {}
   stock_count_line:
     description: One counted item, and its lot where tracked, with the counted quantity and when it was counted (spec 307).

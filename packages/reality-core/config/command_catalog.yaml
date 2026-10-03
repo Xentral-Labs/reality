@@ -185,6 +185,8 @@ parameter_descriptions:
   exchange_rate: The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated.
   paid_amount: What was paid in the company currency for a supplier invoice in another currency, as the bank statement shows it.
   stock_count_id: Opaque identity of a recorded stock count.
+  reporter_party_id: Opaque same-tenant identity of the business partner that reported external stock, such as a 3PL (spec 344).
+  differing_only: Read only the external stock statements whose stated quantity differs from Reality's stock at the stated time (spec 344).
   outbound_delivery_id: Opaque identity of a planned outbound delivery.
   customer_id: Opaque identity of the customer whose promises a planned delivery carries.
   recipient_party_id: Opaque identity of the business partner the goods go to, such as a store of a retail chain; without one, the customer.
@@ -1363,6 +1365,22 @@ commands:
     reads: [location, item, lot, movement, stock_block, reservation, commitment]
     writes: [stock_count, stock_count_line, movement, stock_block_resolution, source_record, business_event]
     effect: Records what was counted at a location and posts each difference against the book at its counting time as an adjustment; a loss comes off free stock first, then the location's blocks.
+  - name: State external stock
+    service: record_external_stock
+    related_services: [review_external_stock]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [item, location, party, movement, movement_correction]
+    writes: [external_stock_statement, source_record, business_event]
+    effect: Records stock someone outside states per item and location, such as a 3PL's report, as stated; nothing moves, and a difference from Reality's stock at that time is reported.
+  - name: Read external stock
+    service: external_stock
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [external_stock_statement, item, location, party, movement, movement_correction, source_record]
+    writes: []
+    effect: Lists the latest external stock statement per item and location with what Reality's movements held there at the stated time and the difference.
   - name: Read stock counts
     service: stock_counts
     mode: query
@@ -5569,6 +5587,24 @@ capability_guidance:
     unknown_when: [A change of address was agreed but not stated.]
     next_steps: [Revise it with outbound_delivery_revise_propose, or ship its `dispatch` arguments with shipment_dispatch_propose.]
     examples: {use: [{scenario: Explain which address the parcel went to after the customer moved., reason: The statements and the shipment keep both addresses.}], do_not_use: [{scenario: Reserve stock., reason: Reserve the promise instead.}]}
+  external_stock:
+    kind: read
+    application_tool: external_stock
+    purpose: Compare stock someone outside states, such as a 3PL or a shop, with what Reality's movements held there at the stated time.
+    use_when: [Someone asks whether the 3PL's stock report matches Reality, or why External stock differs is reported.]
+    do_not_use_when: [The question is current stock in Reality; read inventory.]
+    required_context: [tenant, optionally item_id, location_id or differing_only]
+    data_basis: [external_stock_statement, movement]
+    limitations: [Only the latest statement per item and location is compared; a statement is compared for all lots together.]
+    freshness: Read at request time from the statements and movements.
+    empty_result: No external stock was stated for the selection.
+    refusal_behavior: Only the company's own statements are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [What was stated, when and by whom, and what Reality's movements held then.], does_not_prove: [Which side is right; a person decides.]}
+    unknown_when: [The outside party reported stock that was never stated in Reality.]
+    next_steps: [Take a difference over with stock_count_propose dated at the stated time, record the missing movement, or wait for the next statement.]
+    examples: {use: [{scenario: Check the 3PL's Monday stock report against Reality., reason: Each line shows both quantities and the difference.}], do_not_use: [{scenario: Tell how much is in stock now., reason: Read inventory instead.}]}
   stock_counts:
     kind: read
     application_tool: stock_counts
@@ -5896,6 +5932,8 @@ agent_command_coverage:
   stock_blocks: {classification: eligible, tools: [stock_blocks]}
   state_delivery_rule: {classification: eligible, tools: [delivery_rule_set_propose]}
   record_stock_count: {classification: eligible, tools: [stock_count_propose]}
+  record_external_stock: {classification: eligible, tools: [external_stock_state_propose]}
+  external_stock: {classification: eligible, tools: [external_stock]}
   plan_outbound_delivery: {classification: eligible, tools: [outbound_delivery_plan_propose]}
   revise_outbound_delivery: {classification: eligible, tools: [outbound_delivery_revise_propose]}
   pick_outbound_delivery: {classification: eligible, tools: [outbound_delivery_pick_propose]}

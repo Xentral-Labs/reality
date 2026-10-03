@@ -54,6 +54,8 @@ ALIASES = {
     "amount": ("amount", "value", "total"),
     "currency": ("currency", "currency_code"),
     "effective_at": ("effective_at", "date", "booking_date"),
+    # Spec 344: when an external stock statement says the stock was there.
+    "stated_at": ("stated_at", "as_of", "reported_at", "snapshot_at"),
 }
 
 FILE_MAPPING_PROFILES = {
@@ -113,9 +115,22 @@ FILE_MAPPING_PROFILES = {
             "customer_reference",
         ],
     },
+    # Takes the file's stock over: the difference is posted as an adjustment.
     "inventory_snapshot": {
         "required": [("sku",), ("location",), ("quantity",)],
         "fields": ["sku", "location", "quantity"],
+    },
+    # Spec 344: compares, never takes over; a difference is a finding.
+    "external_stock": {
+        "required": [("sku",), ("location",), ("quantity",)],
+        "fields": [
+            "sku",
+            "location",
+            "quantity",
+            "stated_at",
+            "party_accounting_code",
+            "party_name",
+        ],
     },
     "bank_statement": {
         "required": [("amount",), ("party_accounting_code", "party_name")],
@@ -415,6 +430,13 @@ def interpret_artifact(
                 )
                 created.append(movement.id)
             count += 1
+    elif target == "external_stock":
+        from reality.services.external_stock import _record_file_rows
+
+        rows = list(rows)
+        statements = _record_file_rows(session, tenant_id, source, rows)
+        created.extend(statement.id for statement in statements)
+        count += len(rows)
     elif target == "bank_statement":
         for row in rows:
             party = _party(session, tenant_id, row)

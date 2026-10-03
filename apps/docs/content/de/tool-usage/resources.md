@@ -10,7 +10,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 13       | 2         |
-| [Artikel](#resource-item)                                      | 5      | 13       | 6         |
+| [Artikel](#resource-item)                                      | 5      | 14       | 7         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
 | [Auftrag](#resource-order)                                     | 8      | 17       | 16        |
@@ -158,6 +158,7 @@ Verfügbarkeit, Set, Stückliste
 - [Stückliste festlegen](./commands#command-define_kit) (`define_kit`)
 - [Sets montieren](./commands#command-assemble_kit) (`assemble_kit`)
 - [Inventur erfassen](./commands#command-record_stock_count) (`record_stock_count`)
+- [Fremdbestand erfassen](./commands#command-record_external_stock) (`record_external_stock`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
 - [Zulauf einem Kundenbedarf zuordnen](./commands#command-assign_supply) (`assign_supply`)
@@ -169,6 +170,7 @@ Verfügbarkeit, Set, Stückliste
 - [Stücklisten anzeigen](./commands#command-kits) (`kits`)
 - [Set-Aufteilung anzeigen](./commands#command-kit_split) (`kit_split`)
 - [Bestellabgleich anzeigen](./commands#command-purchase_match) (`purchase_match`)
+- [Fremdbestand anzeigen](./commands#command-external_stock) (`external_stock`)
 - [Inventuren anzeigen](./commands#command-stock_counts) (`stock_counts`)
 - [Inventur anzeigen](./commands#command-stock_count_detail) (`stock_count_detail`)
 - [Read stock blocks](./commands#command-stock_blocks) (`stock_blocks`)
@@ -186,19 +188,22 @@ Verfügbarkeit, Set, Stückliste
 - [Meldebestand erreicht](./exceptions#exception-reorder_point_reached) (`reorder_point_reached`)
 - [Bestand in anderem Lager](./exceptions#exception-stock_in_another_location)
   (`stock_in_another_location`)
+- [Fremdbestand weicht ab](./exceptions#exception-external_stock_differs) (`external_stock_differs`)
 
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Stammdaten und Quellen](./processes#process-master_data)
 
 **Darunter:** Tabellen: `item`, `supply_assignment`, `item_reorder_point`, `stock_block`,
-`stock_block_resolution`, `stock_count`, `stock_count_line`, `kit_component` · Events:
-[`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
+`stock_block_resolution`, `stock_count`, `stock_count_line`, `kit_component`,
+`external_stock_statement` · Events: [`item.created`](./events#event-item-created),
+[`item.updated`](./events#event-item-updated),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
 [`stock_block.created`](./events#event-stock_block-created),
 [`stock_block.released`](./events#event-stock_block-released),
 [`stock_block.scrapped`](./events#event-stock_block-scrapped),
 [`kit.defined`](./events#event-kit-defined), [`kit.assembled`](./events#event-kit-assembled),
+[`external_stock.stated`](./events#event-external_stock-stated),
 [`stock_count.posted`](./events#event-stock_count-posted),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agent Tools ohne
 Geschäftsaktion: [`inventory_read`](./commands#tool-inventory_read),

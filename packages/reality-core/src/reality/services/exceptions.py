@@ -136,6 +136,7 @@ CLASS_ORDER = {
     "payment_authorization_expired": 52,
     "received_beyond_order": 53,
     "misdelivery_outstanding": 54,
+    "external_stock_differs": 55,
 }
 
 
@@ -2662,6 +2663,57 @@ def _received_beyond_order_exceptions(
                 },
                 _order_line_trace(commitment, line, document),
                 _last_movement_at(session, tenant_id, commitment.id, "receipt"),
+            )
+        )
+    return result
+
+
+def _external_stock_differs_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Spec 344: stock someone outside states differs from Reality's at that time.
+
+    The latest statement per item and location is compared with what Reality's
+    movements hold there at the stated time. Nothing is adjusted: a person books
+    a stock count at that time or records the movement that is missing, and a
+    newer statement that matches ends it too.
+    """
+    from reality.services.external_stock import external_stock_differences
+
+    result: list[OperationalException] = []
+    for row in external_stock_differences(session, tenant_id):
+        difference = row["difference"]
+        reporter = row["reporter"] or row["source_system"] or "an outside source"
+        result.append(
+            OperationalException(
+                _identity("external_stock_differs", row["statement_id"]),
+                "external_stock_differs",
+                (),
+                "normal",
+                "External stock differs",
+                f"{reporter} states {row['stated_quantity'].normalize():f} "
+                f"{row['sku']} at {row['location']}; Reality holds "
+                f"{row['reality_quantity'].normalize():f} at that time "
+                f"({difference.normalize():+f})",
+                "external_stock_statement",
+                row["statement_id"],
+                {
+                    "item_id": row["item_id"],
+                    "location_id": row["location_id"],
+                    "stated_quantity": row["stated_quantity"],
+                    "reality_quantity": row["reality_quantity"],
+                    "difference": difference,
+                    "unit": row["unit"],
+                    "stated_at": row["stated_at"],
+                    "reporter_party_id": row["reporter_party_id"],
+                },
+                {
+                    "external_stock_statement_id": row["statement_id"],
+                    "item_id": row["item_id"],
+                    "location_id": row["location_id"],
+                    "source_record_id": row["source_record_id"],
+                },
+                row["stated_at"],
             )
         )
     return result
@@ -5216,6 +5268,7 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "payout_line_unmatched": _payout_line_unmatched_exceptions,
     "payment_authorization_expired": _payment_authorization_expired_exceptions,
     "received_beyond_order": _received_beyond_order_exceptions,
+    "external_stock_differs": _external_stock_differs_exceptions,
     "misdelivery_outstanding": _misdelivery_outstanding_exceptions,
     "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,

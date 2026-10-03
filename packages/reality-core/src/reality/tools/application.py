@@ -1732,6 +1732,37 @@ def _stock_count(session: Session, tenant_id: str, arguments: dict[str, Any]) ->
     return _entity_result("stock_count", count)
 
 
+def _external_stock_state(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.external_stock import record_external_stock
+
+    rows = record_external_stock(
+        session,
+        tenant_id,
+        arguments["lines"],
+        arguments.get("reporter_party_id"),
+        arguments.get("note", ""),
+        action_id=arguments.get("_action_id"),
+    )
+    return {
+        "statement_ids": [row.id for row in rows],
+        "source_record_id": rows[0].source_record_id if rows else None,
+    }
+
+
+def _external_stock(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.external_stock import external_stock
+
+    return external_stock(
+        session,
+        tenant_id,
+        item_id=arguments.get("item_id") or None,
+        location_id=arguments.get("location_id") or None,
+        differing_only=bool(arguments.get("differing_only")),
+    )
+
+
 def _stock_counts(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     from reality.services.stock_counts import stock_counts
 
@@ -3217,6 +3248,18 @@ TOOLS = {
         True,
         _stock_count,
     ),
+    "external_stock_state": Tool(
+        "external_stock_state",
+        "Record stock someone outside states per item and location, such as a 3PL's report; it never moves stock and a difference becomes a finding.",
+        True,
+        _external_stock_state,
+    ),
+    "external_stock": Tool(
+        "external_stock",
+        "Read the latest external stock statement per item and location with Reality's stock at the stated time and the difference.",
+        False,
+        _external_stock,
+    ),
     "stock_counts": Tool(
         "stock_counts",
         "Read the counts of a location or of the company, newest first.",
@@ -4136,6 +4179,13 @@ def create_change_proposal(
         normalized_arguments, outbound_delivery_review = review_outbound_delivery(
             session, tenant_id, tool_name, arguments
         )
+    external_stock_review = None
+    if tool_name == "external_stock_state":
+        from reality.services.external_stock import review_external_stock
+
+        normalized_arguments, external_stock_review = review_external_stock(
+            session, tenant_id, arguments
+        )
     stock_count_review = None
     if tool_name == "stock_count":
         from reality.services.stock_counts import review_stock_count
@@ -4254,6 +4304,8 @@ def create_change_proposal(
         preview["delivery_rule"] = delivery_rule_review
     if stock_count_review is not None:
         preview["stock_count"] = stock_count_review
+    if external_stock_review is not None:
+        preview["external_stock"] = external_stock_review
     if outbound_delivery_review is not None:
         preview["outbound_delivery"] = outbound_delivery_review
     if customer_item_review is not None:
@@ -4875,6 +4927,7 @@ def approve_and_execute_proposal(
         "backorders_serve",
         "delivery_rule_set",
         "stock_count",
+        "external_stock_state",
         "outbound_delivery_plan",
         "outbound_delivery_revise",
         "outbound_delivery_pick",
