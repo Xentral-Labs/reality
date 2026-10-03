@@ -2267,3 +2267,5 @@ Table `delivery_failure` (kind `undeliverable`, `refused` or `lost`, stated reas
   - The reviewed action records once, replays its receipt and verifies; an agent proposes a lost parcel through the strict schema.
 - `packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py`: stories D08 (undeliverable, invoiced, sent again), D09 (refused with a reason, then cancelled) and D07 (lost, claimed, paid, sent again).
 - `packages/reality-core/tests/test_shipment_reads.py::test_paged_shipment_register_has_bounded_query_cost`: one more bounded read for the page's failed deliveries.
+- `packages/reality-core/tests/test_delivery_failure_migration.py`: set-up companies get the carrier-claim account as their default; the downgrade removes it.
+- `packages/reality-core/tests/finance/test_accounts.py::test_required_ids_and_explicit_setup`: setting up accounts creates the carrier-claim role with the others.

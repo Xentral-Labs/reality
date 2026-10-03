@@ -63,6 +63,26 @@ def upgrade() -> None:
         ),
         sa.CheckConstraint("btrim(reason) <> ''", name="ck_delivery_failure_reason"),
     )
+    # Companies whose accounts were set up have a default for every role; they
+    # get the carrier-claim account as their default too, as setting up would.
+    op.execute(
+        """
+        INSERT INTO subledger_account
+            (id, tenant_id, code, name, role, state, revision, default_destination_id)
+        SELECT 'acc_' || substr(md5(d.tenant_id || '/carrier_claim_income'), 1, 10),
+               d.tenant_id, 'carrier_claim_income', 'Carrier and insurance claims',
+               'carrier_claim_income', 'active', 1,
+               'dest_' || substr(md5(d.tenant_id || '/carrier_claim_income'), 1, 10)
+        FROM subledger_account d
+        WHERE d.role = 'customer_reduction'
+          AND d.default_destination_id IS NOT NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM subledger_account a
+            WHERE a.tenant_id = d.tenant_id
+              AND (a.role = 'carrier_claim_income' OR a.code = 'carrier_claim_income')
+          )
+        """
+    )
     op.create_index("ix_delivery_failure_tenant_id", "delivery_failure", ["tenant_id"])
     op.create_index(
         "ix_delivery_failure_source_record",
@@ -72,13 +92,21 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    if op.get_bind().scalar(
+    bind = op.get_bind()
+    failures = bind.execute(sa.text("SELECT count(*) FROM delivery_failure")).scalar()
+    claimed = bind.execute(
         sa.text(
-            "SELECT 1 FROM subledger_account WHERE role = 'carrier_claim_income' LIMIT 1"
+            "SELECT count(*) FROM ledger_entry e JOIN subledger_account a "
+            "ON a.tenant_id = e.tenant_id AND a.id = e.account_id "
+            "WHERE a.role = 'carrier_claim_income'"
         )
-    ):
+    ).scalar()
+    if failures or claimed:
         raise RuntimeError(
-            "Carrier-claim accounts exist; remove them before downgrading 0125."
+            f"{failures} failed deliveries and {claimed} carrier-claim postings "
+            "exist; they cannot be removed."
         )
+    # Carrier-claim accounts nothing was posted to go with their role.
+    op.execute("DELETE FROM subledger_account WHERE role = 'carrier_claim_income'")
     op.drop_table("delivery_failure")
     _roles(_OLD_ROLES)
