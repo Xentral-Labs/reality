@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
-from datetime import UTC, datetime, time, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
 from itertools import pairwise
 from types import SimpleNamespace
@@ -132,6 +132,8 @@ CLASS_ORDER = {
     "order_waiting_for_completeness": 48,
     "backorder_against_rule": 49,
     "shipped_beyond_order": 50,
+    "payout_line_unmatched": 51,
+    "payment_authorization_expired": 52,
 }
 
 
@@ -2609,6 +2611,101 @@ def _shipped_beyond_order_exceptions(
     return result
 
 
+def _payout_line_unmatched_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Spec 336: a payout paid for lines nothing in Reality could be booked against.
+
+    Their money stays on the provider's account. Settling the same statement
+    again, once the orders or payments they name are held, books them.
+    """
+    from reality.services.payouts import unmatched_lines
+
+    result: list[OperationalException] = []
+    for row in unmatched_lines(session, tenant_id, as_of=as_of):
+        payout, statement, lines = row["payout"], row["statement"], row["lines"]
+        result.append(
+            OperationalException(
+                _identity("payout_line_unmatched", payout.id),
+                "payout_line_unmatched",
+                (),
+                "normal",
+                "Payout lines not booked",
+                f"{len(lines)} lines of payout {payout.number} "
+                f"({row['amount'].normalize():f} {payout.currency}) are not booked",
+                "document",
+                payout.id,
+                {
+                    "unmatched_lines": len(lines),
+                    "unmatched_amount": row["amount"],
+                    "kinds": sorted({line["kind"] for line in lines}),
+                    "currency": payout.currency,
+                },
+                {
+                    "payout_document_id": payout.id,
+                    "line_ids": [line["line_id"] for line in lines],
+                    "source_record_id": payout.source_record_id,
+                },
+                datetime.combine(
+                    date.fromisoformat(statement["paid_on"]),
+                    datetime.min.time(),
+                    tzinfo=UTC,
+                ),
+            )
+        )
+    return result
+
+
+def _payment_authorization_expired_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Spec 336: an order still to ship whose expired authorization nothing covers.
+
+    The provider no longer holds the money for it. A new authorization covering
+    the remainder clears it, and so does an order with nothing left to ship.
+    """
+    from reality.services.payment_authorizations import uncovered_orders
+
+    findings = uncovered_orders(session, tenant_id, as_of=as_of)
+    orders = {
+        document.id: document
+        for document in session.scalars(
+            select(Document).where(
+                Document.tenant_id == tenant_id,
+                Document.id.in_([row["order_document_id"] for row in findings]),
+            )
+        )
+    } if findings else {}
+    result: list[OperationalException] = []
+    for row in findings:
+        order = orders[row["order_document_id"]]
+        result.append(
+            OperationalException(
+                _identity("payment_authorization_expired", order.id),
+                "payment_authorization_expired",
+                (),
+                "high",
+                "Payment authorization expired",
+                f"{Decimal(row['uncovered']).normalize():f} {row['currency']} of "
+                f"order {order.number} are no longer authorized",
+                "document",
+                order.id,
+                {
+                    "authorized_amount": Decimal(row["authorized"]),
+                    "captured_amount": Decimal(row["captured"]),
+                    "uncovered_amount": Decimal(row["uncovered"]),
+                    "currency": row["currency"],
+                },
+                {
+                    "order_document_id": order.id,
+                    "authorization_ids": row["authorization_ids"],
+                },
+                row["expired_at"],
+            )
+        )
+    return result
+
+
 def _lowered_at(session: Session, tenant_id: str, commitment: Commitment):
     """When the quantity in force was last stated, else the promise's due date."""
     from reality.db.core import CommitmentRevision
@@ -4968,6 +5065,8 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "order_waiting_for_completeness": _order_waiting_for_completeness_exceptions,
     "backorder_against_rule": _backorder_against_rule_exceptions,
     "shipped_beyond_order": _shipped_beyond_order_exceptions,
+    "payout_line_unmatched": _payout_line_unmatched_exceptions,
+    "payment_authorization_expired": _payment_authorization_expired_exceptions,
     "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
