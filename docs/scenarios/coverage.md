@@ -8,7 +8,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 182 covered, 10 partial, 0 missing, 31 gap, 5 out.
+228 scenarios: 182 covered, 10 partial, 0 missing, 30 gap, 6 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -24,7 +24,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | J Warehouse and stock | 7 | 1 |  | 3 |  |
 | K Kits and variants | 5 | 1 |  |  |  |
 | L E-commerce and marketplaces | 9 |  |  | 2 | 1 |
-| M B2B specifics | 4 | 2 |  | 6 |  |
+| M B2B specifics | 4 | 2 |  | 5 | 1 |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 4 |  |  | 1 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
@@ -94,10 +94,10 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
     (F10), returnable packaging (D19), subscriptions (L08), customs data (L12, D14), negative stock (J06 is refused by design),
     re-labelling pairs (J11), unconfirmed purchase orders (G10),
     quote documents (A14), variant swap on an
-    open order (A10), customer delivery documents (M07).
+    open order (A10). Customer delivery documents and labels are out by spec 350 (M07).
 
 Several gaps may be deliberate. They should become an explicit **out** with a reason in a scope
-document rather than stay open (candidates: M07 labels, J06 negative stock). Tax determination (L11, N08) and accounting
+document rather than stay open (candidate: J06 negative stock). Delivery documents and labels (M07) are out by spec 350. Tax determination (L11, N08) and accounting
 periods (Q02) are out by spec 340.
 
 ## Tests added for the former "missing" rows
@@ -375,7 +375,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | M04 | partial | tests/test_commitment_revisions.py::test_the_quantity_in_force_is_the_latest_stated; tests/scenarios/test_b2b_operational_integrity.py::test_b2b_inventory_revision_return_and_cancellation_reconcile_exactly; tests/test_shopify_update_guard.py::test_changed_order_preserves_every_business_record | Manual `commitment_revise` is proven; a customer ORDCHG source does not create a revision (a changed Shopify order is held for review instead). |
 | M05 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_retail_chain_order_is_delivered_to_its_stores | Planned deliveries name a store each as recipient and split one order between them; each shipment keeps its recipient (spec 334). |
 | M06 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_customer_who_wants_no_backorders_has_the_rest_cancelled | No backorders stated for the customer: 6 of 10 ship, Backorder against the customer's rule reports the open 4 with its reason, and the reviewed cancellation clears it (spec 306). |
-| M07 | gap | docs/ideas/attachments.md (HandlingUnit label idea only) | No label or delivery-note output exists, and no doc states it is out of core scope, so "out" can't be cited. |
+| M07 | out | specs/350-documents-by-executing-system/spec.md Non-Goals (no document or label output) | The executing system (ERP, shipping tool, 3PL) produces delivery notes and labels; Reality records what they state when they come back as sources. |
 | M08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_customer_deduction_with_an_agreed_reason_leaves_nothing_open | Customer short payment with an agreed_deduction reduction through finance.settlement.apply: invoice open 0, reason on the review and the adjustment source record. |
 | M09 | partial | tests/test_unified_invoice_credit.py::test_financial_credit_does_not_require_return_exception; specs/004-master-data/spec.md Non-Goals ("rebates") | A credit without goods can carry a rebate; rebate agreements and year-end accrual are an explicit non-goal. |
 | M10 | gap | db/core.py Document (party_id, ship_to_party_id); tests/test_operational_fields.py::test_document_and_commitment_operational_fields | Only orderer and ship-to are typed; there is no bill-to or payer role on documents or settlement. |

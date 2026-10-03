@@ -4819,11 +4819,11 @@
       "section": "B2B specifics",
       "title": "Customer-prescribed delivery note or pallet label",
       "question": "Out of core scope?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Out of core scope?",
+      "status": "out_of_scope",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Out of core scope? Yes. Reality decides and explains what ships; the system that executes the shipment (the ERP, a shipping tool or the 3PL) produces delivery notes, pallet labels and customer-prescribed layouts.",
       "limitations": [
-        "Reality produces no delivery notes or pallet labels, and this is not yet declared out of scope."
+        "Reality produces no delivery notes, pallet labels or customer-specific document layouts; the shipment's stated packages, tracking numbers and recipients are available for the executing system."
       ],
       "keywords": [],
       "question_examples": [
