@@ -4631,11 +4631,11 @@ entries:
   section: B2B specifics
   title: Customer-prescribed delivery note or pallet label
   question: Out of core scope?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Out of core scope?'
+  status: out_of_scope
+  evidence_level: reviewed
+  summary: 'Reality evaluates: Out of core scope? Yes. Reality decides and explains what ships; the system that executes the shipment (the ERP, a shipping tool or the 3PL) produces delivery notes, pallet labels and customer-prescribed layouts.'
   limitations:
-  - Reality produces no delivery notes or pallet labels, and this is not yet declared out of scope.
+  - Reality produces no delivery notes, pallet labels or customer-specific document layouts; the shipment's stated packages, tracking numbers and recipients are available for the executing system.
   keywords: []
   question_examples:
   - Customer-prescribed delivery note or pallet label
@@ -4645,8 +4645,8 @@ entries:
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: docs/ideas/attachments.md (HandlingUnit label idea only)
-    note: No label or delivery-note output exists, and no doc states it is out of core scope, so "out" can't be cited.
+  - reference: specs/350-documents-by-executing-system/spec.md Non-Goals (no document or label output)
+    note: The owner decided that the executing system produces documents and labels; Reality records what they state when they come back as sources.
 - id: M08
   section: B2B specifics
   title: Customer deducts penalty or marketing contribution
