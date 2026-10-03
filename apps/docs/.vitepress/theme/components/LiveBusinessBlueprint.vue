@@ -304,8 +304,8 @@ async function read(tab = activeTab.value, refresh = false) {
         <p v-if="activeTab === 'rules' || activeTab === 'tests'">
           {{
             wording(
-              "The business explanation is created live. Complex logic can take longer.",
-              "Die fachliche Erklärung wird jetzt live erstellt. Bei umfangreicher Logik kann das länger dauern.",
+              "Reading English descriptions directly from current source. No AI generation.",
+              "Englische Beschreibungen werden direkt aus dem aktuellen Quelltext gelesen. Ohne KI-Generierung.",
             )
           }}
         </p>
@@ -439,15 +439,20 @@ async function read(tab = activeTab.value, refresh = false) {
         </h4>
         <p>
           {{
-            data.business?.mode === "llm"
+            data.business?.mode === "authored"
               ? wording(
-                  "Selected steps explained from current code; interpretation requires review.",
-                  "Ausgewählte Schritte aus aktuellem Code erklärt; die Interpretation muss geprüft werden.",
+                  "English descriptions from current source. No AI generation; descriptions require code review.",
+                  "Englische Beschreibungen aus dem aktuellen Quelltext. Ohne KI-Generierung; Beschreibungen gehören zur Code-Review.",
                 )
-              : wording(
-                  "The business explanation is unavailable. Technical evidence remains below.",
-                  "Die fachliche Erklärung ist nicht verfügbar. Technische Nachweise stehen unten.",
-                )
+              : data.business?.mode === "llm"
+                ? wording(
+                    "Selected steps explained from current code; interpretation requires review.",
+                    "Ausgewählte Schritte aus aktuellem Code erklärt; die Interpretation muss geprüft werden.",
+                  )
+                : wording(
+                    "No valid business description is present. Original source remains available in Source code.",
+                    "Keine gültige fachliche Beschreibung vorhanden. Der Originalcode steht unter Quelltext.",
+                  )
           }}
         </p>
         <ol class="rule-cards" :aria-label="wording('Business steps', 'Geschäftliche Schritte')">
@@ -512,8 +517,8 @@ async function read(tab = activeTab.value, refresh = false) {
           <p v-if="!data.business?.scenarios.some((item) => item.id === test.id)">
             {{
               wording(
-                "No business-language explanation was returned for this test.",
-                "Für diesen Test wurde keine fachliche Erklärung zurückgegeben.",
+                "No authored business description is present in this test source.",
+                "Dieser Test enthält noch keine fachliche Beschreibung im Quelltext.",
               )
             }}
           </p>
@@ -611,6 +616,15 @@ async function read(tab = activeTab.value, refresh = false) {
             )
           }}
         </p>
+        <details v-if="data.business?.annotation_gaps?.length">
+          <summary>
+            {{ wording("Descriptions still to prepare", "Noch aufzubereitende Beschreibungen") }}
+            ({{ data.business.annotation_gaps.length }})
+          </summary>
+          <ul>
+            <li v-for="gap in data.business.annotation_gaps" :key="gap">{{ gap }}</li>
+          </ul>
+        </details>
         <details v-if="data.limitations.length" open>
           <summary>{{ wording("Evidence limitations", "Grenzen der Nachweise") }}</summary>
           <ul>

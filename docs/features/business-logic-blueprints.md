@@ -12,8 +12,7 @@ Python code, records file digests and rechecks each captured source before retur
 A changed checkout cannot stand in for an unchanged running process. Raw positional/keyword defaults and safe imported scalar defaults are also checked.
 Unsupported default factories are not executed and remain explicit source limitations.
 Default/global mismatches are outdated evidence, rejected by comparison. A reload or new
-release is necessary when execution code changes. The business interpretation supports English and German; other languages explicitly
-fall back to English. Technical identifiers and source retain their exact language.
+release is necessary when execution code changes. Source-authored business descriptions are English; interface labels may be localized. Technical identifiers and source retain their exact language.
 
 Steps and diagrams use the same graph. Exact comparisons, filters, arithmetic and
 refusals come from source. Inert `reality-rule` comments carry stable identity only.
@@ -59,41 +58,26 @@ Remove the live adapters to roll back the feature; the operational services, dat
 and generated vocabulary require no data rollback. The source graph is an inspection
 aid, not a substitute for execution, human review or a complete formal verification.
 
-## ERP-readable live interpretation
+## Source-authored business descriptions
 
-The same explanation service adds a generic request-time LLM business reading view.
-It uses the existing deployment Anthropic configuration (`ANTHROPIC_API_KEY`, optional
-`ANTHROPIC_WORKSPACE_ID`) and current model from the operational copilot. Set
-`REALITY_BLUEPRINT_LLM_ENABLED=false` to disable inference. This sends approved
-implementation source and raw synthetic test evidence to that deployment provider;
-it sends no company records, case inputs, tenant credentials or runtime configuration.
-No tool is executed by the interpreter. There is no saved answer, startup generation,
-per-operation prose file or response cache. Future registered entries follow the same
-resolver and prompt without adding explanations beside their code.
+The shared service now reads BUSINESS PURPOSE / BUSINESS RULE descriptions from
+verified function docstrings and BUSINESS TEST / GIVEN / WHEN / THEN descriptions
+from the verified executable test source. It does not call Anthropic or another
+provider, even when `interpret=true` or provider credentials are configured. The
+compatibility flag includes descriptions; `interpret=false` remains source-only.
+The `brief` flag remains accepted and does not discard reviewed authored rules.
 
-The provider receives at most 240 KB of evidence. One request has a 60-second timeout,
-a 96 KB output cap, at most 24 cited business steps and 12 selected/explained test cases, and
-shares a two-slot inference admission boundary. Exact known rule/test references,
-uniqueness and structured output are validated; citation identity does not certify
-semantic correctness. The business view is visibly an AI interpretation. Its graph
-uses contracted original source edges, never model-invented transitions. Omitted
-rules/cases and the original complete technical analysis remain accessible. Source
-and test bytes are checked again after inference; drift discards the interpretation.
-Missing configuration, invalid output, timeout or full admission gives an explicit
-unavailable view instead of a stale answer. Source-only reads and case comparison do
-not invoke the model. Generic public access retains its rate/response/CORS boundaries.
+BusinessPresentation uses mode `authored` with English commentary and original
+rule/source citations. Missing or invalid descriptions are listed in `annotation_gaps`;
+source and executable tests remain available. Displayed THEN descriptions are authored
+expectations, not measured assertion mappings or passing execution records. Reading
+never executes a test. The legacy inference helper remains isolated from public
+explanation routing and its unit tests; no fallback invokes it.
 
-The local Docs preview on port 5178 requires that exact DOCS_URL on the API. Compose
-now forwards DOCS_URL to the API, as it does for the frontend build; a local overlay
-can select the preview origin without changing the deployment defaults.
-
-Then sentences retain server-validated indices of original assertions. The count of
-unexplained assertions comes from actual test syntax, not model-generated unknowns.
-
-The deployment provider uses native strict tool output with its supported JSON-schema
-subset; the original bounded Pydantic schema and all reference checks still apply
-locally. Test sentences and assertion indices are paired in the provider contract
-to avoid misaligned parallel arrays; the public response keeps its existing shape.
+See [the authoring contract](../development/business-source-descriptions.md) and run
+`make business-annotations-check`. The initial authored reference comprises credit
+exposure functions and six direct credit exposure tests. The coverage audit reports
+all remaining roots and approved tests; it generates no narrative artifacts.
 
 ## Interactive reading latency and layout
 

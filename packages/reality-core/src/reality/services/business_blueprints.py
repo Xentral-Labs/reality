@@ -20,7 +20,8 @@ from sqlalchemy.orm import Session
 
 from reality.domain.business_blueprints import Blueprint, CompareInput
 from reality.services.business_blueprint_analysis import analyze_function, source_tree
-from reality.services.business_blueprint_presentation import present, unavailable
+from reality.services.business_blueprint_annotations import describe
+from reality.services.business_blueprint_presentation import unavailable
 from reality.services.business_blueprint_source import (
     PACKAGE_ROOT,
     SourceUnavailable,
@@ -680,23 +681,9 @@ def explain(
         business = (
             unavailable(presentation_language, reason="source", outdated=True)
             if status == "outdated"
-            else present(
-                tuple(nodes),
-                tuple(edges),
-                tuple(scenarios),
-                sources=tuple(sources),
-                language=language,
-                brief=brief,
-                context={
-                    "kind": kind,
-                    "key": key,
-                    "purpose": purpose,
-                    "limitations": list(dict.fromkeys(limitations)),
-                },
-            )
+            else describe(tuple(nodes), tuple(sources), tuple(scenarios))
         )
-        # Inference can take longer than syntax inspection. An answer must not
-        # outlive the source/test evidence from which it was just interpreted.
+        # Authored text must not outlive the verified source/test evidence.
         for function, source in zip(captured_functions, sources, strict=True):
             try:
                 current = capture_source(

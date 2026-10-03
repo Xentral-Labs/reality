@@ -28,10 +28,20 @@ PAYABLE_TYPES = {"supplier_invoice", "opening_supplier_debt"}
 def _invoiced_quantities(
     session: Session, tenant_id: str, line_ids: list[str]
 ) -> dict[str, Decimal]:
-    """`_order_line_billing(...)["invoiced"]` for many sales-order lines at once.
+    """
+    BUSINESS PURPOSE:
+    Find how much of each sales-order line is already billed, using invoice-line references and reversal evidence.
 
-    Four reads instead of three per line: an invoice line bills its order line
-    unless every posting of its invoice was reversed.
+    BUSINESS RULE credit_exposure._invoiced_quantities.guard-37:
+    IF no order lines were supplied:
+        Return no billed quantities.
+
+    BUSINESS RULE credit_exposure._invoiced_quantities.guard-78:
+    IF an invoice has posting groups AND every one of them was reversed:
+        Do not count its billed quantity.
+
+    BUSINESS RULE credit_exposure.invoiced_quantity:
+    Add each remaining invoice line's quantity to the sales-order line it explicitly bills. Do not infer links from document numbers.
     """
     from reality.db.core import LedgerEntry, LedgerReversal
 
@@ -81,6 +91,7 @@ def _invoiced_quantities(
         # reality-rule: credit_exposure._invoiced_quantities.guard-78
         if posted and posted <= reversed_groups:
             continue
+        # reality-rule: credit_exposure.invoiced_quantity
         invoiced[line_id] = invoiced.get(line_id, ZERO) + Decimal(quantity)
     return invoiced
 
@@ -88,11 +99,41 @@ def _invoiced_quantities(
 def _order_rows(
     session: Session, tenant_id: str, parties: dict[str, Party]
 ) -> dict[str, tuple[list, list, list]]:
-    """Per party: uninvoiced order lines in its currency, unpriced ones, and others.
+    """
+    BUSINESS PURPOSE:
+    Separate uninvoiced sales-order lines into counted values, unpriced lines and other currencies. Value uses the source-stated line amount, not quantity multiplied by price.
 
-    The value of a line is its stated amount for the part not yet invoiced —
-    never quantity times unit price, which a rebate or the source's own
-    rounding makes wrong (Constitution VIII).
+    BUSINESS RULE credit_exposure._order_rows.guard-107:
+    IF the current company has no sales orders for these customers:
+        Return empty order contributions.
+
+    BUSINESS RULE credit_exposure._order_rows.guard-146:
+    IF a line has delivery commitments:
+        Use the sum of the currently agreed quantities of its non-cancelled commitments as the quantity still promised.
+
+    BUSINESS RULE credit_exposure._order_rows.guard-151:
+    IF a line has no own delivery commitments AND all commitments on its order are cancelled:
+        Use zero quantity for that line.
+    ELSE:
+        Use the line's stated quantity.
+
+    BUSINESS RULE credit_exposure.uninvoiced_quantity:
+    Subtract the quantity already billed from the applicable promised or stated quantity. Never use a negative remaining quantity.
+
+    BUSINESS RULE credit_exposure._order_rows.guard-158:
+    IF no uninvoiced quantity remains:
+        Do not include this line.
+
+    BUSINESS RULE credit_exposure._order_rows.guard-170:
+    IF the order's currency differs from the customer's currency:
+        Name the line as not counted. Do not convert it.
+
+    BUSINESS RULE credit_exposure._order_rows.guard-172:
+    IF a same-currency line has no stated unit price:
+        Name it as unpriced and assign no counted value.
+
+    BUSINESS RULE credit_exposure.order_line_value:
+    For a positive stated line quantity, value the remaining part as stated gross line amount * uninvoiced quantity / stated line quantity, rounded to four decimal places. Otherwise use zero.
     """
     result: dict[str, tuple[list, list, list]] = {
         party_id: ([], [], []) for party_id in parties
@@ -162,6 +203,7 @@ def _order_rows(
             base = ZERO
         else:
             base = Decimal(line.quantity)
+        # reality-rule: credit_exposure.uninvoiced_quantity
         uninvoiced = max(base - invoiced.get(line.id, ZERO), ZERO)
         # reality-rule: credit_exposure._order_rows.guard-158
         if uninvoiced <= ZERO:
@@ -184,6 +226,7 @@ def _order_rows(
             unpriced.append({**row, "value": ZERO})
         else:
             stated = Decimal(line.gross_amount)
+            # reality-rule: credit_exposure.order_line_value
             value = (
                 (stated * uninvoiced / Decimal(line.quantity)).quantize(AMOUNT_SCALE)
                 if Decimal(line.quantity) > ZERO
@@ -200,7 +243,73 @@ def credit_exposures(
     *,
     as_of: datetime | None = None,
 ) -> dict[str, dict[str, Any]]:
-    """What the company carries for each of these customers, part by part."""
+    """
+    BUSINESS PURPOSE:
+    Read each customer's credit exposure, limit and contributing records in the customer's currency. Supplier payables and excluded currencies remain visible separately.
+
+    BUSINESS RULE credit_exposure.merged_customers:
+    Include merged customer identities under their surviving requested customer.
+    If a merged identity was explicitly requested separately, keep that requested identity separate.
+
+    BUSINESS RULE credit_exposure.credit_exposures.guard-201:
+    IF no customers were requested:
+        Return no results.
+
+    BUSINESS RULE credit_exposure.credit_exposures.guard-210:
+    IF an open item has no requested customer or its remaining amount is zero or negative:
+        Exclude it from this calculation.
+
+    BUSINESS RULE credit_exposure.credit_exposures.guard-212:
+    IF the document is neither a supported receivable nor a supported payable:
+        Exclude it from the invoice amounts.
+
+    BUSINESS RULE credit_exposure.credit_exposures.guard-223:
+    IF the open item's currency differs from the customer's default currency:
+        Name the item as not counted. Do not convert it.
+
+    BUSINESS RULE credit_exposure.credit_exposures.guard-225:
+    IF a same-currency item is a receivable:
+        Include it among open customer invoices.
+    ELSE:
+        Name it as a supplier payable. Do not subtract payables from credit exposure.
+
+    BUSINESS RULE credit_exposure.credit_exposures.guard-239:
+    IF a customer credit has no requested customer or no positive available amount:
+        Exclude it from available credits.
+
+    BUSINESS RULE credit_exposure.credit_exposures.guard-248:
+    IF an available credit uses a different currency:
+        Name it as not counted.
+    ELSE:
+        Include it in available customer credits.
+
+    BUSINESS RULE credit_exposure.credit_exposures.guard-264:
+    IF an offsettable down payment uses a different currency:
+        Name it as not counted.
+    ELSE:
+        Include its offsettable amount in available customer credits.
+
+    BUSINESS RULE credit_exposure.overdue:
+    Name open customer invoices whose days overdue are greater than zero. They remain part of open invoices and are not counted again.
+
+    BUSINESS RULE credit_exposure.invoice_total:
+    Add the remaining amounts of the customer's included receivables.
+
+    BUSINESS RULE credit_exposure.order_total:
+    Add the values of included order lines not yet invoiced.
+
+    BUSINESS RULE credit_exposure.credit_total:
+    Add the available amounts of included customer credits and offsettable down payments.
+
+    BUSINESS RULE credit_exposure.amount:
+    Calculate credit exposure = open invoices + uninvoiced orders - available credits.
+
+    BUSINESS RULE credit_exposure.over_limit:
+    IF the stated credit limit is greater than zero AND credit exposure is greater than that limit:
+        Report that the limit is exceeded.
+    ELSE:
+        Report no limit breach. Equality is allowed; a zero limit records no limit.
+    """
     parties = {
         party_id: core._tenant_record(session, Party, tenant_id, party_id)
         for party_id in dict.fromkeys(party_ids)
@@ -208,6 +317,7 @@ def credit_exposures(
     # Spec 339: the partners merged into a customer count under it.
     from reality.services.party_merges import merged_members
 
+    # reality-rule: credit_exposure.merged_customers
     owner = {
         duplicate: survivor
         for duplicate, survivor in merged_members(session, tenant_id, parties).items()
@@ -302,13 +412,19 @@ def credit_exposures(
     for party_id, party in parties.items():
         counted, unpriced, other = orders[party_id]
         not_counted[party_id].extend(other)
+        # reality-rule: credit_exposure.overdue
         overdue = [row for row in receivables[party_id] if row["days_overdue"] > 0]
+        # reality-rule: credit_exposure.invoice_total
         open_invoices = sum((row["open"] for row in receivables[party_id]), ZERO)
+        # reality-rule: credit_exposure.order_total
         open_orders = sum((row["value"] for row in counted), ZERO)
+        # reality-rule: credit_exposure.credit_total
         available_credits = sum((row["available"] for row in credits[party_id]), ZERO)
+        # reality-rule: credit_exposure.amount
         exposure = open_invoices + open_orders - available_credits
         limit = Decimal(party.credit_limit)
         # Zero records no limit rather than a limit of nothing (spec 078).
+        # reality-rule: credit_exposure.over_limit
         over_limit = limit > ZERO and exposure > limit
         result[party_id] = {
             "party_id": party.id,
@@ -349,7 +465,14 @@ def credit_exposure(
     *,
     as_of: datetime | None = None,
 ) -> dict[str, Any]:
-    """What the company carries for this customer now, part by part."""
+    """
+    BUSINESS PURPOSE:
+    Read this customer's credit exposure in the customer's currency, with its contributing amounts and exclusions.
+
+    BUSINESS RULE credit_exposure.single_customer:
+    Read the shared multi-customer calculation for this customer and return that customer's result. The read does not place or release a credit hold.
+    """
+    # reality-rule: credit_exposure.single_customer
     return credit_exposures(session, tenant_id, [party_id], as_of=as_of)[party_id]
 
 
@@ -358,7 +481,22 @@ def _money(value: Decimal) -> str:
 
 
 def credit_hold_note(exposure: dict[str, Any], order_value: Decimal) -> str:
-    """The facts a credit hold was placed on, in one line a clerk can read."""
+    """
+    BUSINESS PURPOSE:
+    Describe the amounts on which an existing credit-hold explanation is based. Formatting this note does not create a hold.
+
+    BUSINESS RULE credit_exposure.credit_hold_note.guard-340:
+    IF overdue invoices are present:
+        Name their invoice numbers and remaining amounts beside the open invoice total.
+
+    BUSINESS RULE credit_exposure.credit_hold_note.guard-351:
+    IF supplier payables are present:
+        Name their total separately and state that they are not netted.
+
+    BUSINESS RULE credit_exposure.credit_hold_note.guard-356:
+    IF other-currency records were excluded:
+        Name their document numbers as not counted.
+    """
     currency = exposure["currency"]
     parts = [
         (

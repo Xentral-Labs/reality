@@ -2378,6 +2378,8 @@ No schema change. An order in another currency than the customer's credit limit 
 - Docs explanation entry hierarchy (spec 343 FR-030): `apps/docs/scripts/business-blueprints.test.mjs` checks initial question/action and loaded provenance/refresh; `apps/docs/scripts/business-blueprints-browser.mjs` checks loading/freshness/retry under the revised accessible labels.
 - Business-first function detail (spec 343 FR-031): `apps/docs/scripts/tool-interface-render.test.mjs` verifies localized catalog purpose/title before technical identity and preserved synopsis. `apps/docs/scripts/business-blueprints.test.mjs` verifies borderless initial explanation entry and retained loaded controls; Docs browser workflow retains loading/freshness/retry behavior.
 
+- Source-authored business explanations (spec 343 FR-042–046): `packages/reality-core/tests/test_business_blueprint_annotations.py`; live parser, actual marker binding, invalid/missing descriptions, current docstring freshness, test variants and shared-service no-provider regression. Credit descriptions preserve `packages/reality-core/tests/test_credit_exposure.py`; Docs rendering covered by `apps/docs/scripts/business-blueprints.test.mjs`.
+
 ## Payout settlement cost — Spec 342
 
 No schema change. A payout statement is reviewed and settled as one batch: locks and stable reads are kept for the transaction, line sources are stored together and order references are read for the whole statement.

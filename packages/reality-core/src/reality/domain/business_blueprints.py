@@ -104,7 +104,7 @@ class BusinessPresentation(EvidenceModel):
     language: str
     heading: str
     notice: str
-    mode: Literal["llm", "unavailable", "outdated"] = "unavailable"
+    mode: Literal["authored", "llm", "unavailable", "outdated"] = "unavailable"
     model: str | None = None
     overview: BusinessOverview | None = None
     diagram_notice: str = ""
@@ -112,6 +112,7 @@ class BusinessPresentation(EvidenceModel):
     edges: tuple[RuleEdge, ...] = ()
     scenarios: tuple[BusinessScenario, ...] = ()
     unexplained_rules: int = 0
+    annotation_gaps: tuple[str, ...] = ()
 
 
 class Blueprint(EvidenceModel):

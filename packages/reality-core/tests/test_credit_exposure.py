@@ -65,6 +65,18 @@ def _order(session, business, party, number, quantity, price, currency="EUR"):
 
 
 def test_open_invoices_orders_and_credits_make_the_exposure(session, business):
+    """
+    BUSINESS TEST:
+    Invoices, uninvoiced orders and available credits make the exposure.
+    GIVEN:
+    Open invoices of 300 and 200 EUR; an uninvoiced order of 100 EUR; a credit note of 50 EUR; an unused payment of 30 EUR; supplier payables of 400 EUR.
+    WHEN:
+    Read credit exposure at the stated reference time.
+    THEN:
+    Open invoices are 500 EUR, uninvoiced orders 100 EUR and available credits 80 EUR. Exposure is 520 EUR; payables remain separate. Overdue invoices are 300 EUR; the 1,000 EUR limit is not exceeded.
+    BUSINESS RULES:
+    credit_exposure.amount
+    """
     tenant = business.tenant.id
     party = _customer(session, business)
     _invoice(session, business, party, "RE-X-1", "300.00", "2026-07-01")  # overdue
@@ -101,6 +113,18 @@ def test_open_invoices_orders_and_credits_make_the_exposure(session, business):
 
 
 def test_an_order_counts_what_is_not_yet_invoiced_once(session, business):
+    """
+    BUSINESS TEST:
+    Partial invoicing, revision and cancellation adjust uninvoiced order value.
+    GIVEN:
+    An order for ten units with a stated total of 100 EUR.
+    WHEN:
+    Invoice four units for 40 EUR, revise the commitment to seven units, then cancel it; read exposure after each change.
+    THEN:
+    Initially the order contributes 100 EUR. After invoicing, invoices contribute 40 EUR and the order 60 EUR. After revision the order contributes 30 EUR; after cancellation zero.
+    BUSINESS RULES:
+    credit_exposure.uninvoiced_quantity
+    """
     tenant = business.tenant.id
     party = _customer(session, business)
     _, line, commitment = _order(session, business, party, "SO-Y-1", "10", "10.00")
@@ -136,6 +160,18 @@ def test_an_order_counts_what_is_not_yet_invoiced_once(session, business):
 
 
 def test_another_currency_is_named_not_counted(session, business):
+    """
+    BUSINESS TEST:
+    An order in another currency is visible but excluded.
+    GIVEN:
+    An EUR customer with a USD sales order for two units at 50 USD.
+    WHEN:
+    Read the customer credit exposure.
+    THEN:
+    Exposure is zero and the USD order is named among not-counted records.
+    BUSINESS RULES:
+    credit_exposure._order_rows.guard-170
+    """
     tenant = business.tenant.id
     party = _customer(session, business)
     order, _, _ = _order(session, business, party, "SO-USD-1", "2", "50.00", "USD")
@@ -147,6 +183,18 @@ def test_another_currency_is_named_not_counted(session, business):
 
 
 def test_an_unpriced_shop_line_counts_nothing_and_is_named(session, business):
+    """
+    BUSINESS TEST:
+    An imported unpriced line stays visible without guessed value.
+    GIVEN:
+    An imported order with two priced units at 10 EUR and one unit without a price.
+    WHEN:
+    Interpret the import and read open order contributions.
+    THEN:
+    Counted order value is 20 EUR and the unpriced contribution names one uninvoiced unit.
+    BUSINESS RULES:
+    credit_exposure._order_rows.guard-172
+    """
     tenant = business.tenant.id
     party = _customer(session, business)
     _, job = core.enqueue_shopify_order(
@@ -177,6 +225,18 @@ def test_an_unpriced_shop_line_counts_nothing_and_is_named(session, business):
 
 
 def test_an_exposure_past_the_limit_is_over_it(session, business):
+    """
+    BUSINESS TEST:
+    The exact limit is allowed; one cent above it is exceeded.
+    GIVEN:
+    A credit limit of 100 EUR and an open invoice of 100 EUR.
+    WHEN:
+    Read exposure, then add an uninvoiced order of 0.01 EUR and read again.
+    THEN:
+    At 100 EUR the limit is not exceeded. After the order it is exceeded by 0.01 EUR.
+    BUSINESS RULES:
+    credit_exposure.over_limit
+    """
     tenant = business.tenant.id
     party = _customer(session, business, limit="100")
     _invoice(session, business, party, "RE-Z-1", "100.00", "2026-09-25")
@@ -192,6 +252,16 @@ def test_an_exposure_past_the_limit_is_over_it(session, business):
 
 
 def test_the_exposure_is_tenant_scoped(session, business):
+    """
+    BUSINESS TEST:
+    Another company cannot read this customer exposure.
+    GIVEN:
+    A customer and a 300 EUR invoice in the owning company, plus a separate company.
+    WHEN:
+    Read the same customer ID through each company.
+    THEN:
+    The owning company reads 300 EUR of open invoices. The other company receives NotFound.
+    """
     import pytest
 
     party = _customer(session, business)

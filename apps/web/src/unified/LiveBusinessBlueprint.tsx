@@ -166,8 +166,8 @@ export function LiveBusinessBlueprint({
             </p>
             <p className="mt-2 text-sm">
               {phrase(
-                "The business explanation is created live. Complex logic can take longer.",
-                "Die fachliche Erklärung wird jetzt live erstellt. Bei umfangreicher Logik kann das länger dauern.",
+                "Reading English descriptions directly from current source. No AI generation.",
+                "Englische Beschreibungen werden direkt aus dem aktuellen Quelltext gelesen. Ohne KI-Generierung.",
               )}
             </p>
             <p className="mt-2 text-xs" aria-live="off">

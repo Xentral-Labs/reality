@@ -52,11 +52,12 @@ export type BusinessBlueprint = {
     language: string;
     heading: string;
     notice: string;
-    mode: "llm" | "unavailable" | "outdated";
+    mode: "authored" | "llm" | "unavailable" | "outdated";
     model: string | null;
     overview?: { text: string; evidence_ids: string[] } | null;
     diagram_notice?: string;
     unexplained_rules: number;
+    annotation_gaps?: string[];
     steps: {
       id: string;
       function: string;
