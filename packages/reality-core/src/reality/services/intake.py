@@ -7,7 +7,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import event, inspect, select
+from sqlalchemy import Numeric, event, inspect, select
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
@@ -107,10 +107,140 @@ def _require_intake_scope(session: Session, tenant_id: str, proposal_id: str) ->
         raise core.InvalidOperation(code="intake_approval_required")
 
 
+_EFFECT_OPERATIONS = {
+    "document": frozenset({"create_manual_document_with_lines", "emit_business_event"}),
+    "commitment": frozenset({"create_commitment", "emit_business_event"}),
+    "customer_payment": frozenset(
+        {
+            "record_customer_payment",
+            "create_document",
+            "post_ledger",
+            "emit_business_event",
+        }
+    ),
+    "source_document": frozenset({"create_document", "emit_business_event"}),
+    "return_announcement": frozenset(
+        {"announce_customer_return", "emit_business_event"}
+    ),
+    "credit_hold": frozenset({"emit_business_event"}),
+    "commitment_revision": frozenset(
+        {"revise_commitment", "emit_business_event", "release_reservation"}
+    ),
+    "commitment_cancellation": frozenset(
+        {
+            "cancel_commitment",
+            "emit_business_event",
+            "release_reservation",
+            "release_commitment_hold",
+        }
+    ),
+    "payment_allocation": frozenset({"allocate_settlement", "emit_business_event"}),
+}
+_active_effect: ContextVar[str | None] = ContextVar(
+    "intake_active_effect", default=None
+)
+
+
+def require_scoped_operation(session: Session, tenant_id: str, operation: str) -> None:
+    """An approved package grants only its currently dispatched canonical effect."""
+    scope = _approved.get()
+    if scope is None:
+        return
+    nested = session.get_nested_transaction()
+    while nested is not None and nested is not scope.nested_transaction:
+        nested = nested.parent
+    if (
+        scope.session is not session
+        or scope.tenant_id != tenant_id
+        or scope.transaction is not session.get_transaction()
+        or nested is not scope.nested_transaction
+        or operation not in _EFFECT_OPERATIONS.get(_active_effect.get(), ())
+    ):
+        raise core.InvalidOperation(code="intake_approval_required")
+
+
+@contextmanager
+def _dispatch_effect(operation: str):
+    token = _active_effect.set(operation)
+    try:
+        yield
+    finally:
+        _active_effect.reset(token)
+
+
+_call_intent: ContextVar[tuple[str, str] | None] = ContextVar(
+    "intake_call_intent", default=None
+)
+
+
+def _invoke(
+    operation: str, handler: Any, session: Session, tenant_id: str, **arguments
+):
+    """Freeze invocation intent before entering a canonical writer or callback."""
+    token = _call_intent.set((operation, canonical_json(arguments)))
+    try:
+        return handler(session, tenant_id, **arguments)
+    finally:
+        _call_intent.reset(token)
+
+
+def require_scoped_intent(operation: str, actual: dict[str, Any]) -> None:
+    if _approved.get() is None:
+        return
+    intent = _call_intent.get()
+    if intent is None:
+        raise core.InvalidOperation(code="intake_approval_required")
+    expected_operation, frozen = intent
+    expected = json.loads(frozen)
+    if operation == expected_operation:
+        offered = {key: actual.get(key) for key in expected}
+        if canonical_json(offered) != canonical_json(expected):
+            raise core.InvalidOperation(code="intake_review_invalid")
+    elif (
+        expected_operation == "record_customer_payment"
+        and operation == "create_document"
+    ):
+        for key, value in {
+            "document_type": "customer_payment",
+            "party_id": expected["party_id"],
+            "currency": expected["currency"],
+            "source_record_id": expected["source_record_id"],
+            "action_id": expected["action_id"],
+            "_commit": False,
+        }.items():
+            if actual.get(key) != value:
+                raise core.InvalidOperation(code="intake_review_invalid")
+        if core.decimal(actual["amount"]) != core.decimal(expected["amount"]):
+            raise core.InvalidOperation(code="intake_review_invalid")
+    elif expected_operation == "record_customer_payment" and operation == "post_ledger":
+        if (
+            actual["party_id"] != expected["party_id"]
+            or actual["source_record_id"] != expected["source_record_id"]
+            or actual["currency"] != expected["currency"]
+        ):
+            raise core.InvalidOperation(code="intake_review_invalid")
+        postings = actual["postings"]
+        if (
+            len(postings) != 2
+            or [(row[0], row[1]) for row in postings]
+            != [("cash", "debit"), ("accounts_receivable", "credit")]
+            or any(
+                core.decimal(row[2]) != core.decimal(expected["amount"])
+                for row in postings
+            )
+        ):
+            raise core.InvalidOperation(code="intake_review_invalid")
+
+
 def _state(record: Any) -> str:
     return content_digest(
         {
-            column.key: getattr(record, column.key)
+            column.key: (
+                core.decimal(getattr(record, column.key))
+                if isinstance(column.type, Numeric)
+                and getattr(record, column.key) is not None
+                else getattr(record, column.key)
+            )
             for column in inspect(type(record)).columns
         }
     )
@@ -140,141 +270,6 @@ def _calendar_state(session: Session, tenant_id: str) -> CalendarState:
     # Refresh the existing read accelerator after acquiring the shared Tenant lock.
     session.info.setdefault("company_time_zone", {})[tenant_id] = calendar.time_zone
     return calendar
-
-
-def _shopify_plan(
-    session: Session, tenant_id: str, source: SourceRecord, job: ImportJob
-) -> PreparedIntake:
-    if session.scalar(
-        select(Document.id).where(
-            Document.tenant_id == tenant_id, Document.source_record_id == source.id
-        )
-    ):
-        raise core.InvalidOperation(code="intake_source_already_accepted")
-    if source.version != 1:
-        raise core.ShopifyUpdateNeedsReview()
-    payload = json.loads(source.payload)
-    if not 1 <= len(payload.get("line_items", [])) <= 500:
-        raise core.InvalidOperation(code="intake_package_too_large")
-    mapping = json.loads(job.input)
-    company_id = mapping["company_party_id"]
-    customer_id = core._surviving_party_id(
-        session, tenant_id, mapping["customer_party_id"]
-    )
-    location_id = mapping["location_id"]
-    customer = core._tenant_record_read(session, Party, tenant_id, customer_id)
-    if customer.credit_limit > 0:
-        # Until credit effects have an exact frozen review, refuse rather than skip the guard.
-        raise core.InvalidOperation(code="intake_profile_unsupported")
-    references = [
-        _reference(session, tenant_id, "party", company_id),
-        _reference(session, tenant_id, "party", customer_id),
-        _reference(session, tenant_id, "location", location_id),
-    ]
-    promised_at = next(
-        (
-            str(row.get("value") or "")
-            for row in payload.get("note_attributes", [])
-            if row.get("name") == "requested_delivery"
-        ),
-        "",
-    )
-    lines = []
-    promises = []
-    issues = []
-    for index, raw in enumerate(payload.get("line_items", [])):
-        sku = str(raw.get("sku") or "")
-        item = (
-            session.scalar(
-                select(Item).where(Item.tenant_id == tenant_id, Item.sku == sku)
-            )
-            if sku
-            else None
-        )
-        quantity = str(core.positive(raw.get("quantity", 0)))
-        price = raw.get("price")
-        if price is None or str(price).strip() == "":
-            price = None
-            issues.append(f"line:{index}:price_unstated")
-        else:
-            price = str(core.decimal(price))
-        # Never compute the source's line total from quantity and price.
-        stated_amount = raw.get("total_price", raw.get("gross_amount"))
-        if stated_amount is None:
-            raise core.InvalidOperation(code="intake_source_line_amount_required")
-        amount = str(core.decimal(stated_amount))
-        ships = raw.get("requires_shipping", True) is not False
-        if item:
-            references.append(_reference(session, tenant_id, "item", item.id))
-        else:
-            issues.append(f"line:{index}:item_unknown")
-        lines.append(
-            {
-                "source_line_id": str(raw.get("id") or index + 1),
-                "item_id": item.id if item else None,
-                "sku": sku,
-                "description": str(
-                    raw.get("name") or raw.get("title") or (item.name if item else sku)
-                ),
-                "quantity": quantity,
-                "unit_price": price,
-                "gross_amount": amount,
-                "promised_at": promised_at,
-                "unit": item.unit if item else "pcs",
-                "line_type": "item" if ships else "service",
-            }
-        )
-        if item and ships:
-            promises.append(
-                Effect(
-                    operation="commitment",
-                    arguments={
-                        "commitment_type": "customer_delivery",
-                        "from_party_id": company_id,
-                        "to_party_id": customer_id,
-                        "item_id": item.id,
-                        "location_id": location_id,
-                        "quantity": quantity,
-                        "due_at": promised_at or None,
-                        "amount": amount,
-                        "currency": payload.get("currency", "EUR"),
-                        "line_index": index,
-                    },
-                )
-            )
-    document = {
-        "document_type": "sales_order",
-        "number": str(payload.get("name") or source.external_id),
-        "party_id": customer_id,
-        "lines": lines,
-        "gross_amount": str(core.decimal(payload["total_price"])),
-        "currency": payload.get("currency", "EUR"),
-        "document_date": core._source_document_day(
-            session, tenant_id, payload.get("created_at")
-        ),
-        "ordered_at": payload.get("created_at"),
-        "requested_delivery_at": promised_at or None,
-        "sales_channel": "shopify",
-        "source_record_id": source.id,
-    }
-    core._preview_manual_document_input(
-        session, tenant_id, **document, _carry_unstated_price=True
-    )
-    return PreparedIntake(
-        tenant_id=tenant_id,
-        source_record_id=source.id,
-        source_hash=source.payload_hash,
-        source_version=source.version,
-        import_job_id=job.id,
-        profile="shopify.order",
-        mapping=mapping,
-        references=tuple(
-            {(row.record_type, row.record_id): row for row in references}.values()
-        ),
-        effects=(Effect(operation="document", arguments=document), *promises),
-        issues=tuple(issues),
-        row_count=len(lines),
-    )
 
 
 def _payment_plan(
@@ -387,7 +382,13 @@ def prepare_intake(
     if source.source_artifact_id:
         raise core.InvalidOperation(code="intake_profile_unsupported")
     if (source.source_system, source.source_type) == ("shopify", "order"):
-        plan = _shopify_plan(session, tenant_id, source, job)
+        from reality.services.shopify_intake import prepare_order
+
+        plan = prepare_order(session, tenant_id, source, job)
+    elif (source.source_system, source.source_type) == ("shopify", "refund"):
+        from reality.services.shop_refunds import prepare_refund
+
+        plan = prepare_refund(session, tenant_id, source, job)
     elif context.get("profile") == "customer_payment.v1" or (
         source.source_system,
         source.source_type,
@@ -460,66 +461,141 @@ def _apply_effects(
     lines = []
     records = []
     payment_entries = []
+    commitments = []
     for effect in plan.effects:
-        arguments = dict(effect.arguments)
-        if effect.operation == "document":
-            document, lines = core.create_manual_document_with_lines(
-                session,
-                tenant_id,
-                **arguments,
-                action_id=proposal.id,
-                _carry_unstated_price=True,
-                _commit=False,
-            )
-            records.extend(
-                [
-                    ("document", document.id),
-                    *(("document_line", row.id) for row in lines),
-                ]
-            )
-        elif effect.operation == "customer_payment":
-            arguments["effective_at"] = core.utc_datetime(arguments["effective_at"])
-            payment_entries = core.record_customer_payment(
-                session, tenant_id, **arguments, action_id=proposal.id, _commit=False
-            )
-            document = core._tenant_record_read(
-                session, Document, tenant_id, payment_entries[0].document_id
-            )
-            records.extend(
-                [
-                    ("document", document.id),
-                    *(("ledger_entry", row.id) for row in payment_entries),
-                ]
-            )
-        elif effect.operation == "payment_allocation":
-            if not payment_entries:
-                raise core.InvalidOperation(code="intake_review_invalid")
-            control = next(
-                row for row in payment_entries if row.account == "accounts_receivable"
-            )
-            allocation = core.allocate_settlement(
-                session,
-                tenant_id,
-                control.id,
-                **arguments,
-                action_id=proposal.id,
-                _commit=False,
-            )
-            records.append(("settlement_allocation", allocation.id))
-        else:
-            index = arguments.pop("line_index")
-            if document is None or not 0 <= index < len(lines):
-                raise core.InvalidOperation(code="intake_review_invalid")
-            commitment = core.create_commitment(
-                session,
-                tenant_id,
-                **arguments,
-                action_id=proposal.id,
-                document_id=document.id,
-                document_line_id=lines[index].id,
-                _commit=False,
-            )
-            records.append(("commitment", commitment.id))
+        with _dispatch_effect(effect.operation):
+            arguments = dict(effect.arguments)
+            if effect.operation == "document":
+                document, lines = _invoke(
+                    "create_manual_document_with_lines",
+                    core.create_manual_document_with_lines,
+                    session,
+                    tenant_id,
+                    **arguments,
+                    action_id=proposal.id,
+                    _carry_unstated_price=True,
+                    _carry_unstated_amount=True,
+                    _commit=False,
+                )
+                records.extend(
+                    [
+                        ("document", document.id),
+                        *(("document_line", row.id) for row in lines),
+                    ]
+                )
+            elif effect.operation == "customer_payment":
+                arguments["effective_at"] = core.utc_datetime(arguments["effective_at"])
+                payment_entries = _invoke(
+                    "record_customer_payment",
+                    core.record_customer_payment,
+                    session,
+                    tenant_id,
+                    **arguments,
+                    action_id=proposal.id,
+                    _commit=False,
+                )
+                document = core._tenant_record_read(
+                    session, Document, tenant_id, payment_entries[0].document_id
+                )
+                records.extend(
+                    [
+                        ("document", document.id),
+                        *(("ledger_entry", row.id) for row in payment_entries),
+                    ]
+                )
+            elif effect.operation == "payment_allocation":
+                if not payment_entries:
+                    raise core.InvalidOperation(code="intake_review_invalid")
+                control = next(
+                    row
+                    for row in payment_entries
+                    if row.account == "accounts_receivable"
+                )
+                allocation = _invoke(
+                    "allocate_settlement",
+                    core.allocate_settlement,
+                    session,
+                    tenant_id,
+                    payment_ledger_entry_id=control.id,
+                    **arguments,
+                    action_id=proposal.id,
+                    _commit=False,
+                )
+                records.append(("settlement_allocation", allocation.id))
+            elif effect.operation == "source_document":
+                document = _invoke(
+                    "create_document",
+                    core.create_document,
+                    session,
+                    tenant_id,
+                    **arguments,
+                    action_id=proposal.id,
+                    _commit=False,
+                )
+                records.append(("document", document.id))
+            elif effect.operation == "return_announcement":
+                announcement = _invoke(
+                    "announce_customer_return",
+                    core.announce_customer_return,
+                    session,
+                    tenant_id,
+                    **arguments,
+                    _commit=False,
+                )
+                records.append(("return_announcement", announcement.id))
+            elif effect.operation == "credit_hold":
+                from reality.services.credit_exposure import _place_holds
+
+                indices = arguments.pop("commitment_indices")
+                if any(not 0 <= index < len(commitments) for index in indices):
+                    raise core.InvalidOperation(code="intake_review_invalid")
+                holds = _place_holds(
+                    session,
+                    tenant_id,
+                    [commitments[index] for index in indices],
+                    **arguments,
+                    action_id=proposal.id,
+                )
+                records.extend(("commitment_hold", hold.id) for hold in holds)
+            elif effect.operation == "commitment_revision":
+                revision = _invoke(
+                    "revise_commitment",
+                    core.revise_commitment,
+                    session,
+                    tenant_id,
+                    **arguments,
+                    action_id=proposal.id,
+                    _commit=False,
+                )
+                records.append(("commitment_revision", revision.id))
+            elif effect.operation == "commitment_cancellation":
+                cancelled = _invoke(
+                    "cancel_commitment",
+                    core.cancel_commitment,
+                    session,
+                    tenant_id,
+                    **arguments,
+                    action_id=proposal.id,
+                    _commit=False,
+                )
+                records.append(("commitment", cancelled.id))
+            else:
+                index = arguments.pop("line_index")
+                if document is None or not 0 <= index < len(lines):
+                    raise core.InvalidOperation(code="intake_review_invalid")
+                commitment = _invoke(
+                    "create_commitment",
+                    core.create_commitment,
+                    session,
+                    tenant_id,
+                    **arguments,
+                    action_id=proposal.id,
+                    document_id=document.id,
+                    document_line_id=lines[index].id,
+                    _commit=False,
+                )
+                commitments.append(commitment)
+                records.append(("commitment", commitment.id))
     session.flush()
     return records
 
@@ -612,6 +688,22 @@ def apply_prepared_intake(
             .execution_options(populate_existing=True)
         )
         if record is None or _state(record) != reference.digest:
+            raise core.InvalidOperation(code="intake_review_stale")
+    for observation in plan.observations:
+        if observation.kind == "credit_exposure":
+            from reality.services.credit_exposure import credit_exposure
+
+            current = credit_exposure(
+                session,
+                tenant_id,
+                observation.arguments["party_id"],
+                as_of=core.utc_datetime(observation.arguments["as_of"]),
+            )
+        else:
+            from reality.services.shopify_intake import order_state
+
+            current = order_state(session, tenant_id, observation.arguments["order_id"])
+        if content_digest(current) != observation.digest:
             raise core.InvalidOperation(code="intake_review_stale")
     with session.begin_nested():
         with (

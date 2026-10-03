@@ -167,7 +167,9 @@ def interpret_shop_refund(
         currency=currency or order.currency,
         gross_amount=amount,
         status="recorded",
-        document_date=core._document_day(refund.get("created_at")),
+        document_date=core._source_document_day(
+            session, tenant_id, refund.get("created_at")
+        ),
         sales_channel=order.sales_channel,
     )
     session.add(document)
@@ -352,4 +354,224 @@ def refunds_for_order(
             )
             .order_by(Document.document_date, Document.number)
         )
+    )
+
+
+def prepare_refund(session, tenant_id, source, job):
+    """Freeze received refund evidence and supported operational effects without writing them."""
+    from reality.domain.intake import (
+        Effect,
+        ObservationState,
+        PreparedIntake,
+        content_digest,
+    )
+    from reality.services.intake import _reference
+    from reality.services.shop_order_changes import _needs_reservation_choice
+    from reality.services.shopify_intake import order_state
+
+    refund = json.loads(source.payload)
+    order = _order_for_refund(session, tenant_id, refund.get("order_id"))
+    order_lines = {
+        line.source_line_id: line
+        for line in session.scalars(
+            select(DocumentLine).where(
+                DocumentLine.tenant_id == tenant_id,
+                DocumentLine.document_id == order.id,
+            )
+        )
+    }
+    stated = refund.get("refund_line_items") or []
+    unknown = [
+        str(entry.get("line_item_id"))
+        for entry in stated
+        if str(entry.get("line_item_id")) not in order_lines
+    ]
+    if unknown:
+        raise ShopRefundNeedsReview(
+            "shop_refund_line_unknown",
+            "The refund names lines the accepted order does not contain.",
+        )
+    transactions = [
+        row
+        for row in refund.get("transactions", [])
+        if row.get("kind", "refund") == "refund"
+        and row.get("status") in {None, "success"}
+    ]
+    if not transactions or any(row.get("amount") in (None, "") for row in transactions):
+        raise ShopRefundNeedsReview(
+            "shop_refund_pending",
+            "No complete successful monetary refund statement is available.",
+        )
+    lines = []
+    issues = []
+    for entry in stated:
+        original = order_lines[str(entry["line_item_id"])]
+        subtotal = entry.get("subtotal")
+        if subtotal in (None, ""):
+            issues.append(f"line:{original.source_line_id}:amount_unstated")
+        lines.append(
+            {
+                "source_line_id": original.source_line_id,
+                "item_id": original.item_id,
+                "sku": original.sku,
+                "description": original.description,
+                "quantity": str(core.positive(entry.get("quantity", 0))),
+                "unit_price": None,
+                "gross_amount": None
+                if subtotal in (None, "")
+                else str(core.decimal(subtotal)),
+                "unit": original.unit,
+                "line_type": original.line_type,
+            }
+        )
+    effects = []
+    for index, transaction in enumerate(transactions):
+        amount = str(core.positive(transaction["amount"]))
+        currency = transaction.get("currency") or order.currency
+        number = (
+            f"Refund {source.external_id}"
+            if len(transactions) == 1
+            else f"Refund {source.external_id} transaction {transaction.get('id', index)}"
+        )
+        arguments = {
+            "document_type": DOCUMENT_TYPE,
+            "number": number,
+            "party_id": order.party_id,
+            "gross_amount": amount,
+            "currency": currency,
+            "document_date": core._source_document_day(
+                session, tenant_id, refund.get("created_at")
+            ),
+            "source_record_id": source.id,
+        }
+        if index == 0 and lines:
+            arguments.update(lines=lines, sales_channel=order.sales_channel)
+            core._preview_manual_document_input(
+                session,
+                tenant_id,
+                **arguments,
+                _carry_unstated_price=True,
+                _carry_unstated_amount=True,
+            )
+            arguments["_source_line_payloads"] = stated
+            effects.append(Effect(operation="document", arguments=arguments))
+        else:
+            arguments["amount"] = arguments.pop("gross_amount")
+            effects.append(Effect(operation="source_document", arguments=arguments))
+    previous = refunds_for_order(session, tenant_id, order)
+    for line_id in sorted({str(entry["line_item_id"]) for entry in stated}):
+        original = order_lines[line_id]
+        commitment = session.scalar(
+            select(Commitment).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.document_line_id == original.id,
+                Commitment.type == "customer_delivery",
+            )
+        )
+        if commitment is None or commitment.status == "cancelled":
+            continue
+        cancelling = sum(
+            (
+                core.decimal(entry["quantity"])
+                for entry in stated
+                if str(entry["line_item_id"]) == line_id
+                and entry.get("restock_type") == "cancel"
+            ),
+            core.ZERO,
+        )
+        if cancelling and commitment.status == "open":
+            for document in previous:
+                for line in session.scalars(
+                    select(DocumentLine).where(
+                        DocumentLine.tenant_id == tenant_id,
+                        DocumentLine.document_id == document.id,
+                        DocumentLine.source_line_id == line_id,
+                    )
+                ):
+                    if json.loads(line.payload or "{}").get("restock_type") == "cancel":
+                        cancelling += line.quantity
+            target = original.quantity - cancelling
+            current = core.commitment_quantity(session, tenant_id, commitment.id)
+            fulfilled = core.fulfilled_quantity(session, tenant_id, commitment.id)
+            note = f"Refunded in Shopify before shipment (refund {source.external_id})"
+            if target < fulfilled:
+                raise ShopRefundNeedsReview(
+                    "reduces_shipped_quantity",
+                    "The refund would reduce already shipped goods.",
+                )
+            if target < current:
+                if target == 0:
+                    effects.append(
+                        Effect(
+                            operation="commitment_cancellation",
+                            arguments={
+                                "commitment_id": commitment.id,
+                                "reason": note,
+                                "source_record_id": source.id,
+                            },
+                        )
+                    )
+                elif _needs_reservation_choice(
+                    session, tenant_id, commitment, target, fulfilled
+                ):
+                    raise ShopRefundNeedsReview(
+                        "reservation_choice_required",
+                        "A reviewer must select the retained reservation identities first.",
+                    )
+                else:
+                    effects.append(
+                        Effect(
+                            operation="commitment_revision",
+                            arguments={
+                                "commitment_id": commitment.id,
+                                "quantity": str(target),
+                                "note": note,
+                                "source_record_id": source.id,
+                            },
+                        )
+                    )
+        returning = sum(
+            (
+                core.decimal(entry["quantity"])
+                for entry in stated
+                if str(entry["line_item_id"]) == line_id
+                and entry.get("restock_type") == "return"
+            ),
+            core.ZERO,
+        )
+        quantity = min(
+            returning, core.announceable_quantity(session, tenant_id, commitment.id)
+        )
+        if quantity > 0:
+            effects.append(
+                Effect(
+                    operation="return_announcement",
+                    arguments={
+                        "commitment_id": commitment.id,
+                        "quantity": str(quantity),
+                        "reference": f"Refund {source.external_id}",
+                        "reason": "Refunded in Shopify",
+                        "source_record_id": source.id,
+                    },
+                )
+            )
+    return PreparedIntake(
+        tenant_id=tenant_id,
+        source_record_id=source.id,
+        source_hash=source.payload_hash,
+        source_version=source.version,
+        import_job_id=job.id,
+        profile="shopify.refund",
+        mapping=json.loads(job.input),
+        references=(_reference(session, tenant_id, "document", order.id),),
+        observations=(
+            ObservationState(
+                kind="shop_order_state",
+                arguments={"order_id": order.id},
+                digest=content_digest(order_state(session, tenant_id, order.id)),
+            ),
+        ),
+        effects=tuple(effects),
+        issues=tuple(issues),
+        row_count=max(1, len(lines) + len(transactions)),
     )

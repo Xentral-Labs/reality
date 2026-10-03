@@ -940,7 +940,7 @@ tables:
       description: {description: Source-facing line description.}
       quantity: {description: Quantity stated by the evidence.}
       unit_price: {nullable: true, description: Price per stated unit; null when the source stated none.}
-      gross_amount: {description: Gross monetary amount of the line.}
+      gross_amount: {description: "Gross monetary amount exactly stated by the source; null when it states no line amount."}
       promised_at: {description: Original promised date text retained from the evidence.}
       payload: {}
       unit: {description: Quantity unit stated for this line.}
@@ -958,7 +958,7 @@ tables:
       item_id: {description: Item involved in a quantity commitment.}
       location_id: {description: Operational location relevant to fulfillment.}
       quantity: {description: Outstanding or agreed quantity in the item base unit.}
-      amount: {description: Monetary value of a financial commitment.}
+      amount: {description: "Monetary value of a commitment; null when a physical source promise states none."}
       currency: {description: ISO currency of the commitment amount.}
       due_at: {description: UTC timestamp by which the commitment is due.}
       status: {description: Commitment lifecycle state derived independently from document status.}

@@ -131,6 +131,7 @@ def test_new_source_version_invalidates_review(session, business):
 
 def test_raw_survives_prepare_failure(session, business):
     payload = json.loads(FIXTURE.read_text())
+    payload["line_items"][0]["quantity"] = 0
     source, job = enqueue_shopify_order(
         session,
         business.tenant.id,
@@ -139,7 +140,7 @@ def test_raw_survives_prepare_failure(session, business):
         business.customer.id,
         business.location.id,
     )
-    with pytest.raises(InvalidOperation, match="states no line amount"):
+    with pytest.raises(InvalidOperation, match="greater than zero"):
         prepare_intake(session, business.tenant.id, job.id)
     assert json.loads(source.payload) == payload
     assert session.scalar(select(func.count()).select_from(Document)) == 0
@@ -313,5 +314,48 @@ def test_prepared_shop_day_uses_and_freezes_the_company_calendar(session, busine
     with pytest.raises(InvalidOperation):
         apply_prepared_intake(
             session, business.tenant.id, proposal.id, review["digest"], confirmed=True
+        )
+    assert session.scalar(select(func.count()).select_from(Document)) == 0
+
+
+def test_approved_effect_cannot_authorize_an_unplanned_writer(
+    session, business, monkeypatch
+):
+    from reality.services import core
+
+    _, _, proposal = prepare(session, business)
+    digest = review_intake(session, business.tenant.id, proposal.id)["digest"]
+    actual = core.create_commitment
+
+    def unexpected(*args, **kwargs):
+        core.create_item(
+            session, business.tenant.id, "UNREVIEWED", "Unreviewed", _commit=False
+        )
+        return actual(*args, **kwargs)
+
+    monkeypatch.setattr(core, "create_commitment", unexpected)
+    with pytest.raises(InvalidOperation):
+        apply_prepared_intake(
+            session, business.tenant.id, proposal.id, digest, confirmed=True
+        )
+    assert session.scalar(select(func.count()).select_from(Document)) == 0
+
+
+def test_an_approved_operation_cannot_change_the_reviewed_arguments(
+    session, business, monkeypatch
+):
+    from reality.services import core
+
+    _, _, proposal = prepare(session, business)
+    digest = review_intake(session, business.tenant.id, proposal.id)["digest"]
+    actual = core.create_commitment
+
+    def changed(*args, **kwargs):
+        return actual(*args, **{**kwargs, "quantity": "99"})
+
+    monkeypatch.setattr(core, "create_commitment", changed)
+    with pytest.raises(InvalidOperation):
+        apply_prepared_intake(
+            session, business.tenant.id, proposal.id, digest, confirmed=True
         )
     assert session.scalar(select(func.count()).select_from(Document)) == 0

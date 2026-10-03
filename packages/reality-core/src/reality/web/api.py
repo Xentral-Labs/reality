@@ -6454,7 +6454,9 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 "id": line.id,
                 "label": line.sku or line.description or line.id,
                 "quantity": str(line.quantity),
-                "gross_amount": str(line.gross_amount),
+                "gross_amount": str(line.gross_amount)
+                if line.gross_amount is not None
+                else None,
                 "unit": line.unit,
                 **(
                     {"billing": _order_line_billing(session, tenant_id, line.id)}
