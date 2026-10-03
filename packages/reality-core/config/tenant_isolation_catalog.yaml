@@ -11,6 +11,9 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.intake:prepare_intake
+  - reality.services.intake:review_intake
+  - reality.services.intake:apply_prepared_intake
   - reality.services.inventory_reads:inventory_page
   - reality.services.exceptions:cost_findings
   - reality.services.analytics.company_options:company_generation_option
@@ -53,6 +56,23 @@ explicit_operations:
   - reality.services.playground:confirm_step
   - reality.services.playground:reject_step
 families:
+  - key: reviewed_intake
+    description: Frozen interpretations and exact decision application stay inside their owning company.
+    classification: boundary
+    reason: Same-tenant proposal, source, job and reference checks precede every retained review and effect.
+    authority: 351/DR-003
+    operations: &reviewed_intake_operations
+      - reality.services.payment_intake:prepare_customer_payment
+      - reality.services.intake:prepare_intake
+      - reality.services.intake:review_intake
+      - reality.services.intake:apply_prepared_intake
+      - reality.services.intake:reject_prepared_intake
+      - tool:intake_apply
+      - tool:intake_review
+    evidence:
+      - id: tests/test_intake_admission.py::test_foreign_tenant_cannot_review_or_apply
+        assertion: boundary
+        operations: *reviewed_intake_operations
   - key: shared_inventory_page
     description: Shared inventory observations and their paginated register exclude foreign contributions.
     classification: collection

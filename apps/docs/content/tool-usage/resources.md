@@ -21,7 +21,7 @@ the technical key stands beside each one.
 | [Ledger and accounts](#resource-accounting)                      | 2     | 16      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 5       | 8                   |
-| [Document and source system](#resource-source)                   | 3     | 13      | 2                   |
+| [Document and source system](#resource-source)                   | 3     | 15      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 5       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
 
@@ -917,6 +917,9 @@ Nachweis, Quelle
 
 **Actions**
 
+- [Prepare source interpretation](./commands#command-prepare_intake) (`prepare_intake`)
+- [Accept reviewed source interpretation](./commands#command-apply_prepared_intake)
+  (`apply_prepared_intake`)
 - [Set source code mapping](./commands#command-set_source_mapping) (`set_source_mapping`)
 - [Observe fact](./commands#command-observe_fact) (`observe_fact`)
 - [Install mock connector shell](./commands#command-install_connector_shell)
@@ -939,6 +942,7 @@ Nachweis, Quelle
 
 **Look up**
 
+- [Review source interpretation](./commands#command-review_intake) (`review_intake`)
 - [Read reviewed partial commercial match](./commands#command-commercial_match) (`commercial_match`)
 - [Preview Document](./commands#command-preview_document) (`preview_document`)
 - [Read source code mappings](./commands#command-list_source_mappings) (`list_source_mappings`)
@@ -1042,7 +1046,6 @@ Abweichung, Klärfall, Timeline, Verlauf
 [`exception_explain`](./commands#tool-exception_explain),
 [`proposals_awaiting_approval`](./commands#tool-proposals_awaiting_approval),
 [`proposal_execution_status`](./commands#tool-proposal_execution_status),
-[`proposal_approve_and_execute`](./commands#tool-proposal_approve_and_execute),
 [`proposal_reject`](./commands#tool-proposal_reject),
 [`reality_gaps`](./commands#tool-reality_gaps),
 [`reality_gap_get`](./commands#tool-reality_gap_get),

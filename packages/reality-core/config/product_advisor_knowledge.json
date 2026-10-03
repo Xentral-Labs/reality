@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:0857a52df1e9c739bdda932aa4d72d24516206c36d1dcca2d42c4dd0d584e086",
+  "knowledge_version": "advisor-v1:sha256:c535c114cc9e6d0daf46908c2967292d80cf96479a3de42a7f4992eb3286ec75",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "a9a577dcd6d411e40f8e8cf27fcf628715978961c081104a29ecee4e6d2de6c9"
+      "fingerprint": "8efbb4744b5c75d6be4a44e69b514b7d5fab84f067cd5bdb45ec4c5c6c617f8f"
     },
     {
       "id": "source_document_product_evaluation",
@@ -6121,6 +6121,51 @@
       ],
       "language": "en",
       "fingerprint": "b593b97aa5d9e126f7e804b459a90061e305a7e576733498d75ae539b145a583"
+    },
+    {
+      "id": "evidence_command_prepare_intake",
+      "source_id": "source_executable_commands",
+      "subject": "Prepare source interpretation",
+      "title": "Prepare source interpretation",
+      "search_text": "prepare_intake Prepare source interpretation Retain a non-authoritative exact interpretation and review digest; create no accepted business records. mutation",
+      "claim_text": "prepare_intake is a governed mutation command for Retain a non-authoritative exact interpretation and review digest; create no accepted business records..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "prepare_intake"
+      ],
+      "language": "en",
+      "fingerprint": "fb11284e465e3145db63796684ccbef22f5d8d5c698d027f77e1128e45e6cc81"
+    },
+    {
+      "id": "evidence_command_review_intake",
+      "source_id": "source_executable_commands",
+      "subject": "Review source interpretation",
+      "title": "Review source interpretation",
+      "search_text": "review_intake Review source interpretation Read one tenant-scoped frozen interpretation, digest and status without refreshing or executing it. read",
+      "claim_text": "review_intake is a governed read command for Read one tenant-scoped frozen interpretation, digest and status without refreshing or executing it..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "review_intake"
+      ],
+      "language": "en",
+      "fingerprint": "33381461dbb95cb8187fe2a034b8e9a545fec4e5599302f32fc7dd7827c1c362"
+    },
+    {
+      "id": "evidence_command_apply_prepared_intake",
+      "source_id": "source_executable_commands",
+      "subject": "Accept reviewed source interpretation",
+      "title": "Accept reviewed source interpretation",
+      "search_text": "apply_prepared_intake Accept reviewed source interpretation Apply the exact unchanged interpretation through canonical services and retain attribution and receipt in the same transaction. mutation",
+      "claim_text": "apply_prepared_intake is a governed mutation command for Apply the exact unchanged interpretation through canonical services and retain attribution and receipt in the same transaction..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "apply_prepared_intake"
+      ],
+      "language": "en",
+      "fingerprint": "6a17be34bc94ce198e6e0b71594daac944dab4fd20c24796a0e12ea3e9216d56"
     },
     {
       "id": "evidence_command_business_journey_guide",

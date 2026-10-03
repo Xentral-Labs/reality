@@ -310,7 +310,10 @@
     "mapping_history": "accounts",
     "preview_document": "accounts",
     "maintain_target_configuration": "accounts",
-    "change_graph_report": "reports"
+    "change_graph_report": "reports",
+    "prepare_intake": "intake",
+    "review_intake": "intake",
+    "apply_prepared_intake": "intake"
   },
   "entries": [
     {

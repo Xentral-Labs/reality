@@ -1292,6 +1292,8 @@
       "tables": ["source_system", "source_capability", "document", "document_line", "fact"],
       "lists": ["view:documents", "view:sources_imports", "projection:document_register"],
       "actions": [
+        "command:prepare_intake",
+        "command:apply_prepared_intake",
         "command:set_source_mapping",
         "command:observe_fact",
         "command:install_connector_shell",
@@ -1307,6 +1309,7 @@
         "command:assign_line_item"
       ],
       "reads": [
+        "command:review_intake",
         "command:commercial_match",
         "command:preview_document",
         "command:list_source_mappings",
@@ -1421,7 +1424,6 @@
         "tool:exception_explain",
         "tool:proposals_awaiting_approval",
         "tool:proposal_execution_status",
-        "tool:proposal_approve_and_execute",
         "tool:proposal_reject",
         "tool:reality_gaps",
         "tool:reality_gap_get",
@@ -1932,6 +1934,75 @@
     }
   ],
   "entries": [
+    {
+      "id": "tool:intake_prepare_propose",
+      "kind": "tool",
+      "key": "intake_prepare_propose",
+      "label": "Prepare source interpretation",
+      "area": "cross_functional",
+      "summary": "Prepare exact meaning of a retained source job without accepting business effects. Review and confirm the returned proposal separately.",
+      "access": "propose",
+      "group": "Sources",
+      "synopsis": "intake_prepare_propose job_id",
+      "parameters": [
+        {
+          "name": "job_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the queued source-processing job.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "prepare_intake",
+      "projections": [],
+      "links": ["command:prepare_intake"],
+      "label_de": "Prepare source interpretation",
+      "resources": ["source"]
+    },
+    {
+      "id": "tool:intake_review",
+      "kind": "tool",
+      "key": "intake_review",
+      "label": "Review source interpretation",
+      "area": "cross_functional",
+      "summary": "Read the retained interpretation, exact digest and decision status without changing source meaning.",
+      "access": "read",
+      "group": "Sources",
+      "synopsis": "intake_review proposal_id",
+      "parameters": [
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read one frozen source interpretation and its exact decision digest.",
+        "use_when": [
+          "An operator needs to inspect proposed source meaning or its retained result."
+        ],
+        "do_not_use_when": ["The source needs to be received or interpreted again."],
+        "limitations": ["The retained interpretation is non-authoritative until executed."],
+        "empty_result": "A missing or foreign proposal is not found.",
+        "freshness": "Reads retained content without renewing its review or changing effects."
+      },
+      "read_modes": [
+        {
+          "query": "MCP intake_review",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "review_intake",
+      "projections": [],
+      "links": ["command:review_intake"],
+      "label_de": "Review source interpretation",
+      "resources": ["source"]
+    },
     {
       "id": "tool:business_journey_guide",
       "kind": "tool",
@@ -3883,7 +3954,7 @@
           "name": "proposal_id",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
           "depth": 0
         }
       ],
@@ -3934,7 +4005,7 @@
           "name": "proposal_id",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
           "depth": 0
         },
         {
@@ -4001,11 +4072,11 @@
         }
       },
       "read_modes": [],
-      "command": null,
+      "command": "apply_prepared_intake",
       "projections": [],
-      "links": [],
+      "links": ["command:apply_prepared_intake"],
       "label_de": "Approve and execute a proposal",
-      "resources": ["governance"]
+      "resources": ["source"]
     },
     {
       "id": "tool:proposal_reject",
@@ -4022,7 +4093,7 @@
           "name": "proposal_id",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
           "depth": 0
         },
         {
@@ -10247,7 +10318,7 @@
           "name": "proposal_id",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Opaque same-tenant identity of the retained decision proposal.",
           "depth": 0
         },
         {
@@ -21537,6 +21608,144 @@
       "links": ["command:execute_cost_change"],
       "label_de": "Review cost and contribution decision",
       "resources": ["accounting", "contribution"]
+    },
+    {
+      "id": "command:prepare_intake",
+      "kind": "command",
+      "key": "prepare_intake",
+      "label": "Prepare source interpretation",
+      "area": "cross_functional",
+      "summary": "Retain a non-authoritative exact interpretation and review digest; create no accepted business records.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["source_record", "source_stream", "import_job", "party", "item", "location"],
+      "writes": ["action", "import_job", "interpretation_outcome"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["intake_prepare_propose"],
+      "synopses": ["intake_prepare_propose job_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:intake_prepare_propose"],
+      "label_de": "Quellinterpretation vorbereiten",
+      "resources": ["source"]
+    },
+    {
+      "id": "command:review_intake",
+      "kind": "command",
+      "key": "review_intake",
+      "label": "Review source interpretation",
+      "area": "cross_functional",
+      "summary": "Read one tenant-scoped frozen interpretation, digest and status without refreshing or executing it.",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["action"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["intake_review"],
+      "synopses": ["intake_review proposal_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read one frozen source interpretation and its exact decision digest.",
+        "use_when": [
+          "An operator needs to inspect proposed source meaning or its retained result."
+        ],
+        "do_not_use_when": ["The source needs to be received or interpreted again."],
+        "limitations": ["The retained interpretation is non-authoritative until executed."],
+        "empty_result": "A missing or foreign proposal is not found.",
+        "freshness": "Reads retained content without renewing its review or changing effects."
+      },
+      "links": ["tool:intake_review"],
+      "label_de": "Quellinterpretation prüfen",
+      "resources": ["source"]
+    },
+    {
+      "id": "command:apply_prepared_intake",
+      "kind": "command",
+      "key": "apply_prepared_intake",
+      "label": "Accept reviewed source interpretation",
+      "area": "cross_functional",
+      "summary": "Apply the exact unchanged interpretation through canonical services and retain attribution and receipt in the same transaction.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "action",
+        "source_record",
+        "source_stream",
+        "import_job",
+        "party",
+        "item",
+        "location"
+      ],
+      "writes": [
+        "document",
+        "document_line",
+        "commitment",
+        "action",
+        "import_job",
+        "interpretation_outcome",
+        "interpretation_record_reference",
+        "business_event"
+      ],
+      "confirmation": "required",
+      "related_services": ["reject_prepared_intake"],
+      "tools": ["proposal_approve_and_execute"],
+      "synopses": ["proposal_approve_and_execute proposal_id [approved] [review_token]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Apply one exact prepared mutation after an explicit authorized decision through a single-use Reality execution boundary.",
+        "use_when": [
+          "A permissioned caller submits an explicit authorized decision on the exact pending proposal preview."
+        ],
+        "do_not_use_when": [
+          "Approval is inferred from model output, credentials, connection, or prior similar decisions.",
+          "The proposal is executing, rejected, unknown, foreign, or no longer matches the intended action."
+        ],
+        "preconditions": [
+          "The proposal belongs to the selected tenant",
+          "remains proposed",
+          "and approved is explicitly true."
+        ],
+        "refusals": [
+          {
+            "code": "approval_required",
+            "description": "approved=true was not supplied for an explicit authorized decision."
+          },
+          {
+            "code": "execution_unknown",
+            "description": "The proposal is already executing and cannot be safely retried."
+          },
+          {
+            "code": "proposal_settled",
+            "description": "The proposal was rejected or otherwise cannot be confirmed."
+          },
+          {
+            "code": "proposal_not_found",
+            "description": "No proposal is visible in the selected tenant."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "proposal_execution_status",
+            "proves": "Correlated execution evidence and current Reservation/Commitment values match the stored receipt."
+          },
+          {
+            "name": "business_records_discover",
+            "proves": "Named operational records remain visible with current tenant-scoped values."
+          }
+        ],
+        "idempotency": {
+          "mode": "single_use_replay",
+          "guidance": "An executed replay returns the stored receipt without executing again; never retry an executing proposal blindly."
+        }
+      },
+      "links": ["tool:proposal_approve_and_execute"],
+      "label_de": "Geprüfte Quellinterpretation übernehmen",
+      "resources": ["source"]
     },
     {
       "id": "command:business_journey_guide",
@@ -79863,6 +80072,7 @@
         }
       ],
       "actions": [
+        "command:apply_prepared_intake",
         "command:create_manual_order",
         "command:correct_manual_document",
         "command:record_down_payment_invoice",
@@ -80161,6 +80371,7 @@
         }
       ],
       "actions": [
+        "command:apply_prepared_intake",
         "command:create_manual_order",
         "command:correct_manual_document",
         "command:record_down_payment_invoice",
@@ -80471,6 +80682,7 @@
         }
       ],
       "actions": [
+        "command:apply_prepared_intake",
         "command:create_manual_order",
         "command:record_movement",
         "command:correct_movement",

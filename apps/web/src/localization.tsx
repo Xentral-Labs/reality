@@ -13,6 +13,26 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "An exact transaction-bound intake approval is required.":
+      "Die Datenübernahme erfordert eine genaue, an die Transaktion gebundene Freigabe.",
+    "The reviewed intake state has changed. Prepare a new review.":
+      "Die geprüfte Grundlage der Datenübernahme hat sich geändert. Bereite eine neue Prüfung vor.",
+    "The retained intake review is invalid.":
+      "Die gespeicherte Prüfung der Datenübernahme ist ungültig.",
+    "This source profile has no reviewed intake adapter.":
+      "Dieses Quellprofil unterstützt noch keine geprüfte Datenübernahme.",
+    "The coherent intake package exceeds its review limits.":
+      "Das zusammenhängende Datenpaket überschreitet die Prüfgrenzen.",
+    "The source states no line amount. Supply explicit evidence before acceptance.":
+      "Die Quelle nennt keinen Positionsbetrag. Ergänze einen ausdrücklichen Nachweis vor der Übernahme.",
+    "Intake effects and their decision receipt must commit together.":
+      "Die Auswirkungen der Datenübernahme und ihr Entscheidungsnachweis müssen gemeinsam gespeichert werden.",
+    "This source already has accepted evidence; reconcile its existing decision trail.":
+      "Diese Quelle hat bereits übernommene Nachweise; kläre den vorhandenen Entscheidungsverlauf.",
+    "Large-file intake requires between one and 5000 rows.":
+      "Der Import einer großen Datei benötigt zwischen einer und 5000 Zeilen.",
+    "Large-file raw input must be nonempty and at most 20 MiB.":
+      "Die Rohdatei darf nicht leer und höchstens 20 MiB groß sein.",
     "Platform admin access": "Zugang als Plattformadmin",
     "You can access this company as a platform administrator. Private reports remain personal to their author.":
       "Du kannst als Plattformadministrator auf diese Firma zugreifen. Private Berichte bleiben persönlich für ihren Autor.",
@@ -2132,6 +2152,26 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "An exact transaction-bound intake approval is required.":
+      "De gegevensovername vereist een exacte goedkeuring binnen dezelfde transactie.",
+    "The reviewed intake state has changed. Prepare a new review.":
+      "De beoordeelde basis voor de gegevensovername is gewijzigd. Bereid een nieuwe beoordeling voor.",
+    "The retained intake review is invalid.":
+      "De opgeslagen beoordeling van de gegevensovername is ongeldig.",
+    "This source profile has no reviewed intake adapter.":
+      "Dit bronprofiel ondersteunt nog geen beoordeelde gegevensovername.",
+    "The coherent intake package exceeds its review limits.":
+      "Het samenhangende gegevenspakket overschrijdt de beoordelingsgrenzen.",
+    "The source states no line amount. Supply explicit evidence before acceptance.":
+      "De bron vermeldt geen regelbedrag. Voeg expliciet bewijs toe vóór acceptatie.",
+    "Intake effects and their decision receipt must commit together.":
+      "De effecten van de gegevensovername en het beslissingsbewijs moeten samen worden opgeslagen.",
+    "This source already has accepted evidence; reconcile its existing decision trail.":
+      "Deze bron heeft al geaccepteerd bewijs; controleer het bestaande beslissingsverloop.",
+    "Large-file intake requires between one and 5000 rows.":
+      "De import van een groot bestand vereist tussen één en 5000 regels.",
+    "Large-file raw input must be nonempty and at most 20 MiB.":
+      "Het ruwe bestand mag niet leeg zijn en mag maximaal 20 MiB groot zijn.",
     "Platform admin access": "Toegang als platformbeheerder",
     "You can access this company as a platform administrator. Private reports remain personal to their author.":
       "Je hebt als platformbeheerder toegang tot dit bedrijf. Privérapporten blijven persoonlijk voor hun auteur.",
@@ -3946,6 +3986,26 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "An exact transaction-bound intake approval is required.":
+      "La incorporación de datos requiere una aprobación exacta vinculada a la misma transacción.",
+    "The reviewed intake state has changed. Prepare a new review.":
+      "La base revisada para la incorporación de datos ha cambiado. Prepara una nueva revisión.",
+    "The retained intake review is invalid.":
+      "La revisión guardada de la incorporación de datos no es válida.",
+    "This source profile has no reviewed intake adapter.":
+      "Este perfil de origen aún no admite una incorporación de datos revisada.",
+    "The coherent intake package exceeds its review limits.":
+      "El paquete coherente de datos supera los límites de revisión.",
+    "The source states no line amount. Supply explicit evidence before acceptance.":
+      "El origen no indica un importe de línea. Añade evidencia explícita antes de aceptarlo.",
+    "Intake effects and their decision receipt must commit together.":
+      "Los efectos de la incorporación de datos y su comprobante de decisión deben guardarse juntos.",
+    "This source already has accepted evidence; reconcile its existing decision trail.":
+      "Este origen ya tiene evidencia aceptada; verifica su historial de decisiones existente.",
+    "Large-file intake requires between one and 5000 rows.":
+      "La importación de un archivo grande requiere entre una y 5000 filas.",
+    "Large-file raw input must be nonempty and at most 20 MiB.":
+      "El archivo original no puede estar vacío y no puede superar los 20 MiB.",
     "Platform admin access": "Acceso como administrador de la plataforma",
     "You can access this company as a platform administrator. Private reports remain personal to their author.":
       "Puedes acceder a esta empresa como administrador de la plataforma. Los informes privados siguen siendo personales para su autor.",

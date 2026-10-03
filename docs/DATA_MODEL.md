@@ -188,3 +188,16 @@ populated rollback, original header protection and complete FK indexes.
 
 See [verification](../specs/327-consolidate-census-members/verification.md) for
 acceptance evidence.
+
+## Prepared source meaning (spec 351, initial implementation)
+
+An intake ChangeProposal holds a non-authoritative, content-addressed interpretation
+in its existing input JSON. It binds one immutable SourceRecord and ImportJob,
+resolved opaque identities and exact proposed effects. The proposal is not a staged
+Document and grants no authority before decision. Prepared and applied phases append
+separate immutable InterpretationOutcomes; replay appends neither an outcome nor an
+effect. The approved effect transaction retains accepted records, decision attribution
+and its receipt together. Historical unknown approval remains unknown.
+
+See [the intake implementation contract](features/decision-gated-intake.md) for the
+implemented profiles and still-pending cross-path cutover.

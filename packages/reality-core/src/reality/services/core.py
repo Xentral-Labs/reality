@@ -124,6 +124,8 @@ HOLD_REASONS = {
 }
 
 INTERPRETATION_CLASSIFICATIONS = {
+    "prepared",
+    "rejected",
     "interpreted",
     "needs_review",
     "unsupported",
@@ -15504,6 +15506,9 @@ def enqueue_source(
     For a newly received Shopify order, route embedded refund payloads through the shared refund splitter.
     """
     _require_business_mutation(session, tenant_id, "enqueue_source")
+    from reality.services.business_locks import lock_delivery_state
+
+    lock_delivery_state(session, tenant_id)
     source_system, source_type, external_id = (
         source_system.strip().lower(),
         source_type.strip(),

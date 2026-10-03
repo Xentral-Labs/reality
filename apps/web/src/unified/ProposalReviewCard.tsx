@@ -76,7 +76,15 @@ export function ProposalReviewCard({
     setWorking(true);
     setError("");
     try {
-      if (approve) await api.approveProposal(tenant, proposalId, null);
+      if (approve)
+        await api.approveProposal(
+          tenant,
+          proposalId,
+          null,
+          review.data?.tool === "intake_apply" && typeof review.data.input.digest === "string"
+            ? review.data.input.digest
+            : undefined,
+        );
       else await api.rejectProposal(tenant, proposalId, null);
       await review.refresh();
     } catch (failure) {

@@ -36,7 +36,11 @@ def resolve_decision_policy(
     checks: list[AuthorityCheck] = []
     exceptions: list[str] = []
     authority: ApprovalAuthority = "action_context"
-    if tool in FINANCE_COMMANDS or tool in OWNER_RELEASE_TOOLS:
+    financial_intake = tool == "intake_apply" and any(
+        effect.get("operation") in {"customer_payment", "payment_allocation"}
+        for effect in arguments.get("plan", {}).get("effects", [])
+    )
+    if tool in FINANCE_COMMANDS or tool in OWNER_RELEASE_TOOLS or financial_intake:
         authority = "company_owner"
         checks.append(
             "credit_owner" if tool in OWNER_RELEASE_TOOLS else "finance_owner"
@@ -57,7 +61,7 @@ def resolve_decision_policy(
     elif tool in ACCOUNT_MUTATION_TOOLS:
         authority = "account_user"
         checks.append("account_identity")
-    if "_delivery_review" in arguments:
+    if "_delivery_review" in arguments or tool == "intake_apply":
         checks.append("reviewed_member")
         if authority == "action_context":
             authority = "company_member"

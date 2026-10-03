@@ -2457,3 +2457,31 @@ Table `company_time_zone`: the IANA zone a company states; business days derived
 - `packages/reality-core/tests/test_company_time_zone_migration.py`: the table comes and goes, and a stated zone blocks a rollback.
 - `packages/reality-core/tests/scenarios/test_catalog_time.py::test_an_order_at_half_past_eleven_in_new_york_is_dated_that_day` (Q05).
 - `packages/reality-core/tests/test_reporting_graph_coverage.py`: `company_time_zone` is a deferred operational workflow record.
+
+## Decision-gated source interpretation — Spec 351
+
+- `packages/reality-core/tests/test_intake_admission.py`: lossless raw retention,
+  preparation with no accepted effects, exact review and tenant checks, changed
+  source/mapping/reference refusal, atomic no-commit application, retained receipts
+  and immutable outcome replay, shared application confirmation and membership removal.
+- This initial slice offers explicit reviewed preparation. Automatic legacy import
+  processing, other profiles, bulk mandates and universal writer admission remain
+  pending under specs 352–356; this evidence does not certify their cutover.
+
+## Large-file package preparation — Spec 353
+
+- `packages/reality-core/tests/test_file_intake_admission.py`: 5000-row input,
+  whole-file duplicate/structure rejection, canonical UTF-8 byte limits, multiline
+  content, deterministic packages and indivisible oversized rows.
+- Pure packaging is implemented; artifact registration, reviewed master application
+  and Web bulk handoff remain pending. The legacy single-package limits are unchanged.
+
+## Reviewed payment preparation — Spec 354
+
+- `packages/reality-core/tests/test_financial_intake_admission.py`: non-posting
+  preparation, exact stated payment amounts, owner authority, explicit unmatched
+  payment acceptance and source/decision-attributed postings.
+- Invoice adapters, bank-file integration, financial batch and live demo cutover
+  remain pending.
+
+Contract: `docs/features/decision-gated-intake.md` records the explicit initial profiles and pending rollout.

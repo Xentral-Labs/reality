@@ -33,6 +33,7 @@ from reality.services import dunning as dunning_service_module
 from reality.services import dunning_runs as dunning_run_service_module
 from reality.services import external_stock as external_stock_service_module
 from reality.services import file_interpreters as interpreter_service_module
+from reality.services import intake as intake_service_module
 from reality.services import invoice_actions as invoice_action_service_module
 from reality.services import invoice_billing as invoice_billing_service_module
 from reality.services import kits as kit_service_module
@@ -182,7 +183,15 @@ OPERATIONAL_EXCEPTION_CAUSE_VOCABULARY = (
 #: Reads that answer from catalogs/running implementation rather than tenant business
 #: records. Guidance blocks demand a `data_basis` of real tables, which these have
 #: none of, so they are the only reads exempt from carrying one (spec 270).
-CATALOG_READ_TOOLS = frozenset({"capability_describe", "capability_catalog", "business_logic_discover", "business_logic_explain", "business_logic_source"})
+CATALOG_READ_TOOLS = frozenset(
+    {
+        "capability_describe",
+        "capability_catalog",
+        "business_logic_discover",
+        "business_logic_explain",
+        "business_logic_source",
+    }
+)
 
 CAPABILITY_GUIDANCE_REQUIRED_TOOLS = {
     "business_records_discover",
@@ -209,6 +218,7 @@ TENANT_ISOLATION_CLASSIFICATIONS = {
 from reality.services import costing as costing_service_module
 
 TENANT_SERVICE_MODULES = {
+    "reality.services.intake": intake_service_module,
     "reality.services.costing": costing_service_module,
     "reality.services.projection_jobs": projection_job_service_module,
     "reality.services.finance.source_mappings": finance_source_mapping_module,
@@ -1127,6 +1137,7 @@ def _service(name: str) -> Any:
         return getattr(payment_return_service_module, name)
     # Spec 299: only what these modules define, never a name they import.
     for module in (
+        intake_service_module,
         down_payment_service_module,
         month_end_billing_service_module,
         reorder_point_service_module,
