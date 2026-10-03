@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:fa3b5f2c2c39d12b0cb572f1963b81b63a9ffeea27c32c52b414dbfb0cf6a34b",
+  "knowledge_version": "advisor-v1:sha256:5c7ec9bc92ba6c1d2ff75f1a3bf326b0ac9271907dce4efc3a968e7de50480cd",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1026,7 +1026,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G10",
-      "fingerprint": "ba1fed11a26b9e358a87d4ba397d3052862c6f2a7edd3a81bfb1e48791cfaffb"
+      "fingerprint": "fd64c52e7d5dabfdc1cdd07c3f3193e149955bda908063b4b10856a907d36c81"
     },
     {
       "id": "source_journey_g11",
@@ -4096,18 +4096,20 @@
       "source_id": "source_journey_g10",
       "subject": "Purchasing: demand and purchase order",
       "title": "Supplier never confirms",
-      "search_text": "G10 Purchasing: demand and purchase order Supplier never confirms Unconfirmed purchase flagged? Supplier never confirms Unconfirmed purchase flagged?",
-      "claim_text": "Reality evaluates: Unconfirmed purchase flagged?",
-      "support": "unavailable",
+      "search_text": "G10 Purchasing: demand and purchase order Supplier never confirms Unconfirmed purchase flagged? unconfirmed purchase order order confirmation missing supplier did not confirm Auftragsbestätigung fehlt Bestellung nicht bestätigt Supplier never confirms Unconfirmed purchase flagged? Which purchase orders has the supplier not confirmed? Welche Bestellungen hat der Lieferant nicht bestätigt?",
+      "claim_text": "Reality evaluates: Unconfirmed purchase flagged? A purchase line the supplier has not confirmed three days after the order was placed is reported as Purchase order not confirmed, long before its delivery date; a confirmation recorded as a revision of the line, goods arriving or a cancellation clears it.",
+      "support": "proven",
       "limitations": [
-        "Reality does not expect a supplier confirmation, so an unconfirmed purchase order is not flagged.",
-        "It is flagged only as overdue once its delivery date has passed."
+        "The three days are fixed for every company and supplier; a supplier's own response time is not stated.",
+        "A confirmation exactly as ordered is recorded by restating the line's date.",
+        "Once the delivery date has passed, the line is reported as overdue instead."
       ],
       "references": [
-        "G10"
+        "G10",
+        "commitment_revise_propose"
       ],
       "language": "en",
-      "fingerprint": "caaef693efdb4ecd00691d6f2226dbbe40ab48cd5ee7d5954d1cd80697f6aef8"
+      "fingerprint": "ac4987174fdb70ddfc83ad2336f9cd5bb8cec67b5c8706fccae3c555b3a8ba7b"
     },
     {
       "id": "evidence_journey_g11",

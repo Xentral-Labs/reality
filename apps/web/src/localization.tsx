@@ -25363,6 +25363,9 @@ Object.assign(dictionaries.de, {
   Advised: "Avisiert",
   received: "erhalten",
   "in transit": "unterwegs",
+  "Purchase order not confirmed": "Bestellung nicht bestätigt",
+  "The supplier's confirmation recorded as a revision of the line, goods arriving against it, or the line cancelled.":
+    "Die Bestätigung des Lieferanten als Revision der Position erfasst, Ware, die dafür eingeht, oder die stornierte Position.",
   "External stock differs": "Fremdbestand weicht ab",
   "A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.":
     "Eine Inventur zum angegebenen Zeitpunkt, die die Differenz übernimmt, das Erfassen der fehlenden Bewegung oder eine neuere Angabe, die übereinstimmt.",
@@ -26109,6 +26112,9 @@ Object.assign(dictionaries.nl, {
   Advised: "Geadviseerd",
   received: "ontvangen",
   "in transit": "onderweg",
+  "Purchase order not confirmed": "Bestelling niet bevestigd",
+  "The supplier's confirmation recorded as a revision of the line, goods arriving against it, or the line cancelled.":
+    "De bevestiging van de leverancier vastgelegd als revisie van de regel, goederen die ervoor binnenkomen, of de geannuleerde regel.",
   "External stock differs": "Externe voorraad wijkt af",
   "A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.":
     "Een voorraadtelling op het opgegeven tijdstip die het verschil overneemt, het vastleggen van de ontbrekende beweging, of een nieuwere opgave die overeenkomt.",
@@ -26854,6 +26860,9 @@ Object.assign(dictionaries.es, {
   Advised: "Avisado",
   received: "recibido",
   "in transit": "en tránsito",
+  "Purchase order not confirmed": "Pedido de compra no confirmado",
+  "The supplier's confirmation recorded as a revision of the line, goods arriving against it, or the line cancelled.":
+    "La confirmación del proveedor registrada como revisión de la línea, la mercancía que llega para ella o la línea cancelada.",
   "External stock differs": "El stock externo difiere",
   "A stock count dated at the stated time that takes the difference over, the missing movement being recorded, or a newer statement that matches.":
     "Un recuento de inventario fechado en el momento indicado que asume la diferencia, el registro del movimiento que falta o una declaración más reciente que coincida.",

@@ -2786,23 +2786,34 @@ entries:
   section: 'Purchasing: demand and purchase order'
   title: Supplier never confirms
   question: Unconfirmed purchase flagged?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Unconfirmed purchase flagged?'
+  status: supported
+  evidence_level: executable
+  summary: 'Reality evaluates: Unconfirmed purchase flagged? A purchase line the supplier has not confirmed three days after the order was placed is reported as Purchase order not confirmed, long before its delivery date; a confirmation recorded as a revision of the line, goods arriving or a cancellation clears it.'
   limitations:
-  - Reality does not expect a supplier confirmation, so an unconfirmed purchase order is not flagged.
-  - It is flagged only as overdue once its delivery date has passed.
-  keywords: []
+  - The three days are fixed for every company and supplier; a supplier's own response time is not stated.
+  - A confirmation exactly as ordered is recorded by restating the line's date.
+  - Once the delivery date has passed, the line is reported as overdue instead.
+  keywords:
+  - unconfirmed purchase order
+  - order confirmation missing
+  - supplier did not confirm
+  - Auftragsbestätigung fehlt
+  - Bestellung nicht bestätigt
   question_examples:
   - Supplier never confirms
   - Unconfirmed purchase flagged?
-  tools: []
+  - Which purchase orders has the supplier not confirmed?
+  - Welche Bestellungen hat der Lieferant nicht bestätigt?
+  tools:
+  - commitment_revise_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: —
-    note: No acknowledgement expectation, so an unconfirmed PO is never flagged (only overdue after the due date).
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_purchase_order_the_supplier_has_not_confirmed_is_flagged
+    note: Two purchase orders placed four days ago and due in three weeks are both reported as unconfirmed, not as overdue; the supplier's confirmation as ordered clears one while the silent one stays reported.
+  - reference: packages/reality-core/tests/test_purchase_order_unconfirmed.py
+    note: Reported only after three days; a confirmation, a receipt or a cancellation clears it; read as of before the confirmation it was still waiting; other companies see nothing (spec 346).
 - id: G11
   section: 'Purchasing: demand and purchase order'
   title: Supplier moves the date several times

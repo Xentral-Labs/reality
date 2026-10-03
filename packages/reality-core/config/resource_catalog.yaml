@@ -140,7 +140,7 @@ resources:
     views: [orders, commitments, reservations, fulfillment_blockers, warehouse_queue]
     projections: [fulfillment_queue, fulfillment_blockers, commitment_register]
     exceptions:
-      [overdue_outgoing_customer_commitment, outgoing_commitment_due_soon, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, stale_cost_review, negative_actual_db1, order_waiting_for_completeness, backorder_against_rule, shipped_beyond_order, received_beyond_order]
+      [overdue_outgoing_customer_commitment, outgoing_commitment_due_soon, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, stale_cost_review, negative_actual_db1, order_waiting_for_completeness, backorder_against_rule, shipped_beyond_order, received_beyond_order, purchase_order_unconfirmed]
 
   - key: delivery
     label:
@@ -444,7 +444,7 @@ processes:
         resource: order
         actions: [create_manual_order]
         lists: [commitments]
-        exceptions: [overdue_incoming_supplier_commitment]
+        exceptions: [overdue_incoming_supplier_commitment, purchase_order_unconfirmed]
       - title: { en: Receive the goods, de: Wareneingang buchen }
         resource: delivery
         actions: [record_shipment_notice, record_packaged_execution, record_movement, accept_substitute, create_lot, state_lot_expiry]
@@ -812,6 +812,7 @@ labels:
       received_beyond_order: Mehr erhalten als bestellt
       misdelivery_outstanding: Falscher Artikel geliefert
       external_stock_differs: Fremdbestand weicht ab
+      purchase_order_unconfirmed: Bestellung nicht bestätigt
       outgoing_commitment_due_soon: Liefertermin gefährdet
       silent_source: Quelle verstummt
       source_interpretation_failure: Quelle nicht interpretierbar
