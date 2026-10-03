@@ -1782,7 +1782,7 @@ entries:
   - "Pallet freight with booked delivery slot"
   - "Shipment dated to the slot?"
   - "The pallets are booked for Thursday 8 to 10; does the shipment show that slot?"
-  - "Die Paletten sind für Donnerstag 8 bis 10 Uhr avisiert; zeigt die Sendung das Zeitfenster?"
+  - "Paletten mit Anlieferzeitfenster Donnerstag 8 bis 10 Uhr: steht das Zeitfenster an der Sendung?"
   tools:
   - outbound_delivery_plan_propose
   - outbound_delivery_detail
