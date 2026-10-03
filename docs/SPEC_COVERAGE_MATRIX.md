@@ -2253,3 +2253,17 @@ The delivery mode (`carrier`, `pickup`) and who collected are stated values in t
   - Goods cannot leave before they arrived, in review and at confirmation; an agent records a pickup through the strict schema.
 - `packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py`: stories D15 (pickup at the counter) and D12 (a 3PL confirms on Thursday what left on Monday).
 - `packages/reality-core/tests/test_shipment_reads.py::test_paged_shipment_register_has_bounded_query_cost`: one more bounded read for the page's notices.
+
+## Undeliverable, refused and lost parcels — Spec 335
+
+Table `delivery_failure` (kind `undeliverable`, `refused` or `lost`, stated reason and time, at most one per shipment) and the account role `carrier_claim_income`. A failed delivery reverses the shipment's standing movements through the movement correction, so the promise is open again; a lost parcel writes the goods off in the same correction and may open a `carrier_claim` receivable that the settlement flow settles.
+
+- `packages/reality-core/tests/test_delivery_failures.py`:
+  - An undeliverable parcel reopens the promise and brings the goods back, against a customer return that keeps the promise kept; the order ships again.
+  - A refusal keeps its reason on the shipment read.
+  - A lost parcel is written off and claimed from the carrier; the carrier's payment settles the claim.
+  - What is refused: kind, reason, a future time, a time before the shipment, a claim for anything but a lost parcel, an incomplete claim, an invalid amount, a missing claim account, a second failure; and only an outbound customer delivery can fail.
+  - Another company can neither record nor read it.
+  - The reviewed action records once, replays its receipt and verifies; an agent proposes a lost parcel through the strict schema.
+- `packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py`: stories D08 (undeliverable, invoiced, sent again), D09 (refused with a reason, then cancelled) and D07 (lost, claimed, paid, sent again).
+- `packages/reality-core/tests/test_shipment_reads.py::test_paged_shipment_register_has_bounded_query_cost`: one more bounded read for the page's failed deliveries.

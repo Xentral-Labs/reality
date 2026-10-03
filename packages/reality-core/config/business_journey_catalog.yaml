@@ -1520,65 +1520,89 @@ entries:
   section: Picking, shipment, split and merge
   title: Parcel lost, carrier insurance pays
   question: Goods gone, claim receivable, customer still served?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Goods gone, claim receivable, customer still served?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Goods gone, claim receivable, customer still served? A lost parcel is recorded as a failed delivery: its shipment no longer counts as delivered, the goods are written off, the promise is open again to ship once more, and a claim against the carrier or its insurer is an open receivable that the carrier's payment settles."
   limitations:
-  - There is no claim against the carrier or its insurer.
-  - A lost parcel still counts as delivered until it is corrected.
-  keywords: []
+  - A failure covers the whole shipment, not one package of several.
+  - The claim amount is stated; it is not derived from the goods' cost.
+  keywords:
+  - lost parcel
+  - carrier claim
+  - insurance claim
+  - Paketverlust
+  - Schadensmeldung
   question_examples:
   - Parcel lost, carrier insurance pays
   - Goods gone, claim receivable, customer still served?
-  tools: []
+  - The carrier lost a parcel; how do we claim it and send the order again?
+  - Der Spediteur hat ein Paket verloren; wie machen wir die Forderung geltend und liefern neu?
+  tools:
+  - shipment_delivery_failure_propose
+  - delivery_failure_summary
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/src/reality/db/core.py ShipmentEvent (`delivery_exception` only)
-    note: No carrier-claim receivable. The lost shipment still counts as fulfilment unless it is corrected. No test uses delivery_exception.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again
+    note: "2 lost in the hub: the stock stays gone, the promise is open again, a 20.00 claim against the carrier is open and settled by its payment, and the order ships again."
 - id: D08
   section: Picking, shipment, split and merge
   title: Parcel undeliverable, returns
   question: Stock back, commitment reopened?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Stock back, commitment reopened?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Stock back, commitment reopened? An undeliverable parcel is recorded as a failed delivery, not a customer return: its shipment no longer counts as delivered, the goods are back where they left from, and the promise is open again; an invoice already issued is reported as invoiced and not shipped until the order ships again."
   limitations:
-  - Returned stock is booked back, but a return never reopens the delivery promise.
-  - An undeliverable parcel cannot be told apart from a customer return.
-  keywords: []
+  - The goods come back to the location they left from.
+  - Reshipping or cancelling is a separate decision with the existing tools.
+  keywords:
+  - undeliverable
+  - parcel returned to sender
+  - Unzustellbar
+  - Rücksendung an Absender
   question_examples:
   - Parcel undeliverable, returns
   - Stock back, commitment reopened?
-  tools: []
+  - A parcel came back because the address was wrong; is the order open again?
+  - Ein Paket kam unzustellbar zurück; ist der Auftrag wieder offen?
+  tools:
+  - shipment_delivery_failure_propose
+  - delivery_failure_summary
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: specs/079-returns-connect/spec.md (kept promise stays kept); tests/test_returns.py::test_a_return_leaves_the_promise_kept
-    note: Stock comes back, but a return can never reopen the commitment. "Undeliverable" and "returned by customer" are not told apart.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_undeliverable_parcel_comes_back_and_is_sent_again
+    note: "2 back as undeliverable: stock is back, the promise is open, the issued invoice is invoiced and not shipped until the reshipment keeps the promise."
 - id: D09
   section: Picking, shipment, split and merge
   title: Delivery refused
   question: Same as D08 with a reason?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Same as D08 with a reason?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Same as D08 with a reason? A refused delivery is a failed delivery with the stated refusal reason, shown on the shipment; the goods are back and the promise is open again to ship once more or cancel."
   limitations:
-  - As in D08, returned stock is booked back but the delivery promise does not reopen.
-  - A refusal reason can be recorded on a return announcement, not on the received return itself.
-  keywords: []
+  - The reason is free text.
+  keywords:
+  - delivery refused
+  - refusal
+  - Annahmeverweigerung
+  - Annahme verweigert
   question_examples:
   - Delivery refused
   - Same as D08 with a reason?
-  tools: []
+  - The customer refused the parcel at the door; how do we record why?
+  - Der Kunde hat die Annahme verweigert; wie erfassen wir den Grund?
+  tools:
+  - shipment_delivery_failure_propose
+  - delivery_failure_summary
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: same as D08
-    note: Same as D08. Also, a return Movement has no reason; only ReturnAnnouncement carries one.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_refused_delivery_keeps_the_reason_and_the_rest_is_cancelled
+    note: "3 refused with the reason \"wrong colour\": the shipment shows the refusal and its reason, the promise is open, and the customer's withdrawal cancels it."
 - id: D10
   section: Picking, shipment, split and merge
   title: 'Drop shipping: supplier ships directly'

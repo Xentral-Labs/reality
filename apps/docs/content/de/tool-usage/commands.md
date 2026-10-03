@@ -152,6 +152,7 @@ angegeben.
 | [`available_to_promise`](#command-available_to_promise)                           | Read available to promise                    | Aufträge & Erfüllung    | `available_to_promise`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`delivery_rules`](#command-delivery_rules)                                       | Read delivery rules                          | Aufträge & Erfüllung    | `delivery_rules`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`reorder_points`](#command-reorder_points)                                       | Read reorder points                          | Aufträge & Erfüllung    | `reorder_points`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
+| [`record_delivery_failure`](#command-record_delivery_failure)                     | Record a failed delivery                     | Aufträge & Erfüllung    | `shipment_delivery_failure_propose`                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
 | [`record_return`](#command-record_return)                                         | Record a returned payment                    | Aufträge & Erfüllung    | `finance_payment_return_propose`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`release_reservation`](#command-release_reservation)                             | Release reservation                          | Aufträge & Erfüllung    | `reservation_release_propose`                                                                                                                                                                | CLI · Web · API · MCP · Chat            |
 | [`remove_reorder_point`](#command-remove_reorder_point)                           | Remove a reorder point                       | Aufträge & Erfüllung    | `reorder_point_remove_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
@@ -1436,12 +1437,12 @@ Prepare an owner-confirmed operational account configuration change.
 
 **Parameter**
 
-| Name                | Typ       | Pflicht | Beschreibung                                                                                                                                                                                                                                                                                            | Standard |
-| ------------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `expected_revision` | `integer` | ja      | Canonical revision of the Evidence snapshot on which a correction is based.                                                                                                                                                                                                                             | —        |
-| `code`              | `string`  | ja      | Short tenant-scoped business code used to find the record operationally.                                                                                                                                                                                                                                | —        |
-| `name`              | `string`  | ja      | Human-readable display name; it is not used as internal identity.                                                                                                                                                                                                                                       | —        |
-| `role`              | `string`  | ja      | Repeatable operational role assigned to a party, for example customer or supplier. `accounts_receivable`, `accounts_payable`, `cash`, `sales_revenue`, `inventory`, `customer_reduction`, `supplier_reduction`, `bad_debt_expense`, `dunning_fee_revenue`, `payment_fee_expense`, `opening_counterpart` | —        |
+| Name                | Typ       | Pflicht | Beschreibung                                                                                                                                                                                                                                                                                                                    | Standard |
+| ------------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `expected_revision` | `integer` | ja      | Canonical revision of the Evidence snapshot on which a correction is based.                                                                                                                                                                                                                                                     | —        |
+| `code`              | `string`  | ja      | Short tenant-scoped business code used to find the record operationally.                                                                                                                                                                                                                                                        | —        |
+| `name`              | `string`  | ja      | Human-readable display name; it is not used as internal identity.                                                                                                                                                                                                                                                               | —        |
+| `role`              | `string`  | ja      | Repeatable operational role assigned to a party, for example customer or supplier. `accounts_receivable`, `accounts_payable`, `cash`, `sales_revenue`, `inventory`, `customer_reduction`, `supplier_reduction`, `bad_debt_expense`, `dunning_fee_revenue`, `payment_fee_expense`, `carrier_claim_income`, `opening_counterpart` | —        |
 
 **Prüfen mit:** `timeline` — The account change event and identity.
 
@@ -5104,6 +5105,55 @@ List the reorder points the company stated, per item and location, with the reor
 | `location_id` | `string` | nein    | Opaque identity of the operational or physical location. | —        |
 
 **Siehe auch:** Command [`reorder_points`](./commands#command-reorder_points)
+
+### `record_delivery_failure` — Record a failed delivery {#command-record_delivery_failure}
+
+Records that a customer shipment came back undeliverable, was refused or was lost; reverses its
+movements so the promise is open again, brings the goods back or writes them off, and may open a
+carrier claim.
+
+**Aufruf**
+
+```text
+shipment_delivery_failure_propose shipment_id kind reason [occurred_at] [claim_party_id] [claim_amount]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `shipment`, `shipment_package`, `movement`, `movement_correction`, `commitment`,
+`party`, `subledger_account`, `delivery_failure` · Schreibt: `delivery_failure`,
+`movement_correction`, `movement`, `document`, `ledger_entry`, `source_record`, `business_event` ·
+Erzeugt: `shipment.delivery_failed`
+
+**Siehe auch:** Agenten-Tool
+[`shipment_delivery_failure_propose`](./commands#tool-shipment_delivery_failure_propose), Event
+[`shipment.delivery_failed`](./events#event-shipment-delivery_failed)
+
+#### `shipment_delivery_failure_propose` — Record a failed delivery {#tool-shipment_delivery_failure_propose}
+
+Prepare this business mutation without changing state. Record a failed delivery. Human confirmation
+is required.
+
+**Aufruf**
+
+```text
+shipment_delivery_failure_propose shipment_id kind reason [occurred_at] [claim_party_id] [claim_amount]
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name             | Typ      | Pflicht | Beschreibung                                                                                                       | Standard |
+| ---------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------ | -------- |
+| `shipment_id`    | `string` | ja      | Opaque identity of the tenant-scoped physical consignment.                                                         | —        |
+| `kind`           | `string` | ja      | Explicit internal or target reference kind; no inferred tax or country meaning. `undeliverable`, `refused`, `lost` | —        |
+| `reason`         | `string` | ja      | Human-readable explanation for a hold, correction, or lifecycle change.                                            | —        |
+| `occurred_at`    | `string` | nein    | UTC instant at which the physical or business event occurred.                                                      | —        |
+| `claim_party_id` | `string` | nein    | Opaque same-tenant identity of the business partner, the carrier or its insurer, a lost parcel is claimed from.    | —        |
+| `claim_amount`   | `string` | nein    | Positive claim amount stated for a lost parcel, at most two decimals, in the company currency; recorded as stated. | —        |
+
+**Siehe auch:** Command [`record_delivery_failure`](./commands#command-record_delivery_failure)
 
 ### `record_return` — Record a returned payment {#command-record_return}
 
@@ -9787,6 +9837,7 @@ oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Inf
 | [`supply_coverage`](#tool-supply_coverage)                                                       | Supply coverage                                | `read`    | —                      |
 | [`movement_explanation`](#tool-movement_explanation)                                             | Movement explanation                           | `read`    | —                      |
 | [`customer_exchange`](#tool-customer_exchange)                                                   | Customer exchange                              | `read`    | —                      |
+| [`delivery_failure_summary`](#tool-delivery_failure_summary)                                     | Failed delivery                                | `read`    | —                      |
 | [`return_disposition_summary`](#tool-return_disposition_summary)                                 | Return disposition summary                     | `read`    | —                      |
 | [`finance_credits`](#tool-finance_credits)                                                       | Available credit                               | `read`    | —                      |
 | [`finance_party_balances`](#tool-finance_party_balances)                                         | Party balances                                 | `read`    | —                      |
@@ -10973,6 +11024,46 @@ and the decision behind it.
 | `exchange_id`               | `string` | nein    | Opaque identity of a recorded customer exchange.                                                 | —        |
 | `return_movement_id`        | `string` | nein    | Opaque identity of the arrived customer-return Movement whose physical outcome is being decided. | —        |
 | `replacement_commitment_id` | `string` | nein    | Opaque identity of the free delivery promise an exchange sent in place of a credit.              | —        |
+
+### `delivery_failure_summary` — Failed delivery {#tool-delivery_failure_summary}
+
+Read a failed delivery: what happened, what it reversed and the carrier claim it opened.
+
+**Aufruf**
+
+```text
+delivery_failure_summary [delivery_failure_id] [shipment_id]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage               | Art                        | Standard |
+| ------------------------------ | -------------------------- | -------- |
+| `MCP delivery_failure_summary` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read a failed delivery, what it reversed, where the goods went and the carrier claim it opened with
+its open amount.
+
+**Verwenden, wenn**
+
+- Customer service or finance needs to explain why a shipped order is open again or what a carrier
+  still owes.
+
+**Nicht verwenden, wenn**
+
+- A customer sent goods back; that is a return
+- not a failed delivery.
+
+**Parameter**
+
+| Name                  | Typ      | Pflicht | Beschreibung                                               | Standard |
+| --------------------- | -------- | ------- | ---------------------------------------------------------- | -------- |
+| `delivery_failure_id` | `string` | nein    | Opaque identity of a recorded failed delivery (spec 335).  | —        |
+| `shipment_id`         | `string` | nein    | Opaque identity of the tenant-scoped physical consignment. | —        |
 
 ### `return_disposition_summary` — Return disposition summary {#tool-return_disposition_summary}
 

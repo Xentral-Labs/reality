@@ -1658,3 +1658,203 @@ def test_a_3pl_confirms_on_thursday_what_left_on_monday(session, business):
         for row in operational_exceptions(session, tenant, as_of=core.now())
         if row.class_id == "overdue_outgoing_customer_commitment"
     }
+
+
+# --- Spec 335: failed deliveries (D07, D08, D09) -------------------------------
+
+
+def _fail(session, business, shipment_id, kind, reason, **claim):
+    return _act(
+        session,
+        business,
+        "shipment_delivery_failure",
+        {"shipment_id": shipment_id, "kind": kind, "reason": reason, **claim},
+        f"fail-{shipment_id}",
+    )
+
+
+def _stock(session, business):
+    return core.stock_at(
+        session, business.tenant.id, business.item.id, business.location.id
+    )
+
+
+def _invoice(session, business, number, line_id, quantity):
+    recording = propose_tool(
+        session,
+        business.tenant.id,
+        "document_create",
+        {
+            "document_type": "sales_invoice",
+            "number": number,
+            "party_id": business.customer.id,
+            "gross_amount": str(Decimal(quantity) * 10),
+            "document_date": "2026-12-01",
+            "lines": [
+                {
+                    "item_id": business.item.id,
+                    "quantity": quantity,
+                    "unit": "pcs",
+                    "unit_price": "10.00",
+                    "gross_amount": str(Decimal(quantity) * 10),
+                    "billed_document_line_id": line_id,
+                }
+            ],
+        },
+    )
+    invoice_id = json.loads(
+        confirm_tool(session, business.tenant.id, recording.id).output
+    )["document_id"]
+    booking = propose_tool(
+        session, business.tenant.id, "sales_invoice_post", {"document_id": invoice_id}
+    )
+    confirm_tool(session, business.tenant.id, booking.id)
+
+
+def _billed_not_shipped(session, business):
+    return {
+        row.record_id
+        for row in operational_exceptions(session, business.tenant.id, as_of=AS_OF)
+        if row.class_id == "billed_not_shipped"
+    }
+
+
+def test_an_undeliverable_parcel_comes_back_and_is_sent_again(session, business):
+    """D08: stock back, promise open again, the invoice waits for the reshipment."""
+    tenant = business.tenant.id
+    _receive(session, business, business.item.id, "4", business.location.id)
+    order = _order(session, business, "SO-D08", [_line(business.item.id, "2")])
+    (promise,), (line_id,) = order["commitment_ids"], order["document_line_ids"]
+    reserve(session, tenant, promise)
+    shipped = _ship(session, business, "TRK-D08", promise, "2")
+    _invoice(session, business, "RE-D08", line_id, "2")
+    # Positive control: invoiced and shipped, nothing is invoiced ahead.
+    assert line_id not in _billed_not_shipped(session, business)
+    before = _stock(session, business)
+
+    _fail(session, business, shipped["shipment_id"], "undeliverable", "Address unknown")
+
+    assert record_by_id(session, Commitment, promise).status == "open"
+    assert _stock(session, business) == before + 2
+    assert line_id in _billed_not_shipped(session, business)
+    detail = shipment_explain(session, tenant, shipped["shipment_id"])
+    assert detail["delivery_failure"]["kind"] == "undeliverable"
+
+    # Sent again to the corrected address: kept, and the invoice is covered.
+    reserve(session, tenant, promise)
+    _ship(session, business, "TRK-D08-2", promise, "2")
+    assert record_by_id(session, Commitment, promise).status == "fulfilled"
+    assert line_id not in _billed_not_shipped(session, business)
+
+
+def test_a_refused_delivery_keeps_the_reason_and_the_rest_is_cancelled(
+    session, business
+):
+    """D09: like D08, with the refusal's reason; here the customer cancels."""
+    tenant = business.tenant.id
+    _receive(session, business, business.item.id, "3", business.location.id)
+    order = _order(session, business, "SO-D09", [_line(business.item.id, "3")])
+    (promise,) = order["commitment_ids"]
+    reserve(session, tenant, promise)
+    shipped = _ship(session, business, "TRK-D09", promise, "3")
+
+    _fail(
+        session,
+        business,
+        shipped["shipment_id"],
+        "refused",
+        "Refused at the door: wrong colour",
+    )
+
+    failure = shipment_explain(session, tenant, shipped["shipment_id"])[
+        "delivery_failure"
+    ]
+    assert (failure["kind"], failure["reason"]) == (
+        "refused",
+        "Refused at the door: wrong colour",
+    )
+    assert record_by_id(session, Commitment, promise).status == "open"
+    _act(
+        session,
+        business,
+        "commitment_cancel",
+        {"commitment_id": promise, "reason": "Customer withdrew after refusing"},
+        "d09-cancel",
+    )
+    assert record_by_id(session, Commitment, promise).status == "cancelled"
+
+
+def test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again(session, business):
+    """D07: goods gone, claim receivable, customer still served."""
+    from reality.services.delivery_failures import delivery_failure_summary
+    from reality.services.finance.accounts import (
+        create_account,
+        list_accounts,
+        set_default_account,
+    )
+
+    tenant = business.tenant.id
+    state = list_accounts(session, tenant)
+    account = create_account(
+        session,
+        tenant,
+        code="4830",
+        name="Carrier and insurance claims",
+        role="carrier_claim_income",
+        expected_revision=state["revision"],
+    )
+    set_default_account(
+        session,
+        tenant,
+        role="carrier_claim_income",
+        account_id=account["id"],
+        expected_revision=list_accounts(session, tenant)["revision"],
+    )
+    carrier = core.create_party(session, tenant, "DHL Paket GmbH", "supplier")
+    _receive(session, business, business.item.id, "4", business.location.id)
+    order = _order(session, business, "SO-D07", [_line(business.item.id, "2")])
+    (promise,) = order["commitment_ids"]
+    reserve(session, tenant, promise)
+    shipped = _ship(session, business, "TRK-D07", promise, "2")
+    after_shipment = _stock(session, business)
+
+    _fail(
+        session,
+        business,
+        shipped["shipment_id"],
+        "lost",
+        "Lost in the hub, carrier confirmed",
+        claim_party_id=carrier.id,
+        claim_amount="20.00",
+    )
+
+    assert _stock(session, business) == after_shipment
+    assert record_by_id(session, Commitment, promise).status == "open"
+    claim = delivery_failure_summary(
+        session, tenant, shipment_id=shipped["shipment_id"]
+    )["claim"]
+    assert (claim["number"], claim["open"]) == ("TRK-D07-CLAIM", "20.0000")
+
+    # The carrier's insurance pays the claim.
+    payment = create_change_proposal(
+        session,
+        tenant,
+        "finance.settlement.apply",
+        {
+            "document_id": claim["document_id"],
+            "mode": "payment",
+            "amount": "20",
+            "allocation_amount": "20",
+            "reference": "DHL claim settlement",
+            "effective_at": core.now().isoformat(),
+            "expected_revision": list_accounts(session, tenant)["revision"],
+        },
+        actor_type="human",
+    )
+    approve_and_execute_proposal(session, tenant, payment.id)
+    assert core.open_invoice_amount(session, tenant, claim["document_id"]) == 0
+
+    # The customer is still served: the order ships again.
+    reserve(session, tenant, promise)
+    _ship(session, business, "TRK-D07-2", promise, "2")
+    assert record_by_id(session, Commitment, promise).status == "fulfilled"

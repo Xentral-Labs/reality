@@ -131,6 +131,17 @@ tables:
       reason: {}
       source_record_id: {}
       created_at: {}
+  delivery_failure:
+    description: A customer shipment that came back undeliverable, was refused or was lost, with the stated reason and time (spec 335). Its movement corrections and a carrier claim point back to it and are not stored here.
+    columns:
+      id: {}
+      tenant_id: {}
+      shipment_id: {description: "The failed shipment; at most one failure each."}
+      kind: {}
+      reason: {}
+      occurred_at: {}
+      source_record_id: {description: "The failure's evidence; a carrier claim document carries the same source record."}
+      created_at: {}
   dunning_schedule_level:
     description: The company's stated waiting days and fixed fee for one dunning level.
     columns:

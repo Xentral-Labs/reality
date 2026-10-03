@@ -13,6 +13,7 @@ type ShipmentTool = Extract<
   | "shipment_event_supersede"
   | "return_disposition"
   | "customer_exchange_record"
+  | "shipment_delivery_failure"
 >;
 
 export function ShipmentActions({
@@ -65,6 +66,11 @@ export function ShipmentActions({
   const [announcement, setAnnouncement] = useState("");
   const [replacementItem, setReplacementItem] = useState("");
   const [replacementQuantity, setReplacementQuantity] = useState("");
+  // Spec 335: a shipment that came back undeliverable, was refused or was lost.
+  const [failureKind, setFailureKind] = useState("undeliverable");
+  const [failedAt, setFailedAt] = useState("");
+  const [claimParty, setClaimParty] = useState("");
+  const [claimAmount, setClaimAmount] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -97,7 +103,16 @@ export function ShipmentActions({
   const prepare = () =>
     run(async () => {
       let arguments_: Record<string, unknown>;
-      if (tool === "customer_exchange_record") {
+      if (tool === "shipment_delivery_failure") {
+        const claimed = failureKind === "lost" && (claimParty || claimAmount);
+        arguments_ = {
+          shipment_id: shipment,
+          kind: failureKind,
+          reason,
+          ...(failedAt ? { occurred_at: new Date(failedAt).toISOString() } : {}),
+          ...(claimed ? { claim_party_id: claimParty, claim_amount: claimAmount } : {}),
+        };
+      } else if (tool === "customer_exchange_record") {
         arguments_ = {
           ...(announcement
             ? { return_announcement_id: announcement }
@@ -190,7 +205,51 @@ export function ShipmentActions({
 
       {!proposal && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {tool === "customer_exchange_record" ? (
+          {tool === "shipment_delivery_failure" ? (
+            <>
+              <Field label="Shipment ID" value={shipment} set={setShipment} />
+              <Select
+                label="What happened"
+                value={failureKind}
+                set={setFailureKind}
+                options={["undeliverable", "refused", "lost"]}
+              />
+              <label className="text-sm">
+                {t("Failed at (optional)")}
+                <input
+                  className="br-control mt-2 w-full"
+                  type="datetime-local"
+                  value={failedAt}
+                  onChange={(e) => setFailedAt(e.target.value)}
+                />
+              </label>
+              {failureKind === "lost" && (
+                <>
+                  <Field
+                    label="Claim against business partner ID (optional)"
+                    value={claimParty}
+                    set={setClaimParty}
+                  />
+                  <Field label="Claim amount" value={claimAmount} set={setClaimAmount} />
+                </>
+              )}
+              <label className="text-sm sm:col-span-2">
+                {t("Reason")}
+                <textarea
+                  className="br-control mt-2 w-full"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              </label>
+              <p className="rounded-lg bg-surface-muted p-3 text-sm text-fg-muted sm:col-span-2">
+                {t(
+                  failureKind === "lost"
+                    ? "The shipment no longer counts as delivered and the goods are written off. The order is open again; ship it again or cancel it."
+                    : "The shipment no longer counts as delivered and the goods are back in stock. The order is open again; ship it again or cancel it.",
+                )}
+              </p>
+            </>
+          ) : tool === "customer_exchange_record" ? (
             <>
               <Field label="Return movement ID" value={returnMovement} set={setReturnMovement} />
               <Field
@@ -363,7 +422,9 @@ export function ShipmentActions({
           <p className="font-medium text-fg-strong">
             {t(proposal.status === "executed" ? "Recorded" : "Review exact effect")}
           </p>
-          {tool === "customer_exchange_record" && proposal.review ? (
+          {tool === "shipment_delivery_failure" && proposal.review ? (
+            <DeliveryFailureReview effect={proposal.review.effect} />
+          ) : tool === "customer_exchange_record" && proposal.review ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <section className="rounded-lg bg-surface-muted p-4">
                 <h3 className="font-medium text-fg-strong">{t("Returned goods")}</h3>
@@ -458,6 +519,45 @@ export function ShipmentActions({
         </p>
       )}
     </dialog>
+  );
+}
+
+function DeliveryFailureReview({ effect }: { effect: Record<string, unknown> }) {
+  const promises = (effect.reopened || []) as { commitment_id: string; open_after: string }[];
+  const claim = effect.claim as { party: string; amount: string; currency: string } | null;
+  return (
+    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <section className="rounded-lg bg-surface-muted p-4">
+        <h3 className="font-medium text-fg-strong">{t("Physical goods")}</h3>
+        <p className="mt-2 text-sm">
+          {t("What happened")}: {t(String(effect.kind))}
+        </p>
+        <p className="mt-1 text-sm">
+          {t(effect.goods === "written_off" ? "Written off" : "Back in stock")}
+        </p>
+      </section>
+      <section className="rounded-lg bg-surface-muted p-4">
+        <h3 className="font-medium text-fg-strong">{t("Open again")}</h3>
+        {promises.map((promise) => (
+          <p key={promise.commitment_id} className="mt-2 text-sm">
+            <span data-localization="original">{promise.commitment_id}</span>: {promise.open_after}
+          </p>
+        ))}
+      </section>
+      <section className="rounded-lg border border-border-default p-4 sm:col-span-2">
+        <h3 className="font-medium text-fg-strong">{t("Money")}</h3>
+        <p className="mt-2 text-sm text-fg-muted">
+          {claim ? (
+            <>
+              {t("Claim against")} <span data-localization="original">{claim.party}</span>:{" "}
+              {claim.amount} {claim.currency}
+            </>
+          ) : (
+            t("No money moves: nothing is invoiced, credited, paid or refunded.")
+          )}
+        </p>
+      </section>
+    </div>
   );
 }
 

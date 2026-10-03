@@ -25007,6 +25007,54 @@ Object.assign(dictionaries.de, {
   Pickup: "Abholung",
   "The goods were not there at the stated time; record the receipt that brought them first.":
     "Die Ware war zum angegebenen Zeitpunkt nicht da; erfasse zuerst den Wareneingang, der sie gebracht hat.",
+  "Record failed delivery": "Fehlgeschlagene Zustellung erfassen",
+  shipment_delivery_failure: "Fehlgeschlagene Zustellung erfassen",
+  undeliverable: "Unzustellbar",
+  refused: "Annahme verweigert",
+  lost: "Verloren",
+  "Failed at (optional)": "Fehlgeschlagen am (optional)",
+  "Claim against business partner ID (optional)": "Forderung an Geschäftspartner-ID (optional)",
+  "Claim amount": "Forderungsbetrag",
+  "The shipment no longer counts as delivered and the goods are back in stock. The order is open again; ship it again or cancel it.":
+    "Die Sendung gilt nicht mehr als geliefert und die Ware ist wieder im Bestand. Der Auftrag ist wieder offen; versende ihn erneut oder storniere ihn.",
+  "The shipment no longer counts as delivered and the goods are written off. The order is open again; ship it again or cancel it.":
+    "Die Sendung gilt nicht mehr als geliefert und die Ware wird ausgebucht. Der Auftrag ist wieder offen; versende ihn erneut oder storniere ihn.",
+  "Came back undeliverable": "Unzustellbar zurück",
+  "Delivery refused": "Annahme verweigert",
+  "Lost in transit": "Auf dem Transportweg verloren",
+  "Carrier and insurance claims": "Forderungen an Spediteure und Versicherer",
+  "Only a shipment to a customer can fail to be delivered.":
+    "Nur eine Sendung an einen Kunden kann nicht zugestellt werden.",
+  "A failed delivery came back undeliverable, was refused, or was lost.":
+    "Eine fehlgeschlagene Zustellung kam unzustellbar zurück, wurde verweigert oder ging verloren.",
+  "Say why the delivery failed.": "Gib an, warum die Zustellung fehlgeschlagen ist.",
+  "When the delivery failed is not a valid time.":
+    "Der Zeitpunkt der fehlgeschlagenen Zustellung ist ungültig.",
+  "When the delivery failed cannot lie in the future.":
+    "Die fehlgeschlagene Zustellung kann nicht in der Zukunft liegen.",
+  "A delivery cannot fail before the goods left.":
+    "Eine Zustellung kann nicht scheitern, bevor die Ware das Lager verlassen hat.",
+  "This shipment's failed delivery is already recorded.":
+    "Die fehlgeschlagene Zustellung dieser Sendung ist bereits erfasst.",
+  "Nothing of this shipment still counts as delivered.":
+    "Von dieser Sendung gilt nichts mehr als geliefert.",
+  "A claim against the carrier is made for a lost parcel only.":
+    "Eine Forderung an den Spediteur gibt es nur für ein verlorenes Paket.",
+  "A claim names the business partner it is made against and its amount.":
+    "Eine Forderung nennt den Geschäftspartner, an den sie geht, und ihren Betrag.",
+  "A claim amount is positive, with at most two decimals.":
+    "Ein Forderungsbetrag ist positiv und hat höchstens zwei Nachkommastellen.",
+  "Name either the failed delivery or its shipment.":
+    "Nenne entweder die fehlgeschlagene Zustellung oder ihre Sendung.",
+  "No failed delivery is recorded for this.":
+    "Hierfür ist keine fehlgeschlagene Zustellung erfasst.",
+  "Name the shipment, what happened and why, and a claim only for a lost parcel.":
+    "Nenne die Sendung, was passiert ist und warum, und eine Forderung nur für ein verlorenes Paket.",
+  "This shipment's failed delivery is still being recorded.":
+    "Die fehlgeschlagene Zustellung dieser Sendung wird noch erfasst.",
+  "Back in stock": "Wieder im Bestand",
+  "Written off": "Ausgebucht",
+  "Claim against": "Forderung an",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25381,6 +25429,53 @@ Object.assign(dictionaries.nl, {
   Pickup: "Afhalen",
   "The goods were not there at the stated time; record the receipt that brought them first.":
     "De goederen waren er niet op het opgegeven tijdstip; leg eerst de ontvangst vast die ze bracht.",
+  "Record failed delivery": "Mislukte levering vastleggen",
+  shipment_delivery_failure: "Mislukte levering vastleggen",
+  undeliverable: "Onbestelbaar",
+  refused: "Geweigerd",
+  lost: "Kwijtgeraakt",
+  "Failed at (optional)": "Mislukt op (optioneel)",
+  "Claim against business partner ID (optional)": "Claim op zakenpartner-ID (optioneel)",
+  "Claim amount": "Claimbedrag",
+  "The shipment no longer counts as delivered and the goods are back in stock. The order is open again; ship it again or cancel it.":
+    "De zending telt niet meer als geleverd en de goederen zijn weer op voorraad. De order staat weer open; verzend hem opnieuw of annuleer hem.",
+  "The shipment no longer counts as delivered and the goods are written off. The order is open again; ship it again or cancel it.":
+    "De zending telt niet meer als geleverd en de goederen worden afgeboekt. De order staat weer open; verzend hem opnieuw of annuleer hem.",
+  "Came back undeliverable": "Onbestelbaar retour",
+  "Delivery refused": "Levering geweigerd",
+  "Lost in transit": "Onderweg kwijtgeraakt",
+  "Carrier and insurance claims": "Claims op vervoerders en verzekeraars",
+  "Only a shipment to a customer can fail to be delivered.":
+    "Alleen een zending aan een klant kan niet bezorgd worden.",
+  "A failed delivery came back undeliverable, was refused, or was lost.":
+    "Een mislukte levering kwam onbestelbaar terug, werd geweigerd of raakte kwijt.",
+  "Say why the delivery failed.": "Geef aan waarom de levering mislukt is.",
+  "When the delivery failed is not a valid time.":
+    "Het tijdstip van de mislukte levering is ongeldig.",
+  "When the delivery failed cannot lie in the future.":
+    "De mislukte levering kan niet in de toekomst liggen.",
+  "A delivery cannot fail before the goods left.":
+    "Een levering kan niet mislukken voordat de goederen vertrokken zijn.",
+  "This shipment's failed delivery is already recorded.":
+    "De mislukte levering van deze zending is al vastgelegd.",
+  "Nothing of this shipment still counts as delivered.":
+    "Van deze zending telt niets meer als geleverd.",
+  "A claim against the carrier is made for a lost parcel only.":
+    "Een claim op de vervoerder geldt alleen voor een kwijtgeraakt pakket.",
+  "A claim names the business partner it is made against and its amount.":
+    "Een claim noemt de zakenpartner waarop hij betrekking heeft en het bedrag.",
+  "A claim amount is positive, with at most two decimals.":
+    "Een claimbedrag is positief, met hoogstens twee decimalen.",
+  "Name either the failed delivery or its shipment.":
+    "Noem de mislukte levering of de zending ervan.",
+  "No failed delivery is recorded for this.": "Hiervoor is geen mislukte levering vastgelegd.",
+  "Name the shipment, what happened and why, and a claim only for a lost parcel.":
+    "Noem de zending, wat er gebeurde en waarom, en een claim alleen voor een kwijtgeraakt pakket.",
+  "This shipment's failed delivery is still being recorded.":
+    "De mislukte levering van deze zending wordt nog vastgelegd.",
+  "Back in stock": "Weer op voorraad",
+  "Written off": "Afgeboekt",
+  "Claim against": "Claim op",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25754,6 +25849,54 @@ Object.assign(dictionaries.es, {
   Pickup: "Recogida",
   "The goods were not there at the stated time; record the receipt that brought them first.":
     "La mercancía no estaba en el momento indicado; registra primero la entrada que la trajo.",
+  "Record failed delivery": "Registrar entrega fallida",
+  shipment_delivery_failure: "Registrar entrega fallida",
+  undeliverable: "No entregable",
+  refused: "Rechazado",
+  lost: "Perdido",
+  "Failed at (optional)": "Fallida el (opcional)",
+  "Claim against business partner ID (optional)":
+    "Reclamación al socio comercial con ID (opcional)",
+  "Claim amount": "Importe de la reclamación",
+  "The shipment no longer counts as delivered and the goods are back in stock. The order is open again; ship it again or cancel it.":
+    "El envío ya no cuenta como entregado y la mercancía vuelve al stock. El pedido vuelve a estar abierto; envíalo de nuevo o cancélalo.",
+  "The shipment no longer counts as delivered and the goods are written off. The order is open again; ship it again or cancel it.":
+    "El envío ya no cuenta como entregado y la mercancía se da de baja. El pedido vuelve a estar abierto; envíalo de nuevo o cancélalo.",
+  "Came back undeliverable": "Devuelto por no entregable",
+  "Delivery refused": "Entrega rechazada",
+  "Lost in transit": "Perdido en tránsito",
+  "Carrier and insurance claims": "Reclamaciones a transportistas y aseguradoras",
+  "Only a shipment to a customer can fail to be delivered.":
+    "Solo un envío a un cliente puede fallar en la entrega.",
+  "A failed delivery came back undeliverable, was refused, or was lost.":
+    "Una entrega fallida volvió por no entregable, fue rechazada o se perdió.",
+  "Say why the delivery failed.": "Indica por qué falló la entrega.",
+  "When the delivery failed is not a valid time.":
+    "El momento en que falló la entrega no es válido.",
+  "When the delivery failed cannot lie in the future.":
+    "La entrega fallida no puede estar en el futuro.",
+  "A delivery cannot fail before the goods left.":
+    "Una entrega no puede fallar antes de que salga la mercancía.",
+  "This shipment's failed delivery is already recorded.":
+    "La entrega fallida de este envío ya está registrada.",
+  "Nothing of this shipment still counts as delivered.":
+    "Nada de este envío cuenta ya como entregado.",
+  "A claim against the carrier is made for a lost parcel only.":
+    "Una reclamación al transportista solo procede por un paquete perdido.",
+  "A claim names the business partner it is made against and its amount.":
+    "Una reclamación indica el socio comercial al que se dirige y su importe.",
+  "A claim amount is positive, with at most two decimals.":
+    "El importe de una reclamación es positivo, con dos decimales como máximo.",
+  "Name either the failed delivery or its shipment.": "Indica la entrega fallida o su envío.",
+  "No failed delivery is recorded for this.":
+    "No hay ninguna entrega fallida registrada para esto.",
+  "Name the shipment, what happened and why, and a claim only for a lost parcel.":
+    "Indica el envío, qué ocurrió y por qué, y una reclamación solo para un paquete perdido.",
+  "This shipment's failed delivery is still being recorded.":
+    "La entrega fallida de este envío todavía se está registrando.",
+  "Back in stock": "De vuelta en el stock",
+  "Written off": "Dado de baja",
+  "Claim against": "Reclamación a",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

@@ -11,7 +11,14 @@ import type { Selection } from "./routing";
 const cell = "px-4 py-4 text-sm align-top";
 const heading = "px-4 py-3 text-left text-xs font-medium text-fg-muted";
 
+const FAILURE_LABELS = {
+  undeliverable: "Came back undeliverable",
+  refused: "Delivery refused",
+  lost: "Lost in transit",
+} as const;
+
 function state(row: ShipmentRow) {
+  if (row.delivery_failure) return FAILURE_LABELS[row.delivery_failure.kind];
   if (row.observations.has_exception) return "Exception reported";
   if (row.observations.externally_delivered) return "Carrier reports delivered";
   if (row.observations.received) return "Received";
@@ -117,6 +124,14 @@ export function ShipmentsRegister({
                     <p className="text-sm" data-shipment-pickup>
                       {t("Collected by the customer")}
                       {row.collected_by ? `: ${row.collected_by}` : ""}
+                    </p>
+                  )}
+                  {row.delivery_failure && (
+                    <p className="text-sm text-warning-text" data-shipment-failure>
+                      {t(FAILURE_LABELS[row.delivery_failure.kind])} ·{" "}
+                      {formatDateTime(row.delivery_failure.occurred_at)}
+                      {" · "}
+                      <span data-localization="original">{row.delivery_failure.reason}</span>
                     </p>
                   )}
                   {row.moved_at && (

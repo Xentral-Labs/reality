@@ -443,6 +443,7 @@ families:
       - tool:return_disposition
       - tool:return_disposition_summary
       - tool:customer_exchange_record
+      - tool:shipment_delivery_failure
       - tool:order_line_item_assign
       - tool:credit_hold_release
       - tool:credit_exposure
@@ -473,6 +474,7 @@ families:
       - tool:backorders_serve
       - tool:available_to_promise
       - tool:customer_exchange
+      - tool:delivery_failure_summary
       - tool:movement_explanation
       - tool:exceptions
       - tool:finance_balances

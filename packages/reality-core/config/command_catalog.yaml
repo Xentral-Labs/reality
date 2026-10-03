@@ -65,6 +65,9 @@ parameter_descriptions:
   replacement_item_id: Opaque identity of the Item the replacement delivers; it may differ from the returned Item.
   replacement_quantity: Decimal quantity the replacement delivers, in the replacement Item's unit.
   exchange_id: Opaque identity of a recorded customer exchange.
+  delivery_failure_id: Opaque identity of a recorded failed delivery (spec 335).
+  claim_party_id: Opaque same-tenant identity of the business partner, the carrier or its insurer, a lost parcel is claimed from.
+  claim_amount: Positive claim amount stated for a lost parcel, at most two decimals, in the company currency; recorded as stated.
   replacement_commitment_id: Opaque identity of the free delivery promise an exchange sent in place of a credit.
   disposition: Closed physical outcome for returned goods; restock, quarantine or repair, scrap or loss, or return to supplier.
   destination_location_id: Opaque destination location required when returned goods are transferred to saleable stock or quarantine.
@@ -1770,6 +1773,15 @@ commands:
     reads: [movement, return_announcement, commitment, document_line, source_record, customer_exchange]
     writes: [customer_exchange, commitment, source_record, business_event]
     effect: Settles part of a customer return with a free replacement delivery to the same customer instead of a credit; no money moves.
+
+  - name: Record a failed delivery
+    service: record_delivery_failure
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [shipment, shipment_package, movement, movement_correction, commitment, party, subledger_account, delivery_failure]
+    writes: [delivery_failure, movement_correction, movement, document, ledger_entry, source_record, business_event]
+    effect: Records that a customer shipment came back undeliverable, was refused or was lost; reverses its movements so the promise is open again, brings the goods back or writes them off, and may open a carrier claim.
 
   - name: Assign an item to an order line
     service: assign_line_item
@@ -4710,6 +4722,24 @@ capability_guidance:
     unknown_when: [The arrival Movement or later physical evidence is absent.]
     next_steps: [Record a reviewed disposition or inspect the independent credit state.]
     examples: {use: [{scenario: Find the unresolved quantity of an arrived return., reason: The read reconciles correcting movements and all supported outcomes.}], do_not_use: [{scenario: Claim the return was refunded., reason: Financial settlement requires separate evidence.}]}
+  delivery_failure_summary:
+    kind: read
+    application_tool: delivery_failure_summary
+    purpose: Read a failed delivery, what it reversed, where the goods went and the carrier claim it opened with its open amount.
+    use_when: [Customer service or finance needs to explain why a shipped order is open again or what a carrier still owes.]
+    do_not_use_when: [A customer sent goods back; that is a return, not a failed delivery.]
+    required_context: [tenant]
+    data_basis: [delivery_failure, shipment, movement_correction, document, ledger_entry, source_record]
+    limitations: [A failure covers the whole shipment; reshipping or cancelling is a separate decision.]
+    freshness: Derived from the failure, its corrections and the claim's postings and allocations at request time.
+    empty_result: No failed delivery is recorded for the selected shipment.
+    refusal_behavior: Foreign-company failures are not disclosed.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The shipment no longer counts as delivered and the claim has the shown open amount.], does_not_prove: [The order has been shipped again.]}
+    unknown_when: [The failure or its shipment is absent.]
+    next_steps: [Reserve and ship the reopened promise again, cancel its rest, or record the carrier's payment.]
+    examples: {use: [{scenario: Explain why a delivered order is open again., reason: The failure names the shipment, the kind and the reason.}], do_not_use: [{scenario: Credit a customer for returned goods., reason: Returns and credits are separate evidence.}]}
   customer_exchange:
     kind: read
     application_tool: customer_exchange
@@ -5451,6 +5481,7 @@ agent_command_coverage:
   assign_supply: {classification: eligible, tools: [supply_assign_propose]}
   record_return_disposition: {classification: eligible, tools: [return_disposition_propose]}
   record_customer_exchange: {classification: eligible, tools: [customer_exchange_propose]}
+  record_delivery_failure: {classification: eligible, tools: [shipment_delivery_failure_propose]}
   assign_line_item: {classification: eligible, tools: [order_line_item_assign_propose]}
   release_credit_holds: {classification: eligible, tools: [credit_hold_release_propose]}
   credit_exposure: {classification: eligible, tools: [credit_exposure]}

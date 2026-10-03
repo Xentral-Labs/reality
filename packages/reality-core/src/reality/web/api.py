@@ -1600,6 +1600,7 @@ class DeliveryActionPrepare(ApiModel):
         "supply_assign",
         "return_disposition",
         "customer_exchange_record",
+        "shipment_delivery_failure",
         "order_line_item_assign",
         "credit_hold_release",
         "down_payment_invoice_record",

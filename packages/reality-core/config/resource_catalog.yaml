@@ -158,9 +158,9 @@ resources:
         Jede physische Bestandsänderung ist eine unveränderliche Lagerbewegung; Korrekturen
         ergänzen eine Gegenbuchung statt zu editieren. Eine Sendung ist die Lieferung, die
         Bewegungen zu einem Geschäftspartner oder von ihm trägt, mit Beobachtungen des Spediteurs.
-    synonyms: [goods receipt, goods issue, shipment, movement, transfer, adjustment, Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking]
-    tables: [movement, movement_correction, shipment, shipment_package, shipment_event, shipment_event_supersession]
-    match: "movement|shipment|dispatch|receive"
+    synonyms: [goods receipt, goods issue, shipment, movement, transfer, adjustment, failed delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust]
+    tables: [movement, movement_correction, shipment, shipment_package, shipment_event, shipment_event_supersession, delivery_failure]
+    match: "movement|shipment|dispatch|receive|delivery_failure"
     views: [movements, warehouse_queue]
     projections: []
     exceptions: [unexplained_movement, return_unresolved]
@@ -405,8 +405,8 @@ processes:
         exceptions: [commitment_hold_unreleased, party_hold_unreleased, credit_limit_exceeded, order_waiting_for_completeness, backorder_against_rule]
       - title: { en: Dispatch the goods and follow the carrier, de: Ware versenden und den Spediteur verfolgen }
         resource: delivery
-        actions: [record_packaged_execution, record_shipment_notice, record_shipment_event]
-        tools: [shipment_explain]
+        actions: [record_packaged_execution, record_shipment_notice, record_shipment_event, record_delivery_failure]
+        tools: [shipment_explain, delivery_failure_summary]
         lists: [warehouse_queue, movements]
         exceptions: [overdue_outgoing_customer_commitment]
       - title: { en: Bill what shipped, de: Geliefertes fakturieren }
@@ -719,6 +719,7 @@ labels:
       assign_supply: Zulauf einem Kundenbedarf zuordnen
       record_return_disposition: Retourenware entscheiden
       record_customer_exchange: Retournierte Ware umtauschen
+      record_delivery_failure: Fehlgeschlagene Zustellung erfassen
       assign_line_item: Artikel für Auftragszeile zuordnen
       release_credit_holds: Kreditsperre freigeben
       credit_exposure: Kreditobligo anzeigen

@@ -2661,6 +2661,13 @@ export type ShipmentRow = {
   moved_at?: string | null;
   recorded_at?: string | null;
   confirmation_lag_seconds?: number | null;
+  /** Spec 335: the shipment did not reach the customer, as stated. */
+  delivery_failure?: {
+    id: string;
+    kind: "undeliverable" | "refused" | "lost";
+    reason: string;
+    occurred_at: string;
+  } | null;
   packages: Array<{
     id: string;
     carrier: string | null;

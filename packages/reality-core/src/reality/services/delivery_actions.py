@@ -49,6 +49,12 @@ from reality.services.customer_hold_actions import (
     customer_hold_detail,
     review_customer_hold,
 )
+from reality.services.delivery_failure_actions import (
+    DELIVERY_FAILURE_TOOLS,
+    assert_no_unresolved_delivery_failure,
+    delivery_failure_proposal_detail,
+    review_delivery_failure,
+)
 from reality.services.delivery_reads import delivery_case
 from reality.services.down_payment_actions import (
     BILLING_DOCUMENT_TOOLS,
@@ -148,6 +154,7 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
             *SUPPLY_ASSIGNMENT_TOOLS,
             *RETURN_DISPOSITION_TOOLS,
             *CUSTOMER_EXCHANGE_TOOLS,
+            *DELIVERY_FAILURE_TOOLS,
             *ORDER_LINE_ITEM_TOOLS,
             *CREDIT_HOLD_TOOLS,
             *BILLING_DOCUMENT_TOOLS,
@@ -247,6 +254,8 @@ def review_delivery(
         return review_return_disposition(session, tenant_id, arguments)
     if tool in CUSTOMER_EXCHANGE_TOOLS:
         return review_customer_exchange(session, tenant_id, arguments)
+    if tool in DELIVERY_FAILURE_TOOLS:
+        return review_delivery_failure(session, tenant_id, arguments)
     if tool in ORDER_LINE_ITEM_TOOLS:
         return review_item_assignment(session, tenant_id, arguments)
     if tool in CREDIT_HOLD_TOOLS:
@@ -711,6 +720,8 @@ def _delivery_proposal_detail(
         return return_disposition_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in CUSTOMER_EXCHANGE_TOOLS:
         return customer_exchange_proposal_detail(session, tenant_id, proposal)
+    if proposal.type.removeprefix("tool:") in DELIVERY_FAILURE_TOOLS:
+        return delivery_failure_proposal_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in ORDER_LINE_ITEM_TOOLS:
         return item_assignment_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in CREDIT_HOLD_TOOLS:
@@ -956,6 +967,10 @@ def assert_no_unresolved_action(
         return assert_no_unresolved_customer_exchange(
             session, tenant_id, arguments, exclude
         )
+    if tool in DELIVERY_FAILURE_TOOLS:
+        return assert_no_unresolved_delivery_failure(
+            session, tenant_id, arguments, exclude
+        )
     if tool in ORDER_LINE_ITEM_TOOLS:
         return assert_no_unresolved_item_assignment(
             session, tenant_id, arguments, exclude
@@ -1096,6 +1111,7 @@ def reconcile_delivery(
             *SUPPLY_ASSIGNMENT_TOOLS,
             *RETURN_DISPOSITION_TOOLS,
             *CUSTOMER_EXCHANGE_TOOLS,
+            *DELIVERY_FAILURE_TOOLS,
             *ORDER_LINE_ITEM_TOOLS,
             *CREDIT_HOLD_TOOLS,
             *BILLING_DOCUMENT_TOOLS,

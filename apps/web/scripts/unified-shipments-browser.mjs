@@ -203,6 +203,7 @@ try {
     ["Receive package", "Movement inputs (JSON)"],
     ["Record tracking event", "Shipment ID"],
     ["Correct tracking event", "Event ID"],
+    ["Record failed delivery", "Shipment ID"],
   ];
   for (const [action, field] of forms) {
     await startAction(page, action);
