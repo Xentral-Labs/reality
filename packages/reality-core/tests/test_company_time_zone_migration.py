@@ -34,7 +34,7 @@ def test_the_table_comes_and_goes_and_a_stated_zone_blocks_a_rollback(
     try:
         assert TABLE in inspect(engine).get_table_names()
         # Positive control: an empty table rolls back and comes again.
-        command.downgrade(config, "0133_external_stock")
+        command.downgrade(config, "0137_supplier_item_number")
         assert TABLE not in inspect(engine).get_table_names()
         command.upgrade(config, "0138_company_time_zone")
 
@@ -47,7 +47,7 @@ def test_the_table_comes_and_goes_and_a_stated_zone_blocks_a_rollback(
             )
 
         with pytest.raises(RuntimeError, match=TABLE):
-            command.downgrade(config, "0133_external_stock")
+            command.downgrade(config, "0137_supplier_item_number")
         assert TABLE in inspect(engine).get_table_names()
     finally:
         engine.dispose()

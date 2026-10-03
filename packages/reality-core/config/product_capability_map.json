@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:4068a088b5b306c747643bef81278edf5c579b9ff4ac46fcfcb96af3af0fa308",
+  "knowledge_version": "advisor-v1:sha256:edd85434458e541df22076178914050061dc5c29b4185f2f900bc07e4e0612ae",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -354,6 +354,10 @@
       "tools": [
         {
           "name": "party_merges",
+          "mode": "query"
+        },
+        {
+          "name": "supplier_item_numbers",
           "mode": "query"
         }
       ]
@@ -822,6 +826,9 @@
         "evidence_command_set_customer_item_number",
         "evidence_command_remove_customer_item_number",
         "evidence_command_customer_item_numbers",
+        "evidence_command_set_supplier_item_number",
+        "evidence_command_remove_supplier_item_number",
+        "evidence_command_supplier_item_numbers",
         "evidence_command_plan_outbound_delivery",
         "evidence_command_revise_outbound_delivery",
         "evidence_command_outbound_deliveries",
@@ -939,6 +946,18 @@
         },
         {
           "name": "customer_item_numbers",
+          "mode": "query"
+        },
+        {
+          "name": "set_supplier_item_number",
+          "mode": "mutation"
+        },
+        {
+          "name": "remove_supplier_item_number",
+          "mode": "mutation"
+        },
+        {
+          "name": "supplier_item_numbers",
           "mode": "query"
         },
         {
@@ -1094,6 +1113,8 @@
         "evidence_command_purchase_match",
         "evidence_command_set_customer_item_number",
         "evidence_command_customer_item_numbers",
+        "evidence_command_set_supplier_item_number",
+        "evidence_command_supplier_item_numbers",
         "evidence_command_record_stock_count",
         "evidence_command_record_external_stock",
         "evidence_command_external_stock",
@@ -1237,6 +1258,14 @@
         },
         {
           "name": "customer_item_numbers",
+          "mode": "query"
+        },
+        {
+          "name": "set_supplier_item_number",
+          "mode": "mutation"
+        },
+        {
+          "name": "supplier_item_numbers",
           "mode": "query"
         },
         {
@@ -1482,6 +1511,7 @@
         "evidence_command_assign_party_price_list",
         "evidence_command_resolve_price",
         "evidence_command_create_party_group",
+        "evidence_command_release_prepayment",
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
         "evidence_command_create_manual_document_with_lines"
@@ -1521,6 +1551,10 @@
         },
         {
           "name": "create_party_group",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_prepayment",
           "mode": "mutation"
         },
         {
@@ -1570,6 +1604,7 @@
         "evidence_command_hold_document_commitments",
         "evidence_command_hold_party_delivery",
         "evidence_command_release_credit_holds",
+        "evidence_command_release_prepayment",
         "evidence_command_block_stock",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
@@ -1662,6 +1697,10 @@
         },
         {
           "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_prepayment",
           "mode": "mutation"
         },
         {
@@ -2285,6 +2324,7 @@
       ],
       "evidence_ids": [
         "evidence_command_reverse_ledger_posting_group",
+        "evidence_command_release_prepayment",
         "evidence_command_credit_exposure",
         "evidence_command_record_down_payment_invoice",
         "evidence_command_post_customer_payment",
@@ -2318,6 +2358,10 @@
       "tools": [
         {
           "name": "reverse_ledger_posting_group",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_prepayment",
           "mode": "mutation"
         },
         {
@@ -2492,6 +2536,7 @@
         "evidence_command_correct_manual_document",
         "evidence_command_reverse_ledger_posting_group",
         "evidence_command_release_credit_holds",
+        "evidence_command_release_prepayment",
         "evidence_command_set_company_currency",
         "evidence_command_company_currency_state",
         "evidence_command_merge_party",
@@ -2674,6 +2719,10 @@
         },
         {
           "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_prepayment",
           "mode": "mutation"
         },
         {
@@ -3037,6 +3086,7 @@
         "evidence_command_reverse_ledger_posting_group",
         "evidence_command_hold_document_commitments",
         "evidence_command_release_credit_holds",
+        "evidence_command_release_prepayment",
         "evidence_command_kit_split",
         "evidence_command_merge_party",
         "evidence_command_purchase_match",
@@ -3077,7 +3127,6 @@
         "evidence_command_allocate_credit_note",
         "evidence_command_post_customer_refund",
         "evidence_command_post_supplier_credit_note",
-        "evidence_command_allocate_supplier_credit_note",
         "evidence_command_post_supplier_refund",
         "evidence_command_post_supplier_payment",
         "evidence_command_accept_adjustment",
@@ -3213,6 +3262,10 @@
         },
         {
           "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_prepayment",
           "mode": "mutation"
         },
         {
@@ -3373,10 +3426,6 @@
         },
         {
           "name": "post_supplier_credit_note",
-          "mode": "mutation"
-        },
-        {
-          "name": "allocate_supplier_credit_note",
           "mode": "mutation"
         },
         {
