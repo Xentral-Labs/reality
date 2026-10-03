@@ -3360,6 +3360,25 @@ class CompanyCurrency(Base):
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class CompanyTimeZone(Base):
+    """The time zone the company's business days are counted in (spec 349); absent means UTC."""
+
+    __tablename__ = "company_time_zone"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        Index("ix_company_time_zone_source_record_id", "tenant_id", "source_record_id"),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
+    time_zone: Mapped[str] = mapped_column(String(64))
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class LedgerReversal(Base):
     """Durable correction evidence linking one posting group to its exact inverse."""
 

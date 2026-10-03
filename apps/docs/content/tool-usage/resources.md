@@ -22,7 +22,7 @@ the technical key stands beside each one.
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 5       | 8                   |
 | [Document and source system](#resource-source)                   | 3     | 13      | 2                   |
-| [Company and users](#resource-company)                           | 1     | 4       | 0                   |
+| [Company and users](#resource-company)                           | 1     | 5       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 2       | 0                   |
 
 ## Analytics report {#resource-analytics}
@@ -982,7 +982,8 @@ _Members, invitations and what a company already uses_
 Who may work in a company and how far its data has been set up. Every business record is scoped to
 one company; another company's records behave as not found.
 
-**Also called:** tenant, member, invitation, access, Mandant, Mitglied, Einladung, Zugang
+**Also called:** tenant, member, invitation, access, time zone, Mandant, Mitglied, Einladung,
+Zugang, Zeitzone
 
 **Lists**
 
@@ -990,12 +991,19 @@ one company; another company's records behave as not found.
 
 **Actions**
 
+- [State the company time zone](./commands#command-set_company_time_zone) (`set_company_time_zone`)
 - [Invite company member](./commands#command-create_invitation) (`create_invitation`)
 - [Resend company invitation](./commands#command-resend_invitation) (`resend_invitation`)
 - [Revoke company invitation](./commands#command-revoke_invitation) (`revoke_invitation`)
 - [Remove company member](./commands#command-remove_member) (`remove_member`)
 
-**Underneath:** Tables: `company_invitation`, `invitation_delivery`, `tenant_membership`
+**Look up**
+
+- [Read the company time zone](./commands#command-company_time_zone_state)
+  (`company_time_zone_state`)
+
+**Underneath:** Tables: `company_invitation`, `invitation_delivery`, `tenant_membership`,
+`company_time_zone` · Events: [`company_time_zone.set`](./events#event-company_time_zone-set)
 
 ## Approvals, exceptions and open questions {#resource-governance}
 

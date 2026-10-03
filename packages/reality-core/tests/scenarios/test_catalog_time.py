@@ -1,6 +1,6 @@
-"""Business journeys about time that are not accounting periods (spec 340)."""
+"""Business journeys about time that are not accounting periods (specs 340, 349)."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from conftest import record_by_id
 
@@ -101,3 +101,65 @@ def test_open_orders_and_purchases_carry_over_the_year_end(session, business):
     assert core.fulfilled_quantity(session, tenant, purchase.id) == 10
     assert record_by_id(session, Commitment, sale.id).status == "fulfilled"
     assert record_by_id(session, Commitment, purchase.id).status == "fulfilled"
+
+
+def _shop_order_day(session, business, order_id, created_at):
+    tenant = business.tenant.id
+    payload = {
+        "id": order_id,
+        "name": f"#{order_id}",
+        "currency": "USD",
+        "total_price": "40.00",
+        "created_at": created_at,
+        "updated_at": created_at,
+        "line_items": [
+            {
+                "id": order_id * 10,
+                "sku": business.item.sku,
+                "quantity": 4,
+                "price": "10.00",
+            }
+        ],
+    }
+    _, job = core.enqueue_shopify_order(
+        session,
+        tenant,
+        payload,
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+    )
+    _, document, _, _ = core.process_import_job(session, tenant, job.id)
+    return document
+
+
+def test_an_order_at_half_past_eleven_in_new_york_is_dated_that_day(session, business):
+    """
+    BUSINESS TEST:
+    Q05: an order placed at 23:30 in New York is stored in UTC and dated on the
+    company's own day.
+    GIVEN:
+    A company that states America/New_York, and a shop order created at 23:30 on
+    31 October New York time, which is 03:30 UTC on 1 November.
+    WHEN:
+    The order is interpreted.
+    THEN:
+    Its instant is stored in UTC and it is dated 31 October; the same order in a
+    company counting in UTC is dated 1 November.
+    BUSINESS RULES:
+    company_time_zone.day
+    """
+    from reality.services.company_time_zone import set_company_time_zone
+
+    created = "2026-10-31T23:30:00-04:00"
+    # Positive control: without a stated zone the UTC day is 1 November.
+    utc_order = _shop_order_day(session, business, 3490, created)
+    assert utc_order.document_date == date(2026, 11, 1)
+
+    set_company_time_zone(session, business.tenant.id, "America/New_York")
+    order = _shop_order_day(session, business, 3495, created)
+
+    assert core.utc_datetime(order.ordered_at) == datetime(
+        2026, 11, 1, 3, 30, tzinfo=UTC
+    )
+    assert order.document_date == date(2026, 10, 31)

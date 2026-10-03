@@ -55,7 +55,10 @@ def preview_free_supplier_invoice(
     if "supplier" not in roles:
         raise InvalidOperation("Free supplier invoice requires a supplier Party.")
     effective = core.utc_datetime(arguments.get("effective_at")) or core.now()
-    document_date = str(arguments.get("document_date") or effective.date().isoformat())
+    document_date = str(
+        arguments.get("document_date")
+        or core._company_day(session, tenant_id, effective).isoformat()
+    )
     values, lines = core._preview_manual_document_input(
         session,
         tenant_id,

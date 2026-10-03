@@ -25390,6 +25390,10 @@ Object.assign(dictionaries.de, {
     "Eine angegebene Bestandsmenge ist null oder mehr, mit höchstens vier Nachkommastellen.",
   "When the stock was there is not a valid time.":
     "Wann der Bestand vorhanden war, ist kein gültiger Zeitpunkt.",
+  "A company time zone is UTC or a known IANA zone name such as Europe/Berlin.":
+    "Eine Zeitzone der Firma ist UTC oder ein bekannter IANA-Zonenname wie Europe/Berlin.",
+  "The company time zone changed since this review. Review it again.":
+    "Die Zeitzone der Firma hat sich seit dieser Prüfung geändert. Prüfe sie erneut.",
   "A stated stock level cannot lie in the future.":
     "Ein angegebener Bestand kann nicht in der Zukunft liegen.",
   "Only a stocked item has stock to state.":
@@ -26179,6 +26183,10 @@ Object.assign(dictionaries.nl, {
     "Een opgegeven voorraadhoeveelheid is nul of meer, met hoogstens vier decimalen.",
   "When the stock was there is not a valid time.":
     "Wanneer de voorraad er was, is geen geldig tijdstip.",
+  "A company time zone is UTC or a known IANA zone name such as Europe/Berlin.":
+    "Een bedrijfstijdzone is UTC of een bekende IANA-zonenaam zoals Europe/Berlin.",
+  "The company time zone changed since this review. Review it again.":
+    "De bedrijfstijdzone is sinds deze controle gewijzigd. Controleer haar opnieuw.",
   "A stated stock level cannot lie in the future.":
     "Een opgegeven voorraadniveau kan niet in de toekomst liggen.",
   "Only a stocked item has stock to state.":
@@ -26967,6 +26975,10 @@ Object.assign(dictionaries.es, {
     "Una cantidad de stock indicada es cero o más, con un máximo de cuatro decimales.",
   "When the stock was there is not a valid time.":
     "El momento en que había ese stock no es una fecha válida.",
+  "A company time zone is UTC or a known IANA zone name such as Europe/Berlin.":
+    "Una zona horaria de la empresa es UTC o un nombre de zona IANA conocido, como Europe/Berlin.",
+  "The company time zone changed since this review. Review it again.":
+    "La zona horaria de la empresa ha cambiado desde esta revisión. Revísala de nuevo.",
   "A stated stock level cannot lie in the future.":
     "Un nivel de stock indicado no puede estar en el futuro.",
   "Only a stocked item has stock to state.": "Solo un artículo de stock tiene stock que indicar.",

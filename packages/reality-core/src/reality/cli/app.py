@@ -1339,6 +1339,40 @@ def company_currency_set_command(
     con.print("✓ Company currency stated")
 
 
+company_time_zone_app = typer.Typer(
+    help="The time zone the company's business days are counted in (spec 349)."
+)
+app.add_typer(company_time_zone_app, name="company-time-zone")
+
+
+@company_time_zone_app.command("show")
+def company_time_zone_show_command(tenant: str | None = None):
+    """The company time zone and whether it was stated."""
+    from reality.services.company_time_zone import company_time_zone_state
+
+    with Session() as s:
+        selected = selected_tenant(s, tenant)
+        state = company_time_zone_state(s, selected.id)
+    con.print_json(data=state, default=str)
+
+
+@company_time_zone_app.command("set")
+def company_time_zone_set_command(
+    time_zone: str,
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm the company time zone (an IANA name such as Europe/Berlin)."""
+    _stock_block_change(
+        "company_time_zone_set",
+        {"time_zone": time_zone},
+        tenant,
+        yes,
+        preview_key="company_time_zone",
+    )
+    con.print("✓ Company time zone stated")
+
+
 @supplier_terms_app.command("list")
 def supplier_terms_list_command(
     party: str = typer.Option("", "--party"),

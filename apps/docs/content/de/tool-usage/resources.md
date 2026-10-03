@@ -22,7 +22,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 5        | 8         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 13       | 2         |
-| [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
+| [Unternehmen und Benutzer](#resource-company)                  | 1      | 5        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
 
 ## Auswertung {#resource-analytics}
@@ -999,7 +999,8 @@ Wer in einem Unternehmen arbeiten darf und wie weit dessen Daten eingerichtet si
 Geschäftsdatensatz gehört zu genau einem Unternehmen; fremde Datensätze verhalten sich wie nicht
 vorhanden.
 
-**Auch genannt:** tenant, member, invitation, access, Mandant, Mitglied, Einladung, Zugang
+**Auch genannt:** tenant, member, invitation, access, time zone, Mandant, Mitglied, Einladung,
+Zugang, Zeitzone
 
 **Listen**
 
@@ -1007,12 +1008,19 @@ vorhanden.
 
 **Aktionen**
 
+- [Zeitzone der Firma festlegen](./commands#command-set_company_time_zone) (`set_company_time_zone`)
 - [Mitglied einladen](./commands#command-create_invitation) (`create_invitation`)
 - [Einladung erneut senden](./commands#command-resend_invitation) (`resend_invitation`)
 - [Einladung zurückziehen](./commands#command-revoke_invitation) (`revoke_invitation`)
 - [Mitglied entfernen](./commands#command-remove_member) (`remove_member`)
 
-**Darunter:** Tabellen: `company_invitation`, `invitation_delivery`, `tenant_membership`
+**Nachschlagen**
+
+- [Zeitzone der Firma anzeigen](./commands#command-company_time_zone_state)
+  (`company_time_zone_state`)
+
+**Darunter:** Tabellen: `company_invitation`, `invitation_delivery`, `tenant_membership`,
+`company_time_zone` · Events: [`company_time_zone.set`](./events#event-company_time_zone-set)
 
 ## Freigaben, Klärfälle und offene Fragen {#resource-governance}
 

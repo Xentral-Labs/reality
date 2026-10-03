@@ -82,7 +82,7 @@ def _text(amount: Decimal) -> str:
     return format(amount.normalize(), "f")
 
 
-def _statement(values: dict[str, Any]) -> dict[str, Any]:
+def _statement(values: dict[str, Any], today: date | None = None) -> dict[str, Any]:
     """The stated payout, checked and normalized; nothing is looked up yet."""
     reference = str(values.get("payout_reference") or "").strip()
     if not reference:
@@ -91,7 +91,7 @@ def _statement(values: dict[str, Any]) -> dict[str, Any]:
         paid_on = date.fromisoformat(str(values.get("paid_on")))
     except ValueError as error:
         raise core.InvalidOperation(code="payout_paid_on_invalid") from error
-    if paid_on > core.now().date():
+    if paid_on > (today or core.now().date()):
         raise core.InvalidOperation(code="payout_paid_on_future")
     currency = str(values.get("currency") or "")
     if len(currency) != 3 or not currency.isupper():
@@ -829,7 +829,7 @@ def _preview(
     BUSINESS RULE services.payouts.preview_payout.result:
     Return the current result with provider, settled_before, totals, lines, unmatched_line_ids, unmatched_amount.
     """
-    statement = _statement(values)
+    statement = _statement(values, core._company_day(session, tenant_id, core.now()))
     provider = core._tenant_record(
         session, Party, tenant_id, statement["provider_party_id"]
     )
@@ -1019,7 +1019,7 @@ def _settle(
     # reality-rule: services.payouts.settle_payout.step-13
     core._require_business_mutation(session, tenant_id, "settle_payout")
     lock_finance(session, tenant_id)
-    statement = _statement(values)
+    statement = _statement(values, core._company_day(session, tenant_id, core.now()))
     core._tenant_record(session, Party, tenant_id, statement["provider_party_id"])
     _accounts(session, tenant_id, statement)
     held = _held_statement(session, tenant_id, statement)
@@ -1358,10 +1358,9 @@ def unmatched_lines(
         )
     ):
         statement = json.loads(source.payload)
-        if (
-            as_of is not None
-            and date.fromisoformat(statement["paid_on"]) > as_of.date()
-        ):
+        if as_of is not None and date.fromisoformat(
+            statement["paid_on"]
+        ) > core._company_day(session, tenant_id, as_of):
             continue
         lines = [
             line

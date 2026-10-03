@@ -5718,7 +5718,7 @@ def expired_lots(
     Select this company's lots with an existing expiry strictly earlier than the evaluation day; sort oldest expiry first and then by identity. Lots without a stated date are not classified as expired.
     """
     get_tenant(session, tenant_id)
-    today = (as_of or now()).date()
+    today = _company_day(session, tenant_id, as_of or now())
     # reality-rule: core.expired_lots.1
     return list(
         session.scalars(
@@ -9856,6 +9856,31 @@ def _document_day(value: date | datetime | str | None) -> date | None:
         raise InvalidOperation(code="document_date_format_invalid") from error
 
 
+def _company_day(
+    session: OrmSession, tenant_id: str, value: date | datetime | str
+) -> date:
+    """The company's business day for a stated day or an instant (spec 349)."""
+    from reality.services.company_time_zone import company_day
+
+    return company_day(session, tenant_id, value)
+
+
+def _source_document_day(
+    session: OrmSession, tenant_id: str, value: date | datetime | str | None
+) -> date | None:
+    """A source's order or refund time as the company's business day (spec 349).
+
+    A shop states when an order was placed as an instant with its own offset; the
+    order belongs to the day the company lives that instant on.
+    """
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    try:
+        return _company_day(session, tenant_id, value)
+    except (InvalidDay, ValueError) as error:
+        raise InvalidOperation(code="document_date_format_invalid") from error
+
+
 def _document_pricing_effective_at(
     *, ordered_at: datetime | str | None, document_date: date | str | None
 ) -> datetime:
@@ -12172,7 +12197,9 @@ def _preview_order_invoice_stated(
         amount,
         _carry_unstated_price=True,
         currency=order.currency,
-        document_date=effective.date().isoformat() if effective else "",
+        document_date=_company_day(session, tenant_id, effective).isoformat()
+        if effective
+        else "",
     )
     offsets = _preview_down_payment_offsets(
         session, tenant_id, direction, arguments, [line.id], amount, order.currency
@@ -12302,7 +12329,7 @@ def _record_multi_order_invoice(
             creation["gross_amount"],
             _carry_unstated_price=True,
             currency=creation["currency"],
-            document_date=effective.date().isoformat(),
+            document_date=_company_day(session, tenant_id, effective).isoformat(),
             source_record_id=source.id,
             action_id=action_id,
             _commit=False,
@@ -12544,7 +12571,7 @@ def _record_order_invoice(
             gross_amount,
             _carry_unstated_price=True,
             currency=order.currency,
-            document_date=effective_at.date().isoformat(),
+            document_date=_company_day(session, tenant_id, effective_at).isoformat(),
             source_record_id=source.id,
             action_id=action_id,
             _commit=False,
@@ -13058,7 +13085,9 @@ def record_customer_payment(
             party_id,
             amount,
             currency=currency,
-            document_date=(effective_at or now()).date().isoformat(),
+            document_date=_company_day(
+                session, tenant_id, effective_at or now()
+            ).isoformat(),
             source_record_id=source_record_id,
             action_id=action_id,
             _commit=False,
@@ -13186,7 +13215,9 @@ def record_customer_refund(
             party_id,
             amount,
             currency=currency,
-            document_date=(effective_at or now()).date().isoformat(),
+            document_date=_company_day(
+                session, tenant_id, effective_at or now()
+            ).isoformat(),
             source_record_id=source_record_id,
             action_id=action_id,
             _commit=False,
@@ -13574,7 +13605,9 @@ def record_supplier_payment(
             party_id,
             amount,
             currency=currency,
-            document_date=(effective_at or now()).date().isoformat(),
+            document_date=_company_day(
+                session, tenant_id, effective_at or now()
+            ).isoformat(),
             source_record_id=source_record_id,
             action_id=action_id,
             _commit=False,
@@ -14169,7 +14202,9 @@ def record_supplier_refund(
             party_id,
             amount,
             currency=currency,
-            document_date=(effective_at or now()).date().isoformat(),
+            document_date=_company_day(
+                session, tenant_id, effective_at or now()
+            ).isoformat(),
             source_record_id=source_record_id,
             action_id=action_id,
             _commit=False,
@@ -16028,7 +16063,9 @@ def _shopify_interpretation(
         currency=payload.get("currency", "EUR"),
         gross_amount=decimal(payload.get("total_price", 0)),
         status="recorded",
-        document_date=_document_day(payload.get("created_at")),
+        document_date=_source_document_day(
+            session, tenant_id, payload.get("created_at")
+        ),
         ordered_at=utc_datetime(payload.get("created_at")),
         requested_delivery_at=utc_datetime(promised_at),
         sales_channel="shopify",
@@ -17095,11 +17132,16 @@ def invoice_discount_date(document: Document, term: PaymentTerm | None) -> date 
     return document_day + timedelta(days=term.discount_days)
 
 
-def invoice_days_overdue(due_date: date | None, as_of: datetime) -> int | None:
-    """Whole days between the due date and the evaluation instant, never below zero."""
+def invoice_days_overdue(due_date: date | None, as_of: datetime | date) -> int | None:
+    """Whole days between the due date and the evaluation day, never below zero.
+
+    Callers that know the company pass its business day (spec 349); an instant is
+    read by its UTC day.
+    """
     if due_date is None:
         return None
-    return max((as_of.date() - due_date).days, 0)
+    today = as_of.date() if isinstance(as_of, datetime) else as_of
+    return max((today - due_date).days, 0)
 
 
 def _payment_terms_by_id(session: OrmSession, tenant_id: str) -> dict[str, PaymentTerm]:
@@ -17112,7 +17154,7 @@ def _payment_terms_by_id(session: OrmSession, tenant_id: str) -> dict[str, Payme
 
 
 def with_invoice_aging(
-    rows: list[dict[str, Any]], terms: dict[str, PaymentTerm], as_of: datetime
+    rows: list[dict[str, Any]], terms: dict[str, PaymentTerm], as_of: datetime | date
 ) -> list[dict[str, Any]]:
     """Enrich open-item rows with the one due-date rule."""
     enriched = []
@@ -17161,7 +17203,7 @@ def aging_register(
             session, tenant_id, document_ids=document_ids, party_ids=party_ids
         ),
         _payment_terms_by_id(session, tenant_id),
-        as_of or now(),
+        _company_day(session, tenant_id, as_of or now()),
     )
 
 
@@ -17300,7 +17342,7 @@ def preview_payment_run(
     """
     get_tenant(session, tenant_id)
     moment = as_of or now()
-    today = moment.date()
+    today = _company_day(session, tenant_id, moment)
     cutoff_moment = utc_datetime(pay_by)
     if cutoff_moment is None:
         raise InvalidOperation("A payment run preview needs a day to pay by.")

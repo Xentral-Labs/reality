@@ -76,12 +76,15 @@ def relation(
             "finance_limit",
         )
     moment = datetime.now(UTC)
+    from reality.services.company_time_zone import company_day
+
+    today = company_day(session, tenant_id, moment)
     rows = aging_rows(
         session, tenant_id, moment=moment, document_ids=documents, cache=cache
     )
     data: list[dict[str, Any]] = []
     for row in rows:
-        overdue = row["due_date"] is not None and row["due_date"] < moment.date()
+        overdue = row["due_date"] is not None and row["due_date"] < today
         data.append(
             {
                 "document_id": row["document"].id,

@@ -610,6 +610,21 @@
       "effect": "Answers the company currency, EUR until stated, and whether the company has posted anything."
     },
     {
+      "name": "State the company time zone",
+      "service": "set_company_time_zone",
+      "related_services": ["review_company_time_zone", "company_time_zone_state"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "States the time zone the company's business days are counted in, as a new version of the company's time-zone statement; days stored on documents stay as stated."
+    },
+    {
+      "name": "Read the company time zone",
+      "service": "company_time_zone_state",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Answers the time zone the company's business days are counted in, UTC until stated, and whether it was stated."
+    },
+    {
       "name": "State supplier item terms",
       "service": "set_supplier_item_terms",
       "related_services": ["review_supplier_item_terms", "order_terms_check"],
