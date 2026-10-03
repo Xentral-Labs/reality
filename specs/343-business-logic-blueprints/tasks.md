@@ -228,3 +228,7 @@ UX correction analysis: FR-026 maps T060/T062; FR-027 maps T061/T062. Scope appr
 - [x] T069 [FR-035] Add regression tests first; audit all view/projection evidence and root availability, retain true reader/builders with shared-scope disclosure, render original source line numbers, improve error reporting, and verify backend/Docs/browser checks before updating the PR.
 
 - [x] T070 [FR-036] Test and implement verified fixed projection binding for shared Chat/MCP source reads; compare adapter source digests, verify generic future names and dynamic-binding rejection, run feature checks and update PR.
+
+- [x] T071 [FR-037] Preserve original code rows with compact typography and contained horizontal scrolling; verify Docs tests/build and browser dimensions, then update PR.
+
+- [x] T072 [FR-038] Add lazy Python syntax colors for inspected source functions with safe escaped token spans, test exact text/color/fallback in browser, verify Docs tests/build and update PR.

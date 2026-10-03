@@ -188,3 +188,11 @@ Review: FR-035 restores accurate source navigation under FR-032; no unresolved c
 ### Shared projection-tool routing
 
 FR-036 review: preserve one inspection service for every surface. Inspect approved loaded source AST for calls to the existing shared `_projection_read` callable and fixed name binding; append roots from the actual projection registry. Retain adapter roots and partial/shared-scope disclosure. No call execution, arbitrary attribute lookup, inferred name matching, data reads, schema changes or authorization changes. Constitution check passes; no unresolved clarification or critical finding. Red-first regression compares public tool, MCP and direct projection evidence; test future renamed adapters and reject dynamic-name inference.
+
+### Compact source lines
+
+FR-037 reviewed from user screenshot. CSS-only rendering correction: use 12px monospace, compact gutter and preserved original lines with horizontal overflow. No source, service or model changes. Verify browser row height, computed white-space, readable font size and contained overflow on desktop/mobile. Constitution check passes; no unresolved findings.
+
+### Lazy source syntax colors
+
+FR-038 reviewed from explicit user request. Use the existing installed Shiki version with Python grammar and GitHub light/dark themes as declared dependencies. Import on demand; tokenize only the active code function or opened helper, retain plain-code fallback. Render token content through escaped Vue interpolation; never use v-html. Verify keyword/string/comment colors, dark-mode style, exact reconstructed text, compact unwrapped original rows and escaping in the browser. No new backend behavior or unresolved Constitution conflict.
