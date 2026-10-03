@@ -1,14 +1,14 @@
 """Payment authorizations and captures (spec 336).
 
 Revision ID: 0126_payment_authorizations
-Revises: 0122_purchasing_depth
+Revises: 0125_delivery_failures
 """
 
 import sqlalchemy as sa
 from alembic import op
 
 revision = "0126_payment_authorizations"
-down_revision = "0122_purchasing_depth"
+down_revision = "0125_delivery_failures"
 branch_labels = None
 depends_on = None
 

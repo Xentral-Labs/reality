@@ -14,7 +14,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
 | [Auftrag](#resource-order)                                     | 8      | 16       | 15        |
-| [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
+| [Lieferung und Wareneingang](#resource-delivery)               | 2      | 7        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 11       | 5         |
@@ -394,8 +394,9 @@ Jede physische Bestandsänderung ist eine unveränderliche Lagerbewegung; Korrek
 Gegenbuchung statt zu editieren. Eine Sendung ist die Lieferung, die Bewegungen zu einem
 Geschäftspartner oder von ihm trägt, mit Beobachtungen des Spediteurs.
 
-**Auch genannt:** goods receipt, goods issue, shipment, movement, transfer, adjustment,
-Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking
+**Auch genannt:** goods receipt, goods issue, shipment, movement, transfer, adjustment, failed
+delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung,
+Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust
 
 **Listen**
 
@@ -412,6 +413,8 @@ Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück,
 - [Sendungsereignis erfassen](./commands#command-record_shipment_event) (`record_shipment_event`)
 - [Sendungsereignis korrigieren](./commands#command-supersede_shipment_event)
   (`supersede_shipment_event`)
+- [Fehlgeschlagene Zustellung erfassen](./commands#command-record_delivery_failure)
+  (`record_delivery_failure`)
 
 **Nachschlagen**
 
@@ -428,17 +431,19 @@ Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück,
 [Purchase-to-Pay](./processes#process-procure_to_pay), [Kundenretouren](./processes#process-returns)
 
 **Darunter:** Tabellen: `movement`, `movement_correction`, `shipment`, `shipment_package`,
-`shipment_event`, `shipment_event_supersession` · Events:
+`shipment_event`, `shipment_event_supersession`, `delivery_failure` · Events:
 [`shipment.notice_recorded`](./events#event-shipment-notice_recorded),
 [`shipment.event_recorded`](./events#event-shipment-event_recorded),
 [`shipment.event_superseded`](./events#event-shipment-event_superseded),
 [`commitment.fulfilled`](./events#event-commitment-fulfilled),
 [`reservation.consumed`](./events#event-reservation-consumed),
+[`shipment.delivery_failed`](./events#event-shipment-delivery_failed),
 [`movement.recorded`](./events#event-movement-recorded),
 [`movement.corrected`](./events#event-movement-corrected) · Agenten-Tools ohne Geschäftsaktion:
 [`shipments_list`](./commands#tool-shipments_list),
 [`shipment_explain`](./commands#tool-shipment_explain),
-[`movement_explanation`](./commands#tool-movement_explanation)
+[`movement_explanation`](./commands#tool-movement_explanation),
+[`delivery_failure_summary`](./commands#tool-delivery_failure_summary)
 
 ## Charge, Seriennummer und Palette {#resource-lot}
 

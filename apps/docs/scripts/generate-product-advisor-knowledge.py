@@ -26,6 +26,12 @@ COMMANDS = ROOT / "packages/reality-core/config/command_catalog.yaml"
 RESOURCES = ROOT / "packages/reality-core/config/resource_catalog.yaml"
 TARGET = ROOT / "packages/reality-core/config/product_advisor_knowledge.json"
 CAPABILITY_TARGET = ROOT / "packages/reality-core/config/product_capability_map.json"
+# The bound ProductCapability places on a route's tools and evidence.
+CAPABILITY_ROUTE_LIMIT = next(
+    item.max_length
+    for item in ProductCapability.model_fields["tools"].metadata
+    if hasattr(item, "max_length")
+)
 
 
 def _hash(value: str) -> str:
@@ -263,13 +269,25 @@ def build_capability_map(knowledge: ProductAdvisorKnowledge) -> ProductCapabilit
         pattern = str(resource.get("match", ""))
         tables = set(resource.get("tables", []))
         matching_names: list[str] = []
+        read_only_names: set[str] = set()
         for command in commands:
             name = str(command.get("service", ""))
-            command_tables = set(command.get("reads", [])) | set(command.get("writes", []))
-            if (
-                (pattern and re.search(pattern, name)) or (tables & command_tables)
-            ) and f"evidence_command_{name}" in evidence_by_id:
+            named = bool(pattern and re.search(pattern, name))
+            writes = tables & set(command.get("writes", []))
+            reads = tables & set(command.get("reads", []))
+            if (named or writes or reads) and f"evidence_command_{name}" in evidence_by_id:
                 matching_names.append(name)
+                if not named and not writes:
+                    read_only_names.add(name)
+        matching_names = list(dict.fromkeys(matching_names))
+        # A route stays within its bound: commands that only read the resource's
+        # tables, without naming it, are the least specific and are dropped first.
+        while len(matching_names) > CAPABILITY_ROUTE_LIMIT and read_only_names:
+            dropped = next(
+                name for name in reversed(matching_names) if name in read_only_names
+            )
+            matching_names.remove(dropped)
+            read_only_names.discard(dropped)
         if not matching_names:
             continue
         label = str(resource.get("label", {}).get("en", resource["key"]))
