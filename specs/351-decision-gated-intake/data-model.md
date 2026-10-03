@@ -49,3 +49,12 @@ monotonic outcome sequence; rejected/stale/awaiting-decision results do not ente
 automatic failure retry. Test prepare → approve, prepare → reject,
 prepare → stale → explicit renewed review → approve, and duplicated phase requests
 against the existing unique `(tenant, import_job, attempt)` constraint.
+
+## Integration refinement: company calendar
+
+The reviewed plan retains the company's current IANA zone and its opaque source
+statement identity (or the explicit UTC/default absence). Source instants become
+business days through the canonical company-calendar service from spec 349. Apply
+checks this retained calendar under the shared Tenant lock before canonical effects,
+so a timezone change cannot silently move a reviewed order or payment to another
+business day. This is review JSON, not a new authority table or derived total.

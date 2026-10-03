@@ -289,3 +289,29 @@ def test_rejection_retains_raw_and_appends_one_immutable_outcome(session, busine
     ] == before
     reject_proposal(session, business.tenant.id, proposal.id)
     assert session.scalar(select(func.count()).select_from(InterpretationOutcome)) == 2
+
+
+def test_prepared_shop_day_uses_and_freezes_the_company_calendar(session, business):
+    from reality.services.company_time_zone import set_company_time_zone
+
+    set_company_time_zone(session, business.tenant.id, "America/New_York")
+    payload = json.loads(FIXTURE.read_text())
+    payload["created_at"] = "2026-10-01T00:30:00Z"
+    payload["line_items"][0]["total_price"] = "1470.00"
+    _, job = enqueue_shopify_order(
+        session,
+        business.tenant.id,
+        payload,
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+    )
+    proposal = prepare_intake(session, business.tenant.id, job.id)
+    review = review_intake(session, business.tenant.id, proposal.id)
+    assert review["plan"]["effects"][0]["arguments"]["document_date"] == "2026-09-30"
+    set_company_time_zone(session, business.tenant.id, "UTC")
+    with pytest.raises(InvalidOperation):
+        apply_prepared_intake(
+            session, business.tenant.id, proposal.id, review["digest"], confirmed=True
+        )
+    assert session.scalar(select(func.count()).select_from(Document)) == 0

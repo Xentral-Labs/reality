@@ -145,3 +145,10 @@ PreparedIntake: versioned non-authoritative meaning, immutable source/artifact r
 | FR-010 | US3 | `packages/reality-core/tests/test_intake_admission.py::test_batch_resume_does_not_duplicate` | T011, T012, T013 |
 | DR-001, DR-002, DR-003, SC-001 | US1–US3, edge cases | `packages/reality-core/tests/test_intake_admission.py` source/attribution, derived-state and tenant refusal matrix | T001, T002, T014, T015 |
 | SC-002 | All | Required gates and final evidence review | T016 |
+
+## Integration acceptance: company calendar
+
+FR-002/FR-005 and DR-001 reuse spec 349's company-calendar contract: source instants
+are reviewed as the company's local business day. A changed calendar statement
+invalidates that offered review; confirmation never silently derives a different
+day. Regression proof: `test_intake_admission.py::test_prepared_shop_day_uses_and_freezes_the_company_calendar`.

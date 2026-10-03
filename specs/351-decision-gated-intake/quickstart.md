@@ -1,7 +1,8 @@
 # Validation guide: Decision-gated interpretation and admission
 
-**Status**: Planned runtime validation. New tests/tools named here do not exist yet;
-do not present these scenarios as executed implementation evidence.
+**Status**: Initial explicit preparation/approval tests and tools are implemented.
+Full rollout and its remaining acceptance proofs are pending; consult the feature
+contract and measured verification evidence before making completion claims.
 
 ## Prerequisites
 

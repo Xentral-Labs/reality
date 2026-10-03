@@ -485,7 +485,7 @@ def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
         in catalog.discovered_operations
     )
     assert "reality.services.playground:start_run" in catalog.discovered_operations
-    assert sum(len(family["operations"]) for family in catalog.families) == 668
+    assert sum(len(family["operations"]) for family in catalog.families) == 675
     assert (
         "reality.services.core:validate_commitment_movement_quantity"
         in catalog.discovered_operations

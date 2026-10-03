@@ -57,6 +57,11 @@ class ReferenceState(IntakeModel):
     digest: str
 
 
+class CalendarState(IntakeModel):
+    time_zone: str
+    source_record_id: str | None = None
+
+
 class PreparedIntake(IntakeModel):
     schema_version: Literal[1] = 1
     tenant_id: str
@@ -66,6 +71,7 @@ class PreparedIntake(IntakeModel):
     import_job_id: str
     profile: str
     finance_revision: int | None = None
+    calendar: CalendarState | None = None
     interpreter_version: Literal["1"] = "1"
     mapping: dict[str, Any]
     references: tuple[ReferenceState, ...] = ()

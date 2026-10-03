@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from reality.db.core import (
     ChangeProposal,
+    CompanyTimeZone,
     Document,
     ImportJob,
     Item,
@@ -24,6 +25,7 @@ from reality.db.core import (
 )
 from reality.domain.intake import (
     PACKAGE_BYTES,
+    CalendarState,
     Effect,
     PreparedIntake,
     ReferenceState,
@@ -123,6 +125,21 @@ def _reference(
     return ReferenceState(
         record_type=record_type, record_id=record.id, digest=_state(record)
     )
+
+
+def _calendar_state(session: Session, tenant_id: str) -> CalendarState:
+    row = session.scalar(
+        select(CompanyTimeZone)
+        .where(CompanyTimeZone.tenant_id == tenant_id)
+        .execution_options(populate_existing=True)
+    )
+    calendar = CalendarState(
+        time_zone=row.time_zone if row else "UTC",
+        source_record_id=row.source_record_id if row else None,
+    )
+    # Refresh the existing read accelerator after acquiring the shared Tenant lock.
+    session.info.setdefault("company_time_zone", {})[tenant_id] = calendar.time_zone
+    return calendar
 
 
 def _shopify_plan(
@@ -232,7 +249,9 @@ def _shopify_plan(
         "lines": lines,
         "gross_amount": str(core.decimal(payload["total_price"])),
         "currency": payload.get("currency", "EUR"),
-        "document_date": core._document_day(payload.get("created_at")),
+        "document_date": core._source_document_day(
+            session, tenant_id, payload.get("created_at")
+        ),
         "ordered_at": payload.get("created_at"),
         "requested_delivery_at": promised_at or None,
         "sales_channel": "shopify",
@@ -364,6 +383,7 @@ def prepare_intake(
         return core._tenant_record_read(
             session, ChangeProposal, tenant_id, context["intake_proposal_id"]
         )
+    calendar = _calendar_state(session, tenant_id)
     if source.source_artifact_id:
         raise core.InvalidOperation(code="intake_profile_unsupported")
     if (source.source_system, source.source_type) == ("shopify", "order"):
@@ -375,6 +395,7 @@ def prepare_intake(
         plan = _payment_plan(session, tenant_id, source, job, finance.revision)
     else:
         raise core.InvalidOperation(code="intake_profile_unsupported")
+    plan = plan.model_copy(update={"calendar": calendar})
     retained = {"plan": plan.model_dump(mode="json"), "digest": plan.review_digest()}
     if len(canonical_json(retained).encode("utf-8")) > PACKAGE_BYTES:
         raise core.InvalidOperation(code="intake_package_too_large")
@@ -553,6 +574,8 @@ def apply_prepared_intake(
         raise core.InvalidOperation(code="proposal_no_longer_available")
     plan = PreparedIntake.model_validate(review["plan"])
     if plan.finance_revision is not None and finance.revision != plan.finance_revision:
+        raise core.InvalidOperation(code="intake_review_stale")
+    if plan.calendar != _calendar_state(session, tenant_id):
         raise core.InvalidOperation(code="intake_review_stale")
     source = core._tenant_record_read(
         session, SourceRecord, tenant_id, plan.source_record_id
