@@ -1,14 +1,14 @@
 """A supplier's own number and name for our items (spec 345).
 
-Revision ID: 0134_supplier_item_number
-Revises: 0133_external_stock
+Revision ID: 0137_supplier_item_number
+Revises: 0136_prepayment_releases
 """
 
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0134_supplier_item_number"
-down_revision = "0133_external_stock"
+revision = "0137_supplier_item_number"
+down_revision = "0136_prepayment_releases"
 branch_labels = None
 depends_on = None
 

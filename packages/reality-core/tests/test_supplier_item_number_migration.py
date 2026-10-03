@@ -17,14 +17,14 @@ def test_the_table_comes_and_goes_and_stated_numbers_block_a_rollback(
 ):
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = Config("alembic.ini")
-    command.upgrade(config, "0134_supplier_item_number")
+    command.upgrade(config, "0137_supplier_item_number")
     engine = create_engine(postgres_database)
     try:
         assert TABLE in inspect(engine).get_table_names()
         # Positive control: an empty table rolls back and comes again.
-        command.downgrade(config, "0133_external_stock")
+        command.downgrade(config, "0136_prepayment_releases")
         assert TABLE not in inspect(engine).get_table_names()
-        command.upgrade(config, "0134_supplier_item_number")
+        command.upgrade(config, "0137_supplier_item_number")
 
         with Session(engine) as session:
             tenant = core.create_tenant(session, "Migration GmbH")
@@ -39,7 +39,7 @@ def test_the_table_comes_and_goes_and_stated_numbers_block_a_rollback(
             )
 
         with pytest.raises(RuntimeError, match="supplier item numbers"):
-            command.downgrade(config, "0133_external_stock")
+            command.downgrade(config, "0136_prepayment_releases")
         assert TABLE in inspect(engine).get_table_names()
     finally:
         engine.dispose()

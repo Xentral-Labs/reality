@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:facd53843672692070dc88d52dcf157f18f4b2f8cebcbd4932fa5ee716340bd5",
+  "knowledge_version": "advisor-v1:sha256:56d1e1689c98fe0ee5bd9dd1db4bbe8249f607ee057bdaa739d0a5ea60ee63d0",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -1511,6 +1511,7 @@
         "evidence_command_assign_party_price_list",
         "evidence_command_resolve_price",
         "evidence_command_create_party_group",
+        "evidence_command_release_prepayment",
         "evidence_command_preview_payment_run",
         "evidence_command_execute_payment_run",
         "evidence_command_create_manual_document_with_lines"
@@ -1550,6 +1551,10 @@
         },
         {
           "name": "create_party_group",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_prepayment",
           "mode": "mutation"
         },
         {
@@ -1599,6 +1604,7 @@
         "evidence_command_hold_document_commitments",
         "evidence_command_hold_party_delivery",
         "evidence_command_release_credit_holds",
+        "evidence_command_release_prepayment",
         "evidence_command_block_stock",
         "evidence_command_serve_backorders",
         "evidence_command_available_to_promise",
@@ -1691,6 +1697,10 @@
         },
         {
           "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_prepayment",
           "mode": "mutation"
         },
         {
@@ -2314,6 +2324,7 @@
       ],
       "evidence_ids": [
         "evidence_command_reverse_ledger_posting_group",
+        "evidence_command_release_prepayment",
         "evidence_command_credit_exposure",
         "evidence_command_record_down_payment_invoice",
         "evidence_command_post_customer_payment",
@@ -2347,6 +2358,10 @@
       "tools": [
         {
           "name": "reverse_ledger_posting_group",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_prepayment",
           "mode": "mutation"
         },
         {
@@ -2521,6 +2536,7 @@
         "evidence_command_correct_manual_document",
         "evidence_command_reverse_ledger_posting_group",
         "evidence_command_release_credit_holds",
+        "evidence_command_release_prepayment",
         "evidence_command_set_company_currency",
         "evidence_command_company_currency_state",
         "evidence_command_merge_party",
@@ -2703,6 +2719,10 @@
         },
         {
           "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_prepayment",
           "mode": "mutation"
         },
         {
@@ -3066,6 +3086,7 @@
         "evidence_command_reverse_ledger_posting_group",
         "evidence_command_hold_document_commitments",
         "evidence_command_release_credit_holds",
+        "evidence_command_release_prepayment",
         "evidence_command_kit_split",
         "evidence_command_merge_party",
         "evidence_command_purchase_match",
@@ -3106,7 +3127,6 @@
         "evidence_command_allocate_credit_note",
         "evidence_command_post_customer_refund",
         "evidence_command_post_supplier_credit_note",
-        "evidence_command_allocate_supplier_credit_note",
         "evidence_command_post_supplier_refund",
         "evidence_command_post_supplier_payment",
         "evidence_command_accept_adjustment",
@@ -3242,6 +3262,10 @@
         },
         {
           "name": "release_credit_holds",
+          "mode": "mutation"
+        },
+        {
+          "name": "release_prepayment",
           "mode": "mutation"
         },
         {
@@ -3402,10 +3426,6 @@
         },
         {
           "name": "post_supplier_credit_note",
-          "mode": "mutation"
-        },
-        {
-          "name": "allocate_supplier_credit_note",
           "mode": "mutation"
         },
         {
