@@ -219,7 +219,8 @@ the class exists, which is why it is sequenced ahead of it.
   still owes.
 - **DR-003**: The trace MUST reach the invoice, its control ledger entry, and its
   SourceRecord by opaque identity, and MUST NOT restate their authoritative business
-  fields.
+  fields. Spec 352 adds the invoice number, customer reference and counterparty as names
+  beside those identities.
 - **DR-004**: The due-date rule MUST live in the application layer, not in a transport or
   read model, and MUST be reachable by every consumer through one name.
 - **DR-005**: Every read, derivation, and explanation MUST be tenant-scoped, and no entry
