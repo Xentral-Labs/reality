@@ -880,8 +880,6 @@ def test_overdue_receivable_entry_shape(session, business):
     assert row.trace["document_id"] == invoice.id
     assert row.trace["ledger_entry_id"] == control.id
     assert row.trace["source_record_id"] is None
-    # Spec 352: who owes and which invoice ride beside the ids; amounts and
-    # dates stay in the causal values and are not restated in the trace.
     assert row.trace["document_number"] == "RE-9001"
     assert row.trace["customer_reference"] is None
     assert row.trace["party_id"] == business.customer.id
@@ -1299,7 +1297,6 @@ def test_overdue_payable(session, business):
 
 
 def test_overdue_items_name_the_customer_reference(session, business):
-    """Spec 352: the reference the counterparty quotes, when the invoice holds one."""
     tenant_id = business.tenant.id
     create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     receivable = create_document(

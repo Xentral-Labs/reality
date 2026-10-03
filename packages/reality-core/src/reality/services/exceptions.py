@@ -4610,8 +4610,6 @@ def _open_item_exceptions(
                     "document_id": document.id,
                     "ledger_entry_id": row["control"].id,
                     "source_record_id": document.source_record_id,
-                    # Spec 352: who owes and which invoice, from the register
-                    # row already read. Ids decide; these only name.
                     "document_number": document.number or None,
                     "customer_reference": document.customer_reference or None,
                     "party_id": document.party_id,
