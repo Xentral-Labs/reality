@@ -110,6 +110,13 @@ movements hold, and I decide how to resolve it.
 - **SC-001**: J07 is `supported`, and no statement path creates a movement.
 - **SC-002**: Deriving the finding reads all latest statements with a bounded number of queries.
 
+## Assumptions and Dependencies
+
+- Builds on the stock count of spec 307 (`stock_counts.book_as_of` semantics and the reviewed count
+  as the way to take a difference over) and on the file interpreters of source ingestion.
+- Live connectors that deliver statements (3PL, Shopify, Xentral) are separate work; they use the
+  same statement once they exist.
+
 ## Requirement Traceability
 
 | Requirement | Evidence |
