@@ -3524,11 +3524,9 @@ def _keeps_what_was_shipped(
     kept = _kept_quantity(session, tenant_id, commitment.id, commitment.type)
     if stated > kept:
         # More than moved is not keeping what moved; say so plainly.
-        raise InvalidOperation(
-            code="revision_beyond_shipped"
-            if commitment.type == "customer_delivery"
-            else "revision_beyond_received"
-        )
+        if commitment.type == "customer_delivery":
+            raise InvalidOperation(code="revision_beyond_shipped")
+        raise InvalidOperation(code="revision_beyond_received")
     return commitment_quantity(session, tenant_id, commitment.id) < stated
 
 

@@ -1,10 +1,6 @@
 {
   "schema_version": 1,
-<<<<<<< HEAD
-  "knowledge_version": "advisor-v1:sha256:74aacafdbb239d0cd80464c2040b9915bc09290f14f481f5457bc7edc8a23ef9",
-=======
-  "knowledge_version": "advisor-v1:sha256:84bceeadb4854681345a116023c9126951e52de6ae3c778398f9abf7bd5ccc70",
->>>>>>> a1a7e116 (feat(338): receipt and shipment deviations — surplus received on purpose, wrong items named for their line, substitutes for purchase lines, advised quantities and in transit per purchase)
+  "knowledge_version": "advisor-v1:sha256:2ce24dafd9aafa6d1dcd17d476941f8a991d01b77d291709d87ef35ee47d1d4b",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -2065,11 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-<<<<<<< HEAD
-      "fingerprint": "61f19d77457b77c837e89ffb883295631a3937ae6b7b0d48a7ccc28d26801ca3"
-=======
-      "fingerprint": "4a32ee862e9828fa5f6254c15393b1b39f8a3f79db09c66a2b0f4e40050de9da"
->>>>>>> a1a7e116 (feat(338): receipt and shipment deviations — surplus received on purpose, wrong items named for their line, substitutes for purchase lines, advised quantities and in transit per purchase)
+      "fingerprint": "28a946af77c705ee532c3966b12e6f7dbef1c36ec24b0e1c03356981e4bc98da"
     },
     {
       "id": "source_document_product_evaluation",

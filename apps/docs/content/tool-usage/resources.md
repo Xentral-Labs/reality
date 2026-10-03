@@ -14,7 +14,7 @@ the technical key stands beside each one.
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
 | [Order](#resource-order)                                         | 8     | 17      | 16                  |
-| [Delivery and goods receipt](#resource-delivery)                 | 2     | 11      | 3                   |
+| [Delivery and goods receipt](#resource-delivery)                 | 2     | 12      | 3                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 2                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 11      | 5                   |
@@ -401,7 +401,8 @@ with carrier observations attached.
 
 **Also called:** goods receipt, goods issue, shipment, movement, transfer, adjustment, failed
 delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung,
-Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust
+Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust,
+drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 
 **Lists**
 
@@ -425,6 +426,7 @@ Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweiger
 - [Supersede shipment event](./commands#command-supersede_shipment_event)
   (`supersede_shipment_event`)
 - [Record a failed delivery](./commands#command-record_delivery_failure) (`record_delivery_failure`)
+- [Record a drop shipment](./commands#command-record_drop_shipment) (`record_drop_shipment`)
 
 **Look up**
 
@@ -457,12 +459,14 @@ Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweiger
 [`outbound_delivery.revised`](./events#event-outbound_delivery-revised),
 [`outbound_delivery.picked`](./events#event-outbound_delivery-picked),
 [`outbound_delivery.put_back`](./events#event-outbound_delivery-put_back),
+[`drop_shipment.recorded`](./events#event-drop_shipment-recorded),
 [`shipment.delivery_failed`](./events#event-shipment-delivery_failed),
 [`movement.recorded`](./events#event-movement-recorded),
 [`movement.corrected`](./events#event-movement-corrected) · Agent tools without a command:
 [`shipments_list`](./commands#tool-shipments_list),
 [`shipment_explain`](./commands#tool-shipment_explain),
 [`movement_explanation`](./commands#tool-movement_explanation),
+[`drop_shipments`](./commands#tool-drop_shipments),
 [`delivery_failure_summary`](./commands#tool-delivery_failure_summary)
 
 ## Lot, serial number and pallet {#resource-lot}
