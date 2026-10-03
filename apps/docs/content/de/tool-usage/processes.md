@@ -200,9 +200,11 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 
 **Aktionen**
 
+- [Sendungsavis erfassen](./commands#command-record_shipment_notice) (`record_shipment_notice`)
 - [Packstück versenden oder Wareneingang buchen](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
 - [Lagerbewegung buchen](./commands#command-record_movement) (`record_movement`)
+- [Ersatzartikel annehmen](./commands#command-accept_substitute) (`accept_substitute`)
 - [Charge anlegen](./commands#command-create_lot) (`create_lot`)
 - [Mindesthaltbarkeit angeben](./commands#command-state_lot_expiry) (`state_lot_expiry`)
 
@@ -211,7 +213,10 @@ Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf
 
 **Kann hinterlassen:** [Unerklärte Lagerbewegung](./exceptions#exception-unexplained_movement)
 (`unexplained_movement`), [Abgelaufener Bestand](./exceptions#exception-stock_expired)
-(`stock_expired`)
+(`stock_expired`), [Mehr erhalten als bestellt](./exceptions#exception-received_beyond_order)
+(`received_beyond_order`),
+[Falscher Artikel geliefert](./exceptions#exception-misdelivery_outstanding)
+(`misdelivery_outstanding`)
 
 ### 4. Eingangsrechnung erfassen und buchen
 

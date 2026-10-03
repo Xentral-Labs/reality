@@ -2330,3 +2330,14 @@ Table `party_merge`: one row per duplicate names its survivor, the reason and th
 - `packages/reality-core/tests/test_party_merge_adapters.py`: strict MCP schemas, an agent proposal confirmed by a person, the web API and inspector, another company cannot read or merge, the CLI asks before merging.
 - `packages/reality-core/tests/scenarios/test_catalog_party_merges.py`: stories L10 and O02.
 - `packages/reality-core/tests/test_party_merge_migration.py`: the rollback is refused while a merge is stated.
+## Receipt and shipment deviations — Spec 338
+
+Tables `misdelivery` (a wrong-item movement's link to the line it was meant for), `commitment_substitute` (an item accepted in place of what a purchase line ordered) and `shipment_advice_line` (a notice's advised quantity per purchase promise). Classes `received_beyond_order` and `misdelivery_outstanding`; surplus, wrong goods still out, advised against received and in transit are derived at read time.
+
+- `packages/reality-core/tests/test_receipt_deviations.py`:
+  - A surplus is refused unless the receipt states it, then reported; keeping it raises the line to what arrived, and anything beyond is refused; a supplier return clears it; `beyond_order` is for purchase receipts only.
+  - A wrong item names its line, fulfils nothing and is not unexplained; it goes back against the same line within what is out; a same-item or both-ways statement is refused; a corrected customer shipment becomes a wrong item and the line opens.
+  - A substitute fulfils the line, also through a correction of a receipt that arrived as a wrong item; it is refused where it cannot stand.
+  - Advised against received in the announced shipment; in transit per purchase until the container arrives; advice and receiving into a shipment are bounded.
+- `packages/reality-core/tests/test_receipt_deviation_adapters.py`: strict MCP schemas, an agent proposes a substitute and a person confirms, advised and beyond-order fields through the agent schemas, the web API and the CLI.
+- `packages/reality-core/tests/scenarios/test_catalog_receipt_deviations.py`: stories H04, H05, H06, H07, H17, G16 and D05.

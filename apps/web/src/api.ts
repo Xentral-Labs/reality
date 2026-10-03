@@ -2672,6 +2672,14 @@ export type ShipmentRow = {
     reason: string;
     occurred_at: string;
   } | null;
+  /** Spec 338: what an inbound notice advised per purchase line, against what arrived in it. */
+  advice?: Array<{
+    commitment_id: string;
+    advised: string;
+    received: string;
+    difference: string;
+    in_transit: string;
+  }>;
   packages: Array<{
     id: string;
     carrier: string | null;

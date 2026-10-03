@@ -632,6 +632,14 @@
       "effect": "States the components of a kit once, with how many one kit takes and optionally each component's share of the kit's price."
     },
     {
+      "name": "Accept a substitute item",
+      "service": "accept_substitute",
+      "related_services": ["review_substitute", "validate_substitute"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Accepts another stocked item in the same unit in place of what a purchase line ordered, with a reason; receipts of it then name the line and fulfil it, and the line keeps what it ordered."
+    },
+    {
       "name": "Assemble kits",
       "service": "assemble_kit",
       "related_services": ["review_kit", "validate_kit_assembly"],

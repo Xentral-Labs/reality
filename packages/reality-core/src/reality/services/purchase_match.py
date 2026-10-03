@@ -101,6 +101,16 @@ def purchase_match(
         ).items()
     }
     agreed = _agreed_line_prices(session, tenant_id, lines)
+    # Spec 338: items accepted in place of the ordered one, and what advices
+    # that have not arrived yet bring for each line.
+    from reality.services.receipt_deviations import (
+        in_transit_by_commitment,
+        substitutes_by_commitment,
+    )
+
+    promise_ids = [c.id for rows in promises.values() for c in rows]
+    substitutes = substitutes_by_commitment(session, tenant_id, promise_ids)
+    in_transit = in_transit_by_commitment(session, tenant_id, promise_ids)
     items = {
         item.id: item
         for item in session.scalars(
@@ -219,6 +229,18 @@ def purchase_match(
                 ],
                 "matched": not differences,
                 "differences": differences,
+                "in_transit": _text(
+                    sum((in_transit.get(c.id, ZERO) for c in held), ZERO)
+                ),
+                "substitutes": [
+                    {
+                        "item_id": row.item_id,
+                        "reason": row.reason,
+                        "source_record_id": row.source_record_id,
+                    }
+                    for c in held
+                    for row in substitutes.get(c.id, [])
+                ],
             }
         )
     return {

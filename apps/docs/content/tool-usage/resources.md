@@ -13,8 +13,8 @@ the technical key stands beside each one.
 | [Item](#resource-item)                                           | 5     | 13      | 6                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
-| [Order](#resource-order)                                         | 8     | 16      | 15                  |
-| [Delivery and goods receipt](#resource-delivery)                 | 2     | 12      | 2                   |
+| [Order](#resource-order)                                         | 8     | 17      | 16                  |
+| [Delivery and goods receipt](#resource-delivery)                 | 2     | 11      | 3                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 2                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 11      | 5                   |
@@ -314,6 +314,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Set party delivery hold](./commands#command-hold_party_delivery) (`hold_party_delivery`)
 - [Release a credit hold](./commands#command-release_credit_holds) (`release_credit_holds`)
 - [Serve backorders](./commands#command-serve_backorders) (`serve_backorders`)
+- [Accept a substitute item](./commands#command-accept_substitute) (`accept_substitute`)
 - [State a delivery rule](./commands#command-state_delivery_rule) (`state_delivery_rule`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
@@ -361,15 +362,19 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Backorder against the customer's rule](./exceptions#exception-backorder_against_rule)
   (`backorder_against_rule`)
 - [Shipped beyond the order](./exceptions#exception-shipped_beyond_order) (`shipped_beyond_order`)
+- [Received beyond the order](./exceptions#exception-received_beyond_order)
+  (`received_beyond_order`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay)
 
 **Underneath:** Tables: `commitment`, `commitment_hold`, `commitment_revision`, `reservation`,
-`delivery_rule` · Events: [`order.recorded`](./events#event-order-recorded),
+`delivery_rule`, `commitment_substitute` · Events:
+[`order.recorded`](./events#event-order-recorded),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
+[`commitment.substitute_accepted`](./events#event-commitment-substitute_accepted),
 [`delivery_rule.stated`](./events#event-delivery_rule-stated),
 [`commitment.created`](./events#event-commitment-created),
 [`commitment.cancelled`](./events#event-commitment-cancelled),
@@ -396,8 +401,7 @@ with carrier observations attached.
 
 **Also called:** goods receipt, goods issue, shipment, movement, transfer, adjustment, failed
 delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung,
-Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust,
-drop shipping, drop shipment, Streckengeschäft, Direktlieferung
+Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust
 
 **Lists**
 
@@ -421,7 +425,6 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 - [Supersede shipment event](./commands#command-supersede_shipment_event)
   (`supersede_shipment_event`)
 - [Record a failed delivery](./commands#command-record_delivery_failure) (`record_delivery_failure`)
-- [Record a drop shipment](./commands#command-record_drop_shipment) (`record_drop_shipment`)
 
 **Look up**
 
@@ -436,6 +439,7 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 
 - [Return not dealt with](./exceptions#exception-return_unresolved) (`return_unresolved`)
 - [Unexplained movement](./exceptions#exception-unexplained_movement) (`unexplained_movement`)
+- [Wrong item delivered](./exceptions#exception-misdelivery_outstanding) (`misdelivery_outstanding`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay),
@@ -443,7 +447,7 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 
 **Underneath:** Tables: `movement`, `movement_correction`, `shipment`, `shipment_package`,
 `shipment_event`, `shipment_event_supersession`, `delivery_failure`, `outbound_delivery`,
-`outbound_delivery_line`, `outbound_delivery_pick` · Events:
+`outbound_delivery_line`, `outbound_delivery_pick`, `misdelivery`, `shipment_advice_line` · Events:
 [`shipment.notice_recorded`](./events#event-shipment-notice_recorded),
 [`shipment.event_recorded`](./events#event-shipment-event_recorded),
 [`shipment.event_superseded`](./events#event-shipment-event_superseded),
@@ -453,14 +457,12 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 [`outbound_delivery.revised`](./events#event-outbound_delivery-revised),
 [`outbound_delivery.picked`](./events#event-outbound_delivery-picked),
 [`outbound_delivery.put_back`](./events#event-outbound_delivery-put_back),
-[`drop_shipment.recorded`](./events#event-drop_shipment-recorded),
 [`shipment.delivery_failed`](./events#event-shipment-delivery_failed),
 [`movement.recorded`](./events#event-movement-recorded),
 [`movement.corrected`](./events#event-movement-corrected) · Agent tools without a command:
 [`shipments_list`](./commands#tool-shipments_list),
 [`shipment_explain`](./commands#tool-shipment_explain),
 [`movement_explanation`](./commands#tool-movement_explanation),
-[`drop_shipments`](./commands#tool-drop_shipments),
 [`delivery_failure_summary`](./commands#tool-delivery_failure_summary)
 
 ## Lot, serial number and pallet {#resource-lot}

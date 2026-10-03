@@ -261,6 +261,7 @@
     "kit_assemble_propose": "shipping",
     "party_merges": "master",
     "party_merge_propose": "master",
+    "commitment_substitute_accept_propose": "orders",
     "customer_item_number_set_propose": "shipping",
     "customer_item_number_remove_propose": "shipping",
     "customer_item_numbers": "shipping",

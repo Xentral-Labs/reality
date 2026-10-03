@@ -2586,6 +2586,79 @@
       "values": {
         "party": "text"
       }
+    },
+    "revision_beyond_received": {
+      "message": "A received line can be raised only up to what was received and kept."
+    },
+    "movement_beyond_order_receipt_only": {
+      "message": "Only a receipt against a purchase line can bring in more than the line expects."
+    },
+    "misdelivery_commitment_both": {
+      "message": "A wrong item names the line it was meant for, not a line it fulfils."
+    },
+    "misdelivery_movement_type": {
+      "message": "Wrong goods for this line move only as: {allowed}.",
+      "values": {
+        "allowed": "text"
+      }
+    },
+    "misdelivery_same_item": {
+      "message": "This is the item the line asks for, or one it accepted; record it against the line."
+    },
+    "misdelivery_back_exceeds_out": {
+      "message": "Only {out} of this item went the wrong way for this line.",
+      "values": {
+        "out": "quantity"
+      }
+    },
+    "substitute_purchase_only": {
+      "message": "A substitute is accepted for a purchase line only."
+    },
+    "substitute_line_cancelled": {
+      "message": "This purchase line is cancelled; it accepts no substitute."
+    },
+    "substitute_same_item": {
+      "message": "This is the item the line already orders."
+    },
+    "substitute_item_not_stocked": {
+      "message": "A substitute must be a stocked item."
+    },
+    "substitute_unit_differs": {
+      "message": "The substitute is counted in {substitute}, the ordered item in {ordered}.",
+      "values": {
+        "substitute": "text",
+        "ordered": "text"
+      }
+    },
+    "substitute_reason_required": {
+      "message": "Say why the substitute is accepted."
+    },
+    "substitute_already_accepted": {
+      "message": "This item is already accepted for the line."
+    },
+    "substitute_fields_invalid": {
+      "message": "Name the purchase line, the substitute item and the reason."
+    },
+    "advice_supplier_delivery_only": {
+      "message": "Advised quantities belong to an inbound supplier delivery."
+    },
+    "advice_lines_invalid": {
+      "message": "Each advised line names a purchase line and a quantity."
+    },
+    "advice_line_not_this_supplier": {
+      "message": "An advised line must be an open purchase line of this supplier."
+    },
+    "advice_line_repeated": {
+      "message": "A purchase line is advised once per notice."
+    },
+    "advice_quantity_invalid": {
+      "message": "An advised quantity is positive, with at most four decimals."
+    },
+    "shipment_receive_into_mismatch": {
+      "message": "Goods are received only into an announced inbound shipment of the same supplier and purpose."
+    },
+    "shipment_receive_into_fields": {
+      "message": "The announced shipment already says how it travels; leave carrier and tracking out."
     }
   },
   "terms": [

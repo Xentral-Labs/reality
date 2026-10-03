@@ -46,6 +46,14 @@ def stated_movement_reasons(
     return reasons
 
 
+def _misdelivery(session: Session, tenant_id: str, movement: Movement):
+    if movement.commitment_id:
+        return None
+    from reality.services.receipt_deviations import misdeliveries_for
+
+    return misdeliveries_for(session, tenant_id, [movement.id]).get(movement.id)
+
+
 def movement_explanation(
     session: Session, tenant_id: str, movement_id: str
 ) -> dict[str, Any]:
@@ -163,6 +171,41 @@ def movement_explanation(
                 "label": "Return announcement",
             }
         )
+    elif misdelivery := _misdelivery(session, tenant_id, movement):
+        # Spec 338: another item than the line asks for, meant for that line.
+        commitment = session.scalar(
+            select(Commitment).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.id == misdelivery.commitment_id,
+            )
+        )
+        kind = "misdelivery"
+        summary = (
+            "This movement carries another item than the line it was meant for; "
+            "it does not fulfil the line."
+        )
+        reason = misdelivery.reason
+        links.append(
+            {
+                "kind": "commitment",
+                "id": misdelivery.commitment_id,
+                "label": "Meant for",
+            }
+        )
+        if commitment and commitment.document_id:
+            document = session.scalar(
+                select(Document).where(
+                    Document.tenant_id == tenant_id,
+                    Document.id == commitment.document_id,
+                )
+            )
+            links.append(
+                {
+                    "kind": "document",
+                    "id": commitment.document_id,
+                    "label": document.number if document else "Document",
+                }
+            )
     elif movement.commitment_id:
         commitment = session.scalar(
             select(Commitment).where(

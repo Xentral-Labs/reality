@@ -1625,19 +1625,29 @@
       "section": "Picking, shipment, split and merge",
       "title": "Picking error found by the customer",
       "question": "Wrong item shipped, right item still open?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Wrong item shipped, right item still open?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Wrong item shipped, right item still open? The recorded shipment is corrected to the item that actually left, naming the order line it was meant for. The line is open again for the right item, stock of both items is true, and Wrong item delivered names the line until the wrong goods come back.",
       "limitations": [
-        "A shipment of the wrong item cannot name the order line it was meant for.",
-        "It can only be recorded without that link and then appears as an unexplained stock movement."
+        "Reshipping the right item is an ordinary dispatch of the open line."
       ],
-      "keywords": [],
+      "keywords": [
+        "wrong item shipped",
+        "customer received the wrong item",
+        "falscher Artikel beim Kunden"
+      ],
       "question_examples": [
         "Picking error found by the customer",
-        "Wrong item shipped, right item still open?"
+        "Wrong item shipped, right item still open?",
+        "The customer got bells instead of the lights we booked; what is still open?",
+        "Der Kunde hat Klingeln statt der gebuchten Lampen bekommen; was ist noch offen?"
       ],
-      "tools": [],
+      "tools": [
+        "movement_correction_propose",
+        "shipment_receive_propose",
+        "shipment_dispatch_propose",
+        "exceptions_list"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -3026,19 +3036,29 @@
       "section": "Purchasing: demand and purchase order",
       "title": "Import by sea (8 weeks), one container, many purchases",
       "question": "In-transit per purchase?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: In-transit per purchase?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: In-transit per purchase? One container notice advises the lines of three purchase orders. Until goods are received into that shipment, each purchase order's three-way match shows its advised quantity in transit; once the container is received, nothing is.",
       "limitations": [
-        "Inbound advices and in-transit events do not say which purchases they contain.",
-        "Goods in transit per purchase order therefore cannot be shown."
+        "Advices are stated through the reviewed notice; supplier advice files are not interpreted."
       ],
-      "keywords": [],
+      "keywords": [
+        "container",
+        "in transit",
+        "Seefracht",
+        "unterwegs"
+      ],
       "question_examples": [
         "Import by sea (8 weeks), one container, many purchases",
-        "In-transit per purchase?"
+        "In-transit per purchase?",
+        "One container carries three of our purchase orders; what is still on the water per order?",
+        "Ein Container enthält drei unserer Bestellungen; was ist je Bestellung noch unterwegs?"
       ],
-      "tools": [],
+      "tools": [
+        "shipment_notice_record_propose",
+        "shipment_receive_propose",
+        "purchase_match"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -3136,19 +3156,30 @@
       "section": "Goods receipt and supplier deviations",
       "title": "Over-delivery accepted",
       "question": "Surplus visible?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Surplus visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Surplus visible? The receipt states that it brings in more than the purchase line expects, and the surplus is received against the purchase. Received beyond the order reports it, and the three-way match shows the line received over, until the line is raised to what arrived or the surplus goes back to the supplier.",
       "limitations": [
-        "A receipt above the ordered quantity is refused, and there is no surplus signal.",
-        "The only workaround is to raise the ordered quantity first."
+        "Every surplus is stated by the person receiving; there is no automatic tolerance."
       ],
-      "keywords": [],
+      "keywords": [
+        "supplier over-delivery",
+        "surplus",
+        "Überlieferung",
+        "Mehrlieferung Lieferant"
+      ],
       "question_examples": [
         "Over-delivery accepted",
-        "Surplus visible?"
+        "Surplus visible?",
+        "The supplier delivered 105 instead of 100; can we book the five extra?",
+        "Der Lieferant hat 105 statt 100 geliefert; können wir die fünf zusätzlich einbuchen?"
       ],
-      "tools": [],
+      "tools": [
+        "shipment_receive_propose",
+        "commitment_revise_propose",
+        "exceptions_list",
+        "purchase_match"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -3158,19 +3189,27 @@
       "section": "Goods receipt and supplier deviations",
       "title": "Over-delivery rejected or returned",
       "question": "Supplier return linked?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Supplier return linked?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Supplier return linked? The surplus is received against the purchase line and sent back to the supplier against the same line, so the supplier return is linked to the purchase. Received beyond the order clears once it has gone.",
       "limitations": [
-        "The surplus cannot be received against the purchase order, and a supplier return must refer to a received delivery.",
-        "Returning an over-delivery is therefore not possible."
+        "A delivery refused at the door is simply not received; only what was received can go back."
       ],
-      "keywords": [],
+      "keywords": [
+        "return surplus to supplier",
+        "Rücksendung Überlieferung"
+      ],
       "question_examples": [
         "Over-delivery rejected or returned",
-        "Supplier return linked?"
+        "Supplier return linked?",
+        "We received 110 for 100 ordered and send ten back; is the return linked to the order?",
+        "Wir haben 110 statt 100 erhalten und schicken zehn zurück; ist die Rücksendung mit der Bestellung verknüpft?"
       ],
-      "tools": [],
+      "tools": [
+        "shipment_receive_propose",
+        "shipment_dispatch_propose",
+        "exceptions_list"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -3180,18 +3219,29 @@
       "section": "Goods receipt and supplier deviations",
       "title": "Wrong item delivered",
       "question": "Received item ≠ ordered item visible?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Received item ≠ ordered item visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Received item ≠ ordered item visible? The receipt carries the item that arrived and names the purchase line it was meant for. It does not fulfil the line, which still expects the ordered item, and Wrong item delivered names the line until the goods have gone back to the supplier against the same line.",
       "limitations": [
-        "A wrong item cannot be tied to the purchase order; it appears only as an unexplained receipt."
+        "The wrong goods are a separate item in stock until they go back or are accepted as a substitute."
       ],
-      "keywords": [],
+      "keywords": [
+        "wrong item",
+        "wrong item from supplier",
+        "falscher Artikel"
+      ],
       "question_examples": [
         "Wrong item delivered",
-        "Received item ≠ ordered item visible?"
+        "Received item ≠ ordered item visible?",
+        "The supplier sent bells instead of lights; how is that tied to the purchase order?",
+        "Der Lieferant hat Klingeln statt Lampen geschickt; wie hängt das an der Bestellung?"
       ],
-      "tools": [],
+      "tools": [
+        "shipment_receive_propose",
+        "shipment_dispatch_propose",
+        "exceptions_list",
+        "movement_explanation"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -3201,18 +3251,29 @@
       "section": "Goods receipt and supplier deviations",
       "title": "Substitute/successor item delivered",
       "question": "Accepted against the purchase with a link?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Accepted against the purchase with a link?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Accepted against the purchase with a link? A buyer accepts the successor item for the purchase line through a reviewed action with a reason. Receipts of the successor then name the line and fulfil it, and the three-way match names the accepted substitute. A successor that already arrived as a wrong item is moved onto the line by correcting that receipt.",
       "limitations": [
-        "A receipt cannot record that a substitute or successor item stands in for the ordered one."
+        "Only an item in the ordered item's unit can stand in; the line keeps the item it ordered."
       ],
-      "keywords": [],
+      "keywords": [
+        "successor item",
+        "substitute",
+        "Nachfolgeartikel",
+        "Ersatzartikel"
+      ],
       "question_examples": [
         "Substitute/successor item delivered",
-        "Accepted against the purchase with a link?"
+        "Accepted against the purchase with a link?",
+        "The supplier ships the successor model; can we accept it against our order?",
+        "Der Lieferant liefert das Nachfolgemodell; können wir es gegen unsere Bestellung annehmen?"
       ],
-      "tools": [],
+      "tools": [
+        "commitment_substitute_accept_propose",
+        "shipment_receive_propose",
+        "purchase_match"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []
@@ -3445,18 +3506,29 @@
       "section": "Goods receipt and supplier deviations",
       "title": "Advice says 100, 96 arrive",
       "question": "Advised vs received visible?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Advised vs received visible?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Advised vs received visible? The inbound notice states 100 for the purchase line, and the 96 that arrive are received into the announced shipment. The shipment reads advised 100, received 96 and a difference of 4; the purchase line stays open for the four.",
       "limitations": [
-        "Advised quantities are not recorded, so advised and received quantities cannot be compared."
+        "A short delivery is shown, not reported as a finding; the open purchase line and its overdue finding carry the follow-up."
       ],
-      "keywords": [],
+      "keywords": [
+        "advice",
+        "ASN",
+        "Lieferavis",
+        "avisierte Menge"
+      ],
       "question_examples": [
         "Advice says 100, 96 arrive",
-        "Advised vs received visible?"
+        "Advised vs received visible?",
+        "The supplier's advice said 100 but only 96 arrived; where do I see that?",
+        "Das Lieferavis sagte 100, angekommen sind 96; wo sehe ich das?"
       ],
-      "tools": [],
+      "tools": [
+        "shipment_notice_record_propose",
+        "shipment_receive_propose",
+        "shipment_explain"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

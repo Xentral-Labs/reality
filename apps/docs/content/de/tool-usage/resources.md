@@ -13,8 +13,8 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 13       | 6         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
-| [Auftrag](#resource-order)                                     | 8      | 16       | 15        |
-| [Lieferung und Wareneingang](#resource-delivery)               | 2      | 12       | 2         |
+| [Auftrag](#resource-order)                                     | 8      | 17       | 16        |
+| [Lieferung und Wareneingang](#resource-delivery)               | 2      | 11       | 3         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 11       | 5         |
@@ -322,6 +322,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`hold_party_delivery`)
 - [Kreditsperre freigeben](./commands#command-release_credit_holds) (`release_credit_holds`)
 - [Rückstände bedienen](./commands#command-serve_backorders) (`serve_backorders`)
+- [Ersatzartikel annehmen](./commands#command-accept_substitute) (`accept_substitute`)
 - [Lieferregel festlegen](./commands#command-state_delivery_rule) (`state_delivery_rule`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
@@ -371,15 +372,19 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`backorder_against_rule`)
 - [Mehr geliefert als bestellt](./exceptions#exception-shipped_beyond_order)
   (`shipped_beyond_order`)
+- [Mehr erhalten als bestellt](./exceptions#exception-received_beyond_order)
+  (`received_beyond_order`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay)
 
 **Darunter:** Tabellen: `commitment`, `commitment_hold`, `commitment_revision`, `reservation`,
-`delivery_rule` · Events: [`order.recorded`](./events#event-order-recorded),
+`delivery_rule`, `commitment_substitute` · Events:
+[`order.recorded`](./events#event-order-recorded),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
+[`commitment.substitute_accepted`](./events#event-commitment-substitute_accepted),
 [`delivery_rule.stated`](./events#event-delivery_rule-stated),
 [`commitment.created`](./events#event-commitment-created),
 [`commitment.cancelled`](./events#event-commitment-cancelled),
@@ -406,8 +411,7 @@ Geschäftspartner oder von ihm trägt, mit Beobachtungen des Spediteurs.
 
 **Auch genannt:** goods receipt, goods issue, shipment, movement, transfer, adjustment, failed
 delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung,
-Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust,
-drop shipping, drop shipment, Streckengeschäft, Direktlieferung
+Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust
 
 **Listen**
 
@@ -432,7 +436,6 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
   (`supersede_shipment_event`)
 - [Fehlgeschlagene Zustellung erfassen](./commands#command-record_delivery_failure)
   (`record_delivery_failure`)
-- [Streckengeschäft erfassen](./commands#command-record_drop_shipment) (`record_drop_shipment`)
 
 **Nachschlagen**
 
@@ -447,13 +450,15 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 
 - [Retoure nicht bearbeitet](./exceptions#exception-return_unresolved) (`return_unresolved`)
 - [Unerklärte Lagerbewegung](./exceptions#exception-unexplained_movement) (`unexplained_movement`)
+- [Falscher Artikel geliefert](./exceptions#exception-misdelivery_outstanding)
+  (`misdelivery_outstanding`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay), [Kundenretouren](./processes#process-returns)
 
 **Darunter:** Tabellen: `movement`, `movement_correction`, `shipment`, `shipment_package`,
 `shipment_event`, `shipment_event_supersession`, `delivery_failure`, `outbound_delivery`,
-`outbound_delivery_line`, `outbound_delivery_pick` · Events:
+`outbound_delivery_line`, `outbound_delivery_pick`, `misdelivery`, `shipment_advice_line` · Events:
 [`shipment.notice_recorded`](./events#event-shipment-notice_recorded),
 [`shipment.event_recorded`](./events#event-shipment-event_recorded),
 [`shipment.event_superseded`](./events#event-shipment-event_superseded),
@@ -463,14 +468,12 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 [`outbound_delivery.revised`](./events#event-outbound_delivery-revised),
 [`outbound_delivery.picked`](./events#event-outbound_delivery-picked),
 [`outbound_delivery.put_back`](./events#event-outbound_delivery-put_back),
-[`drop_shipment.recorded`](./events#event-drop_shipment-recorded),
 [`shipment.delivery_failed`](./events#event-shipment-delivery_failed),
 [`movement.recorded`](./events#event-movement-recorded),
 [`movement.corrected`](./events#event-movement-corrected) · Agenten-Tools ohne Geschäftsaktion:
 [`shipments_list`](./commands#tool-shipments_list),
 [`shipment_explain`](./commands#tool-shipment_explain),
 [`movement_explanation`](./commands#tool-movement_explanation),
-[`drop_shipments`](./commands#tool-drop_shipments),
 [`delivery_failure_summary`](./commands#tool-delivery_failure_summary)
 
 ## Charge, Seriennummer und Palette {#resource-lot}

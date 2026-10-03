@@ -2503,6 +2503,108 @@ class DeliveryFailure(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class Misdelivery(Base):
+    """A movement of another item than the line it was meant for (spec 338).
+
+    The movement moves what it carries, so stock is true; it names no
+    commitment, so the line it was meant for stays open. This row is the one
+    link from the movement to that line. What is still out the wrong way is
+    read from these rows and their movements each time, never stored.
+    """
+
+    __tablename__ = "misdelivery"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "movement_id"], ["movement.tenant_id", "movement.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "commitment_id"], ["commitment.tenant_id", "commitment.id"]
+        ),
+        UniqueConstraint("tenant_id", "movement_id", name="uq_misdelivery_movement"),
+        Index("ix_misdelivery_commitment_id", "tenant_id", "commitment_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    movement_id: Mapped[str] = mapped_column(String)
+    commitment_id: Mapped[str] = mapped_column(String)
+    reason: Mapped[str | None] = mapped_column(Text, default=None)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class CommitmentSubstitute(Base):
+    """An item accepted in place of what a purchase line ordered (spec 338).
+
+    The line keeps the item it ordered; receipts of the substitute name the
+    line and fulfil it. The decision is a stated source record.
+    """
+
+    __tablename__ = "commitment_substitute"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "commitment_id"], ["commitment.tenant_id", "commitment.id"]
+        ),
+        ForeignKeyConstraint(["tenant_id", "item_id"], ["item.tenant_id", "item.id"]),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint(
+            "tenant_id",
+            "commitment_id",
+            "item_id",
+            name="uq_commitment_substitute_commitment_item",
+        ),
+        CheckConstraint("btrim(reason) <> ''", name="ck_commitment_substitute_reason"),
+        Index("ix_commitment_substitute_item_id", "tenant_id", "item_id"),
+        Index(
+            "ix_commitment_substitute_source_record_id", "tenant_id", "source_record_id"
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    commitment_id: Mapped[str] = mapped_column(String)
+    item_id: Mapped[str] = mapped_column(String)
+    reason: Mapped[str] = mapped_column(Text)
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class ShipmentAdviceLine(Base):
+    """How much an inbound notice advises for one purchase promise (spec 338).
+
+    Stated with the notice and never changed. Advised against received, and
+    what is still in transit, are read from these rows and the receipts
+    recorded into the same shipment.
+    """
+
+    __tablename__ = "shipment_advice_line"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "shipment_id"], ["shipment.tenant_id", "shipment.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "commitment_id"], ["commitment.tenant_id", "commitment.id"]
+        ),
+        UniqueConstraint(
+            "tenant_id",
+            "shipment_id",
+            "commitment_id",
+            name="uq_shipment_advice_line_shipment_commitment",
+        ),
+        CheckConstraint("quantity > 0", name="ck_shipment_advice_line_quantity"),
+        Index("ix_shipment_advice_line_commitment_id", "tenant_id", "commitment_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    shipment_id: Mapped[str] = mapped_column(String)
+    commitment_id: Mapped[str] = mapped_column(String)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class Movement(Base):
     __tablename__ = "movement"
     __table_args__ = (

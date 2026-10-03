@@ -44,6 +44,7 @@ events:
   - {type: company_currency.set, producer: set_company_currency, subject: company_currency, invalidates: [Timeline, Tenant usage]}
   - {type: kit.defined, producer: define_kit, subject: item, invalidates: [Timeline, Tenant usage]}
   - {type: party.merged, producer: merge_party, subject: party, invalidates: [Open financial items, Operational Exceptions, Timeline, Tenant usage]}
+  - {type: commitment.substitute_accepted, producer: accept_substitute, subject: commitment, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
   - {type: kit.assembled, producer: assemble_kit, subject: item, invalidates: [Inventory, Item supply and demand, Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
   - {type: supplier_item_terms.set, producer: set_supplier_item_terms, subject: supplier_item_terms, invalidates: [Timeline, Tenant usage]}
   - {type: supplier_item_terms.removed, producer: remove_supplier_item_terms, subject: supplier_item_terms, invalidates: [Timeline, Tenant usage]}

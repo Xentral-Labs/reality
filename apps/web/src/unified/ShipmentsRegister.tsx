@@ -26,6 +26,13 @@ function state(row: ShipmentRow) {
   return "Announced";
 }
 
+/** Spec 338: the total of one advised quantity across a shipment's purchase lines. */
+function sumOf(
+  advice: NonNullable<ShipmentRow["advice"]>,
+  key: "advised" | "received" | "in_transit",
+): number {
+  return advice.reduce((total, line) => total + Number(line[key]), 0);
+}
 export function ShipmentsRegister({
   selection,
   navigate,
@@ -156,6 +163,15 @@ export function ShipmentsRegister({
                       {t("Goods moved at")} {formatDateTime(row.moved_at)}
                       {row.confirmation_lag_seconds && row.recorded_at
                         ? ` · ${t("recorded")} ${formatDateTime(row.recorded_at)} (${t("confirmation lag")} ${row.confirmation_lag_seconds >= 3600 ? `${Math.round(row.confirmation_lag_seconds / 3600)} h` : `${Math.round(row.confirmation_lag_seconds / 60)} min`})`
+                        : ""}
+                    </p>
+                  )}
+                  {!!row.advice?.length && (
+                    <p className="text-sm" data-shipment-advice>
+                      {t("Advised")} {sumOf(row.advice, "advised")} · {t("received")}{" "}
+                      {sumOf(row.advice, "received")}
+                      {sumOf(row.advice, "in_transit") > 0
+                        ? ` · ${t("in transit")} ${sumOf(row.advice, "in_transit")}`
                         : ""}
                     </p>
                   )}

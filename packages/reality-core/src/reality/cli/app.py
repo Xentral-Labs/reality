@@ -1342,6 +1342,38 @@ def purchase_match_command(document_id: str, tenant: str | None = None):
     con.print_json(data=result, default=str)
 
 
+@purchase_app.command("substitute")
+def purchase_substitute_command(
+    commitment_id: str,
+    item_id: str,
+    reason: str = typer.Option(..., help="Why the substitute is accepted."),
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm another item in place of what a purchase line ordered (spec 338)."""
+    from reality.tools.application import create_change_proposal, reject_proposal
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            proposal = create_change_proposal(
+                s,
+                selected.id,
+                "commitment_substitute_accept",
+                {"commitment_id": commitment_id, "item_id": item_id, "reason": reason},
+                actor_type="human",
+            )
+            con.print_json(data=json.loads(proposal.output)["substitute"])
+            if not yes and not typer.confirm("Accept this substitute?"):
+                reject_proposal(s, selected.id, proposal.id)
+                con.print("Stopped; nothing changed.")
+                raise typer.Exit()
+            approve_and_execute_proposal(s, selected.id, proposal.id, confirmed=True)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print(f"✓ Substitute accepted: {item_id} for {commitment_id}")
+
+
 _COUNT_LINE = typer.Option(
     None, "--line", help="ITEM_ID[:LOT_ID]=QUANTITY; repeat per counted line"
 )

@@ -493,10 +493,9 @@ execution holds.
 `outbound_delivery.planned`, `outbound_delivery.revised`, `outbound_delivery.picked`,
 `outbound_delivery.put_back`, `stock_count.posted`, `delivery_rule.stated`, `document.recorded`,
 `document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
-`promises.closed`, `document_line.item_assigned`, `drop_shipment.recorded`,
-`shipment.delivery_failed`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `movement.recorded`, `movement.corrected`,
-`ledger.reversed`, `settlement.allocated`
+`promises.closed`, `document_line.item_assigned`, `shipment.delivery_failed`, `exchange.recorded`,
+`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
+`movement.recorded`, `movement.corrected`, `ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Sicht [`orders`](./views#view-orders), Sicht
 [`warehouse_queue`](./views#view-warehouse_queue), Agenten-Tool
@@ -529,9 +528,9 @@ insufficient unblocked stock at supplying locations, and active order or party d
 `stock_block.scrapped`, `kit.assembled`, `outbound_delivery.picked`, `outbound_delivery.put_back`,
 `stock_count.posted`, `delivery_rule.stated`, `document.recorded`, `document.corrected`,
 `commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`drop_shipment.recorded`, `shipment.delivery_failed`, `exchange.recorded`, `commitment.held`,
-`commitment.hold_released`, `reservation.created`, `reservation.released`, `movement.recorded`,
-`movement.corrected`, `ledger.reversed`, `settlement.allocated`
+`shipment.delivery_failed`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
+`reservation.created`, `reservation.released`, `movement.recorded`, `movement.corrected`,
+`ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Sicht [`fulfillment_blockers`](./views#view-fulfillment_blockers), Agenten-Tool
 [`fulfillment_blockers`](./commands#tool-fulfillment_blockers)
@@ -561,9 +560,9 @@ affected-order quantities per item; available and projected stock exclude remain
 `stock_block.created`, `stock_block.released`, `stock_block.scrapped`, `kit.assembled`,
 `outbound_delivery.picked`, `outbound_delivery.put_back`, `stock_count.posted`, `location.created`,
 `location.updated`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
-`promises.closed`, `drop_shipment.recorded`, `shipment.delivery_failed`, `exchange.recorded`,
-`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
-`movement.recorded`, `movement.corrected`
+`promises.closed`, `shipment.delivery_failed`, `exchange.recorded`, `commitment.held`,
+`commitment.hold_released`, `reservation.created`, `reservation.released`, `movement.recorded`,
+`movement.corrected`
 
 **Siehe auch:** Sicht [`supply_demand`](./views#view-supply_demand), Agenten-Tool
 [`item_supply_demand`](./commands#tool-item_supply_demand)
@@ -601,21 +600,21 @@ Change Proposal, and chat activity without loading business rows or querying onc
 `source_record.unmapped`, `source_record.interpreted`, `party.created`, `party.updated`,
 `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.created`, `item.updated`,
 `reorder_point.set`, `reorder_point.removed`, `stock_block.created`, `stock_block.released`,
-`stock_block.scrapped`, `company_currency.set`, `kit.defined`, `party.merged`, `kit.assembled`,
-`supplier_item_terms.set`, `supplier_item_terms.removed`, `customer_item_number.set`,
-`customer_item_number.removed`, `outbound_delivery.planned`, `outbound_delivery.revised`,
-`outbound_delivery.picked`, `outbound_delivery.put_back`, `stock_count.posted`,
-`delivery_rule.stated`, `location.created`, `location.updated`, `master_data.lifecycle_changed`,
-`payment_term.updated`, `payment_term.created`, `price_list.updated`, `price_list.created`,
-`price_list_entry.created`, `party_price_list.assigned`, `party_group.updated`,
-`party_group.created`, `party_group_member.added`, `party_group_price_list.assigned`,
-`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
-`commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
-`return.announcement_withdrawn`, `document_line.item_assigned`, `drop_shipment.recorded`,
-`shipment.delivery_failed`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
-`lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
-`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`stock_block.scrapped`, `company_currency.set`, `kit.defined`, `commitment.substitute_accepted`,
+`kit.assembled`, `supplier_item_terms.set`, `supplier_item_terms.removed`,
+`customer_item_number.set`, `customer_item_number.removed`, `outbound_delivery.planned`,
+`outbound_delivery.revised`, `outbound_delivery.picked`, `outbound_delivery.put_back`,
+`stock_count.posted`, `delivery_rule.stated`, `location.created`, `location.updated`,
+`master_data.lifecycle_changed`, `payment_term.updated`, `payment_term.created`,
+`price_list.updated`, `price_list.created`, `price_list_entry.created`, `party_price_list.assigned`,
+`party_group.updated`, `party_group.created`, `party_group_member.added`,
+`party_group_price_list.assigned`, `document.recorded`, `document.corrected`, `commitment.created`,
+`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
+`return.announcement_withdrawn`, `document_line.item_assigned`, `shipment.delivery_failed`,
+`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `handling_unit.created`, `lot.created`, `lot.expiry_stated`,
+`lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`, `movement.corrected`,
+`ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 ### `inventory` — Inventory {#projection-inventory}
 
@@ -643,8 +642,8 @@ revisions and cancellation.
 `stock_block.scrapped`, `kit.assembled`, `outbound_delivery.picked`, `outbound_delivery.put_back`,
 `stock_count.posted`, `location.created`, `location.updated`, `master_data.lifecycle_changed`,
 `commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`drop_shipment.recorded`, `shipment.delivery_failed`, `reservation.created`, `reservation.released`,
-`movement.recorded`, `movement.corrected`
+`shipment.delivery_failed`, `reservation.created`, `reservation.released`, `movement.recorded`,
+`movement.corrected`
 
 **Siehe auch:** Sicht [`inventory`](./views#view-inventory), Agenten-Tool
 [`inventory_read`](./commands#tool-inventory_read), Agenten-Tool
@@ -679,18 +678,17 @@ restrictions.
 `fact.observed`, `source_record.received`, `source_record.unmapped`, `source_record.interpreted`,
 `party.created`, `party.updated`, `party.delivery_hold_placed`, `party.delivery_hold_released`,
 `item.created`, `item.updated`, `reorder_point.set`, `reorder_point.removed`, `stock_block.created`,
-`stock_block.released`, `stock_block.scrapped`, `party.merged`, `kit.assembled`,
+`stock_block.released`, `stock_block.scrapped`, `commitment.substitute_accepted`, `kit.assembled`,
 `outbound_delivery.picked`, `outbound_delivery.put_back`, `stock_count.posted`,
 `delivery_rule.stated`, `location.updated`, `master_data.lifecycle_changed`, `price_list.updated`,
 `price_list.created`, `price_list_entry.created`, `party_price_list.assigned`,
 `party_group.updated`, `party_group.created`, `party_group_member.added`,
 `party_group_price_list.assigned`, `document.recorded`, `document.corrected`, `commitment.created`,
 `commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
-`return.announcement_withdrawn`, `document_line.item_assigned`, `drop_shipment.recorded`,
-`shipment.delivery_failed`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `lot.expiry_stated`, `lot.expiry_corrected`,
-`movement.recorded`, `movement.corrected`, `ledger.posted`, `ledger.reversed`,
-`settlement.allocated`
+`return.announcement_withdrawn`, `document_line.item_assigned`, `shipment.delivery_failed`,
+`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `lot.expiry_stated`, `lot.expiry_corrected`, `movement.recorded`,
+`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 Zusätzlich alle 60 Sekunden für eine Hintergrundaktualisierung vorgesehen, auch ohne neues Business
 Event.
@@ -748,7 +746,9 @@ Ausnahme [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), Ausn
 [`backorder_against_rule`](./exceptions#exception-backorder_against_rule), Ausnahme
 [`shipped_beyond_order`](./exceptions#exception-shipped_beyond_order), Ausnahme
 [`payout_line_unmatched`](./exceptions#exception-payout_line_unmatched), Ausnahme
-[`payment_authorization_expired`](./exceptions#exception-payment_authorization_expired)
+[`payment_authorization_expired`](./exceptions#exception-payment_authorization_expired), Ausnahme
+[`received_beyond_order`](./exceptions#exception-received_beyond_order), Ausnahme
+[`misdelivery_outstanding`](./exceptions#exception-misdelivery_outstanding)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 
@@ -773,9 +773,9 @@ status on documents.
 `reservation.consumed`, `fact.observed`, `party.created`, `party.updated`,
 `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.updated`, `location.updated`,
 `commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
-`document_line.item_assigned`, `drop_shipment.recorded`, `shipment.delivery_failed`,
-`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
-`reservation.released`, `movement.recorded`, `movement.corrected`
+`document_line.item_assigned`, `shipment.delivery_failed`, `exchange.recorded`, `commitment.held`,
+`commitment.hold_released`, `reservation.created`, `reservation.released`, `movement.recorded`,
+`movement.corrected`
 
 **Siehe auch:** Agenten-Tool [`commitments_list`](./commands#tool-commitments_list), Agenten-Tool
 [`reservation_propose`](./commands#tool-reservation_propose), Agenten-Tool
@@ -833,7 +833,7 @@ payment truth.
 
 **Hintergrundaktualisierung nach:** `credit.recorded`, `invoice.recorded`,
 `dunning.notice_recorded`, `dunning.notice_reversed`, `payment.returned`, `payout.settled`,
-`dunning.run_confirmed`, `dunning.collection_handover_recorded`, `party.updated`, `party.merged`,
+`dunning.run_confirmed`, `dunning.collection_handover_recorded`, `party.updated`,
 `payment_term.updated`, `document.recorded`, `document.corrected`, `payments.run`,
 `shipment.delivery_failed`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
@@ -907,17 +907,17 @@ Normalizes important evidence and reality timestamps into one chronological oper
 `source_record.received`, `source_record.unmapped`, `source_record.interpreted`, `party.created`,
 `party.updated`, `item.created`, `item.updated`, `reorder_point.set`, `reorder_point.removed`,
 `stock_block.created`, `stock_block.released`, `stock_block.scrapped`, `company_currency.set`,
-`kit.defined`, `party.merged`, `kit.assembled`, `supplier_item_terms.set`,
+`kit.defined`, `commitment.substitute_accepted`, `kit.assembled`, `supplier_item_terms.set`,
 `supplier_item_terms.removed`, `customer_item_number.set`, `customer_item_number.removed`,
 `outbound_delivery.planned`, `outbound_delivery.revised`, `outbound_delivery.picked`,
 `outbound_delivery.put_back`, `stock_count.posted`, `delivery_rule.stated`, `location.created`,
 `location.updated`, `document.recorded`, `document.corrected`, `commitment.created`,
 `commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
-`return.announcement_withdrawn`, `document_line.item_assigned`, `drop_shipment.recorded`,
-`shipment.delivery_failed`, `exchange.recorded`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
-`lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
-`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
+`return.announcement_withdrawn`, `document_line.item_assigned`, `shipment.delivery_failed`,
+`exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
+`reservation.released`, `handling_unit.created`, `lot.created`, `lot.expiry_stated`,
+`lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`, `movement.corrected`,
+`ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Agenten-Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose),
 Agenten-Tool [`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool

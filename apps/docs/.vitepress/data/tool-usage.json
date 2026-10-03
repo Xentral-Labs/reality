@@ -234,15 +234,11 @@
         "supplier",
         "debtor",
         "creditor",
-        "duplicate",
-        "merge",
         "Kunde",
         "Lieferant",
         "Debitor",
         "Kreditor",
-        "Adresse",
-        "Dublette",
-        "Zusammenführen"
+        "Adresse"
       ],
       "tables": [
         "party",
@@ -251,8 +247,7 @@
         "party_group_member",
         "party_hold",
         "customer_item_number",
-        "supplier_item_terms",
-        "party_merge"
+        "supplier_item_terms"
       ],
       "lists": ["view:parties"],
       "actions": [
@@ -265,14 +260,12 @@
         "command:hold_party_delivery",
         "command:set_supplier_item_terms",
         "command:remove_supplier_item_terms",
-        "command:merge_party",
         "command:set_customer_item_number",
         "command:remove_customer_item_number",
         "command:record_handover"
       ],
       "reads": [
         "command:supplier_item_terms",
-        "command:party_merges",
         "command:customer_item_numbers",
         "command:credit_exposure"
       ],
@@ -284,7 +277,6 @@
         "event:party.updated",
         "event:party.delivery_hold_placed",
         "event:party.delivery_hold_released",
-        "event:party.merged",
         "event:supplier_item_terms.set",
         "event:supplier_item_terms.removed",
         "event:customer_item_number.set",
@@ -523,7 +515,8 @@
         "commitment_hold",
         "commitment_revision",
         "reservation",
-        "delivery_rule"
+        "delivery_rule",
+        "commitment_substitute"
       ],
       "lists": [
         "view:commitments",
@@ -546,6 +539,7 @@
         "command:hold_party_delivery",
         "command:release_credit_holds",
         "command:serve_backorders",
+        "command:accept_substitute",
         "command:state_delivery_rule",
         "command:set_reorder_point",
         "command:remove_reorder_point",
@@ -577,7 +571,8 @@
         "exception:order_line_price_missing",
         "exception:order_waiting_for_completeness",
         "exception:backorder_against_rule",
-        "exception:shipped_beyond_order"
+        "exception:shipped_beyond_order",
+        "exception:received_beyond_order"
       ],
       "tools": [
         "tool:commitments_list",
@@ -591,6 +586,7 @@
         "event:party.delivery_hold_placed",
         "event:reorder_point.set",
         "event:reorder_point.removed",
+        "event:commitment.substitute_accepted",
         "event:delivery_rule.stated",
         "event:commitment.created",
         "event:commitment.cancelled",
@@ -660,7 +656,9 @@
         "delivery_failure",
         "outbound_delivery",
         "outbound_delivery_line",
-        "outbound_delivery_pick"
+        "outbound_delivery_pick",
+        "misdelivery",
+        "shipment_advice_line"
       ],
       "lists": ["view:movements", "view:warehouse_queue"],
       "actions": [
@@ -683,7 +681,11 @@
         "command:outbound_delivery_detail",
         "command:month_end_billing"
       ],
-      "exceptions": ["exception:return_unresolved", "exception:unexplained_movement"],
+      "exceptions": [
+        "exception:return_unresolved",
+        "exception:unexplained_movement",
+        "exception:misdelivery_outstanding"
+      ],
       "tools": [
         "tool:shipments_list",
         "tool:shipment_explain",
@@ -1532,14 +1534,21 @@
           },
           "resource": "delivery",
           "actions": [
+            "command:record_shipment_notice",
             "command:record_packaged_execution",
             "command:record_movement",
+            "command:accept_substitute",
             "command:create_lot",
             "command:state_lot_expiry"
           ],
           "tools": [],
           "lists": ["view:movements", "view:inventory"],
-          "exceptions": ["exception:unexplained_movement", "exception:stock_expired"]
+          "exceptions": [
+            "exception:unexplained_movement",
+            "exception:stock_expired",
+            "exception:received_beyond_order",
+            "exception:misdelivery_outstanding"
+          ]
         },
         {
           "title": {
@@ -2519,7 +2528,7 @@
       "summary": "Prepare a shipment/package notice without moving stock; execution requires explicit confirmation.",
       "access": "propose",
       "group": "Operations",
-      "synopsis": "shipment_notice_record_propose direction purpose counterparty_id [carrier] [tracking_number] [source_record_id] [occurred_at] [reporter_type]",
+      "synopsis": "shipment_notice_record_propose direction purpose counterparty_id [carrier] [tracking_number] [source_record_id] [occurred_at] [reporter_type] [advised]",
       "parameters": [
         {
           "name": "direction",
@@ -2580,6 +2589,27 @@
           "depth": 0,
           "default": "counterparty",
           "enum": ["company", "counterparty", "carrier", "integration"]
+        },
+        {
+          "name": "advised",
+          "type": "array",
+          "required": false,
+          "description": "Inbound supplier notices only: how much the notice brings for each purchase line of this supplier, as stated.",
+          "depth": 0
+        },
+        {
+          "name": "advised[].commitment_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the obligation being reserved, held, or executed.",
+          "depth": 1
+        },
+        {
+          "name": "advised[].quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 1
         }
       ],
       "guidance": {},
@@ -2693,6 +2723,13 @@
           "depth": 1
         },
         {
+          "name": "movements[].meant_for_commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "The order line a wrong item was meant for (spec 338), instead of a commitment it fulfils; the movement carries another item and leaves the line open.",
+          "depth": 1
+        },
+        {
           "name": "carrier",
           "type": "string",
           "required": false,
@@ -2759,7 +2796,7 @@
       "summary": "Prepare one incoming package and its exact physical Movements; execution requires explicit confirmation.",
       "access": "propose",
       "group": "Operations",
-      "synopsis": "shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]",
+      "synopsis": "shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by] [shipment_id]",
       "parameters": [
         {
           "name": "purpose",
@@ -2853,6 +2890,20 @@
           "depth": 1
         },
         {
+          "name": "movements[].meant_for_commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "The order line a wrong item was meant for (spec 338), instead of a commitment it fulfils; the movement carries another item and leaves the line open.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].beyond_order",
+          "type": "boolean",
+          "required": false,
+          "description": "Receipts against a purchase line only: bring in more than the line still expects. The surplus is reported until it is kept or sent back.",
+          "depth": 1
+        },
+        {
           "name": "movements[].unit",
           "type": "string",
           "required": false,
@@ -2914,6 +2965,13 @@
           "type": "string",
           "required": false,
           "description": "Who collected a pickup, as stated; optional free text.",
+          "depth": 0
+        },
+        {
+          "name": "shipment_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the tenant-scoped physical consignment.",
           "depth": 0
         }
       ],
@@ -6327,7 +6385,7 @@
       "summary": "Prepare this business mutation without changing state. Record Movement. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [blocked_quantity] [block_reason] [opening_cost]",
+      "synopsis": "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [meant_for_commitment_id] [beyond_order] [unit] [blocked_quantity] [block_reason] [opening_cost]",
       "parameters": [
         {
           "name": "movement_type",
@@ -6434,6 +6492,20 @@
           "type": "string",
           "required": false,
           "description": "Opaque identity of the announced return these goods fulfil; absent means they were not announced.",
+          "depth": 0
+        },
+        {
+          "name": "meant_for_commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "The order line a wrong item was meant for (spec 338), instead of a commitment it fulfils; the movement carries another item and leaves the line open.",
+          "depth": 0
+        },
+        {
+          "name": "beyond_order",
+          "type": "boolean",
+          "required": false,
+          "description": "Receipts against a purchase line only: bring in more than the line still expects. The surplus is reported until it is kept or sent back.",
           "depth": 0
         },
         {
@@ -11915,75 +11987,28 @@
       "resources": ["item"]
     },
     {
-      "id": "tool:party_merges",
+      "id": "tool:commitment_substitute_accept_propose",
       "kind": "tool",
-      "key": "party_merges",
-      "label": "Business partner merges",
-      "area": "cross_functional",
-      "summary": "Read the business partner merges of the company, or those one partner took part in (party_id): the duplicate, the survivor it was merged into, the reason and when. A survivor's detail, balances and credit exposure include the history of every partner merged into it.",
-      "access": "read",
-      "group": "Master data",
-      "synopsis": "party_merges [party_id]",
-      "parameters": [
-        {
-          "name": "party_id",
-          "type": "string",
-          "required": false,
-          "description": "Opaque identity of the customer, supplier, or other operational party.",
-          "depth": 0
-        }
-      ],
-      "guidance": {
-        "purpose": "Show which business partners were merged as duplicates and into which survivor.",
-        "use_when": [
-          "Someone asks whether two business partners are the same",
-          "where a guest customer's history went",
-          "or why a partner is inactive."
-        ],
-        "do_not_use_when": [
-          "Someone asks for a partner's balance or orders; read the partner's detail or balances",
-          "which already include merged partners."
-        ],
-        "limitations": ["A merge is not undone; the duplicate's records keep naming it."],
-        "empty_result": "No business partner was merged.",
-        "freshness": "Read at request time."
-      },
-      "read_modes": [
-        {
-          "query": "MCP party_merges",
-          "mode": "live",
-          "default": true
-        }
-      ],
-      "command": "party_merges",
-      "projections": [],
-      "links": ["command:party_merges"],
-      "label_de": "Business partner merges",
-      "resources": ["party"]
-    },
-    {
-      "id": "tool:party_merge_propose",
-      "kind": "tool",
-      "key": "party_merge_propose",
-      "label": "Merge duplicate business partner",
-      "area": "cross_functional",
-      "summary": "Prepare merging a duplicate business partner (duplicate_party_id) into the one that survives (surviving_party_id), with a reason, for confirmation. Nothing stated is rewritten: the duplicate's documents, promises and ledger entries keep naming it and read under the survivor; the duplicate becomes inactive, and new shop orders and imports naming it land on the survivor. The survivor must be active and hold every role of the duplicate; merged partners are never merged again; the company's own partner and a partner with an open delivery hold are refused. A person confirms.",
+      "key": "commitment_substitute_accept_propose",
+      "label": "Accept a substitute item",
+      "area": "orders",
+      "summary": "Prepare accepting another item in place of what a purchase line ordered, for confirmation: a successor or substitute the supplier delivers instead. It must be a stocked item in the ordered item's unit, and a reason is required. Receipts of the substitute then name the line and fulfil it; the line keeps what it ordered. A substitute that already arrived as a wrong item is moved onto the line by correcting that receipt. A person confirms.",
       "access": "propose",
-      "group": "Master data",
-      "synopsis": "party_merge_propose duplicate_party_id surviving_party_id reason",
+      "group": "Purchasing",
+      "synopsis": "commitment_substitute_accept_propose commitment_id item_id reason",
       "parameters": [
         {
-          "name": "duplicate_party_id",
+          "name": "commitment_id",
           "type": "string",
           "required": true,
-          "description": "Opaque same-tenant identity of the business partner that is a duplicate and is merged (spec 339).",
+          "description": "Opaque identity of the obligation being reserved, held, or executed.",
           "depth": 0
         },
         {
-          "name": "surviving_party_id",
+          "name": "item_id",
           "type": "string",
           "required": true,
-          "description": "Opaque same-tenant identity of the business partner the duplicate is merged into; it answers for both histories (spec 339).",
+          "description": "Opaque identity of the operational item reference.",
           "depth": 0
         },
         {
@@ -11996,11 +12021,11 @@
       ],
       "guidance": {},
       "read_modes": [],
-      "command": "merge_party",
+      "command": "accept_substitute",
       "projections": [],
-      "links": ["command:merge_party"],
-      "label_de": "Merge duplicate business partner",
-      "resources": ["party"]
+      "links": ["command:accept_substitute"],
+      "label_de": "Accept a substitute item",
+      "resources": ["order"]
     },
     {
       "id": "tool:movement_explanation",
@@ -23339,13 +23364,29 @@
       "summary": "Records an immutable physical event with the same optional pallet, lot, and serial identity used by reservations.",
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "scenario", "MCP", "Chat"],
-      "reads": ["item", "location", "commitment", "handling_unit", "lot", "serial_unit"],
-      "writes": ["movement", "reservation", "commitment", "action", "business_event"],
+      "reads": [
+        "item",
+        "location",
+        "commitment",
+        "handling_unit",
+        "lot",
+        "serial_unit",
+        "commitment_substitute",
+        "misdelivery"
+      ],
+      "writes": [
+        "movement",
+        "reservation",
+        "commitment",
+        "action",
+        "business_event",
+        "misdelivery"
+      ],
       "confirmation": null,
       "related_services": [],
       "tools": ["movement_create_propose"],
       "synopses": [
-        "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [unit] [blocked_quantity] [block_reason] [opening_cost]"
+        "movement_create_propose movement_type item_id quantity [from_location_id] [to_location_id] [commitment_id] [source_record_id] [handling_unit_id] [lot_id] [serial_unit_id] [occurred_at] [reason] [resolves_movement_id] [return_announcement_id] [meant_for_commitment_id] [beyond_order] [unit] [blocked_quantity] [block_reason] [opening_cost]"
       ],
       "events": ["commitment.fulfilled", "reservation.consumed", "movement.recorded"],
       "actions": ["record_movement"],
@@ -23421,9 +23462,11 @@
         "handling_unit",
         "lot",
         "serial_unit",
-        "source_record"
+        "source_record",
+        "commitment_substitute",
+        "misdelivery"
       ],
-      "writes": ["movement", "movement_correction", "commitment", "business_event"],
+      "writes": ["movement", "movement_correction", "commitment", "business_event", "misdelivery"],
       "confirmation": "required",
       "related_services": ["movement_correction_snapshot", "preview_movement_correction"],
       "tools": ["movement_correction_propose"],
@@ -24006,6 +24049,31 @@
       "resources": ["item"]
     },
     {
+      "id": "command:accept_substitute",
+      "kind": "command",
+      "key": "accept_substitute",
+      "label": "Accept a substitute item",
+      "area": "cross_functional",
+      "summary": "Accepts another stocked item in the same unit in place of what a purchase line ordered, with a reason; receipts of it then name the line and fulfil it, and the line keeps what it ordered.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["commitment", "item", "commitment_substitute"],
+      "writes": ["commitment_substitute", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_substitute", "validate_substitute"],
+      "tools": ["commitment_substitute_accept_propose"],
+      "synopses": ["commitment_substitute_accept_propose commitment_id item_id reason"],
+      "events": ["commitment.substitute_accepted"],
+      "actions": [],
+      "guidance": {},
+      "links": [
+        "tool:commitment_substitute_accept_propose",
+        "event:commitment.substitute_accepted"
+      ],
+      "label_de": "Ersatzartikel annehmen",
+      "resources": ["order"]
+    },
+    {
       "id": "command:assemble_kit",
       "kind": "command",
       "key": "assemble_kit",
@@ -24095,72 +24163,6 @@
       "resources": ["item"]
     },
     {
-      "id": "command:merge_party",
-      "kind": "command",
-      "key": "merge_party",
-      "label": "Merge a duplicate business partner",
-      "area": "cross_functional",
-      "summary": "States that one business partner is a duplicate of another; both histories stay as stated and read under the survivor, and the duplicate becomes inactive.",
-      "mode": "mutation",
-      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "reads": [
-        "party",
-        "party_role",
-        "party_hold",
-        "party_merge",
-        "document",
-        "commitment",
-        "ledger_entry"
-      ],
-      "writes": ["party_merge", "party", "source_record", "business_event"],
-      "confirmation": "required",
-      "related_services": ["review_party_merge", "validate_party_merge"],
-      "tools": ["party_merge_propose"],
-      "synopses": ["party_merge_propose duplicate_party_id surviving_party_id reason"],
-      "events": ["party.merged"],
-      "actions": [],
-      "guidance": {},
-      "links": ["tool:party_merge_propose", "event:party.merged"],
-      "label_de": "Geschäftspartner zusammenführen",
-      "resources": ["party"]
-    },
-    {
-      "id": "command:party_merges",
-      "kind": "command",
-      "key": "party_merges",
-      "label": "Read business partner merges",
-      "area": "cross_functional",
-      "summary": "Lists the business partner merges, or those one partner took part in, with the reason and when.",
-      "mode": "query",
-      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "reads": ["party_merge", "party"],
-      "writes": [],
-      "confirmation": null,
-      "related_services": [],
-      "tools": ["party_merges"],
-      "synopses": ["party_merges [party_id]"],
-      "events": [],
-      "actions": [],
-      "guidance": {
-        "purpose": "Show which business partners were merged as duplicates and into which survivor.",
-        "use_when": [
-          "Someone asks whether two business partners are the same",
-          "where a guest customer's history went",
-          "or why a partner is inactive."
-        ],
-        "do_not_use_when": [
-          "Someone asks for a partner's balance or orders; read the partner's detail or balances",
-          "which already include merged partners."
-        ],
-        "limitations": ["A merge is not undone; the duplicate's records keep naming it."],
-        "empty_result": "No business partner was merged.",
-        "freshness": "Read at request time."
-      },
-      "links": ["tool:party_merges"],
-      "label_de": "Zusammengeführte Geschäftspartner anzeigen",
-      "resources": ["party"]
-    },
-    {
       "id": "command:purchase_match",
       "kind": "command",
       "key": "purchase_match",
@@ -24175,7 +24177,10 @@
         "commitment",
         "commitment_revision",
         "movement",
-        "item"
+        "item",
+        "commitment_substitute",
+        "shipment_advice_line",
+        "shipment_package"
       ],
       "writes": [],
       "confirmation": null,
@@ -26929,13 +26934,19 @@
       "summary": "Records a stated consignment and package without moving stock.",
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "reads": ["party", "party_role", "source_record"],
-      "writes": ["shipment", "shipment_package", "shipment_event", "business_event"],
+      "reads": ["party", "party_role", "source_record", "commitment"],
+      "writes": [
+        "shipment",
+        "shipment_package",
+        "shipment_event",
+        "business_event",
+        "shipment_advice_line"
+      ],
       "confirmation": "required",
       "related_services": [],
       "tools": ["shipment_notice_record_propose"],
       "synopses": [
-        "shipment_notice_record_propose direction purpose counterparty_id [carrier] [tracking_number] [source_record_id] [occurred_at] [reporter_type]"
+        "shipment_notice_record_propose direction purpose counterparty_id [carrier] [tracking_number] [source_record_id] [occurred_at] [reporter_type] [advised]"
       ],
       "events": ["shipment.notice_recorded"],
       "actions": [],
@@ -26961,7 +26972,9 @@
         "item",
         "location",
         "reservation",
-        "movement"
+        "movement",
+        "commitment_substitute",
+        "misdelivery"
       ],
       "writes": [
         "shipment",
@@ -26969,14 +26982,15 @@
         "shipment_event",
         "movement",
         "reservation",
-        "business_event"
+        "business_event",
+        "misdelivery"
       ],
       "confirmation": "required",
       "related_services": ["record_movement"],
       "tools": ["shipment_dispatch_propose", "shipment_receive_propose"],
       "synopses": [
         "shipment_dispatch_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by] [outbound_delivery_id]",
-        "shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by]"
+        "shipment_receive_propose purpose counterparty_id movements [carrier] [tracking_number] [source_record_id] [occurred_at] [delivery_mode] [collected_by] [shipment_id]"
       ],
       "events": [],
       "actions": [],
@@ -28396,7 +28410,7 @@
         "stock_block.scrapped",
         "company_currency.set",
         "kit.defined",
-        "party.merged",
+        "commitment.substitute_accepted",
         "kit.assembled",
         "supplier_item_terms.set",
         "supplier_item_terms.removed",
@@ -28605,7 +28619,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
-        "party.merged",
+        "commitment.substitute_accepted",
         "kit.assembled",
         "outbound_delivery.picked",
         "outbound_delivery.put_back",
@@ -28707,7 +28721,9 @@
         "exception:backorder_against_rule",
         "exception:shipped_beyond_order",
         "exception:payout_line_unmatched",
-        "exception:payment_authorization_expired"
+        "exception:payment_authorization_expired",
+        "exception:received_beyond_order",
+        "exception:misdelivery_outstanding"
       ],
       "label_de": "Abweichungen",
       "resources": ["governance"]
@@ -28858,7 +28874,6 @@
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
         "party.updated",
-        "party.merged",
         "payment_term.updated",
         "document.recorded",
         "document.corrected",
@@ -29010,7 +29025,7 @@
         "stock_block.scrapped",
         "company_currency.set",
         "kit.defined",
-        "party.merged",
+        "commitment.substitute_accepted",
         "kit.assembled",
         "supplier_item_terms.set",
         "supplier_item_terms.removed",
@@ -30420,6 +30435,60 @@
       "resources": ["lot", "payment"]
     },
     {
+      "id": "exception:received_beyond_order",
+      "kind": "exception",
+      "key": "received_beyond_order",
+      "label": "Received beyond the order",
+      "area": "orders",
+      "summary": "More has arrived from a supplier than the purchase line now asks for. The person receiving stated the surplus on the receipt, and it is accepted, because it is what arrived; Reality subtracts what went back to the supplier from what was received against the promise and reports what exceeds the quantity in force, with the order and the surplus. It returns nothing and changes no invoice by itself. A cancelled rest asks for nothing more.",
+      "owner": "Purchasing",
+      "clears_through": "The surplus going back to the supplier against the line, or revising the line up to what was received.",
+      "severity": "normal",
+      "record_type": "commitment",
+      "authority": "338/FR-001",
+      "evidence": [
+        "tests/test_receipt_deviations.py::test_a_surplus_is_refused_unless_stated_and_then_reported",
+        "tests/test_receipt_deviations.py::test_keeping_the_surplus_raises_the_line_to_what_arrived",
+        "tests/test_receipt_deviations.py::test_sending_the_surplus_back_clears_it"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:commitments"
+      ],
+      "label_de": "Mehr erhalten als bestellt",
+      "resources": ["order"]
+    },
+    {
+      "id": "exception:misdelivery_outstanding",
+      "kind": "exception",
+      "key": "misdelivery_outstanding",
+      "label": "Wrong item delivered",
+      "area": "orders",
+      "summary": "Another item than an order line asks for went the wrong way for it: a supplier delivered it for a purchase line, or a customer received it for a sales line. The movement names the line it was meant for and fulfils nothing, so the line itself stays open for the right goods. The entry names the line, the ordered item and the wrong items still out, until they have gone back.",
+      "owner": "Warehouse",
+      "clears_through": "The wrong goods going back against the same line, or, for a purchase, accepting the item as a substitute and correcting the receipt onto the line.",
+      "severity": "normal",
+      "record_type": "commitment",
+      "authority": "338/FR-003",
+      "evidence": [
+        "tests/test_receipt_deviations.py::test_a_wrong_item_names_its_line_and_fulfils_nothing",
+        "tests/test_receipt_deviations.py::test_wrong_goods_go_back_against_the_same_line",
+        "tests/test_receipt_deviations.py::test_a_picking_error_is_corrected_into_a_wrong_item"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:commitments"
+      ],
+      "label_de": "Falscher Artikel geliefert",
+      "resources": ["delivery"]
+    },
+    {
       "id": "event:cost.attributed",
       "kind": "event",
       "key": "cost.attributed",
@@ -31132,18 +31201,18 @@
       "resources": ["item"]
     },
     {
-      "id": "event:party.merged",
+      "id": "event:commitment.substitute_accepted",
       "kind": "event",
-      "key": "party.merged",
-      "label": "party.merged",
+      "key": "commitment.substitute_accepted",
+      "label": "commitment.substitute_accepted",
       "area": "cross_functional",
       "summary": "",
-      "producer": "merge_party",
-      "subject": "party",
-      "invalidates": ["Open financial items", "Operational Exceptions", "Timeline", "Tenant usage"],
-      "links": ["command:merge_party"],
-      "label_de": "party.merged",
-      "resources": ["party"]
+      "producer": "accept_substitute",
+      "subject": "commitment",
+      "invalidates": ["Operational Exceptions", "Timeline", "Tenant usage"],
+      "links": ["command:accept_substitute"],
+      "label_de": "commitment.substitute_accepted",
+      "resources": ["order"]
     },
     {
       "id": "event:kit.assembled",
@@ -78155,8 +78224,8 @@
         "command:set_supplier_item_terms",
         "command:remove_supplier_item_terms",
         "command:define_kit",
+        "command:accept_substitute",
         "command:assemble_kit",
-        "command:merge_party",
         "command:set_customer_item_number",
         "command:remove_customer_item_number",
         "command:plan_outbound_delivery",
@@ -80412,12 +80481,7 @@
           "references": []
         }
       ],
-      "actions": [
-        "command:create_party",
-        "command:update_party",
-        "command:set_master_data_active",
-        "command:merge_party"
-      ]
+      "actions": ["command:create_party", "command:update_party", "command:set_master_data_active"]
     },
     {
       "key": "party_role",

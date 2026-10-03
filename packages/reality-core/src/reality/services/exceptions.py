@@ -134,6 +134,8 @@ CLASS_ORDER = {
     "shipped_beyond_order": 50,
     "payout_line_unmatched": 51,
     "payment_authorization_expired": 52,
+    "received_beyond_order": 53,
+    "misdelivery_outstanding": 54,
 }
 
 
@@ -2618,6 +2620,128 @@ def _shipped_beyond_order_exceptions(
     return result
 
 
+def _received_beyond_order_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Spec 338: more has arrived from a supplier than the line now asks for.
+
+    The person receiving said so on the receipt, and it is accepted: it is what
+    arrived. The surplus is reported until it goes back to the supplier or the
+    line is raised to what was received. A cancelled rest asks for nothing more.
+    """
+    result: list[OperationalException] = []
+    for commitment, line, document in _order_line_promises(
+        session, tenant_id, "supplier_delivery"
+    ):
+        if commitment.status == "cancelled":
+            continue
+        received = _fulfilled_quantity(
+            session, tenant_id, commitment.id, "receipt"
+        ) - _fulfilled_quantity(session, tenant_id, commitment.id, "supplier_return")
+        in_force = _promise_quantity(session, tenant_id, commitment)
+        surplus = received - in_force
+        if surplus <= ZERO:
+            continue
+        result.append(
+            OperationalException(
+                _identity("received_beyond_order", commitment.id),
+                "received_beyond_order",
+                (),
+                "normal",
+                "Received beyond the order",
+                f"{surplus.normalize():f} received beyond the {in_force.normalize():f} "
+                f"ordered on {document.number}",
+                "commitment",
+                commitment.id,
+                {
+                    "ordered_quantity": Decimal(commitment.quantity),
+                    "quantity_in_force": in_force,
+                    "received_quantity": received,
+                    "surplus_quantity": surplus,
+                    "unit": commitment.unit or line.unit,
+                },
+                _order_line_trace(commitment, line, document),
+                _last_movement_at(session, tenant_id, commitment.id, "receipt"),
+            )
+        )
+    return result
+
+
+def _misdelivery_outstanding_exceptions(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Spec 338: another item went the wrong way for a line and is not back yet.
+
+    A wrong item names the line it was meant for and fulfils nothing, so the
+    line itself stays open for the right goods. What is reported is the wrong
+    goods still out: received and not sent back for a purchase, shipped and not
+    returned for a sale.
+    """
+    from reality.services.receipt_deviations import outstanding_misdeliveries
+
+    rows = outstanding_misdeliveries(session, tenant_id)
+    if not rows:
+        return []
+    item_ids = {item_id for row in rows for item_id in row["items"]}
+    item_ids |= {row["commitment"].item_id for row in rows}
+    items = {
+        item.id: item
+        for item in session.scalars(
+            select(Item).where(Item.tenant_id == tenant_id, Item.id.in_(item_ids))
+        )
+    }
+    document_ids = {
+        row["commitment"].document_id for row in rows if row["commitment"].document_id
+    }
+    documents = {
+        document.id: document
+        for document in session.scalars(
+            select(Document).where(
+                Document.tenant_id == tenant_id, Document.id.in_(document_ids)
+            )
+        )
+    }
+    result: list[OperationalException] = []
+    for row in rows:
+        commitment = row["commitment"]
+        document = documents.get(commitment.document_id)
+        ordered = items.get(commitment.item_id)
+        wrong = ", ".join(
+            f"{quantity.normalize():f} {items[item_id].sku if item_id in items else item_id}"
+            for item_id, quantity in sorted(row["items"].items())
+        )
+        side = "received" if commitment.type == "supplier_delivery" else "shipped"
+        result.append(
+            OperationalException(
+                _identity("misdelivery_outstanding", commitment.id),
+                "misdelivery_outstanding",
+                (),
+                "normal",
+                "Wrong item delivered",
+                f"{wrong} {side} in place of "
+                f"{ordered.sku if ordered else commitment.item_id}"
+                + (f" on {document.number}" if document else ""),
+                "commitment",
+                commitment.id,
+                {
+                    "direction": side,
+                    "ordered_item_id": commitment.item_id,
+                    "wrong_items": {
+                        item_id: quantity for item_id, quantity in row["items"].items()
+                    },
+                    "wrong_quantity": sum(row["items"].values(), ZERO),
+                },
+                {
+                    "commitment_id": commitment.id,
+                    "document_id": commitment.document_id,
+                    "source_record_id": document.source_record_id if document else None,
+                },
+                row["since"],
+            )
+        )
+    return result
+
+
 def _payout_line_unmatched_exceptions(
     session: Session, tenant_id: str, as_of: datetime
 ) -> list[OperationalException]:
@@ -3175,6 +3299,12 @@ def _movement_exceptions(
         else {}
     )
     rows = [row for row in rows if row.id not in stated]
+    if rows:
+        from reality.services.receipt_deviations import misdeliveries_for
+
+        # Spec 338: a wrong item is explained by the line it was meant for.
+        meant = misdeliveries_for(session, tenant_id, {row.id for row in rows})
+        rows = [row for row in rows if row.id not in meant]
     return [
         OperationalException(
             _identity("unexplained_movement", row.id),
@@ -5085,6 +5215,8 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "shipped_beyond_order": _shipped_beyond_order_exceptions,
     "payout_line_unmatched": _payout_line_unmatched_exceptions,
     "payment_authorization_expired": _payment_authorization_expired_exceptions,
+    "received_beyond_order": _received_beyond_order_exceptions,
+    "misdelivery_outstanding": _misdelivery_outstanding_exceptions,
     "outgoing_commitment_due_soon": _outgoing_commitment_due_soon,
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,

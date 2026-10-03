@@ -3501,16 +3501,17 @@ def _keeps_what_was_shipped(
     quantity: Any,
     unit_price: Any,
 ) -> bool:
-    """Whether a revision of a fulfilled customer promise keeps what shipped.
+    """Whether a revision of a fulfilled promise keeps what moved on it.
 
     Spec 313: a customer who lowered a line below what had shipped may keep the
-    excess after all. Raising the quantity again, at most to what was shipped
-    net of returns, records that; the promise stays fulfilled, so it is the one
-    quantity revision a fulfilled promise takes.
+    excess after all. Spec 338: a company that received more than it ordered
+    may keep the surplus. Raising the quantity again, at most to what moved net
+    of what came back, records that; the promise stays fulfilled, so it is the
+    one quantity revision a fulfilled promise takes.
     """
     if (
         commitment.status != "fulfilled"
-        or commitment.type != "customer_delivery"
+        or commitment.type not in {"customer_delivery", "supplier_delivery"}
         or quantity is None
         or due_at is not None
         or unit_price is not None
@@ -3520,18 +3521,32 @@ def _keeps_what_was_shipped(
         stated = decimal(quantity)
     except (ArithmeticError, ValueError, TypeError):
         return False
-    kept = _kept_quantity(session, tenant_id, commitment.id)
+    kept = _kept_quantity(session, tenant_id, commitment.id, commitment.type)
     if stated > kept:
-        # More than shipped is not keeping what shipped; say so plainly.
-        raise InvalidOperation(code="revision_beyond_shipped")
+        # More than moved is not keeping what moved; say so plainly.
+        raise InvalidOperation(
+            code="revision_beyond_shipped"
+            if commitment.type == "customer_delivery"
+            else "revision_beyond_received"
+        )
     return commitment_quantity(session, tenant_id, commitment.id) < stated
 
 
-def _kept_quantity(session: OrmSession, tenant_id: str, commitment_id: str) -> Decimal:
-    """What a customer holds of a promise: shipped, net of what came back."""
+def _kept_quantity(
+    session: OrmSession,
+    tenant_id: str,
+    commitment_id: str,
+    commitment_type: str = "customer_delivery",
+) -> Decimal:
+    """What a promise's receiver holds: what moved, net of what came back."""
+    moved, back = (
+        ("shipment", "return")
+        if commitment_type == "customer_delivery"
+        else ("receipt", "supplier_return")
+    )
     return movement_quantity(
-        session, tenant_id, commitment_id, "shipment"
-    ) - movement_quantity(session, tenant_id, commitment_id, "return")
+        session, tenant_id, commitment_id, moved
+    ) - movement_quantity(session, tenant_id, commitment_id, back)
 
 
 def _revision_prices_stored(session: OrmSession) -> bool:
@@ -5213,6 +5228,15 @@ MOVEMENT_REASON_TYPES = frozenset({"receipt"})
 MOVEMENT_REASON_RECORD = "movement_reason_stated"
 
 
+def _accepted_substitute(
+    session: OrmSession, tenant_id: str, commitment: Commitment, item_id: str
+) -> bool:
+    """Whether a purchase line accepted this item in place of its own (spec 338)."""
+    from reality.services.receipt_deviations import accepted_substitute
+
+    return accepted_substitute(session, tenant_id, commitment, item_id)
+
+
 def _append_movement(
     session: OrmSession,
     tenant_id: str,
@@ -5238,6 +5262,8 @@ def _append_movement(
     action_id: str | None = None,
     validate_only: bool = False,
     unit: str | None = None,
+    beyond_order: bool = False,
+    meant_for_commitment_id: str | None = None,
     _correcting: Movement | None = None,
     _movement_id: str | None = None,
     _drop_ship: bool = False,
@@ -5284,6 +5310,28 @@ def _append_movement(
     )
     if commitment:
         require_not_held(session, tenant_id, commitment.id)
+    # Spec 338: a wrong item names the line it was meant for and fulfils nothing;
+    # a surplus is received only when the person receiving says so.
+    meant_for = None
+    if meant_for_commitment_id:
+        from reality.services.receipt_deviations import validate_meant_for
+
+        meant_for = validate_meant_for(
+            session,
+            tenant_id,
+            movement_type,
+            item_id,
+            qty,
+            meant_for_commitment_id,
+            commitment_id=commitment_id,
+            _correcting=_correcting,
+        )
+    if beyond_order and not (
+        movement_type == "receipt"
+        and commitment is not None
+        and commitment.type == "supplier_delivery"
+    ):
+        raise InvalidOperation(code="movement_beyond_order_receipt_only")
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
     if shipment_package_id:
@@ -5488,7 +5536,10 @@ def _append_movement(
             if commitment.type == "customer_delivery"
             else {"receipt", "supplier_return"}
         )
-        if movement_type not in allowed or commitment.item_id != item_id:
+        if movement_type not in allowed or (
+            commitment.item_id != item_id
+            and not _accepted_substitute(session, tenant_id, commitment, item_id)
+        ):
             raise InvalidOperation(code="movement_commitment_mismatch")
         if stated is not None:
             # A promise recorded before spec 301 is held in its line's unit and
@@ -5537,6 +5588,9 @@ def _append_movement(
             )
             if qty > received - already_gone:
                 raise InvalidOperation(code="movement_supplier_return_exceeds_received")
+        elif beyond_order:
+            # Spec 338: what arrives beyond the line is reported, not refused.
+            pass
         else:
             if _correcting is None:
                 validate_commitment_movement_quantity(
@@ -5587,6 +5641,12 @@ def _append_movement(
             "item_id": item_id,
             "from_location_id": from_location_id,
             "to_location_id": to_location_id,
+            **(
+                {"meant_for_commitment_id": meant_for.id}
+                if meant_for is not None
+                else {}
+            ),
+            **({"beyond_order": True} if beyond_order else {}),
         }
     movement = Movement(
         # A stock block's scrap names its adjustment before it is written (spec 316).
@@ -5650,6 +5710,11 @@ def _append_movement(
                 output=json.dumps({"movement_id": movement.id}),
             )
         )
+    elif meant_for is not None:
+        from reality.services.receipt_deviations import record_misdelivery
+
+        # Spec 338: the reason belongs to the link to the line it was meant for.
+        record_misdelivery(session, tenant_id, movement, meant_for, reason)
     elif (
         movement_type in MOVEMENT_REASON_TYPES
         and not commitment_id
@@ -5762,6 +5827,8 @@ def record_movement(
     shipment_package_id: str | None = None,
     unit: str | None = None,
     action_id: str | None = None,
+    beyond_order: bool = False,
+    meant_for_commitment_id: str | None = None,
     _commit: bool = True,
     _movement_id: str | None = None,
 ) -> Movement:
@@ -5799,6 +5866,8 @@ def record_movement(
                 resolves_movement_id,
                 return_announcement_id,
                 shipment_package_id,
+                meant_for_commitment_id,
+                beyond_order or None,
             )
         ),
     )
@@ -5823,6 +5892,8 @@ def record_movement(
         unit=unit,
         commit=_commit,
         action_id=action_id,
+        beyond_order=beyond_order,
+        meant_for_commitment_id=meant_for_commitment_id,
         _movement_id=_movement_id,
     )
 
@@ -6006,6 +6077,10 @@ def preview_movement_correction(
             "serial_unit_id",
             "occurred_at",
             "reason",
+            # Spec 338: the goods were another item, meant for this line, or a
+            # receipt brought in more than the line expected.
+            "meant_for_commitment_id",
+            "beyond_order",
         }
         if (
             not isinstance(replacement, dict)
@@ -6256,6 +6331,12 @@ def correct_movement(
                 shipment_package_id=replacement_data.pop(
                     "shipment_package_id", original.shipment_package_id
                 ),
+                # Spec 338: a correction may say the goods were another item,
+                # meant for the line, or accept a surplus on a receipt.
+                meant_for_commitment_id=replacement_data.pop(
+                    "meant_for_commitment_id", None
+                ),
+                beyond_order=bool(replacement_data.pop("beyond_order", False)),
                 emit_recorded_event=False,
                 consume_reservations=False,
                 commit=False,
