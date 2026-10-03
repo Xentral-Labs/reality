@@ -2,13 +2,13 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 180 covered, 10 partial, 0 missing, 35 gap, 3 out.
+228 scenarios: 181 covered, 10 partial, 0 missing, 32 gap, 5 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -23,12 +23,12 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | I Supplier invoice and payment | 12 |  |  |  |  |
 | J Warehouse and stock | 6 | 1 |  | 4 |  |
 | K Kits and variants | 5 | 1 |  |  |  |
-| L E-commerce and marketplaces | 9 |  |  | 3 |  |
+| L E-commerce and marketplaces | 9 |  |  | 2 | 1 |
 | M B2B specifics | 4 | 2 |  | 6 |  |
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 4 |  |  | 1 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
-| Q Time and period | 2 | 1 |  | 2 |  |
+| Q Time and period | 3 | 1 |  |  | 1 |
 | R Combined stress stories | 5 | 3 |  |  |  |
 
 Strongest where an operational exception class exists (at-risk, reservation_exceeds_stock,
@@ -80,21 +80,21 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
     cash-on-delivery payouts, and authorizations and captures are recorded (C09, C10, C13, L03,
     R04 covered).
 11. **Kits are one level deep since spec 333.** A returned component is not linked to its kit's delivery (K03 partial); component cost is not rolled into the kit.
-12. **No period record (spec 184 is a stub).** Q02, Q04. There is also no sales-side
-    "invoiced not shipped" class (E03, Q01 partial).
+12. **No accounting periods, by decision (spec 340).** Reality is not the bookkeeping system:
+    there is no period close or posting lock (Q02 out), and open promises cross the year end
+    unchanged (Q04 covered).
 13. **Foreign currency on the purchase side only.** Supplier invoices and payments convert at
     stated rates and realise exchange differences (spec 309); sales in another currency,
     revaluation of open items and foreign payment runs are not converted. (N03 out.)
 14. **Other single gaps:** loans and samples with a return obligation (M12), repair round trip
-    (F10), returnable packaging (D19), subscriptions (L08), stored tax rate and customs data (L11,
-    L12, D14), negative stock (J06 is refused by design), 3PL stock reconciliation (J07),
+    (F10), returnable packaging (D19), subscriptions (L08), customs data (L12, D14), negative stock (J06 is refused by design), 3PL stock reconciliation (J07),
     re-labelling pairs (J11), unconfirmed purchase orders (G10),
     quote documents (A14), variant swap on an
     open order (A10), customer delivery documents (M07).
 
 Several gaps may be deliberate. They should become an explicit **out** with a reason in a scope
-document rather than stay open (candidates: M07 labels, L11/N08 tax determination, J06 negative
-stock).
+document rather than stay open (candidates: M07 labels, J06 negative stock). Tax determination (L11, N08) and accounting
+periods (Q02) are out by spec 340.
 
 ## Tests added for the former "missing" rows
 
@@ -358,7 +358,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | L08 | gap | db/core.py Commitment (no recurrence) | No recurring or subscription commitment; holds exist only per single commitment. |
 | L09 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_shopify_free_promotion_item_is_its_own_zero_price_line_and_commitment | A Shopify gift line at 0.00 becomes its own line and commitment; the raw line payload is kept. |
 | L10 | covered | packages/reality-core/tests/scenarios/test_catalog_party_merges.py::test_a_guest_order_later_with_an_account | A guest shop order and invoice merge into the account through the review: the account's detail and balance include them, the guest order still names the guest, and the next shop order naming the guest lands on the account (spec 339). |
-| L11 | gap | db/core.py Document/DocumentLine (no tax fields); docs/features/demo-data-catalog.md "Deliberate limitations" | The tax rate lives only in the raw payload; the Shopify interpreter does not record it. |
+| L11 | out | specs/340-accounting-boundary/spec.md Non-Goals (no tax rate determined or derived) | Tax is kept as the source states it (spec 284); a rate the shop states stays in the source payload, and none is ever derived from amounts. |
 | L12 | gap | db/core.py (no incoterm, duty or customs fields) | Duties and incoterms are not represented beyond the lossless payload. |
 
 ## M. B2B specifics
@@ -420,9 +420,9 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | Q01 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_month_end_lists_both_directions_from_the_same_findings | The month-end billing lists shipped-not-invoiced and invoiced-not-shipped lines from the same findings (spec 299). |
-| Q02 | gap | specs/184-period-close/spec.md (stub, "no period record") | There's no period or close record, so a backdated posting is neither refused nor flagged. |
+| Q02 | out | specs/340-accounting-boundary/spec.md Non-Goals (no accounting periods, close or posting locks) | Reality is not the bookkeeping system; closing periods belongs to the accounting system that receives the records. |
 | Q03 | covered | tests/test_analysis_positions_history.py::test_detail_inventory_conserves_locations_and_unknown_tracking, ::test_later_stock_compensation_does_not_rewrite_earlier_snapshot, ::test_cutoff_excludes_next_midnight_and_late_allocation_endpoint | Point-in-time stock with an explicit cutoff is asserted, including that later corrections don't rewrite it. |
-| Q04 | gap | specs/184-period-close/spec.md | With no period concept there is no carry-over; open promises simply stay open, and no test crosses a year boundary. |
+| Q04 | covered | packages/reality-core/tests/scenarios/test_catalog_time.py::test_open_orders_and_purchases_carry_over_the_year_end | An order and a purchase with 4 of 10 delivered in December keep 6 open across the year end; January's delivery fulfils both with December's still counted (spec 340). |
 | Q05 | partial | tests/test_operational_fields.py::test_document_and_commitment_operational_fields | Offset timestamps are proven to normalize to UTC; there is no company time zone, and no test pins the day a late-evening local order falls on (`domain/calendar.as_day` takes the text's local day). |
 
 ## R. Combined stress stories

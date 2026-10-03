@@ -4598,11 +4598,12 @@
       "section": "E-commerce and marketplaces",
       "title": "OSS: EU consumer, destination-country VAT",
       "question": "Tax rate as stated by the source?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Tax rate as stated by the source?",
+      "status": "out_of_scope",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Tax rate as stated by the source? Reality keeps the tax a source states and never determines or back-calculates a rate; the destination-country rate is the shop's and the accounting system's job.",
       "limitations": [
-        "The tax rate stated by the shop stays in the original source record; Reality does not record it on the order."
+        "A rate the shop states stays in the original source record; Reality does not type or calculate it.",
+        "A source that states only gross amounts gets no derived rate, so no rounding is introduced."
       ],
       "keywords": [],
       "question_examples": [
@@ -5517,9 +5518,9 @@
       "section": "Time and period",
       "title": "Backdated posting into a closed period",
       "question": "Refused or flagged?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Refused or flagged?",
+      "status": "out_of_scope",
+      "evidence_level": "reviewed",
+      "summary": "Reality evaluates: Refused or flagged? Reality is not the bookkeeping system: it has no accounting periods, so closing a period and locking backdated postings belong to the accounting system that receives the records.",
       "limitations": [
         "There are no accounting periods or period closes, so a backdated posting is neither refused nor flagged."
       ],
@@ -5557,17 +5558,23 @@
       "section": "Time and period",
       "title": "Year end with open backorders and purchases",
       "question": "Carried over correctly?",
-      "status": "missing",
-      "evidence_level": "none",
-      "summary": "Reality evaluates: Carried over correctly?",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Carried over correctly? There is no period to close, so open orders and purchases stay open across the year end, and deliveries keep the dates they were stated with.",
       "limitations": [
-        "There are no periods and therefore no carry-over; open orders and purchases simply stay open.",
-        "A year-end crossing is not yet proven."
+        "Reality has no accounting periods; a year-end close belongs to the accounting system."
       ],
-      "keywords": [],
+      "keywords": [
+        "year end",
+        "open backorders",
+        "carry over",
+        "Jahreswechsel",
+        "offene Rückstände"
+      ],
       "question_examples": [
         "Year end with open backorders and purchases",
-        "Carried over correctly?"
+        "Carried over correctly?",
+        "Was passiert mit offenen Aufträgen zum Jahreswechsel?"
       ],
       "tools": [],
       "demo_references": [],
