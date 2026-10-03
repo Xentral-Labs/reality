@@ -37,6 +37,7 @@ from reality.services import memberships as membership_service_module
 from reality.services import month_end_billing as month_end_billing_service_module
 from reality.services import notifications as notification_service_module
 from reality.services import order_line_items as order_line_item_service_module
+from reality.services import outbound_deliveries as outbound_delivery_service_module
 from reality.services import payment_authorizations as authorization_service_module
 from reality.services import payment_intake as payment_intake_service_module
 from reality.services import payment_returns as payment_return_service_module
@@ -50,7 +51,6 @@ from reality.services import return_dispositions as return_disposition_service_m
 from reality.services import scheduled_jobs as scheduled_job_service_module
 from reality.services import shipments as shipment_service_module
 from reality.services import stock_blocks as stock_block_service_module
-from reality.services import outbound_deliveries as outbound_delivery_service_module
 from reality.services import stock_counts as stock_count_service_module
 from reality.services import supplier_item_terms as supplier_terms_service_module
 from reality.services import supply_assignments as supply_assignment_service_module

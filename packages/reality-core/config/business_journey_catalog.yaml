@@ -175,23 +175,35 @@ entries:
   section: Order intake and order changes
   title: Cancelled after picking, before shipment
   question: Does the stock go back, and is that visible?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Does the stock go back, and is that visible?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Does the stock go back, and is that visible? Picking moves the goods into the planned delivery's staging location; a cancellation releases the reservation, the delivery shows the goods as waiting to be put back, and the put-back moves them to their bin again."
   limitations:
-  - Reality has no picking or staging step, so an order cannot be picked but not yet shipped.
-  - A cancellation in that state, and stock going back to its bin, therefore cannot be shown.
-  keywords: []
+  - "Picking is recorded per planned delivery; a pick list by bin path or a handheld scan is not modelled."
+  keywords:
+  - "cancelled after picking"
+  - "picked but not shipped"
+  - "put back"
+  - "staging"
+  - "storniert nach Kommissionierung"
+  - "zurücklagern"
+  - "Kommissionierung"
   question_examples:
-  - Cancelled after picking, before shipment
-  - Does the stock go back, and is that visible?
-  tools: []
+  - "Cancelled after picking, before shipment"
+  - "Does the stock go back, and is that visible?"
+  - "An order was picked and then cancelled; does the stock go back to its bin?"
+  - "Ein Auftrag wurde kommissioniert und dann storniert; kommt der Bestand zurück?"
+  tools:
+  - outbound_delivery_pick_propose
+  - commitment_cancel_propose
+  - outbound_delivery_put_back_propose
+  - outbound_delivery_detail
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/src/reality/services/core.py (no picking concept)
-    note: There is no picking or staging record, so "picked but not shipped" and the stock going back cannot be represented.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_order_cancelled_after_picking_goes_back_to_its_bin
+    note: "4 picked into the packing zone, then cancelled: the delivery shows 4 to put back until the put-back returns them to the bin."
 - id: A09
   section: Order intake and order changes
   title: '"Cancelled" after shipment'
@@ -243,23 +255,34 @@ entries:
   section: Order intake and order changes
   title: Delivery address changes after release, before shipment
   question: Which address does the shipment use, and is the change traceable?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Which address does the shipment use, and is the change traceable?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Which address does the shipment use, and is the change traceable? A planned delivery states its address; a revision before dispatch states the new one, every statement is kept, and the shipment keeps the address it went with."
   limitations:
-  - The delivery address is kept on the order only; a shipment does not record the address it used.
-  - Which address a shipment went to, and when it changed, cannot be answered.
-  keywords: []
+  - "The address is a stated value; it is not validated against a postal register or the carrier."
+  keywords:
+  - "address change"
+  - "delivery address"
+  - "ship-to address"
+  - "Adressänderung"
+  - "Lieferadresse"
+  - "Lieferanschrift"
   question_examples:
-  - Delivery address changes after release, before shipment
-  - Which address does the shipment use, and is the change traceable?
-  tools: []
+  - "Delivery address changes after release, before shipment"
+  - "Which address does the shipment use, and is the change traceable?"
+  - "The customer changed the delivery address after release; which address did the shipment use?"
+  - "Der Kunde hat die Lieferadresse nach der Freigabe geändert; welche Adresse hat die Sendung?"
+  tools:
+  - outbound_delivery_revise_propose
+  - outbound_delivery_detail
+  - shipment_dispatch_propose
+  - shipment_explain
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/src/reality/db/core.py (Document.ship_to_party_id; Shipment has only counterparty_id)
-    note: Ship-to exists only on the document. A shipment carries no address, so which address a shipment used cannot be answered.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_changed_address_before_shipment_is_the_one_used
+    note: "Hamburg revised to Kiel before shipment: the shipment keeps Kiel and both statements are kept; a shipped delivery cannot be revised."
 - id: A12
   section: Order intake and order changes
   title: Requested delivery date in the future
@@ -460,22 +483,33 @@ entries:
   section: Order intake and order changes
   title: One order split across two delivery addresses
   question: Can lines/quantities go to different recipients?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Can lines/quantities go to different recipients?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Can lines/quantities go to different recipients? One promise can be split across planned deliveries up to what is still open, each with its own address or recipient, and each shipment keeps where it went."
   limitations:
-  - An order line has no recipient or address of its own, so lines cannot go to two delivery addresses.
-  keywords: []
+  - "A shipment's counterparty stays the ordering customer; the recipient and address are stated with the planned delivery."
+  keywords:
+  - "two delivery addresses"
+  - "split delivery addresses"
+  - "several addresses"
+  - "zwei Lieferadressen"
+  - "mehrere Lieferanschriften"
+  - "Teillieferung an andere Adresse"
   question_examples:
-  - One order split across two delivery addresses
-  - Can lines/quantities go to different recipients?
-  tools: []
+  - "One order split across two delivery addresses"
+  - "Can lines/quantities go to different recipients?"
+  - "Six go to the office and four to the building site; can one order go to two addresses?"
+  - "Sechs gehen ans Büro und vier an die Baustelle; kann ein Auftrag an zwei Adressen gehen?"
+  tools:
+  - outbound_delivery_plan_propose
+  - shipment_dispatch_propose
+  - shipment_explain
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/src/reality/db/core.py (Commitment.to_party_id, Shipment.counterparty_id)
-    note: A commitment has no per-line recipient or address, so lines cannot be split across two delivery addresses.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_one_order_goes_to_two_addresses
+    note: "10 ordered: 6 planned to Hamburg and 4 to Rostock, a third plan refused; each shipment keeps its own address."
 - id: A22
   section: Order intake and order changes
   title: Order parked or held (clarification, fraud check)
@@ -519,23 +553,34 @@ entries:
   section: Order intake and order changes
   title: Line added later that should ride with the open shipment
   question: Does the added commitment join the pending delivery?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Does the added commitment join the pending delivery?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Does the added commitment join the pending delivery? A later promise of the same customer, such as from a follow-up order, joins the open planned delivery through a revision and ships in the same shipment."
   limitations:
-  - An outbound shipment exists only once it is dispatched, so there is no pending delivery a new line could join.
-  - Lines cannot be added to an order once it is in operation.
-  keywords: []
+  - "Adding a line to the original order document stays blocked once it is in Reality; the added goods come as a follow-up order."
+  keywords:
+  - "added later"
+  - "ride with the shipment"
+  - "join the delivery"
+  - "nachbestellt"
+  - "mitliefern"
+  - "Position nachträglich"
+  - "mit der offenen Lieferung"
   question_examples:
-  - Line added later that should ride with the open shipment
-  - Does the added commitment join the pending delivery?
-  tools: []
+  - "Line added later that should ride with the open shipment"
+  - "Does the added commitment join the pending delivery?"
+  - "The customer adds two more; can they ride with the shipment that is not out yet?"
+  - "Der Kunde bestellt zwei nach; können sie mit der noch offenen Lieferung mitgehen?"
+  tools:
+  - outbound_delivery_revise_propose
+  - shipment_dispatch_propose
+  - shipment_explain
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/src/reality/services/shipments.py::record_packaged_execution
-    note: Outbound shipments only exist at dispatch, with no pending delivery to join, and adding a line after Reality exists is blocked.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_line_added_later_rides_with_the_open_delivery
+    note: "SO-A24-2 joins the planned delivery of SO-A24 and both promises ship in one shipment."
 - id: B01
   section: Availability, reservation and backorder
   title: 'Too little stock: partial reservation, rest backordered'
@@ -1489,22 +1534,34 @@ entries:
   section: Picking, shipment, split and merge
   title: Picking error caught before shipment
   question: Corrected without a false movement?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Corrected without a false movement?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Corrected without a false movement? Picking more than planned is refused before anything moves, a wrong pick goes back by a put-back that is a true movement, and the dispatch is refused until what is picked matches the planned delivery."
   limitations:
-  - Picking is not recorded, so a picking error caught before shipment has nothing to correct.
-  keywords: []
+  - "Picking the wrong item cannot be recorded, because a pick names the planned promise and its item; the physical mix-up itself is not modelled."
+  keywords:
+  - "picking error"
+  - "wrong pick"
+  - "over-pick"
+  - "Kommissionierfehler"
+  - "falsch kommissioniert"
+  - "Fehlkommissionierung"
   question_examples:
-  - Picking error caught before shipment
-  - Corrected without a false movement?
-  tools: []
+  - "Picking error caught before shipment"
+  - "Corrected without a false movement?"
+  - "The picker took six instead of five; is that caught before the parcel leaves?"
+  - "Der Kommissionierer hat sechs statt fünf genommen; wird das vor dem Versand bemerkt?"
+  tools:
+  - outbound_delivery_pick_propose
+  - outbound_delivery_put_back_propose
+  - outbound_delivery_detail
+  - shipment_dispatch_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/src/reality/db/core.py (no picking record; only Reservation → Movement)
-    note: Picking is not modelled, so there is no record for a caught picking error to correct.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_picking_error_is_caught_before_shipment
+    note: "6 picked of 5 refused with no movement; one damaged unit put back and replaced; the dispatch is refused until 5 are picked."
 - id: D05
   section: Picking, shipment, split and merge
   title: Picking error found by the customer
@@ -1707,22 +1764,36 @@ entries:
   section: Picking, shipment, split and merge
   title: Pallet freight with booked delivery slot
   question: Shipment dated to the slot?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Shipment dated to the slot?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Shipment dated to the slot? A planned delivery states its booked slot; the shipment keeps the slot it was booked for, and a slot that closed before anything shipped is shown as missed."
   limitations:
-  - A booked delivery slot is not recorded; only the time of the movement and carrier events are.
-  keywords: []
+  - "The slot is booked outside Reality; freight booking with carriers is not integrated."
+  keywords:
+  - "booked slot"
+  - "delivery slot"
+  - "time slot"
+  - "pallet freight"
+  - "Zeitfenster"
+  - "Anlieferzeitfenster"
+  - "Speditionsavis"
+  - "Palettenware"
   question_examples:
-  - Pallet freight with booked delivery slot
-  - Shipment dated to the slot?
-  tools: []
+  - "Pallet freight with booked delivery slot"
+  - "Shipment dated to the slot?"
+  - "The pallets are booked for Thursday 8 to 10; does the shipment show that slot?"
+  - "Die Paletten sind für Donnerstag 8 bis 10 Uhr avisiert; zeigt die Sendung das Zeitfenster?"
+  tools:
+  - outbound_delivery_plan_propose
+  - outbound_delivery_detail
+  - shipment_dispatch_propose
+  - shipment_explain
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: packages/reality-core/src/reality/db/core.py Shipment/ShipmentEvent (no slot/appointment field)
-    note: There is no booked delivery slot record, only movement occurred_at and carrier events.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_pallet_freight_ships_with_its_booked_slot
+    note: "40 by Spedition Nord with a two-hour slot: the shipment keeps the slot; a slot that closed unshipped shows as missed."
 - id: D14
   section: Picking, shipment, split and merge
   title: Export to a third country (customs, proof of export)
@@ -4388,22 +4459,34 @@ entries:
   section: B2B specifics
   title: 'Retail chain: central warehouse plus store delivery'
   question: Several recipients per order?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Several recipients per order?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Several recipients per order? Planned deliveries name a recipient each, such as the stores of a retail chain, and split one order's promises between them; each shipment keeps its recipient."
   limitations:
-  - An order has one delivery address, so several recipients per order cannot be stated.
-  keywords: []
+  - "A store is recorded as a business partner; a chain hierarchy between buyer and stores is not modelled."
+  keywords:
+  - "retail chain"
+  - "store delivery"
+  - "several recipients"
+  - "Filialbelieferung"
+  - "Handelskette"
+  - "Filiale"
+  - "mehrere Empfänger"
   question_examples:
-  - 'Retail chain: central warehouse plus store delivery'
-  - Several recipients per order?
-  tools: []
+  - "Retail chain: central warehouse plus store delivery"
+  - "Several recipients per order?"
+  - "A retail chain orders centrally; can each store get its own delivery?"
+  - "Eine Handelskette bestellt zentral; bekommt jede Filiale ihre eigene Lieferung?"
+  tools:
+  - outbound_delivery_plan_propose
+  - outbound_deliveries
+  - shipment_dispatch_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: db/core.py Document.ship_to_party_id
-    note: Only one ship-to per document header, so several recipients per order can't be stated.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_retail_chain_order_is_delivered_to_its_stores
+    note: "One order of 8 lights and 4 bells: 5 to Filiale Nord, 3 lights and the bells to Filiale Süd, each shipment with its recipient."
 - id: M06
   section: B2B specifics
   title: 'Customer rule: cancel backorders instead of delivering later'

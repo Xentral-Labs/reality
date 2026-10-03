@@ -1858,3 +1858,401 @@ def test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again(session, busin
     reserve(session, tenant, promise)
     _ship(session, business, "TRK-D07-2", promise, "2")
     assert record_by_id(session, Commitment, promise).status == "fulfilled"
+
+
+# Spec 334: planned outbound deliveries, picking into staging and dispatch.
+
+
+def _decide(session, business, tool, arguments):
+    """A reviewed planned-delivery change: proposed, then confirmed by a person."""
+    proposal = create_change_proposal(session, business.tenant.id, tool, arguments)
+    executed = approve_and_execute_proposal(
+        session, business.tenant.id, proposal.id, confirmed=True
+    )
+    assert executed.status == "executed", executed.output
+    return json.loads(executed.output)
+
+
+def _planned(session, business, lines, **statement):
+    _decide(
+        session,
+        business,
+        "outbound_delivery_plan",
+        {"customer_id": business.customer.id, "lines": lines, **statement},
+    )
+    from reality.services.outbound_deliveries import outbound_deliveries
+
+    return outbound_deliveries(session, business.tenant.id)[0]["id"]
+
+
+def _delivery(session, business, delivery_id):
+    from reality.services.outbound_deliveries import outbound_delivery_detail
+
+    return outbound_delivery_detail(session, business.tenant.id, delivery_id)
+
+
+def _ship_delivery(session, business, delivery_id, **extra):
+    arguments = {**_delivery(session, business, delivery_id)["dispatch"], **extra}
+    proposal = create_change_proposal(
+        session, business.tenant.id, "shipment_dispatch", arguments
+    )
+    return json.loads(_confirm(session, business.tenant.id, proposal).output)
+
+
+def _staging(session, business):
+    return core.create_location(session, business.tenant.id, "Packing zone")
+
+
+def test_an_order_cancelled_after_picking_goes_back_to_its_bin(session, business):
+    """A08: the picked goods wait in staging, visibly, until they are put back."""
+    tenant = business.tenant.id
+    staging = _staging(session, business)
+    _receive(session, business, business.item.id, "10", business.location.id)
+    order = _order(session, business, "SO-A08", [_line(business.item.id, "4")])
+    (promise,) = order["commitment_ids"]
+    reserve(session, tenant, promise)
+    delivery = _planned(
+        session,
+        business,
+        [{"commitment_id": promise, "quantity": "4"}],
+        staging_location_id=staging.id,
+    )
+    _decide(
+        session,
+        business,
+        "outbound_delivery_pick",
+        {
+            "outbound_delivery_id": delivery,
+            "lines": [{"commitment_id": promise, "quantity": "4"}],
+        },
+    )
+    # Picked, not shipped: the goods are in staging, still held for the order.
+    assert stock_at(session, tenant, business.item.id, staging.id) == 4
+    assert stock_at(session, tenant, business.item.id, business.location.id) == 6
+
+    _act(
+        session,
+        business,
+        "commitment_cancel",
+        {"commitment_id": promise, "reason": "Customer cancelled before shipment"},
+        "a08-cancel",
+    )
+
+    (line,) = _delivery(session, business, delivery)["lines"]
+    assert (line["promise_status"], line["to_put_back"]) == ("cancelled", "4")
+    assert active_reserved(session, tenant, business.item.id, staging.id) == 0
+    _decide(
+        session,
+        business,
+        "outbound_delivery_put_back",
+        {
+            "outbound_delivery_id": delivery,
+            "lines": [
+                {
+                    "commitment_id": promise,
+                    "quantity": "4",
+                    "to_location_id": business.location.id,
+                }
+            ],
+        },
+    )
+    assert stock_at(session, tenant, business.item.id, business.location.id) == 10
+    assert stock_at(session, tenant, business.item.id, staging.id) == 0
+    (line,) = _delivery(session, business, delivery)["lines"]
+    assert line["to_put_back"] == "0"
+    assert [movement["kind"] for movement in line["movements"]] == ["pick", "put_back"]
+
+
+def test_a_changed_address_before_shipment_is_the_one_used(session, business):
+    """A11: the shipment uses the new address, and both statements are kept."""
+    tenant = business.tenant.id
+    _receive(session, business, business.item.id, "3", business.location.id)
+    order = _order(session, business, "SO-A11", [_line(business.item.id, "3")])
+    (promise,) = order["commitment_ids"]
+    reserve(session, tenant, promise)
+    first = {"name": "Müller GmbH", "street": "Hafenstr. 1", "city": "Hamburg"}
+    moved = {"name": "Müller GmbH", "street": "Am Kai 9", "city": "Kiel"}
+    delivery = _planned(
+        session, business, [{"commitment_id": promise, "quantity": "3"}], address=first
+    )
+
+    _decide(
+        session,
+        business,
+        "outbound_delivery_revise",
+        {"outbound_delivery_id": delivery, "address": moved},
+    )
+    shipped = _ship_delivery(session, business, delivery, carrier="DHL")
+
+    detail = shipment_explain(session, tenant, shipped["shipment_id"])
+    assert detail["address"] == moved
+    statements = _delivery(session, business, delivery)["statements"]
+    assert [row["address"] for row in statements] == [first, moved]
+    try:
+        _decide(
+            session,
+            business,
+            "outbound_delivery_revise",
+            {"outbound_delivery_id": delivery, "address": first},
+        )
+    except core.InvalidOperation as refused:
+        assert refused.code == "outbound_delivery_shipped"
+    else:
+        raise AssertionError("A shipped delivery was revised")
+
+
+def test_one_order_goes_to_two_addresses(session, business):
+    """A21: quantities of one line go to two recipients, each shipment to its own."""
+    tenant = business.tenant.id
+    _receive(session, business, business.item.id, "10", business.location.id)
+    order = _order(session, business, "SO-A21", [_line(business.item.id, "10")])
+    (promise,) = order["commitment_ids"]
+    reserve(session, tenant, promise)
+    office = {"name": "Müller GmbH", "city": "Hamburg"}
+    site = {"name": "Müller GmbH Baustelle", "city": "Rostock"}
+    to_office = _planned(
+        session, business, [{"commitment_id": promise, "quantity": "6"}], address=office
+    )
+    to_site = _planned(
+        session, business, [{"commitment_id": promise, "quantity": "4"}], address=site
+    )
+    # Nothing more can be planned than the order has open.
+    try:
+        _planned(session, business, [{"commitment_id": promise, "quantity": "1"}])
+    except core.InvalidOperation as refused:
+        assert refused.code == "outbound_delivery_quantity_beyond_open"
+    else:
+        raise AssertionError("A third delivery planned beyond the order")
+
+    first = _ship_delivery(session, business, to_office, carrier="DHL")
+    second = _ship_delivery(session, business, to_site, carrier="DHL")
+
+    assert shipment_explain(session, tenant, first["shipment_id"])["address"] == office
+    assert shipment_explain(session, tenant, second["shipment_id"])["address"] == site
+    assert record_by_id(session, Commitment, promise).status == "fulfilled"
+
+
+def test_a_line_added_later_rides_with_the_open_delivery(session, business):
+    """A24: a later promise of the customer joins the planned delivery and ships with it."""
+    tenant = business.tenant.id
+    _receive(session, business, business.item.id, "8", business.location.id)
+    order = _order(session, business, "SO-A24", [_line(business.item.id, "5")])
+    (first,) = order["commitment_ids"]
+    reserve(session, tenant, first)
+    delivery = _planned(session, business, [{"commitment_id": first, "quantity": "5"}])
+    # The customer calls back: two more, on the same truck.
+    later = _order(session, business, "SO-A24-2", [_line(business.item.id, "2")])
+    (added,) = later["commitment_ids"]
+    reserve(session, tenant, added)
+
+    _decide(
+        session,
+        business,
+        "outbound_delivery_revise",
+        {
+            "outbound_delivery_id": delivery,
+            "lines": [
+                {"commitment_id": first, "quantity": "5"},
+                {"commitment_id": added, "quantity": "2"},
+            ],
+        },
+    )
+    shipped = _ship_delivery(session, business, delivery, carrier="DHL")
+
+    movements = shipment_explain(session, tenant, shipped["shipment_id"])["movements"]
+    assert {movement["commitment_id"] for movement in movements} == {first, added}
+    assert record_by_id(session, Commitment, added).status == "fulfilled"
+
+
+def test_a_picking_error_is_caught_before_shipment(session, business):
+    """D04: no false movement: an over-pick is refused, a wrong pick is put back."""
+    tenant = business.tenant.id
+    staging = _staging(session, business)
+    _receive(session, business, business.item.id, "10", business.location.id)
+    order = _order(session, business, "SO-D04", [_line(business.item.id, "5")])
+    (promise,) = order["commitment_ids"]
+    reserve(session, tenant, promise)
+    delivery = _planned(
+        session,
+        business,
+        [{"commitment_id": promise, "quantity": "5"}],
+        staging_location_id=staging.id,
+    )
+    before = session.scalar(
+        select(core.func.count())
+        .select_from(Movement)
+        .where(Movement.tenant_id == tenant)
+    )
+
+    try:
+        _decide(
+            session,
+            business,
+            "outbound_delivery_pick",
+            {
+                "outbound_delivery_id": delivery,
+                "lines": [{"commitment_id": promise, "quantity": "6"}],
+            },
+        )
+    except core.InvalidOperation as refused:
+        assert refused.code == "outbound_delivery_pick_beyond_planned"
+    else:
+        raise AssertionError("An over-pick was recorded")
+    assert (
+        session.scalar(
+            select(core.func.count())
+            .select_from(Movement)
+            .where(Movement.tenant_id == tenant)
+        )
+        == before
+    )
+
+    pick = {
+        "outbound_delivery_id": delivery,
+        "lines": [{"commitment_id": promise, "quantity": "5"}],
+    }
+    _decide(session, business, "outbound_delivery_pick", pick)
+    # At packing one unit turns out damaged: it goes back, and a good one is picked.
+    _decide(
+        session,
+        business,
+        "outbound_delivery_put_back",
+        {
+            "outbound_delivery_id": delivery,
+            "lines": [
+                {
+                    "commitment_id": promise,
+                    "quantity": "1",
+                    "to_location_id": business.location.id,
+                }
+            ],
+        },
+    )
+    try:
+        _ship_delivery(session, business, delivery, carrier="DHL")
+    except core.InvalidOperation as refused:
+        assert refused.code == "outbound_delivery_dispatch_not_picked"
+    else:
+        raise AssertionError("A delivery shipped short of what it carries")
+    pick["lines"][0]["quantity"] = "1"
+    _decide(session, business, "outbound_delivery_pick", pick)
+
+    shipped = _ship_delivery(session, business, delivery, carrier="DHL")
+
+    assert sum(
+        Decimal(movement["quantity"])
+        for movement in shipment_explain(session, tenant, shipped["shipment_id"])[
+            "movements"
+        ]
+    ) == Decimal(5)
+    assert stock_at(session, tenant, business.item.id, staging.id) == 0
+    assert stock_at(session, tenant, business.item.id, business.location.id) == 5
+
+
+def test_pallet_freight_ships_with_its_booked_slot(session, business):
+    """D13: the shipment keeps the slot it was booked for; a missed slot shows."""
+    from datetime import timedelta
+
+    tenant = business.tenant.id
+    _receive(session, business, business.item.id, "40", business.location.id)
+    order = _order(session, business, "SO-D13", [_line(business.item.id, "40")])
+    (promise,) = order["commitment_ids"]
+    reserve(session, tenant, promise)
+    opens = (core.now() + timedelta(days=2)).replace(
+        hour=8, minute=0, second=0, microsecond=0
+    )
+    slot = {
+        "from": opens.isoformat(),
+        "until": (opens + timedelta(hours=2)).isoformat(),
+    }
+    delivery = _planned(
+        session,
+        business,
+        [{"commitment_id": promise, "quantity": "40"}],
+        address={"name": "Müller GmbH Zentrallager", "city": "Bremen"},
+        slot=slot,
+    )
+    assert _delivery(session, business, delivery)["slot_passed"] is False
+
+    shipped = _ship_delivery(
+        session, business, delivery, carrier="Spedition Nord", tracking_number="PAL-D13"
+    )
+
+    detail = shipment_explain(session, tenant, shipped["shipment_id"])
+    assert detail["slot"] == _delivery(session, business, delivery)["slot"]
+    assert detail["packages"][0]["carrier"] == "Spedition Nord"
+    # Positive control: a slot that closed before anything shipped is shown as missed.
+    other = _order(session, business, "SO-D13-2", [_line(business.item.id, "1")])
+    (late,) = other["commitment_ids"]
+    missed = _planned(
+        session,
+        business,
+        [{"commitment_id": late, "quantity": "1"}],
+        slot={
+            "from": (core.now() - timedelta(days=1, hours=2)).isoformat(),
+            "until": (core.now() - timedelta(days=1)).isoformat(),
+        },
+    )
+    assert _delivery(session, business, missed)["slot_passed"] is True
+
+
+def test_a_retail_chain_order_is_delivered_to_its_stores(session, business):
+    """M05: one order from the central buyer, delivered to two stores."""
+    tenant = business.tenant.id
+    north = core.create_party(session, tenant, "Müller Filiale Nord", "customer")
+    south = core.create_party(session, tenant, "Müller Filiale Süd", "customer")
+    other_item = create_item(session, tenant, "BIKE-BELL", "Bike Bell")
+    _receive(session, business, business.item.id, "8", business.location.id)
+    _receive(session, business, other_item.id, "4", business.location.id)
+    order = _order(
+        session,
+        business,
+        "SO-M05",
+        [_line(business.item.id, "8"), _line(other_item.id, "4")],
+    )
+    lights, bells = order["commitment_ids"]
+    for promise in (lights, bells):
+        reserve(session, tenant, promise)
+    to_north = _planned(
+        session,
+        business,
+        [{"commitment_id": lights, "quantity": "5"}],
+        recipient_party_id=north.id,
+        address={"name": "Filiale Nord", "city": "Hamburg"},
+    )
+    to_south = _planned(
+        session,
+        business,
+        [
+            {"commitment_id": lights, "quantity": "3"},
+            {"commitment_id": bells, "quantity": "4"},
+        ],
+        recipient_party_id=south.id,
+        address={"name": "Filiale Süd", "city": "München"},
+    )
+
+    north_shipment = _ship_delivery(session, business, to_north, carrier="DHL")
+    south_shipment = _ship_delivery(session, business, to_south, carrier="DHL")
+
+    assert (
+        shipment_explain(session, tenant, north_shipment["shipment_id"])[
+            "recipient_party_id"
+        ]
+        == north.id
+    )
+    assert (
+        shipment_explain(session, tenant, south_shipment["shipment_id"])[
+            "recipient_party_id"
+        ]
+        == south.id
+    )
+    from reality.services.outbound_deliveries import outbound_deliveries
+
+    assert {
+        row["recipient"]
+        for row in outbound_deliveries(
+            session, tenant, customer_id=business.customer.id
+        )
+    } == {"Müller Filiale Nord", "Müller Filiale Süd"}
+    for promise in (lights, bells):
+        assert record_by_id(session, Commitment, promise).status == "fulfilled"
