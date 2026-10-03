@@ -141,7 +141,7 @@ _active_effect: ContextVar[str | None] = ContextVar(
 )
 
 
-def require_scoped_operation(session: Session, tenant_id: str, operation: str) -> None:
+def _require_scoped_operation(session: Session, tenant_id: str, operation: str) -> None:
     """An approved package grants only its currently dispatched canonical effect."""
     scope = _approved.get()
     if scope is None:

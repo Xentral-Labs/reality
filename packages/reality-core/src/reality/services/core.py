@@ -1109,9 +1109,9 @@ def _require_business_mutation(
     from reality.services.tenant_policy import require_core_operation
 
     require_core_operation(session, tenant_id, operation)
-    from reality.services.intake import require_scoped_operation
+    from reality.services.intake import _require_scoped_operation
 
-    require_scoped_operation(session, tenant_id, operation)
+    _require_scoped_operation(session, tenant_id, operation)
     from reality.services.business_locks import DELIVERY_WRITERS, lock_delivery_state
 
     finance_operations = {
