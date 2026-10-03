@@ -14,7 +14,7 @@ the technical key stands beside each one.
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
 | [Order](#resource-order)                                         | 8     | 16      | 15                  |
-| [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
+| [Delivery and goods receipt](#resource-delivery)                 | 2     | 7       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 2                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 11      | 5                   |
@@ -384,8 +384,9 @@ Every physical change of stock is an append-only movement; corrections add a com
 instead of editing. A shipment is the consignment that carries movements to or from a counterparty,
 with carrier observations attached.
 
-**Also called:** goods receipt, goods issue, shipment, movement, transfer, adjustment, Warenausgang,
-Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking
+**Also called:** goods receipt, goods issue, shipment, movement, transfer, adjustment, failed
+delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung,
+Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust
 
 **Lists**
 
@@ -402,6 +403,7 @@ Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking
 - [Record shipment event](./commands#command-record_shipment_event) (`record_shipment_event`)
 - [Supersede shipment event](./commands#command-supersede_shipment_event)
   (`supersede_shipment_event`)
+- [Record a failed delivery](./commands#command-record_delivery_failure) (`record_delivery_failure`)
 
 **Look up**
 
@@ -419,17 +421,19 @@ Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking
 [Customer returns](./processes#process-returns)
 
 **Underneath:** Tables: `movement`, `movement_correction`, `shipment`, `shipment_package`,
-`shipment_event`, `shipment_event_supersession` · Events:
+`shipment_event`, `shipment_event_supersession`, `delivery_failure` · Events:
 [`shipment.notice_recorded`](./events#event-shipment-notice_recorded),
 [`shipment.event_recorded`](./events#event-shipment-event_recorded),
 [`shipment.event_superseded`](./events#event-shipment-event_superseded),
 [`commitment.fulfilled`](./events#event-commitment-fulfilled),
 [`reservation.consumed`](./events#event-reservation-consumed),
+[`shipment.delivery_failed`](./events#event-shipment-delivery_failed),
 [`movement.recorded`](./events#event-movement-recorded),
 [`movement.corrected`](./events#event-movement-corrected) · Agent tools without a command:
 [`shipments_list`](./commands#tool-shipments_list),
 [`shipment_explain`](./commands#tool-shipment_explain),
-[`movement_explanation`](./commands#tool-movement_explanation)
+[`movement_explanation`](./commands#tool-movement_explanation),
+[`delivery_failure_summary`](./commands#tool-delivery_failure_summary)
 
 ## Lot, serial number and pallet {#resource-lot}
 
