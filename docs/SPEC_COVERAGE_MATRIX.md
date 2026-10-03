@@ -2341,3 +2341,5 @@ Tables `misdelivery` (a wrong-item movement's link to the line it was meant for)
   - Advised against received in the announced shipment; in transit per purchase until the container arrives; advice and receiving into a shipment are bounded.
 - `packages/reality-core/tests/test_receipt_deviation_adapters.py`: strict MCP schemas, an agent proposes a substitute and a person confirms, advised and beyond-order fields through the agent schemas, the web API and the CLI.
 - `packages/reality-core/tests/scenarios/test_catalog_receipt_deviations.py`: stories H04, H05, H06, H07, H17, G16 and D05.
+- `packages/reality-core/tests/test_receipt_deviation_migration.py`: the three tables come and go, and recorded rows block a rollback.
+- `packages/reality-core/tests/test_reporting_graph_coverage.py`: the three tables are deferred operational workflow records.
