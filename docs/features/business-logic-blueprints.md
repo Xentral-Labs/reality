@@ -102,3 +102,5 @@ Each source disclosure shows original line numbers and highlights ranges from th
 ## ERP explorer navigation
 
 Business-object labels follow the current locale's resource catalog labels in cards, headings and return context; technical identifiers stay exact. The navigation prioritizes order, invoice, item, partner, payment and warehouse location, retaining all remaining and future catalog objects in their original relative order. The unselected details panel offers existing read-only catalog entries for order explanation, credit exposure and stock. Missing entries are omitted. These shortcuts open documentation only; they do not execute the tool or trigger live inference. The explorer introduction is one sentence.
+
+The current source authoring gate covers every registered entry root and approved direct test. `make business-annotations-check` fails missing future roots/tests or source bindings; the same strict audit runs in the backend regression suite. Captured helper descriptions extend the commitment, fulfillment and invoice reference reads. Coverage of these descriptions is independent of assertion linkage, branch coverage and recorded test execution.

@@ -1,11 +1,12 @@
 """Generic live interpretation, citation boundaries and graph fidelity."""
 
 import pytest
+from test_business_blueprint_release import loaded
+
 from reality.domain.business_blueprints import TestScenario as Scenario
 from reality.services import business_blueprint_presentation as presentation
 from reality.services.business_blueprint_analysis import analyze_function
 from reality.services.business_blueprint_source import capture_source
-from test_business_blueprint_release import loaded
 
 
 def evidence(tmp_path, code):
