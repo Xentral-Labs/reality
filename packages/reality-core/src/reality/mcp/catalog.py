@@ -411,11 +411,46 @@ def _shipment_execution_schema(purposes: dict[str, str]) -> dict[str, Any]:
                     # Spec 312: a customer pickup and who collected.
                     "delivery_mode": OPTIONAL_STRING,
                     "collected_by": OPTIONAL_STRING,
+                    # Spec 334: the planned delivery this dispatch executes.
+                    **(
+                        {"outbound_delivery_id": OPTIONAL_STRING}
+                        if purpose == "customer_delivery"
+                        else {}
+                    ),
                 },
                 required=("purpose", "counterparty_id", "movements"),
             )
         )
     return {"type": "object", "oneOf": branches, "additionalProperties": False}
+
+
+OUTBOUND_DELIVERY_FIELDS = {
+    "recipient_party_id": OPTIONAL_STRING,
+    "address": _object_schema(
+        {
+            "name": OPTIONAL_STRING,
+            "street": OPTIONAL_STRING,
+            "postal_code": OPTIONAL_STRING,
+            "city": OPTIONAL_STRING,
+            "country": OPTIONAL_STRING,
+            "note": OPTIONAL_STRING,
+        }
+    ),
+    "slot": _object_schema(
+        {"from": STRING, "until": STRING}, required=("from", "until")
+    ),
+    "staging_location_id": OPTIONAL_STRING,
+    "note": OPTIONAL_STRING,
+    "lines": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 500,
+        "items": _object_schema(
+            {"commitment_id": STRING, "quantity": DECIMAL_STRING},
+            required=("commitment_id", "quantity"),
+        ),
+    },
+}
 
 
 PARTY_CREATE_RECORD = _object_schema(
@@ -2827,6 +2862,109 @@ MCP_TOOL_CATALOG += (
         "Orders",
         _object_schema({"party_id": OPTIONAL_STRING, "item_id": OPTIONAL_STRING}),
         _read("customer_item_numbers"),
+    ),
+    MCPToolDefinition(
+        "outbound_delivery_plan_propose",
+        "Plan a delivery",
+        "Prepare a planned outbound delivery of one customer's open promises before dispatch: per line the commitment_id and the quantity planned (one promise can be split across deliveries up to what is still open). Optionally a recipient (recipient_party_id, e.g. a store of a retail chain; default the customer), the stated address, a booked slot and the staging location goods are picked into. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {
+                **OUTBOUND_DELIVERY_FIELDS,
+                "customer_id": STRING,
+            },
+            required=("customer_id", "lines"),
+        ),
+        _propose("outbound_delivery_plan"),
+    ),
+    MCPToolDefinition(
+        "outbound_delivery_revise_propose",
+        "Revise a planned delivery",
+        "Prepare a revision of a planned delivery before it ships: any of recipient, address, slot, staging location, note and the full list of lines. Fields left out stay as stated; every statement is kept. Lines with picked goods cannot be removed or planned below what is picked. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {**OUTBOUND_DELIVERY_FIELDS, "outbound_delivery_id": STRING},
+            required=("outbound_delivery_id",),
+        ),
+        _propose("outbound_delivery_revise"),
+    ),
+    MCPToolDefinition(
+        "outbound_delivery_pick_propose",
+        "Pick a planned delivery",
+        "Prepare picking for a planned delivery: per line the commitment_id, the quantity and optionally from_location_id (default the one location where the promise is reserved). The goods move to the delivery's staging location and the reservation moves with them. More than planned is refused. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {
+                "outbound_delivery_id": STRING,
+                "lines": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 500,
+                    "items": _object_schema(
+                        {
+                            "commitment_id": STRING,
+                            "quantity": DECIMAL_STRING,
+                            "from_location_id": OPTIONAL_STRING,
+                        },
+                        required=("commitment_id", "quantity"),
+                    ),
+                },
+            },
+            required=("outbound_delivery_id", "lines"),
+        ),
+        _propose("outbound_delivery_pick"),
+    ),
+    MCPToolDefinition(
+        "outbound_delivery_put_back_propose",
+        "Put back picked goods",
+        "Prepare a put-back from a planned delivery's staging location: per line the commitment_id, the quantity and the to_location_id the goods go back to. While the promise is open its reservation moves back with them; goods of a cancelled promise go back as free stock. A person confirms.",
+        "propose",
+        "Warehouse",
+        _object_schema(
+            {
+                "outbound_delivery_id": STRING,
+                "lines": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 500,
+                    "items": _object_schema(
+                        {
+                            "commitment_id": STRING,
+                            "quantity": DECIMAL_STRING,
+                            "to_location_id": STRING,
+                        },
+                        required=("commitment_id", "quantity", "to_location_id"),
+                    ),
+                },
+            },
+            required=("outbound_delivery_id", "lines"),
+        ),
+        _propose("outbound_delivery_put_back"),
+    ),
+    MCPToolDefinition(
+        "outbound_deliveries",
+        "Planned deliveries",
+        "Read the planned outbound deliveries, newest first, of one customer (customer_id) or all, optionally only those not shipped (open_only): recipient, address, slot, state and per line planned, picked, to put back and shipped.",
+        "read",
+        "Warehouse",
+        _object_schema(
+            {"customer_id": OPTIONAL_STRING, "open_only": {"type": "boolean"}}
+        ),
+        _read("outbound_deliveries"),
+    ),
+    MCPToolDefinition(
+        "outbound_delivery_detail",
+        "Planned delivery",
+        "Read one planned delivery: its lines with their pick and put-back movements, every statement oldest first, its shipment, and `dispatch`, the arguments for shipment_dispatch_propose that ship exactly what it carries.",
+        "read",
+        "Warehouse",
+        _object_schema(
+            {"outbound_delivery_id": STRING}, required=("outbound_delivery_id",)
+        ),
+        _read("outbound_delivery_detail"),
     ),
     MCPToolDefinition(
         "stock_count_propose",

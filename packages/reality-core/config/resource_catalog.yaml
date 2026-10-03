@@ -161,6 +161,9 @@ resources:
     synonyms: [goods receipt, goods issue, shipment, movement, transfer, adjustment, failed delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust]
     tables: [movement, movement_correction, shipment, shipment_package, shipment_event, shipment_event_supersession, delivery_failure]
     match: "movement|shipment|dispatch|receive|delivery_failure"
+    synonyms: [goods receipt, goods issue, shipment, movement, transfer, adjustment, Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking]
+    tables: [movement, movement_correction, shipment, shipment_package, shipment_event, shipment_event_supersession, outbound_delivery, outbound_delivery_line, outbound_delivery_pick]
+    match: "movement|shipment|dispatch|receive|outbound_deliver"
     views: [movements, warehouse_queue]
     projections: []
     exceptions: [unexplained_movement, return_unresolved]
@@ -407,6 +410,8 @@ processes:
         resource: delivery
         actions: [record_packaged_execution, record_shipment_notice, record_shipment_event, record_delivery_failure]
         tools: [shipment_explain, delivery_failure_summary]
+        actions: [plan_outbound_delivery, pick_outbound_delivery, record_packaged_execution, record_shipment_notice, record_shipment_event]
+        tools: [shipment_explain]
         lists: [warehouse_queue, movements]
         exceptions: [overdue_outgoing_customer_commitment]
       - title: { en: Bill what shipped, de: Geliefertes fakturieren }
@@ -723,6 +728,12 @@ labels:
       opening_context: Kontext der Eröffnungsposten anzeigen
       import_opening: Eröffnungsposten importieren
       record_shipment_notice: Sendungsavis erfassen
+      plan_outbound_delivery: Lieferung planen
+      revise_outbound_delivery: Geplante Lieferung ändern
+      pick_outbound_delivery: Lieferung kommissionieren
+      put_back_outbound_delivery: Kommissionierte Ware zurücklagern
+      outbound_deliveries: Geplante Lieferungen anzeigen
+      outbound_delivery_detail: Geplante Lieferung anzeigen
       record_packaged_execution: Packstück versenden oder Wareneingang buchen
       record_shipment_event: Sendungsereignis erfassen
       supersede_shipment_event: Sendungsereignis korrigieren

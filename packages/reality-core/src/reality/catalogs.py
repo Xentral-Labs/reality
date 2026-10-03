@@ -50,6 +50,7 @@ from reality.services import return_dispositions as return_disposition_service_m
 from reality.services import scheduled_jobs as scheduled_job_service_module
 from reality.services import shipments as shipment_service_module
 from reality.services import stock_blocks as stock_block_service_module
+from reality.services import outbound_deliveries as outbound_delivery_service_module
 from reality.services import stock_counts as stock_count_service_module
 from reality.services import supplier_item_terms as supplier_terms_service_module
 from reality.services import supply_assignments as supply_assignment_service_module
@@ -1121,6 +1122,7 @@ def _service(name: str) -> Any:
         backorder_service_module,
         delivery_rule_service_module,
         stock_count_service_module,
+        outbound_delivery_service_module,
         customer_item_service_module,
         supplier_terms_service_module,
         purchase_match_service_module,
@@ -1337,6 +1339,7 @@ def _literal_business_events() -> set[str]:
         backorder_service_module,
         delivery_rule_service_module,
         stock_count_service_module,
+        outbound_delivery_service_module,
         customer_item_service_module,
         supplier_terms_service_module,
         purchase_match_service_module,

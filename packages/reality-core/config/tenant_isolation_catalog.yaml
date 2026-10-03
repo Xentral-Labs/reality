@@ -458,6 +458,12 @@ families:
       - tool:stock_block_release
       - tool:stock_block_scrap
       - tool:delivery_rule_set
+      - tool:outbound_delivery_plan
+      - tool:outbound_delivery_revise
+      - tool:outbound_delivery_pick
+      - tool:outbound_delivery_put_back
+      - tool:outbound_deliveries
+      - tool:outbound_delivery_detail
       - tool:stock_count
       - tool:customer_item_number_set
       - tool:supplier_item_terms_set
