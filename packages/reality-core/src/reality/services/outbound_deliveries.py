@@ -63,6 +63,7 @@ DELIVERY_TOOLS = (
     "outbound_delivery_pick",
     "outbound_delivery_put_back",
 )
+UNSTATED: Any = object()
 REVISABLE = (
     "recipient_party_id",
     "address",
@@ -772,12 +773,33 @@ def revise_outbound_delivery(
     tenant_id: str,
     outbound_delivery_id: str,
     *,
+    recipient_party_id: Any = UNSTATED,
+    address: Any = UNSTATED,
+    slot: Any = UNSTATED,
+    staging_location_id: Any = UNSTATED,
+    lines: Any = UNSTATED,
+    note: Any = UNSTATED,
     reviewed: list[list[str]] | None = None,
     action_id: str | None = None,
     _commit: bool = True,
-    **changes: Any,
 ) -> OutboundDelivery:
-    """State a delivery anew before it ships; the earlier statement is kept."""
+    """State a delivery anew before it ships; the earlier statement is kept.
+
+    A field left unstated stays as the current statement says; a field stated
+    as empty clears it.
+    """
+    changes = {
+        key: value
+        for key, value in (
+            ("recipient_party_id", recipient_party_id),
+            ("address", address),
+            ("slot", slot),
+            ("staging_location_id", staging_location_id),
+            ("lines", lines),
+            ("note", note),
+        )
+        if value is not UNSTATED
+    }
     _require_business_mutation(session, tenant_id, "revise_outbound_delivery")
     lock_delivery_state(session, tenant_id)
     delivery = _delivery(session, tenant_id, outbound_delivery_id, lock=True)

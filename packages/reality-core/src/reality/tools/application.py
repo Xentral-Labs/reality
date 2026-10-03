@@ -1617,6 +1617,91 @@ def _customer_item_numbers(
     )
 
 
+def _outbound_delivery_plan(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.outbound_deliveries import plan_outbound_delivery
+
+    values = dict(arguments)
+    action_id = values.pop("_action_id", None)
+    delivery = plan_outbound_delivery(
+        session, tenant_id, action_id=action_id, **values
+    )
+    return _entity_result("outbound_delivery", delivery)
+
+
+def _outbound_delivery_revise(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.outbound_deliveries import revise_outbound_delivery
+
+    values = dict(arguments)
+    action_id = values.pop("_action_id", None)
+    delivery = revise_outbound_delivery(
+        session,
+        tenant_id,
+        values.pop("outbound_delivery_id"),
+        action_id=action_id,
+        **values,
+    )
+    return _entity_result("outbound_delivery", delivery)
+
+
+def _outbound_delivery_pick(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.outbound_deliveries import pick_outbound_delivery
+
+    delivery = pick_outbound_delivery(
+        session,
+        tenant_id,
+        arguments["outbound_delivery_id"],
+        arguments["lines"],
+        reviewed=arguments.get("reviewed"),
+        action_id=arguments.get("_action_id"),
+    )
+    return _entity_result("outbound_delivery", delivery)
+
+
+def _outbound_delivery_put_back(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.outbound_deliveries import put_back_outbound_delivery
+
+    delivery = put_back_outbound_delivery(
+        session,
+        tenant_id,
+        arguments["outbound_delivery_id"],
+        arguments["lines"],
+        reviewed=arguments.get("reviewed"),
+        action_id=arguments.get("_action_id"),
+    )
+    return _entity_result("outbound_delivery", delivery)
+
+
+def _outbound_deliveries(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.outbound_deliveries import outbound_deliveries
+
+    return outbound_deliveries(
+        session,
+        tenant_id,
+        customer_id=arguments.get("customer_id") or None,
+        open_only=bool(arguments.get("open_only")),
+    )
+
+
+def _outbound_delivery_detail(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.outbound_deliveries import outbound_delivery_detail
+
+    return outbound_delivery_detail(
+        session, tenant_id, arguments["outbound_delivery_id"]
+    )
+
+
 def _stock_count(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     from reality.services.stock_counts import record_stock_count
 
@@ -2993,6 +3078,42 @@ TOOLS = {
         False,
         _customer_item_numbers,
     ),
+    "outbound_delivery_plan": Tool(
+        "outbound_delivery_plan",
+        "Plan an outbound delivery of one customer's open promises, with recipient, address, booked slot and staging location.",
+        True,
+        _outbound_delivery_plan,
+    ),
+    "outbound_delivery_revise": Tool(
+        "outbound_delivery_revise",
+        "Revise a planned delivery before it ships; every statement is kept.",
+        True,
+        _outbound_delivery_revise,
+    ),
+    "outbound_delivery_pick": Tool(
+        "outbound_delivery_pick",
+        "Pick a planned delivery into its staging location; the reservation moves with the goods.",
+        True,
+        _outbound_delivery_pick,
+    ),
+    "outbound_delivery_put_back": Tool(
+        "outbound_delivery_put_back",
+        "Put picked goods back out of staging; an open promise's reservation moves back with them.",
+        True,
+        _outbound_delivery_put_back,
+    ),
+    "outbound_deliveries": Tool(
+        "outbound_deliveries",
+        "Read the planned deliveries, newest first, with their state and per line planned, picked, to put back and shipped.",
+        False,
+        _outbound_deliveries,
+    ),
+    "outbound_delivery_detail": Tool(
+        "outbound_delivery_detail",
+        "Read one planned delivery: lines, picks, statements, shipment and the dispatch arguments.",
+        False,
+        _outbound_delivery_detail,
+    ),
     "stock_count": Tool(
         "stock_count",
         "Record a count of a location and post every difference as an adjustment; a loss comes off free stock first, then blocks.",
@@ -3882,6 +4003,18 @@ def create_change_proposal(
         normalized_arguments, company_currency_review = review_company_currency(
             session, tenant_id, arguments
         )
+    outbound_delivery_review = None
+    if tool_name in {
+        "outbound_delivery_plan",
+        "outbound_delivery_revise",
+        "outbound_delivery_pick",
+        "outbound_delivery_put_back",
+    }:
+        from reality.services.outbound_deliveries import review_outbound_delivery
+
+        normalized_arguments, outbound_delivery_review = review_outbound_delivery(
+            session, tenant_id, tool_name, arguments
+        )
     stock_count_review = None
     if tool_name == "stock_count":
         from reality.services.stock_counts import review_stock_count
@@ -3982,6 +4115,8 @@ def create_change_proposal(
         preview["delivery_rule"] = delivery_rule_review
     if stock_count_review is not None:
         preview["stock_count"] = stock_count_review
+    if outbound_delivery_review is not None:
+        preview["outbound_delivery"] = outbound_delivery_review
     if customer_item_review is not None:
         preview["customer_item_number"] = customer_item_review
     if supplier_terms_review is not None:
@@ -4598,6 +4733,10 @@ def approve_and_execute_proposal(
         "backorders_serve",
         "delivery_rule_set",
         "stock_count",
+        "outbound_delivery_plan",
+        "outbound_delivery_revise",
+        "outbound_delivery_pick",
+        "outbound_delivery_put_back",
         "customer_item_number_set",
         "customer_item_number_remove",
         "supplier_item_terms_set",

@@ -1407,6 +1407,188 @@ def post_stock_count_proposal(
         raise api_error(error) from error
 
 
+class OutboundDeliveryAddress(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str | None = Field(default=None, max_length=200)
+    street: str | None = Field(default=None, max_length=200)
+    postal_code: str | None = Field(default=None, max_length=40)
+    city: str | None = Field(default=None, max_length=200)
+    country: str | None = Field(default=None, max_length=80)
+    note: str | None = Field(default=None, max_length=2000)
+
+
+class OutboundDeliverySlot(ApiModel):
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    from_: str = Field(alias="from", min_length=1, max_length=40)
+    until: str = Field(min_length=1, max_length=40)
+
+
+class OutboundDeliveryLineBody(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    commitment_id: str = Field(min_length=1, max_length=200)
+    quantity: str = Field(min_length=1, max_length=40)
+
+
+class OutboundDeliveryPlan(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    customer_id: str = Field(min_length=1, max_length=200)
+    recipient_party_id: str | None = Field(default=None, max_length=200)
+    address: OutboundDeliveryAddress | None = None
+    slot: OutboundDeliverySlot | None = None
+    staging_location_id: str | None = Field(default=None, max_length=200)
+    note: str | None = Field(default=None, max_length=2000)
+    lines: list[OutboundDeliveryLineBody] = Field(min_length=1, max_length=500)
+
+
+class OutboundDeliveryRevision(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    recipient_party_id: str | None = Field(default=None, max_length=200)
+    address: OutboundDeliveryAddress | None = None
+    slot: OutboundDeliverySlot | None = None
+    staging_location_id: str | None = Field(default=None, max_length=200)
+    note: str | None = Field(default=None, max_length=2000)
+    lines: list[OutboundDeliveryLineBody] | None = Field(
+        default=None, min_length=1, max_length=500
+    )
+
+
+class OutboundDeliveryPickLine(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    commitment_id: str = Field(min_length=1, max_length=200)
+    quantity: str = Field(min_length=1, max_length=40)
+    from_location_id: str | None = Field(default=None, max_length=200)
+
+
+class OutboundDeliveryPutBackLine(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    commitment_id: str = Field(min_length=1, max_length=200)
+    quantity: str = Field(min_length=1, max_length=40)
+    to_location_id: str = Field(min_length=1, max_length=200)
+
+
+class OutboundDeliveryPicks(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    lines: list[OutboundDeliveryPickLine] = Field(min_length=1, max_length=500)
+
+
+class OutboundDeliveryPutBacks(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    lines: list[OutboundDeliveryPutBackLine] = Field(min_length=1, max_length=500)
+
+
+def _outbound_delivery_proposal(
+    session, tenant_id: str, tool: str, arguments: dict[str, Any]
+) -> dict[str, Any]:
+    from reality.tools.application import create_change_proposal
+
+    try:
+        proposal = create_change_proposal(
+            session, tenant_id, tool, arguments, actor_type="human"
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/outbound-deliveries")
+def get_outbound_deliveries(
+    tenant_id: str,
+    session: DatabaseSession,
+    customer_id: str | None = Query(default=None, max_length=200),
+    open_only: bool = False,
+):
+    """Spec 334: the planned deliveries, newest first."""
+    from reality.services.outbound_deliveries import outbound_deliveries
+
+    try:
+        return {
+            "rows": outbound_deliveries(
+                session, tenant_id, customer_id=customer_id, open_only=open_only
+            )
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/outbound-deliveries/{delivery_id}")
+def get_outbound_delivery(tenant_id: str, delivery_id: str, session: DatabaseSession):
+    """Spec 334: one planned delivery with its picks, statements and dispatch."""
+    from reality.services.outbound_deliveries import outbound_delivery_detail
+
+    try:
+        return outbound_delivery_detail(session, tenant_id, delivery_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/outbound-deliveries/proposals")
+def post_outbound_delivery_plan(
+    tenant_id: str, body: OutboundDeliveryPlan, session: DatabaseSession
+):
+    """Spec 334: prepare a planned delivery; confirmation is the shared approve."""
+    return _outbound_delivery_proposal(
+        session,
+        tenant_id,
+        "outbound_delivery_plan",
+        body.model_dump(exclude_none=True, by_alias=True),
+    )
+
+
+@router.post("/outbound-deliveries/{delivery_id}/revisions")
+def post_outbound_delivery_revision(
+    tenant_id: str,
+    delivery_id: str,
+    body: OutboundDeliveryRevision,
+    session: DatabaseSession,
+):
+    """Spec 334: prepare a revision of what is stated; fields left out stay."""
+    return _outbound_delivery_proposal(
+        session,
+        tenant_id,
+        "outbound_delivery_revise",
+        {
+            "outbound_delivery_id": delivery_id,
+            **body.model_dump(exclude_unset=True, by_alias=True),
+        },
+    )
+
+
+@router.post("/outbound-deliveries/{delivery_id}/picks")
+def post_outbound_delivery_pick(
+    tenant_id: str,
+    delivery_id: str,
+    body: OutboundDeliveryPicks,
+    session: DatabaseSession,
+):
+    """Spec 334: prepare picking into the delivery's staging location."""
+    return _outbound_delivery_proposal(
+        session,
+        tenant_id,
+        "outbound_delivery_pick",
+        {"outbound_delivery_id": delivery_id, **body.model_dump(exclude_none=True)},
+    )
+
+
+@router.post("/outbound-deliveries/{delivery_id}/put-backs")
+def post_outbound_delivery_put_back(
+    tenant_id: str,
+    delivery_id: str,
+    body: OutboundDeliveryPutBacks,
+    session: DatabaseSession,
+):
+    """Spec 334: prepare moving picked goods out of staging again."""
+    return _outbound_delivery_proposal(
+        session,
+        tenant_id,
+        "outbound_delivery_put_back",
+        {"outbound_delivery_id": delivery_id, **body.model_dump(exclude_none=True)},
+    )
+
+
 class DeliveryRuleProposal(ApiModel):
     model_config = ConfigDict(extra="forbid")
     party_id: str | None = Field(default=None, max_length=200)

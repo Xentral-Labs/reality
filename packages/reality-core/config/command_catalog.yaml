@@ -182,6 +182,13 @@ parameter_descriptions:
   exchange_rate: The exchange rate a supplier invoice in another currency is posted at, in company-currency units per invoice-currency unit, as stated.
   paid_amount: What was paid in the company currency for a supplier invoice in another currency, as the bank statement shows it.
   stock_count_id: Opaque identity of a recorded stock count.
+  outbound_delivery_id: Opaque identity of a planned outbound delivery.
+  customer_id: Opaque identity of the customer whose promises a planned delivery carries.
+  recipient_party_id: Opaque identity of the business partner the goods go to, such as a store of a retail chain; without one, the customer.
+  staging_location_id: Opaque identity of the location goods are picked into before dispatch, such as a packing zone.
+  address: The delivery address as stated (name, street, postal code, city, country, note); nothing calculates on it.
+  slot: The booked delivery slot as stated, with when it opens (from) and when it closes (until), ISO 8601 with offset.
+  open_only: Only planned deliveries that have not shipped.
   rule: "How the customer or order is delivered: partial_allowed, ship_complete or no_backorders."
   reviewed: What the review showed, such as the rule, point or stock in force; a confirmation after it changed is refused.
   item_type: Operational classification such as product, service, or charge.
@@ -1271,6 +1278,52 @@ commands:
     reads: [customer_item_number, party, item]
     writes: []
     effect: Lists a customer's own article numbers, or the numbers customers use for one item.
+  - name: Plan an outbound delivery
+    service: plan_outbound_delivery
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [party, commitment, location, outbound_delivery, outbound_delivery_line, movement]
+    writes: [outbound_delivery, outbound_delivery_line, source_record, business_event]
+    effect: Plans one delivery of a customer's open promises before dispatch, with its recipient, stated address, booked slot and staging location; a promise can be split across deliveries up to what is still open.
+  - name: Revise a planned delivery
+    service: revise_outbound_delivery
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [outbound_delivery, outbound_delivery_line, outbound_delivery_pick, commitment, party, location, source_record]
+    writes: [outbound_delivery, outbound_delivery_line, source_record, business_event]
+    effect: States a planned delivery anew before it ships, such as a changed address or a promise that rides along; every statement is kept as a version.
+  - name: Pick a planned delivery
+    service: pick_outbound_delivery
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [outbound_delivery, outbound_delivery_line, outbound_delivery_pick, commitment, reservation, movement]
+    writes: [movement, reservation, outbound_delivery_pick, business_event]
+    effect: Transfers goods from where a promise is reserved into the delivery's staging location; the reservation moves with them, so availability stays true.
+  - name: Put back picked goods
+    service: put_back_outbound_delivery
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [outbound_delivery, outbound_delivery_line, outbound_delivery_pick, commitment, reservation, movement]
+    writes: [movement, reservation, outbound_delivery_pick, business_event]
+    effect: Transfers picked goods out of staging to a stock location; an open promise's reservation moves back with them.
+  - name: Read planned deliveries
+    service: outbound_deliveries
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [outbound_delivery, outbound_delivery_line, outbound_delivery_pick, movement, commitment, party, location, source_record]
+    writes: []
+    effect: Lists the planned deliveries, newest first, with recipient, address, slot, derived state and per line planned, picked, to put back and shipped.
+  - name: Read a planned delivery
+    service: outbound_delivery_detail
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [outbound_delivery, outbound_delivery_line, outbound_delivery_pick, movement, commitment, party, location, source_record, shipment]
+    writes: []
+    effect: Shows one planned delivery with its pick and put-back movements, every statement, its shipment and the dispatch arguments that ship exactly what it carries.
   - name: Record a stock count
     service: record_stock_count
     related_services: [review_stock_count, book_as_of]
@@ -5387,6 +5440,42 @@ capability_guidance:
     unknown_when: [A customer uses a number nobody stated.]
     next_steps: [State or change a number with customer_item_number_set_propose; a person confirms.]
     examples: {use: [{scenario: Find which item the customer means by K-4711., reason: The read names our item for that number.}], do_not_use: [{scenario: Find the customer's price., reason: Read the price resolution instead.}]}
+  outbound_deliveries:
+    kind: read
+    application_tool: outbound_deliveries
+    purpose: List the planned outbound deliveries and where each stands.
+    use_when: [Someone asks what is planned to go out, where an order's parts go, or what is picked but not shipped.]
+    do_not_use_when: [The question is what has already shipped; read shipments.]
+    required_context: [tenant]
+    data_basis: [outbound_delivery, outbound_delivery_line, outbound_delivery_pick, movement, source_record]
+    limitations: [A delivery's state is derived from its lines, picks and shipment; nothing about a delivery is stored as a status.]
+    freshness: Read from the deliveries, their pick movements and shipments at request time.
+    empty_result: No delivery is planned for the selection.
+    refusal_behavior: Only the company's own deliveries are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which promises each delivery carries, how much is picked, waiting to be put back and shipped.], does_not_prove: [That the goods in staging are physically complete.]}
+    unknown_when: [Goods were picked on paper and never recorded.]
+    next_steps: [Read one delivery with outbound_delivery_detail, pick it with outbound_delivery_pick_propose, or ship it with shipment_dispatch_propose.]
+    examples: {use: [{scenario: Show what goes to the Bremen store this week., reason: The list names each delivery's recipient and slot.}], do_not_use: [{scenario: Tell whether an order was delivered., reason: Read the shipment instead.}]}
+  outbound_delivery_detail:
+    kind: read
+    application_tool: outbound_delivery_detail
+    purpose: Explain one planned delivery, its picks and statements, and how to ship it.
+    use_when: [Someone asks which address a delivery uses, what was picked, or what must be put back.]
+    do_not_use_when: [The question is a shipment's carrier events; read the shipment.]
+    required_context: [tenant, outbound_delivery_id]
+    data_basis: [outbound_delivery, outbound_delivery_line, outbound_delivery_pick, movement, source_record, shipment]
+    limitations: [The address and slot are as stated; nothing checks them against the carrier.]
+    freshness: Read from the delivery, its statements and movements at request time.
+    empty_result: The delivery is not found.
+    refusal_behavior: Only the company's own deliveries are read.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Every statement of the delivery, each pick and put-back movement, and the shipment it went with.], does_not_prove: [That the recipient received it.]}
+    unknown_when: [A change of address was agreed but not stated.]
+    next_steps: [Revise it with outbound_delivery_revise_propose, or ship its `dispatch` arguments with shipment_dispatch_propose.]
+    examples: {use: [{scenario: Explain which address the parcel went to after the customer moved., reason: The statements and the shipment keep both addresses.}], do_not_use: [{scenario: Reserve stock., reason: Reserve the promise instead.}]}
   stock_counts:
     kind: read
     application_tool: stock_counts
@@ -5713,6 +5802,10 @@ agent_command_coverage:
   stock_blocks: {classification: eligible, tools: [stock_blocks]}
   state_delivery_rule: {classification: eligible, tools: [delivery_rule_set_propose]}
   record_stock_count: {classification: eligible, tools: [stock_count_propose]}
+  plan_outbound_delivery: {classification: eligible, tools: [outbound_delivery_plan_propose]}
+  revise_outbound_delivery: {classification: eligible, tools: [outbound_delivery_revise_propose]}
+  pick_outbound_delivery: {classification: eligible, tools: [outbound_delivery_pick_propose]}
+  put_back_outbound_delivery: {classification: eligible, tools: [outbound_delivery_put_back_propose]}
   set_company_currency: {classification: eligible, tools: [company_currency_set_propose]}
   company_currency_state: {classification: eligible, tools: [company_currency]}
   set_supplier_item_terms: {classification: eligible, tools: [supplier_item_terms_set_propose]}
@@ -5727,6 +5820,8 @@ agent_command_coverage:
   remove_customer_item_number: {classification: eligible, tools: [customer_item_number_remove_propose]}
   customer_item_numbers: {classification: eligible, tools: [customer_item_numbers]}
   stock_counts: {classification: eligible, tools: [stock_counts]}
+  outbound_deliveries: {classification: eligible, tools: [outbound_deliveries]}
+  outbound_delivery_detail: {classification: eligible, tools: [outbound_delivery_detail]}
   stock_count_detail: {classification: eligible, tools: [stock_count_detail]}
   delivery_rules: {classification: eligible, tools: [delivery_rules]}
   serve_backorders: {classification: eligible, tools: [backorders_serve_propose]}

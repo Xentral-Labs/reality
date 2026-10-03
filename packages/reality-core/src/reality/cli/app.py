@@ -101,6 +101,9 @@ customer_item_app = typer.Typer(
     help="Customer item numbers: a customer's own article numbers (spec 308)."
 )
 stock_count_app = typer.Typer(help="Stock counts: count a location and post the differences (spec 307).")
+outbound_delivery_app = typer.Typer(
+    help="Planned outbound deliveries: plan, pick into staging, put back (spec 334)."
+)
 delivery_rule_app = typer.Typer(
     help="Delivery rules: ship complete or no backorders per customer or order (spec 306)."
 )
@@ -131,6 +134,7 @@ app.add_typer(stock_app, name="stock-block")
 app.add_typer(backorder_app, name="backorders")
 app.add_typer(delivery_rule_app, name="delivery-rule")
 app.add_typer(stock_count_app, name="stock-count")
+app.add_typer(outbound_delivery_app, name="outbound-delivery")
 app.add_typer(customer_item_app, name="customer-item")
 supplier_terms_app = typer.Typer(
     help="A supplier's minimum order quantity and order multiple per item (spec 310)."
@@ -1345,6 +1349,179 @@ def stock_count_show_command(stock_count_id: str, tenant: str | None = None):
         try:
             selected = selected_tenant(s, tenant)
             answer = stock_count_detail(s, selected.id, stock_count_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=answer, default=str)
+
+_DELIVERY_LINE = typer.Option(
+    None, "--line", help="COMMITMENT_ID=QUANTITY; repeat per promise"
+)
+_PICK_LINE = typer.Option(
+    None,
+    "--line",
+    help="COMMITMENT_ID=QUANTITY[@LOCATION_ID]; repeat per promise",
+)
+
+
+def _delivery_lines(entries: list[str] | None, location_key: str | None = None):
+    lines = []
+    for entry in entries or []:
+        try:
+            commitment_id, rest = entry.split("=", 1)
+        except ValueError as error:
+            raise typer.BadParameter(
+                "--line takes COMMITMENT_ID=QUANTITY[@LOCATION_ID]"
+            ) from error
+        quantity, _, location_id = rest.partition("@")
+        line = {"commitment_id": commitment_id, "quantity": quantity}
+        if location_key and location_id:
+            line[location_key] = location_id
+        lines.append(line)
+    return lines
+
+
+def _delivery_statement(
+    recipient: str, address: str, slot_from: str, slot_until: str, staging: str
+) -> dict:
+    statement: dict = {}
+    if recipient:
+        statement["recipient_party_id"] = recipient
+    if address:
+        try:
+            statement["address"] = json.loads(address)
+        except ValueError as error:
+            raise typer.BadParameter("--address takes a JSON object") from error
+    if slot_from or slot_until:
+        statement["slot"] = {"from": slot_from, "until": slot_until}
+    if staging:
+        statement["staging_location_id"] = staging
+    return statement
+
+
+@outbound_delivery_app.command("plan")
+def outbound_delivery_plan_command(
+    customer_id: str,
+    line: list[str] | None = _DELIVERY_LINE,
+    recipient: str = "",
+    address: str = typer.Option("", help='JSON, e.g. {"street": "...", "city": "..."}'),
+    slot_from: str = "",
+    slot_until: str = "",
+    staging: str = "",
+    note: str = "",
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm a planned delivery of a customer's open promises."""
+    _stock_block_change(
+        "outbound_delivery_plan",
+        {
+            "customer_id": customer_id,
+            "lines": _delivery_lines(line),
+            "note": note,
+            **_delivery_statement(recipient, address, slot_from, slot_until, staging),
+        },
+        tenant,
+        yes,
+        preview_key="outbound_delivery",
+    )
+    con.print("✓ Delivery planned")
+
+
+@outbound_delivery_app.command("revise")
+def outbound_delivery_revise_command(
+    outbound_delivery_id: str,
+    line: list[str] | None = _DELIVERY_LINE,
+    recipient: str = "",
+    address: str = typer.Option("", help="JSON object; replaces the stated address"),
+    slot_from: str = "",
+    slot_until: str = "",
+    staging: str = "",
+    note: str | None = None,
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm a revision; options left out stay as stated."""
+    changes = _delivery_statement(recipient, address, slot_from, slot_until, staging)
+    if line:
+        changes["lines"] = _delivery_lines(line)
+    if note is not None:
+        changes["note"] = note
+    _stock_block_change(
+        "outbound_delivery_revise",
+        {"outbound_delivery_id": outbound_delivery_id, **changes},
+        tenant,
+        yes,
+        preview_key="outbound_delivery",
+    )
+    con.print("✓ Delivery revised")
+
+
+@outbound_delivery_app.command("pick")
+def outbound_delivery_pick_command(
+    outbound_delivery_id: str,
+    line: list[str] | None = _PICK_LINE,
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm picking into the delivery's staging location."""
+    _stock_block_change(
+        "outbound_delivery_pick",
+        {
+            "outbound_delivery_id": outbound_delivery_id,
+            "lines": _delivery_lines(line, "from_location_id"),
+        },
+        tenant,
+        yes,
+        preview_key="outbound_delivery",
+    )
+    con.print("✓ Picked")
+
+
+@outbound_delivery_app.command("put-back")
+def outbound_delivery_put_back_command(
+    outbound_delivery_id: str,
+    line: list[str] | None = _PICK_LINE,
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm putting picked goods back (COMMITMENT_ID=QUANTITY@LOCATION_ID)."""
+    _stock_block_change(
+        "outbound_delivery_put_back",
+        {
+            "outbound_delivery_id": outbound_delivery_id,
+            "lines": _delivery_lines(line, "to_location_id"),
+        },
+        tenant,
+        yes,
+        preview_key="outbound_delivery",
+    )
+    con.print("✓ Put back")
+
+
+@outbound_delivery_app.command("list")
+def outbound_delivery_list_command(
+    customer_id: str = "", open_only: bool = False, tenant: str | None = None
+):
+    """The planned deliveries, newest first."""
+    from reality.services.outbound_deliveries import outbound_deliveries
+
+    with Session() as s:
+        selected = selected_tenant(s, tenant)
+        rows = outbound_deliveries(
+            s, selected.id, customer_id=customer_id or None, open_only=open_only
+        )
+    con.print_json(data=rows, default=str)
+
+
+@outbound_delivery_app.command("show")
+def outbound_delivery_show_command(outbound_delivery_id: str, tenant: str | None = None):
+    """One planned delivery with its picks, statements and dispatch arguments."""
+    from reality.services.outbound_deliveries import outbound_delivery_detail
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            answer = outbound_delivery_detail(s, selected.id, outbound_delivery_id)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print_json(data=answer, default=str)

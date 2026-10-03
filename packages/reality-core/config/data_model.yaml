@@ -34,7 +34,7 @@ sections:
     tables: [financial_component, document, document_line, opening_scope, opening_item_detail]
   - name: Reality
     description: Obligations, allocations, physical events, financial events, and observations.
-    tables: [component_assignment_revision, component_assignment_part, subledger_account, finance_role_destination, finance_state, commitment, commitment_hold, reservation, stock_block, stock_block_resolution, handling_unit, lot, serial_unit, movement, ledger_entry, company_currency, ledger_reversal, settlement_allocation, fact, business_event]
+    tables: [component_assignment_revision, component_assignment_part, subledger_account, finance_role_destination, finance_state, commitment, commitment_hold, reservation, stock_block, stock_block_resolution, handling_unit, lot, serial_unit, movement, outbound_delivery, outbound_delivery_line, outbound_delivery_pick, ledger_entry, company_currency, ledger_reversal, settlement_allocation, fact, business_event]
   - name: Interaction
     description: Auditable Change Proposals, approvals, executions, and chat history.
     tables: [secret, secret_audit_event, ai_settings, mcp_access_token, action, chat_session, chat_message, playground_run, playground_step, storyline_trace_entry, storyline_package, interaction]
@@ -92,6 +92,33 @@ tables:
       location_text: {}
       source_record_id: {}
       external_event_id: {}
+  outbound_delivery:
+    description: A planned outbound delivery of one customer's open promises before dispatch (spec 334); it has no status, and planned, picked and shipped are read from its lines, picks and shipment.
+    columns:
+      id: {}
+      tenant_id: {}
+      customer_id: {description: The customer whose promises the delivery carries; the dispatch's counterparty.}
+      recipient_party_id: {description: "The business partner the goods go to, such as a store of a retail chain; empty means the customer."}
+      staging_location_id: {description: The location goods are picked into before dispatch.}
+      shipment_id: {description: The shipment that executed the delivery; empty until it ships.}
+      source_record_id: {description: "The statement in force: a version of the delivery's internal source stream, holding the stated address and booked slot; earlier versions keep every previous statement."}
+      created_at: {}
+  outbound_delivery_line:
+    description: One promise on a planned delivery, with the quantity planned for it (spec 334).
+    columns:
+      id: {}
+      tenant_id: {}
+      outbound_delivery_id: {description: The planned delivery this line belongs to.}
+      commitment_id: {description: The customer promise the line plans to deliver.}
+      quantity: {description: The quantity planned on this delivery, in the promise's unit.}
+  outbound_delivery_pick:
+    description: A transfer that picked goods into staging for a planned delivery's line, or put them back out (spec 334).
+    columns:
+      id: {}
+      tenant_id: {}
+      outbound_delivery_line_id: {description: The line the goods were picked for.}
+      movement_id: {description: The transfer movement that moved the goods.}
+      kind: {description: "Whether the transfer picked into staging (pick) or put goods back out (put_back)."}
   shipment_event_supersession:
     description: A correction or withdrawal of a reported shipping event.
     columns:
