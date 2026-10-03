@@ -50,10 +50,13 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`cost_record`](#command-cost_record)                                             | Inspect retained cost record                 | Cross-functional           | `cost_record_get`                                                                                                                                                                            | CLI · Web · MCP · Chat                  |
 | [`handovers`](#command-handovers)                                                 | List collection handovers                    | Cross-functional           | `finance_dunning_collection_handovers`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`notices`](#command-notices)                                                     | List dunning notices                         | Cross-functional           | `finance_dunning_notices`                                                                                                                                                                    | Web · MCP · Chat                        |
+| [`authorizations`](#command-authorizations)                                       | List payment authorizations                  | Cross-functional           | `finance_payment_authorizations`                                                                                                                                                             | Web · MCP · Chat · CLI                  |
+| [`payouts`](#command-payouts)                                                     | List payouts                                 | Cross-functional           | `finance_payouts`                                                                                                                                                                            | Web · MCP · Chat · CLI                  |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Cross-functional           | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`run_context`](#command-run_context)                                             | Preview dunning run                          | Cross-functional           | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review                | Cross-functional           | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
 | [`kit_split`](#command-kit_split)                                                 | Read a kit line's split                      | Cross-functional           | `kit_split`                                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
+| [`payout_detail`](#command-payout_detail)                                         | Read a payout                                | Cross-functional           | `finance_payout`                                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`handover_detail`](#command-handover_detail)                                     | Read collection handover                     | Cross-functional           | `finance_dunning_collection_handover`                                                                                                                                                        | Web · MCP · Chat                        |
 | [`cost_query`](#command-cost_query)                                               | Read cost query context                      | Cross-functional           | `cost_query_get`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
 | [`customer_item_numbers`](#command-customer_item_numbers)                         | Read customer item numbers                   | Cross-functional           | `customer_item_numbers`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
@@ -68,11 +71,14 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`company_currency_state`](#command-company_currency_state)                       | Read the company currency                    | Cross-functional           | `company_currency`                                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`month_end_billing`](#command-month_end_billing)                                 | Read the month-end billing lists             | Cross-functional           | `month_end_billing`                                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
 | [`purchase_match`](#command-purchase_match)                                       | Read the three-way match of a purchase order | Cross-functional           | `purchase_match`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
+| [`record_authorization`](#command-record_authorization)                           | Record a payment authorization               | Cross-functional           | `finance_payment_authorization_record_propose`                                                                                                                                               | Web · MCP · Chat · CLI                  |
+| [`record_capture`](#command-record_capture)                                       | Record a payment capture                     | Cross-functional           | `finance_payment_capture_record_propose`                                                                                                                                                     | Web · MCP · Chat · CLI                  |
 | [`record_notice`](#command-record_notice)                                         | Record dunning notice                        | Cross-functional           | `finance_dunning_record_propose`                                                                                                                                                             | Web · MCP · Chat                        |
 | [`propose_company_party`](#command-propose_company_party)                         | Record the company as its business partner   | Cross-functional           | `company_party_record_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`reverse_notice`](#command-reverse_notice)                                       | Reverse dunning notice                       | Cross-functional           | `finance_dunning_reverse_propose`                                                                                                                                                            | Web · MCP · Chat                        |
 | [`business_journey_vote_set`](#command-business_journey_vote_set)                 | Set a Business Journey suggestion vote       | Cross-functional           | `business_journey_vote_propose`                                                                                                                                                              | Web · API · MCP · Chat                  |
 | [`set_schedule`](#command-set_schedule)                                           | Set dunning schedule                         | Cross-functional           | `finance_dunning_schedule_set_propose`                                                                                                                                                       | Web · MCP · Chat                        |
+| [`settle_payout`](#command-settle_payout)                                         | Settle a payout                              | Cross-functional           | `finance_payout_settle_propose`                                                                                                                                                              | Web · MCP · Chat · CLI                  |
 | [`set_customer_item_number`](#command-set_customer_item_number)                   | State a customer item number                 | Cross-functional           | `customer_item_number_set_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`set_supplier_item_terms`](#command-set_supplier_item_terms)                     | State supplier item terms                    | Cross-functional           | `supplier_item_terms_set_propose`                                                                                                                                                            | CLI · Web · API · MCP · Chat            |
 | [`set_company_currency`](#command-set_company_currency)                           | State the company currency                   | Cross-functional           | `company_currency_set_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
@@ -8390,6 +8396,119 @@ No parameters.
 
 **See also:** command [`notices`](./commands#command-notices)
 
+### `authorizations` — List payment authorizations {#command-authorizations}
+
+Lists authorizations with what was captured, what is left and whether each is live, expired or
+captured.
+
+**Synopsis**
+
+```text
+finance_payment_authorizations [order_document_id] [as_of]
+```
+
+**Reach via:** Web · MCP · Chat · CLI
+
+**Effect:** Reads: `payment_authorization`, `payment_capture` · Writes: —
+
+**See also:** agent tool
+[`finance_payment_authorizations`](./commands#tool-finance_payment_authorizations)
+
+#### `finance_payment_authorizations` — Payment authorizations {#tool-finance_payment_authorizations}
+
+List payment authorizations, optionally for one order, with what was captured, what is left and
+whether each is live, expired or captured at the instant.
+
+**Synopsis**
+
+```text
+finance_payment_authorizations [order_document_id] [as_of]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                       | Kind                        | Default |
+| ------------------------------------ | --------------------------- | ------- |
+| `MCP finance_payment_authorizations` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+List payment authorizations with what was captured, what is left and whether each is live, expired
+or captured.
+
+**Use when**
+
+- Before a late shipment
+- to see whether the payment is still authorized.
+
+**Do not use when**
+
+- The question is whether an invoice is paid; read the invoice.
+
+**Parameters**
+
+| Name                | Type     | Required | Description                                                                  | Default |
+| ------------------- | -------- | -------- | ---------------------------------------------------------------------------- | ------- |
+| `order_document_id` | `string` | no       | Opaque same-tenant identity of a sales order.                                | —       |
+| `as_of`             | `string` | no       | UTC instant the derivation is evaluated at; the current instant when absent. | —       |
+
+**See also:** command [`authorizations`](./commands#command-authorizations)
+
+### `payouts` — List payouts {#command-payouts}
+
+Lists payouts with their net amount and the lines nothing booked yet.
+
+**Synopsis**
+
+```text
+finance_payouts
+```
+
+**Reach via:** Web · MCP · Chat · CLI
+
+**Effect:** Reads: `document`, `source_record`, `payment_return` · Writes: —
+
+**See also:** agent tool [`finance_payouts`](./commands#tool-finance_payouts)
+
+#### `finance_payouts` — Payouts {#tool-finance_payouts}
+
+List marketplace and payment-provider payouts with their net amount and the lines nothing booked
+yet.
+
+**Synopsis**
+
+```text
+finance_payouts
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query        | Kind                        | Default |
+| --------------------- | --------------------------- | ------- |
+| `MCP finance_payouts` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+List payouts with their net amount and the lines nothing booked yet.
+
+**Use when**
+
+- Payouts must be reconciled with the bank or followed up.
+
+**Do not use when**
+
+- One payout is known; read it.
+
+**Parameters**
+
+No parameters.
+
+**See also:** command [`payouts`](./commands#command-payouts)
+
 ### `contribution_preview` — Preview current contribution candidate {#command-contribution_preview}
 
 Follow an exact whole invoice/order/shipment scope to received net revenue and reviewed consumption;
@@ -8637,6 +8756,65 @@ Show how a kit's order or invoice line splits its price, revenue and tax across 
 | `document_line_id` | `string` | yes      | Opaque same-tenant received document line identity; must belong to the selected document. | —       |
 
 **See also:** command [`kit_split`](./commands#command-kit_split)
+
+### `payout_detail` — Read a payout {#command-payout_detail}
+
+Reads one payout with every stated line, what it booked, the invoices it settled and the shipment a
+tracking number names.
+
+**Synopsis**
+
+```text
+finance_payout payout_id
+```
+
+**Reach via:** Web · MCP · Chat · CLI
+
+**Effect:** Reads: `document`, `source_record`, `ledger_entry`, `settlement_allocation`,
+`payment_return`, `shipment_package` · Writes: —
+
+**See also:** agent tool [`finance_payout`](./commands#tool-finance_payout)
+
+#### `finance_payout` — Payout {#tool-finance_payout}
+
+Read one payout: every stated line with what it booked, the invoices or credit notes it settled, the
+shipment a tracking number names, or why it stays unbooked.
+
+**Synopsis**
+
+```text
+finance_payout payout_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query       | Kind                        | Default |
+| -------------------- | --------------------------- | ------- |
+| `MCP finance_payout` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read one payout with every stated line, what it booked, the invoices it settled and the shipment a
+tracking number names.
+
+**Use when**
+
+- One payout needs reconciliation
+- or a line stayed unbooked.
+
+**Do not use when**
+
+- The payout is not known yet; list them first.
+
+**Parameters**
+
+| Name        | Type     | Required | Description                                      | Default |
+| ----------- | -------- | -------- | ------------------------------------------------ | ------- |
+| `payout_id` | `string` | yes      | Opaque same-tenant identity of a settled payout. | —       |
+
+**See also:** command [`payout_detail`](./commands#command-payout_detail)
 
 ### `handover_detail` — Read collection handover {#command-handover_detail}
 
@@ -9458,6 +9636,139 @@ Show whether a purchase order's lines are matched across order, receipt and invo
 
 **See also:** command [`purchase_match`](./commands#command-purchase_match)
 
+### `record_authorization` — Record a payment authorization {#command-record_authorization}
+
+Records what a card or wallet provider authorized for one sales order, until when.
+
+**Synopsis**
+
+```text
+finance_payment_authorization_record_propose order_document_id amount currency authorized_at valid_until reference
+```
+
+**Reach via:** Web · MCP · Chat · CLI
+
+**Effect:** Reads: `document`, `payment_authorization` · Writes: `payment_authorization`,
+`source_record`, `business_event` · Emits: `payment.authorized`
+
+**See also:** agent tool
+[`finance_payment_authorization_record_propose`](./commands#tool-finance_payment_authorization_record_propose),
+event [`payment.authorized`](./events#event-payment-authorized)
+
+#### `finance_payment_authorization_record_propose` — Record a payment authorization {#tool-finance_payment_authorization_record_propose}
+
+Prepare what a card or wallet provider authorized for one sales order, and until when, for owner
+confirmation. Captures are recorded against it separately.
+
+**Synopsis**
+
+```text
+finance_payment_authorization_record_propose order_document_id amount currency authorized_at valid_until reference
+```
+
+**Access:** `propose`
+
+Record what a card or wallet provider authorized for one sales order, for owner confirmation.
+
+**Use when**
+
+- The provider authorized an amount for an order before shipment.
+
+**Do not use when**
+
+- Money was captured or paid out; record the capture or settle the payout.
+
+**Preconditions**
+
+- A sales order of the tenant in the same currency; the reference is new for the order.
+
+**Refused when**
+
+- `payment_authorization_currency_mismatch` — The currency differs from the order's.
+- `payment_authorization_duplicate` — The reference is already recorded for the order.
+
+**Parameters**
+
+| Name                | Type                | Required | Description                                                                   | Default |
+| ------------------- | ------------------- | -------- | ----------------------------------------------------------------------------- | ------- |
+| `order_document_id` | `string`            | yes      | Opaque same-tenant identity of the authorized sales order.                    | —       |
+| `amount`            | `string \| integer` | yes      | The amount the provider authorized.                                           | —       |
+| `currency`          | `string`            | yes      | The order's currency.                                                         | —       |
+| `authorized_at`     | `string`            | yes      | When the provider authorized, as an ISO date-time.                            | —       |
+| `valid_until`       | `string`            | yes      | When the authorization lapses as the provider states it, as an ISO date-time. | —       |
+| `reference`         | `string`            | yes      | The provider's authorization identity, once per order.                        | —       |
+
+**Verify with:** `finance.payment_authorizations` — The authorization and what is left of it are
+retained.
+
+**See also:** command [`record_authorization`](./commands#command-record_authorization)
+
+### `record_capture` — Record a payment capture {#command-record_capture}
+
+Records an amount captured against an authorization, never more than is left and not after it
+lapsed.
+
+**Synopsis**
+
+```text
+finance_payment_capture_record_propose authorization_id amount captured_at [reference]
+```
+
+**Reach via:** Web · MCP · Chat · CLI
+
+**Effect:** Reads: `payment_authorization`, `payment_capture` · Writes: `payment_capture`,
+`source_record`, `business_event` · Emits: `payment.captured`
+
+**See also:** agent tool
+[`finance_payment_capture_record_propose`](./commands#tool-finance_payment_capture_record_propose),
+event [`payment.captured`](./events#event-payment-captured)
+
+#### `finance_payment_capture_record_propose` — Record a payment capture {#tool-finance_payment_capture_record_propose}
+
+Prepare an amount captured against a recorded authorization for owner confirmation; never more than
+is left and not after the authorization lapsed.
+
+**Synopsis**
+
+```text
+finance_payment_capture_record_propose authorization_id amount captured_at [reference]
+```
+
+**Access:** `propose`
+
+Record an amount captured against an authorization, for owner confirmation.
+
+**Use when**
+
+- The provider captured part or all of an authorization
+- typically at shipment.
+
+**Do not use when**
+
+- The authorization lapsed; a new authorization is needed first.
+
+**Preconditions**
+
+- The capture lies between the authorization and its lapse and is no more than is left.
+
+**Refused when**
+
+- `payment_capture_exceeds_authorization` — More than is left of the authorization.
+- `payment_capture_after_expiry` — The authorization had lapsed.
+
+**Parameters**
+
+| Name               | Type                | Required | Description                                                        | Default |
+| ------------------ | ------------------- | -------- | ------------------------------------------------------------------ | ------- |
+| `authorization_id` | `string`            | yes      | Opaque same-tenant identity of the recorded authorization.         | —       |
+| `amount`           | `string \| integer` | yes      | The amount captured; never more than is left of the authorization. | —       |
+| `captured_at`      | `string`            | yes      | When the provider captured, as an ISO date-time.                   | —       |
+| `reference`        | `string`            | no       | The provider's capture identity, as stated.                        | —       |
+
+**Verify with:** `finance.payment_authorizations` — The capture and the remainder are retained.
+
+**See also:** command [`record_capture`](./commands#command-record_capture)
+
 ### `record_notice` — Record dunning notice {#command-record_notice}
 
 Records one explicitly reviewed manual reminder and optional exact stated fee without sending a
@@ -9759,6 +10070,95 @@ Set the company's dunning schedule for owner confirmation.
 **Verify with:** `finance.dunning.schedule` — The confirmed waiting days and fees are retained.
 
 **See also:** command [`set_schedule`](./commands#command-set_schedule)
+
+### `settle_payout` — Settle a payout {#command-settle_payout}
+
+Books a stated marketplace or provider payout line by line on the provider's cash account (payments,
+refunds against credit notes, chargebacks, fees), moves the net payout to the bank and leaves lines
+that lead nowhere unbooked.
+
+**Synopsis**
+
+```text
+finance_payout_settle_propose provider_party_id payout_reference paid_on currency amount clearing_account_id [bank_account_id] lines
+```
+
+**Reach via:** Web · MCP · Chat · CLI
+
+**Effect:** Reads: `document`, `document_line`, `ledger_entry`, `settlement_allocation`,
+`ledger_reversal`, `payment_return`, `shipment_package`, `movement`, `commitment`, `source_record`,
+`subledger_account` · Writes: `source_record`, `document`, `ledger_entry`, `settlement_allocation`,
+`payment_return`, `ledger_reversal`, `business_event` · Emits: `payout.settled`
+
+**See also:** agent tool
+[`finance_payout_settle_propose`](./commands#tool-finance_payout_settle_propose), event
+[`payout.settled`](./events#event-payout-settled)
+
+#### `finance_payout_settle_propose` — Settle a payout {#tool-finance_payout_settle_propose}
+
+Prepare a marketplace, payment-provider or cash-on-delivery payout statement for owner confirmation:
+every line is booked against the order, invoice or shipment it names on the provider's cash account
+(payments, refunds against credit notes, chargebacks, fees), the net payout moves to the bank, and
+lines that lead nowhere stay unbooked and are reported. The lines must add up to the stated net
+payout.
+
+**Synopsis**
+
+```text
+finance_payout_settle_propose provider_party_id payout_reference paid_on currency amount clearing_account_id [bank_account_id] lines
+```
+
+**Access:** `propose`
+
+Settle a marketplace or payment-provider payout statement for owner confirmation.
+
+**Use when**
+
+- A marketplace
+- payment provider or carrier paid one amount for many orders
+- minus refunds
+- chargebacks and fees.
+
+**Do not use when**
+
+- A customer paid one invoice directly; record a payment. The statement does not add up; ask the
+  provider.
+
+**Preconditions**
+
+- The provider is a business partner; its balance is held on an active cash account apart from the
+  bank; the lines add up to the net payout.
+
+**Refused when**
+
+- `payout_total_mismatch` — The lines do not add up to the stated net payout.
+- `payout_clearing_is_bank` — The provider's account is the bank account.
+- `payout_clearing_account_invalid` — The provider's account is not an active cash account.
+- `payout_statement_changed` — The payout was settled before with other content.
+
+**Parameters**
+
+| Name                         | Type                | Required | Description                                                                                                                                                                        | Default |
+| ---------------------------- | ------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `provider_party_id`          | `string`            | yes      | The marketplace, provider or carrier Party that paid.                                                                                                                              | —       |
+| `payout_reference`           | `string`            | yes      | The provider's payout identity; settling the same statement again books only unbooked lines.                                                                                       | —       |
+| `paid_on`                    | `string`            | yes      | Calendar date the payout reached the bank.                                                                                                                                         | —       |
+| `currency`                   | `string`            | yes      | Currency of the payout and its lines.                                                                                                                                              | —       |
+| `amount`                     | `string \| integer` | yes      | The net payout the provider states; the lines must add up to it.                                                                                                                   | —       |
+| `clearing_account_id`        | `string`            | yes      | The active cash account that holds the provider's balance, apart from the bank.                                                                                                    | —       |
+| `bank_account_id`            | `string`            | no       | The cash account the payout reached; the cash default when omitted.                                                                                                                | `None`  |
+| `lines`                      | `array`             | yes      | Every line of the payout statement as the provider states it.                                                                                                                      | —       |
+| `lines[].line_id`            | `string`            | yes      | The provider's own identity of the line, unique within the statement.                                                                                                              | —       |
+| `lines[].kind`               | `string`            | yes      | A charge the provider collected, a refund or chargeback it paid back, or a fee it kept. `charge`, `refund`, `chargeback`, `fee`                                                    | —       |
+| `lines[].amount`             | `string \| integer` | yes      | The positive amount the line states; its kind gives the sign.                                                                                                                      | —       |
+| `lines[].references`         | `array`             | no       | The order, invoice or shipment the line names; a fee may name none.                                                                                                                | —       |
+| `lines[].references[].type`  | `string`            | yes      | What the stated value identifies; a tracking number names a shipment. `invoice_number`, `shop_id`, `shop_order_number`, `customer_reference`, `customer_number`, `tracking_number` | —       |
+| `lines[].references[].value` | `string`            | yes      | The identifier exactly as the provider states it; looked up, never stored as a link.                                                                                               | —       |
+| `lines[].reason`             | `string`            | no       | The provider's stated reason, kept on a chargeback.                                                                                                                                | —       |
+
+**Verify with:** `finance.payout` — Every line's booking and the invoices it settled are retained.
+
+**See also:** command [`settle_payout`](./commands#command-settle_payout)
 
 ### `set_customer_item_number` — State a customer item number {#command-set_customer_item_number}
 
