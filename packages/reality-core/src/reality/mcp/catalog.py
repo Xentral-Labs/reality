@@ -363,6 +363,28 @@ PURCHASE_UNIT = {
 }
 
 
+BEYOND_ORDER = {
+    "type": ["boolean", "null"],
+    "description": (
+        "Receipts against a purchase line only: bring in more than the line still "
+        "expects. The surplus is reported until it is kept or sent back."
+    ),
+}
+ADVISED_LINES = {
+    "type": ["array", "null"],
+    "description": (
+        "Inbound supplier notices only: how much the notice brings for each "
+        "purchase line of this supplier, as stated."
+    ),
+    "items": {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {"commitment_id": STRING, "quantity": DECIMAL_STRING},
+        "required": ["commitment_id", "quantity"],
+    },
+}
+
+
 def _shipment_execution_schema(purposes: dict[str, str]) -> dict[str, Any]:
     branches = []
     for purpose, movement_type in purposes.items():
@@ -378,9 +400,14 @@ def _shipment_execution_schema(purposes: dict[str, str]) -> dict[str, Any]:
                 "lot_id": OPTIONAL_STRING,
                 "serial_unit_id": OPTIONAL_STRING,
                 "reason": OPTIONAL_STRING,
+                # Spec 338: the line a wrong item was meant for, instead of a
+                # commitment it fulfils.
+                "meant_for_commitment_id": OPTIONAL_STRING,
                 # Spec 301: only a receipt may be stated in the purchase unit.
                 **(
                     {
+                        # Spec 338: a surplus received on purpose.
+                        "beyond_order": BEYOND_ORDER,
                         "unit": PURCHASE_UNIT,
                         "blocked_quantity": DECIMAL_STRING,
                         "block_reason": {
@@ -415,6 +442,12 @@ def _shipment_execution_schema(purposes: dict[str, str]) -> dict[str, Any]:
                     **(
                         {"outbound_delivery_id": OPTIONAL_STRING}
                         if purpose == "customer_delivery"
+                        else {}
+                    ),
+                    # Spec 338: receive into the inbound shipment that was announced.
+                    **(
+                        {"shipment_id": OPTIONAL_STRING}
+                        if purpose in {"supplier_delivery", "customer_return"}
                         else {}
                     ),
                 },
@@ -825,6 +858,7 @@ MCP_TOOL_CATALOG = (
                     "enum": ["company", "counterparty", "carrier", "integration"],
                     "default": "counterparty",
                 },
+                "advised": ADVISED_LINES,
             },
             required=("direction", "purpose", "counterparty_id"),
         ),
@@ -1663,6 +1697,8 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                 "reason": OPTIONAL_STRING,
                 "resolves_movement_id": OPTIONAL_STRING,
                 "return_announcement_id": OPTIONAL_STRING,
+                "meant_for_commitment_id": OPTIONAL_STRING,
+                "beyond_order": BEYOND_ORDER,
                 "unit": PURCHASE_UNIT,
                 "blocked_quantity": DECIMAL_STRING,
                 "block_reason": {
@@ -3186,6 +3222,18 @@ MCP_TOOL_CATALOG += (
             required=("duplicate_party_id", "surviving_party_id", "reason"),
         ),
         _propose("party_merge"),
+    ),
+    MCPToolDefinition(
+        "commitment_substitute_accept_propose",
+        "Accept a substitute item",
+        "Prepare accepting another item in place of what a purchase line ordered, for confirmation: a successor or substitute the supplier delivers instead. It must be a stocked item in the ordered item's unit, and a reason is required. Receipts of the substitute then name the line and fulfil it; the line keeps what it ordered. A substitute that already arrived as a wrong item is moved onto the line by correcting that receipt. A person confirms.",
+        "propose",
+        "Purchasing",
+        _object_schema(
+            {"commitment_id": STRING, "item_id": STRING, "reason": STRING},
+            required=("commitment_id", "item_id", "reason"),
+        ),
+        _propose("commitment_substitute_accept"),
     ),
 )
 

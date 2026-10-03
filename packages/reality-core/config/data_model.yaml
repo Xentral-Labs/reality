@@ -169,6 +169,34 @@ tables:
       occurred_at: {}
       source_record_id: {description: "The failure's evidence; a carrier claim document carries the same source record."}
       created_at: {}
+  misdelivery:
+    description: A movement of another item than the order line it was meant for (spec 338). The movement moves what it carries and fulfils nothing; this row is its one link to the line. What is still out the wrong way is read from these rows and their movements.
+    columns:
+      id: {}
+      tenant_id: {}
+      movement_id: {description: "The movement that carried the wrong item; at most one link each."}
+      commitment_id: {description: The order line's promise the goods were meant for; it stays open for the right goods.}
+      reason: {}
+      created_at: {}
+  commitment_substitute:
+    description: An item accepted in place of what a purchase line ordered (spec 338). Receipts of it name the line and fulfil it; the line keeps the item it ordered.
+    columns:
+      id: {}
+      tenant_id: {}
+      commitment_id: {description: The purchase promise that accepts the substitute.}
+      item_id: {description: "The substitute item: stocked, in the ordered item's unit."}
+      reason: {}
+      source_record_id: {description: The stated decision to accept it.}
+      created_at: {}
+  shipment_advice_line:
+    description: How much an inbound supplier notice advises for one purchase promise, as stated (spec 338). Compared with what is received into the same shipment; while nothing is, it is in transit.
+    columns:
+      id: {}
+      tenant_id: {}
+      shipment_id: {description: The announced inbound shipment.}
+      commitment_id: {description: The purchase promise the notice advises.}
+      quantity: {description: "The advised quantity, in the promise's unit, as stated."}
+      created_at: {}
   dunning_schedule_level:
     description: The company's stated waiting days and fixed fee for one dunning level.
     columns:

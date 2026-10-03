@@ -71,6 +71,7 @@ def record_shipment_notice(
     action_id: str | None = None,
     delivery_mode: str | None = None,
     collected_by: str | None = None,
+    advised: list[dict[str, Any]] | None = None,
     commit: bool = True,
     _planned: dict[str, Any] | None = None,
 ) -> tuple[Shipment, ShipmentPackage, ShipmentEvent]:
@@ -97,6 +98,17 @@ def record_shipment_notice(
     _validate_source(session, tenant_id, source_record_id)
     if reporter_type not in REPORTER_TYPES:
         raise InvalidOperation(code="shipment_event_reporter_unsupported")
+    from reality.services.receipt_deviations import record_advice, validate_advice
+
+    # Spec 338: an inbound notice may say how much it brings for each purchase.
+    advice = validate_advice(
+        session,
+        tenant_id,
+        direction=direction,
+        purpose=purpose,
+        counterparty_id=counterparty_id,
+        advised=advised,
+    )
     shipment = Shipment(
         id=uid("shp"),
         tenant_id=tenant_id,
@@ -133,6 +145,8 @@ def record_shipment_notice(
     )
     session.add(event)
     session.flush()
+    if advice:
+        record_advice(session, tenant_id, shipment.id, advice)
     emit_business_event(
         session,
         tenant_id,
@@ -149,6 +163,19 @@ def record_shipment_notice(
             # Spec 334: the planned delivery it executed, with the recipient,
             # address and slot it went with, as stated then.
             **(_planned or {}),
+            **(
+                {
+                    "advised": [
+                        {
+                            "commitment_id": commitment.id,
+                            "quantity": format(quantity.normalize(), "f"),
+                        }
+                        for commitment, quantity in advice
+                    ]
+                }
+                if advice
+                else {}
+            ),
         },
         source_record_id=source_record_id,
         action_id=action_id,
@@ -365,9 +392,26 @@ def record_packaged_execution(
     delivery_mode: str | None = None,
     collected_by: str | None = None,
     outbound_delivery_id: str | None = None,
+    shipment_id: str | None = None,
     commit: bool = True,
 ) -> dict[str, Any]:
     _check_stock_at_moved_time(session, tenant_id, movements, occurred_at)
+    announced = (
+        _announced_shipment(
+            session,
+            tenant_id,
+            shipment_id,
+            direction=direction,
+            purpose=purpose,
+            counterparty_id=counterparty_id,
+            carrier=carrier,
+            tracking_number=tracking_number,
+            delivery_mode=delivery_mode,
+            collected_by=collected_by,
+        )
+        if shipment_id
+        else None
+    )
     planned_delivery = None
     if outbound_delivery_id:
         from reality.services.outbound_deliveries import require_matches_delivery
@@ -423,25 +467,32 @@ def record_packaged_execution(
                         "received_currency": readiness.currency,
                     },
                 )
-    shipment, package, notice = record_shipment_notice(
-        session,
-        tenant_id,
-        direction=direction,
-        purpose=purpose,
-        counterparty_id=counterparty_id,
-        carrier=carrier,
-        tracking_number=tracking_number,
-        source_record_id=source_record_id,
-        occurred_at=occurred_at,
-        reporter_type="company",
-        action_id=action_id,
-        delivery_mode=delivery_mode,
-        collected_by=collected_by,
-        commit=False,
-        _planned=(
-            _planned_details(session, planned_delivery) if planned_delivery else None
-        ),
-    )
+    if announced is not None:
+        # Spec 338: the goods arrived in the shipment that was announced, so
+        # what it advised is compared with what was received into it.
+        shipment, package, notice = announced
+    else:
+        shipment, package, notice = record_shipment_notice(
+            session,
+            tenant_id,
+            direction=direction,
+            purpose=purpose,
+            counterparty_id=counterparty_id,
+            carrier=carrier,
+            tracking_number=tracking_number,
+            source_record_id=source_record_id,
+            occurred_at=occurred_at,
+            reporter_type="company",
+            action_id=action_id,
+            delivery_mode=delivery_mode,
+            collected_by=collected_by,
+            commit=False,
+            _planned=(
+                _planned_details(session, planned_delivery)
+                if planned_delivery
+                else None
+            ),
+        )
     if planned_delivery is not None:
         planned_delivery.shipment_id = shipment.id
     expected_type = {
@@ -504,6 +555,55 @@ def record_packaged_execution(
         "notice_event_id": notice.id,
         "movement_ids": [movement.id for movement in created],
     }
+
+
+def _announced_shipment(
+    session: Session,
+    tenant_id: str,
+    shipment_id: str,
+    *,
+    direction: str,
+    purpose: str,
+    counterparty_id: str,
+    carrier: str | None = None,
+    tracking_number: str | None = None,
+    delivery_mode: str | None = None,
+    collected_by: str | None = None,
+) -> tuple[Shipment, ShipmentPackage, ShipmentEvent]:
+    """The announced inbound shipment a receipt is recorded into (spec 338)."""
+    shipment = _record(session, Shipment, tenant_id, shipment_id)
+    if (
+        direction != "inbound"
+        or shipment.direction != direction
+        or shipment.purpose != purpose
+        or shipment.counterparty_id != counterparty_id
+    ):
+        raise InvalidOperation(code="shipment_receive_into_mismatch")
+    if any(value for value in (carrier, tracking_number, delivery_mode, collected_by)):
+        # The announced shipment already says how it travels.
+        raise InvalidOperation(code="shipment_receive_into_fields")
+    package = session.scalar(
+        select(ShipmentPackage)
+        .where(
+            ShipmentPackage.tenant_id == tenant_id,
+            ShipmentPackage.shipment_id == shipment.id,
+        )
+        .order_by(ShipmentPackage.created_at, ShipmentPackage.id)
+        .limit(1)
+    )
+    notice = session.scalar(
+        select(ShipmentEvent)
+        .where(
+            ShipmentEvent.tenant_id == tenant_id,
+            ShipmentEvent.shipment_id == shipment.id,
+            ShipmentEvent.event_type == "announced",
+        )
+        .order_by(ShipmentEvent.recorded_at, ShipmentEvent.id)
+        .limit(1)
+    )
+    if package is None or notice is None:
+        raise InvalidOperation(code="shipment_receive_into_mismatch")
+    return shipment, package, notice
 
 
 def _planned_details(session: Session, delivery) -> dict[str, Any]:
@@ -628,6 +728,31 @@ def _details(
 
     failures = failures_by_shipment(session, tenant_id, shipment_ids)
 
+    # Spec 338: what an inbound notice advised against what was received into
+    # it, and the line a wrong item was meant for.
+    from reality.services.receipt_deviations import (
+        advice_by_shipment,
+        misdeliveries_for,
+    )
+
+    advice = advice_by_shipment(
+        session,
+        tenant_id,
+        [
+            shipment.id
+            for shipment in shipments
+            if shipment.direction == "inbound" and shipment.purpose == "supplier_delivery"
+        ],
+    )
+    meant_for = {
+        movement_id: row.commitment_id
+        for movement_id, row in misdeliveries_for(
+            session,
+            tenant_id,
+            {movement.id for movement in movements if not movement.commitment_id},
+        ).items()
+    }
+
     def timing(shipment_events: list[ShipmentEvent]) -> dict[str, Any]:
         """When the goods moved, as stated, and when Reality was told."""
         notice = next(
@@ -724,9 +849,11 @@ def _details(
                     "quantity": str(movement.quantity),
                     "occurred_at": movement.occurred_at,
                     "commitment_id": movement.commitment_id,
+                    "meant_for_commitment_id": meant_for.get(movement.id),
                 }
                 for movement in shipment_movements
             ],
+            "advice": advice.get(shipment.id, []),
             "events": [
                 {
                     "id": event.id,
@@ -770,7 +897,16 @@ def _details(
                 )
                 if promised
                 else None,
-                "announced": None,
+                "announced": (
+                    str(
+                        sum(
+                            (Decimal(row["advised"]) for row in advice[shipment.id]),
+                            Decimal(),
+                        )
+                    )
+                    if shipment.id in advice
+                    else None
+                ),
                 "dispatched": (
                     str(moved_quantity) if shipment.direction == "outbound" else None
                 ),

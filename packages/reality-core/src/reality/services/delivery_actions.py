@@ -307,6 +307,9 @@ def review_delivery(
             # Spec 304: a receipt may block part of what it brings in.
             "blocked_quantity",
             "block_reason",
+            # Spec 338: a surplus received on purpose, and a wrong item's line.
+            "beyond_order",
+            "meant_for_commitment_id",
         }
     if tool == "reserve":
         # Spec 303: the location the rest is reserved at, if not the promise's.

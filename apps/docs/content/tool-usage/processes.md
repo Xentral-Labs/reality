@@ -196,9 +196,11 @@ run.
 
 **Actions**
 
+- [Record shipment notice](./commands#command-record_shipment_notice) (`record_shipment_notice`)
 - [Dispatch or receive shipment package](./commands#command-record_packaged_execution)
   (`record_packaged_execution`)
 - [Record movement](./commands#command-record_movement) (`record_movement`)
+- [Accept a substitute item](./commands#command-accept_substitute) (`accept_substitute`)
 - [Create lot](./commands#command-create_lot) (`create_lot`)
 - [State lot expiry](./commands#command-state_lot_expiry) (`state_lot_expiry`)
 
@@ -207,7 +209,9 @@ run.
 
 **Can leave behind:** [Unexplained movement](./exceptions#exception-unexplained_movement)
 (`unexplained_movement`), [Expired stock on hand](./exceptions#exception-stock_expired)
-(`stock_expired`)
+(`stock_expired`), [Received beyond the order](./exceptions#exception-received_beyond_order)
+(`received_beyond_order`), [Wrong item delivered](./exceptions#exception-misdelivery_outstanding)
+(`misdelivery_outstanding`)
 
 ### 4. Record and book the supplier invoice
 

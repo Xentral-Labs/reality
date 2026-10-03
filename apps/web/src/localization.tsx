@@ -25315,6 +25315,54 @@ Object.assign(dictionaries.de, {
     "{party} fehlt die Rolle {roles}, die die Dublette hat; vergeben Sie diese Rolle zuerst.",
   "{party} has an open delivery hold; release it before merging.":
     "{party} hat eine offene Liefersperre; heben Sie sie vor dem Zusammenführen auf.",
+  "A purchase line is advised once per notice.":
+    "Eine Bestellposition wird je Avis einmal avisiert.",
+  "A received line can be raised only up to what was received and kept.":
+    "Eine erhaltene Position kann nur bis zur erhaltenen und behaltenen Menge angehoben werden.",
+  "A substitute is accepted for a purchase line only.":
+    "Ein Ersatzartikel wird nur für eine Bestellposition angenommen.",
+  "A substitute must be a stocked item.": "Ein Ersatzartikel muss ein Lagerartikel sein.",
+  "A wrong item names the line it was meant for, not a line it fulfils.":
+    "Ein falscher Artikel nennt die Position, für die er gedacht war, keine Position, die er erfüllt.",
+  "Advised quantities belong to an inbound supplier delivery.":
+    "Avisierte Mengen gehören zu einer eingehenden Lieferantenlieferung.",
+  "An advised line must be an open purchase line of this supplier.":
+    "Eine avisierte Zeile muss eine offene Bestellposition dieses Lieferanten sein.",
+  "An advised quantity is positive, with at most four decimals.":
+    "Eine avisierte Menge ist positiv, mit höchstens vier Nachkommastellen.",
+  "Each advised line names a purchase line and a quantity.":
+    "Jede avisierte Zeile nennt eine Bestellposition und eine Menge.",
+  "Goods are received only into an announced inbound shipment of the same supplier and purpose.":
+    "Ware wird nur in eine avisierte eingehende Sendung desselben Lieferanten und Zwecks eingebucht.",
+  "Name the purchase line, the substitute item and the reason.":
+    "Nennen Sie die Bestellposition, den Ersatzartikel und den Grund.",
+  "Only {out} of this item went the wrong way for this line.":
+    "Von diesem Artikel ging für diese Position nur {out} falsch.",
+  "Only a receipt against a purchase line can bring in more than the line expects.":
+    "Nur ein Wareneingang zu einer Bestellposition kann mehr einbuchen, als die Position erwartet.",
+  "Say why the substitute is accepted.": "Sagen Sie, warum der Ersatzartikel angenommen wird.",
+  "The announced shipment already says how it travels; leave carrier and tracking out.":
+    "Die avisierte Sendung sagt schon, wie sie reist; lassen Sie Spediteur und Sendungsnummer weg.",
+  "The substitute is counted in {substitute}, the ordered item in {ordered}.":
+    "Der Ersatzartikel wird in {substitute} gezählt, der bestellte Artikel in {ordered}.",
+  "This is the item the line already orders.": "Diesen Artikel bestellt die Position bereits.",
+  "This is the item the line asks for, or one it accepted; record it against the line.":
+    "Diesen Artikel verlangt die Position oder hat ihn angenommen; buchen Sie ihn auf die Position.",
+  "This item is already accepted for the line.":
+    "Dieser Artikel ist für die Position bereits angenommen.",
+  "This purchase line is cancelled; it accepts no substitute.":
+    "Diese Bestellposition ist storniert; sie nimmt keinen Ersatzartikel an.",
+  "Wrong goods for this line move only as: {allowed}.":
+    "Falsche Ware für diese Position bewegt sich nur als: {allowed}.",
+  "Received beyond the order": "Mehr erhalten als bestellt",
+  "The surplus going back to the supplier against the line, or revising the line up to what was received.":
+    "Die Mehrmenge geht zur Position an den Lieferanten zurück, oder die Position wird auf die erhaltene Menge angehoben.",
+  "Wrong item delivered": "Falscher Artikel geliefert",
+  "The wrong goods going back against the same line, or, for a purchase, accepting the item as a substitute and correcting the receipt onto the line.":
+    "Die falsche Ware geht zur selben Position zurück, oder bei einer Bestellung wird der Artikel als Ersatz angenommen und der Wareneingang auf die Position korrigiert.",
+  Advised: "Avisiert",
+  received: "erhalten",
+  "in transit": "unterwegs",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25993,6 +26041,53 @@ Object.assign(dictionaries.nl, {
     "{party} mist de rol {roles} die het duplicaat heeft; geef eerst die rol.",
   "{party} has an open delivery hold; release it before merging.":
     "{party} heeft een open leveringsblokkade; hef die op voor het samenvoegen.",
+  "A purchase line is advised once per notice.":
+    "Een inkoopregel wordt eenmaal per aankondiging geadviseerd.",
+  "A received line can be raised only up to what was received and kept.":
+    "Een ontvangen regel kan alleen worden verhoogd tot wat ontvangen en behouden is.",
+  "A substitute is accepted for a purchase line only.":
+    "Een vervangend artikel wordt alleen voor een inkoopregel aanvaard.",
+  "A substitute must be a stocked item.": "Een vervangend artikel moet een voorraadartikel zijn.",
+  "A wrong item names the line it was meant for, not a line it fulfils.":
+    "Een verkeerd artikel noemt de regel waarvoor het bedoeld was, geen regel die het vervult.",
+  "Advised quantities belong to an inbound supplier delivery.":
+    "Geadviseerde hoeveelheden horen bij een inkomende leverancierslevering.",
+  "An advised line must be an open purchase line of this supplier.":
+    "Een geadviseerde regel moet een open inkoopregel van deze leverancier zijn.",
+  "An advised quantity is positive, with at most four decimals.":
+    "Een geadviseerde hoeveelheid is positief, met hoogstens vier decimalen.",
+  "Each advised line names a purchase line and a quantity.":
+    "Elke geadviseerde regel noemt een inkoopregel en een hoeveelheid.",
+  "Goods are received only into an announced inbound shipment of the same supplier and purpose.":
+    "Goederen worden alleen ontvangen in een aangekondigde inkomende zending van dezelfde leverancier en hetzelfde doel.",
+  "Name the purchase line, the substitute item and the reason.":
+    "Noem de inkoopregel, het vervangende artikel en de reden.",
+  "Only {out} of this item went the wrong way for this line.":
+    "Van dit artikel ging voor deze regel maar {out} de verkeerde kant op.",
+  "Only a receipt against a purchase line can bring in more than the line expects.":
+    "Alleen een ontvangst op een inkoopregel kan meer binnenbrengen dan de regel verwacht.",
+  "Say why the substitute is accepted.": "Zeg waarom het vervangende artikel wordt aanvaard.",
+  "The announced shipment already says how it travels; leave carrier and tracking out.":
+    "De aangekondigde zending zegt al hoe ze reist; laat vervoerder en tracking weg.",
+  "The substitute is counted in {substitute}, the ordered item in {ordered}.":
+    "Het vervangende artikel wordt geteld in {substitute}, het bestelde artikel in {ordered}.",
+  "This is the item the line already orders.": "Dit is het artikel dat de regel al bestelt.",
+  "This is the item the line asks for, or one it accepted; record it against the line.":
+    "Dit is het artikel dat de regel vraagt of aanvaardde; boek het op de regel.",
+  "This item is already accepted for the line.": "Dit artikel is al aanvaard voor de regel.",
+  "This purchase line is cancelled; it accepts no substitute.":
+    "Deze inkoopregel is geannuleerd; ze aanvaardt geen vervangend artikel.",
+  "Wrong goods for this line move only as: {allowed}.":
+    "Verkeerde goederen voor deze regel bewegen alleen als: {allowed}.",
+  "Received beyond the order": "Meer ontvangen dan besteld",
+  "The surplus going back to the supplier against the line, or revising the line up to what was received.":
+    "Het teveel gaat op de regel terug naar de leverancier, of de regel wordt verhoogd tot wat ontvangen is.",
+  "Wrong item delivered": "Verkeerd artikel geleverd",
+  "The wrong goods going back against the same line, or, for a purchase, accepting the item as a substitute and correcting the receipt onto the line.":
+    "De verkeerde goederen gaan terug op dezelfde regel, of bij een inkoop wordt het artikel als vervanging aanvaard en de ontvangst op de regel gecorrigeerd.",
+  Advised: "Geadviseerd",
+  received: "ontvangen",
+  "in transit": "onderweg",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -26671,6 +26766,52 @@ Object.assign(dictionaries.es, {
     "{party} no tiene el rol {roles} que tiene el duplicado; asígnele primero ese rol.",
   "{party} has an open delivery hold; release it before merging.":
     "{party} tiene un bloqueo de entrega abierto; libérelo antes de fusionar.",
+  "A purchase line is advised once per notice.": "Una línea de compra se avisa una vez por aviso.",
+  "A received line can be raised only up to what was received and kept.":
+    "Una línea recibida solo puede aumentarse hasta lo recibido y conservado.",
+  "A substitute is accepted for a purchase line only.":
+    "Un artículo sustituto solo se acepta para una línea de compra.",
+  "A substitute must be a stocked item.": "Un artículo sustituto debe ser un artículo de stock.",
+  "A wrong item names the line it was meant for, not a line it fulfils.":
+    "Un artículo equivocado indica la línea a la que iba destinado, no una línea que cumpla.",
+  "Advised quantities belong to an inbound supplier delivery.":
+    "Las cantidades avisadas pertenecen a una entrega entrante de proveedor.",
+  "An advised line must be an open purchase line of this supplier.":
+    "Una línea avisada debe ser una línea de compra abierta de este proveedor.",
+  "An advised quantity is positive, with at most four decimals.":
+    "Una cantidad avisada es positiva, con como máximo cuatro decimales.",
+  "Each advised line names a purchase line and a quantity.":
+    "Cada línea avisada indica una línea de compra y una cantidad.",
+  "Goods are received only into an announced inbound shipment of the same supplier and purpose.":
+    "La mercancía solo se recibe en un envío entrante avisado del mismo proveedor y propósito.",
+  "Name the purchase line, the substitute item and the reason.":
+    "Indique la línea de compra, el artículo sustituto y el motivo.",
+  "Only {out} of this item went the wrong way for this line.":
+    "De este artículo solo {out} fue por error para esta línea.",
+  "Only a receipt against a purchase line can bring in more than the line expects.":
+    "Solo una recepción contra una línea de compra puede registrar más de lo que la línea espera.",
+  "Say why the substitute is accepted.": "Indique por qué se acepta el sustituto.",
+  "The announced shipment already says how it travels; leave carrier and tracking out.":
+    "El envío avisado ya indica cómo viaja; omita transportista y seguimiento.",
+  "The substitute is counted in {substitute}, the ordered item in {ordered}.":
+    "El sustituto se cuenta en {substitute}, el artículo pedido en {ordered}.",
+  "This is the item the line already orders.": "Este es el artículo que la línea ya pide.",
+  "This is the item the line asks for, or one it accepted; record it against the line.":
+    "Este es el artículo que pide la línea o que aceptó; regístrelo contra la línea.",
+  "This item is already accepted for the line.": "Este artículo ya está aceptado para la línea.",
+  "This purchase line is cancelled; it accepts no substitute.":
+    "Esta línea de compra está cancelada; no acepta sustituto.",
+  "Wrong goods for this line move only as: {allowed}.":
+    "La mercancía equivocada para esta línea solo se mueve como: {allowed}.",
+  "Received beyond the order": "Recibido más de lo pedido",
+  "The surplus going back to the supplier against the line, or revising the line up to what was received.":
+    "El exceso vuelve al proveedor contra la línea, o la línea se aumenta hasta lo recibido.",
+  "Wrong item delivered": "Artículo equivocado entregado",
+  "The wrong goods going back against the same line, or, for a purchase, accepting the item as a substitute and correcting the receipt onto the line.":
+    "La mercancía equivocada vuelve contra la misma línea o, en una compra, el artículo se acepta como sustituto y la recepción se corrige a la línea.",
+  Advised: "Avisado",
+  received: "recibido",
+  "in transit": "en tránsito",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

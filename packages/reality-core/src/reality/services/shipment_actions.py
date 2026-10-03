@@ -59,6 +59,8 @@ SHIPMENT_EXECUTION_FIELDS = {
     "collected_by",
     # Spec 334: the planned delivery this dispatch executes.
     "outbound_delivery_id",
+    # Spec 338: the announced inbound shipment a receipt is recorded into.
+    "shipment_id",
 }
 SHIPMENT_MOVEMENT_FIELDS = {
     "movement_type",
@@ -76,6 +78,9 @@ SHIPMENT_MOVEMENT_FIELDS = {
     # Spec 304: a receipt may hold back part of what it brings in.
     "blocked_quantity",
     "block_reason",
+    # Spec 338: a surplus received on purpose, and a wrong item's line.
+    "beyond_order",
+    "meant_for_commitment_id",
 }
 
 
@@ -167,6 +172,38 @@ def review_shipment_action(
             intent.get("collected_by"),
         )
         _check_moved_at(intent.get("occurred_at"))
+        # Spec 338: the review refuses what the confirmation would refuse.
+        if tool == "shipment_notice_record" and intent.get("advised"):
+            from reality.services.receipt_deviations import validate_advice
+
+            advice = validate_advice(
+                session,
+                tenant_id,
+                direction=str(direction),
+                purpose=purpose,
+                counterparty_id=party.id,
+                advised=intent.get("advised"),
+            )
+            state["advice"] = [
+                [commitment.id, commitment.status, str(quantity)]
+                for commitment, quantity in advice
+            ]
+        if intent.get("shipment_id") and tool != "shipment_notice_record":
+            from reality.services.shipments import _announced_shipment
+
+            announced, _, _ = _announced_shipment(
+                session,
+                tenant_id,
+                str(intent["shipment_id"]),
+                direction=str(direction),
+                purpose=purpose,
+                counterparty_id=party.id,
+                carrier=intent.get("carrier"),
+                tracking_number=intent.get("tracking_number"),
+                delivery_mode=intent.get("delivery_mode"),
+                collected_by=intent.get("collected_by"),
+            )
+            state["announced_shipment"] = announced.id
         if tool in {"shipment_dispatch", "shipment_receive"}:
             _check_stock_at_moved_time(
                 session, tenant_id, intent.get("movements") or [], intent.get("occurred_at")
@@ -234,6 +271,8 @@ def review_shipment_action(
                     )
                 movement.pop("shipment_package_id", None)
                 movement.pop("source_record_id", None)
+                if purpose == "customer_delivery" and not movement.get("commitment_id"):
+                    raise InvalidOperation(code="customer_dispatch_commitment_missing")
                 blocked = movement.pop("blocked_quantity", None)
                 block_reason = movement.pop("block_reason", None)
                 preview = _append_movement(

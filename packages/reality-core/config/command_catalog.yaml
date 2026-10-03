@@ -83,6 +83,9 @@ parameter_descriptions:
   carrier: Carrier name stated for a physical package; it is descriptive and not an internal identity.
   delivery_mode: How the goods go, as stated, carrier or pickup; a pickup takes no carrier or tracking number.
   collected_by: Who collected a pickup, as stated; optional free text.
+  beyond_order: Set on a receipt against a purchase line to bring in more than the line still expects (spec 338); the surplus is reported until it is kept or sent back.
+  meant_for_commitment_id: The order line a wrong item was meant for (spec 338), instead of a commitment it fulfils; the movement carries another item and leaves the line open.
+  advised: How much an inbound supplier notice brings for each purchase line, as stated (spec 338); compared with what is received into the same shipment.
   commit: Internal transaction-control flag used when a service participates in a larger atomic operation.
   purpose: Closed business purpose that determines the shipment's counterparty role and compatible Movement type.
   reporter_type: Closed attribution for who stated a shipment observation, such as company, counterparty, or carrier.
@@ -1066,8 +1069,8 @@ commands:
     service: record_movement
     mode: mutation
     adapters: [CLI, Web, API, scenario, MCP, Chat]
-    reads: [item, location, commitment, handling_unit, lot, serial_unit]
-    writes: [movement, reservation, commitment, action, business_event]
+    reads: [item, location, commitment, handling_unit, lot, serial_unit, commitment_substitute, misdelivery]
+    writes: [movement, reservation, commitment, action, business_event, misdelivery]
     effect: Records an immutable physical event with the same optional pallet, lot, and serial identity used by reservations.
   - name: Correct movement
     service: correct_movement
@@ -1075,8 +1078,8 @@ commands:
     mode: mutation
     adapters: [CLI, Web, API, Chat, MCP]
     confirmation: required
-    reads: [movement, movement_correction, item, location, commitment, handling_unit, lot, serial_unit, source_record]
-    writes: [movement, movement_correction, commitment, business_event]
+    reads: [movement, movement_correction, item, location, commitment, handling_unit, lot, serial_unit, source_record, commitment_substitute, misdelivery]
+    writes: [movement, movement_correction, commitment, business_event, misdelivery]
     effect: Preserves an immutable original, appends one exact correction and optional replacement, and derives the auditable net physical effect.
   - name: Reverse ledger posting group
     service: reverse_ledger_posting_group
@@ -1225,6 +1228,15 @@ commands:
     reads: [item, kit_component]
     writes: [kit_component, source_record, business_event]
     effect: States the components of a kit once, with how many one kit takes and optionally each component's share of the kit's price.
+  - name: Accept a substitute item
+    service: accept_substitute
+    related_services: [review_substitute, validate_substitute]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [commitment, item, commitment_substitute]
+    writes: [commitment_substitute, source_record, business_event]
+    effect: Accepts another stocked item in the same unit in place of what a purchase line ordered, with a reason; receipts of it then name the line and fulfil it, and the line keeps what it ordered.
   - name: Assemble kits
     service: assemble_kit
     related_services: [review_kit, validate_kit_assembly]
@@ -1269,7 +1281,7 @@ commands:
     service: purchase_match
     mode: query
     adapters: [CLI, Web, API, MCP, Chat]
-    reads: [document, document_line, commitment, commitment_revision, movement, item]
+    reads: [document, document_line, commitment, commitment_revision, movement, item, commitment_substitute, shipment_advice_line, shipment_package]
     writes: []
     effect: Answers per purchase line whether the quantity in force was received and billed at the agreed price, or names each difference.
   - name: State a customer item number
@@ -1881,8 +1893,8 @@ commands:
     mode: mutation
     adapters: [CLI, Web, API, MCP, Chat]
     confirmation: required
-    reads: [party, party_role, source_record]
-    writes: [shipment, shipment_package, shipment_event, business_event]
+    reads: [party, party_role, source_record, commitment]
+    writes: [shipment, shipment_package, shipment_event, business_event, shipment_advice_line]
     effect: Records a stated consignment and package without moving stock.
   - name: Dispatch or receive shipment package
     service: record_packaged_execution
@@ -1890,8 +1902,8 @@ commands:
     mode: mutation
     adapters: [CLI, Web, API, MCP, Chat]
     confirmation: required
-    reads: [party, party_role, commitment, return_announcement, item, location, reservation, movement]
-    writes: [shipment, shipment_package, shipment_event, movement, reservation, business_event]
+    reads: [party, party_role, commitment, return_announcement, item, location, reservation, movement, commitment_substitute, misdelivery]
+    writes: [shipment, shipment_package, shipment_event, movement, reservation, business_event, misdelivery]
     effect: Atomically records one physical package and its exact existing Movement effects.
   - name: Record shipment event
     service: record_shipment_event
@@ -5878,6 +5890,7 @@ agent_command_coverage:
   purchase_match: {classification: eligible, tools: [purchase_match]}
   define_kit: {classification: eligible, tools: [kit_define_propose]}
   assemble_kit: {classification: eligible, tools: [kit_assemble_propose]}
+  accept_substitute: {classification: eligible, tools: [commitment_substitute_accept_propose]}
   kits: {classification: eligible, tools: [kits]}
   kit_split: {classification: eligible, tools: [kit_split]}
   merge_party: {classification: eligible, tools: [party_merge_propose]}

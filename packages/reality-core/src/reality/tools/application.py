@@ -1896,6 +1896,27 @@ def _party_merges(session: Session, tenant_id: str, arguments: dict[str, Any]) -
     )
 
 
+def _commitment_substitute_accept(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.receipt_deviations import accept_substitute
+
+    row = accept_substitute(
+        session,
+        tenant_id,
+        arguments["commitment_id"],
+        arguments["item_id"],
+        arguments["reason"],
+        action_id=arguments.get("_action_id"),
+    )
+    return {
+        "substitute_id": row.id,
+        "commitment_id": row.commitment_id,
+        "item_id": row.item_id,
+        "source_record_id": row.source_record_id,
+    }
+
+
 def _order_line_item_assign(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -3228,6 +3249,12 @@ TOOLS = {
         True,
         _kit_define,
     ),
+    "commitment_substitute_accept": Tool(
+        "commitment_substitute_accept",
+        "Accept another item in place of what a purchase line ordered, with a reason; receipts of it then fulfil the line.",
+        True,
+        _commitment_substitute_accept,
+    ),
     "kit_assemble": Tool(
         "kit_assemble",
         "Assemble kits at a location: consume the components and produce the kits, all or nothing.",
@@ -4109,6 +4136,13 @@ def create_change_proposal(
         normalized_arguments, party_merge_review = review_party_merge(
             session, tenant_id, tool_name, arguments
         )
+    substitute_review = None
+    if tool_name == "commitment_substitute_accept":
+        from reality.services.receipt_deviations import review_substitute
+
+        normalized_arguments, substitute_review = review_substitute(
+            session, tenant_id, arguments
+        )
     reorder_review = None
     if tool_name in {"reorder_point_set", "reorder_point_remove"}:
         from reality.services.reorder_points import review_reorder_point
@@ -4182,6 +4216,8 @@ def create_change_proposal(
         preview["dunning"] = preview_notice(session, tenant_id, normalized_arguments)
     if kit_review is not None:
         preview["kit"] = kit_review
+    if substitute_review is not None:
+        preview["substitute"] = substitute_review
     if party_merge_review is not None:
         preview["party_merge"] = party_merge_review
     if reorder_review is not None:
@@ -4804,6 +4840,7 @@ def approve_and_execute_proposal(
         "kit_define",
         "kit_assemble",
         "party_merge",
+        "commitment_substitute_accept",
         "stock_block",
         "stock_block_release",
         "stock_block_scrap",

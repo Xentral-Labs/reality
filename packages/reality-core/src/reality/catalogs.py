@@ -48,6 +48,7 @@ from reality.services import playground as playground_service_module
 from reality.services import projection_jobs as projection_job_service_module
 from reality.services import projections as projection_service_module
 from reality.services import purchase_match as purchase_match_service_module
+from reality.services import receipt_deviations as receipt_deviation_service_module
 from reality.services import reorder_points as reorder_point_service_module
 from reality.services import return_dispositions as return_disposition_service_module
 from reality.services import scheduled_jobs as scheduled_job_service_module
@@ -154,6 +155,8 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "shipped_beyond_order",
     "payout_line_unmatched",
     "payment_authorization_expired",
+    "received_beyond_order",
+    "misdelivery_outstanding",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays
@@ -1135,6 +1138,7 @@ def _service(name: str) -> Any:
         drop_shipping_service_module,
         payout_service_module,
         authorization_service_module,
+        receipt_deviation_service_module,
     ):
         own = getattr(module, name, None)
         if own is not None and getattr(own, "__module__", None) == module.__name__:
@@ -1352,6 +1356,7 @@ def _literal_business_events() -> set[str]:
         company_currency_service_module,
         delivery_failure_service_module,
         drop_shipping_service_module,
+        receipt_deviation_service_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

@@ -1,6 +1,10 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:3de0e229a1d1711f59354f636ef179cad262b3f36328f1b73511b2b6aa8182cf",
+<<<<<<< HEAD
+  "knowledge_version": "advisor-v1:sha256:74aacafdbb239d0cd80464c2040b9915bc09290f14f481f5457bc7edc8a23ef9",
+=======
+  "knowledge_version": "advisor-v1:sha256:84bceeadb4854681345a116023c9126951e52de6ae3c778398f9abf7bd5ccc70",
+>>>>>>> a1a7e116 (feat(338): receipt and shipment deviations — surplus received on purpose, wrong items named for their line, substitutes for purchase lines, advised quantities and in transit per purchase)
   "sources": [
     {
       "id": "source_journey_a01",
@@ -585,7 +589,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D05",
-      "fingerprint": "8b04b3808258bfbcd82eb8345655e338e23abb0b98b9db9e8aa560b13745b92c"
+      "fingerprint": "e6dd6ec106da5ff693de5f9bf81c22f12906b144c7bb9bc1e69b46b16702dc87"
     },
     {
       "id": "source_journey_d06",
@@ -1080,7 +1084,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G16",
-      "fingerprint": "16afdabc6eadb80b584f289c218d7dfcc20556db7f1cdcb1ed48de8e872f9d5b"
+      "fingerprint": "49e84b843db17f02c6d5ff47bcb0b29d12de6cc120475447f34610509dc1b666"
     },
     {
       "id": "source_journey_g17",
@@ -1125,7 +1129,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H04",
-      "fingerprint": "ad2cba364802a61bb06ec0baa6a5708b81ef1eb256b5f318ac9b62ca2baba72c"
+      "fingerprint": "301bb30b25a50ac3bb2faf7b12d4bef9f4c1643c717537e5ffc7f9f4adb67849"
     },
     {
       "id": "source_journey_h05",
@@ -1134,7 +1138,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H05",
-      "fingerprint": "1c484b6ad3d6ba6e83ab3390893965102cf0ead7d2890ae34e0c4c2bc4b4bd92"
+      "fingerprint": "c5c9cb052f88b7dcf31715f55e66a31e111b556049a2d0ae82b408572c8a077c"
     },
     {
       "id": "source_journey_h06",
@@ -1143,7 +1147,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H06",
-      "fingerprint": "599a5025dad2fe7a4f9e18ec86f6288c57add37976473f37cb47bbd106973d3d"
+      "fingerprint": "d9869902fc5d39cfe94c9edc52fe1bf77cfac016cf88a4006926efb8cca500a8"
     },
     {
       "id": "source_journey_h07",
@@ -1152,7 +1156,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H07",
-      "fingerprint": "d50dcfa212381ab0d82d8944e46cd230db65d423f32402a2cd4ec016fb6a1f26"
+      "fingerprint": "5ec558c87eb88309afbe324227b2b87bef83c085b569c3acadd7912df3afdcf1"
     },
     {
       "id": "source_journey_h08",
@@ -1242,7 +1246,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#H17",
-      "fingerprint": "6127d76e34ca0809789de7a7c185fd26cb4ecd69d89630f13f9692cd8e68c7d8"
+      "fingerprint": "a466d2415068c97067191eb8dc864dab608912b34d9b76e8d565d1e64427abff"
     },
     {
       "id": "source_journey_h18",
@@ -1611,7 +1615,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L10",
-      "fingerprint": "2d3e55c4434573dc63bd478bf6150801bd792b02d07632f1439f398d9fd33049"
+      "fingerprint": "e232b39c0de1c6b5141d2010f2667728df3552d73e2abd38c342266189533c48"
     },
     {
       "id": "source_journey_l11",
@@ -1827,7 +1831,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#O02",
-      "fingerprint": "0d0626f711ea9fabb78a1f3894065d6f7b9455ee6df17635293c96b79c705341"
+      "fingerprint": "559388d142ff0cdbcdcbd67d0845b283543cc9f234eb7c58370307849bc4be70"
     },
     {
       "id": "source_journey_o03",
@@ -2061,7 +2065,11 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "45391fe335e87e83235ca8471c3ebe8b7cd71c7293ea678e41512be5d54560e3"
+<<<<<<< HEAD
+      "fingerprint": "61f19d77457b77c837e89ffb883295631a3937ae6b7b0d48a7ccc28d26801ca3"
+=======
+      "fingerprint": "4a32ee862e9828fa5f6254c15393b1b39f8a3f79db09c66a2b0f4e40050de9da"
+>>>>>>> a1a7e116 (feat(338): receipt and shipment deviations — surplus received on purpose, wrong items named for their line, substitutes for purchase lines, advised quantities and in transit per purchase)
     },
     {
       "id": "source_document_product_evaluation",
@@ -3240,18 +3248,21 @@
       "source_id": "source_journey_d05",
       "subject": "Picking, shipment, split and merge",
       "title": "Picking error found by the customer",
-      "search_text": "D05 Picking, shipment, split and merge Picking error found by the customer Wrong item shipped, right item still open? Picking error found by the customer Wrong item shipped, right item still open?",
-      "claim_text": "Reality evaluates: Wrong item shipped, right item still open?",
-      "support": "unavailable",
+      "search_text": "D05 Picking, shipment, split and merge Picking error found by the customer Wrong item shipped, right item still open? wrong item shipped customer received the wrong item falscher Artikel beim Kunden Picking error found by the customer Wrong item shipped, right item still open? The customer got bells instead of the lights we booked; what is still open? Der Kunde hat Klingeln statt der gebuchten Lampen bekommen; was ist noch offen?",
+      "claim_text": "Reality evaluates: Wrong item shipped, right item still open? The recorded shipment is corrected to the item that actually left, naming the order line it was meant for. The line is open again for the right item, stock of both items is true, and Wrong item delivered names the line until the wrong goods come back.",
+      "support": "proven",
       "limitations": [
-        "A shipment of the wrong item cannot name the order line it was meant for.",
-        "It can only be recorded without that link and then appears as an unexplained stock movement."
+        "Reshipping the right item is an ordinary dispatch of the open line."
       ],
       "references": [
-        "D05"
+        "D05",
+        "movement_correction_propose",
+        "shipment_receive_propose",
+        "shipment_dispatch_propose",
+        "exceptions_list"
       ],
       "language": "en",
-      "fingerprint": "cd57df18f9e8a4d674c67752022eca1d478fb6e0c5d4d32b09550e866ccc5b09"
+      "fingerprint": "d3c53b0f21de0156b2bd3e9b82a3a832d1ad000c2b4e824caa4eeea94e5f54b1"
     },
     {
       "id": "evidence_journey_d06",
@@ -4200,18 +4211,20 @@
       "source_id": "source_journey_g16",
       "subject": "Purchasing: demand and purchase order",
       "title": "Import by sea (8 weeks), one container, many purchases",
-      "search_text": "G16 Purchasing: demand and purchase order Import by sea (8 weeks), one container, many purchases In-transit per purchase? Import by sea (8 weeks), one container, many purchases In-transit per purchase?",
-      "claim_text": "Reality evaluates: In-transit per purchase?",
-      "support": "unavailable",
+      "search_text": "G16 Purchasing: demand and purchase order Import by sea (8 weeks), one container, many purchases In-transit per purchase? container in transit Seefracht unterwegs Import by sea (8 weeks), one container, many purchases In-transit per purchase? One container carries three of our purchase orders; what is still on the water per order? Ein Container enthält drei unserer Bestellungen; was ist je Bestellung noch unterwegs?",
+      "claim_text": "Reality evaluates: In-transit per purchase? One container notice advises the lines of three purchase orders. Until goods are received into that shipment, each purchase order's three-way match shows its advised quantity in transit; once the container is received, nothing is.",
+      "support": "proven",
       "limitations": [
-        "Inbound advices and in-transit events do not say which purchases they contain.",
-        "Goods in transit per purchase order therefore cannot be shown."
+        "Advices are stated through the reviewed notice; supplier advice files are not interpreted."
       ],
       "references": [
-        "G16"
+        "G16",
+        "shipment_notice_record_propose",
+        "shipment_receive_propose",
+        "purchase_match"
       ],
       "language": "en",
-      "fingerprint": "49497f915a32d6e5abe0377e965d8844fa28b703ee736494e9b3b8284bea7338"
+      "fingerprint": "d99bb7ad413bb1a76df8fd643dd4a3ff846a8da3941a717699b5135327a673e8"
     },
     {
       "id": "evidence_journey_g17",
@@ -4281,70 +4294,82 @@
       "source_id": "source_journey_h04",
       "subject": "Goods receipt and supplier deviations",
       "title": "Over-delivery accepted",
-      "search_text": "H04 Goods receipt and supplier deviations Over-delivery accepted Surplus visible? Over-delivery accepted Surplus visible?",
-      "claim_text": "Reality evaluates: Surplus visible?",
-      "support": "unavailable",
+      "search_text": "H04 Goods receipt and supplier deviations Over-delivery accepted Surplus visible? supplier over-delivery surplus Überlieferung Mehrlieferung Lieferant Over-delivery accepted Surplus visible? The supplier delivered 105 instead of 100; can we book the five extra? Der Lieferant hat 105 statt 100 geliefert; können wir die fünf zusätzlich einbuchen?",
+      "claim_text": "Reality evaluates: Surplus visible? The receipt states that it brings in more than the purchase line expects, and the surplus is received against the purchase. Received beyond the order reports it, and the three-way match shows the line received over, until the line is raised to what arrived or the surplus goes back to the supplier.",
+      "support": "proven",
       "limitations": [
-        "A receipt above the ordered quantity is refused, and there is no surplus signal.",
-        "The only workaround is to raise the ordered quantity first."
+        "Every surplus is stated by the person receiving; there is no automatic tolerance."
       ],
       "references": [
-        "H04"
+        "H04",
+        "shipment_receive_propose",
+        "commitment_revise_propose",
+        "exceptions_list",
+        "purchase_match"
       ],
       "language": "en",
-      "fingerprint": "fe01f0edadad1158f94f19a0b19b2fc029b9166dc7539d6a8bc36e5a50480fb1"
+      "fingerprint": "468013d92f2ebcbb7a84a42c8f733fcec2d7b843b47c54bec2165820274b1b0c"
     },
     {
       "id": "evidence_journey_h05",
       "source_id": "source_journey_h05",
       "subject": "Goods receipt and supplier deviations",
       "title": "Over-delivery rejected or returned",
-      "search_text": "H05 Goods receipt and supplier deviations Over-delivery rejected or returned Supplier return linked? Over-delivery rejected or returned Supplier return linked?",
-      "claim_text": "Reality evaluates: Supplier return linked?",
-      "support": "unavailable",
+      "search_text": "H05 Goods receipt and supplier deviations Over-delivery rejected or returned Supplier return linked? return surplus to supplier Rücksendung Überlieferung Over-delivery rejected or returned Supplier return linked? We received 110 for 100 ordered and send ten back; is the return linked to the order? Wir haben 110 statt 100 erhalten und schicken zehn zurück; ist die Rücksendung mit der Bestellung verknüpft?",
+      "claim_text": "Reality evaluates: Supplier return linked? The surplus is received against the purchase line and sent back to the supplier against the same line, so the supplier return is linked to the purchase. Received beyond the order clears once it has gone.",
+      "support": "proven",
       "limitations": [
-        "The surplus cannot be received against the purchase order, and a supplier return must refer to a received delivery.",
-        "Returning an over-delivery is therefore not possible."
+        "A delivery refused at the door is simply not received; only what was received can go back."
       ],
       "references": [
-        "H05"
+        "H05",
+        "shipment_receive_propose",
+        "shipment_dispatch_propose",
+        "exceptions_list"
       ],
       "language": "en",
-      "fingerprint": "f25368ec493f23d44b4f6650f0944cca771aec4d285044e3ffe1b294b72855e8"
+      "fingerprint": "d7af44d53d47bd97301fac232306b5bdd795d9032d851ecbd0f5d3f03e87625d"
     },
     {
       "id": "evidence_journey_h06",
       "source_id": "source_journey_h06",
       "subject": "Goods receipt and supplier deviations",
       "title": "Wrong item delivered",
-      "search_text": "H06 Goods receipt and supplier deviations Wrong item delivered Received item ≠ ordered item visible? Wrong item delivered Received item ≠ ordered item visible?",
-      "claim_text": "Reality evaluates: Received item ≠ ordered item visible?",
-      "support": "unavailable",
+      "search_text": "H06 Goods receipt and supplier deviations Wrong item delivered Received item ≠ ordered item visible? wrong item wrong item from supplier falscher Artikel Wrong item delivered Received item ≠ ordered item visible? The supplier sent bells instead of lights; how is that tied to the purchase order? Der Lieferant hat Klingeln statt Lampen geschickt; wie hängt das an der Bestellung?",
+      "claim_text": "Reality evaluates: Received item ≠ ordered item visible? The receipt carries the item that arrived and names the purchase line it was meant for. It does not fulfil the line, which still expects the ordered item, and Wrong item delivered names the line until the goods have gone back to the supplier against the same line.",
+      "support": "proven",
       "limitations": [
-        "A wrong item cannot be tied to the purchase order; it appears only as an unexplained receipt."
+        "The wrong goods are a separate item in stock until they go back or are accepted as a substitute."
       ],
       "references": [
-        "H06"
+        "H06",
+        "shipment_receive_propose",
+        "shipment_dispatch_propose",
+        "exceptions_list",
+        "movement_explanation"
       ],
       "language": "en",
-      "fingerprint": "2fdfe950d50a7e6960eefd8cdb3887dfb3297d8532f61583a697de2935d6fb74"
+      "fingerprint": "6b9a9b02b0bb6356a71995924e68ad30e4160ffb22f616ef9988a90ba438e4a6"
     },
     {
       "id": "evidence_journey_h07",
       "source_id": "source_journey_h07",
       "subject": "Goods receipt and supplier deviations",
       "title": "Substitute/successor item delivered",
-      "search_text": "H07 Goods receipt and supplier deviations Substitute/successor item delivered Accepted against the purchase with a link? Substitute/successor item delivered Accepted against the purchase with a link?",
-      "claim_text": "Reality evaluates: Accepted against the purchase with a link?",
-      "support": "unavailable",
+      "search_text": "H07 Goods receipt and supplier deviations Substitute/successor item delivered Accepted against the purchase with a link? successor item substitute Nachfolgeartikel Ersatzartikel Substitute/successor item delivered Accepted against the purchase with a link? The supplier ships the successor model; can we accept it against our order? Der Lieferant liefert das Nachfolgemodell; können wir es gegen unsere Bestellung annehmen?",
+      "claim_text": "Reality evaluates: Accepted against the purchase with a link? A buyer accepts the successor item for the purchase line through a reviewed action with a reason. Receipts of the successor then name the line and fulfil it, and the three-way match names the accepted substitute. A successor that already arrived as a wrong item is moved onto the line by correcting that receipt.",
+      "support": "proven",
       "limitations": [
-        "A receipt cannot record that a substitute or successor item stands in for the ordered one."
+        "Only an item in the ordered item's unit can stand in; the line keeps the item it ordered."
       ],
       "references": [
-        "H07"
+        "H07",
+        "commitment_substitute_accept_propose",
+        "shipment_receive_propose",
+        "purchase_match"
       ],
       "language": "en",
-      "fingerprint": "5b4869e37edf7ef1a0d2fddf376e0e4933c23dd3b8adb971b0d2a7e03b2d6df2"
+      "fingerprint": "985167e3a21f16e112d3ff407787af0990de332d46f7445b114b75019bdcb7ee"
     },
     {
       "id": "evidence_journey_h08",
@@ -4503,17 +4528,20 @@
       "source_id": "source_journey_h17",
       "subject": "Goods receipt and supplier deviations",
       "title": "Advice says 100, 96 arrive",
-      "search_text": "H17 Goods receipt and supplier deviations Advice says 100, 96 arrive Advised vs received visible? Advice says 100, 96 arrive Advised vs received visible?",
-      "claim_text": "Reality evaluates: Advised vs received visible?",
-      "support": "unavailable",
+      "search_text": "H17 Goods receipt and supplier deviations Advice says 100, 96 arrive Advised vs received visible? advice ASN Lieferavis avisierte Menge Advice says 100, 96 arrive Advised vs received visible? The supplier's advice said 100 but only 96 arrived; where do I see that? Das Lieferavis sagte 100, angekommen sind 96; wo sehe ich das?",
+      "claim_text": "Reality evaluates: Advised vs received visible? The inbound notice states 100 for the purchase line, and the 96 that arrive are received into the announced shipment. The shipment reads advised 100, received 96 and a difference of 4; the purchase line stays open for the four.",
+      "support": "proven",
       "limitations": [
-        "Advised quantities are not recorded, so advised and received quantities cannot be compared."
+        "A short delivery is shown, not reported as a finding; the open purchase line and its overdue finding carry the follow-up."
       ],
       "references": [
-        "H17"
+        "H17",
+        "shipment_notice_record_propose",
+        "shipment_receive_propose",
+        "shipment_explain"
       ],
       "language": "en",
-      "fingerprint": "6036b4dc920896f76bfafcbd05aaeb0b436656edaf8efc5cee63fc6d5a0045fc"
+      "fingerprint": "e07554bc328680745868f15597e2b62124d106116a2411b4548f023846c51f2f"
     },
     {
       "id": "evidence_journey_h18",
@@ -5218,20 +5246,17 @@
       "source_id": "source_journey_l10",
       "subject": "E-commerce and marketplaces",
       "title": "Guest order, later with an account (duplicate party)",
-      "search_text": "L10 E-commerce and marketplaces Guest order, later with an account (duplicate party) Parties merged, history kept? guest checkout merge customer account Gastbestellung Kundenkonto zusammenführen Guest order, later with an account (duplicate party) Parties merged, history kept? A shop customer ordered as a guest and later opened an account; can both be one customer? Ein Shopkunde hat als Gast bestellt und später ein Konto angelegt; werden beide ein Kunde?",
-      "claim_text": "Reality evaluates: Parties merged, history kept? Yes. A person merges the guest business partner into the customer's account through a review with a reason. The guest's orders, invoices and payments keep naming the guest and read under the account: its detail, balance and credit exposure include them. The guest becomes inactive, and a shop order that still names the guest lands on the account.",
-      "support": "proven",
+      "search_text": "L10 E-commerce and marketplaces Guest order, later with an account (duplicate party) Parties merged, history kept? Guest order, later with an account (duplicate party) Parties merged, history kept?",
+      "claim_text": "Reality evaluates: Parties merged, history kept?",
+      "support": "unavailable",
       "limitations": [
-        "A merge is not undone.",
-        "Unused credit of the guest settles only the guest's own invoices."
+        "Duplicate business partners cannot be merged while keeping both histories."
       ],
       "references": [
-        "L10",
-        "party_merge_propose",
-        "party_merges"
+        "L10"
       ],
       "language": "en",
-      "fingerprint": "0ed07dd6114033985a85345a4e48dc22a0fc29818932840a19401c6bf8b3c825"
+      "fingerprint": "85b609345f5c511da401a644540bca49f8d61c18d3fd07395814bc1b5d847d0e"
     },
     {
       "id": "evidence_journey_l11",
@@ -5645,20 +5670,17 @@
       "source_id": "source_journey_o02",
       "subject": "Master data and identity",
       "title": "Two parties merged as duplicates",
-      "search_text": "O02 Master data and identity Two parties merged as duplicates History of both kept? duplicate business partner merge duplicates Dublette Geschäftspartner zusammenführen Two parties merged as duplicates History of both kept? We created the same customer twice; can we merge them and keep both histories? Wir haben denselben Kunden doppelt angelegt; können wir sie zusammenführen und beide Historien behalten?",
-      "claim_text": "Reality evaluates: History of both kept? Yes. A reviewed merge states that one business partner is a duplicate of another, with a reason. Nothing stated is rewritten: each record keeps naming the partner it states, and the survivor's detail, balance and credit exposure include the duplicate's. The duplicate's detail names its survivor. Merged partners are never merged again, so there are no chains.",
-      "support": "proven",
+      "search_text": "O02 Master data and identity Two parties merged as duplicates History of both kept? Two parties merged as duplicates History of both kept?",
+      "claim_text": "Reality evaluates: History of both kept?",
+      "support": "unavailable",
       "limitations": [
-        "A merge is not undone.",
-        "The company's own business partner and a partner with an open delivery hold are not merged."
+        "Business partners cannot be merged as duplicates."
       ],
       "references": [
-        "O02",
-        "party_merge_propose",
-        "party_merges"
+        "O02"
       ],
       "language": "en",
-      "fingerprint": "b6c197024d90153f0ed4217aab98dca45eb7a4a9db00a1ed88671035dddd8ca6"
+      "fingerprint": "dfa0a8ad2ffcc523163e0e67aee90c0e321a3db7451e7be4e2a192ab537fce07"
     },
     {
       "id": "evidence_journey_o03",
@@ -7397,6 +7419,21 @@
       "fingerprint": "befc6b1a0cadc517d37f54278edc82ee019dfd547eb4c227c633252cac053586"
     },
     {
+      "id": "evidence_command_accept_substitute",
+      "source_id": "source_executable_commands",
+      "subject": "Accept a substitute item",
+      "title": "Accept a substitute item",
+      "search_text": "accept_substitute Accept a substitute item Accepts another stocked item in the same unit in place of what a purchase line ordered, with a reason; receipts of it then name the line and fulfil it, and the line keeps what it ordered. mutation",
+      "claim_text": "accept_substitute is a governed mutation command for Accepts another stocked item in the same unit in place of what a purchase line ordered, with a reason; receipts of it then name the line and fulfil it, and the line keeps what it ordered..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "accept_substitute"
+      ],
+      "language": "en",
+      "fingerprint": "f7094711fce3174bd85ab96ecd704ea7806db37ad73b840b9d96abca544d32ce"
+    },
+    {
       "id": "evidence_command_assemble_kit",
       "source_id": "source_executable_commands",
       "subject": "Assemble kits",
@@ -7440,36 +7477,6 @@
       ],
       "language": "en",
       "fingerprint": "3c47f3aa58f1060572900fd12a10f334fe3928e9b23e83919b4adda137481bb3"
-    },
-    {
-      "id": "evidence_command_merge_party",
-      "source_id": "source_executable_commands",
-      "subject": "Merge a duplicate business partner",
-      "title": "Merge a duplicate business partner",
-      "search_text": "merge_party Merge a duplicate business partner States that one business partner is a duplicate of another; both histories stay as stated and read under the survivor, and the duplicate becomes inactive. mutation",
-      "claim_text": "merge_party is a governed mutation command for States that one business partner is a duplicate of another; both histories stay as stated and read under the survivor, and the duplicate becomes inactive..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "merge_party"
-      ],
-      "language": "en",
-      "fingerprint": "e7e5298003e5407eaa372f592804ed1844ee58ca29b68a0d20c3a2633b306c09"
-    },
-    {
-      "id": "evidence_command_party_merges",
-      "source_id": "source_executable_commands",
-      "subject": "Read business partner merges",
-      "title": "Read business partner merges",
-      "search_text": "party_merges Read business partner merges Lists the business partner merges, or those one partner took part in, with the reason and when. query",
-      "claim_text": "party_merges is a governed query command for Lists the business partner merges, or those one partner took part in, with the reason and when..",
-      "support": "vocabulary_only",
-      "limitations": [],
-      "references": [
-        "party_merges"
-      ],
-      "language": "en",
-      "fingerprint": "ba94908989120d61ba90da724693470eeefdd2aedfdeca2a4d6e8a88842925ce"
     },
     {
       "id": "evidence_command_purchase_match",

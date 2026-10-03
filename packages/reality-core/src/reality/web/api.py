@@ -1788,6 +1788,37 @@ def post_kit_proposal(tenant_id: str, body: KitProposal, session: DatabaseSessio
         raise api_error(error) from error
 
 
+class SubstituteProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    commitment_id: str = Field(min_length=1, max_length=200)
+    item_id: str = Field(min_length=1, max_length=200)
+    reason: str = Field(min_length=1, max_length=500)
+
+
+@router.post("/purchase-substitutes/proposals")
+def post_substitute_proposal(
+    tenant_id: str, body: SubstituteProposal, session: DatabaseSession
+):
+    """Spec 338: prepare accepting a substitute item for a purchase line."""
+    from reality.tools.application import create_change_proposal
+
+    try:
+        proposal = create_change_proposal(
+            session,
+            tenant_id,
+            "commitment_substitute_accept",
+            body.model_dump(),
+            actor_type="human",
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.get("/master-data/proposals/{proposal_id}")
 def get_reference_proposal(tenant_id: str, proposal_id: str, session: DatabaseSession):
     from reality.services.reference_workspace import reference_proposal

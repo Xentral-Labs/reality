@@ -135,12 +135,12 @@ resources:
         Auftragsbeleg ist der Nachweis; offene Menge, Versandfähigkeit und Verzug werden aus der
         Verpflichtung, ihren Reservierungen und den erfüllenden Bewegungen abgeleitet.
     synonyms: [sales order, purchase order, commitment, reservation, backlog, Kundenauftrag, Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefersperre]
-    tables: [commitment, commitment_hold, commitment_revision, reservation, delivery_rule]
+    tables: [commitment, commitment_hold, commitment_revision, reservation, delivery_rule, commitment_substitute]
     match: "commitment|reserv|order|promise|stale|fulfillment|hold|delivery_rule|backorder_against"
     views: [orders, commitments, reservations, fulfillment_blockers, warehouse_queue]
     projections: [fulfillment_queue, fulfillment_blockers, commitment_register]
     exceptions:
-      [overdue_outgoing_customer_commitment, outgoing_commitment_due_soon, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, stale_cost_review, negative_actual_db1, order_waiting_for_completeness, backorder_against_rule, shipped_beyond_order]
+      [overdue_outgoing_customer_commitment, outgoing_commitment_due_soon, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, stale_cost_review, negative_actual_db1, order_waiting_for_completeness, backorder_against_rule, shipped_beyond_order, received_beyond_order]
 
   - key: delivery
     label:
@@ -159,11 +159,11 @@ resources:
         ergänzen eine Gegenbuchung statt zu editieren. Eine Sendung ist die Lieferung, die
         Bewegungen zu einem Geschäftspartner oder von ihm trägt, mit Beobachtungen des Spediteurs.
     synonyms: [goods receipt, goods issue, shipment, movement, transfer, adjustment, failed delivery, undeliverable, refused delivery, lost parcel, Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking, Unzustellbar, Annahmeverweigerung, Paketverlust, drop shipping, drop shipment, Streckengeschäft, Direktlieferung]
-    tables: [movement, movement_correction, shipment, shipment_package, shipment_event, shipment_event_supersession, delivery_failure, outbound_delivery, outbound_delivery_line, outbound_delivery_pick]
+    tables: [movement, movement_correction, shipment, shipment_package, shipment_event, shipment_event_supersession, delivery_failure, outbound_delivery, outbound_delivery_line, outbound_delivery_pick, misdelivery, shipment_advice_line]
     match: "movement|shipment|dispatch|receive|delivery_failure|outbound_deliver|drop_ship"
     views: [movements, warehouse_queue]
     projections: []
-    exceptions: [unexplained_movement, return_unresolved]
+    exceptions: [unexplained_movement, return_unresolved, misdelivery_outstanding]
 
   - key: lot
     label:
@@ -447,9 +447,9 @@ processes:
         exceptions: [overdue_incoming_supplier_commitment]
       - title: { en: Receive the goods, de: Wareneingang buchen }
         resource: delivery
-        actions: [record_packaged_execution, record_movement, create_lot, state_lot_expiry]
+        actions: [record_shipment_notice, record_packaged_execution, record_movement, accept_substitute, create_lot, state_lot_expiry]
         lists: [movements, inventory]
-        exceptions: [unexplained_movement, stock_expired]
+        exceptions: [unexplained_movement, stock_expired, received_beyond_order, misdelivery_outstanding]
       - title: { en: Record and book the supplier invoice, de: Eingangsrechnung erfassen und buchen }
         resource: invoice
         actions: [record_supplier_invoice, post_supplier_invoice]
@@ -596,6 +596,7 @@ labels:
       merge_party: Geschäftspartner zusammenführen
       party_merges: Zusammengeführte Geschäftspartner anzeigen
       assemble_kit: Sets montieren
+      accept_substitute: Ersatzartikel annehmen
       kits: Stücklisten anzeigen
       kit_split: Set-Aufteilung anzeigen
       set_customer_item_number: Kundenartikelnummer festlegen
@@ -803,6 +804,8 @@ labels:
       shipped_beyond_order: Mehr geliefert als bestellt
       payout_line_unmatched: Auszahlungspositionen nicht gebucht
       payment_authorization_expired: Zahlungsautorisierung abgelaufen
+      received_beyond_order: Mehr erhalten als bestellt
+      misdelivery_outstanding: Falscher Artikel geliefert
       outgoing_commitment_due_soon: Liefertermin gefährdet
       silent_source: Quelle verstummt
       source_interpretation_failure: Quelle nicht interpretierbar

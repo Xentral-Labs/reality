@@ -54,6 +54,8 @@ WITHOUT_A_SCENARIO = {
     "shipped_beyond_order",
     "payout_line_unmatched",
     "payment_authorization_expired",
+    "received_beyond_order",
+    "misdelivery_outstanding",
     "missing_acquisition_cost",
     "unassigned_cost_component",
     "stale_cost_review",

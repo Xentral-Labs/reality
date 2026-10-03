@@ -2,24 +2,24 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 173 covered, 10 partial, 0 missing, 42 gap, 3 out.
+228 scenarios: 180 covered, 10 partial, 0 missing, 35 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
 | A Order intake and changes | 20 |  |  | 4 |  |
 | B Availability and reservation | 12 |  |  | 6 |  |
 | C Payment and release | 17 |  |  | 1 |  |
-| D Shipment, split and merge | 14 | 1 |  | 4 |  |
+| D Shipment, split and merge | 15 | 1 |  | 3 |  |
 | E Customer invoice and credit | 12 |  |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
-| G Purchase demand and order | 13 |  |  | 4 |  |
-| H Receipt and supplier deviations | 14 |  |  | 5 |  |
+| G Purchase demand and order | 14 |  |  | 3 |  |
+| H Receipt and supplier deviations | 19 |  |  |  |  |
 | I Supplier invoice and payment | 12 |  |  |  |  |
 | J Warehouse and stock | 6 | 1 |  | 4 |  |
 | K Kits and variants | 5 | 1 |  |  |  |
@@ -44,9 +44,10 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
    delivery states its recipient, address and booked slot, picking moves goods and their
    reservation into staging, and the shipment keeps where it went (A08, A11, A21, A24, D04, D13,
    M05). Pick lists by bin path, waves and handheld scanning are still not modelled.
-2. **A movement must match its commitment exactly.** Over-receipt, wrong item and substitutes
-   cannot be tied to the purchase or order; they appear only as `unexplained_movement`.
-   H04, H05, H06, H07, D05 (F03 related).
+2. **A movement had to match its commitment exactly.** Since spec 338 a receipt may state a
+   surplus, a wrong item names the line it was meant for without fulfilling it, a buyer may
+   accept a substitute for a purchase line, and an inbound notice states advised quantities per
+   purchase line (H04, H05, H06, H07, H17, G16, D05). F03 stays related.
 3. **A return never reopens a kept promise (spec 079).** Undeliverable, refused and lost parcels
    cannot be told apart from a customer return. D07, D08, D09. Since spec 335 they are failed
    deliveries: the shipment is reversed through the movement correction, the promise is open again,
@@ -88,7 +89,7 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
     (F10), returnable packaging (D19), subscriptions (L08), stored tax rate and customs data (L11,
     L12, D14), negative stock (J06 is refused by design), 3PL stock reconciliation (J07),
     re-labelling pairs (J11), unconfirmed purchase orders (G10),
-    advised versus received quantity (G16, H17), quote documents (A14), variant swap on an
+    quote documents (A14), variant swap on an
     open order (A10), customer delivery documents (M07).
 
 Several gaps may be deliberate. They should become an explicit **out** with a reason in a scope
@@ -202,7 +203,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | D02 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_two_warehouses_ship_one_order_line_as_two_parcels | Six reserved at home and four in Munich for one line: ready to ship, two parcels from their own warehouses fulfil the one promise (spec 303). |
 | D03 | covered | tests/scenarios/test_catalog_orders_and_shipments.py::test_one_package_carries_several_commitments_of_one_customer | One package fulfils three commitments over two items by their own quantities (0, 0 and 1 open). |
 | D04 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_picking_error_is_caught_before_shipment | An over-pick is refused before anything moves; a wrong pick goes back by a put-back; the dispatch waits until the delivery is picked (spec 334). |
-| D05 | gap | packages/reality-core/src/reality/services/core.py `_append_movement` ("Movement does not match the commitment") | A shipment of the wrong item cannot name the commitment it was meant for; it can only be recorded unlinked, as an unexplained movement. |
+| D05 | covered | packages/reality-core/tests/scenarios/test_catalog_receipt_deviations.py::test_a_picking_error_found_by_the_customer | The recorded shipment is corrected to the bells that left, meant for the line: the line is open again, both stocks are true, Wrong item delivered names the line until the bells come back, and the lights ship (spec 338). |
 | D06 | covered | packages/reality-core/tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock | A stocktake-loss adjustment raises reservation_exceeds_stock with the shortfall; the entry clears on receipt. |
 | D07 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_a_lost_parcel_is_claimed_from_the_carrier_and_sent_again | A lost parcel is a failed delivery: the shipment no longer counts, the goods stay written off, the promise is open again, and a claim against the carrier is an open receivable its payment settles (spec 335). |
 | D08 | covered | packages/reality-core/tests/scenarios/test_catalog_orders_and_shipments.py::test_an_undeliverable_parcel_comes_back_and_is_sent_again | An undeliverable parcel is a failed delivery, not a return: stock is back, the promise is open again, and the issued invoice is invoiced and not shipped until the order ships again (spec 335). |
@@ -272,7 +273,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | G13 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_cancelled_order_frees_its_purchase_before_the_purchase_is_reduced | Cancelling the order ends its assignment, so all 10 of the purchase are unassigned and promisable; the reviewed revision to 6 then reduces the purchase (spec 305). |
 | G14 | covered | tests/scenarios/test_catalog_purchasing.py::test_two_suppliers_purchases_together_protect_one_customer_promise | 6 + 4 from two suppliers protect a demand of 10. Defect found: protection could reach 11 of 10; fixed in #201. |
 | G15 | covered | packages/reality-core/tests/scenarios/test_catalog_drop_shipping.py::test_a_drop_ship_purchase_order_is_linked_to_the_customer_order | The purchase order states the customer as ship-to and is assigned to the order line; the line is no longer at risk and nothing is incoming to the warehouse (spec 337). |
-| G16 | gap | src/reality/services/shipments.py (`announced` quantity always None) | Inbound notices/`in_transit` events carry no per-commitment contents, so in-transit per purchase cannot be derived. |
+| G16 | covered | packages/reality-core/tests/scenarios/test_catalog_receipt_deviations.py::test_one_container_shows_in_transit_per_purchase | One container notice advises three purchase orders: each order's three-way match shows its quantity in transit until the container is received into that shipment (spec 338). |
 | G17 | covered | tests/operational_exceptions/test_derivation.py::test_non_deliverable_lines_are_never_reported; tests/test_free_supplier_invoice.py::test_free_supplier_invoice_is_source_backed_atomic_and_has_no_stock_effect | A PO line with no commitment expects no receipt. |
 
 ## H. Goods receipt and supplier deviations
@@ -282,10 +283,10 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | H01 | covered | tests/scenarios/test_procure_to_pay.py::test_procure_to_pay_business_story | Fulfilled 20 of 20 through two receipts. |
 | H02 | covered | tests/test_unified_receipt_release.py::test_partial_receipt_review_replay_and_trace; tests/scenarios/test_storyline_purchase_to_pay.py (receipt/rest-receipt) | Open remainder 5 after 3 of 8. |
 | H03 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_an_under_delivery_is_closed_with_its_reason_and_decision | 7 of 10 received and overdue (positive control), then a reviewed commitment_revise to 7 with a note: nothing open, not overdue, the revision keeps its note and the decision trail names the proposal. |
-| H04 | gap | services/core.py "Movement exceeds the commitment's open quantity"; tests/test_unified_receipt_release.py (excess refused) | Over-receipt is refused. Workaround: revise upward first (finance/test_commercial_edges.py::test_higher_revision_allows_only_the_new_quantity, sales-side); no surplus signal. |
-| H05 | gap | services/core.py supplier_return bound | A supplier return must reference a received delivery, and the surplus cannot be received against the PO. |
-| H06 | gap | services/core.py "Movement does not match the commitment" | Wrong item cannot be tied to the PO; it only appears as an unexplained receipt. |
-| H07 | gap | — | No substitute/successor item link on receipt. |
+| H04 | covered | packages/reality-core/tests/scenarios/test_catalog_receipt_deviations.py::test_an_over_delivery_is_received_and_kept | 105 received for 100 with the surplus stated: Received beyond the order reports 5 until the line is raised to 105 (spec 338). |
+| H05 | covered | packages/reality-core/tests/scenarios/test_catalog_receipt_deviations.py::test_an_over_delivery_goes_back_to_the_supplier | 110 received for 100; ten go back to the supplier against the purchase line, which clears the surplus (spec 338). |
+| H06 | covered | packages/reality-core/tests/scenarios/test_catalog_receipt_deviations.py::test_a_wrong_item_is_tied_to_its_purchase_and_sent_back | Bells received meant for an order of lights: the line stays open, Wrong item delivered names it, and the bells going back against the line clear it (spec 338). |
+| H07 | covered | packages/reality-core/tests/scenarios/test_catalog_receipt_deviations.py::test_a_successor_item_is_accepted_against_the_purchase | The buyer accepts the successor for the purchase line; its receipt fulfils the line and the three-way match names the substitute (spec 338). |
 | H08 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_damaged_goods_are_received_blocked_and_scrapped | A reviewed receipt of 20 blocks 5 damaged in the same confirmation: 15 available; scrapping the 5 leaves 15 physical (spec 304). |
 | H09 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_receipt_without_a_purchase_order_says_why_it_arrived | A receipt without a purchase keeps its stated reason and is explained by it; a delivery-path receipt without one is reported (spec 314). |
 | H10 | covered | tests/scenarios/test_catalog_purchasing.py::test_one_inbound_package_is_split_across_several_purchase_orders | One package receives 5 for PO-A and 4 for PO-B; shipment_explain reports 9. |
@@ -295,7 +296,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | H14 | covered | tests/test_movement_corrections.py::test_void_receipt_appends_exact_correction_and_preserves_original | A compensating movement; the original is preserved. |
 | H15 | covered | packages/reality-core/tests/scenarios/test_catalog_stock_and_returns.py::test_a_receipt_awaiting_inspection_is_released_days_later | A package of 12 received blocked for inspection reserves nothing; quality releases 10 and the order reserves them (spec 304). |
 | H16 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_customer_specific_purchase_goes_to_its_order | A purchase assigned to an order due 25 Oct is served to it first on receipt, before an order due 10 Oct, once a person confirms (spec 305). |
-| H17 | gap | tests/test_shipment_story.py::test_supplier_notice_has_zero_effect_then_package_receipt_changes_stock (`announced` None) | Advised quantities are not recorded, so advised vs received cannot be compared. |
+| H17 | covered | packages/reality-core/tests/scenarios/test_catalog_receipt_deviations.py::test_advised_and_received_differ_by_four | 100 advised, 96 received into the announced shipment: the shipment reads advised 100, received 96, difference 4 (spec 338). |
 | H18 | covered | tests/operational_exceptions/test_derivation.py::test_supplier_return_not_credited, ::test_supplier_credit_not_returned; tests/test_returns.py::test_goods_go_back_to_the_supplier | Return and credit reconciled per PO line. |
 | H19 | covered | tests/test_costing_services.py::test_receipt_a_and_retained_review_survive_late_cost | Late duty makes the reviewed receipt cost stale; the old manifest is kept. |
 

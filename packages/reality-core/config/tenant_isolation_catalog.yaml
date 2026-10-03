@@ -473,6 +473,7 @@ families:
       - tool:purchase_match
       - tool:kit_define
       - tool:kit_assemble
+      - tool:commitment_substitute_accept
       - tool:kits
       - tool:kit_split
       - tool:party_merge

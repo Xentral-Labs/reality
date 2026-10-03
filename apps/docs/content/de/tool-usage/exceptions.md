@@ -61,6 +61,8 @@ was sie auflöst und welche Agenten-Tools sie auflisten und erklären.
 | [`shipped_beyond_order`](#exception-shipped_beyond_order)                                 | Shipped beyond the order                 | Aufträge & Erfüllung    | `normal` | Sales                                                                                       |
 | [`payout_line_unmatched`](#exception-payout_line_unmatched)                               | Payout lines not booked                  | Bereichsübergreifend    | `normal` | Accounts receivable                                                                         |
 | [`payment_authorization_expired`](#exception-payment_authorization_expired)               | Payment authorization expired            | Finanzen                | `high`   | Accounts receivable                                                                         |
+| [`received_beyond_order`](#exception-received_beyond_order)                               | Received beyond the order                | Aufträge & Erfüllung    | `normal` | Purchasing                                                                                  |
+| [`misdelivery_outstanding`](#exception-misdelivery_outstanding)                           | Wrong item delivered                     | Aufträge & Erfüllung    | `normal` | Warehouse                                                                                   |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1572,3 +1574,50 @@ cancelled or held by itself.
 [`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
 [`exception_explain`](./commands#tool-exception_explain), Sicht
 [`documents`](./views#view-documents)
+
+## `received_beyond_order` — Received beyond the order {#exception-received_beyond_order}
+
+More has arrived from a supplier than the purchase line now asks for. The person receiving stated
+the surplus on the receipt, and it is accepted, because it is what arrived; Reality subtracts what
+went back to the supplier from what was received against the promise and reports what exceeds the
+quantity in force, with the order and the surplus. It returns nothing and changes no invoice by
+itself. A cancelled rest asks for nothing more.
+
+- **Verantwortlich:** Purchasing
+- **Aufgelöst durch:** The surplus going back to the supplier against the line, or revising the line
+  up to what was received.
+- **Schwere:** `normal`
+- **Datensatztyp:** `commitment`
+- **Spezifikation:** `338/FR-001`
+- **Nachweis:**
+  `tests/test_receipt_deviations.py::test_a_surplus_is_refused_unless_stated_and_then_reported`,
+  `tests/test_receipt_deviations.py::test_keeping_the_surplus_raises_the_line_to_what_arrived`,
+  `tests/test_receipt_deviations.py::test_sending_the_surplus_back_clears_it`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain), Sicht
+[`commitments`](./views#view-commitments)
+
+## `misdelivery_outstanding` — Wrong item delivered {#exception-misdelivery_outstanding}
+
+Another item than an order line asks for went the wrong way for it: a supplier delivered it for a
+purchase line, or a customer received it for a sales line. The movement names the line it was meant
+for and fulfils nothing, so the line itself stays open for the right goods. The entry names the
+line, the ordered item and the wrong items still out, until they have gone back.
+
+- **Verantwortlich:** Warehouse
+- **Aufgelöst durch:** The wrong goods going back against the same line, or, for a purchase,
+  accepting the item as a substitute and correcting the receipt onto the line.
+- **Schwere:** `normal`
+- **Datensatztyp:** `commitment`
+- **Spezifikation:** `338/FR-003`
+- **Nachweis:**
+  `tests/test_receipt_deviations.py::test_a_wrong_item_names_its_line_and_fulfils_nothing`,
+  `tests/test_receipt_deviations.py::test_wrong_goods_go_back_against_the_same_line`,
+  `tests/test_receipt_deviations.py::test_a_picking_error_is_corrected_into_a_wrong_item`
+
+**Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agenten-Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agenten-Tool
+[`exception_explain`](./commands#tool-exception_explain), Sicht
+[`commitments`](./views#view-commitments)
