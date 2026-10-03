@@ -226,3 +226,5 @@ UX correction analysis: FR-026 maps T060/T062; FR-027 maps T061/T062. Scope appr
 - [x] T068 [FR-032] Test and implement direct source-only Docs entry plus registered exception coverage and shared-evaluator disclosure; verify Docs/backend/browser checks and update the PR.
 
 - [x] T069 [FR-035] Add regression tests first; audit all view/projection evidence and root availability, retain true reader/builders with shared-scope disclosure, render original source line numbers, improve error reporting, and verify backend/Docs/browser checks before updating the PR.
+
+- [x] T070 [FR-036] Test and implement verified fixed projection binding for shared Chat/MCP source reads; compare adapter source digests, verify generic future names and dynamic-binding rejection, run feature checks and update PR.

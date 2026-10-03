@@ -131,3 +131,39 @@ def test_projection_builder_links_to_verified_called_calculation():
     )
     assert builder.function in helper.called_by
     assert helper.digest and helper.code
+
+
+def test_projection_binding_uses_live_constant_not_function_name():
+    import types
+
+    from reality.services.business_blueprints import _bound_projection_keys, _inventory
+    from reality.tools import application
+
+    bindings = {
+        **application._fulfillment_queue.__globals__,
+        "FULFILLMENT_QUEUE": "inventory",
+    }
+    future = types.FunctionType(
+        application._fulfillment_queue.__code__,
+        bindings,
+        "future_unrelated_public_name",
+    )
+    assert _bound_projection_keys([future], _inventory()) == {"inventory"}
+
+
+def test_projection_binding_does_not_guess_dynamic_or_shadowed_arguments(monkeypatch):
+    from reality.services import business_blueprints as blueprints
+    from reality.services.business_blueprint_source import capture_source
+    from reality.tools import application
+
+    function = application._fulfillment_queue
+    source = capture_source(function)
+    inventory = blueprints._inventory()
+    for expression in ['arguments["projection_name"]', "arguments", "unknown_name"]:
+        changed = source.model_copy(
+            update={
+                "code": f"def handler(session, tenant_id, arguments):\n    return _projection_read(session, tenant_id, {expression}, arguments)\n"
+            }
+        )
+        monkeypatch.setattr(blueprints, "capture_source", lambda function, changed=changed: changed)
+        assert blueprints._bound_projection_keys([function], inventory) == set()
