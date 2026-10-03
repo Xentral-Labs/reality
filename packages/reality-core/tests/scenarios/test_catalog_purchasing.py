@@ -2002,3 +2002,135 @@ def test_a_purchase_receipt_and_invoice_that_agree_are_matched(session, business
     assert _match(session, business, other)["lines"][0]["differences"] == [
         "received_short"
     ]
+
+
+# --- O06 (spec 345) -------------------------------------------------------------------
+
+
+def _state_supplier_number(session, business, supplier_id, number, name):
+    tenant = business.tenant.id
+    return confirm_tool(
+        session,
+        tenant,
+        propose_tool(
+            session,
+            tenant,
+            "supplier_item_number_set",
+            {
+                "party_id": supplier_id,
+                "item_id": business.item.id,
+                "supplier_item_number": number,
+                "supplier_item_name": name,
+            },
+        ).id,
+    )
+
+
+def _purchase_by_number(session, business, supplier_id, number, quoted, request_id):
+    _, created = _reviewed(
+        session,
+        business,
+        "order_create",
+        {
+            "direction": "purchase",
+            "number": number,
+            "company_party_id": business.company.id,
+            "counterparty_id": supplier_id,
+            "location_id": business.location.id,
+            "gross_amount": "100",
+            "lines": [
+                {
+                    "supplier_item_number": quoted,
+                    "quantity": "10",
+                    "unit": "pcs",
+                    "unit_price": "10",
+                    "gross_amount": "100",
+                }
+            ],
+        },
+        request_id,
+    )
+    return created
+
+
+def test_two_suppliers_name_one_item_by_their_own_numbers(session, business):
+    """O06: each supplier's own number resolves to our item, on order and invoice."""
+    tenant = business.tenant.id
+    velo = core.create_party(session, tenant, "Velo Import AG", "supplier")
+    _state_supplier_number(
+        session, business, business.supplier.id, "LF900-12", "Laufrad 28 Lindner"
+    )
+    _state_supplier_number(session, business, velo.id, "VI-77", "Wheel 28in")
+
+    # Each supplier is ordered from by its own number; both mean our wheel.
+    _purchase_by_number(
+        session, business, business.supplier.id, "PO-O06-A", "lf 900-12", "o06-a"
+    )
+    _purchase_by_number(session, business, velo.id, "PO-O06-B", "VI-77", "o06-b")
+    orders = {
+        number: session.scalars(
+            select(Document).where(
+                Document.tenant_id == tenant, Document.number == number
+            )
+        ).one()
+        for number in ("PO-O06-A", "PO-O06-B")
+    }
+    match = run_read_tool(
+        session, tenant, "purchase_match", {"document_id": orders["PO-O06-A"].id}
+    )
+    (line,) = match["lines"]
+    assert (line["item_id"], line["supplier_item_number"]) == (
+        business.item.id,
+        "lf 900-12",
+    )
+    other = run_read_tool(
+        session, tenant, "purchase_match", {"document_id": orders["PO-O06-B"].id}
+    )["lines"][0]
+    assert (other["item_id"], other["supplier_item_number"]) == (
+        business.item.id,
+        "VI-77",
+    )
+
+    # Lindner delivers and invoices quoting its own number again.
+    commitment = session.scalars(
+        select(core.Commitment).where(
+            core.Commitment.tenant_id == tenant,
+            core.Commitment.document_id == orders["PO-O06-A"].id,
+        )
+    ).one()
+    _receive_into(session, business, "TRK-O06", commitment, "10")
+    confirm_tool(
+        session,
+        tenant,
+        propose_tool(
+            session,
+            tenant,
+            "document_create",
+            {
+                "document_type": "supplier_invoice",
+                "number": "LF-RE-O06",
+                "party_id": business.supplier.id,
+                "gross_amount": "100",
+                "lines": [
+                    {
+                        "supplier_item_number": "LF900-12",
+                        "quantity": "10",
+                        "unit": "pcs",
+                        "unit_price": "10",
+                        "gross_amount": "100",
+                        "billed_document_line_id": line["document_line_id"],
+                    }
+                ],
+            },
+        ).id,
+    )
+    assert run_read_tool(
+        session, tenant, "purchase_match", {"document_id": orders["PO-O06-A"].id}
+    )["lines"][0]["matched"]
+
+    # Positive control: Velo's number means nothing at Lindner.
+    with pytest.raises(core.InvalidOperation) as refused:
+        _purchase_by_number(
+            session, business, business.supplier.id, "PO-O06-C", "VI-77", "o06-c"
+        )
+    assert refused.value.code == "supplier_item_number_unknown"

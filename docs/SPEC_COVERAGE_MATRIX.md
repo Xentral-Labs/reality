@@ -2404,3 +2404,13 @@ Table `external_stock_statement` (migration 0133): stock someone outside states 
 - `packages/reality-core/tests/test_external_stock_migration.py`: the table comes and goes, and recorded rows block a rollback.
 - `packages/reality-core/tests/scenarios/test_catalog_external_stock.py`: story J07.
 - `packages/reality-core/tests/test_reporting_graph_coverage.py`: the table is a deferred operational workflow record.
+
+## Supplier item numbers — Spec 345
+
+Table `supplier_item_number`: a supplier's own article number, with the supplier's name, for one of our items. Each statement is a version of one source stream per supplier and number.
+
+- `packages/reality-core/tests/test_supplier_item_numbers.py`: resolution per supplier ignoring case and spaces, the same number at another supplier, versions of one stream, refusal codes, tenant isolation and the table constraints.
+- `packages/reality-core/tests/test_supplier_item_orders.py`: purchase and supplier-invoice lines resolve and keep the number; two suppliers name one item; unknown and conflicting numbers are refused; a sales line never reads it; previews and the purchase match show it; a changed mapping and a correction leave past lines as stated.
+- `packages/reality-core/tests/test_supplier_item_adapters.py`: strict MCP schemas, an agent proposes and a person confirms, a stale review is refused, Web set/read/remove, tenant isolation, the CLI asks first, and an agent orders by the supplier's number.
+- `packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_two_suppliers_name_one_item_by_their_own_numbers`: story O06.
+- `packages/reality-core/tests/test_supplier_item_number_migration.py`: the table comes and goes, and stated numbers block a rollback.

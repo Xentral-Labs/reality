@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:fa3b5f2c2c39d12b0cb572f1963b81b63a9ffeea27c32c52b414dbfb0cf6a34b",
+  "knowledge_version": "advisor-v1:sha256:facd53843672692070dc88d52dcf157f18f4b2f8cebcbd4932fa5ee716340bd5",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1863,7 +1863,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#O06",
-      "fingerprint": "5e9d037b7c48d6e52943fafedee4d099583fe7eeca2584eb2cdb08745d8d3949"
+      "fingerprint": "04c06f434d7084f62c6a4037c5920b307c9b427ae49cf15339f632d925fb03b3"
     },
     {
       "id": "source_journey_p01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "0cb1402cbc9c6e8896cedcd8ed68193844ace41c6f34f22ed735511f7002a4ea"
+      "fingerprint": "08b1a7bec7c5b23a0c242a6e00126fbfa3016e9dc6cfb07e3b759d08b231b1f9"
     },
     {
       "id": "source_document_product_evaluation",
@@ -5747,17 +5747,21 @@
       "source_id": "source_journey_o06",
       "subject": "Master data and identity",
       "title": "Supplier item number ≠ own number, several suppliers",
-      "search_text": "O06 Master data and identity Supplier item number ≠ own number, several suppliers Supplier item mapping? Supplier item number ≠ own number, several suppliers Supplier item mapping?",
-      "claim_text": "Reality evaluates: Supplier item mapping?",
-      "support": "unavailable",
+      "search_text": "O06 Master data and identity Supplier item number ≠ own number, several suppliers Supplier item mapping? supplier item number supplier article number Lieferantenartikelnummer Bestellnummer des Lieferanten Supplier item number ≠ own number, several suppliers Supplier item mapping? Our suppliers use their own article numbers; how do they become our items? Unsere Lieferanten haben eigene Artikelnummern; wie werden daraus unsere Artikel?",
+      "claim_text": "Reality evaluates: Supplier item mapping? Per supplier, a reviewed statement says which of our items the supplier's own number names, with the supplier's name for it; every supplier has its own numbers for the same item. Purchase orders and supplier invoices entered by hand or by chat resolve lines by that number, keep it on the line as stated, and the purchase order, the invoice and the three-way match show it.",
+      "support": "proven",
       "limitations": [
-        "Supplier item numbers and a mapping per supplier are not recorded."
+        "Numbers are matched ignoring case and spaces; there is no fuzzy matching.",
+        "An unknown supplier number is refused at entry; documents from a supplier's own system (EDI, order confirmations by file) are not interpreted yet."
       ],
       "references": [
-        "O06"
+        "O06",
+        "supplier_item_number_set_propose",
+        "supplier_item_numbers",
+        "order_create_propose"
       ],
       "language": "en",
-      "fingerprint": "a35feb0f8f550a35c9228c775bb900d03670b4bb3cebee45bffaa6d5d1ae7de4"
+      "fingerprint": "d1c94aa28acf96595c69003b69b7a73102eb1e5836c187b292b9c0310933d7de"
     },
     {
       "id": "evidence_journey_p01",
@@ -7569,6 +7573,51 @@
       ],
       "language": "en",
       "fingerprint": "d808b232c6df226a461e811528b9025aae4665e78eab272f410cc1bc5ddf862d"
+    },
+    {
+      "id": "evidence_command_set_supplier_item_number",
+      "source_id": "source_executable_commands",
+      "subject": "State a supplier item number",
+      "title": "State a supplier item number",
+      "search_text": "set_supplier_item_number State a supplier item number States which of our items a supplier's own article number names, with the supplier's name for it, as a new version of that number's statement stream. mutation",
+      "claim_text": "set_supplier_item_number is a governed mutation command for States which of our items a supplier's own article number names, with the supplier's name for it, as a new version of that number's statement stream..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "set_supplier_item_number"
+      ],
+      "language": "en",
+      "fingerprint": "e22e10a807f7f246d01263f0ffb99ca89dcbbced81c734a86a3897747b40bae5"
+    },
+    {
+      "id": "evidence_command_remove_supplier_item_number",
+      "source_id": "source_executable_commands",
+      "subject": "Withdraw a supplier item number",
+      "title": "Withdraw a supplier item number",
+      "search_text": "remove_supplier_item_number Withdraw a supplier item number Withdraws a supplier's article number; lines that stated it keep it as stated. mutation",
+      "claim_text": "remove_supplier_item_number is a governed mutation command for Withdraws a supplier's article number; lines that stated it keep it as stated..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "remove_supplier_item_number"
+      ],
+      "language": "en",
+      "fingerprint": "5f5746b622fa09700a0cf758719ae1dd6b21fc3bc16eb88d937ba1142edd6b42"
+    },
+    {
+      "id": "evidence_command_supplier_item_numbers",
+      "source_id": "source_executable_commands",
+      "subject": "Read supplier item numbers",
+      "title": "Read supplier item numbers",
+      "search_text": "supplier_item_numbers Read supplier item numbers Lists a supplier's own article numbers, or the numbers suppliers use for one item. query",
+      "claim_text": "supplier_item_numbers is a governed query command for Lists a supplier's own article numbers, or the numbers suppliers use for one item..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "supplier_item_numbers"
+      ],
+      "language": "en",
+      "fingerprint": "d101ebc1f7e340f395663e6ab37ed1fd9bbe35232bcb277df45079a2313e3f77"
     },
     {
       "id": "evidence_command_plan_outbound_delivery",

@@ -294,6 +294,7 @@
         "party_group_member",
         "party_hold",
         "customer_item_number",
+        "supplier_item_number",
         "supplier_item_terms",
         "party_merge"
       ],
@@ -311,12 +312,15 @@
         "command:merge_party",
         "command:set_customer_item_number",
         "command:remove_customer_item_number",
+        "command:set_supplier_item_number",
+        "command:remove_supplier_item_number",
         "command:record_handover"
       ],
       "reads": [
         "command:supplier_item_terms",
         "command:party_merges",
         "command:customer_item_numbers",
+        "command:supplier_item_numbers",
         "command:credit_exposure"
       ],
       "exceptions": ["exception:credit_limit_exceeded", "exception:party_hold_unreleased"],
@@ -332,6 +336,8 @@
         "event:supplier_item_terms.removed",
         "event:customer_item_number.set",
         "event:customer_item_number.removed",
+        "event:supplier_item_number.set",
+        "event:supplier_item_number.removed",
         "event:master_data.lifecycle_changed",
         "event:party_price_list.assigned",
         "event:party_group.updated",
@@ -6101,6 +6107,13 @@
           "depth": 1
         },
         {
+          "name": "lines[].supplier_item_number",
+          "type": "string",
+          "required": false,
+          "description": "The supplier's own article number, as the supplier states it; matched ignoring case and spaces.",
+          "depth": 1
+        },
+        {
           "name": "gross_amount",
           "type": "string",
           "required": true,
@@ -7909,6 +7922,13 @@
           "type": "string",
           "required": false,
           "description": "Opaque identity of the billed order line, or selected invoice line for an invoice-linked credit; the shortest typed evidence relationship.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].supplier_item_number",
+          "type": "string",
+          "required": false,
+          "description": "The supplier's own article number, as the supplier states it; matched ignoring case and spaces.",
           "depth": 1
         },
         {
@@ -10965,6 +10985,143 @@
       "projections": [],
       "links": ["command:customer_item_numbers"],
       "label_de": "Customer item numbers",
+      "resources": ["party"]
+    },
+    {
+      "id": "tool:supplier_item_number_set_propose",
+      "kind": "tool",
+      "key": "supplier_item_number_set_propose",
+      "label": "State a supplier item number",
+      "area": "cross_functional",
+      "summary": "Prepare stating which of our items a supplier's own article number names (party_id, item_id, supplier_item_number), with the supplier's name for it. Purchase orders and supplier invoices by hand or by chat then resolve lines quoting that number (supplier_item_number) for this supplier; case and spaces do not matter. The review shows what the number names now. A person confirms.",
+      "access": "propose",
+      "group": "Purchasing",
+      "synopsis": "supplier_item_number_set_propose party_id item_id supplier_item_number [supplier_item_name]",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "supplier_item_number",
+          "type": "string",
+          "required": true,
+          "description": "The supplier's own article number, as the supplier states it; matched ignoring case and spaces.",
+          "depth": 0
+        },
+        {
+          "name": "supplier_item_name",
+          "type": "string",
+          "required": false,
+          "description": "The supplier's own name for the item, as stated.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "set_supplier_item_number",
+      "projections": [],
+      "links": ["command:set_supplier_item_number"],
+      "label_de": "State a supplier item number",
+      "resources": ["party"]
+    },
+    {
+      "id": "tool:supplier_item_number_remove_propose",
+      "kind": "tool",
+      "key": "supplier_item_number_remove_propose",
+      "label": "Withdraw a supplier item number",
+      "area": "cross_functional",
+      "summary": "Prepare withdrawing a supplier's article number; lines that already stated it keep it as stated. A person confirms.",
+      "access": "propose",
+      "group": "Purchasing",
+      "synopsis": "supplier_item_number_remove_propose party_id supplier_item_number",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "supplier_item_number",
+          "type": "string",
+          "required": true,
+          "description": "The supplier's own article number, as the supplier states it; matched ignoring case and spaces.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "remove_supplier_item_number",
+      "projections": [],
+      "links": ["command:remove_supplier_item_number"],
+      "label_de": "Withdraw a supplier item number",
+      "resources": ["party"]
+    },
+    {
+      "id": "tool:supplier_item_numbers",
+      "kind": "tool",
+      "key": "supplier_item_numbers",
+      "label": "Supplier item numbers",
+      "area": "cross_functional",
+      "summary": "Read a supplier's own article numbers (party_id) or the numbers suppliers use for one of our items (item_id), with the suppliers' names for them.",
+      "access": "read",
+      "group": "Purchasing",
+      "synopsis": "supplier_item_numbers [party_id] [item_id]",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Show which of our items a supplier means by its own article numbers.",
+        "use_when": [
+          "A purchase order",
+          "confirmation or supplier invoice quotes the supplier's own article number",
+          "or someone asks which numbers a supplier uses."
+        ],
+        "do_not_use_when": [
+          "The question is a supplier's minimum quantity or pack size; read the supplier item terms."
+        ],
+        "limitations": [
+          "A number is what a person stated for the supplier; documents from a supplier's own system are not interpreted yet."
+        ],
+        "empty_result": "No supplier item number is stated for the selection.",
+        "freshness": "Read from the mappings at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP supplier_item_numbers",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "supplier_item_numbers",
+      "projections": [],
+      "links": ["command:supplier_item_numbers"],
+      "label_de": "Supplier item numbers",
       "resources": ["party"]
     },
     {
@@ -24914,6 +25071,89 @@
       "resources": ["party"]
     },
     {
+      "id": "command:set_supplier_item_number",
+      "kind": "command",
+      "key": "set_supplier_item_number",
+      "label": "State a supplier item number",
+      "area": "cross_functional",
+      "summary": "States which of our items a supplier's own article number names, with the supplier's name for it, as a new version of that number's statement stream.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["party", "item", "supplier_item_number"],
+      "writes": ["supplier_item_number", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_supplier_item_number", "resolve_supplier_item"],
+      "tools": ["supplier_item_number_set_propose"],
+      "synopses": [
+        "supplier_item_number_set_propose party_id item_id supplier_item_number [supplier_item_name]"
+      ],
+      "events": ["supplier_item_number.set"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:supplier_item_number_set_propose", "event:supplier_item_number.set"],
+      "label_de": "Lieferantenartikelnummer festlegen",
+      "resources": ["party"]
+    },
+    {
+      "id": "command:remove_supplier_item_number",
+      "kind": "command",
+      "key": "remove_supplier_item_number",
+      "label": "Withdraw a supplier item number",
+      "area": "cross_functional",
+      "summary": "Withdraws a supplier's article number; lines that stated it keep it as stated.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["party", "supplier_item_number"],
+      "writes": ["supplier_item_number", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["supplier_item_number_remove_propose"],
+      "synopses": ["supplier_item_number_remove_propose party_id supplier_item_number"],
+      "events": ["supplier_item_number.removed"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:supplier_item_number_remove_propose", "event:supplier_item_number.removed"],
+      "label_de": "Lieferantenartikelnummer entfernen",
+      "resources": ["party"]
+    },
+    {
+      "id": "command:supplier_item_numbers",
+      "kind": "command",
+      "key": "supplier_item_numbers",
+      "label": "Read supplier item numbers",
+      "area": "cross_functional",
+      "summary": "Lists a supplier's own article numbers, or the numbers suppliers use for one item.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["supplier_item_number", "party", "item"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["supplier_item_numbers"],
+      "synopses": ["supplier_item_numbers [party_id] [item_id]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Show which of our items a supplier means by its own article numbers.",
+        "use_when": [
+          "A purchase order",
+          "confirmation or supplier invoice quotes the supplier's own article number",
+          "or someone asks which numbers a supplier uses."
+        ],
+        "do_not_use_when": [
+          "The question is a supplier's minimum quantity or pack size; read the supplier item terms."
+        ],
+        "limitations": [
+          "A number is what a person stated for the supplier; documents from a supplier's own system are not interpreted yet."
+        ],
+        "empty_result": "No supplier item number is stated for the selection.",
+        "freshness": "Read from the mappings at request time."
+      },
+      "links": ["tool:supplier_item_numbers"],
+      "label_de": "Lieferantenartikelnummern anzeigen",
+      "resources": ["party"]
+    },
+    {
       "id": "command:plan_outbound_delivery",
       "kind": "command",
       "key": "plan_outbound_delivery",
@@ -29106,6 +29346,8 @@
         "supplier_item_terms.removed",
         "customer_item_number.set",
         "customer_item_number.removed",
+        "supplier_item_number.set",
+        "supplier_item_number.removed",
         "outbound_delivery.planned",
         "outbound_delivery.revised",
         "outbound_delivery.picked",
@@ -29727,6 +29969,8 @@
         "supplier_item_terms.removed",
         "customer_item_number.set",
         "customer_item_number.removed",
+        "supplier_item_number.set",
+        "supplier_item_number.removed",
         "outbound_delivery.planned",
         "outbound_delivery.revised",
         "outbound_delivery.picked",
@@ -32023,6 +32267,34 @@
       "invalidates": ["Timeline", "Tenant usage"],
       "links": ["command:remove_customer_item_number"],
       "label_de": "customer_item_number.removed",
+      "resources": ["party"]
+    },
+    {
+      "id": "event:supplier_item_number.set",
+      "kind": "event",
+      "key": "supplier_item_number.set",
+      "label": "supplier_item_number.set",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "set_supplier_item_number",
+      "subject": "supplier_item_number",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:set_supplier_item_number"],
+      "label_de": "supplier_item_number.set",
+      "resources": ["party"]
+    },
+    {
+      "id": "event:supplier_item_number.removed",
+      "kind": "event",
+      "key": "supplier_item_number.removed",
+      "label": "supplier_item_number.removed",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "remove_supplier_item_number",
+      "subject": "supplier_item_number",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:remove_supplier_item_number"],
+      "label_de": "supplier_item_number.removed",
       "resources": ["party"]
     },
     {
@@ -78976,6 +79248,8 @@
         "command:merge_party",
         "command:set_customer_item_number",
         "command:remove_customer_item_number",
+        "command:set_supplier_item_number",
+        "command:remove_supplier_item_number",
         "command:plan_outbound_delivery",
         "command:revise_outbound_delivery",
         "command:record_stock_count",

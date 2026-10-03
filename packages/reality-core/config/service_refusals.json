@@ -2107,6 +2107,27 @@
     "customer_item_number_conflicts_with_item": {
       "message": "The customer's number names another item than the one stated."
     },
+    "supplier_item_number_party_not_supplier": {
+      "message": "Supplier item numbers are stated for a supplier."
+    },
+    "supplier_item_number_required": {
+      "message": "State the supplier's item number."
+    },
+    "supplier_item_number_item_not_found": {
+      "message": "This item was not found in this company."
+    },
+    "supplier_item_number_not_found": {
+      "message": "This supplier has no such item number."
+    },
+    "supplier_item_number_changed_since_review": {
+      "message": "This supplier item number changed after it was reviewed; review it again."
+    },
+    "supplier_item_number_unknown": {
+      "message": "The supplier has no item under this number; choose our item or state the number for the supplier first."
+    },
+    "supplier_item_number_conflicts_with_item": {
+      "message": "The supplier's number names another item than the one stated."
+    },
     "order_line_item_no_customer_number": {
       "message": "This line quotes no customer item number to remember."
     },

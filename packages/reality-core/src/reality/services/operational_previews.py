@@ -210,19 +210,22 @@ def _document(session: Session, tenant: str, record_id: str) -> list[Section]:
     ):
         item = detail["items_by_id"].get(line.item_id)
         description = line.description or _name(item)
-        # Spec 308: the customer's own number the line was ordered by.
-        from reality.services.customer_item_numbers import line_customer_item
+        # Spec 308: the customer's own number the line was ordered by; spec 345:
+        # the supplier's own number on a purchase or supplier-invoice line.
+        from reality.services.core import SUPPLIER_LINE_DOCUMENT_TYPES
 
-        quoted = line_customer_item(session, tenant, line, doc.party_id)
+        if doc.type in SUPPLIER_LINE_DOCUMENT_TYPES:
+            from reality.services.supplier_item_numbers import line_supplier_item
+
+            quoted = line_supplier_item(session, tenant, line, doc.party_id)
+            number_key, name_key = "supplier_item_number", "supplier_item_name"
+        else:
+            from reality.services.customer_item_numbers import line_customer_item
+
+            quoted = line_customer_item(session, tenant, line, doc.party_id)
+            number_key, name_key = "customer_item_number", "customer_item_name"
         customer_label = (
-            " ".join(
-                value
-                for value in (
-                    quoted["customer_item_number"],
-                    quoted["customer_item_name"],
-                )
-                if value
-            )
+            " ".join(value for value in (quoted[number_key], quoted[name_key]) if value)
             if quoted
             else ""
         )

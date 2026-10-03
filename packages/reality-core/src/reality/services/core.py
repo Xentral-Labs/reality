@@ -94,6 +94,13 @@ from reality.services.interaction_recorder import note_event as note_interaction
 from reality.storyline.recorder import wrap_chat
 
 ZERO = Decimal(0)
+# Line fields a person states that the line keeps in its payload, as stated
+# (specs 308 and 345); they are no columns.
+STATED_LINE_NUMBER_KEYS = ("customer_item_number", "supplier_item_number")
+# Documents whose lines may name an item by the supplier's own number (spec 345).
+SUPPLIER_LINE_DOCUMENT_TYPES = frozenset(
+    {"purchase_order", "supplier_invoice", "supplier_credit_note"}
+)
 MANUAL_OPERATIONAL_DOCUMENT_TYPES = (
     "sales_order",
     "purchase_order",
@@ -9947,6 +9954,21 @@ def _normalize_manual_line_input(
             item = _tenant_record(session, Item, tenant_id, mapping.item_id)
         elif mapping is not None and mapping.item_id != item.id:
             raise InvalidOperation(code="customer_item_number_conflicts_with_item")
+    # Spec 345: a purchase or supplier-invoice line may name the item by the
+    # supplier's own number.
+    supplier_item_number = str(raw.get("supplier_item_number") or "").strip() or None
+    if supplier_item_number and document_type in SUPPLIER_LINE_DOCUMENT_TYPES:
+        from reality.services.supplier_item_numbers import resolve_supplier_item
+
+        supplier_mapping = resolve_supplier_item(
+            session, tenant_id, _party_id, supplier_item_number
+        )
+        if item is None:
+            if supplier_mapping is None:
+                raise InvalidOperation(code="supplier_item_number_unknown")
+            item = _tenant_record(session, Item, tenant_id, supplier_mapping.item_id)
+        elif supplier_mapping is not None and supplier_mapping.item_id != item.id:
+            raise InvalidOperation(code="supplier_item_number_conflicts_with_item")
     quantity = positive(raw.get("quantity", 0))
     # Absent means the form stated none (0, as ever). An explicit null is kept
     # only when it is carried over from a source line that stated no price
@@ -10003,6 +10025,7 @@ def _normalize_manual_line_input(
         "billed_document_line_id": billed_document_line_id,
         "reality_finance_v1": finance_detail,
         "customer_item_number": customer_item_number,
+        "supplier_item_number": supplier_item_number,
     }
 
 
@@ -10010,7 +10033,7 @@ def _manual_line_payload(row: dict[str, Any]) -> str:
     """What a manual line keeps beside its columns, as stated."""
     stated = {
         key: row[key]
-        for key in ("reality_finance_v1", "customer_item_number")
+        for key in ("reality_finance_v1", *STATED_LINE_NUMBER_KEYS)
         if row.get(key) is not None
     }
     return json.dumps(stated, sort_keys=True) if stated else "{}"
@@ -10034,6 +10057,7 @@ def _stored_manual_line(line: DocumentLine) -> dict[str, Any]:
         "billed_document_line_id": line.billed_document_line_id,
         "reality_finance_v1": payload.get("reality_finance_v1"),
         "customer_item_number": payload.get("customer_item_number"),
+        "supplier_item_number": payload.get("supplier_item_number"),
     }
 
 
@@ -10292,13 +10316,12 @@ def correct_manual_document_lines(
         )
         for index, raw in enumerate(lines, start=1)
     ]
-    # Spec 308: the number a line was ordered by stays as stated unless the
-    # correction states another one.
+    # Specs 308 and 345: the number a line was ordered by stays as stated
+    # unless the correction states another one.
     for raw, row in zip(lines, normalized, strict=True):
-        if raw.get("customer_item_number") is None and row["id"] in stored_by_id:
-            row["customer_item_number"] = _stored_manual_line(stored_by_id[row["id"]])[
-                "customer_item_number"
-            ]
+        for key in STATED_LINE_NUMBER_KEYS:
+            if raw.get(key) is None and row["id"] in stored_by_id:
+                row[key] = _stored_manual_line(stored_by_id[row["id"]])[key]
     entries_to_validate = [
         row
         for row in normalized

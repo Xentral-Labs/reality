@@ -45,8 +45,8 @@ resources:
         oder Lieferant stehen am Geschäftspartner, es gibt keine zwei Adressbücher. Liefersperren
         und Preisgruppen hängen hier.
     synonyms: [customer, supplier, debtor, creditor, duplicate, merge, Kunde, Lieferant, Debitor, Kreditor, Adresse, Dublette, Zusammenführen]
-    tables: [party, party_role, party_group, party_group_member, party_hold, customer_item_number, supplier_item_terms, party_merge]
-    match: "party|member_add|customer_item|supplier_item_terms"
+    tables: [party, party_role, party_group, party_group_member, party_hold, customer_item_number, supplier_item_number, supplier_item_terms, party_merge]
+    match: "party|member_add|customer_item|supplier_item"
     views: [parties]
     projections: []
     exceptions: [credit_limit_exceeded, party_hold_unreleased]
@@ -606,6 +606,9 @@ labels:
       set_customer_item_number: Kundenartikelnummer festlegen
       remove_customer_item_number: Kundenartikelnummer entfernen
       customer_item_numbers: Kundenartikelnummern anzeigen
+      set_supplier_item_number: Lieferantenartikelnummer festlegen
+      remove_supplier_item_number: Lieferantenartikelnummer entfernen
+      supplier_item_numbers: Lieferantenartikelnummern anzeigen
       stock_counts: Inventuren anzeigen
       external_stock: Fremdbestand anzeigen
       stock_count_detail: Inventur anzeigen
