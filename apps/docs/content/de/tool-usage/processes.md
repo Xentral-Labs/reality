@@ -49,7 +49,9 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 (`outgoing_commitment_due_soon`),
 [Reservierung übersteigt Bestand](./exceptions#exception-reservation_exceeds_stock)
 (`reservation_exceeds_stock`), [Artikel überverkauft](./exceptions#exception-item_oversold)
-(`item_oversold`)
+(`item_oversold`),
+[Reservierung wartet auf Vorkasse](./exceptions#exception-reservation_awaiting_prepayment)
+(`reservation_awaiting_prepayment`)
 
 ### 3. Sperren oder ändern
 

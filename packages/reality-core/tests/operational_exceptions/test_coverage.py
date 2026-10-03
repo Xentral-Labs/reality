@@ -76,6 +76,7 @@ def test_production_operational_exception_catalog_has_closed_registry():
         "received_beyond_order",
         "misdelivery_outstanding",
         "external_stock_differs",
+        "reservation_awaiting_prepayment",
     ]
     assert catalog.classes[0]["causes"][0]["id"] == "insufficient_reservation"
     assert {entry["derivation"] for entry in catalog.classes} == set(
