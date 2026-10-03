@@ -1,16 +1,19 @@
 # Maintainer guides
 
-Public product documentation is for getting started, using Reality, understanding business records
-connecting agents and a curated developer entry. Installation, deployment, runtime configuration and deeper implementation guides
-live here for repository maintainers and integration developers.
+Public product documentation is for getting started, using Reality, understanding business records,
+connecting agents and a curated developer entry. Installation, deployment, runtime configuration
+and deeper implementation guides live here for repository maintainers and integration developers.
 
-Spec impact: none. This documentation-only change relocates existing technical guides, simplifies
-public navigation, offers three starting recipes including a guided demo-agent handover and recurring-run setup, expands the public glossary with existing product and developer concepts, and removes deployment choices from product onboarding. It does not alter
-installation, business services, authorization, confirmation or source interpretation.
+- Spec impact: none
+- Reason when none: This documentation-only change relocates technical guides, simplifies public
+  navigation, introduces three starting recipes and expands the glossary. It changes no business
+  services, schemas, authorization, confirmation or source interpretation.
 
-The demo handover distinguishes seeded purchasing/return cases from continuous sales and customer
-payment intake. Recurring purchasing and finance checks describe existing tools; expanding the
-synthetic source lifecycle remains separate implementation work.
+The demo handover assigns responsibility and a schedule within each short mission. It distinguishes
+seeded purchasing/return cases from continuous sales and customer payment intake. Recurring
+purchasing and finance checks describe existing tools; expanding the synthetic source lifecycle
+remains separate implementation work. The final mission checks existing routines rather than
+creating a second daily plan.
 
 ## Install and operate
 
