@@ -124,7 +124,7 @@ führt die vorgeschlagene Wirkung nicht aus. Bestätigung und Ausführung sind n
 Fehlern oder unklarem Ergebnis muss die tatsächliche Wirkung geprüft werden. Eine Änderung in
 Reality belegt keine automatische Änderung im ERP oder beim Zahlungsanbieter.
 
-Werkzeuge und ihre Aussagegrenzen findest du in [Tools nutzen](../../tool-usage/#choosing-a-tool).
+Werkzeuge und ihre Aussagegrenzen findest du in [Tools nutzen](../../api-tools/agent-guidance#choosing-a-tool).
 Die verbindlichen Details stehen im
 [Chat-Contract](https://github.com/Xentral-Labs/reality/blob/main/docs/features/chat.md) und in den
 jeweiligen Werkzeug- und Finanzverträgen.

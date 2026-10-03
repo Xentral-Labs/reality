@@ -7,6 +7,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app/packages/reality-core
 
 COPY packages/reality-core/pyproject.toml ./
+ARG REALITY_COMMIT=
+ENV REALITY_COMMIT=${REALITY_COMMIT} REALITY_BLUEPRINT_EVIDENCE=/opt/blueprint-evidence
+COPY scripts/package_business_blueprint_evidence.py /tmp/package_business_blueprint_evidence.py
+COPY packages/reality-core/tests /tmp/blueprint-tests
+RUN python /tmp/package_business_blueprint_evidence.py --source /tmp/blueprint-tests --output /opt/blueprint-evidence --commit "${REALITY_COMMIT}"
 COPY packages/reality-core/src ./src
 COPY packages/reality-core/migrations ./migrations
 COPY packages/reality-core/config ./config

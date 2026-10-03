@@ -139,3 +139,9 @@ test("self-hosted analytics is a separate optional stack, never a runtime depend
   assert.match(readme, /ANALYTICS_SCRIPT_URL/u);
   assert.match(readme, /ANALYTICS_WEBSITE_ID/u);
 });
+
+test("API receives the configured Docs origin for live blueprint CORS", () => {
+  const api =
+    readRepo("compose.yml").match(/\n  api:\n([\s\S]*?)(?=\n  [a-z][\w-]*:\n)/u)?.[1] || "";
+  assert.match(api, /DOCS_URL: \$\{DOCS_URL:-http:\/\/localhost:8083\}/u);
+});

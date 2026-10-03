@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
 import { useData } from "vitepress";
+import LiveBusinessBlueprint from "./LiveBusinessBlueprint.vue";
 import DataModelExplorer from "./DataModelExplorer.vue";
 import AnalyticsModelExplorer from "./AnalyticsModelExplorer.vue";
 
@@ -43,6 +44,7 @@ interface Entry {
   summary: string;
   links: string[];
   label_de?: string;
+  summary_de?: string;
   resources?: string[];
   // command
   mode?: string;
@@ -285,7 +287,7 @@ const copy: Record<Locale, Record<string, string>> = {
   },
   de: {
     loading: "Katalog wird geladen…",
-    tabResources: "Ressourcen",
+    tabResources: "Geschäftsobjekte",
     tabProcesses: "Prozesse",
     tabModel: "Datenmodell",
     tabAnalytics: "Analytics-Modell",
@@ -532,7 +534,10 @@ const areaTree = computed(() =>
     .filter((a) => a.kinds.length > 0),
 );
 
-const name = (e: Entry | undefined) => e?.label || "";
+const name = (e: Entry | undefined) =>
+  (locale.value === "de" && tab.value !== "technical" ? e?.label_de : undefined) || e?.label || "";
+const purpose = (e: Entry) =>
+  (locale.value === "de" ? e.summary_de : undefined) || e.summary || e.guidance?.purpose || "";
 const canonical = (value: Localized | undefined) => value?.en || "";
 const loc = (value: Localized | undefined) => (value ? value[locale.value] || value.en : "");
 
@@ -562,7 +567,26 @@ const resourceMatches = (r: Resource) => {
   return tokens.value.every((token) => text.includes(token));
 };
 
-const visibleResources = computed(() => (model.value?.resources || []).filter(resourceMatches));
+const resourcePriority = ["order", "invoice", "item", "party", "payment", "location"];
+const visibleResources = computed(() =>
+  (model.value?.resources || []).filter(resourceMatches).sort((a, b) => {
+    const rank = (key: string) => {
+      const index = resourcePriority.indexOf(key);
+      return index < 0 ? resourcePriority.length : index;
+    };
+    return rank(a.key) - rank(b.key);
+  }),
+);
+const starterEntries = computed(() =>
+  [
+    { id: "tool:order_explain", label: { en: "Explain an order", de: "Auftrag nachvollziehen" } },
+    {
+      id: "tool:credit_exposure",
+      label: { en: "Check credit exposure", de: "Kreditobligo prüfen" },
+    },
+    { id: "tool:inventory_read", label: { en: "Understand stock", de: "Bestand verstehen" } },
+  ].filter((entry) => byId.value.has(entry.id)),
+);
 
 // In the resources tab a search also surfaces the business entries themselves, in ERP words,
 // so "Skonto" finds the exception and "Zahlungseingang" the action without knowing its key.
@@ -725,7 +749,7 @@ const contextTarget = computed(() => {
   const resource = currentResource.value;
   const process = currentProcess.value;
   if (tab.value === "resources" && resource)
-    return { label: canonical(resource.label), go: () => openResource(resource.key) };
+    return { label: loc(resource.label), go: () => openResource(resource.key) };
   if (tab.value === "processes" && process)
     return { label: canonical(process.label), go: () => openProcess(process.key) };
   return null;
@@ -1144,7 +1168,7 @@ const explorerIntro = computed(() => {
                 <button type="button" class="drill-up" @click="goRoot">
                   ← {{ t.tabResources }}
                 </button>
-                <strong>{{ canonical(currentResource.label) }}</strong>
+                <strong>{{ loc(currentResource.label) }}</strong>
               </div>
               <p v-if="resourceSections.length === 0" class="tool-usage-empty">{{ t.empty }}</p>
               <template v-for="section in resourceSections" :key="section.key">
@@ -1177,7 +1201,7 @@ const explorerIntro = computed(() => {
                     class="resource-card explorer-card"
                     @click="openResource(r.key)"
                   >
-                    <strong>{{ canonical(r.label) }}</strong>
+                    <strong>{{ loc(r.label) }}</strong>
                     <span class="resource-subtitle">{{ loc(r.subtitle) }}</span>
                     <span class="resource-counts">
                       {{ r.lists.length }} {{ t.countLists }} · {{ r.actions.length }}
@@ -1373,6 +1397,15 @@ const explorerIntro = computed(() => {
           <Transition :name="navDirection === 'back' ? 'drill-back' : 'drill'">
             <div :key="paneKey" class="detail-body">
               <template v-if="selected">
+                <header class="function-intro">
+                  <h2>{{ name(selected) }}</h2>
+                  <p v-if="purpose(selected)">{{ purpose(selected) }}</p>
+                </header>
+                <LiveBusinessBlueprint
+                  :key="selected.id"
+                  :kind="selected.kind"
+                  :entry-key="selected.key"
+                />
                 <header class="man-header">
                   <span class="man-section">
                     {{ t["one_" + selected.kind] }} · {{ areaLabel(selected.area) }}
@@ -1394,16 +1427,13 @@ const explorerIntro = computed(() => {
                     class="linkish"
                     @click="openResource(key)"
                   >
-                    {{ canonical(resourceByKey.get(key)?.label) }}
+                    {{ loc(resourceByKey.get(key)?.label) }}
                   </button>
                 </p>
 
                 <h3 class="man-title">{{ t.name }}</h3>
                 <p>
                   <code>{{ selected.key }}</code>
-                  <template v-if="name(selected) !== selected.key">
-                    — {{ name(selected) }}</template
-                  >
                 </p>
 
                 <template v-if="selected.synopses?.length || selected.synopsis">
@@ -1411,12 +1441,6 @@ const explorerIntro = computed(() => {
                   <pre
                     class="man-synopsis"
                   ><code>{{ (selected.synopses?.length ? selected.synopses : [selected.synopsis]).join("\n") }}</code></pre>
-                </template>
-
-                <template v-if="selected.summary || selected.guidance?.purpose">
-                  <h3 class="man-title">{{ t.description }}</h3>
-                  <p v-if="selected.summary">{{ selected.summary }}</p>
-                  <p v-if="selected.guidance?.purpose">{{ selected.guidance.purpose }}</p>
                 </template>
 
                 <section
@@ -1760,11 +1784,37 @@ const explorerIntro = computed(() => {
               </template>
 
               <template v-else-if="tab === 'resources'">
-                <p v-if="!currentResource" class="tool-usage-empty">{{ t.pickResource }}</p>
+                <section v-if="!currentResource" class="explorer-start" data-explorer-start>
+                  <h3>
+                    {{
+                      locale === "de"
+                        ? "Was möchtest du nachschlagen?"
+                        : "What would you like to look up?"
+                    }}
+                  </h3>
+                  <p>
+                    {{
+                      locale === "de"
+                        ? "Wähle ein Geschäftsobjekt oder beginne mit einer dieser Funktionen."
+                        : "Choose a business object or start with one of these functions."
+                    }}
+                  </p>
+                  <div class="explorer-start-links">
+                    <button
+                      v-for="entry in starterEntries"
+                      :key="entry.id"
+                      type="button"
+                      class="explorer-start-link"
+                      @click="select(entry.id)"
+                    >
+                      {{ loc(entry.label) }} <span aria-hidden="true">→</span>
+                    </button>
+                  </div>
+                </section>
                 <template v-else>
                   <header class="resource-header">
                     <span class="man-section">{{ t.object }}</span>
-                    <h3 class="resource-title">{{ canonical(currentResource.label) }}</h3>
+                    <h3 class="resource-title">{{ loc(currentResource.label) }}</h3>
                     <p class="resource-subtitle">{{ loc(currentResource.subtitle) }}</p>
                   </header>
                   <p>{{ loc(currentResource.description) }}</p>
@@ -1855,7 +1905,7 @@ const explorerIntro = computed(() => {
                       <p v-if="resourceByKey.get(step.resource)" class="step-object">
                         {{ t.object }}:
                         <button type="button" class="linkish" @click="openResource(step.resource)">
-                          {{ canonical(resourceByKey.get(step.resource)!.label) }}
+                          {{ loc(resourceByKey.get(step.resource)!.label) }}
                         </button>
                       </p>
                       <ul v-if="step.actions.length || step.tools.length" class="business-list">
@@ -2821,5 +2871,50 @@ const explorerIntro = computed(() => {
 }
 .read-execution > div + div {
   margin-top: 1.5rem;
+}
+</style>
+
+<style scoped>
+.explorer-start h3 {
+  margin-top: 0;
+}
+.explorer-start-links {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+.explorer-start-link {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+  font-weight: 600;
+  cursor: pointer;
+}
+.explorer-start-link:hover {
+  border-color: var(--vp-c-brand-1);
+  color: var(--vp-c-brand-1);
+}
+.explorer-start-link:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 3px;
+}
+</style>
+
+<style scoped>
+.function-intro h2 {
+  margin: 0 0 12px;
+  border: 0;
+  padding: 0;
+  font-size: 24px;
+  line-height: 1.3;
+}
+.function-intro p {
+  margin: 0;
+  line-height: 1.7;
 }
 </style>

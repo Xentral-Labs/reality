@@ -172,10 +172,10 @@ OPERATIONAL_EXCEPTION_CAUSE_VOCABULARY = (
     "later_relevant_evidence",
     "supported_actual_db1_negative",
 )
-#: Reads that answer from the capability catalog rather than from tenant business
+#: Reads that answer from catalogs/running implementation rather than tenant business
 #: records. Guidance blocks demand a `data_basis` of real tables, which these have
 #: none of, so they are the only reads exempt from carrying one (spec 270).
-CATALOG_READ_TOOLS = frozenset({"capability_describe", "capability_catalog"})
+CATALOG_READ_TOOLS = frozenset({"capability_describe", "capability_catalog", "business_logic_discover", "business_logic_explain", "business_logic_source"})
 
 CAPABILITY_GUIDANCE_REQUIRED_TOOLS = {
     "business_records_discover",

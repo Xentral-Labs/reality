@@ -27,6 +27,7 @@ from reality.web.api import router as api_router
 from reality.web.auth import admin_router as auth_admin_router
 from reality.web.auth import bootstrap_platform_admin, user_from_request
 from reality.web.auth import router as auth_router
+from reality.web.business_blueprint_api import router as business_blueprint_router
 from reality.web.company_setup_api import is_account_setup_path
 from reality.web.company_setup_api import router as company_setup_router
 from reality.web.demo_data_api import router as demo_data_router
@@ -270,7 +271,7 @@ async def protect_application_api(request: Request, call_next):
         "/api/journey-proposals",
         "/healthz",
     }
-    if not path.startswith("/api/") or path in public_paths:
+    if not path.startswith("/api/") or path in public_paths or (path == "/api/business-logic/entries" or path.startswith("/api/business-logic/entries/")):
         return await call_next(request)
 
     def authorize():
@@ -329,6 +330,7 @@ app.include_router(journey_proposal_router)
 app.include_router(journey_account_router)
 app.include_router(journey_admin_router)
 app.include_router(journey_internal_router)
+app.include_router(business_blueprint_router)
 app.include_router(api_router)
 app.include_router(public_api_router)
 app.include_router(playground_router)

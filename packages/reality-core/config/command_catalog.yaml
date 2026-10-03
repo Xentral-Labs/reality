@@ -4628,6 +4628,24 @@ capability_guidance:
     examples:
       use: [{scenario: Explain why a Shopify source failed once and succeeded on retry., reason: Attempt history is the subject.}]
       do_not_use: [{scenario: Prove that an order is ready to ship., reason: Read order and inventory state instead.}]
+  business_logic_compare:
+    kind: read
+    application_tool: business_logic_compare
+    purpose: Compare supplied conditions or an authorized current record with actual executable test assumptions and source-cited rules.
+    use_when: [A professional asks whether their case has the same known conditions as an existing test.]
+    do_not_use_when: [A matching example is being used to authorize or execute a business action.]
+    required_context: [tenant, registered business entry, actual scenario or relevant case conditions]
+    data_basis: [party, document, document_line, commitment, commitment_hold, business_event, ledger_entry, settlement_allocation]
+    limitations: [Similarity never proves an outcome; missing fixture or historical source evidence remains unknown.]
+    freshness: Actual running code and approved tests are inspected on demand; referenced records use current shared-service reads.
+    empty_result: No linked approved test is available for this entry.
+    refusal_behavior: Foreign records are not found; conflicting input modes or changed evidence are rejected.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Which supplied or currently held conditions match known test values.], does_not_prove: [Successful execution or a complete business outcome.]}
+    unknown_when: [A relevant value, currency, unit, fixture assumption or historical rule version is unavailable.]
+    next_steps: [Read the exact rule and test source; use the normal confirmed operation for any change.]
+    examples: {use: [{scenario: Compare a customer's current limit with a synthetic credit test., reason: The read preserves current evidence and unknown assumptions.}], do_not_use: [{scenario: Release the customer's hold based on similarity., reason: An owner must use the reviewed confirmed release action.}]}
   business_records_discover:
     kind: read
     application_tool: business_discover

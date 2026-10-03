@@ -10984,6 +10984,10 @@ governance tools carry proposals, discovery and missing information.
 | [`finance_credits`](#tool-finance_credits)                                                       | Available credit                               | `read`    | —                      |
 | [`finance_party_balances`](#tool-finance_party_balances)                                         | Party balances                                 | `read`    | —                      |
 | [`finance_payments`](#tool-finance_payments)                                                     | Recorded payments                              | `read`    | —                      |
+| [`business_logic_discover`](#tool-business_logic_discover)                                       | Discover live business logic                   | `read`    | —                      |
+| [`business_logic_explain`](#tool-business_logic_explain)                                         | Explain live business logic                    | `read`    | —                      |
+| [`business_logic_source`](#tool-business_logic_source)                                           | Inspect live business source                   | `read`    | —                      |
+| [`business_logic_compare`](#tool-business_logic_compare)                                         | Compare with tested business cases             | `read`    | —                      |
 | [`graph_company_generation_current`](#tool-graph_company_generation_current)                     | Read current published company cost generation | `read`    | —                      |
 | [`graph_captured_reports_list`](#tool-graph_captured_reports_list)                               | List captured report generations               | `read`    | —                      |
 | [`graph_contribution_reviews_list`](#tool-graph_contribution_reviews_list)                       | List confirmed contribution valuations         | `read`    | —                      |
@@ -12413,6 +12417,144 @@ optionally only those with money left to allocate.
 | `only_unallocated` | `boolean` | no       | —                                                                                                | —       |
 | `query`            | `string`  | no       | Optional invoice-number search within matching same-party credit targets.                        | —       |
 | `limit`            | `integer` | no       | Maximum number of records or jobs processed by this invocation.                                  | —       |
+
+### `business_logic_discover` — Discover live business logic {#tool-business_logic_discover}
+
+Find registered business operations, reads and their live source availability. This read inspects
+deployment vocabulary, not tenant records.
+
+**Synopsis**
+
+```text
+business_logic_discover [query] [kind] [cursor] [limit]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                | Kind                        | Default |
+| ----------------------------- | --------------------------- | ------- |
+| `MCP business_logic_discover` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+**Parameters**
+
+| Name     | Type      | Required | Description                                                                                                                       | Default |
+| -------- | --------- | -------- | --------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `query`  | `string`  | no       | Optional invoice-number search within matching same-party credit targets.                                                         | —       |
+| `kind`   | `string`  | no       | Explicit internal or target reference kind; no inferred tax or country meaning. `command`, `tool`, `action`, `view`, `projection` | —       |
+| `cursor` | `integer` | no       | —                                                                                                                                 | —       |
+| `limit`  | `integer` | no       | Maximum number of records or jobs processed by this invocation.                                                                   | —       |
+
+### `business_logic_explain` — Explain live business logic {#tool-business_logic_explain}
+
+Read the exact running source as business steps, decision graph and actual test assertions. Cite
+returned evidence and retain limitations; never infer successful test execution.
+
+**Synopsis**
+
+```text
+business_logic_explain kind key [language]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query               | Kind                        | Default |
+| ---------------------------- | --------------------------- | ------- |
+| `MCP business_logic_explain` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+**Parameters**
+
+| Name       | Type     | Required | Description                                                                                                                       | Default |
+| ---------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `kind`     | `string` | yes      | Explicit internal or target reference kind; no inferred tax or country meaning. `command`, `tool`, `action`, `view`, `projection` | —       |
+| `key`      | `string` | yes      | —                                                                                                                                 | —       |
+| `language` | `string` | no       | Requested inspection labels (en/de); nl/es use English fallback.                                                                  | —       |
+
+### `business_logic_source` — Inspect live business source {#tool-business_logic_source}
+
+Inspect approved running source using an evidence identity returned by business_logic_explain;
+arbitrary paths and code execution are unavailable.
+
+**Synopsis**
+
+```text
+business_logic_source kind key evidence_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query              | Kind                        | Default |
+| --------------------------- | --------------------------- | ------- |
+| `MCP business_logic_source` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+**Parameters**
+
+| Name          | Type     | Required | Description                                                                     | Default |
+| ------------- | -------- | -------- | ------------------------------------------------------------------------------- | ------- |
+| `kind`        | `string` | yes      | Explicit internal or target reference kind; no inferred tax or country meaning. | —       |
+| `key`         | `string` | yes      | —                                                                               | —       |
+| `evidence_id` | `string` | yes      | —                                                                               | —       |
+
+### `business_logic_compare` — Compare with tested business cases {#tool-business_logic_compare}
+
+Compare supplied facts or one authorized party, order or commitment with actual test assumptions.
+Matching conditions do not prove the outcome; current state and historical evidence remain separate.
+
+**Synopsis**
+
+```text
+business_logic_compare kind key [scenario_ids] [facts] [evidence_digest] [record] [language]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query               | Kind                        | Default |
+| ---------------------------- | --------------------------- | ------- |
+| `MCP business_logic_compare` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Compare supplied conditions or an authorized current record with actual executable test assumptions
+and source-cited rules.
+
+**Use when**
+
+- A professional asks whether their case has the same known conditions as an existing test.
+
+**Do not use when**
+
+- A matching example is being used to authorize or execute a business action.
+
+**Parameters**
+
+| Name               | Type                | Required | Description                                                                                                    | Default |
+| ------------------ | ------------------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------- |
+| `kind`             | `string`            | yes      | Explicit internal or target reference kind; no inferred tax or country meaning.                                | —       |
+| `key`              | `string`            | yes      | —                                                                                                              | —       |
+| `scenario_ids`     | `array`             | no       | —                                                                                                              | —       |
+| `facts`            | `array`             | no       | —                                                                                                              | —       |
+| `facts[].name`     | `string`            | yes      | Human-readable display name; it is not used as internal identity.                                              | —       |
+| `facts[].value`    | `string \| boolean` | yes      | Scalar observation value validated and canonicalized by its predicate contract.                                | —       |
+| `facts[].currency` | `string`            | no       | ISO 4217 currency code for monetary values.                                                                    | —       |
+| `facts[].unit`     | `string`            | no       | Unit of measure in which the quantity is expressed.                                                            | —       |
+| `evidence_digest`  | `string`            | no       | —                                                                                                              | —       |
+| `record`           | `object`            | no       | —                                                                                                              | —       |
+| `record.kind`      | `string`            | yes      | Explicit internal or target reference kind; no inferred tax or country meaning. `party`, `order`, `commitment` | —       |
+| `record.id`        | `string`            | yes      | —                                                                                                              | —       |
+| `language`         | `string`            | no       | Requested inspection labels (en/de); nl/es use English fallback.                                               | —       |
 
 ### `graph_company_generation_current` — Read current published company cost generation {#tool-graph_company_generation_current}
 

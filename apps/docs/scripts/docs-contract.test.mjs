@@ -486,7 +486,10 @@ test("book-length guide explains the operational model through worked business c
     assert.match(reference, new RegExp(term), `Missing reference appendix: ${term}`);
   }
   for (const locale of ["", "de/"]) {
-    const usage = fs.readFileSync(path.join(contentRoot, locale, "tool-usage", "index.md"), "utf8");
+    const usage = fs.readFileSync(
+      path.join(contentRoot, locale, "concepts", "list-evidence.md"),
+      "utf8",
+    );
     assert.ok(
       usage.includes("{#how-to-read-the-lists}"),
       `${locale || "en"}: list explanation missing`,
@@ -751,8 +754,9 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
     }
     const index = fs.readFileSync(path.join(root, "index.md"), "utf8");
     assert.ok(index.includes("<ToolUsage />"), `${locale || "en"}: interactive explorer missing`);
-    assert.match(index, /apropos/u);
-    for (const file of pages) assert.ok(index.includes(`(./${file.replace(".md", "")})`), file);
+    const reference = fs.readFileSync(path.join(root, "reference.md"), "utf8");
+    assert.match(reference, /apropos/u);
+    for (const file of pages) assert.ok(reference.includes(`(./${file.replace(".md", "")})`), file);
   }
   const commands = fs.readFileSync(path.join(contentRoot, "tool-usage", "commands.md"), "utf8");
   for (const term of [
@@ -893,7 +897,7 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
     "Synopsis",
     "Aufruf",
     "tabResources",
-    "Ressourcen",
+    "Geschäftsobjekte",
     "Prozesse",
     "@media (max-width: 959px)",
     ":focus-visible",
@@ -950,7 +954,10 @@ test("Fact guidance defines the safe write boundary with a complete example", ()
 
 test("agent capability guidance defines selection, confirmation, and verification", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
-  const guidance = fs.readFileSync(path.join(contentRoot, "tool-usage", "index.md"), "utf8");
+  const guidance = fs.readFileSync(
+    path.join(contentRoot, "api-tools", "agent-guidance.md"),
+    "utf8",
+  );
   for (const term of [
     "capability_describe",
     "business_records_discover",

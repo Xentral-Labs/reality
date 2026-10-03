@@ -315,9 +315,17 @@
     "graph_request_get": "analytics",
     "graph_request_propose": "analytics",
     "graph_format": "analytics",
-    "graph_interpret": "analytics"
+    "graph_interpret": "analytics",
+    "business_logic_discover": "evidence",
+    "business_logic_explain": "evidence",
+    "business_logic_source": "evidence",
+    "business_logic_compare": "evidence"
   },
   "understand_tools": [
+    "business_logic_discover",
+    "business_logic_explain",
+    "business_logic_source",
+    "business_logic_compare",
     "business_journey_guide",
     "capability_catalog",
     "capability_describe",

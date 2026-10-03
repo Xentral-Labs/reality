@@ -370,7 +370,7 @@ resources:
         die die Daten noch nicht beantworten.
     synonyms: [proposal, approval, exception, attention, missing information, Vorschlag, Freigabe, Abweichung, Klärfall, Timeline, Verlauf]
     tables: []
-    match: "proposal|reality_gap|business_journey|capability_describe|capability_catalog|business_records_discover|^exception|activity|timeline"
+    match: "business_logic|proposal|reality_gap|business_journey|capability_describe|capability_catalog|business_records_discover|^exception|activity|timeline"
     views: [activity]
     projections: [exceptions, timeline]
     exceptions: []
@@ -572,7 +572,10 @@ processes:
 # labels come from the other catalogs. A key without an entry falls back to the English label.
 labels:
   de:
+    tools:
+      reorder_points: Meldebestände anzeigen
     commands:
+      reorder_points: Meldebestände anzeigen
       business_journey_guide: Reality-Fähigkeit im Business Journey Guide prüfen
       business_journey_proposal_create: Business Journey vorschlagen
       business_journey_vote_set: Stimme für Business-Journey-Vorschlag setzen
@@ -841,3 +844,11 @@ labels:
       warehouse: Lager
       finance: Finanzen
       data: Datenpflege
+
+# Localized operation purposes are catalog navigation text, not live rule explanations.
+descriptions:
+  de:
+    commands:
+      reorder_points: Zeigt die hinterlegten Meldebestände und Nachbestellmengen je Artikel und Lagerort.
+    tools:
+      reorder_points: Zeigt die hinterlegten Meldebestände und Nachbestellmengen je Artikel und Lagerort.

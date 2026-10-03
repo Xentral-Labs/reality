@@ -35,6 +35,7 @@ def _invoiced_quantities(
     """
     from reality.db.core import LedgerEntry, LedgerReversal
 
+    # reality-rule: credit_exposure._invoiced_quantities.guard-37
     if not line_ids:
         return {}
     rows = session.execute(
@@ -52,6 +53,7 @@ def _invoiced_quantities(
     ).all()
     invoice_ids = {invoice_id for _, _, invoice_id in rows}
     groups: dict[str, set[str]] = {}
+    # reality-rule: credit_exposure._invoiced_quantities.guard-54
     if invoice_ids:
         for document_id, group in session.execute(
             select(LedgerEntry.document_id, LedgerEntry.posting_group_id).where(
@@ -76,6 +78,7 @@ def _invoiced_quantities(
     invoiced: dict[str, Decimal] = {}
     for line_id, quantity, invoice_id in rows:
         posted = groups.get(invoice_id, set())
+        # reality-rule: credit_exposure._invoiced_quantities.guard-78
         if posted and posted <= reversed_groups:
             continue
         invoiced[line_id] = invoiced.get(line_id, ZERO) + Decimal(quantity)
@@ -105,6 +108,7 @@ def _order_rows(
             .order_by(Document.number, Document.id)
         )
     )
+    # reality-rule: credit_exposure._order_rows.guard-107
     if not orders:
         return result
     lines = list(
@@ -127,6 +131,7 @@ def _order_rows(
         )
     ):
         by_order.setdefault(commitment.document_id, []).append(commitment)
+        # reality-rule: credit_exposure._order_rows.guard-129
         if commitment.document_line_id:
             promises.setdefault(commitment.document_line_id, []).append(commitment)
     live = [
@@ -144,11 +149,13 @@ def _order_rows(
         counted, unpriced, other = result[party.id]
         rows = promises.get(line.id)
         order_promises = by_order.get(order.id, [])
+        # reality-rule: credit_exposure._order_rows.guard-146
         if rows:
             # A promise says what is still agreed after revisions and cancellations.
             base = sum(
                 (terms[c.id].quantity for c in rows if c.status != "cancelled"), ZERO
             )
+        # reality-rule: credit_exposure._order_rows.guard-151
         elif order_promises and all(c.status == "cancelled" for c in order_promises):
             # A line the company promised nothing for (a service, a charge, an
             # unknown item) goes with its order: a cancelled order owes nothing.
@@ -156,6 +163,7 @@ def _order_rows(
         else:
             base = Decimal(line.quantity)
         uninvoiced = max(base - invoiced.get(line.id, ZERO), ZERO)
+        # reality-rule: credit_exposure._order_rows.guard-158
         if uninvoiced <= ZERO:
             continue
         row = {
@@ -168,8 +176,10 @@ def _order_rows(
             if line.unit_price is not None
             else None,
         }
+        # reality-rule: credit_exposure._order_rows.guard-170
         if order.currency != party.default_currency:
             other.append(row)
+        # reality-rule: credit_exposure._order_rows.guard-172
         elif line.unit_price is None:
             unpriced.append({**row, "value": ZERO})
         else:
@@ -211,6 +221,7 @@ def credit_exposures(
     receivables: dict[str, list] = {pid: [] for pid in parties}
     payables: dict[str, list] = {pid: [] for pid in parties}
     not_counted: dict[str, list] = {pid: [] for pid in parties}
+    # reality-rule: credit_exposure.credit_exposures.guard-201
     if not parties:
         return {}
     rows = core.financial_open_items(session, tenant_id, party_ids=set(members))
@@ -220,8 +231,10 @@ def credit_exposures(
         document = row["document"]
         party = members.get(document.party_id)
         open_amount = Decimal(row["open"])
+        # reality-rule: credit_exposure.credit_exposures.guard-210
         if party is None or open_amount <= ZERO:
             continue
+        # reality-rule: credit_exposure.credit_exposures.guard-212
         if document.type not in RECEIVABLE_TYPES | PAYABLE_TYPES:
             continue
         entry = {
@@ -233,8 +246,10 @@ def credit_exposures(
             "due_date": row.get("due_date"),
             "days_overdue": row.get("days_overdue") or 0,
         }
+        # reality-rule: credit_exposure.credit_exposures.guard-223
         if document.currency != party.default_currency:
             not_counted[party.id].append(entry)
+        # reality-rule: credit_exposure.credit_exposures.guard-225
         elif document.type in RECEIVABLE_TYPES:
             receivables[party.id].append(entry)
         else:
@@ -249,6 +264,7 @@ def credit_exposures(
     for item in items:
         party = members.get(item["party_id"])
         available = Decimal(item["open"])
+        # reality-rule: credit_exposure.credit_exposures.guard-239
         if party is None or available <= ZERO:
             continue
         entry = {
@@ -258,6 +274,7 @@ def credit_exposures(
             "currency": item["currency"],
             "available": available,
         }
+        # reality-rule: credit_exposure.credit_exposures.guard-248
         if item["currency"] != party.default_currency:
             not_counted[party.id].append(entry)
         else:
@@ -274,6 +291,7 @@ def credit_exposures(
             "currency": row["currency"],
             "available": row["offsettable"],
         }
+        # reality-rule: credit_exposure.credit_exposures.guard-264
         if row["currency"] != party.default_currency:
             not_counted[party.id].append(entry)
         else:
@@ -350,6 +368,7 @@ def credit_hold_note(exposure: dict[str, Any], order_value: Decimal) -> str:
         ),
     ]
     overdue = exposure["overdue_invoices"]["rows"]
+    # reality-rule: credit_exposure.credit_hold_note.guard-340
     if overdue:
         parts[0] += (
             " (overdue "
@@ -361,11 +380,13 @@ def credit_hold_note(exposure: dict[str, Any], order_value: Decimal) -> str:
         f" (this order {_money(order_value)})"
         f" - credits {_money(exposure['available_credits']['amount'])}"
     )
+    # reality-rule: credit_exposure.credit_hold_note.guard-351
     if exposure["payables"]["rows"]:
         parts.append(
             f"payables {_money(exposure['payables']['amount'])} {currency} named, "
             "not netted"
         )
+    # reality-rule: credit_exposure.credit_hold_note.guard-356
     if exposure["not_counted"]:
         parts.append(
             "not counted (other currency): "
@@ -376,14 +397,19 @@ def credit_hold_note(exposure: dict[str, Any], order_value: Decimal) -> str:
 
 def _json_exposure(exposure: dict[str, Any]) -> dict[str, Any]:
     def plain(value: Any) -> Any:
+        # reality-rule: credit_exposure.plain.guard-366
         if isinstance(value, Decimal):
             return str(value)
+        # reality-rule: credit_exposure.plain.guard-368
         if isinstance(value, datetime):
             return value.isoformat()
+        # reality-rule: credit_exposure.plain.guard-370
         if isinstance(value, dict):
             return {key: plain(item) for key, item in value.items()}
+        # reality-rule: credit_exposure.plain.guard-372
         if isinstance(value, list):
             return [plain(item) for item in value]
+        # reality-rule: credit_exposure.plain.guard-374
         if hasattr(value, "isoformat"):
             return value.isoformat()
         return value
@@ -396,6 +422,7 @@ def active_credit_holds(
 ) -> list[Any]:
     from reality.db.core import CommitmentHold
 
+    # reality-rule: credit_exposure.active_credit_holds.guard-386
     if not commitment_ids:
         return []
     return list(
@@ -461,6 +488,7 @@ def _place_holds(
     }
     placed = []
     for commitment in commitments:
+        # reality-rule: credit_exposure.place_credit_holds.guard-423
         if commitment.id in held or commitment.status == "cancelled":
             continue
         hold = CommitmentHold(
@@ -503,12 +531,14 @@ def hold_if_over_credit_limit(
     than the limit's cannot be counted without converting, so it waits for a
     person too rather than passing unchecked (spec 341).
     """
+    # reality-rule: credit_exposure.hold_if_over_credit_limit.guard-463
     if order.type != "sales_order" or not order.party_id:
         return []
     party = core._tenant_record(session, Party, tenant_id, order.party_id)
     if Decimal(party.credit_limit) <= ZERO:
         return []
     promises = [c for c in commitments if c.type == "customer_delivery"]
+    # reality-rule: credit_exposure.hold_if_over_credit_limit.guard-469
     if not promises:
         return []
     session.flush()
@@ -537,6 +567,7 @@ def hold_if_over_credit_limit(
         ),
         ZERO,
     )
+    # reality-rule: credit_exposure.hold_if_over_credit_limit.guard-481
     if order_value <= ZERO or not exposure["over_limit"]:
         return []
     return place_credit_holds(

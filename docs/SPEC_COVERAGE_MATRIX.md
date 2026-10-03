@@ -2359,3 +2359,21 @@ No schema change. An order in another currency than the customer's credit limit 
   - No limit holds nothing in either currency.
   - An owner releases the currency hold with a reason, and raising the order asks again.
   - A line assigned later to a held order carries the order's hold reason.
+
+## Spec 343: Live business logic and test blueprints
+
+- Contract: `docs/features/business-logic-blueprints.md`; specification: `specs/343-business-logic-blueprints/spec.md`.
+- Evidence: `packages/reality-core/tests/test_business_blueprint_adapters.py` (including bounded Chat evidence with canonical source/test identities); `packages/reality-core/tests/test_business_blueprint_inventory.py` (generic wrong-kind discovery recovery, FR-011).
+- Evidence: `packages/reality-core/tests/test_business_blueprint_analysis.py`.
+- Responsive flow and waiting feedback: `apps/docs/scripts/business-blueprints.test.mjs`, `apps/docs/scripts/business-blueprints-browser.mjs`, `apps/web/scripts/business-blueprints-browser.mjs` (FR-023–FR-024). Brief interpretation/schema proof: `packages/reality-core/tests/test_business_blueprint_presentation.py` (FR-025).
+- ERP-readable live LLM correction: `packages/reality-core/tests/test_business_blueprint_presentation.py` (FR-020–FR-022; unseen functions, freshness, citations, graph, failure and no execution).
+- Evidence: `packages/reality-core/tests/test_business_blueprint_cases.py`.
+- Evidence: `packages/reality-core/tests/test_business_blueprint_inventory.py`.
+- Evidence: `packages/reality-core/tests/test_business_blueprint_release.py`.
+- Evidence: `packages/reality-core/tests/test_business_blueprint_tests.py`.
+- Credit reference journey: `packages/reality-core/tests/scenarios/test_credit_blueprint_journey.py`.
+
+- Focused source ranges and three-area reading hierarchy: `apps/docs/scripts/business-blueprints.test.mjs`, `apps/docs/scripts/business-blueprints-browser.mjs`, `apps/web/scripts/business-blueprints-browser.mjs` (spec 343 FR-026–FR-027). Generic multiline conditional instruction/citation proof: `packages/reality-core/tests/test_business_blueprint_presentation.py`; multiline UI retention and duplicate-flow removal: Docs adapter/browser tests (FR-028).
+- ERP explorer entry (spec 343 FR-029): `apps/docs/scripts/tool-interface-render.test.mjs` verifies actual Vue SSR German object labels/order, retention of all objects, English labels and catalog-backed starter presence. Actual browser checks verify starter-to-entry navigation without a live-source request and responsive sizing.
+- Docs explanation entry hierarchy (spec 343 FR-030): `apps/docs/scripts/business-blueprints.test.mjs` checks initial question/action and loaded provenance/refresh; `apps/docs/scripts/business-blueprints-browser.mjs` checks loading/freshness/retry under the revised accessible labels.
+- Business-first function detail (spec 343 FR-031): `apps/docs/scripts/tool-interface-render.test.mjs` verifies localized catalog purpose/title before technical identity and preserved synopsis. `apps/docs/scripts/business-blueprints.test.mjs` verifies borderless initial explanation entry and retained loaded controls; Docs browser workflow retains loading/freshness/retry behavior.

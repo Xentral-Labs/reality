@@ -1260,7 +1260,7 @@
         "command:run_context"
       ],
       "exceptions": ["exception:silent_source", "exception:source_interpretation_failure"],
-      "tools": ["tool:interpretation_coverage"],
+      "tools": ["tool:interpretation_coverage", "tool:business_logic_source"],
       "events": [
         "event:finance.source_mapping_changed",
         "event:dunning.notice_recorded",
@@ -1366,7 +1366,11 @@
         "tool:reality_gap_implementation_prepare_propose",
         "tool:reality_gap_rule_activate_propose",
         "tool:reality_gap_rule_disable_propose",
-        "tool:reality_gap_rule_replay_propose"
+        "tool:reality_gap_rule_replay_propose",
+        "tool:business_logic_discover",
+        "tool:business_logic_explain",
+        "tool:business_logic_source",
+        "tool:business_logic_compare"
       ],
       "events": [],
       "workspace_actions": []
@@ -11710,7 +11714,8 @@
       "command": "reorder_points",
       "projections": [],
       "links": ["command:reorder_points"],
-      "label_de": "Reorder points",
+      "label_de": "Meldebestände anzeigen",
+      "summary_de": "Zeigt die hinterlegten Meldebestände und Nachbestellmengen je Artikel und Lagerort.",
       "resources": ["item", "order"]
     },
     {
@@ -14277,6 +14282,287 @@
       "links": ["command:month_end_billing"],
       "label_de": "Month-end billing",
       "resources": ["delivery", "order", "source"]
+    },
+    {
+      "id": "tool:business_logic_discover",
+      "kind": "tool",
+      "key": "business_logic_discover",
+      "label": "Discover live business logic",
+      "area": "cross_functional",
+      "summary": "Find registered business operations, reads and their live source availability. This read inspects deployment vocabulary, not tenant records.",
+      "access": "read",
+      "group": "Catalog",
+      "synopsis": "business_logic_discover [query] [kind] [cursor] [limit]",
+      "parameters": [
+        {
+          "name": "query",
+          "type": "string",
+          "required": false,
+          "description": "Optional invoice-number search within matching same-party credit targets.",
+          "depth": 0
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "required": false,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 0,
+          "enum": ["command", "tool", "action", "view", "projection"]
+        },
+        {
+          "name": "cursor",
+          "type": "integer",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of records or jobs processed by this invocation.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [
+        {
+          "query": "MCP business_logic_discover",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Discover live business logic",
+      "resources": ["governance"]
+    },
+    {
+      "id": "tool:business_logic_explain",
+      "kind": "tool",
+      "key": "business_logic_explain",
+      "label": "Explain live business logic",
+      "area": "cross_functional",
+      "summary": "Read the exact running source as business steps, decision graph and actual test assertions. Cite returned evidence and retain limitations; never infer successful test execution.",
+      "access": "read",
+      "group": "Catalog",
+      "synopsis": "business_logic_explain kind key [language]",
+      "parameters": [
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 0,
+          "enum": ["command", "tool", "action", "view", "projection"]
+        },
+        {
+          "name": "key",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "language",
+          "type": "string",
+          "required": false,
+          "description": "Requested inspection labels (en/de); nl/es use English fallback.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [
+        {
+          "query": "MCP business_logic_explain",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Explain live business logic",
+      "resources": ["governance"]
+    },
+    {
+      "id": "tool:business_logic_source",
+      "kind": "tool",
+      "key": "business_logic_source",
+      "label": "Inspect live business source",
+      "area": "sources",
+      "summary": "Inspect approved running source using an evidence identity returned by business_logic_explain; arbitrary paths and code execution are unavailable.",
+      "access": "read",
+      "group": "Catalog",
+      "synopsis": "business_logic_source kind key evidence_id",
+      "parameters": [
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 0
+        },
+        {
+          "name": "key",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "evidence_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [
+        {
+          "query": "MCP business_logic_source",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Inspect live business source",
+      "resources": ["governance", "source"]
+    },
+    {
+      "id": "tool:business_logic_compare",
+      "kind": "tool",
+      "key": "business_logic_compare",
+      "label": "Compare with tested business cases",
+      "area": "cross_functional",
+      "summary": "Compare supplied facts or one authorized party, order or commitment with actual test assumptions. Matching conditions do not prove the outcome; current state and historical evidence remain separate.",
+      "access": "read",
+      "group": "Catalog",
+      "synopsis": "business_logic_compare kind key [scenario_ids] [facts] [evidence_digest] [record] [language]",
+      "parameters": [
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 0
+        },
+        {
+          "name": "key",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "scenario_ids",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "facts",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "facts[].name",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable display name; it is not used as internal identity.",
+          "depth": 1
+        },
+        {
+          "name": "facts[].value",
+          "type": "string | boolean",
+          "required": true,
+          "description": "Scalar observation value validated and canonicalized by its predicate contract.",
+          "depth": 1
+        },
+        {
+          "name": "facts[].currency",
+          "type": "string",
+          "required": false,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 1
+        },
+        {
+          "name": "facts[].unit",
+          "type": "string",
+          "required": false,
+          "description": "Unit of measure in which the quantity is expressed.",
+          "depth": 1
+        },
+        {
+          "name": "evidence_digest",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "record",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "record.kind",
+          "type": "string",
+          "required": true,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 1,
+          "enum": ["party", "order", "commitment"]
+        },
+        {
+          "name": "record.id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "language",
+          "type": "string",
+          "required": false,
+          "description": "Requested inspection labels (en/de); nl/es use English fallback.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Compare supplied conditions or an authorized current record with actual executable test assumptions and source-cited rules.",
+        "use_when": [
+          "A professional asks whether their case has the same known conditions as an existing test."
+        ],
+        "do_not_use_when": [
+          "A matching example is being used to authorize or execute a business action."
+        ],
+        "limitations": [
+          "Similarity never proves an outcome; missing fixture or historical source evidence remains unknown."
+        ],
+        "empty_result": "No linked approved test is available for this entry.",
+        "freshness": "Actual running code and approved tests are inspected on demand; referenced records use current shared-service reads."
+      },
+      "read_modes": [
+        {
+          "query": "MCP business_logic_compare",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Compare with tested business cases",
+      "resources": ["governance"]
     },
     {
       "id": "tool:credit_exposure",
@@ -24927,7 +25213,8 @@
         "freshness": "Read from the stated points at request time."
       },
       "links": ["tool:reorder_points"],
-      "label_de": "Read reorder points",
+      "label_de": "Meldebestände anzeigen",
+      "summary_de": "Zeigt die hinterlegten Meldebestände und Nachbestellmengen je Artikel und Lagerort.",
       "resources": ["item", "order"]
     },
     {

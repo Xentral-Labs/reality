@@ -1253,3 +1253,34 @@ families:
         assertion: boundary
         operations:
           - reality.services.costing:execute_cost_change
+
+  - key: business_logic_generic
+    description: Inspect approved running implementation and synthetic test evidence without company records.
+    classification: boundary
+    authority: 343/FR-005, 343/FR-014, 343/DR-003
+    reason: Canonical generic reads accept registered identities only and never query tenant business records; public requests reject tenant and case inputs.
+    operations: &business_logic_generic_operations
+      - tool:business_logic_discover
+      - tool:business_logic_explain
+      - tool:business_logic_source
+    evidence:
+      - id: tests/test_business_blueprint_adapters.py::test_public_generic_reads_do_not_require_company_or_allow_case_inputs
+        assertion: boundary
+        operations: *business_logic_generic_operations
+      - id: tests/test_business_blueprint_adapters.py::test_tools_are_read_only_and_share_the_blueprint
+        assertion: boundary
+        operations: *business_logic_generic_operations
+  - key: business_logic_case_comparison
+    description: Compare supplied conditions or one authorized company's current business case.
+    classification: boundary
+    authority: 343/FR-012, 343/FR-013, 343/FR-014, 343/DR-003
+    reason: MCP delegates to the same read-only application service, which scopes every record lookup and rejects foreign company references.
+    operations: &business_logic_case_operations
+      - tool:business_logic_compare
+    evidence:
+      - id: tests/test_business_blueprint_cases.py::test_other_company_record_is_not_read
+        assertion: boundary
+        operations: *business_logic_case_operations
+      - id: tests/test_business_blueprint_cases.py::test_authorized_current_read_creates_no_business_authority
+        assertion: boundary
+        operations: *business_logic_case_operations

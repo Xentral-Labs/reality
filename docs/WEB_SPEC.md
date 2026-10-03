@@ -3552,3 +3552,7 @@ visible. An explicit chat action opens the existing overlay without reserving a
 workspace column. Growing the window does not reopen closed chat. The mounted chat
 retains drafts, history and existing tenant/session boundaries. Standalone Chat and
 Storyline retain their own behavior. This supersedes narrower desktop docking rules.
+
+## Live business logic inspection
+
+See [the live business logic contract](features/business-logic-blueprints.md) for spec 343: request-time running-source provenance, shared rule graphs, raw synthetic test evidence, read-only case comparison, and public/private boundaries. No stored explanation, business schema or scheduled job is introduced.

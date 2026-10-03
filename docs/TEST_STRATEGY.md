@@ -71,3 +71,7 @@ Tests assert that account existence is not disclosed, no membership exists befor
 explicit acceptance, token material is never persisted or logged in clear text, and a
 removed membership denies the next protected tenant request without ending the global
 session or other memberships.
+
+## Live business logic inspection
+
+See [the live business logic contract](features/business-logic-blueprints.md) for spec 343: request-time running-source provenance, shared rule graphs, raw synthetic test evidence, read-only case comparison, and public/private boundaries. No stored explanation, business schema or scheduled job is introduced.

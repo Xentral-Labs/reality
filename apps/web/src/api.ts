@@ -1,3 +1,4 @@
+import type { BusinessBlueprint, LogicComparison } from "../../shared/businessBlueprint";
 import { APIError, refusalError } from "./apiError";
 import { readChatStream, type ChatReply, type ChatStreamEvent } from "./chatStream";
 import { clearPalettePreferences } from "./unified/commandPalettePreferences";
@@ -2219,6 +2220,15 @@ export const api = {
     request<ProjectionSnapshot>(
       `/api/tenants/${encodeURIComponent(tenant)}/projection-snapshots/${encodeURIComponent(name)}`,
     ),
+  businessLogic: (tenant: string, kind: string, key: string, language = "en", brief = false) =>
+    request<BusinessBlueprint>(
+      `/api/tenants/${tenant}/business-logic/${encodeURIComponent(kind)}/${encodeURIComponent(key)}?language=${encodeURIComponent(language)}&brief=${brief}`,
+    ),
+  businessLogicCompare: (tenant: string, arguments_: unknown) =>
+    request<LogicComparison>(`/api/tenants/${tenant}/business-logic/compare`, {
+      method: "POST",
+      body: JSON.stringify(arguments_),
+    }),
   catalogCode: (tenant: string, kind: string, key: string) =>
     request<CatalogCode>(
       `/api/tenants/${encodeURIComponent(tenant)}/catalog-code?${new URLSearchParams({ kind, key })}`,

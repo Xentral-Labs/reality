@@ -31,6 +31,7 @@ def _order_holds(
     session: Session, tenant_id: str, document_id: str
 ) -> tuple[Document, list[Any]]:
     order = core._tenant_record(session, Document, tenant_id, document_id)
+    # reality-rule: credit_hold_actions._order_holds.guard-34
     if order.type != "sales_order":
         raise core.InvalidOperation(code="credit_hold_not_found")
     commitment_ids = list(
@@ -48,9 +49,11 @@ def preview_credit_release(
 ) -> dict[str, Any]:
     """What releasing this order's credit holds would do, recording nothing."""
     order, holds = _order_holds(session, tenant_id, document_id)
+    # reality-rule: credit_hold_actions.preview_credit_release.guard-51
     if not holds:
         raise core.InvalidOperation(code="credit_hold_not_found")
     stated = str(reason or "").strip()
+    # reality-rule: credit_hold_actions.preview_credit_release.guard-54
     if not stated:
         raise core.InvalidOperation(code="credit_hold_release_reason_missing")
     exposure = credit_exposure(session, tenant_id, order.party_id)
@@ -109,6 +112,7 @@ def release_credit_holds(
             action_id=action_id,
             correlation_id=action_id,
         )
+    # reality-rule: credit_hold_actions.release_credit_holds.guard-112
     if _commit:
         session.commit()
     else:
@@ -123,6 +127,7 @@ def release_credit_holds(
 def review_credit_release(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
+    # reality-rule: credit_hold_actions.review_credit_release.guard-126
     if set(arguments) != FIELDS:
         raise core.InvalidOperation(code="credit_hold_release_fields_invalid")
     intent = {key: str(arguments[key]) for key in sorted(FIELDS)}
@@ -158,6 +163,7 @@ def assert_no_unresolved_credit_release(
         )
     ):
         saved = json.loads(proposal.input)
+        # reality-rule: credit_hold_actions.assert_no_unresolved_credit_release.guard-161
         if proposal.id != exclude and saved.get("document_id") == arguments.get(
             "document_id"
         ):
@@ -194,6 +200,7 @@ def credit_release_detail(
         )
     )
     payloads = [json.loads(event.payload) for event in events]
+    # reality-rule: credit_hold_actions.credit_release_detail.guard-197
     if payloads and all(
         payload.get("document_id") == intent.get("document_id")
         and payload.get("reason_code") == "credit_check"
@@ -206,6 +213,7 @@ def credit_release_detail(
             ),
             "reason": payloads[0]["reason"],
         }
+        # reality-rule: credit_hold_actions.credit_release_detail.guard-209
         if proposal.status != "executed" or result["receipt"] == receipt:
             result.update(
                 verification="verified"
@@ -224,14 +232,17 @@ def credit_release_detail(
     result["lifecycle"] = proposal.status
     result["recorded_effect"] = result.get("recorded_receipt")
     result["current_observation"] = result["observation"]
+    # reality-rule: credit_hold_actions.credit_release_detail.guard-227
     if proposal.status == "proposed":
         result["remaining_work"] = ["An owner confirms the unchanged reviewed release."]
         result["safe_next_action"] = "confirm"
+    # reality-rule: credit_hold_actions.credit_release_detail.guard-230
     elif result["verification"] == "recorded_unsettled":
         result["remaining_work"] = [
             "Settle the proposal receipt from the exact recorded effect."
         ]
         result["safe_next_action"] = "reconcile"
+    # reality-rule: credit_hold_actions.credit_release_detail.guard-235
     elif result["verification"] == "verified":
         result["remaining_work"] = []
         result["safe_next_action"] = "none"

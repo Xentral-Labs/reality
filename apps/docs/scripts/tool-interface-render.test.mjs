@@ -15,13 +15,16 @@ const source = fs
   .replace(
     'import { useData } from "vitepress";',
     `
-const props = defineProps<{ testLocale: string; testModel: Model; testSelection: string }>();
+const props = defineProps<{ testLocale: string; testModel: Model; testSelection: string; testTab: string }>();
 `,
   )
-  .replace(/import (DataModelExplorer|AnalyticsModelExplorer) from .*;/gu, "const $1 = {};")
+  .replace(
+    /import (DataModelExplorer|AnalyticsModelExplorer|LiveBusinessBlueprint) from .*;/gu,
+    "const $1 = {};",
+  )
   .replace("const { lang } = useData();", "const lang = computed(() => props.testLocale);")
   .replace("shallowRef<Model | null>(null)", "shallowRef<Model | null>(props.testModel)")
-  .replace('const tab = ref<Tab>("resources");', 'const tab = ref<Tab>("technical");')
+  .replace('const tab = ref<Tab>("resources");', "const tab = ref<Tab>(props.testTab as Tab);")
   .replace('const selectedId = ref("");', "const selectedId = ref(props.testSelection);");
 const { descriptor } = parse(source);
 const compiled = compileScript(descriptor, { id: "tool-interface-test", inlineTemplate: true });
@@ -33,12 +36,13 @@ const linked = code.replace(
 const { default: component } = await import(
   `data:text/javascript;base64,${Buffer.from(linked).toString("base64")}`
 );
-const render = (locale, selection = "") =>
+const render = (locale, selection = "", tab = "technical") =>
   renderToString(
     createSSRApp(component, {
       testLocale: locale,
       testModel: model,
       testSelection: selection,
+      testTab: tab,
     }),
   );
 
@@ -74,4 +78,30 @@ test("mapped entry details render explicit relationships and unmapped tools reta
     const tool = model.entries.find((entry) => entry.kind === "tool" && !entry.command);
     assert.ok((await render(locale, tool.id)).includes(escaped(tool.summary)));
   }
+});
+
+test("ERP object navigation localizes names and prioritizes familiar objects without hiding others", async () => {
+  const html = await render("de", "", "resources");
+  assert.ok(html.includes("Geschäftsobjekte"));
+  assert.ok(html.indexOf("<strong>Auftrag</strong>") < html.indexOf("<strong>Artikel</strong>"));
+  assert.ok(html.includes("<strong>Geschäftspartner</strong>"));
+  assert.ok(!html.includes("<strong>Business partner</strong>"));
+  assert.ok(html.includes("data-explorer-start"));
+  assert.ok(html.includes("Kreditobligo prüfen"));
+  for (const resource of model.resources)
+    assert.ok(html.includes(escaped(resource.label.de || resource.label.en)));
+  const english = await render("en", "", "resources");
+  assert.ok(english.includes("Business partner"));
+});
+
+test("business function details lead with localized purpose before technical identity", async () => {
+  const html = await render("de", "command:reorder_points", "resources");
+  assert.ok(html.includes("Meldebestände anzeigen"));
+  assert.ok(
+    html.includes(
+      "Zeigt die hinterlegten Meldebestände und Nachbestellmengen je Artikel und Lagerort.",
+    ),
+  );
+  assert.ok(html.indexOf('class="function-intro"') < html.indexOf('class="man-header"'));
+  assert.ok(html.includes("reorder_points [item_id] [location_id]"));
 });

@@ -91,10 +91,10 @@ def test_every_public_business_read_has_guidance():
 def test_only_catalog_reads_are_exempt_from_guidance():
     """The exemption must not become a hole a business read can slip through.
 
-    These two answer from the capability catalog, so they have no `data_basis` of
+    These answer from catalogs or running code, so they have no `data_basis` of
     real tables to declare. Every other read does, and must carry a guidance block.
     """
-    assert CATALOG_READ_TOOLS == {"capability_describe", "capability_catalog"}
+    assert CATALOG_READ_TOOLS == {"capability_describe", "capability_catalog", "business_logic_discover", "business_logic_explain", "business_logic_source"}
     assert CATALOG_READ_TOOLS <= MCP_TOOL_NAMES
     assert all(
         tool.access == "read"
