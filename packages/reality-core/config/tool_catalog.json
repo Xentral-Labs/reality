@@ -67,6 +67,12 @@
     "reports": "analytics"
   },
   "command_topics": {
+    "settle_payout": "accounting",
+    "payouts": "accounting",
+    "payout_detail": "accounting",
+    "record_authorization": "accounting",
+    "record_capture": "accounting",
+    "authorizations": "accounting",
     "cost_evidence": "contribution",
     "receipt_cost": "contribution",
     "inventory_cost": "contribution",
@@ -212,6 +218,12 @@
     }
   },
   "mcp_topics": {
+    "finance_payout_settle_propose": "accounting",
+    "finance_payouts": "accounting",
+    "finance_payout": "accounting",
+    "finance_payment_authorization_record_propose": "accounting",
+    "finance_payment_capture_record_propose": "accounting",
+    "finance_payment_authorizations": "accounting",
     "fulfillment_readiness": "orders",
     "movement_explanation": "shipping",
     "customer_exchange": "shipping",
