@@ -629,6 +629,7 @@
         "exception:backorder_against_rule",
         "exception:shipped_beyond_order",
         "exception:received_beyond_order",
+        "exception:reservation_awaiting_prepayment",
         "exception:purchase_order_unconfirmed"
       ],
       "tools": [
@@ -1462,7 +1463,8 @@
             "exception:outgoing_commitment_at_risk",
             "exception:outgoing_commitment_due_soon",
             "exception:reservation_exceeds_stock",
-            "exception:item_oversold"
+            "exception:item_oversold",
+            "exception:reservation_awaiting_prepayment"
           ]
         },
         {
@@ -29422,6 +29424,7 @@
         "exception:received_beyond_order",
         "exception:misdelivery_outstanding",
         "exception:external_stock_differs",
+        "exception:reservation_awaiting_prepayment",
         "exception:purchase_order_unconfirmed"
       ],
       "label_de": "Abweichungen",
@@ -31211,6 +31214,32 @@
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Fremdbestand weicht ab",
       "resources": ["item"]
+    },
+    {
+      "id": "exception:reservation_awaiting_prepayment",
+      "kind": "exception",
+      "key": "reservation_awaiting_prepayment",
+      "label": "Reservation waiting for prepayment",
+      "area": "finance",
+      "summary": "Stock has been reserved for an order with prepayment terms for longer than a week while its prepayment is still unpaid, so the stock is withheld from every other order. Nothing is released by itself. The entry names the order, the reserved quantity, how long it has waited and the unpaid amount, so a person chases the payment or releases the reservation.",
+      "owner": "Accounts receivable",
+      "clears_through": "Payment of the open prepayment, releasing the reservation so the stock serves other orders, or cancelling the order.",
+      "severity": "normal",
+      "record_type": "commitment",
+      "authority": "348/FR-001",
+      "evidence": [
+        "tests/test_prepayment_reservations.py::test_stock_reserved_for_an_unpaid_prepayment_is_reported_after_a_week",
+        "tests/test_prepayment_reservations.py::test_payment_release_or_cancellation_clears_it"
+      ],
+      "causes": [],
+      "links": [
+        "projection:exceptions",
+        "tool:exceptions_list",
+        "tool:exception_explain",
+        "view:commitments"
+      ],
+      "label_de": "Reservierung wartet auf Vorkasse",
+      "resources": ["order"]
     },
     {
       "id": "exception:purchase_order_unconfirmed",
