@@ -222,3 +222,5 @@ UX correction analysis: FR-026 maps T060/T062; FR-027 maps T061/T062. Scope appr
 - [x] T066 [FR-030] Test and implement intuitive Docs explanation entry and secondary refresh hierarchy; verify rendered states, browser loading/freshness/retry and Docs build.
 
 - [x] T067 [FR-031] Test and implement business-first detail title/purpose, inline explanation action and optional catalog purpose translations; regenerate reference data and verify Docs tests/build/browser layout.
+
+- [x] T068 [FR-032] Test and implement direct source-only Docs entry plus registered exception coverage and shared-evaluator disclosure; verify Docs/backend/browser checks and update the PR.

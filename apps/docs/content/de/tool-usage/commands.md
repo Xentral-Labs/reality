@@ -12476,12 +12476,12 @@ business_logic_discover [query] [kind] [cursor] [limit]
 
 **Parameter**
 
-| Name     | Typ       | Pflicht | Beschreibung                                                                                                                      | Standard |
-| -------- | --------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `query`  | `string`  | nein    | Optional invoice-number search within matching same-party credit targets.                                                         | —        |
-| `kind`   | `string`  | nein    | Explicit internal or target reference kind; no inferred tax or country meaning. `command`, `tool`, `action`, `view`, `projection` | —        |
-| `cursor` | `integer` | nein    | —                                                                                                                                 | —        |
-| `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                                                                   | —        |
+| Name     | Typ       | Pflicht | Beschreibung                                                                                                                                   | Standard |
+| -------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `query`  | `string`  | nein    | Optional invoice-number search within matching same-party credit targets.                                                                      | —        |
+| `kind`   | `string`  | nein    | Explicit internal or target reference kind; no inferred tax or country meaning. `command`, `tool`, `action`, `view`, `projection`, `exception` | —        |
+| `cursor` | `integer` | nein    | —                                                                                                                                              | —        |
+| `limit`  | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                                                                                | —        |
 
 ### `business_logic_explain` — Explain live business logic {#tool-business_logic_explain}
 
@@ -12506,11 +12506,11 @@ business_logic_explain kind key [language]
 
 **Parameter**
 
-| Name       | Typ      | Pflicht | Beschreibung                                                                                                                      | Standard |
-| ---------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `kind`     | `string` | ja      | Explicit internal or target reference kind; no inferred tax or country meaning. `command`, `tool`, `action`, `view`, `projection` | —        |
-| `key`      | `string` | ja      | —                                                                                                                                 | —        |
-| `language` | `string` | nein    | Requested inspection labels (en/de); nl/es use English fallback.                                                                  | —        |
+| Name       | Typ      | Pflicht | Beschreibung                                                                                                                                   | Standard |
+| ---------- | -------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `kind`     | `string` | ja      | Explicit internal or target reference kind; no inferred tax or country meaning. `command`, `tool`, `action`, `view`, `projection`, `exception` | —        |
+| `key`      | `string` | ja      | —                                                                                                                                              | —        |
+| `language` | `string` | nein    | Requested inspection labels (en/de); nl/es use English fallback.                                                                               | —        |
 
 ### `business_logic_source` — Inspect live business source {#tool-business_logic_source}
 

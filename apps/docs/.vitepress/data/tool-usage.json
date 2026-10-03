@@ -14307,7 +14307,7 @@
           "required": false,
           "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
           "depth": 0,
-          "enum": ["command", "tool", "action", "view", "projection"]
+          "enum": ["command", "tool", "action", "view", "projection", "exception"]
         },
         {
           "name": "cursor",
@@ -14355,7 +14355,7 @@
           "required": true,
           "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
           "depth": 0,
-          "enum": ["command", "tool", "action", "view", "projection"]
+          "enum": ["command", "tool", "action", "view", "projection", "exception"]
         },
         {
           "name": "key",

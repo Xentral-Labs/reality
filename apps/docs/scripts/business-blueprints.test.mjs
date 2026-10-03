@@ -63,6 +63,7 @@ test("docs read configured live target on demand with no tenant credentials or b
   assert.ok(!html.includes("Reads business logic from the currently running system."));
   assert.ok(!html.includes("How does this function work?"));
   assert.ok(html.includes("Explain steps and rules"));
+  assert.ok(html.includes("View code"));
   assert.ok(raw.includes('cache: "no-store"'));
   assert.ok(raw.includes('credentials: "omit"'));
   assert.ok(!raw.includes("v-html"));

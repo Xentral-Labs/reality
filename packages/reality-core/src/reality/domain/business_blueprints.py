@@ -67,7 +67,9 @@ class TestScenario(EvidenceModel):
     parameters: dict[str, Any] = Field(default_factory=dict)
     code: str = ""
     helpers: tuple[SourceEvidence, ...] = ()
-    run: dict[str, Any] = Field(default_factory=lambda: {"outcome": "unknown", "revision_match": False})
+    run: dict[str, Any] = Field(
+        default_factory=lambda: {"outcome": "unknown", "revision_match": False}
+    )
 
 
 class BusinessStep(EvidenceModel):
@@ -160,6 +162,8 @@ class CompareInput(EvidenceModel):
 
 class DiscoveryInput(EvidenceModel):
     query: str = Field(default="", max_length=200)
-    kind: Literal["command", "tool", "action", "view", "projection"] | None = None
+    kind: (
+        Literal["command", "tool", "action", "view", "projection", "exception"] | None
+    ) = None
     cursor: int = Field(default=0, ge=0)
     limit: int = Field(default=25, ge=1, le=100)

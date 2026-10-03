@@ -16,7 +16,17 @@ const elapsed = ref(0);
 const flowId = useId();
 const activeTab = ref("rules");
 const selectedTest = ref("");
-const tabs = ["rules", "tests", "technical"];
+const tabs = ["code", "rules", "tests", "technical"];
+const selectedCode = ref("");
+const codeSource = computed(
+  () =>
+    data.value?.sources.find((source) => source.id === selectedCode.value) ||
+    data.value?.sources[0],
+);
+function showCode() {
+  if (data.value) activeTab.value = "code";
+  else read(true, false);
+}
 function tabKey(event: KeyboardEvent, index: number) {
   let next = index;
   if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
@@ -75,7 +85,7 @@ watch(
     loading.value = false;
   },
 );
-async function read(brief = true) {
+async function read(brief = true, interpret = true) {
   const request = ++sequence;
   const previousTest = selectedTest.value;
   data.value = null;
@@ -84,13 +94,15 @@ async function read(brief = true) {
   try {
     if (!target.value) throw new Error("No configured target");
     const response = await fetch(
-      `${target.value}/api/business-logic/entries/${encodeURIComponent(props.kind)}/${encodeURIComponent(props.entryKey)}?language=${de.value ? "de" : "en"}&brief=${brief}`,
+      `${target.value}/api/business-logic/entries/${encodeURIComponent(props.kind)}/${encodeURIComponent(props.entryKey)}?language=${de.value ? "de" : "en"}&brief=${brief}&interpret=${interpret}`,
       { cache: "no-store", credentials: "omit" },
     );
     if (!response.ok) throw new Error("Unavailable");
     const result = (await response.json()) as BusinessBlueprint;
     if (request !== sequence) return;
     data.value = result;
+    activeTab.value = interpret ? "rules" : "code";
+    selectedCode.value = result.sources[0]?.id || "";
     selectedTest.value = result.scenarios.some((test) => test.id === previousTest)
       ? previousTest
       : result.scenarios[0]?.id || "";
@@ -109,22 +121,32 @@ async function read(brief = true) {
 </script>
 <template>
   <section
-    v-if="['command', 'tool', 'view', 'projection', 'action'].includes(kind)"
+    v-if="['command', 'tool', 'view', 'projection', 'action', 'exception'].includes(kind)"
     :class="['live-blueprint', { 'live-blueprint-loaded': data }]"
     data-live-blueprint
   >
-    <h3 v-if="data">{{ wording("Steps and rules", "Ablauf und Regeln") }}</h3>
+    <h3 v-if="data?.business?.mode === 'llm'">
+      {{ wording("Steps and rules", "Ablauf und Regeln") }}
+    </h3>
     <p v-if="data" class="source-provenance">
       {{ wording("From the current source code", "Aus dem aktuellen Code") }}
     </p>
     <button
       type="button"
+      class="explanation-start code-entry"
       :disabled="loading"
-      :class="data ? 'explanation-refresh' : 'explanation-start'"
+      @click="showCode"
+    >
+      {{ wording("View code →", "Code anschauen →") }}
+    </button>
+    <button
+      type="button"
+      :disabled="loading"
+      :class="data?.business?.mode === 'llm' ? 'explanation-refresh' : 'explanation-start'"
       @click="read(true)"
     >
       {{
-        data
+        data?.business?.mode === "llm"
           ? wording("Refresh explanation", "Erklärung aktualisieren")
           : wording("Explain steps and rules →", "Ablauf und Regeln erklären →")
       }}
@@ -188,14 +210,58 @@ async function read(brief = true) {
           @keydown="tabKey($event, index)"
         >
           {{
-            tab === "rules"
-              ? wording("Steps", "Schritte")
-              : tab === "tests"
-                ? wording("Test cases", "Testfälle")
-                : wording("Technical evidence", "Technische Nachweise")
+            tab === "code"
+              ? wording("Source code", "Quelltext")
+              : tab === "rules"
+                ? wording("Steps", "Schritte")
+                : tab === "tests"
+                  ? wording("Test cases", "Testfälle")
+                  : wording("Technical evidence", "Technische Nachweise")
           }}<span v-if="tab === 'tests'"> ({{ data.scenarios.length }})</span>
         </button>
       </div>
+      <section
+        v-show="activeTab === 'code'"
+        role="tabpanel"
+        :id="`${flowId}-panel-code`"
+        :aria-labelledby="`${flowId}-tab-code`"
+        class="code-panel"
+      >
+        <p v-if="kind === 'exception'">
+          {{
+            wording(
+              "This exception uses a shared evaluator. The source is not isolated to this one exception class.",
+              "Dieser Klärfall nutzt eine gemeinsame Auswertung. Der Quelltext ist nicht auf diesen einen Klärfall beschränkt.",
+            )
+          }}
+        </p>
+        <button type="button" :disabled="loading" @click="read(true, false)">
+          {{ wording("Refresh code", "Code aktualisieren") }}
+        </button>
+        <label v-if="data.sources.length"
+          >{{ wording("Function", "Funktion")
+          }}<select v-model="selectedCode">
+            <option v-for="source in data.sources" :key="source.id" :value="source.id">
+              {{ source.function }}
+            </option>
+          </select></label
+        >
+        <template v-if="codeSource"
+          ><p class="source-provenance">
+            {{ codeSource.path }} · {{ wording("from line", "ab Zeile") }}
+            {{ codeSource.start_line }}
+          </p>
+          <pre data-direct-source><code>{{ codeSource.code }}</code></pre>
+        </template>
+        <p v-else>
+          {{
+            wording(
+              "Verified source is unavailable for this entry.",
+              "Für diesen Eintrag ist kein verifizierter Quelltext verfügbar.",
+            )
+          }}
+        </p>
+      </section>
       <div
         v-show="activeTab === 'rules'"
         :id="`${flowId}-panel-rules`"
@@ -627,6 +693,21 @@ async function read(brief = true) {
   padding: 0;
   font-weight: 600;
   cursor: pointer;
+}
+.code-entry {
+  margin-right: 20px;
+}
+.code-panel {
+  margin-top: 20px;
+}
+.code-panel select {
+  width: 100%;
+  margin: 12px 0;
+}
+.code-panel pre {
+  white-space: pre;
+  max-height: 500px;
+  font-size: 13px;
 }
 .explanation-start:hover {
   text-decoration: underline;
