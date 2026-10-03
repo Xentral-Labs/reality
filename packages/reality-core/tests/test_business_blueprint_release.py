@@ -4,6 +4,7 @@ import importlib.util
 import sys
 
 import pytest
+
 from reality.services.business_blueprint_source import SourceUnavailable, capture_source
 
 
