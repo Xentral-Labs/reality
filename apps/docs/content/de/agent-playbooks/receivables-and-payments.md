@@ -183,7 +183,9 @@ Der tägliche Blick, bevor etwas entschieden wird.
   existiert, ihre Normalisierer nicht.
 - Keine einzelne Aktion verteilt einen Zahlungseingang auf mehrere Rechnungen; siehe die Schritte
   oben.
-- Kein Mahnlauf und keine automatische Liefersperre aus `credit_limit_exceeded`; die Liefersperre
-  ist ein Vorschlag im Playbook Versand.
+- Kein automatischer Mahnungsversand: `finance_dunning_run_context` zeigt eine Mahnlaufvorschau;
+  `finance_dunning_run_propose` bereitet die Erfassung zur Bestätigung vor. Beide versenden keine
+  Nachrichten. Richte zuerst das Mahnschema ein. Keine automatische Liefersperre aus
+  `credit_limit_exceeded`; die Liefersperre ist ein Vorschlag im Playbook Versand.
 - Keine Lieferantenseite in diesem Playbook; Lieferantenrechnungen und Zahllauf stehen im
   [Playbook Einkauf](./purchasing-and-replenishment).

@@ -113,9 +113,10 @@ extra provenance links on the Reservation. SourceRecord records are immutable; c
 content is preserved as a new version. Operational lifecycle states can change. The model therefore
 does not promise full reconstruction of every historical state.
 
-The [table map and detailed explanations](../../reference/table-map) cover master data, source
-processing, documents, promises, movements, postings and read models. Their business responsibility
-is enough for this first pass.
+The
+[table map and detailed explanations](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/reference/table-map.md)
+cover master data, source processing, documents, promises, movements, postings and read models.
+Their business responsibility is enough for this first pass.
 
 </details>
 

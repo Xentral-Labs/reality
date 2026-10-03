@@ -24,7 +24,7 @@ The installer asks for nothing else. Email delivery, the internal Copilot's Anth
 object storage are optional and are set afterwards in `reality/.env`. Upgrade, backup and
 restore are single commands (`./reality/reality.sh upgrade|backup|restore`). The full guide, the
 manual Docker Compose path, Kubernetes with Helm and Railway are documented under
-[Install options](https://docs.runreality.ai/operations/) in the product docs; the shipped files
+[Install options](docs/maintainer-guides/operations/index.md) in the repository handbook; the shipped files
 live in [`installer/`](installer/README.md). Self-hosted Reality is the complete product: the same
 images as the cloud, MIT licensed, no feature gating.
 
@@ -56,7 +56,7 @@ static Product Web    static Docs       remote MCP runtime
 | Component | Responsibility |
 |---|---|
 | Static Product Web | Login, onboarding, Operations Cockpit and Business Reality Inspector; contains no business rules |
-| Static product Docs | Public, tenant-independent product concepts, task guides, integration, deployment and reference content with local search |
+| Static product Docs | Public, tenant-independent onboarding, business workflows, agent connection and tool reference with local search |
 | Web/API runtime | Browser authentication, tenant APIs, settings, token administration and human confirmation |
 | Remote MCP runtime | Authenticated MCP protocol boundary for enterprise agents; exposes canonical application tools |
 | CLI | Developer and operator adapter using the same application behavior |

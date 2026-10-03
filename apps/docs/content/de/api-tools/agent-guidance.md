@@ -2,7 +2,7 @@
 aside: false
 ---
 
-# Wie ein Agent das richtige Tool wählt {#choosing-a-tool}
+# Wie dein Agent mit Tools arbeitet {#choosing-a-tool}
 
 [Zurück zur Tool-Übersicht](/de/tool-usage/)
 

@@ -174,7 +174,9 @@ The daily glance before deciding anything.
   and Demo Data deliver payments today. The shared intake core exists for those providers; their
   normalisers do not.
 - No single action distributes one receipt over several invoices; use the steps above.
-- No dunning run and no automatic delivery hold from `credit_limit_exceeded`; the hold is a proposal
-  in the fulfilment playbook.
+- No automatic reminder delivery: `finance_dunning_run_context` previews a run and
+  `finance_dunning_run_propose` prepares its recording for confirmation; neither sends messages.
+  Configure the dunning schedule first. No automatic delivery hold from `credit_limit_exceeded`; the
+  hold is a proposal in the fulfilment playbook.
 - No supplier-side matching in this playbook; supplier invoices and the payment run are in the
   [purchasing playbook](./purchasing-and-replenishment).

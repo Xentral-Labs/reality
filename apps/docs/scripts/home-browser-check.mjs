@@ -11,7 +11,7 @@ try {
       page.on("pageerror", (error) => errors.push(error.message));
       await page.goto(`${base}/${locale}`);
       const buttons = page.locator(".VPHero .actions a");
-      assert.equal(await buttons.count(), 4);
+      assert.equal(await buttons.count(), 2);
       assert.match(await buttons.first().getAttribute("class"), /brand/u);
       const product = new URL(await buttons.last().getAttribute("href"));
       assert.equal(product.origin, new URL(productOrigin).origin);
@@ -20,18 +20,17 @@ try {
       assert.match(await buttons.last().getAttribute("rel"), /noopener/u);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       await page.screenshot({ path: `/tmp/docs-home-${locale ? "de" : "en"}-${width}.png` });
-      for (const [index, target] of [
-        "concepts/business-reality-guide",
-        "concepts/business-reality-guide/07-model-at-a-glance",
-        "integrations/parallel-test",
-      ].entries()) {
+      for (const [index, target] of ["getting-started/"].entries()) {
         await page.goto(`${base}/${locale}`);
         await buttons.nth(index).click();
         await page.waitForURL(`${base}/${locale}${target}`);
         await page.locator(".vp-doc h1").waitFor();
         assert.ok((await page.locator(".vp-doc h1").innerText()).trim());
         // Production nginx resolves clean routes to these HTML files first.
-        assert.equal((await page.request.get(`${base}/${locale}${target}.html`)).status(), 200);
+        assert.equal(
+          (await page.request.get(`${base}/${locale}${target}index.html`)).status(),
+          200,
+        );
       }
       assert.deepEqual(errors, []);
       await page.close();

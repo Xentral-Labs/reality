@@ -14,17 +14,11 @@ const apiUrl = normalizedUrl(process.env.API_URL, "http://localhost:8000");
 type LocaleKey = "root" | "de";
 
 type NavigationCopy = {
-  guide: string;
-  concepts: string;
-  toolsAndModel: string;
-  blog: string;
-  reference: string;
+  glossary: string;
   openReality: string;
   website: string;
   gettingStarted: string;
-  overview: string;
   realityGuide: string;
-  realityChapters: string;
   chapters: string[];
   agentPlaybooks: string;
   playbookFulfilment: string;
@@ -34,61 +28,39 @@ type NavigationCopy = {
   playbookReturns: string;
   playbookMasterData: string;
   playbookRhythm: string;
-  customization: string;
-  exampleErp: string;
-  orderExample: string;
-  connectorContract: string;
   apiTools: string;
   connectMcp: string;
-  getStarted: string;
-  operations: string;
-  installOptions: string;
-  oneLineSetup: string;
-  dockerCompose: string;
-  kubernetes: string;
-  railway: string;
-  productionDeployment: string;
-  development: string;
-  connectors: string;
-  commands: string;
-  viewDevelopment: string;
-  projectionDevelopment: string;
-  firstExtension: string;
-  developmentReference: string;
-  apiCliDevelopment: string;
-  exceptionsDevelopment: string;
-  applicationSurfaces: string;
-  agentToolDevelopment: string;
-  webActionDevelopment: string;
   toolUsage: string;
   learn: string;
-  setupAndOperate: string;
+  explore: string;
+  useReality: string;
+  demoStart: string;
+  newBusiness: string;
+  existingBusiness: string;
+  analytics: string;
   storylines: string;
   demoData: string;
   businessJourneys: string;
-  environment: string;
-  docsUrls: string;
-  glossary: string;
-  tableMap: string;
-  license: string;
   outline: string;
   edit: string;
   footer: string;
+  development: string;
+  developmentOverview: string;
+  firstExtension: string;
+  businessLogic: string;
+  connectors: string;
+  interfaces: string;
+  agentTools: string;
+  apiCli: string;
 };
 
 const copy: Record<LocaleKey, NavigationCopy> = {
   root: {
-    guide: "Get started",
-    concepts: "Understand",
-    toolsAndModel: "Tools",
-    blog: "Blog",
-    reference: "Reference",
+    glossary: "Glossary",
     openReality: "Open Reality",
     website: "Website",
-    gettingStarted: "First product journey",
-    overview: "Overview",
+    gettingStarted: "Choose your starting point",
     realityGuide: "Reality for ERP professionals",
-    realityChapters: "Overview",
     chapters: [
       "From ERP documents to Business Reality",
       "Orders, stock and deliveries",
@@ -107,59 +79,37 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     playbookReturns: "Returns",
     playbookMasterData: "Master data and sources",
     playbookRhythm: "Operating rhythm",
-    customization: "Configuration or development?",
-    exampleErp: "Example ERP: step by step",
-    orderExample: "Technical order-import example",
-    connectorContract: "From source data to Reality",
     apiTools: "API and agent interfaces",
     connectMcp: "Connect an MCP client",
-    getStarted: "Get started",
-    operations: "Installation & Operations",
-    installOptions: "Install options",
-    oneLineSetup: "One-line setup",
-    dockerCompose: "Docker Compose",
-    kubernetes: "Kubernetes with Helm",
-    railway: "Railway",
-    productionDeployment: "Operate with Docker",
-    development: "Extending Reality",
-    connectors: "Connect ERP and data sources",
-    commands: "Develop Commands",
-    viewDevelopment: "Develop Views",
-    projectionDevelopment: "Develop Projections",
-    firstExtension: "Your first extension",
-    developmentReference: "Shared development reference",
-    apiCliDevelopment: "Add API and CLI",
-    exceptionsDevelopment: "Develop exceptions",
-    applicationSurfaces: "Add entrypoints",
-    agentToolDevelopment: "Add Agent Tools",
-    webActionDevelopment: "Add Web Actions",
     toolUsage: "Tool Usage",
-    learn: "Get to know",
-    setupAndOperate: "Set up and operate",
-    storylines: "Storylines",
-    demoData: "Demo data guide",
-    businessJourneys: "Business Journey Guide",
-    environment: "Environment",
-    docsUrls: "Configure Docs links",
-    glossary: "Glossary",
-    tableMap: "Table map and misconceptions",
-    license: "MIT License",
+    learn: "Start here",
+    explore: "Explore Reality",
+    useReality: "Use Reality",
+    demoStart: "Experience a demo company",
+    newBusiness: "Build a company from scratch",
+    existingBusiness: "Start with an existing company",
+    analytics: "Analytics",
+    storylines: "Follow a guided storyline",
+    demoData: "Explore the demo company",
+    businessJourneys: "Find supported business scenarios",
     outline: "On this page",
     edit: "Improve this page",
     footer: "Reality documentation",
+    development: "Build with Reality",
+    developmentOverview: "What you can build",
+    firstExtension: "Your first extension",
+    businessLogic: "Develop business logic",
+    connectors: "Connect ERP and data sources",
+    interfaces: "Add agent and API interfaces",
+    agentTools: "Build agent tools",
+    apiCli: "Add API and CLI",
   },
   de: {
-    guide: "Loslegen",
-    concepts: "Verstehen",
-    toolsAndModel: "Tools",
-    blog: "Blog",
-    reference: "Referenz",
+    glossary: "Glossar",
     openReality: "Reality öffnen",
     website: "Website",
-    gettingStarted: "Erster Produktdurchlauf",
-    overview: "Übersicht",
+    gettingStarted: "Wähle deinen Einstieg",
     realityGuide: "Reality für ERP-Profis",
-    realityChapters: "Überblick",
     chapters: [
       "Von ERP-Belegen zur Business Reality",
       "Aufträge, Bestand und Lieferungen",
@@ -178,46 +128,30 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     playbookReturns: "Retouren",
     playbookMasterData: "Stammdaten und Quellen",
     playbookRhythm: "Betriebsrhythmus",
-    customization: "Konfiguration oder Entwicklung?",
-    exampleErp: "Beispiel-ERP: Schritt für Schritt",
-    orderExample: "Technische Umsetzung eines Auftragsimports",
-    connectorContract: "Von Quelldaten zu Reality",
     apiTools: "API und Agentenschnittstellen",
     connectMcp: "Einen MCP-Client verbinden",
-    getStarted: "Loslegen",
-    operations: "Installation & Betrieb",
-    installOptions: "Installationsoptionen",
-    oneLineSetup: "Einzeiler-Setup",
-    dockerCompose: "Docker Compose",
-    kubernetes: "Kubernetes mit Helm",
-    railway: "Railway",
-    productionDeployment: "Mit Docker betreiben",
-    development: "Reality erweitern",
-    connectors: "ERP und Datenquellen anbinden",
-    commands: "Commands entwickeln",
-    viewDevelopment: "Views entwickeln",
-    projectionDevelopment: "Projections entwickeln",
-    firstExtension: "Deine erste Erweiterung",
-    developmentReference: "Gemeinsame Entwicklungsregeln",
-    apiCliDevelopment: "API und CLI ergänzen",
-    exceptionsDevelopment: "Ausnahmen entwickeln",
-    applicationSurfaces: "Zugänge ergänzen",
-    agentToolDevelopment: "Agent Tools ergänzen",
-    webActionDevelopment: "Web Actions ergänzen",
     toolUsage: "Tools nutzen",
-    learn: "Kennenlernen",
-    setupAndOperate: "Einrichten & Betreiben",
-    storylines: "Storylines",
-    demoData: "Demo-Datensatz",
-    businessJourneys: "Business Journey Guide",
-    environment: "Umgebung",
-    docsUrls: "Docs-Links konfigurieren",
-    glossary: "Glossar",
-    tableMap: "Tabellenübersicht und Missverständnisse",
-    license: "MIT-Lizenz",
+    learn: "Hier starten",
+    explore: "Reality erkunden",
+    useReality: "Mit Reality arbeiten",
+    demoStart: "Eine Demo-Firma erleben",
+    newBusiness: "Ein Unternehmen von null aufbauen",
+    existingBusiness: "Mit einer bestehenden Firma starten",
+    analytics: "Analytics",
+    storylines: "Eine Storyline durchspielen",
+    demoData: "Die Demo-Firma erkunden",
+    businessJourneys: "Unterstützte Geschäftsfälle finden",
     outline: "Auf dieser Seite",
     edit: "Diese Seite verbessern",
     footer: "Reality-Dokumentation",
+    development: "Mit Reality entwickeln",
+    developmentOverview: "Was du entwickeln kannst",
+    firstExtension: "Deine erste Erweiterung",
+    businessLogic: "Geschäftslogik entwickeln",
+    connectors: "ERP und Datenquellen anbinden",
+    interfaces: "Agenten- und API-Schnittstellen ergänzen",
+    agentTools: "Agentenwerkzeuge entwickeln",
+    apiCli: "API und CLI ergänzen",
   },
 };
 
@@ -227,11 +161,11 @@ const route = (locale: LocaleKey, path: string) => `${prefixFor(locale)}${path}`
 const navigation = (locale: LocaleKey) => {
   const labels = copy[locale];
   return [
-    // Same words and order as the sidebar: get to know, understand, tools.
+    // Lead with the same start, exploration and daily-use destinations as the sidebar.
     { text: labels.learn, link: route(locale, "/getting-started/") },
-    { text: labels.concepts, link: route(locale, "/concepts/business-reality-guide") },
-    { text: labels.toolsAndModel, link: route(locale, "/tool-usage/") },
-    { text: labels.blog, link: route(locale, "/blog/") },
+    { text: labels.explore, link: route(locale, "/getting-started/demo-data") },
+    { text: labels.useReality, link: route(locale, "/agent-playbooks/") },
+    { text: labels.development, link: route(locale, "/development/") },
     { text: labels.website, link: languageHref(siteUrl, locale === "de" ? "de" : "en") },
     { text: labels.openReality, link: languageHref(appUrl, locale === "de" ? "de" : "en") },
   ];
@@ -250,50 +184,57 @@ const sidebar = (locale: LocaleKey) => {
     "07-model-at-a-glance",
   ];
   return [
-    // Groups by intent, in the order a newcomer needs them: try it, understand it, use the
-    // tools, set it up, look things up, develop. Only the first group opens by itself, so the
-    // sidebar is a table of contents, not a wall. No link stands alone on the top level.
+    // Choose a starting recipe; exploration, daily work and development are separate intents.
     {
       text: labels.learn,
       collapsed: false,
       items: [
         { text: labels.gettingStarted, link: route(locale, "/getting-started/") },
+        { text: labels.demoStart, link: route(locale, "/getting-started/demo-company") },
+        { text: labels.newBusiness, link: route(locale, "/getting-started/start-business") },
+        {
+          text: labels.existingBusiness,
+          link: route(locale, "/getting-started/existing-business"),
+        },
+      ],
+    },
+    {
+      text: labels.explore,
+      collapsed: true,
+      items: [
         { text: labels.demoData, link: route(locale, "/getting-started/demo-data") },
+        { text: labels.storylines, link: route(locale, "/storylines/") },
+        {
+          text: labels.realityGuide,
+          link: route(locale, "/concepts/business-reality-guide"),
+          collapsed: true,
+          items: [
+            ...chapterFiles.map((file, index) => ({
+              text: labels.chapters[index],
+              link: route(locale, `/concepts/business-reality-guide/${file}`),
+            })),
+            {
+              text: locale === "de" ? "Bestand und offene Vorgänge" : "Inventory and open work",
+              link: route(locale, "/concepts/list-evidence"),
+            },
+            {
+              text: locale === "de" ? "Ein Ergebnis zurückverfolgen" : "Trace a result",
+              link: route(locale, "/getting-started/first-trace"),
+            },
+          ],
+        },
         {
           text: labels.businessJourneys,
           link: route(locale, "/getting-started/business-journeys"),
         },
-        { text: labels.storylines, link: route(locale, "/storylines/") },
+        { text: labels.glossary, link: route(locale, "/reference/glossary") },
       ],
     },
     {
-      text: labels.realityGuide,
-      collapsed: true,
+      text: labels.useReality,
+      collapsed: false,
       items: [
         {
-          text: labels.realityChapters,
-          link: route(locale, "/concepts/business-reality-guide"),
-        },
-        ...chapterFiles.map((file, index) => ({
-          text: labels.chapters[index],
-          link: route(locale, `/concepts/business-reality-guide/${file}`),
-        })),
-        {
-          text: locale === "de" ? "Bestand und offene Vorgänge" : "Inventory and open work",
-          link: route(locale, "/concepts/list-evidence"),
-        },
-      ],
-    },
-    {
-      // Everything a person or an agent calls, in one place: the interactive Tool Usage page
-      // (resources, processes, technical view) and the playbooks that use those tools.
-      text: labels.toolUsage,
-      collapsed: true,
-      items: [
-        { text: labels.overview, link: route(locale, "/tool-usage/") },
-        {
-          // The playbooks are one chapter of Tool Usage, not six. The group link opens the
-          // introduction; the pages sit one level down so the parent group stays scannable.
           text: labels.agentPlaybooks,
           link: route(locale, "/agent-playbooks/"),
           collapsed: true,
@@ -325,79 +266,45 @@ const sidebar = (locale: LocaleKey) => {
             },
           ],
         },
-        { text: "Analytics", link: route(locale, "/analytics/") },
-      ],
-    },
-    {
-      text: labels.setupAndOperate,
-      collapsed: true,
-      items: [
-        { text: labels.connectMcp, link: route(locale, "/api-tools/connect-mcp") },
-        { text: labels.apiTools, link: route(locale, "/api-tools/") },
+        { text: labels.analytics, link: route(locale, "/analytics/") },
         {
-          text:
-            locale === "de"
-              ? "Tools auswählen und Ergebnisse prüfen"
-              : "Select tools and verify results",
-          link: route(locale, "/api-tools/agent-guidance"),
+          text: labels.toolUsage,
+          collapsed: false,
+          items: [
+            {
+              text:
+                locale === "de" ? "Interaktiver Kommandokatalog" : "Interactive command catalog",
+              link: route(locale, "/tool-usage/"),
+            },
+            {
+              text:
+                locale === "de"
+                  ? "Wie dein Agent mit Tools arbeitet"
+                  : "How your agent works with tools",
+              link: route(locale, "/api-tools/agent-guidance"),
+            },
+          ],
         },
-        { text: labels.installOptions, link: route(locale, "/operations/") },
-        { text: labels.oneLineSetup, link: route(locale, "/operations/installation") },
-        { text: labels.dockerCompose, link: route(locale, "/operations/docker-compose") },
-        { text: labels.kubernetes, link: route(locale, "/operations/kubernetes") },
-        { text: labels.railway, link: route(locale, "/operations/railway") },
-        { text: labels.productionDeployment, link: route(locale, "/operations/deployment") },
-        { text: labels.environment, link: route(locale, "/reference/environment") },
-      ],
-    },
-    {
-      text: labels.reference,
-      collapsed: true,
-      items: [
-        { text: labels.overview, link: route(locale, "/reference/") },
-        { text: labels.docsUrls, link: route(locale, "/reference/docs-url-configuration") },
-        { text: labels.glossary, link: route(locale, "/reference/glossary") },
-        { text: labels.tableMap, link: route(locale, "/reference/table-map") },
-        { text: labels.license, link: route(locale, "/reference/license") },
       ],
     },
     {
       text: labels.development,
       collapsed: true,
       items: [
-        { text: labels.overview, link: route(locale, "/development/") },
-        { text: labels.customization, link: route(locale, "/integrations/customization") },
+        { text: labels.developmentOverview, link: route(locale, "/development/") },
         { text: labels.firstExtension, link: route(locale, "/development/first-extension") },
-        { text: labels.viewDevelopment, link: route(locale, "/development/views") },
-        { text: labels.projectionDevelopment, link: route(locale, "/development/projections") },
-        { text: labels.commands, link: route(locale, "/development/commands") },
-        { text: labels.exceptionsDevelopment, link: route(locale, "/development/exceptions") },
+        { text: labels.businessLogic, link: route(locale, "/development/commands") },
+        { text: labels.connectors, link: route(locale, "/development/connectors") },
         {
-          text: labels.applicationSurfaces,
+          text: labels.interfaces,
           link: route(locale, "/development/application-surfaces"),
           collapsed: true,
           items: [
-            { text: labels.agentToolDevelopment, link: route(locale, "/development/agent-tools") },
-            { text: labels.webActionDevelopment, link: route(locale, "/development/web-actions") },
-            { text: labels.apiCliDevelopment, link: route(locale, "/development/api-cli") },
+            { text: labels.apiTools, link: route(locale, "/api-tools/") },
+            { text: labels.agentTools, link: route(locale, "/development/agent-tools") },
+            { text: labels.apiCli, link: route(locale, "/development/api-cli") },
           ],
         },
-        {
-          text: labels.connectors,
-          link: route(locale, "/development/connectors"),
-          collapsed: true,
-          items: [
-            {
-              text: labels.connectorContract,
-              link: route(locale, "/integrations/connector-contract"),
-            },
-            { text: labels.exampleErp, link: route(locale, "/integrations/example-erp") },
-            { text: "Xentral", link: route(locale, "/integrations/xentral") },
-            { text: "Shopify", link: route(locale, "/integrations/shopify") },
-            { text: "Odoo", link: route(locale, "/integrations/odoo") },
-          ],
-        },
-        { text: labels.developmentReference, link: route(locale, "/development/reference") },
       ],
     },
   ];
@@ -416,7 +323,7 @@ const localeTheme = Object.fromEntries(
         text: copy[locale].edit,
       },
       footer: {
-        message: `${copy[locale].footer} · <a href="${languageHref(siteUrl, locale === "de" ? "de" : "en")}">${copy[locale].website}</a> · <a href="${route(locale, "/reference/license")}">MIT</a>`,
+        message: `${copy[locale].footer} · <a href="${languageHref(siteUrl, locale === "de" ? "de" : "en")}">${copy[locale].website}</a> · <a href="https://github.com/Xentral-Labs/reality/blob/main/LICENSE">MIT</a>`,
         copyright: "Source → Evidence → Reality",
       },
     },

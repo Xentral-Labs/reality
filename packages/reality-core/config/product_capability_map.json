@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:56d1e1689c98fe0ee5bd9dd1db4bbe8249f607ee057bdaa739d0a5ea60ee63d0",
+  "knowledge_version": "advisor-v1:sha256:54af672b1213571bb070cfbf2a2fe54f2891530a3838c068a058729b7ea5b05a",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -3587,36 +3587,6 @@
         "evidence_document_connector_contract_1",
         "evidence_document_connector_contract_2",
         "evidence_document_connector_contract_3"
-      ],
-      "tools": []
-    },
-    {
-      "id": "capability_document_installation",
-      "label": "Installation",
-      "description": "Public product documentation about installation, deployment, hosting, Docker.",
-      "aliases": [
-        "installation",
-        "deployment",
-        "hosting",
-        "Docker"
-      ],
-      "evidence_ids": [
-        "evidence_document_installation_1"
-      ],
-      "tools": []
-    },
-    {
-      "id": "capability_document_deployment",
-      "label": "Deployment",
-      "description": "Public product documentation about deployment, upgrade, backup, operations.",
-      "aliases": [
-        "deployment",
-        "upgrade",
-        "backup",
-        "operations"
-      ],
-      "evidence_ids": [
-        "evidence_document_deployment_1"
       ],
       "tools": []
     },

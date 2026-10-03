@@ -24,9 +24,9 @@ for (const locale of ["", "de/"]) {
       if (locale) assert.ok(link.startsWith("/de/"), `Wrong language: ${link}`);
     }
   });
-  test(`${locale || "en/"} home prioritizes learning and has one final product action`, () => {
+  test(`${locale || "en/"} home prioritizes the starting-point choice and has one final product action`, () => {
     const links = [...actions.matchAll(/^\s+link: (\S+)$/gmu)].map((match) => match[1]);
-    assert.equal(links[0], `/${locale}concepts/business-reality-guide`);
+    assert.equal(links[0], `/${locale}getting-started/`);
     assert.match(actions, /^\s+- theme: brand/u);
     assert.equal(links.filter((link) => link === "__APP_URL__").length, 1);
     assert.equal(links.at(-1), "__APP_URL__");

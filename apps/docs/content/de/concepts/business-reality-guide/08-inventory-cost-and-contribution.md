@@ -219,4 +219,5 @@ daraus ableitet. Deshalb lässt sich der Deckungsbeitrag wiederholen, hinterfrag
 die Berechnung zu einer zweiten finanziellen Autorität zu machen.
 
 Weiter: [Zusammenfassung](./07-model-at-a-glance). Die exakten Datensätze und Werkzeuge findest du
-unter [Tools nutzen](../../tool-usage/) und in der [Tabellenübersicht](../../reference/table-map).
+unter [Tools nutzen](../../tool-usage/) und in der
+[Tabellenübersicht](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/reference/table-map.md).

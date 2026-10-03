@@ -54,7 +54,9 @@ explains how to begin alongside an existing ERP.
    agents and workflows.
 
 Read in order the first time. Collapsible technical sections are optional. Afterwards,
-[Tool Usage](../tool-usage/) and the [table map](../reference/table-map) provide reference material.
+[Tool Usage](../tool-usage/) and the
+[table map](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/reference/table-map.md)
+provide reference material.
 
 ## Authority and open reference core
 
@@ -64,9 +66,10 @@ This handbook explains the existing product. The authoritative references remain
 [feature contracts](https://github.com/Xentral-Labs/reality/tree/main/docs/features) and the
 specifications under `specs/`.
 
-The reference core uses the [MIT License](/reference/license). You can inspect, use and modify its
-implementation under that licence. Copyright, licence and liability notices must remain with copies
-or substantial portions.
+The reference core uses the
+[MIT License](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/reference/license.md).
+You can inspect, use and modify its implementation under that licence. Copyright, licence and
+liability notices must remain with copies or substantial portions.
 
 ## Explore fields and data structures
 

@@ -1,8 +1,9 @@
 # ERP und Datenquellen anbinden
 
-Beginne mit [Ein Beispiel-ERP schrittweise anbinden](../integrations/example-erp): erst Zusagen,
-dann echte Lieferungen, danach die für deine Frage benötigten Daten. Das Kapitel zeigt je Stufe die
-fachliche Ausgabe, bevor diese Anleitung die Implementierung erklärt.
+Beginne mit
+[Ein Beispiel-ERP schrittweise anbinden](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/example-erp.md):
+erst Zusagen, dann echte Lieferungen, danach die für deine Frage benötigten Daten. Das Kapitel zeigt
+je Stufe die fachliche Ausgabe, bevor diese Anleitung die Implementierung erklärt.
 
 ## Das lernst du
 
@@ -20,7 +21,7 @@ vorzutäuschen.
 
 Ein Original-Payload, Quellidentität und Versionsvertrag müssen vorhanden sein. Arbeite in einer
 Testfirma; bewahre Zugangsdaten außerhalb der Fixtures. Lies zuerst den
-[Von Quelldaten zu Reality](../integrations/connector-contract).
+[Von Quelldaten zu Reality](/de/integrations/connector-contract).
 
 | Art                          | Hier erweitern                               | Beispiel                            |
 | ---------------------------- | -------------------------------------------- | ----------------------------------- |
@@ -69,15 +70,16 @@ Bei Dateiimporten ergänzt du ein Ziel in `FILE_INTERPRETER_TARGETS`, definierst
 optionale Spalten in `FILE_MAPPING_PROFILES` und implementierst den Zweig in `interpret_artifact`.
 Eine menschliche Nummer darf nicht stillschweigend zugeordnet werden, wenn sie nicht eindeutig ist.
 
-Vor dem Transport die [Von Quelldaten zu Reality](../integrations/connector-contract) lesen.
+Vor dem Transport die [Von Quelldaten zu Reality](/de/integrations/connector-contract) lesen.
 
 ## Ergebnis prüfen
 
-Arbeite das [ERP-Auftragsbeispiel](../integrations/order-example) zusammen mit dem
-[Von Quelldaten zu Reality](../integrations/connector-contract) durch. Verwende zuerst ein
-Original-Payload als Fixture. Ein Import muss SourceRecord → Document/DocumentLine → Commitment
-nachvollziehbar erzeugen; ein Replay darf keine zweite operative Verpflichtung erzeugen. Eine
-korrigierte Version bleibt ein neuer SourceRecord und darf einen bereits interpretierten
+Arbeite das
+[ERP-Auftragsbeispiel](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/order-example.md)
+zusammen mit dem [Von Quelldaten zu Reality](/de/integrations/connector-contract) durch. Verwende
+zuerst ein Original-Payload als Fixture. Ein Import muss SourceRecord → Document/DocumentLine →
+Commitment nachvollziehbar erzeugen; ein Replay darf keine zweite operative Verpflichtung erzeugen.
+Eine korrigierte Version bleibt ein neuer SourceRecord und darf einen bereits interpretierten
 Geschäftsvorgang nicht still überschreiben. Prüfe den unbekannten Objekttyp separat: Der Payload
 bleibt erhalten, auch wenn keine Interpretation möglich ist.
 
@@ -100,12 +102,16 @@ Evidence-/Reality-Beziehungen duplizieren.
 
 ## Weiterlesen
 
-Für vollständige Quellfälle: [Xentral anbinden](../integrations/xentral),
-[Shopify anbinden](../integrations/shopify) und [Odoo anbinden](../integrations/odoo). Die
-[Abdeckungsmatrix](../integrations/connector-contract#vollständigkeit-und-abnahme) definiert, wann
-dein vereinbarter Umfang fertig ist.
+Für vollständige Quellfälle:
+[Xentral anbinden](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/xentral.md),
+[Shopify anbinden](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/shopify.md)
+und
+[Odoo anbinden](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/odoo.md).
+Die [Abdeckungsmatrix](/de/integrations/connector-contract#vollständigkeit-und-abnahme) definiert,
+wann dein vereinbarter Umfang fertig ist.
 
-[Technische Umsetzung eines Auftragsimports](../integrations/order-example) zeigt den
-Implementierungsweg; [Von Quelldaten zu Reality](../integrations/connector-contract) erklärt das
-gemeinsame Konzept und seine Regeln. [Gemeinsame Regeln](./reference) enthält Scheduling- und
-Spec-Hinweise.
+[Technische Umsetzung eines Auftragsimports](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/order-example.md)
+zeigt den Implementierungsweg; [Von Quelldaten zu Reality](/de/integrations/connector-contract)
+erklärt das gemeinsame Konzept und seine Regeln.
+[Gemeinsame Regeln](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/reference.md)
+enthält Scheduling- und Spec-Hinweise.

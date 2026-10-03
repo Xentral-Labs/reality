@@ -14,7 +14,7 @@ tool prepares a proposal for separate confirmation.
 
 The service and Application Tool already exist. For mutations, understand the exact preview and
 separate approval path; for reads, use existing read permission. Start with the
-[first extension](./first-extension) if needed.
+[first extension](/development/first-extension) if needed.
 
 ## Worked example
 
@@ -77,7 +77,8 @@ without creating a Reservation. Inspect the preview and explicitly approve that 
 Reservations and Commitments afterwards: applied quantity and any shortage must match the service
 result. Another tenant must not be able to discover the record.
 
-[Add Web Actions](./web-actions) explains the human entrypoint to the same operation.
+[Add Web Actions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/web-actions.md)
+explains the human entrypoint to the same operation.
 
 ## Try it yourself
 
@@ -92,5 +93,5 @@ proposals or accept foreign identities. Do not expose a mutation as a read.
 
 ## Continue
 
-[Web Actions](./web-actions) covers the human entrypoint; [API and CLI](./api-cli) covers additional
-adapters.
+[Web Actions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/web-actions.md)
+covers the human entrypoint; [API and CLI](/development/api-cli) covers additional adapters.

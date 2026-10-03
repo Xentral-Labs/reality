@@ -21,7 +21,7 @@ Choose a Commitment, Reservation, Movement, Fact, or LedgerEntry that affects to
 Open Inspect from the page, table, Activity entry, or Ask Reality answer. Confirm the tenant,
 business time, quantity or amount, type, state, and direct relationships.
 
-In the [lamp example](./index), 10 promised minus 4 shipped leaves 6 open; 2 are reserved. Check
+In an illustrative lamp example, 10 promised minus 4 shipped leaves 6 open; 2 are reserved. Check
 payment separately: LedgerEntry records the posting; SettlementAllocation assigns the payment to the
 invoice. Paid does not mean delivered.
 

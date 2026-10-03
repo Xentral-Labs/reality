@@ -206,4 +206,5 @@ why the margin can be repeated, challenged and explained without turning a calcu
 financial authority.
 
 Next: [Summary](./07-model-at-a-glance). For exact records and tools, see
-[Tool Usage](../../tool-usage/) and the [table map](../../reference/table-map).
+[Tool Usage](../../tool-usage/) and the
+[table map](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/reference/table-map.md).

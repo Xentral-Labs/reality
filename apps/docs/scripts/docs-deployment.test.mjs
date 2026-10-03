@@ -78,11 +78,17 @@ test("Docs builds every public surface link from APP_URL and SITE_URL", () => {
 test("deployment guidance explains configurable Docs navigation URLs", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
   const railway = readRepo("docs/RAILWAY_DEMO.md");
-  assert.match(config, /labels\.docsUrls.*\/reference\/docs-url-configuration/u);
+  assert.doesNotMatch(config, /\/reference\/docs-url-configuration/u);
 
   for (const locale of ["", "de/"]) {
     const guide = fs.readFileSync(
-      path.join(docsRoot, "content", locale, "reference", "docs-url-configuration.md"),
+      path.join(
+        repoRoot,
+        "docs/maintainer-guides",
+        locale,
+        "reference",
+        "docs-url-configuration.md",
+      ),
       "utf8",
     );
     for (const variable of ["APP_URL", "SITE_URL", "DOCS_URL"]) {

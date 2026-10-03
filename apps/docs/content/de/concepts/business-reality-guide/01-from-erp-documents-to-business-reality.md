@@ -120,9 +120,10 @@ zusätzliche Herkunftsverweise an der Reservation unnötig. SourceRecord bleiben
 externe Inhalte werden als neue Version bewahrt. Operative Lebenszykluszustände können sich ändern.
 Das Modell verspricht deshalb keine vollständige Rekonstruktion jedes früheren Zustands.
 
-Die [Tabellenübersicht mit Detailerklärungen](../../reference/table-map) beschreibt Stammdaten,
-Quellverarbeitung, Belege, Zusagen, Bewegungen, Buchungen und Lesesichten. Für den Lernweg genügt
-zunächst ihre fachliche Verantwortung.
+Die
+[Tabellenübersicht mit Detailerklärungen](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/reference/table-map.md)
+beschreibt Stammdaten, Quellverarbeitung, Belege, Zusagen, Bewegungen, Buchungen und Lesesichten.
+Für den Lernweg genügt zunächst ihre fachliche Verantwortung.
 
 </details>
 

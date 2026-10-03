@@ -1,106 +1,73 @@
-# Your First Product Journey
+# Run your company with agents
 
-Reality is the operational core for companies where people, applications and autonomous agents work
-from the same explainable business reality. Instead of leaving information isolated in documents and
-source systems, Reality connects commitments, inventory, deliveries and money flows to their
-evidence and original sources.
+Reality is a system for agents to work with your business: understand orders, stock, deliveries and
+money, prepare the next action and check what actually happened. People and agents use the same
+business records and application tools.
 
-In this journey, you create a company with sample data, read its current position and trace one
-result back to its origin. This introduces the complete path first: receive business data, derive
-operational reality, identify what needs attention and explain every answer.
+**The goal: agents take on ongoing operational work, 365 days a year.** You define their task,
+access and decision boundaries. Reality makes the work explainable through **Source → Evidence →
+Reality**.
 
-## Open the app
+**Reality is the business core.** It supplies records, business rules, tools and traceable results.
+An agent system on top decides which task to tackle next and uses these capabilities to do the work.
+You build up its responsibilities step by step, starting with one repeatable task.
 
-<ProductLink>Open Reality</ProductLink>, sign in and choose a company. For learning, create a
-separate company with sample data. Actions in the app change records in the selected company; check
-the company before confirming.
+For ongoing operation, that agent system needs to run on a schedule or react to events and defined
+conditions — for example, every morning or when a new order arrives. It also needs to retain task
+context, respect approval boundaries and check results. Connecting a chat client alone does not set
+up this operating loop.
 
-This path takes you from an empty company to one traceable business result. If Reality is not
-running yet, begin with the [One-line setup](/operations/installation).
+Reality is designed for different agent systems through its shared interfaces. You can start
+interactively with a connected assistant, such as ChatGPT or Claude, and use an agent runtime or
+orchestration system for recurring work. The choice depends on which connections, triggers and
+controls your system supports. [Connect your agent](./connect-agent).
 
-If you are learning Reality as an ERP professional, first read
-[Foundations](/concepts/business-reality-guide/01-from-erp-documents-to-business-reality) and
-[The Process Owner role](/concepts/business-reality-guide/04-working-as-process-owner). This product
-journey is the practical second step in the 30-minute learning path.
+## How would you like to start?
 
-## Create or select a company
+### Experience a demo company — recommended first
 
-Open Product Web, sign in and create or select a company. The company is the tenant boundary for
-every business record, query, agent and configuration. Its name helps people recognise it; an opaque
-ID provides identity.
+Connect your agent to a company with sample data and see how it works. New synthetic business
+arrives while you investigate an order, prepare a decision and check its effect.
 
-## Choose real intake or the guided demo
+**Recipe:** Demo company → agent connection → first question → reviewed action → repeatable task.
 
-For a real source, open Company → **Integrations** → **Source systems**, register the external
-system and declare which record types it may provide. For learning, use the guided demo. It creates
-one connected business scenario through the same application services without requiring external
-credentials.
+[Experience a demo company →](./demo-company)
 
-Reality stores accepted external payloads losslessly. It does not discard unknown fields or create
-typed business meaning merely because a source supplied a field.
+### Build a company from scratch
 
-Registering a source does not connect the external system. For your own data, first plan a
-[bounded pilot](/integrations/parallel-test).
+Start empty and set up the foundations with your agent. State what your company sells, create the
+master data and work through a first order together.
 
-## Or play a storyline
+**Recipe:** Empty company → agent connection → business description → master data → first order.
 
-A storyline is a guided business flow you play step by step in a sandbox of its own: an order from
-creation to the month-end review, or a purchase from the order to the discounted payment. Every step
-is an ordinary command; beside it you read every call Reality made and what it recorded. Open
-**Storyline** in the navigation, pick one in the library and press Start. The
-[storylines page](/storylines/) explains the screen and lists the packages that ship with Reality.
+[Build a company from scratch →](./start-business)
 
-## Read the first result
+### Start with an existing company
 
-Open **Home** for the current position. Use **Exceptions** for conditions needing attention, **Event
-history** for recorded events and the appropriate workspace View for the authoritative register.
-Select one important result and open **Inspect**.
+Choose one recurring task from your current business. Bring in the records it needs, compare the
+agent's answers with your existing system and gradually give it more responsibility.
 
-## Business Graph, Business Facts and Tools
+**Recipe:** One question → source scope → first records → verified answer → bounded actions.
 
-Start with the same question you would ask at work: “Why are six lamps still open?”
+[Start with an existing company →](./existing-business)
 
-- **Business Facts** shows the elements of the case: for example Source Records, Documents,
-  Commitments, Reservations, Movements and Ledger Entries. Open a record to inspect its details and
-  the evidence actually available.
-- **Business Graph** shows how those elements connect and what happened over time. Follow the
-  delivery commitment to its reservation and shipment, then to the available source data. The graph
-  and timeline show retained history.
-- **Tools** shows what Reality can do with them. **Actions** contains commands; **Calculated views**
-  contains views and projections. A view answers a question, such as which deliveries are open. An
-  action changes records through its existing preview and confirmation flow.
+## What all three paths share
 
-**Business Facts is the group name for records.** The **Fact** data type still means one specific
-source-supported observation. Grouping a Commitment or Movement here does not turn it into a Fact.
-Calculated views belong to Tools; they are not recorded as new source authority. For stored
-projections, check when the result was calculated.
+<ProductLink>Open Reality</ProductLink>, create your account, confirm your email and create or
+select the company in the browser. Then [connect your agent](./connect-agent), or use Reality
+**Chat** if AI is configured for your company. The company is the boundary for its records and the
+agent's access.
 
-The separate **Event history** lists recorded Business Events chronologically. Business Graph
-instead explores relationships and the timeline of a business context. Use the
-[Tools reference](/tool-usage/) for capabilities and parameters.
+Start with reading. Let the agent explain the next action, review its proposal and confirm the
+intended effect. Re-read the records afterwards: **read → propose → review and confirm → verify**.
 
-## An example to think through
+## From the first question to ongoing work
 
-**Illustrative example, not a live feed or a promised demo configuration.** Assume matching order,
-shipment, reservation and payment records have been captured. The guided demo may show another case.
+Each recipe ends with a task you can repeat: check open orders, find blockers or review incoming
+money. The [operating rhythm](/agent-playbooks/operating-rhythm) turns that into daily, weekly and
+monthly work.
 
-| Recorded position  | What it means                                                                  |
-| ------------------ | ------------------------------------------------------------------------------ |
-| 10 lamps promised  | The outgoing Commitment is for ten lamps.                                      |
-| 4 shipped          | Qualifying Movements record four lamps leaving the location.                   |
-| 6 still to deliver | Ten promised minus four fulfilled.                                             |
-| 2 reserved         | Active Reservations cover two of the six open lamps.                           |
-| 4 not yet reserved | The remaining demand is not allocated, not necessarily unavailable.            |
-| Invoice settled    | Financial postings and a matched payment allocation leave no unsettled amount. |
-
-Paid does not mean delivered. Unreserved does not automatically mean unavailable. Judging a shortage
-or lateness requires stock data and a promised date.
-
-Continue with [Trace your first result](./first-trace) to follow it through Reality, Evidence and
-the original SourceRecord. Then use [Business Reality in practice](/concepts/business-reality-guide)
-to understand the complete operational model or [Agent Playbooks](/agent-playbooks/) for
-task-oriented product instructions.
-
-Before deciding, check that relevant data arrived, was interpreted and is fresh enough. An empty
-Exception list does not prove completeness. Mutating chat actions need preview and confirmation; a
-Reservation in Reality does not automatically reserve stock in Xentral.
+The recipes introduce the workflow with the tools available today. A prompt does not schedule future
+agent runs. For unattended operation, recurring execution, source connections, monitoring and the
+applicable approval policy must be configured separately. Live Demo starts its synthetic source;
+downstream agent work remains its own task.
