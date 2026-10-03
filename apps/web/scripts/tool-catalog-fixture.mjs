@@ -16,6 +16,8 @@ export const reference = JSON.parse(
         REALITY_DATABASE_URL: "postgresql+psycopg://localhost/reality",
       },
       encoding: "utf8",
+      // The composed catalog outgrew the 1 MiB default buffer.
+      maxBuffer: 16 * 1024 * 1024,
     },
   ),
 );

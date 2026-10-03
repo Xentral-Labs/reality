@@ -308,10 +308,14 @@
         "SKU",
         "stock",
         "inventory",
+        "kit",
+        "bundle",
         "Produkt",
         "Bestand",
         "Lagerbestand",
-        "Verfügbarkeit"
+        "Verfügbarkeit",
+        "Set",
+        "Stückliste"
       ],
       "tables": [
         "item",
@@ -320,7 +324,8 @@
         "stock_block",
         "stock_block_resolution",
         "stock_count",
-        "stock_count_line"
+        "stock_count_line",
+        "kit_component"
       ],
       "lists": [
         "view:inventory",
@@ -337,6 +342,8 @@
         "command:release_stock_block",
         "command:scrap_stock_block",
         "command:serve_backorders",
+        "command:define_kit",
+        "command:assemble_kit",
         "command:record_stock_count",
         "command:set_reorder_point",
         "command:remove_reorder_point",
@@ -345,6 +352,8 @@
       "reads": [
         "command:inventory_cost",
         "command:available_to_promise",
+        "command:kits",
+        "command:kit_split",
         "command:purchase_match",
         "command:stock_counts",
         "command:stock_count_detail",
@@ -373,6 +382,8 @@
         "event:stock_block.created",
         "event:stock_block.released",
         "event:stock_block.scrapped",
+        "event:kit.defined",
+        "event:kit.assembled",
         "event:stock_count.posted",
         "event:master_data.lifecycle_changed"
       ],
@@ -11621,6 +11632,205 @@
       "links": ["command:remove_reorder_point"],
       "label_de": "Remove reorder point",
       "resources": ["item", "order"]
+    },
+    {
+      "id": "tool:kits",
+      "kind": "tool",
+      "key": "kits",
+      "label": "Kits",
+      "area": "cross_functional",
+      "summary": "Read the kits of the company, or the kit an item is or is part of (item_id): the components, how many one kit takes, the stated price shares, and per location the free kits on hand, the whole kits the free components build and the component that limits them.",
+      "access": "read",
+      "group": "Warehouse",
+      "synopsis": "kits [item_id]",
+      "parameters": [
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Show the kits, their components and how many each location can build.",
+        "use_when": [
+          "Someone asks whether a set can be sold or packed",
+          "what a kit is made of",
+          "or which part is missing."
+        ],
+        "do_not_use_when": ["The item is not a kit; read the item's stock."],
+        "limitations": ["One level only; buildable counts free stock now and reserves nothing."],
+        "empty_result": "No kit is stated for the selection.",
+        "freshness": "Read at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP kits",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "kits",
+      "projections": [],
+      "links": ["command:kits"],
+      "label_de": "Kits",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:kit_split",
+      "kind": "tool",
+      "key": "kit_split",
+      "label": "Kit split",
+      "area": "cross_functional",
+      "summary": "Read how a kit's order or invoice line (document_line_id) splits its stated gross, and its stated net and tax where the line states them, across the components by the kit's stated shares, with the gross per component piece. A kit without stated shares has no split.",
+      "access": "read",
+      "group": "Warehouse",
+      "synopsis": "kit_split document_line_id",
+      "parameters": [
+        {
+          "name": "document_line_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant received document line identity; must belong to the selected document.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Show how a kit's order or invoice line splits its price, revenue and tax across the components.",
+        "use_when": [
+          "Someone asks what share of a bundle's revenue or tax a component carries",
+          "or what to credit for one returned component."
+        ],
+        "do_not_use_when": ["The line is not a kit line."],
+        "limitations": [
+          "Splits the line's stated amounts by the stated shares; per-component tax rates are not modelled."
+        ],
+        "empty_result": "The kit has no stated shares, so there is no split.",
+        "freshness": "Read at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP kit_split",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "kit_split",
+      "projections": [],
+      "links": ["command:kit_split"],
+      "label_de": "Kit split",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:kit_define_propose",
+      "kind": "tool",
+      "key": "kit_define_propose",
+      "label": "Define kit",
+      "area": "cross_functional",
+      "summary": "Prepare the components of a kit for confirmation: per component the item, how many one kit takes in the component's stock unit and optionally its share of the kit's price (shares for all or none, adding up to exactly 1). The kit and its components are stocked, untracked items; a component is never a kit. The components are stated once. A person confirms.",
+      "access": "propose",
+      "group": "Warehouse",
+      "synopsis": "kit_define_propose kit_item_id components",
+      "parameters": [
+        {
+          "name": "kit_item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the stocked item that is the kit (spec 333).",
+          "depth": 0
+        },
+        {
+          "name": "components",
+          "type": "array",
+          "required": true,
+          "description": "The kit's components, each an item, how many one kit takes in that item's stock unit, and optionally its share of the kit's price; shares are stated for all or none and add up to exactly 1.",
+          "depth": 0
+        },
+        {
+          "name": "components[].item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 1
+        },
+        {
+          "name": "components[].quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 1
+        },
+        {
+          "name": "components[].share",
+          "type": "string",
+          "required": false,
+          "description": "A component's share of the kit's price, between 0 and 1, as stated; the bundle split divides a kit line's stated amounts by it.",
+          "depth": 1
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "define_kit",
+      "projections": [],
+      "links": ["command:define_kit"],
+      "label_de": "Define kit",
+      "resources": ["item"]
+    },
+    {
+      "id": "tool:kit_assemble_propose",
+      "kind": "tool",
+      "key": "kit_assemble_propose",
+      "label": "Assemble kits",
+      "area": "cross_functional",
+      "summary": "Prepare assembling whole kits at a location for confirmation: every component leaves the location by its quantity per kit and the kits enter it, all or nothing, optionally at a stated earlier time (ISO 8601 with its offset). The review shows what each component gives and what is free; a component short of free stock refuses the whole assembly. Packing a kit order assembles it this way before it ships. A person confirms.",
+      "access": "propose",
+      "group": "Warehouse",
+      "synopsis": "kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]",
+      "parameters": [
+        {
+          "name": "kit_item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the stocked item that is the kit (spec 333).",
+          "depth": 0
+        },
+        {
+          "name": "location_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational or physical location.",
+          "depth": 0
+        },
+        {
+          "name": "quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        },
+        {
+          "name": "occurred_at",
+          "type": "string",
+          "required": false,
+          "description": "UTC instant at which the physical or business event occurred.",
+          "depth": 0
+        },
+        {
+          "name": "note",
+          "type": "string",
+          "required": false,
+          "description": "Free-text record of what the counterparty said, kept with the statement.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "assemble_kit",
+      "projections": [],
+      "links": ["command:assemble_kit"],
+      "label_de": "Assemble kits",
+      "resources": ["item"]
     },
     {
       "id": "tool:movement_explanation",
@@ -23557,6 +23767,117 @@
       "resources": ["party"]
     },
     {
+      "id": "command:define_kit",
+      "kind": "command",
+      "key": "define_kit",
+      "label": "Define a kit",
+      "area": "cross_functional",
+      "summary": "States the components of a kit once, with how many one kit takes and optionally each component's share of the kit's price.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["item", "kit_component"],
+      "writes": ["kit_component", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_kit", "validate_kit_definition"],
+      "tools": ["kit_define_propose"],
+      "synopses": ["kit_define_propose kit_item_id components"],
+      "events": ["kit.defined"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:kit_define_propose", "event:kit.defined"],
+      "label_de": "Stückliste festlegen",
+      "resources": ["item"]
+    },
+    {
+      "id": "command:assemble_kit",
+      "kind": "command",
+      "key": "assemble_kit",
+      "label": "Assemble kits",
+      "area": "cross_functional",
+      "summary": "Consumes every component and produces whole kits at one location under one assembly statement, all or nothing; a component short of free stock refuses the whole assembly.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["item", "location", "kit_component", "movement", "reservation", "stock_block"],
+      "writes": ["movement", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_kit", "validate_kit_assembly"],
+      "tools": ["kit_assemble_propose"],
+      "synopses": ["kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]"],
+      "events": ["kit.assembled"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:kit_assemble_propose", "event:kit.assembled"],
+      "label_de": "Sets montieren",
+      "resources": ["item"]
+    },
+    {
+      "id": "command:kits",
+      "kind": "command",
+      "key": "kits",
+      "label": "Read kits",
+      "area": "cross_functional",
+      "summary": "Lists the kits with their components and, per location, the free kits on hand, the whole kits the free components build and the component that limits them.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["kit_component", "item", "location", "movement", "reservation", "stock_block"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": ["kit_availability"],
+      "tools": ["kits"],
+      "synopses": ["kits [item_id]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Show the kits, their components and how many each location can build.",
+        "use_when": [
+          "Someone asks whether a set can be sold or packed",
+          "what a kit is made of",
+          "or which part is missing."
+        ],
+        "do_not_use_when": ["The item is not a kit; read the item's stock."],
+        "limitations": ["One level only; buildable counts free stock now and reserves nothing."],
+        "empty_result": "No kit is stated for the selection.",
+        "freshness": "Read at request time."
+      },
+      "links": ["tool:kits"],
+      "label_de": "Stücklisten anzeigen",
+      "resources": ["item"]
+    },
+    {
+      "id": "command:kit_split",
+      "kind": "command",
+      "key": "kit_split",
+      "label": "Read a kit line's split",
+      "area": "cross_functional",
+      "summary": "Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up exactly to the line.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["document_line", "item", "kit_component"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["kit_split"],
+      "synopses": ["kit_split document_line_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Show how a kit's order or invoice line splits its price, revenue and tax across the components.",
+        "use_when": [
+          "Someone asks what share of a bundle's revenue or tax a component carries",
+          "or what to credit for one returned component."
+        ],
+        "do_not_use_when": ["The line is not a kit line."],
+        "limitations": [
+          "Splits the line's stated amounts by the stated shares; per-component tax rates are not modelled."
+        ],
+        "empty_result": "The kit has no stated shares, so there is no split.",
+        "freshness": "Read at request time."
+      },
+      "links": ["tool:kit_split"],
+      "label_de": "Set-Aufteilung anzeigen",
+      "resources": ["item"]
+    },
+    {
       "id": "command:purchase_match",
       "kind": "command",
       "key": "purchase_match",
@@ -27469,6 +27790,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "kit.assembled",
         "outbound_delivery.planned",
         "outbound_delivery.revised",
         "outbound_delivery.picked",
@@ -27558,6 +27880,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "kit.assembled",
         "outbound_delivery.picked",
         "outbound_delivery.put_back",
         "stock_count.posted",
@@ -27638,6 +27961,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "kit.assembled",
         "outbound_delivery.picked",
         "outbound_delivery.put_back",
         "stock_count.posted",
@@ -27746,6 +28070,8 @@
         "stock_block.released",
         "stock_block.scrapped",
         "company_currency.set",
+        "kit.defined",
+        "kit.assembled",
         "supplier_item_terms.set",
         "supplier_item_terms.removed",
         "customer_item_number.set",
@@ -27854,6 +28180,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "kit.assembled",
         "outbound_delivery.picked",
         "outbound_delivery.put_back",
         "stock_count.posted",
@@ -27950,6 +28277,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "kit.assembled",
         "outbound_delivery.picked",
         "outbound_delivery.put_back",
         "stock_count.posted",
@@ -28349,6 +28677,8 @@
         "stock_block.released",
         "stock_block.scrapped",
         "company_currency.set",
+        "kit.defined",
+        "kit.assembled",
         "supplier_item_terms.set",
         "supplier_item_terms.removed",
         "customer_item_number.set",
@@ -29556,7 +29886,7 @@
       "key": "item_oversold",
       "label": "Item oversold",
       "area": "cross_functional",
-      "summary": "More of an item has been promised to customers than the company holds and has on order. Reality adds up the open quantity of every open customer promise for the item, whatever channel the order came through, and compares it with the stock on hand across all locations plus the open quantity of every open supplier promise. The entry appears while the demand is larger, and names the orders grouped by the sales channel they state, so an item sold in the shop and on a marketplace at once shows both. It does not ask which order should go without: that is a decision, and every order is named and none is blamed. It is the item-wide view behind Customer commitment at risk, which looks at one promise's reservation; a company can be oversold with nothing reserved at all. Reservation exceeds stock is the other direction, reservations that lost their stock. Quantities are counted in the item's own unit, using the purchase unit and factor the item states; a promise in a unit the item says nothing about is named in the entry and left out, and Units not comparable reports the pair that cannot be reconciled. Only stocked items are judged; a service or a charge is never oversold. Stock is counted across locations; whether the right location holds it is a question for the reservation.",
+      "summary": "More of an item has been promised to customers than the company holds and has on order. Reality adds up the open quantity of every open customer promise for the item, whatever channel the order came through, and compares it with the stock on hand across all locations plus the open quantity of every open supplier promise. The entry appears while the demand is larger, and names the orders grouped by the sales channel they state, so an item sold in the shop and on a marketplace at once shows both. It does not ask which order should go without: that is a decision, and every order is named and none is blamed. It is the item-wide view behind Customer commitment at risk, which looks at one promise's reservation; a company can be oversold with nothing reserved at all. Reservation exceeds stock is the other direction, reservations that lost their stock. Quantities are counted in the item's own unit, using the purchase unit and factor the item states; a promise in a unit the item says nothing about is named in the entry and left out, and Units not comparable reports the pair that cannot be reconciled. Only stocked items are judged; a service or a charge is never oversold. Stock is counted across locations; whether the right location holds it is a question for the reservation. For a kit, the whole kits its free components build count as stock beside the kits already assembled (spec 333).",
       "owner": "Order fulfilment, with purchasing for the supply",
       "clears_through": "Receiving or ordering more, or shipping, reducing or cancelling the demand until it is covered.",
       "severity": "high",
@@ -29564,7 +29894,8 @@
       "authority": "300/FR-001",
       "evidence": [
         "tests/test_item_oversold.py::test_orders_from_two_channels_above_stock_are_reported_by_channel",
-        "tests/test_item_oversold.py::test_an_open_purchase_order_covering_the_shortfall_clears_it"
+        "tests/test_item_oversold.py::test_an_open_purchase_order_covering_the_shortfall_clears_it",
+        "tests/test_kits.py::test_a_kit_the_components_build_is_not_oversold"
       ],
       "causes": [],
       "links": [
@@ -30451,6 +30782,42 @@
       "links": ["command:set_company_currency"],
       "label_de": "company_currency.set",
       "resources": ["accounting"]
+    },
+    {
+      "id": "event:kit.defined",
+      "kind": "event",
+      "key": "kit.defined",
+      "label": "kit.defined",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "define_kit",
+      "subject": "item",
+      "invalidates": ["Timeline", "Tenant usage"],
+      "links": ["command:define_kit"],
+      "label_de": "kit.defined",
+      "resources": ["item"]
+    },
+    {
+      "id": "event:kit.assembled",
+      "kind": "event",
+      "key": "kit.assembled",
+      "label": "kit.assembled",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "assemble_kit",
+      "subject": "item",
+      "invalidates": [
+        "Inventory",
+        "Item supply and demand",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Operational Exceptions",
+        "Timeline",
+        "Tenant usage"
+      ],
+      "links": ["command:assemble_kit"],
+      "label_de": "kit.assembled",
+      "resources": ["item"]
     },
     {
       "id": "event:supplier_item_terms.set",
@@ -77416,6 +77783,8 @@
         "command:set_company_currency",
         "command:set_supplier_item_terms",
         "command:remove_supplier_item_terms",
+        "command:define_kit",
+        "command:assemble_kit",
         "command:set_customer_item_number",
         "command:remove_customer_item_number",
         "command:plan_outbound_delivery",
@@ -79024,6 +79393,7 @@
         "command:record_movement",
         "command:correct_movement",
         "command:scrap_stock_block",
+        "command:assemble_kit",
         "command:pick_outbound_delivery",
         "command:put_back_outbound_delivery",
         "command:record_stock_count",

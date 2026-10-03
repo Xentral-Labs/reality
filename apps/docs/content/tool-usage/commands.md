@@ -37,11 +37,13 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation                    | Company & access           | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation                    | Company & access           | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`business_journey_guide`](#command-business_journey_guide)                       | Ask the Business Journey Guide               | Cross-functional           | `business_journey_guide`                                                                                                                                                                     | Web · API · MCP · Chat                  |
+| [`assemble_kit`](#command-assemble_kit)                                           | Assemble kits                                | Cross-functional           | `kit_assemble_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`assign_line_item`](#command-assign_line_item)                                   | Assign an item to an order line              | Cross-functional           | `order_line_item_assign_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`assign_supply`](#command-assign_supply)                                         | Assign incoming supply to customer demand    | Cross-functional           | `supply_assign_propose`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report                  | Cross-functional           | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision       | Cross-functional           | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
 | [`confirm_run`](#command-confirm_run)                                             | Confirm dunning run                          | Cross-functional           | `finance_dunning_run_propose`                                                                                                                                                                | Web · MCP · Chat                        |
+| [`define_kit`](#command-define_kit)                                               | Define a kit                                 | Cross-functional           | `kit_define_propose`                                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`cost_review_draft`](#command-cost_review_draft)                                 | Draft a cost review                          | Cross-functional           | `cost_review_draft`                                                                                                                                                                          | Web · MCP · Chat                        |
 | [`record_customer_exchange`](#command-record_customer_exchange)                   | Exchange returned goods for a replacement    | Cross-functional           | `customer_exchange_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`record_handover`](#command-record_handover)                                     | Hand over to collection                      | Cross-functional           | `finance_dunning_collection_propose`                                                                                                                                                         | Web · MCP · Chat                        |
@@ -53,6 +55,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate       | Cross-functional           | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`run_context`](#command-run_context)                                             | Preview dunning run                          | Cross-functional           | `finance_dunning_run_context`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review                | Cross-functional           | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
+| [`kit_split`](#command-kit_split)                                                 | Read a kit line's split                      | Cross-functional           | `kit_split`                                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`payout_detail`](#command-payout_detail)                                         | Read a payout                                | Cross-functional           | `finance_payout`                                                                                                                                                                             | Web · MCP · Chat · CLI                  |
 | [`handover_detail`](#command-handover_detail)                                     | Read collection handover                     | Cross-functional           | `finance_dunning_collection_handover`                                                                                                                                                        | Web · MCP · Chat                        |
 | [`cost_query`](#command-cost_query)                                               | Read cost query context                      | Cross-functional           | `cost_query_get`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -60,6 +63,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`dunning_context`](#command-dunning_context)                                     | Read dunning context                         | Cross-functional           | `finance_dunning_context`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`notice_detail`](#command-notice_detail)                                         | Read dunning notice                          | Cross-functional           | `finance_dunning_notice`                                                                                                                                                                     | Web · MCP · Chat                        |
 | [`schedule`](#command-schedule)                                                   | Read dunning schedule                        | Cross-functional           | `finance_dunning_schedule`                                                                                                                                                                   | Web · MCP · Chat                        |
+| [`kits`](#command-kits)                                                           | Read kits                                    | Cross-functional           | `kits`                                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`outbound_deliveries`](#command-outbound_deliveries)                             | Read planned deliveries                      | Cross-functional           | `outbound_deliveries`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs               | Cross-functional           | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`cost_evidence`](#command-cost_evidence)                                         | Read received acquisition-cost evidence      | Cross-functional           | `cost_evidence_get`                                                                                                                                                                          | CLI · Web · MCP · Chat                  |
@@ -7734,6 +7738,53 @@ explicit limitations.
 
 **See also:** command [`business_journey_guide`](./commands#command-business_journey_guide)
 
+### `assemble_kit` — Assemble kits {#command-assemble_kit}
+
+Consumes every component and produces whole kits at one location under one assembly statement, all
+or nothing; a component short of free stock refuses the whole assembly.
+
+**Synopsis**
+
+```text
+kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `item`, `location`, `kit_component`, `movement`, `reservation`, `stock_block` ·
+Writes: `movement`, `source_record`, `business_event` · Emits: `kit.assembled`
+
+**See also:** agent tool [`kit_assemble_propose`](./commands#tool-kit_assemble_propose), event
+[`kit.assembled`](./events#event-kit-assembled)
+
+#### `kit_assemble_propose` — Assemble kits {#tool-kit_assemble_propose}
+
+Prepare assembling whole kits at a location for confirmation: every component leaves the location by
+its quantity per kit and the kits enter it, all or nothing, optionally at a stated earlier time (ISO
+8601 with its offset). The review shows what each component gives and what is free; a component
+short of free stock refuses the whole assembly. Packing a kit order assembles it this way before it
+ships. A person confirms.
+
+**Synopsis**
+
+```text
+kit_assemble_propose kit_item_id location_id quantity [occurred_at] [note]
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name          | Type     | Required | Description                                                                 | Default |
+| ------------- | -------- | -------- | --------------------------------------------------------------------------- | ------- |
+| `kit_item_id` | `string` | yes      | Opaque same-tenant identity of the stocked item that is the kit (spec 333). | —       |
+| `location_id` | `string` | yes      | Opaque identity of the operational or physical location.                    | —       |
+| `quantity`    | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                     | —       |
+| `occurred_at` | `string` | no       | UTC instant at which the physical or business event occurred.               | —       |
+| `note`        | `string` | no       | Free-text record of what the counterparty said, kept with the statement.    | —       |
+
+**See also:** command [`assemble_kit`](./commands#command-assemble_kit)
+
 ### `assign_line_item` — Assign an item to an order line {#command-assign_line_item}
 
 Gives a sales-order line whose stated SKU matched no item the item the shop meant and creates its
@@ -8212,6 +8263,52 @@ Record the reviewed dunning run's notices for owner confirmation.
 Reminded items now wait for their next level.
 
 **See also:** command [`confirm_run`](./commands#command-confirm_run)
+
+### `define_kit` — Define a kit {#command-define_kit}
+
+States the components of a kit once, with how many one kit takes and optionally each component's
+share of the kit's price.
+
+**Synopsis**
+
+```text
+kit_define_propose kit_item_id components
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `item`, `kit_component` · Writes: `kit_component`, `source_record`,
+`business_event` · Emits: `kit.defined`
+
+**See also:** agent tool [`kit_define_propose`](./commands#tool-kit_define_propose), event
+[`kit.defined`](./events#event-kit-defined)
+
+#### `kit_define_propose` — Define kit {#tool-kit_define_propose}
+
+Prepare the components of a kit for confirmation: per component the item, how many one kit takes in
+the component's stock unit and optionally its share of the kit's price (shares for all or none,
+adding up to exactly 1). The kit and its components are stocked, untracked items; a component is
+never a kit. The components are stated once. A person confirms.
+
+**Synopsis**
+
+```text
+kit_define_propose kit_item_id components
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                    | Type     | Required | Description                                                                                                                                                                                   | Default |
+| ----------------------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `kit_item_id`           | `string` | yes      | Opaque same-tenant identity of the stocked item that is the kit (spec 333).                                                                                                                   | —       |
+| `components`            | `array`  | yes      | The kit's components, each an item, how many one kit takes in that item's stock unit, and optionally its share of the kit's price; shares are stated for all or none and add up to exactly 1. | —       |
+| `components[].item_id`  | `string` | yes      | Opaque identity of the operational item reference.                                                                                                                                            | —       |
+| `components[].quantity` | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                                                       | —       |
+| `components[].share`    | `string` | no       | A component's share of the kit's price, between 0 and 1, as stated; the bundle split divides a kit line's stated amounts by it.                                                               | —       |
+
+**See also:** command [`define_kit`](./commands#command-define_kit)
 
 ### `cost_review_draft` — Draft a cost review {#command-cost_review_draft}
 
@@ -8885,6 +8982,64 @@ the proposal.
 
 **See also:** command [`propose_cost_review`](./commands#command-propose_cost_review)
 
+### `kit_split` — Read a kit line's split {#command-kit_split}
+
+Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up
+exactly to the line.
+
+**Synopsis**
+
+```text
+kit_split document_line_id
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `document_line`, `item`, `kit_component` · Writes: —
+
+**See also:** agent tool [`kit_split`](./commands#tool-kit_split)
+
+#### `kit_split` — Kit split {#tool-kit_split}
+
+Read how a kit's order or invoice line (document_line_id) splits its stated gross, and its stated
+net and tax where the line states them, across the components by the kit's stated shares, with the
+gross per component piece. A kit without stated shares has no split.
+
+**Synopsis**
+
+```text
+kit_split document_line_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query  | Kind                        | Default |
+| --------------- | --------------------------- | ------- |
+| `MCP kit_split` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Show how a kit's order or invoice line splits its price, revenue and tax across the components.
+
+**Use when**
+
+- Someone asks what share of a bundle's revenue or tax a component carries
+- or what to credit for one returned component.
+
+**Do not use when**
+
+- The line is not a kit line.
+
+**Parameters**
+
+| Name               | Type     | Required | Description                                                                               | Default |
+| ------------------ | -------- | -------- | ----------------------------------------------------------------------------------------- | ------- |
+| `document_line_id` | `string` | yes      | Opaque same-tenant received document line identity; must belong to the selected document. | —       |
+
+**See also:** command [`kit_split`](./commands#command-kit_split)
+
 ### `payout_detail` — Read a payout {#command-payout_detail}
 
 Reads one payout with every stated line, what it booked, the invoices it settled and the shipment a
@@ -9295,6 +9450,66 @@ Read the company's dunning schedule and the finance revision required to change 
 No parameters.
 
 **See also:** command [`schedule`](./commands#command-schedule)
+
+### `kits` — Read kits {#command-kits}
+
+Lists the kits with their components and, per location, the free kits on hand, the whole kits the
+free components build and the component that limits them.
+
+**Synopsis**
+
+```text
+kits [item_id]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `kit_component`, `item`, `location`, `movement`, `reservation`, `stock_block` ·
+Writes: —
+
+**See also:** agent tool [`kits`](./commands#tool-kits)
+
+#### `kits` — Kits {#tool-kits}
+
+Read the kits of the company, or the kit an item is or is part of (item_id): the components, how
+many one kit takes, the stated price shares, and per location the free kits on hand, the whole kits
+the free components build and the component that limits them.
+
+**Synopsis**
+
+```text
+kits [item_id]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query | Kind                        | Default |
+| -------------- | --------------------------- | ------- |
+| `MCP kits`     | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Show the kits, their components and how many each location can build.
+
+**Use when**
+
+- Someone asks whether a set can be sold or packed
+- what a kit is made of
+- or which part is missing.
+
+**Do not use when**
+
+- The item is not a kit; read the item's stock.
+
+**Parameters**
+
+| Name      | Type     | Required | Description                                        | Default |
+| --------- | -------- | -------- | -------------------------------------------------- | ------- |
+| `item_id` | `string` | no       | Opaque identity of the operational item reference. | —       |
+
+**See also:** command [`kits`](./commands#command-kits)
 
 ### `outbound_deliveries` — Read planned deliveries {#command-outbound_deliveries}
 

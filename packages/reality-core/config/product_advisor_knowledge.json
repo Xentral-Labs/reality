@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:6a8bf103bb35cdda4494b24dedc5791f7a00d09726636c3f6d73def87a014e5f",
+  "knowledge_version": "advisor-v1:sha256:a9668847c70b26cb17b50645c44a6864a8ceb03166c25098c34a085d21949729",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1476,7 +1476,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K01",
-      "fingerprint": "89880eafb92126e5519c1e9c8a774378fba3c9403704d9dbd3df87ab0608b657"
+      "fingerprint": "ffa3546c9e121a5e3b7bb61ac3611fa497048379d73d4cfa72f5a7a0a45e6aa2"
     },
     {
       "id": "source_journey_k02",
@@ -1485,7 +1485,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K02",
-      "fingerprint": "9926b0bbdfa4c2aaabf2e4a3773cc7641573de75416ecbe6d4de7a12ff5f1dd7"
+      "fingerprint": "9418f32d341c3ad8ea700b88fe90c9faa273f8298b180497bb8ac450fc972ac0"
     },
     {
       "id": "source_journey_k03",
@@ -1494,7 +1494,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K03",
-      "fingerprint": "eb96bfe09924a0332ea42e30a5713d0ef020bb30d88b433c214de4ab9f73d923"
+      "fingerprint": "ef34d18cc0be0166e21014799a8be65a40ed5301598feb89a5137fc7f54035ac"
     },
     {
       "id": "source_journey_k04",
@@ -1503,7 +1503,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K04",
-      "fingerprint": "2edcb5ecb861e4108e9bfda2b1eabbd07be7929dfdc40471429682ad7a5c7bb4"
+      "fingerprint": "6b3011e88e5469ddb408cad5d8dc4d136f6e4663937bd4f4f5104a86e09f0687"
     },
     {
       "id": "source_journey_k05",
@@ -1521,7 +1521,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#K06",
-      "fingerprint": "213ddca937f9ffa1e100176c5907dbde5f905d4aeeb73c7d6bb357bc8a5d21e4"
+      "fingerprint": "34bbdfa69fcf14b7e6061d066a40a595b26423ab81c200b7a8af1fff50f65177"
     },
     {
       "id": "source_journey_l01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "1e8675d7374fea9218ab9a58f39c4306c23f86a7f6a6928f6e020ecbfff935b8"
+      "fingerprint": "1d0aba7502272ab2a19211696108f47920e152b6e4d9f9049db6d22741fbcb8f"
     },
     {
       "id": "source_document_product_evaluation",
@@ -4935,34 +4935,42 @@
       "source_id": "source_journey_k01",
       "subject": "Kits, bills of material and variants",
       "title": "Kit sold, shipped from components",
-      "search_text": "K01 Kits, bills of material and variants Kit sold, shipped from components Availability = minimum of components? Kit sold, shipped from components Availability = minimum of components?",
-      "claim_text": "Reality evaluates: Availability = minimum of components?",
-      "support": "unavailable",
+      "search_text": "K01 Kits, bills of material and variants Kit sold, shipped from components Availability = minimum of components? kit availability bill of materials Stückliste Set-Verfügbarkeit Kit sold, shipped from components Availability = minimum of components? How many bike kits can we pack from the frames and wheels in stock? Wie viele Fahrrad-Sets können wir aus den Rahmen und Rädern auf Lager packen?",
+      "claim_text": "Reality evaluates: Availability = minimum of components? Yes. A kit is an item with stated components, and per location it is available as the free kits on hand plus the whole kits the free components build, naming the part that limits it. Packing the order assembles the kit from its parts; it then ships as itself.",
+      "support": "proven",
       "limitations": [
-        "There are no kits or bills of material, so kit availability cannot be derived from its components."
+        "One level only; a kit inside a kit is refused.",
+        "What the components build is read, not reserved, until the kit is assembled."
       ],
       "references": [
-        "K01"
+        "K01",
+        "kits",
+        "kit_define_propose",
+        "kit_assemble_propose",
+        "shipment_dispatch_propose"
       ],
       "language": "en",
-      "fingerprint": "56eeec5ba4912c6a97ceb0920ec01a579796cf0b3fcd6dda4d59b0bb2bbf6d07"
+      "fingerprint": "7c0c13f36e5c65ced182c7b2b300bdd33e5f589ed04fc86cd562d7db956be3fc"
     },
     {
       "id": "evidence_journey_k02",
       "source_id": "source_journey_k02",
       "subject": "Kits, bills of material and variants",
       "title": "One component missing, no partial kit allowed",
-      "search_text": "K02 Kits, bills of material and variants One component missing, no partial kit allowed Whole kit held? One component missing, no partial kit allowed Whole kit held?",
-      "claim_text": "Reality evaluates: Whole kit held?",
-      "support": "unavailable",
+      "search_text": "K02 Kits, bills of material and variants One component missing, no partial kit allowed Whole kit held? component missing Komponente fehlt One component missing, no partial kit allowed Whole kit held? One wheel is missing for the bike kit; does half a kit go out? Für das Fahrrad-Set fehlt ein Rad; geht ein halbes Set raus?",
+      "claim_text": "Reality evaluates: Whole kit held? Yes. An assembly takes every component or none: one part short refuses it whole, naming the part, what is needed and what is free, and nothing leaves stock. Without a kit there is nothing to ship, so the order waits whole until the part arrives.",
+      "support": "proven",
       "limitations": [
-        "There are no kits, so a whole kit cannot be held back when one component is missing."
+        "The kit order is reported as oversold while the parts cannot build it; no separate kit class names it."
       ],
       "references": [
-        "K02"
+        "K02",
+        "kits",
+        "kit_assemble_propose",
+        "exceptions_list"
       ],
       "language": "en",
-      "fingerprint": "96a6c9979fad6a386537cdbc6638dcc03a35e9f22f763372f90e2cd41c2da726"
+      "fingerprint": "c497db74931d0bf4fea91a13a518513685c3a51cc1ee860d8c0d2894b1e5d93d"
     },
     {
       "id": "evidence_journey_k03",
@@ -4970,33 +4978,37 @@
       "subject": "Kits, bills of material and variants",
       "title": "Return of a single component from a kit",
       "search_text": "K03 Kits, bills of material and variants Return of a single component from a kit Component back, kit credit partial? Return of a single component from a kit Component back, kit credit partial?",
-      "claim_text": "Reality evaluates: Component back, kit credit partial?",
-      "support": "unavailable",
+      "claim_text": "Reality evaluates: Component back, kit credit partial? The component comes back to stock as its own item, and the kit's split gives its per-piece share of the price as the credit amount. The return is not linked to the kit's delivery.",
+      "support": "limited",
       "limitations": [
-        "A component can be returned as an item of its own, but without a kit link no partial kit credit follows."
+        "A returned component has no promise of its own, so it reads as Unexplained movement until a person explains it.",
+        "The return and credit classes cannot pair a component return with a credit on the kit's invoice."
       ],
       "references": [
-        "K03"
+        "K03",
+        "kit_split"
       ],
       "language": "en",
-      "fingerprint": "03eace0c8cdc94f9522ad07bad87d1c6e4463bc65000b2ac7f958b4187746b93"
+      "fingerprint": "27a761ea0bcb2545be7c2fe3acd4dda927f503160637720a0e74a48118396635"
     },
     {
       "id": "evidence_journey_k04",
       "source_id": "source_journey_k04",
       "subject": "Kits, bills of material and variants",
       "title": "Light assembly: components consumed, finished item produced",
-      "search_text": "K04 Kits, bills of material and variants Light assembly: components consumed, finished item produced Paired movements? Light assembly: components consumed, finished item produced Paired movements?",
-      "claim_text": "Reality evaluates: Paired movements?",
-      "support": "unavailable",
+      "search_text": "K04 Kits, bills of material and variants Light assembly: components consumed, finished item produced Paired movements? light assembly assembly Montage Konfektionierung Light assembly: components consumed, finished item produced Paired movements? We assemble three kits from parts in the warehouse; what is booked? Wir montieren drei Sets aus Teilen im Lager; was wird gebucht?",
+      "claim_text": "Reality evaluates: Paired movements? Yes. One reviewed assembly consumes every component and produces the finished item at one location, all under one statement at one time; the movements are never corrected one by one.",
+      "support": "proven",
       "limitations": [
-        "There is no assembly step that consumes components and produces the finished item."
+        "The components' cost is not rolled into the finished item; inventory cost reviews refuse items with assembly movements for now."
       ],
       "references": [
-        "K04"
+        "K04",
+        "kit_assemble_propose",
+        "movement_explanation"
       ],
       "language": "en",
-      "fingerprint": "dc2e6c450f9b08faedea4c69fef8c2ea7277381f42bc76509925775bc036069d"
+      "fingerprint": "af32ddb6e0b1349b989e95bc90401beb6cb086f5426d1bf4b36ca99b7bca540a"
     },
     {
       "id": "evidence_journey_k05",
@@ -5020,17 +5032,19 @@
       "source_id": "source_journey_k06",
       "subject": "Kits, bills of material and variants",
       "title": "Bundle price split across components (revenue, tax)",
-      "search_text": "K06 Kits, bills of material and variants Bundle price split across components (revenue, tax) Split stated or derived? Bundle price split across components (revenue, tax) Split stated or derived?",
-      "claim_text": "Reality evaluates: Split stated or derived?",
-      "support": "unavailable",
+      "search_text": "K06 Kits, bills of material and variants Bundle price split across components (revenue, tax) Split stated or derived? bundle price split revenue split Preisaufteilung Bundle price split across components (revenue, tax) Split stated or derived? How much of the bike kit's invoice is revenue and tax for the frame? Wie viel der Set-Rechnung ist Umsatz und Steuer für den Rahmen?",
+      "claim_text": "Reality evaluates: Split stated or derived? The shares are stated on the kit; the split is derived at read time from the line's stated net, tax and gross, rounded to the cent with the remainder on the largest share, so the parts add up exactly to the line.",
+      "support": "proven",
       "limitations": [
-        "A bundle price is not split into component revenue or tax; lines carry only the amounts the source states."
+        "The line's stated tax is split by the shares; per-component tax rates are not modelled.",
+        "Revenue reports keep the kit line; the split is a read beside them."
       ],
       "references": [
-        "K06"
+        "K06",
+        "kit_split"
       ],
       "language": "en",
-      "fingerprint": "183ef047b373b18f168c11c4c83226135fc66e0f2e31fd22f21a775cb3b271dd"
+      "fingerprint": "b3ff1086ccdc66b3d0026d6bc0e182b69c25b71804e69d7ae736df82e41bdc59"
     },
     {
       "id": "evidence_journey_l01",
@@ -7350,6 +7364,66 @@
       ],
       "language": "en",
       "fingerprint": "baad7c7072d86bb48624ba7631aa62ad18637842ffc8c75871a3e815ffffd491"
+    },
+    {
+      "id": "evidence_command_define_kit",
+      "source_id": "source_executable_commands",
+      "subject": "Define a kit",
+      "title": "Define a kit",
+      "search_text": "define_kit Define a kit States the components of a kit once, with how many one kit takes and optionally each component's share of the kit's price. mutation",
+      "claim_text": "define_kit is a governed mutation command for States the components of a kit once, with how many one kit takes and optionally each component's share of the kit's price..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "define_kit"
+      ],
+      "language": "en",
+      "fingerprint": "befc6b1a0cadc517d37f54278edc82ee019dfd547eb4c227c633252cac053586"
+    },
+    {
+      "id": "evidence_command_assemble_kit",
+      "source_id": "source_executable_commands",
+      "subject": "Assemble kits",
+      "title": "Assemble kits",
+      "search_text": "assemble_kit Assemble kits Consumes every component and produces whole kits at one location under one assembly statement, all or nothing; a component short of free stock refuses the whole assembly. mutation",
+      "claim_text": "assemble_kit is a governed mutation command for Consumes every component and produces whole kits at one location under one assembly statement, all or nothing; a component short of free stock refuses the whole assembly..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "assemble_kit"
+      ],
+      "language": "en",
+      "fingerprint": "3657df82efb3b202ab5eda89fc948c09d176c1a19e73b452110cee3084a22716"
+    },
+    {
+      "id": "evidence_command_kits",
+      "source_id": "source_executable_commands",
+      "subject": "Read kits",
+      "title": "Read kits",
+      "search_text": "kits Read kits Lists the kits with their components and, per location, the free kits on hand, the whole kits the free components build and the component that limits them. query",
+      "claim_text": "kits is a governed query command for Lists the kits with their components and, per location, the free kits on hand, the whole kits the free components build and the component that limits them..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "kits"
+      ],
+      "language": "en",
+      "fingerprint": "c54c66d5718dc4f28f17a1fb058241e933f200b4e1837c5fbbe9cafd3e448443"
+    },
+    {
+      "id": "evidence_command_kit_split",
+      "source_id": "source_executable_commands",
+      "subject": "Read a kit line's split",
+      "title": "Read a kit line's split",
+      "search_text": "kit_split Read a kit line's split Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up exactly to the line. query",
+      "claim_text": "kit_split is a governed query command for Splits a kit line's stated gross, net and tax across the components by the stated shares, adding up exactly to the line..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "kit_split"
+      ],
+      "language": "en",
+      "fingerprint": "3c47f3aa58f1060572900fd12a10f334fe3928e9b23e83919b4adda137481bb3"
     },
     {
       "id": "evidence_command_purchase_match",
