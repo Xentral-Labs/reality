@@ -17,7 +17,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 12       | 3         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
-| [Zahlung und Ausgleich](#resource-payment)                     | 2      | 11       | 5         |
+| [Zahlung und Ausgleich](#resource-payment)                     | 2      | 12       | 5         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 16       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 3        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 5        | 8         |
@@ -384,7 +384,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 [Purchase-to-Pay](./processes#process-procure_to_pay)
 
 **Darunter:** Tabellen: `commitment`, `commitment_hold`, `commitment_revision`, `reservation`,
-`delivery_rule`, `commitment_substitute` · Events:
+`delivery_rule`, `commitment_substitute`, `prepayment_release` · Events:
 [`order.recorded`](./events#event-order-recorded),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`reorder_point.set`](./events#event-reorder_point-set),
@@ -629,6 +629,7 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 
 **Aktionen**
 
+- [Vorkasse freigeben](./commands#command-release_prepayment) (`release_prepayment`)
 - [Anzahlungsrechnung erfassen](./commands#command-record_down_payment_invoice)
   (`record_down_payment_invoice`)
 - [Zahlungseingang buchen](./commands#command-post_customer_payment) (`post_customer_payment`)
@@ -675,6 +676,7 @@ Events: [`payout.settled`](./events#event-payout-settled),
 [`payment.authorized`](./events#event-payment-authorized),
 [`payment.captured`](./events#event-payment-captured),
 [`payments.run`](./events#event-payments-run),
+[`order.prepayment_released`](./events#event-order-prepayment_released),
 [`settlement.allocated`](./events#event-settlement-allocated) · Agent Tools ohne Geschäftsaktion:
 [`finance_balances`](./commands#tool-finance_balances),
 [`finance_party_balances`](./commands#tool-finance_party_balances),

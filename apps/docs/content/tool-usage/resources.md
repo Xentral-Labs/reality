@@ -17,7 +17,7 @@ the technical key stands beside each one.
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 12      | 3                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 2                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 14      | 15                  |
-| [Payment and settlement](#resource-payment)                      | 2     | 11      | 5                   |
+| [Payment and settlement](#resource-payment)                      | 2     | 12      | 5                   |
 | [Ledger and accounts](#resource-accounting)                      | 2     | 16      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 3       | 4                   |
 | [Return](#resource-return)                                       | 0     | 5       | 8                   |
@@ -374,7 +374,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 [Procure to pay](./processes#process-procure_to_pay)
 
 **Underneath:** Tables: `commitment`, `commitment_hold`, `commitment_revision`, `reservation`,
-`delivery_rule`, `commitment_substitute` · Events:
+`delivery_rule`, `commitment_substitute`, `prepayment_release` · Events:
 [`order.recorded`](./events#event-order-recorded),
 [`party.delivery_hold_placed`](./events#event-party-delivery_hold_placed),
 [`reorder_point.set`](./events#event-reorder_point-set),
@@ -615,6 +615,7 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 
 **Actions**
 
+- [Release a prepayment](./commands#command-release_prepayment) (`release_prepayment`)
 - [Record a down-payment invoice](./commands#command-record_down_payment_invoice)
   (`record_down_payment_invoice`)
 - [Post customer payment](./commands#command-post_customer_payment) (`post_customer_payment`)
@@ -659,6 +660,7 @@ Events: [`payout.settled`](./events#event-payout-settled),
 [`payment.authorized`](./events#event-payment-authorized),
 [`payment.captured`](./events#event-payment-captured),
 [`payments.run`](./events#event-payments-run),
+[`order.prepayment_released`](./events#event-order-prepayment_released),
 [`settlement.allocated`](./events#event-settlement-allocated) · Agent Tools without a command:
 [`finance_balances`](./commands#tool-finance_balances),
 [`finance_party_balances`](./commands#tool-finance_party_balances),

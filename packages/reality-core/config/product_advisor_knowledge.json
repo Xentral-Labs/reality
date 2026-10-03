@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:fa3b5f2c2c39d12b0cb572f1963b81b63a9ffeea27c32c52b414dbfb0cf6a34b",
+  "knowledge_version": "advisor-v1:sha256:fac96e1a53558240632261c33b732cc8a021b38251c35ea7edb9c3d3db22e04c",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1692,7 +1692,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#M07",
-      "fingerprint": "0e67b772204c09d298d563f8f5560a408bf322209d4c899ed67efbf251074cbd"
+      "fingerprint": "9794c551f804cc0efb234c4c75edd305e4bac21a618c438b126e4971677acf5e"
     },
     {
       "id": "source_journey_m08",
@@ -1989,7 +1989,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#R01",
-      "fingerprint": "9cb9d0903037812fd8d24e15fb33183f72ee74f480f1ca8951a2317227d9dd35"
+      "fingerprint": "cb220feee65dd66e88537b8fe0be7a4012575dd94e8044dfe4d90a490c3191ed"
     },
     {
       "id": "source_journey_r02",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "0cb1402cbc9c6e8896cedcd8ed68193844ace41c6f34f22ed735511f7002a4ea"
+      "fingerprint": "ff4e48a6a3ce003325eb7a93e168578974a4c9e6675b35f3d2ef432d50512d7a"
     },
     {
       "id": "source_document_product_evaluation",
@@ -5411,16 +5411,16 @@
       "subject": "B2B specifics",
       "title": "Customer-prescribed delivery note or pallet label",
       "search_text": "M07 B2B specifics Customer-prescribed delivery note or pallet label Out of core scope? Customer-prescribed delivery note or pallet label Out of core scope?",
-      "claim_text": "Reality evaluates: Out of core scope? Yes. Reality decides and explains what ships; the system that executes the shipment (the ERP, a shipping tool or the 3PL) produces delivery notes, pallet labels and customer-prescribed layouts.",
+      "claim_text": "Reality evaluates: Out of core scope?",
       "support": "unavailable",
       "limitations": [
-        "Reality produces no delivery notes, pallet labels or customer-specific document layouts; the shipment's stated packages, tracking numbers and recipients are available for the executing system."
+        "Reality produces no delivery notes or pallet labels, and this is not yet declared out of scope."
       ],
       "references": [
         "M07"
       ],
       "language": "en",
-      "fingerprint": "0e4c8f84fc69ef1489b812dfb922c926a227db68fe8339f3ae9ce0f91fc29a26"
+      "fingerprint": "424d8d14f8e35eafbd2d5ace03009872de1a7f8b7ad393d6ff6188cdd5db2033"
     },
     {
       "id": "evidence_journey_m08",
@@ -5980,18 +5980,19 @@
       "source_id": "source_journey_r01",
       "subject": "Combined stress stories",
       "title": "Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged",
-      "search_text": "R01 Combined stress stories Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged Every quantity and every euro reconciles at the end. Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged Every quantity and every euro reconciles at the end.",
-      "claim_text": "Reality evaluates: Every quantity and every euro reconciles at the end.",
-      "support": "limited",
+      "search_text": "R01 Combined stress stories Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged Every quantity and every euro reconciles at the end. prepayment release ship before paid Vorkasse freigeben Teilzahlung Vorkasse Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged Every quantity and every euro reconciles at the end. Can an owner ship a partly prepaid order anyway? Kann ein Inhaber einen teilweise bezahlten Vorkasse-Auftrag trotzdem liefern?",
+      "claim_text": "Reality evaluates: Every quantity and every euro reconciles at the end. An 80 % prepaid order is refused until a company owner releases it with a reason; it ships in two parts while the supplier delivers 5 of 6 on two dates, one unit is cancelled and two come back damaged and are scrapped, and a credit for three settles the open 20 and refunds the 10 paid too much.",
+      "support": "proven",
       "limitations": [
-        "A prepayment order stays unshippable until paid in full, and no reviewed release overrides that, so the story cannot ship the 80 % prepaid order.",
-        "Revision, cancellation, partial receipt and damaged returns each work on their own."
+        "The release covers the order's stated amount and lets the order ship before it is paid; the unpaid rest stays an ordinary open receivable until it is paid or credited.",
+        "Raising a line's quantity does not raise the prepayment the order requires, because the gate measures the order's stated gross amount."
       ],
       "references": [
-        "R01"
+        "R01",
+        "prepayment_release_propose"
       ],
       "language": "en",
-      "fingerprint": "c5fc9e58c24e918e6f401ba7d51d876f2759cbef16fdac5621230b8146f61bd9"
+      "fingerprint": "dd7aaf123ac021902811925bd80f4be506668e1922dff6eed4cf53bc731fa787"
     },
     {
       "id": "evidence_journey_r02",
@@ -7254,6 +7255,21 @@
       ],
       "language": "en",
       "fingerprint": "8c20c745c5e5b466b5777a8b0b6dece01577bb7d99504407b93874de54bffe52"
+    },
+    {
+      "id": "evidence_command_release_prepayment",
+      "source_id": "source_executable_commands",
+      "subject": "Release a prepayment",
+      "title": "Release a prepayment",
+      "search_text": "release_prepayment Release a prepayment Lets one prepayment order ship before it is paid, with a stated reason confirmed by a company owner; the unpaid rest stays an open receivable and a raised order asks again. mutation",
+      "claim_text": "release_prepayment is a governed mutation command for Lets one prepayment order ship before it is paid, with a stated reason confirmed by a company owner; the unpaid rest stays an open receivable and a raised order asks again..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "release_prepayment"
+      ],
+      "language": "en",
+      "fingerprint": "99bfb349212b7090ec6b8d3f4f69fc72ba26822164f80765f8ebb51c1b846847"
     },
     {
       "id": "evidence_command_block_stock",

@@ -572,7 +572,8 @@
         "commitment_revision",
         "reservation",
         "delivery_rule",
-        "commitment_substitute"
+        "commitment_substitute",
+        "prepayment_release"
       ],
       "lists": [
         "view:commitments",
@@ -930,6 +931,7 @@
       "tables": ["settlement_allocation", "payment_authorization", "payment_capture"],
       "lists": ["view:payments", "projection:payments"],
       "actions": [
+        "command:release_prepayment",
         "command:record_down_payment_invoice",
         "command:post_customer_payment",
         "command:execute_payment_run",
@@ -965,6 +967,7 @@
         "event:payment.authorized",
         "event:payment.captured",
         "event:payments.run",
+        "event:order.prepayment_released",
         "event:settlement.allocated"
       ],
       "workspace_actions": ["action:post_customer_payment", "action:post_supplier_payment"]
@@ -8956,6 +8959,40 @@
       "links": ["command:release_credit_holds"],
       "label_de": "Release a credit hold",
       "resources": ["order"]
+    },
+    {
+      "id": "tool:prepayment_release_propose",
+      "kind": "tool",
+      "key": "prepayment_release_propose",
+      "label": "Ship a prepayment order before it is paid",
+      "area": "finance",
+      "summary": "Prepare this business mutation without changing state. Ship a prepayment order before it is paid. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "prepayment_release_propose document_id reason",
+      "parameters": [
+        {
+          "name": "document_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the evidence document to inspect or correct.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "release_prepayment",
+      "projections": [],
+      "links": ["command:release_prepayment"],
+      "label_de": "Ship a prepayment order before it is paid",
+      "resources": ["payment"]
     },
     {
       "id": "tool:return_disposition_propose",
@@ -24306,6 +24343,36 @@
       "resources": ["order"]
     },
     {
+      "id": "command:release_prepayment",
+      "kind": "command",
+      "key": "release_prepayment",
+      "label": "Release a prepayment",
+      "area": "finance",
+      "summary": "Lets one prepayment order ship before it is paid, with a stated reason confirmed by a company owner; the unpaid rest stays an open receivable and a raised order asks again.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "document",
+        "commitment",
+        "payment_term",
+        "ledger_entry",
+        "settlement_allocation",
+        "document_line",
+        "prepayment_release"
+      ],
+      "writes": ["prepayment_release", "business_event"],
+      "confirmation": "required",
+      "related_services": ["preview_prepayment_release"],
+      "tools": ["prepayment_release_propose"],
+      "synopses": ["prepayment_release_propose document_id reason"],
+      "events": ["order.prepayment_released"],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:prepayment_release_propose", "event:order.prepayment_released"],
+      "label_de": "Vorkasse freigeben",
+      "resources": ["payment"]
+    },
+    {
       "id": "command:block_stock",
       "kind": "command",
       "key": "block_stock",
@@ -28833,6 +28900,7 @@
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
+        "order.prepayment_released",
         "commitment.hold_released",
         "reservation.created",
         "reservation.released",
@@ -28921,6 +28989,7 @@
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
+        "order.prepayment_released",
         "commitment.hold_released",
         "reservation.created",
         "reservation.released",
@@ -29140,6 +29209,7 @@
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
+        "order.prepayment_released",
         "commitment.hold_released",
         "reservation.created",
         "reservation.released",
@@ -29342,6 +29412,7 @@
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
+        "order.prepayment_released",
         "commitment.hold_released",
         "reservation.created",
         "reservation.released",
@@ -29459,6 +29530,7 @@
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
+        "order.prepayment_released",
         "commitment.hold_released",
         "reservation.created",
         "reservation.released",
@@ -29750,6 +29822,7 @@
         "shipment.delivery_failed",
         "exchange.recorded",
         "commitment.held",
+        "order.prepayment_released",
         "commitment.hold_released",
         "reservation.created",
         "reservation.released",
@@ -32641,6 +32714,27 @@
       "links": ["command:hold_commitment"],
       "label_de": "commitment.held",
       "resources": ["order"]
+    },
+    {
+      "id": "event:order.prepayment_released",
+      "kind": "event",
+      "key": "order.prepayment_released",
+      "label": "order.prepayment_released",
+      "area": "finance",
+      "summary": "",
+      "producer": "release_prepayment",
+      "subject": "document",
+      "invalidates": [
+        "Operational Exceptions",
+        "Commitment register",
+        "Timeline",
+        "Fulfillment queue",
+        "Fulfillment blockers",
+        "Tenant usage"
+      ],
+      "links": ["command:release_prepayment"],
+      "label_de": "order.prepayment_released",
+      "resources": ["payment"]
     },
     {
       "id": "event:commitment.hold_released",

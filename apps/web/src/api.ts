@@ -2564,6 +2564,16 @@ export type DeliveryDetail = {
       created_at?: string;
       owner_release?: boolean;
     }>;
+    /** Spec 347: the order's prepayment gate; absent when no prepayment is required. */
+    prepayment?: {
+      currency: string;
+      required: string;
+      received: string;
+      remaining: string;
+      blockers: string[];
+      owner_release: boolean;
+      release_id: string | null;
+    } | null;
   };
   supply_coverage: SupplyCoverage;
   hold_reasons?: string[];
