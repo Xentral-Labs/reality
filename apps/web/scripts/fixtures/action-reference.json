@@ -550,6 +550,14 @@
       "effect": "Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds stay."
     },
     {
+      "name": "Release a prepayment",
+      "service": "release_prepayment",
+      "related_services": ["preview_prepayment_release"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lets one prepayment order ship before it is paid, with a stated reason confirmed by a company owner; the unpaid rest stays an open receivable and a raised order asks again."
+    },
+    {
       "name": "Block stock",
       "service": "block_stock",
       "related_services": ["review_stock_block"],

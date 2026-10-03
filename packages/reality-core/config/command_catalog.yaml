@@ -1140,6 +1140,15 @@ commands:
     reads: [document, commitment, commitment_hold, party, ledger_entry, document_line]
     writes: [commitment_hold, business_event]
     effect: Lifts only an order's credit holds with a stated reason, confirmed by a company owner; other holds stay.
+  - name: Release a prepayment
+    service: release_prepayment
+    related_services: [preview_prepayment_release]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [document, commitment, payment_term, ledger_entry, settlement_allocation, document_line, prepayment_release]
+    writes: [prepayment_release, business_event]
+    effect: Lets one prepayment order ship before it is paid, with a stated reason confirmed by a company owner; the unpaid rest stays an open receivable and a raised order asks again.
   - name: Block stock
     service: block_stock
     related_services: [review_stock_block]
@@ -5921,6 +5930,7 @@ agent_command_coverage:
   record_drop_shipment: {classification: eligible, tools: [drop_shipment_record_propose]}
   assign_line_item: {classification: eligible, tools: [order_line_item_assign_propose]}
   release_credit_holds: {classification: eligible, tools: [credit_hold_release_propose]}
+  release_prepayment: {classification: eligible, tools: [prepayment_release_propose]}
   credit_exposure: {classification: eligible, tools: [credit_exposure]}
   record_down_payment_invoice: {classification: eligible, tools: [down_payment_invoice_record_propose]}
   record_proforma_invoice: {classification: eligible, tools: [proforma_invoice_record_propose]}

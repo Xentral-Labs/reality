@@ -3072,6 +3072,37 @@ class StockBlockResolution(Base):
     movement_id: Mapped[str | None] = mapped_column(default=None)
 
 
+class PrepaymentRelease(Base):
+    """An owner's decision to ship a prepayment order before it is paid (spec 347).
+
+    Appended, never changed. It covers the order's stated gross amount as it
+    stood when the owner decided; an order raised past that amount asks again.
+    The unpaid remainder stays an ordinary open receivable. The person comes
+    from the decision that confirmed it; the reason is stated here.
+    """
+
+    __tablename__ = "prepayment_release"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "document_id"], ["document.tenant_id", "document.id"]
+        ),
+        CheckConstraint(
+            "covered_amount >= 0", name="ck_prepayment_release_covered_amount"
+        ),
+        CheckConstraint("btrim(reason) <> ''", name="ck_prepayment_release_reason"),
+        Index("ix_prepayment_release_document_id", "tenant_id", "document_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    document_id: Mapped[str] = mapped_column()
+    covered_amount: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    currency: Mapped[str] = mapped_column(String(3))
+    reason: Mapped[str] = mapped_column(Text)
+    action_id: Mapped[str | None] = mapped_column(default=None)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class MovementCorrection(Base):
     __tablename__ = "movement_correction"
     __table_args__ = (

@@ -1973,6 +1973,7 @@ class DeliveryActionPrepare(ApiModel):
         "drop_shipment_record",
         "order_line_item_assign",
         "credit_hold_release",
+        "prepayment_release",
         "down_payment_invoice_record",
         "proforma_invoice_record",
     ]

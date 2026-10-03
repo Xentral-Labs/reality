@@ -2378,6 +2378,15 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         ),
     ),
     (
+        "prepayment_release_propose",
+        "Ship a prepayment order before it is paid",
+        "prepayment_release",
+        _object_schema(
+            {"document_id": STRING, "reason": STRING},
+            required=("document_id", "reason"),
+        ),
+    ),
+    (
         "return_disposition_propose",
         "Resolve returned goods",
         "return_disposition",

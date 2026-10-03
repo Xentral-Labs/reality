@@ -750,6 +750,17 @@ tables:
       reporter_party_id: {description: The business partner that reported it, such as a 3PL, where known.}
       source_record_id: {description: "The statement as received: the file it came in, or the reviewed statement."}
       created_at: {}
+  prepayment_release:
+    description: A company owner's decision to ship a prepayment order before it is paid (spec 347); it covers the order's stated gross amount as it stood, and an order raised past it asks again.
+    columns:
+      id: {}
+      tenant_id: {}
+      document_id: {description: The sales order whose prepayment the owner released.}
+      covered_amount: {description: "The order's stated gross amount the release covers, as it stood when the owner decided."}
+      currency: {description: The order's currency.}
+      reason: {description: Why the order ships before it is paid, as the owner stated it.}
+      action_id: {description: The confirmed decision that recorded the release; the person comes from it.}
+      created_at: {}
   stock_count_line:
     description: One counted item, and its lot where tracked, with the counted quantity and when it was counted (spec 307).
     columns:

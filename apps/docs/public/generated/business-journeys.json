@@ -5642,19 +5642,28 @@
       "section": "Combined stress stories",
       "title": "Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged",
       "question": "Every quantity and every euro reconciles at the end.",
-      "status": "partial",
-      "evidence_level": "reviewed",
-      "summary": "Reality evaluates: Every quantity and every euro reconciles at the end.",
+      "status": "supported",
+      "evidence_level": "executable",
+      "summary": "Reality evaluates: Every quantity and every euro reconciles at the end. An 80 % prepaid order is refused until a company owner releases it with a reason; it ships in two parts while the supplier delivers 5 of 6 on two dates, one unit is cancelled and two come back damaged and are scrapped, and a credit for three settles the open 20 and refunds the 10 paid too much.",
       "limitations": [
-        "A prepayment order stays unshippable until paid in full, and no reviewed release overrides that, so the story cannot ship the 80 % prepaid order.",
-        "Revision, cancellation, partial receipt and damaged returns each work on their own."
+        "The release covers the order's stated amount and lets the order ship before it is paid; the unpaid rest stays an ordinary open receivable until it is paid or credited.",
+        "Raising a line's quantity does not raise the prepayment the order requires, because the gate measures the order's stated gross amount."
       ],
-      "keywords": [],
+      "keywords": [
+        "prepayment release",
+        "ship before paid",
+        "Vorkasse freigeben",
+        "Teilzahlung Vorkasse"
+      ],
       "question_examples": [
         "Customer orders 10, 4 in stock, prepayment 80 % paid, released anyway, 4 shipped; 6 reordered, supplier delivers 5 in two dates; customer cancels 1; rest shipped; 2 returned damaged",
-        "Every quantity and every euro reconciles at the end."
+        "Every quantity and every euro reconciles at the end.",
+        "Can an owner ship a partly prepaid order anyway?",
+        "Kann ein Inhaber einen teilweise bezahlten Vorkasse-Auftrag trotzdem liefern?"
       ],
-      "tools": [],
+      "tools": [
+        "prepayment_release_propose"
+      ],
       "demo_references": [],
       "product_paths": [],
       "related_journeys": []

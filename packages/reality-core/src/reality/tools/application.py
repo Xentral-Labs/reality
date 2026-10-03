@@ -2299,6 +2299,23 @@ def _credit_hold_release(
     return release_credit_holds(session, tenant_id, **arguments)
 
 
+def _prepayment_release(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Ship a prepayment order before it is paid, with a stated reason; an owner confirms.
+
+    BUSINESS RULE application.prepayment_release.1:
+    Route this company-scoped request to release_prepayment. The called implementation owns validation and any business effects; this adapter returns its evidence rather than calculating an alternative result.
+    """
+    from reality.services.prepayment_release_actions import release_prepayment
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    # reality-rule: application.prepayment_release.1
+    return release_prepayment(session, tenant_id, **arguments)
+
+
 def _stock_blocks(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     """
     BUSINESS PURPOSE:
@@ -4886,6 +4903,12 @@ TOOLS = {
         True,
         _credit_hold_release,
     ),
+    "prepayment_release": Tool(
+        "prepayment_release",
+        "Ship a prepayment order before it is paid, with a stated reason; an owner confirms.",
+        True,
+        _prepayment_release,
+    ),
     "order_line_item_assign": Tool(
         "order_line_item_assign",
         "Give an order line whose stated SKU matched no item its item and create its delivery promise.",
@@ -6687,6 +6710,7 @@ def approve_and_execute_proposal(
         "drop_shipment_record",
         "order_line_item_assign",
         "credit_hold_release",
+        "prepayment_release",
         "reorder_point_set",
         "reorder_point_remove",
         "kit_define",
