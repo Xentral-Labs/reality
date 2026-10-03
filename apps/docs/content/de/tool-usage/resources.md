@@ -8,13 +8,14 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 
 | Objekt                                                         | Listen | Aktionen | Klärfälle |
 | -------------------------------------------------------------- | ------ | -------- | --------- |
+| [E-Mail](#resource-email)                                      | 0      | 1        | 0         |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 15       | 2         |
 | [Artikel](#resource-item)                                      | 5      | 14       | 7         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
 | [Auftrag](#resource-order)                                     | 8      | 17       | 18        |
-| [Lieferung und Wareneingang](#resource-delivery)               | 2      | 12       | 3         |
+| [Lieferung und Wareneingang](#resource-delivery)               | 2      | 13       | 3         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 2         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 14       | 15        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 12       | 5         |
@@ -24,6 +25,32 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 13       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 5        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 2        | 0         |
+
+## E-Mail {#resource-email}
+
+_Korrespondenzbelege und Versandentscheidungen_
+
+Agenten übergeben Originalnachrichten und Dateien, schlagen genaue ausgehende Nachrichten vor und
+melden den externen Versand.
+
+**Auch genannt:** email, mail, correspondence, E-Mail, Korrespondenz
+
+**Aktionen**
+
+- [E-Mail-Versand freigeben](./commands#command-email_dispatch_authorize)
+  (`email_dispatch_authorize`)
+
+**Nachschlagen**
+
+- [E-Mail-Verlauf lesen](./commands#command-email_history) (`email_history`)
+- [E-Mail-Ablauf lesen](./commands#command-email_workflow) (`email_workflow`)
+
+**Darunter:** Tabellen: `email_dispatch`, `email_dispatch_receipt` · Agent Tools ohne
+Geschäftsaktion: [`email_file_chunk`](./commands#tool-email_file_chunk),
+[`email_file_complete`](./commands#tool-email_file_complete),
+[`email_capture`](./commands#tool-email_capture),
+[`email_dispatch_claim`](./commands#tool-email_dispatch_claim),
+[`email_dispatch_report`](./commands#tool-email_dispatch_report)
 
 ## Auswertung {#resource-analytics}
 
@@ -438,6 +465,8 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 
 **Aktionen**
 
+- [E-Mail-Versand freigeben](./commands#command-email_dispatch_authorize)
+  (`email_dispatch_authorize`)
 - [Lagerbewegung buchen](./commands#command-record_movement) (`record_movement`)
 - [Lagerbewegung korrigieren](./commands#command-correct_movement) (`correct_movement`)
 - [Lieferung planen](./commands#command-plan_outbound_delivery) (`plan_outbound_delivery`)
@@ -495,7 +524,9 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 [`shipment_explain`](./commands#tool-shipment_explain),
 [`movement_explanation`](./commands#tool-movement_explanation),
 [`drop_shipments`](./commands#tool-drop_shipments),
-[`delivery_failure_summary`](./commands#tool-delivery_failure_summary)
+[`delivery_failure_summary`](./commands#tool-delivery_failure_summary),
+[`email_dispatch_claim`](./commands#tool-email_dispatch_claim),
+[`email_dispatch_report`](./commands#tool-email_dispatch_report)
 
 ## Charge, Seriennummer und Palette {#resource-lot}
 

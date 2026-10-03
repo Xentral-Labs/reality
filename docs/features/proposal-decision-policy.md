@@ -62,3 +62,12 @@ from rejection. Web tolerates a missing policy during rolling deployment.
 - Shared execution: `tools/application.py`; specialized author and membership-target
   validation remain in their existing services.
 - Verification evidence: [quickstart](../../specs/323-proposal-decision-policy/quickstart.md).
+
+## External email dispatch
+
+The exact `email_dispatch_authorize` proposal requires the existing active-member
+review authority, with existing trusted-local/platform exceptions. Its execution
+creates an external dispatch authorization, not a successful-send assertion.
+Individually permissioned capture/file/claim/report operations never settle the
+proposal. The [email handoff contract](agent-email-handoffs.md) defines the immutable
+snapshot, authenticated executor claim and separate provider-result evidence.

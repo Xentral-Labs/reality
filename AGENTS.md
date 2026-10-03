@@ -101,3 +101,12 @@ commands, views, projections and exceptions also take a German ERP label in the 
 arguments come from the MCP input schema itself, so declare their fields there instead of
 describing them in prose.
 
+
+## Email handoffs
+
+Before handling correspondence, read [the canonical email handoff contract](docs/features/agent-email-handoffs.md)
+and the running `email_workflow` capability. Preserve original messages/files as Sources;
+propose exact outgoing payloads in Decisions; claim only approved versions and report
+actual external outcomes. Evidence/claim/report permissions never grant proposal approval.
+Never redispatch an uncertain send; reconcile it first. Reality does not own mailbox
+transport and provider acceptance is not verified recipient delivery.

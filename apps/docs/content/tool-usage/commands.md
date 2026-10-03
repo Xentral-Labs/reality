@@ -53,6 +53,7 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`assemble_kit`](#command-assemble_kit)                                           | Assemble kits                                | Cross-functional           | `kit_assemble_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`assign_line_item`](#command-assign_line_item)                                   | Assign an item to an order line              | Cross-functional           | `order_line_item_assign_propose`                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`assign_supply`](#command-assign_supply)                                         | Assign incoming supply to customer demand    | Cross-functional           | `supply_assign_propose`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
+| [`email_dispatch_authorize`](#command-email_dispatch_authorize)                   | Authorize external email dispatch            | Cross-functional           | `email_dispatch_propose`                                                                                                                                                                     | CLI · Web · API · MCP · Chat            |
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report                  | Cross-functional           | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision       | Cross-functional           | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
 | [`confirm_run`](#command-confirm_run)                                             | Confirm dunning run                          | Cross-functional           | `finance_dunning_run_propose`                                                                                                                                                                | Web · MCP · Chat                        |
@@ -78,6 +79,8 @@ Quantity is optional in the agent interface; supplying 5 makes the requested qua
 | [`dunning_context`](#command-dunning_context)                                     | Read dunning context                         | Cross-functional           | `finance_dunning_context`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`notice_detail`](#command-notice_detail)                                         | Read dunning notice                          | Cross-functional           | `finance_dunning_notice`                                                                                                                                                                     | Web · MCP · Chat                        |
 | [`schedule`](#command-schedule)                                                   | Read dunning schedule                        | Cross-functional           | `finance_dunning_schedule`                                                                                                                                                                   | Web · MCP · Chat                        |
+| [`email_history`](#command-email_history)                                         | Read email history                           | Cross-functional           | `email_history`                                                                                                                                                                              | CLI · Web · API · MCP · Chat            |
+| [`email_workflow`](#command-email_workflow)                                       | Read email workflow                          | Cross-functional           | `email_workflow`                                                                                                                                                                             | CLI · Web · API · MCP · Chat            |
 | [`kits`](#command-kits)                                                           | Read kits                                    | Cross-functional           | `kits`                                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`outbound_deliveries`](#command-outbound_deliveries)                             | Read planned deliveries                      | Cross-functional           | `outbound_deliveries`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs               | Cross-functional           | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
@@ -8157,6 +8160,94 @@ supply_assign_propose supplier_commitment_id [customer_commitment_id] purpose qu
 
 **See also:** Command [`assign_supply`](./commands#command-assign_supply)
 
+### `email_dispatch_authorize` — Authorize external email dispatch {#command-email_dispatch_authorize}
+
+Authorize the exact approved email snapshot without sending it.
+
+**Synopsis**
+
+```text
+email_dispatch_propose message rationale [supporting_source_ids] [fingerprint]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `source_record`, `source_artifact`, `action` · Writes: `email_dispatch`
+
+**See also:** Agent Tool [`email_dispatch_propose`](./commands#tool-email_dispatch_propose)
+
+#### `email_dispatch_propose` — Propose an outgoing email {#tool-email_dispatch_propose}
+
+Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with
+supporting sources. An authorized person reviews this exact version in Decisions; this operation
+cannot approve or send it.
+
+**Synopsis**
+
+```text
+email_dispatch_propose message rationale [supporting_source_ids] [fingerprint]
+```
+
+**Access:** `propose`
+
+Review the exact outgoing message before authorizing external execution.
+
+**Use when**
+
+- An agent proposes an outgoing email.
+
+**Do not use when**
+
+- The email has already been sent or execution is uncertain.
+
+**Preconditions**
+
+- Every reference belongs to the company and every outgoing attachment has durable contents.
+
+**Refused when**
+
+- `email_attachment_required` — An outgoing attachment has no stored bytes.
+- `email_fingerprint_mismatch` — The payload differs from the immutable reviewed version.
+
+**Parameters**
+
+| Name                                   | Type      | Required | Description                                                   | Default                    |
+| -------------------------------------- | --------- | -------- | ------------------------------------------------------------- | -------------------------- |
+| `message`                              | `object`  | yes      | —                                                             | —                          |
+| `message.account`                      | `string`  | yes      | —                                                             | —                          |
+| `message.sender`                       | `string`  | yes      | —                                                             | —                          |
+| `message.to`                           | `array`   | no       | —                                                             | —                          |
+| `message.cc`                           | `array`   | no       | —                                                             | —                          |
+| `message.bcc`                          | `array`   | no       | —                                                             | —                          |
+| `message.subject`                      | `string`  | yes      | —                                                             | —                          |
+| `message.text`                         | `string`  | no       | —                                                             | —                          |
+| `message.html`                         | `string`  | no       | —                                                             | —                          |
+| `message.message_id`                   | `string`  | no       | —                                                             | `None`                     |
+| `message.thread_id`                    | `string`  | no       | —                                                             | `None`                     |
+| `message.in_reply_to`                  | `string`  | no       | —                                                             | `None`                     |
+| `message.references`                   | `array`   | no       | —                                                             | —                          |
+| `message.stated_at`                    | `string`  | no       | When the counterparty stated the new date, defaulting to now. | `None`                     |
+| `message.headers`                      | `object`  | no       | —                                                             | —                          |
+| `message.external_payload`             | `object`  | no       | —                                                             | —                          |
+| `message.original_artifact_id`         | `string`  | no       | —                                                             | `None`                     |
+| `message.original_filename`            | `string`  | no       | —                                                             | `None`                     |
+| `message.attachments`                  | `array`   | no       | —                                                             | —                          |
+| `message.attachments[].part_id`        | `string`  | yes      | —                                                             | —                          |
+| `message.attachments[].filename`       | `string`  | yes      | —                                                             | —                          |
+| `message.attachments[].content_type`   | `string`  | no       | —                                                             | `application/octet-stream` |
+| `message.attachments[].artifact_id`    | `string`  | no       | —                                                             | `None`                     |
+| `message.attachments[].sha256`         | `string`  | no       | —                                                             | `None`                     |
+| `message.attachments[].inline`         | `boolean` | no       | —                                                             | `False`                    |
+| `message.attachments[].content_id`     | `string`  | no       | —                                                             | `None`                     |
+| `message.attachments[].missing_reason` | `string`  | no       | —                                                             | `None`                     |
+| `rationale`                            | `string`  | yes      | —                                                             | —                          |
+| `supporting_source_ids`                | `array`   | no       | —                                                             | —                          |
+| `fingerprint`                          | `string`  | no       | —                                                             | `None`                     |
+
+**Verify with:** `email_history` — Approved payload and separately reported external execution.
+
+**See also:** Command [`email_dispatch_authorize`](./commands#command-email_dispatch_authorize)
+
 ### `change_graph_report` — Change Private Graph Report {#command-change_graph_report}
 
 Save, rename, duplicate or delete the authenticated user's private graph question, recording the
@@ -9844,6 +9935,117 @@ No parameters.
 
 **See also:** Command [`schedule`](./commands#command-schedule)
 
+### `email_history` — Read email history {#command-email_history}
+
+Read original messages and files, decisions and reported external execution.
+
+**Synopsis**
+
+```text
+email_history [source_id] [proposal_id] [execution_id]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `source_record`, `source_artifact`, `action`, `email_dispatch`,
+`email_dispatch_receipt` · Writes: —
+
+**See also:** Agent Tool [`email_history`](./commands#tool-email_history)
+
+#### `email_history` — Email evidence and decision history {#tool-email_history}
+
+Read one source, proposal or execution and its original evidence, attachment download links and
+reported outcome. Provider acceptance is not recipient delivery.
+
+**Synopsis**
+
+```text
+email_history [source_id] [proposal_id] [execution_id]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query      | Kind                        | Default |
+| ------------------- | --------------------------- | ------- |
+| `MCP email_history` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read the canonical email evidence, decision and external execution contract.
+
+**Use when**
+
+- An agent handles correspondence or needs its evidence trail.
+
+**Do not use when**
+
+- The request requires sending mail or approving a proposal.
+
+**Parameters**
+
+| Name           | Type     | Required | Description                                                | Default |
+| -------------- | -------- | -------- | ---------------------------------------------------------- | ------- |
+| `source_id`    | `string` | no       | Opaque identity of the immutable source record to inspect. | `None`  |
+| `proposal_id`  | `string` | no       | —                                                          | `None`  |
+| `execution_id` | `string` | no       | —                                                          | `None`  |
+
+**See also:** Command [`email_history`](./commands#command-email_history)
+
+### `email_workflow` — Read email workflow {#command-email_workflow}
+
+Discover email transfer limits and the canonical evidence, decision and execution contract.
+
+**Synopsis**
+
+```text
+email_workflow
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `source_artifact` · Writes: —
+
+**See also:** Agent Tool [`email_workflow`](./commands#tool-email_workflow)
+
+#### `email_workflow` — Email handoff contract {#tool-email_workflow}
+
+Read this before handling email. Discover capture, file staging, exact send decisions, claim/report
+permissions and uncertainty reconciliation. Reality never sends mail.
+
+**Synopsis**
+
+```text
+email_workflow
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query       | Kind                        | Default |
+| -------------------- | --------------------------- | ------- |
+| `MCP email_workflow` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read the canonical email evidence, decision and external execution contract.
+
+**Use when**
+
+- An agent handles correspondence or needs its evidence trail.
+
+**Do not use when**
+
+- The request requires sending mail or approving a proposal.
+
+**Parameters**
+
+No parameters.
+
+**See also:** Command [`email_workflow`](./commands#command-email_workflow)
+
 ### `kits` — Read kits {#command-kits}
 
 Lists the kits with their components and, per location, the free kits on hand, the whole kits the
@@ -11422,6 +11624,11 @@ governance tools carry proposals, discovery and missing information.
 | [`graph_requests_list`](#tool-graph_requests_list)                                               | List my requested analyses                     | `read`    | —                      |
 | [`graph_request_get`](#tool-graph_request_get)                                                   | Collect a requested analysis                   | `read`    | —                      |
 | [`graph_request_propose`](#tool-graph_request_propose)                                           | Request an analysis                            | `propose` | —                      |
+| [`email_file_chunk`](#tool-email_file_chunk)                                                     | Stage an email file chunk                      | `confirm` | —                      |
+| [`email_file_complete`](#tool-email_file_complete)                                               | Complete an original email file                | `confirm` | —                      |
+| [`email_capture`](#tool-email_capture)                                                           | Capture original email evidence                | `confirm` | —                      |
+| [`email_dispatch_claim`](#tool-email_dispatch_claim)                                             | Claim an approved external email dispatch      | `confirm` | —                      |
+| [`email_dispatch_report`](#tool-email_dispatch_report)                                           | Report or reconcile external email execution   | `confirm` | —                      |
 
 ### `capability_catalog` — Discover business capabilities {#tool-capability_catalog}
 
@@ -13635,3 +13842,169 @@ graph_request_propose [question] [path] [parameters] request_id
 | `path`                                         | `string`  | no       | Cypher-shaped path, as the immediate ask accepts one.                                               | `None`       |
 | `parameters`                                   | `object`  | no       | —                                                                                                   | —            |
 | `request_id`                                   | `string`  | yes      | Caller-chosen identity; the same one returns the same request.                                      | —            |
+
+### `email_file_chunk` — Stage an email file chunk {#tool-email_file_chunk}
+
+Permission-scoped file intake, not proposal approval. Submit up to one MiB as base64. Retrying
+identical content returns the same artifact. Complete the ordered chunks with email_file_complete.
+
+**Synopsis**
+
+```text
+email_file_chunk content_base64
+```
+
+**Access:** `confirm`
+
+**Parameters**
+
+| Name             | Type     | Required | Description | Default |
+| ---------------- | -------- | -------- | ----------- | ------- |
+| `content_base64` | `string` | yes      | —           | —       |
+
+### `email_file_complete` — Complete an original email file {#tool-email_file_complete}
+
+Permission-scoped file intake, not proposal approval. Assemble ordered staged part IDs and verify
+SHA-256. Keep filename/media type on each email attachment occurrence. Retry the same ordered IDs
+after interrupted transfer.
+
+**Synopsis**
+
+```text
+email_file_complete part_artifact_ids filename [content_type] sha256
+```
+
+**Access:** `confirm`
+
+**Parameters**
+
+| Name                | Type     | Required | Description | Default                    |
+| ------------------- | -------- | -------- | ----------- | -------------------------- |
+| `part_artifact_ids` | `array`  | yes      | —           | —                          |
+| `filename`          | `string` | yes      | —           | —                          |
+| `content_type`      | `string` | no       | —           | `application/octet-stream` |
+| `sha256`            | `string` | yes      | —           | —                          |
+
+### `email_capture` — Capture original email evidence {#tool-email_capture}
+
+Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external
+metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace
+original contents. Use stable origin/account/message identity or retry key.
+
+**Synopsis**
+
+```text
+email_capture origin retry_key direction message
+```
+
+**Access:** `confirm`
+
+**Parameters**
+
+| Name                                   | Type      | Required | Description                                                                                     | Default                    |
+| -------------------------------------- | --------- | -------- | ----------------------------------------------------------------------------------------------- | -------------------------- |
+| `origin`                               | `string`  | yes      | —                                                                                               | —                          |
+| `retry_key`                            | `string`  | yes      | —                                                                                               | —                          |
+| `direction`                            | `string`  | yes      | Business flow direction, such as sales or purchase, incoming or outgoing. `inbound`, `outbound` | —                          |
+| `message`                              | `object`  | yes      | —                                                                                               | —                          |
+| `message.account`                      | `string`  | yes      | —                                                                                               | —                          |
+| `message.sender`                       | `string`  | yes      | —                                                                                               | —                          |
+| `message.to`                           | `array`   | no       | —                                                                                               | —                          |
+| `message.cc`                           | `array`   | no       | —                                                                                               | —                          |
+| `message.bcc`                          | `array`   | no       | —                                                                                               | —                          |
+| `message.subject`                      | `string`  | yes      | —                                                                                               | —                          |
+| `message.text`                         | `string`  | no       | —                                                                                               | —                          |
+| `message.html`                         | `string`  | no       | —                                                                                               | —                          |
+| `message.message_id`                   | `string`  | no       | —                                                                                               | `None`                     |
+| `message.thread_id`                    | `string`  | no       | —                                                                                               | `None`                     |
+| `message.in_reply_to`                  | `string`  | no       | —                                                                                               | `None`                     |
+| `message.references`                   | `array`   | no       | —                                                                                               | —                          |
+| `message.stated_at`                    | `string`  | no       | When the counterparty stated the new date, defaulting to now.                                   | `None`                     |
+| `message.headers`                      | `object`  | no       | —                                                                                               | —                          |
+| `message.external_payload`             | `object`  | no       | —                                                                                               | —                          |
+| `message.original_artifact_id`         | `string`  | no       | —                                                                                               | `None`                     |
+| `message.original_filename`            | `string`  | no       | —                                                                                               | `None`                     |
+| `message.attachments`                  | `array`   | no       | —                                                                                               | —                          |
+| `message.attachments[].part_id`        | `string`  | yes      | —                                                                                               | —                          |
+| `message.attachments[].filename`       | `string`  | yes      | —                                                                                               | —                          |
+| `message.attachments[].content_type`   | `string`  | no       | —                                                                                               | `application/octet-stream` |
+| `message.attachments[].artifact_id`    | `string`  | no       | —                                                                                               | `None`                     |
+| `message.attachments[].sha256`         | `string`  | no       | —                                                                                               | `None`                     |
+| `message.attachments[].inline`         | `boolean` | no       | —                                                                                               | `False`                    |
+| `message.attachments[].content_id`     | `string`  | no       | —                                                                                               | `None`                     |
+| `message.attachments[].missing_reason` | `string`  | no       | —                                                                                               | `None`                     |
+
+### `email_dispatch_claim` — Claim an approved external email dispatch {#tool-email_dispatch_claim}
+
+Permission-scoped execution handoff, not approval. Only an executed email authorization with the
+exact fingerprint can be claimed. Send the returned snapshot once using provider idempotency. A
+repeated claim is the same instruction, never permission to send twice. Never retry an uncertain
+send without reconciliation.
+
+**Synopsis**
+
+```text
+email_dispatch_claim proposal_id fingerprint retry_key
+```
+
+**Access:** `confirm`
+
+**Parameters**
+
+| Name          | Type     | Required | Description | Default |
+| ------------- | -------- | -------- | ----------- | ------- |
+| `proposal_id` | `string` | yes      | —           | —       |
+| `fingerprint` | `string` | yes      | —           | —       |
+| `retry_key`   | `string` | yes      | —           | —       |
+
+### `email_dispatch_report` — Report or reconcile external email execution {#tool-email_dispatch_report}
+
+Permission-scoped evidence intake, not approval. The claiming authenticated executor reports
+accepted, failed or unknown with observed time, actual message and provider evidence. This does not
+verify delivery. Deviations and conflicting receipts remain visible; no claim is automatically
+released.
+
+**Synopsis**
+
+```text
+email_dispatch_report execution_id retry_key outcome observed_at [actual_message] provider_evidence
+```
+
+**Access:** `confirm`
+
+**Parameters**
+
+| Name                                          | Type      | Required | Description                                                   | Default                    |
+| --------------------------------------------- | --------- | -------- | ------------------------------------------------------------- | -------------------------- |
+| `execution_id`                                | `string`  | yes      | —                                                             | —                          |
+| `retry_key`                                   | `string`  | yes      | —                                                             | —                          |
+| `outcome`                                     | `string`  | yes      | `accepted`, `failed`, `unknown`                               | —                          |
+| `observed_at`                                 | `string`  | yes      | UTC instant at which a source-supported Fact was observed.    | —                          |
+| `actual_message`                              | `object`  | no       | —                                                             | `None`                     |
+| `actual_message.account`                      | `string`  | yes      | —                                                             | —                          |
+| `actual_message.sender`                       | `string`  | yes      | —                                                             | —                          |
+| `actual_message.to`                           | `array`   | no       | —                                                             | —                          |
+| `actual_message.cc`                           | `array`   | no       | —                                                             | —                          |
+| `actual_message.bcc`                          | `array`   | no       | —                                                             | —                          |
+| `actual_message.subject`                      | `string`  | yes      | —                                                             | —                          |
+| `actual_message.text`                         | `string`  | no       | —                                                             | —                          |
+| `actual_message.html`                         | `string`  | no       | —                                                             | —                          |
+| `actual_message.message_id`                   | `string`  | no       | —                                                             | `None`                     |
+| `actual_message.thread_id`                    | `string`  | no       | —                                                             | `None`                     |
+| `actual_message.in_reply_to`                  | `string`  | no       | —                                                             | `None`                     |
+| `actual_message.references`                   | `array`   | no       | —                                                             | —                          |
+| `actual_message.stated_at`                    | `string`  | no       | When the counterparty stated the new date, defaulting to now. | `None`                     |
+| `actual_message.headers`                      | `object`  | no       | —                                                             | —                          |
+| `actual_message.external_payload`             | `object`  | no       | —                                                             | —                          |
+| `actual_message.original_artifact_id`         | `string`  | no       | —                                                             | `None`                     |
+| `actual_message.original_filename`            | `string`  | no       | —                                                             | `None`                     |
+| `actual_message.attachments`                  | `array`   | no       | —                                                             | —                          |
+| `actual_message.attachments[].part_id`        | `string`  | yes      | —                                                             | —                          |
+| `actual_message.attachments[].filename`       | `string`  | yes      | —                                                             | —                          |
+| `actual_message.attachments[].content_type`   | `string`  | no       | —                                                             | `application/octet-stream` |
+| `actual_message.attachments[].artifact_id`    | `string`  | no       | —                                                             | `None`                     |
+| `actual_message.attachments[].sha256`         | `string`  | no       | —                                                             | `None`                     |
+| `actual_message.attachments[].inline`         | `boolean` | no       | —                                                             | `False`                    |
+| `actual_message.attachments[].content_id`     | `string`  | no       | —                                                             | `None`                     |
+| `actual_message.attachments[].missing_reason` | `string`  | no       | —                                                             | `None`                     |
+| `provider_evidence`                           | `object`  | yes      | —                                                             | —                          |

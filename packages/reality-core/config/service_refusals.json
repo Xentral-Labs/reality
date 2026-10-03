@@ -2737,6 +2737,45 @@
     },
     "external_stock_reporter_not_found": {
       "message": "The business partner who reported the stock was not found."
+    },
+    "email_input_invalid": {
+      "message": "Check the email handoff fields."
+    },
+    "email_chunk_invalid": {
+      "message": "Supply a valid, nonempty base64 chunk of at most one MiB."
+    },
+    "email_file_limit_exceeded": {
+      "message": "The email file exceeds the configured upload limit."
+    },
+    "email_file_checksum_mismatch": {
+      "message": "The supplied email file checksum does not match the stored contents."
+    },
+    "email_attachment_required": {
+      "message": "Every outgoing attachment must have stored file contents."
+    },
+    "email_recipients_required": {
+      "message": "An outgoing email needs at least one recipient."
+    },
+    "email_fingerprint_mismatch": {
+      "message": "The email payload does not match the approved version."
+    },
+    "email_decision_required": {
+      "message": "An explicitly approved email proposal is required before dispatch."
+    },
+    "email_dispatch_already_claimed": {
+      "message": "This email dispatch has already been claimed. Reconcile it before proposing another send."
+    },
+    "email_dispatch_reconcile_required": {
+      "message": "This dispatch already has execution evidence. Read and reconcile its history; do not send again."
+    },
+    "email_executor_mismatch": {
+      "message": "Only the authenticated executor that claimed this dispatch may report its outcome."
+    },
+    "email_evidence_not_found": {
+      "message": "Email evidence not found."
+    },
+    "email_dispatch_not_found": {
+      "message": "Email dispatch not found."
     }
   },
   "terms": [

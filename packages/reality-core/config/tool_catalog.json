@@ -88,7 +88,10 @@
     "record_shipment_notice": "shipping",
     "record_packaged_execution": "shipping",
     "record_shipment_event": "shipping",
-    "supersede_shipment_event": "shipping"
+    "supersede_shipment_event": "shipping",
+    "email_dispatch_authorize": "evidence",
+    "email_history": "evidence",
+    "email_workflow": "evidence"
   },
   "form_tools": {
     "shipment_dispatch": [
@@ -326,7 +329,12 @@
     "business_logic_discover": "evidence",
     "business_logic_explain": "evidence",
     "business_logic_source": "evidence",
-    "business_logic_compare": "evidence"
+    "business_logic_compare": "evidence",
+    "email_capture": "evidence",
+    "email_file_chunk": "evidence",
+    "email_file_complete": "evidence",
+    "email_dispatch_claim": "evidence",
+    "email_dispatch_report": "evidence"
   },
   "understand_tools": [
     "business_logic_discover",

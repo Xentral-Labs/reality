@@ -309,6 +309,54 @@ parameter_descriptions:
   value: Scalar observation value validated and canonicalized by its predicate contract.
 
 commands:
+  - name: Authorize external email dispatch
+    service: email_dispatch_authorize
+    mode: mutation
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - source_record
+    - source_artifact
+    - action
+    writes:
+    - email_dispatch
+    effect: Authorize the exact approved email snapshot without sending it.
+    confirmation: required
+  - name: Read email history
+    service: email_history
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - source_record
+    - source_artifact
+    - action
+    - email_dispatch
+    - email_dispatch_receipt
+    writes: []
+    effect: Read original messages and files, decisions and reported external execution.
+  - name: Read email workflow
+    service: email_workflow
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - API
+    - MCP
+    - Chat
+    reads:
+    - source_artifact
+    writes: []
+    effect: Discover email transfer limits and the canonical evidence, decision and
+      execution contract.
   - name: Ask the Business Journey Guide
     service: business_journey_guide
     mode: read
@@ -2048,6 +2096,115 @@ commands:
     effect: Records one explicit physical outcome for part or all of an arrived customer return without implying a credit.
 
 capability_guidance:
+  email_history:
+    kind: read
+    application_tool: email_history
+    purpose: Read the canonical email evidence, decision and external execution contract.
+    use_when:
+    - An agent handles correspondence or needs its evidence trail.
+    do_not_use_when:
+    - The request requires sending mail or approving a proposal.
+    required_context:
+    - Selected company and the operation schema.
+    data_basis:
+    - source_record
+    - source_artifact
+    - action
+    - email_dispatch
+    limitations:
+    - Provider acceptance is reported evidence, not verified delivery.
+    freshness: Reads held immutable evidence and current dispatch authorization.
+    empty_result: Unknown references are refused rather than inferred.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign identities are not found; ambiguous identity input is
+      refused.
+    unknown_when:
+    - Execution has no definitive provider receipt.
+    next_steps:
+    - Use email_dispatch_propose for a new reviewed send; report uncertain execution
+      for reconciliation.
+    verification:
+      role: context
+      proves:
+      - What is stored and explicitly authorized.
+      does_not_prove:
+      - Recipient delivery or independently verified human approval.
+    examples: &id001
+      use:
+      - scenario: Retain and review external correspondence.
+        reason: Use the canonical email evidence and exact dispatch workflow.
+      do_not_use:
+      - scenario: Send mail directly from Reality.
+        reason: Mail transport belongs to the external executing agent.
+  email_workflow:
+    kind: read
+    application_tool: email_workflow
+    purpose: Read the canonical email evidence, decision and external execution contract.
+    use_when:
+    - An agent handles correspondence or needs its evidence trail.
+    do_not_use_when:
+    - The request requires sending mail or approving a proposal.
+    required_context:
+    - Selected company and the operation schema.
+    data_basis:
+    - source_record
+    - source_artifact
+    - action
+    - email_dispatch
+    limitations:
+    - Provider acceptance is reported evidence, not verified delivery.
+    freshness: Reads held immutable evidence and current dispatch authorization.
+    empty_result: Unknown references are refused rather than inferred.
+    confirmation: none
+    side_effects: none
+    refusal_behavior: Foreign identities are not found; ambiguous identity input is
+      refused.
+    unknown_when:
+    - Execution has no definitive provider receipt.
+    next_steps:
+    - Use email_dispatch_propose for a new reviewed send; report uncertain execution
+      for reconciliation.
+    verification:
+      role: context
+      proves:
+      - What is stored and explicitly authorized.
+      does_not_prove:
+      - Recipient delivery or independently verified human approval.
+    examples: *id001
+  email_dispatch_propose:
+    kind: proposal
+    application_tool: email_dispatch_authorize
+    purpose: Review the exact outgoing message before authorizing external execution.
+    use_when:
+    - An agent proposes an outgoing email.
+    do_not_use_when:
+    - The email has already been sent or execution is uncertain.
+    required_context:
+    - Complete message and stored attachment bytes plus supporting source IDs.
+    preconditions:
+    - Every reference belongs to the company and every outgoing attachment has durable
+      contents.
+    confirmation: required
+    idempotency:
+      mode: unsafe_retry
+      guidance: Retain the proposal ID; inspect Decisions before proposing again after
+        an unknown outcome.
+    refusals:
+    - code: email_attachment_required
+      description: An outgoing attachment has no stored bytes.
+    - code: email_fingerprint_mismatch
+      description: The payload differs from the immutable reviewed version.
+    events:
+    - source_record.received
+    verification_reads:
+    - name: email_history
+      proves: Approved payload and separately reported external execution.
+    examples: *id001
+    postcondition:
+      kind: external_authorization
+      meaning: Only the exact approved dispatch snapshot is authorized; no mail is sent
+        by Reality.
   business_journey_guide:
     kind: read
     application_tool: business_journey_guide
@@ -5970,6 +6127,9 @@ reachable_mutations_that_are_not_commands:
   set_source_system_base_url: Records where a configured source system can be opened in a browser. Integration configuration, not something an operator asks the business to do; it changes no business record.
 
 agent_command_coverage:
+  email_dispatch_authorize: {classification: eligible, tools: [email_dispatch_propose]}
+  email_history: {classification: eligible, tools: [email_history]}
+  email_workflow: {classification: eligible, tools: [email_workflow]}
   business_journey_guide: {classification: eligible, tools: [business_journey_guide]}
   business_journey_proposal_create: {classification: eligible, tools: [business_journey_suggest_propose]}
   business_journey_vote_set: {classification: eligible, tools: [business_journey_vote_propose]}
@@ -6181,7 +6341,13 @@ agent_command_coverage:
   revoke_invitation: {classification: eligible, tools: [invitation_revoke_propose]}
   remove_member: {classification: eligible, tools: [member_remove_propose]}
 
-agent_additional_commands: {}
+agent_additional_commands:
+  email_capture: {classification: eligible, tools: [email_capture]}
+  email_file_chunk: {classification: eligible, tools: [email_file_chunk]}
+  email_file_complete: {classification: eligible, tools: [email_file_complete]}
+  email_dispatch_claim: {classification: eligible, tools: [email_dispatch_claim]}
+  email_dispatch_report: {classification: eligible, tools: [email_dispatch_report]}
+
 
 agent_excluded_operation_classes:
   - platform-global tenant administration

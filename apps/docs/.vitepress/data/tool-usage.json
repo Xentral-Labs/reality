@@ -220,6 +220,36 @@
   ],
   "resources": [
     {
+      "key": "email",
+      "label": {
+        "en": "Email",
+        "de": "E-Mail"
+      },
+      "subtitle": {
+        "en": "Correspondence evidence and send decisions",
+        "de": "Korrespondenzbelege und Versandentscheidungen"
+      },
+      "description": {
+        "en": "Agents hand over original messages and files, propose exact outgoing messages and report external execution.",
+        "de": "Agenten übergeben Originalnachrichten und Dateien, schlagen genaue ausgehende Nachrichten vor und melden den externen Versand."
+      },
+      "synonyms": ["email", "mail", "correspondence", "E-Mail", "Korrespondenz"],
+      "tables": ["email_dispatch", "email_dispatch_receipt"],
+      "lists": [],
+      "actions": ["command:email_dispatch_authorize"],
+      "reads": ["command:email_history", "command:email_workflow"],
+      "exceptions": [],
+      "tools": [
+        "tool:email_file_chunk",
+        "tool:email_file_complete",
+        "tool:email_capture",
+        "tool:email_dispatch_claim",
+        "tool:email_dispatch_report"
+      ],
+      "events": [],
+      "workspace_actions": []
+    },
+    {
       "key": "analytics",
       "label": {
         "en": "Analytics report",
@@ -727,6 +757,7 @@
       ],
       "lists": ["view:movements", "view:warehouse_queue"],
       "actions": [
+        "command:email_dispatch_authorize",
         "command:record_movement",
         "command:correct_movement",
         "command:plan_outbound_delivery",
@@ -756,7 +787,9 @@
         "tool:shipment_explain",
         "tool:movement_explanation",
         "tool:drop_shipments",
-        "tool:delivery_failure_summary"
+        "tool:delivery_failure_summary",
+        "tool:email_dispatch_claim",
+        "tool:email_dispatch_report"
       ],
       "events": [
         "event:shipment.notice_recorded",
@@ -21537,6 +21570,1104 @@
       "links": ["command:execute_cost_change"],
       "label_de": "Review cost and contribution decision",
       "resources": ["accounting", "contribution"]
+    },
+    {
+      "id": "tool:email_workflow",
+      "kind": "tool",
+      "key": "email_workflow",
+      "label": "Email handoff contract",
+      "area": "cross_functional",
+      "summary": "Read this before handling email. Discover capture, file staging, exact send decisions, claim/report permissions and uncertainty reconciliation. Reality never sends mail.",
+      "access": "read",
+      "group": "Email",
+      "synopsis": "email_workflow",
+      "parameters": [],
+      "guidance": {
+        "purpose": "Read the canonical email evidence, decision and external execution contract.",
+        "use_when": ["An agent handles correspondence or needs its evidence trail."],
+        "do_not_use_when": ["The request requires sending mail or approving a proposal."],
+        "limitations": ["Provider acceptance is reported evidence, not verified delivery."],
+        "empty_result": "Unknown references are refused rather than inferred.",
+        "freshness": "Reads held immutable evidence and current dispatch authorization."
+      },
+      "read_modes": [
+        {
+          "query": "MCP email_workflow",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "email_workflow",
+      "projections": [],
+      "links": ["command:email_workflow"],
+      "label_de": "E-Mail-Ablauf lesen",
+      "resources": ["email"]
+    },
+    {
+      "id": "tool:email_history",
+      "kind": "tool",
+      "key": "email_history",
+      "label": "Email evidence and decision history",
+      "area": "cross_functional",
+      "summary": "Read one source, proposal or execution and its original evidence, attachment download links and reported outcome. Provider acceptance is not recipient delivery.",
+      "access": "read",
+      "group": "Email",
+      "synopsis": "email_history [source_id] [proposal_id] [execution_id]",
+      "parameters": [
+        {
+          "name": "source_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the immutable source record to inspect.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "execution_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        }
+      ],
+      "guidance": {
+        "purpose": "Read the canonical email evidence, decision and external execution contract.",
+        "use_when": ["An agent handles correspondence or needs its evidence trail."],
+        "do_not_use_when": ["The request requires sending mail or approving a proposal."],
+        "limitations": ["Provider acceptance is reported evidence, not verified delivery."],
+        "empty_result": "Unknown references are refused rather than inferred.",
+        "freshness": "Reads held immutable evidence and current dispatch authorization."
+      },
+      "read_modes": [
+        {
+          "query": "MCP email_history",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "email_history",
+      "projections": [],
+      "links": ["command:email_history"],
+      "label_de": "E-Mail-Belege und Entscheidungen lesen",
+      "resources": ["email"]
+    },
+    {
+      "id": "tool:email_dispatch_propose",
+      "kind": "tool",
+      "key": "email_dispatch_propose",
+      "label": "Propose an outgoing email",
+      "area": "cross_functional",
+      "summary": "Propose the complete sender/account, To/CC/BCC, subject, text/HTML and stored attachments with supporting sources. An authorized person reviews this exact version in Decisions; this operation cannot approve or send it.",
+      "access": "propose",
+      "group": "Email",
+      "synopsis": "email_dispatch_propose message rationale [supporting_source_ids] [fingerprint]",
+      "parameters": [
+        {
+          "name": "message",
+          "type": "object",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "message.account",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.sender",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.to",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.cc",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.bcc",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.subject",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.text",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": ""
+        },
+        {
+          "name": "message.html",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": ""
+        },
+        {
+          "name": "message.message_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.thread_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.in_reply_to",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.references",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.stated_at",
+          "type": "string",
+          "required": false,
+          "description": "When the counterparty stated the new date, defaulting to now.",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.headers",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.external_payload",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.original_artifact_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.original_filename",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.attachments",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.attachments[].part_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "message.attachments[].filename",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "message.attachments[].content_type",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": "application/octet-stream"
+        },
+        {
+          "name": "message.attachments[].artifact_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "message.attachments[].sha256",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "message.attachments[].inline",
+          "type": "boolean",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": false
+        },
+        {
+          "name": "message.attachments[].content_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "message.attachments[].missing_reason",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "rationale",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "supporting_source_ids",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "fingerprint",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        }
+      ],
+      "guidance": {
+        "purpose": "Review the exact outgoing message before authorizing external execution.",
+        "use_when": ["An agent proposes an outgoing email."],
+        "do_not_use_when": ["The email has already been sent or execution is uncertain."],
+        "preconditions": [
+          "Every reference belongs to the company and every outgoing attachment has durable contents."
+        ],
+        "refusals": [
+          {
+            "code": "email_attachment_required",
+            "description": "An outgoing attachment has no stored bytes."
+          },
+          {
+            "code": "email_fingerprint_mismatch",
+            "description": "The payload differs from the immutable reviewed version."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "email_history",
+            "proves": "Approved payload and separately reported external execution."
+          }
+        ],
+        "idempotency": {
+          "mode": "unsafe_retry",
+          "guidance": "Retain the proposal ID; inspect Decisions before proposing again after an unknown outcome."
+        }
+      },
+      "read_modes": [],
+      "command": "email_dispatch_authorize",
+      "projections": [],
+      "links": ["command:email_dispatch_authorize"],
+      "label_de": "E-Mail-Versand vorschlagen",
+      "resources": ["delivery", "email"]
+    },
+    {
+      "id": "tool:email_file_chunk",
+      "kind": "tool",
+      "key": "email_file_chunk",
+      "label": "Stage an email file chunk",
+      "area": "cross_functional",
+      "summary": "Permission-scoped file intake, not proposal approval. Submit up to one MiB as base64. Retrying identical content returns the same artifact. Complete the ordered chunks with email_file_complete.",
+      "access": "confirm",
+      "group": "Email",
+      "synopsis": "email_file_chunk content_base64",
+      "parameters": [
+        {
+          "name": "content_base64",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "E-Mail-Dateiteil ablegen",
+      "resources": ["email"]
+    },
+    {
+      "id": "tool:email_file_complete",
+      "kind": "tool",
+      "key": "email_file_complete",
+      "label": "Complete an original email file",
+      "area": "cross_functional",
+      "summary": "Permission-scoped file intake, not proposal approval. Assemble ordered staged part IDs and verify SHA-256. Keep filename/media type on each email attachment occurrence. Retry the same ordered IDs after interrupted transfer.",
+      "access": "confirm",
+      "group": "Email",
+      "synopsis": "email_file_complete part_artifact_ids filename [content_type] sha256",
+      "parameters": [
+        {
+          "name": "part_artifact_ids",
+          "type": "array",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "filename",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "content_type",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": "application/octet-stream"
+        },
+        {
+          "name": "sha256",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "E-Mail-Datei vervollständigen",
+      "resources": ["email"]
+    },
+    {
+      "id": "tool:email_capture",
+      "kind": "tool",
+      "key": "email_capture",
+      "label": "Capture original email evidence",
+      "area": "cross_functional",
+      "summary": "Permission-scoped evidence intake, not proposal approval. Preserve full supplied message, external metadata, original file and attachments. Missing bytes remain explicit. A summary must never replace original contents. Use stable origin/account/message identity or retry key.",
+      "access": "confirm",
+      "group": "Email",
+      "synopsis": "email_capture origin retry_key direction message",
+      "parameters": [
+        {
+          "name": "origin",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "retry_key",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "direction",
+          "type": "string",
+          "required": true,
+          "description": "Business flow direction, such as sales or purchase, incoming or outgoing.",
+          "depth": 0,
+          "enum": ["inbound", "outbound"]
+        },
+        {
+          "name": "message",
+          "type": "object",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "message.account",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.sender",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.to",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.cc",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.bcc",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.subject",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.text",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": ""
+        },
+        {
+          "name": "message.html",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": ""
+        },
+        {
+          "name": "message.message_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.thread_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.in_reply_to",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.references",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.stated_at",
+          "type": "string",
+          "required": false,
+          "description": "When the counterparty stated the new date, defaulting to now.",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.headers",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.external_payload",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.original_artifact_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.original_filename",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "message.attachments",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "message.attachments[].part_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "message.attachments[].filename",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "message.attachments[].content_type",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": "application/octet-stream"
+        },
+        {
+          "name": "message.attachments[].artifact_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "message.attachments[].sha256",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "message.attachments[].inline",
+          "type": "boolean",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": false
+        },
+        {
+          "name": "message.attachments[].content_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "message.attachments[].missing_reason",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "E-Mail als Beleg ablegen",
+      "resources": ["email"]
+    },
+    {
+      "id": "tool:email_dispatch_claim",
+      "kind": "tool",
+      "key": "email_dispatch_claim",
+      "label": "Claim an approved external email dispatch",
+      "area": "cross_functional",
+      "summary": "Permission-scoped execution handoff, not approval. Only an executed email authorization with the exact fingerprint can be claimed. Send the returned snapshot once using provider idempotency. A repeated claim is the same instruction, never permission to send twice. Never retry an uncertain send without reconciliation.",
+      "access": "confirm",
+      "group": "Email",
+      "synopsis": "email_dispatch_claim proposal_id fingerprint retry_key",
+      "parameters": [
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "fingerprint",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "retry_key",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Freigegebenen E-Mail-Versand abrufen",
+      "resources": ["delivery", "email"]
+    },
+    {
+      "id": "tool:email_dispatch_report",
+      "kind": "tool",
+      "key": "email_dispatch_report",
+      "label": "Report or reconcile external email execution",
+      "area": "cross_functional",
+      "summary": "Permission-scoped evidence intake, not approval. The claiming authenticated executor reports accepted, failed or unknown with observed time, actual message and provider evidence. This does not verify delivery. Deviations and conflicting receipts remain visible; no claim is automatically released.",
+      "access": "confirm",
+      "group": "Email",
+      "synopsis": "email_dispatch_report execution_id retry_key outcome observed_at [actual_message] provider_evidence",
+      "parameters": [
+        {
+          "name": "execution_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "retry_key",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "outcome",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0,
+          "enum": ["accepted", "failed", "unknown"]
+        },
+        {
+          "name": "observed_at",
+          "type": "string",
+          "required": true,
+          "description": "UTC instant at which a source-supported Fact was observed.",
+          "depth": 0
+        },
+        {
+          "name": "actual_message",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "actual_message.account",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "actual_message.sender",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "actual_message.to",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "actual_message.cc",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "actual_message.bcc",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "actual_message.subject",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "actual_message.text",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": ""
+        },
+        {
+          "name": "actual_message.html",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": ""
+        },
+        {
+          "name": "actual_message.message_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "actual_message.thread_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "actual_message.in_reply_to",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "actual_message.references",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "actual_message.stated_at",
+          "type": "string",
+          "required": false,
+          "description": "When the counterparty stated the new date, defaulting to now.",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "actual_message.headers",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "actual_message.external_payload",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "actual_message.original_artifact_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "actual_message.original_filename",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "actual_message.attachments",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "actual_message.attachments[].part_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "actual_message.attachments[].filename",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "actual_message.attachments[].content_type",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": "application/octet-stream"
+        },
+        {
+          "name": "actual_message.attachments[].artifact_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "actual_message.attachments[].sha256",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "actual_message.attachments[].inline",
+          "type": "boolean",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": false
+        },
+        {
+          "name": "actual_message.attachments[].content_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "actual_message.attachments[].missing_reason",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "provider_evidence",
+          "type": "object",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "E-Mail-Versandergebnis ablegen",
+      "resources": ["delivery", "email"]
+    },
+    {
+      "id": "command:email_dispatch_authorize",
+      "kind": "command",
+      "key": "email_dispatch_authorize",
+      "label": "Authorize external email dispatch",
+      "area": "cross_functional",
+      "summary": "Authorize the exact approved email snapshot without sending it.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["source_record", "source_artifact", "action"],
+      "writes": ["email_dispatch"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["email_dispatch_propose"],
+      "synopses": [
+        "email_dispatch_propose message rationale [supporting_source_ids] [fingerprint]"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Review the exact outgoing message before authorizing external execution.",
+        "use_when": ["An agent proposes an outgoing email."],
+        "do_not_use_when": ["The email has already been sent or execution is uncertain."],
+        "preconditions": [
+          "Every reference belongs to the company and every outgoing attachment has durable contents."
+        ],
+        "refusals": [
+          {
+            "code": "email_attachment_required",
+            "description": "An outgoing attachment has no stored bytes."
+          },
+          {
+            "code": "email_fingerprint_mismatch",
+            "description": "The payload differs from the immutable reviewed version."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "email_history",
+            "proves": "Approved payload and separately reported external execution."
+          }
+        ],
+        "idempotency": {
+          "mode": "unsafe_retry",
+          "guidance": "Retain the proposal ID; inspect Decisions before proposing again after an unknown outcome."
+        }
+      },
+      "links": ["tool:email_dispatch_propose"],
+      "label_de": "E-Mail-Versand freigeben",
+      "resources": ["delivery", "email"]
+    },
+    {
+      "id": "command:email_history",
+      "kind": "command",
+      "key": "email_history",
+      "label": "Read email history",
+      "area": "cross_functional",
+      "summary": "Read original messages and files, decisions and reported external execution.",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "source_record",
+        "source_artifact",
+        "action",
+        "email_dispatch",
+        "email_dispatch_receipt"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["email_history"],
+      "synopses": ["email_history [source_id] [proposal_id] [execution_id]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read the canonical email evidence, decision and external execution contract.",
+        "use_when": ["An agent handles correspondence or needs its evidence trail."],
+        "do_not_use_when": ["The request requires sending mail or approving a proposal."],
+        "limitations": ["Provider acceptance is reported evidence, not verified delivery."],
+        "empty_result": "Unknown references are refused rather than inferred.",
+        "freshness": "Reads held immutable evidence and current dispatch authorization."
+      },
+      "links": ["tool:email_history"],
+      "label_de": "E-Mail-Verlauf lesen",
+      "resources": ["email"]
+    },
+    {
+      "id": "command:email_workflow",
+      "kind": "command",
+      "key": "email_workflow",
+      "label": "Read email workflow",
+      "area": "cross_functional",
+      "summary": "Discover email transfer limits and the canonical evidence, decision and execution contract.",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["source_artifact"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["email_workflow"],
+      "synopses": ["email_workflow"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read the canonical email evidence, decision and external execution contract.",
+        "use_when": ["An agent handles correspondence or needs its evidence trail."],
+        "do_not_use_when": ["The request requires sending mail or approving a proposal."],
+        "limitations": ["Provider acceptance is reported evidence, not verified delivery."],
+        "empty_result": "Unknown references are refused rather than inferred.",
+        "freshness": "Reads held immutable evidence and current dispatch authorization."
+      },
+      "links": ["tool:email_workflow"],
+      "label_de": "E-Mail-Ablauf lesen",
+      "resources": ["email"]
     },
     {
       "id": "command:business_journey_guide",

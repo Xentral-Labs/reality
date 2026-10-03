@@ -93,6 +93,11 @@ INFRASTRUCTURE = {
 # Slices this feature deliberately leaves for later. Each names why, so a deferral
 # stays distinguishable from a gap — the distinction the audit was written to make.
 DEFERRED = {
+    "agent_email_execution": (
+        "Email dispatch authorizations and executor-bound receipt links expose personal correspondence. Their reporting grain and privacy policy need a separately reviewed analytics design; email_history and Decisions provide the operational evidence trail (spec 351).",
+        {"email_dispatch", "email_dispatch_receipt"},
+        set(),
+    ),
     "party_correspondence": (
         "Party email addresses support exact operational sender matching. Exposing personal correspondence data to analytics requires a separate reviewed privacy and reporting-grain design.",
         {"party_email_address"},
