@@ -423,14 +423,42 @@ def place_credit_holds(
     action_id: str | None = None,
 ) -> list[Any]:
     """One credit hold per promise that has none, beside any other hold."""
+    return _place_holds(
+        session,
+        tenant_id,
+        commitments,
+        credit_hold_note(exposure, order_value),
+        {**_json_exposure(exposure), "order_value": str(order_value)},
+        action_id=action_id,
+    )
+
+
+def credit_hold_currency_note(exposure: dict[str, Any], order_currency: str) -> str:
+    """Why an order in another currency than the limit's waits for a person."""
+    currency = exposure["currency"]
+    return (
+        f"Credit limit {_money(exposure['credit_limit'])} {currency} is stated in "
+        f"{currency}; this order is in {order_currency}, which Reality does not "
+        f"convert, so a person decides (exposure in {currency} "
+        f"{_money(exposure['exposure'])})"
+    )
+
+
+def _place_holds(
+    session: Session,
+    tenant_id: str,
+    commitments: list[Commitment],
+    note: str,
+    facts: dict[str, Any],
+    *,
+    action_id: str | None = None,
+) -> list[Any]:
     from reality.db.core import CommitmentHold
 
     held = {
         hold.commitment_id
         for hold in active_credit_holds(session, tenant_id, [c.id for c in commitments])
     }
-    note = credit_hold_note(exposure, order_value)
-    facts = {**_json_exposure(exposure), "order_value": str(order_value)}
     placed = []
     for commitment in commitments:
         if commitment.id in held or commitment.status == "cancelled":
@@ -471,18 +499,36 @@ def hold_if_over_credit_limit(
 
     Called by every path that records a sales order, inside its transaction. It
     never refuses the order: the order is recorded as stated and waits for a
-    person, who sees why (spec 298 FR-002, FR-003).
+    person, who sees why (spec 298 FR-002, FR-003). An order in another currency
+    than the limit's cannot be counted without converting, so it waits for a
+    person too rather than passing unchecked (spec 341).
     """
     if order.type != "sales_order" or not order.party_id:
         return []
     party = core._tenant_record(session, Party, tenant_id, order.party_id)
-    if Decimal(party.credit_limit) <= ZERO or order.currency != party.default_currency:
+    if Decimal(party.credit_limit) <= ZERO:
         return []
     promises = [c for c in commitments if c.type == "customer_delivery"]
     if not promises:
         return []
     session.flush()
     exposure = credit_exposure(session, tenant_id, party.id)
+    if order.currency != party.default_currency:
+        # Only an order with something still to invoice adds credit.
+        if not any(row["document_id"] == order.id for row in exposure["not_counted"]):
+            return []
+        return _place_holds(
+            session,
+            tenant_id,
+            promises,
+            credit_hold_currency_note(exposure, order.currency),
+            {
+                **_json_exposure(exposure),
+                "order_currency": order.currency,
+                "not_counted_order_id": order.id,
+            },
+            action_id=action_id,
+        )
     order_value = sum(
         (
             row["value"]

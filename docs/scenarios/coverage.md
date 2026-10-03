@@ -85,7 +85,11 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
     unchanged (Q04 covered).
 13. **Foreign currency on the purchase side only.** Supplier invoices and payments convert at
     stated rates and realise exchange differences (spec 309); sales in another currency,
-    revaluation of open items and foreign payment runs are not converted. (N03 out.)
+    revaluation of open items and foreign payment runs are not converted. (N03 out.) Wherever
+    Reality would have to convert, it names the other currency instead: the credit limit counts
+    only its own currency and holds an order in another one for a person (spec 341); a payment
+    is allocated only to an invoice in its currency, so a prepayment in another currency does not
+    release the order; a contribution needs the invoice in the order's currency.
 14. **Other single gaps:** loans and samples with a return obligation (M12), repair round trip
     (F10), returnable packaging (D19), subscriptions (L08), customs data (L12, D14), negative stock (J06 is refused by design), 3PL stock reconciliation (J07),
     re-labelling pairs (J11), unconfirmed purchase orders (G10),
@@ -182,7 +186,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | C04 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_one_payment_releases_two_prepaid_orders | One confirmed settlement payment of 200 is booked on the first prepayment invoice and allocated to the second; both invoices close and both orders become ship-ready. |
 | C05 | covered | tests/test_payment_intake.py::test_candidates_have_reasons_and_write_nothing; ::test_ambiguous_reference_produces_candidates_and_allocation_ends_them | Money is recorded unallocated, tier-3 candidates carry reasons and write nothing, and an explicit allocate_settlement ends them. |
 | C06 | covered | tests/scenarios/test_catalog_finance.py::test_payment_after_a_cancelled_prepayment_order_stays_credit_and_is_refunded | Payment after cancellation stays unallocated as customer credit (119) and is refunded through the confirmed settlement proposal. |
-| C07 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_order_over_the_limit_is_held_and_released_by_an_owner | An order past the credit limit is held at entry with the facts; an owner releases it with a reason recorded with the person (spec 298). |
+| C07 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_order_over_the_limit_is_held_and_released_by_an_owner | An order past the credit limit is held at entry with the facts; an owner releases it with a reason recorded with the person (spec 298). An order in another currency than the limit is held for a person rather than converted (spec 341). |
 | C08 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_the_credit_hold_names_the_overdue_items_behind_it | The hold and the credit-limit finding name the overdue invoices apart from those not yet due, on an exposure that counts open orders and credits (spec 298). |
 | C09 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_authorization_and_capture_are_separate_facts | An authorization of 100 is captured as 60 and 40 through reviewed commands; authorized, captured and left are read apart, and a further capture is refused (spec 336). |
 | C10 | covered | packages/reality-core/tests/scenarios/test_catalog_finance.py::test_an_expired_authorization_shows_the_uncovered_rest_of_a_late_shipment | 600 of 1000 captured with the first parcel; the authorization lapses before the rest ships, Payment authorization expired names the uncovered 400, and a new authorization clears it (spec 336). |
