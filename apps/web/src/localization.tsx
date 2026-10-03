@@ -25114,6 +25114,68 @@ Object.assign(dictionaries.de, {
     "Die Autorisierung war beim Einzug bereits abgelaufen.",
   "Only {remaining} of this authorization is left to capture.":
     "Von dieser Autorisierung sind nur noch {remaining} einziehbar.",
+  "Add component": "Komponente hinzufügen",
+  Assemble: "Montieren",
+  Component: "Komponente",
+  "Components of": "Komponenten von",
+  "Define kit": "Set festlegen",
+  Kit: "Set",
+  Kits: "Sets",
+  "Limited by": "Begrenzt durch",
+  "Name each component and how many one kit takes. Shares of the price are optional; state them for every component, adding up to 1.":
+    "Nenne jede Komponente und wie viele ein Set braucht. Preisanteile sind optional; gib sie dann für jede Komponente an, zusammen genau 1.",
+  "No component is in stock yet.": "Noch keine Komponente auf Lager.",
+  "on hand": "vorrätig",
+  "Part of": "Teil von",
+  "per kit": "je Set",
+  "Price share": "Preisanteil",
+  "Quantity per kit": "Menge je Set",
+  "Review assembly": "Montage prüfen",
+  Share: "Anteil",
+  "This item is not a kit.": "Dieser Artikel ist kein Set.",
+  "A kit is an active stocked item; {sku} is not.":
+    "Ein Set ist ein aktiver Lagerartikel; {sku} ist es nicht.",
+  "Kits and their components are untracked; {sku} is tracked by lot or serial.":
+    "Sets und ihre Komponenten werden ohne Charge oder Seriennummer geführt; {sku} wird nach Charge oder Seriennummer geführt.",
+  "The components of {sku} are already stated; a different set is a new kit item.":
+    "Die Komponenten von {sku} sind bereits festgelegt; eine andere Zusammenstellung ist ein neuer Set-Artikel.",
+  "{sku} is a kit or the kit itself; a kit takes only plain components.":
+    "{sku} ist ein Set oder das Set selbst; ein Set nimmt nur einfache Komponenten.",
+  "Name at least one component with its quantity.":
+    "Nenne mindestens eine Komponente mit ihrer Menge.",
+  "A kit takes at most 50 components.": "Ein Set hat höchstens 50 Komponenten.",
+  "{sku} is named twice; state its quantity once.":
+    "{sku} ist doppelt genannt; gib die Menge einmal an.",
+  "A component is an active stocked item; {sku} is not.":
+    "Eine Komponente ist ein aktiver Lagerartikel; {sku} ist es nicht.",
+  "A component quantity is above zero, with at most four decimal places.":
+    "Eine Komponentenmenge ist größer als null, mit höchstens vier Nachkommastellen.",
+  "Shares are stated for every component or for none, between 0 and 1, and add up to exactly 1.":
+    "Anteile werden für jede Komponente oder für keine angegeben, zwischen 0 und 1, und ergeben zusammen genau 1.",
+  "{sku} has no stated components.": "Für {sku} sind keine Komponenten festgelegt.",
+  "Kits are assembled at an active location that holds stock.":
+    "Sets werden an einem aktiven Lagerort montiert, der Bestand führt.",
+  "Kits are assembled in whole numbers above zero.":
+    "Sets werden in ganzen Zahlen größer als null montiert.",
+  "State when the kits were assembled as a time with its offset.":
+    "Gib an, wann die Sets montiert wurden, als Zeitpunkt mit Zeitzonen-Versatz.",
+  "When the kits were assembled cannot lie in the future.":
+    "Wann die Sets montiert wurden, kann nicht in der Zukunft liegen.",
+  "{sku} is short: {needed} needed and {free} free, in {unit}. Nothing was assembled.":
+    "{sku} fehlt: {needed} benötigt und {free} frei, in {unit}. Es wurde nichts montiert.",
+  "Only a line of a kit with stated components is split.":
+    "Nur die Position eines Sets mit festgelegten Komponenten wird aufgeteilt.",
+  "Assembly movements are written only by an assembly, under its statement.":
+    "Montagebewegungen schreibt nur eine Montage, unter ihrer Erfassung.",
+  "An assembly movement is not corrected on its own; it belongs to its assembly.":
+    "Eine Montagebewegung wird nicht einzeln korrigiert; sie gehört zu ihrer Montage.",
+  "This item has assembly movements, which inventory cost reviews do not cost yet.":
+    "Dieser Artikel hat Montagebewegungen, die Bestandsbewertungen noch nicht bewerten.",
+  "can be built": "montierbar",
+  "Free stock": "Freier Bestand",
+  Takes: "Verbraucht",
+  "Used in assembly": "In Montage verbraucht",
+  Assembled: "Montiert",
   "A receipt can block at most what it receives.":
     "Ein Wareneingang kann höchstens sperren, was er einbucht.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -25593,6 +25655,67 @@ Object.assign(dictionaries.nl, {
     "De autorisatie was al verlopen bij deze inning.",
   "Only {remaining} of this authorization is left to capture.":
     "Van deze autorisatie kan nog maar {remaining} worden geïnd.",
+  "Add component": "Onderdeel toevoegen",
+  Assemble: "Samenstellen",
+  Component: "Onderdeel",
+  "Components of": "Onderdelen van",
+  "Define kit": "Set vastleggen",
+  Kit: "Set",
+  Kits: "Sets",
+  "Limited by": "Beperkt door",
+  "Name each component and how many one kit takes. Shares of the price are optional; state them for every component, adding up to 1.":
+    "Noem elk onderdeel en hoeveel één set nodig heeft. Prijsaandelen zijn optioneel; geef ze dan voor elk onderdeel op, samen precies 1.",
+  "No component is in stock yet.": "Nog geen onderdeel op voorraad.",
+  "on hand": "op voorraad",
+  "Part of": "Onderdeel van",
+  "per kit": "per set",
+  "Price share": "Prijsaandeel",
+  "Quantity per kit": "Aantal per set",
+  "Review assembly": "Samenstelling controleren",
+  Share: "Aandeel",
+  "This item is not a kit.": "Dit artikel is geen set.",
+  "A kit is an active stocked item; {sku} is not.":
+    "Een set is een actief voorraadartikel; {sku} is dat niet.",
+  "Kits and their components are untracked; {sku} is tracked by lot or serial.":
+    "Sets en hun onderdelen worden zonder lot of serienummer gevoerd; {sku} wordt per lot of serienummer gevoerd.",
+  "The components of {sku} are already stated; a different set is a new kit item.":
+    "De onderdelen van {sku} zijn al vastgelegd; een andere samenstelling is een nieuw setartikel.",
+  "{sku} is a kit or the kit itself; a kit takes only plain components.":
+    "{sku} is een set of de set zelf; een set neemt alleen gewone onderdelen.",
+  "Name at least one component with its quantity.": "Noem minstens één onderdeel met zijn aantal.",
+  "A kit takes at most 50 components.": "Een set heeft hoogstens 50 onderdelen.",
+  "{sku} is named twice; state its quantity once.":
+    "{sku} is twee keer genoemd; geef het aantal één keer op.",
+  "A component is an active stocked item; {sku} is not.":
+    "Een onderdeel is een actief voorraadartikel; {sku} is dat niet.",
+  "A component quantity is above zero, with at most four decimal places.":
+    "Een onderdeelaantal is groter dan nul, met hoogstens vier decimalen.",
+  "Shares are stated for every component or for none, between 0 and 1, and add up to exactly 1.":
+    "Aandelen worden voor elk onderdeel of voor geen enkel opgegeven, tussen 0 en 1, en tellen op tot precies 1.",
+  "{sku} has no stated components.": "Voor {sku} zijn geen onderdelen vastgelegd.",
+  "Kits are assembled at an active location that holds stock.":
+    "Sets worden samengesteld op een actieve locatie die voorraad houdt.",
+  "Kits are assembled in whole numbers above zero.":
+    "Sets worden in hele aantallen groter dan nul samengesteld.",
+  "State when the kits were assembled as a time with its offset.":
+    "Geef aan wanneer de sets zijn samengesteld, als tijdstip met tijdzoneverschil.",
+  "When the kits were assembled cannot lie in the future.":
+    "Wanneer de sets zijn samengesteld, kan niet in de toekomst liggen.",
+  "{sku} is short: {needed} needed and {free} free, in {unit}. Nothing was assembled.":
+    "{sku} schiet tekort: {needed} nodig en {free} vrij, in {unit}. Er is niets samengesteld.",
+  "Only a line of a kit with stated components is split.":
+    "Alleen een regel van een set met vastgelegde onderdelen wordt verdeeld.",
+  "Assembly movements are written only by an assembly, under its statement.":
+    "Samenstelbewegingen worden alleen door een samenstelling geschreven, onder haar vastlegging.",
+  "An assembly movement is not corrected on its own; it belongs to its assembly.":
+    "Een samenstelbeweging wordt niet afzonderlijk gecorrigeerd; ze hoort bij haar samenstelling.",
+  "This item has assembly movements, which inventory cost reviews do not cost yet.":
+    "Dit artikel heeft samenstelbewegingen, die voorraadwaarderingen nog niet waarderen.",
+  "can be built": "samen te stellen",
+  "Free stock": "Vrije voorraad",
+  Takes: "Verbruikt",
+  "Used in assembly": "Verbruikt bij samenstelling",
+  Assembled: "Samengesteld",
   "A receipt can block at most what it receives.":
     "Een ontvangst kan hoogstens blokkeren wat ze ontvangt.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":
@@ -26072,6 +26195,68 @@ Object.assign(dictionaries.es, {
     "La autorización ya había caducado cuando se capturó.",
   "Only {remaining} of this authorization is left to capture.":
     "De esta autorización solo quedan {remaining} por capturar.",
+  "Add component": "Añadir componente",
+  Assemble: "Montar",
+  Component: "Componente",
+  "Components of": "Componentes de",
+  "Define kit": "Definir conjunto",
+  Kit: "Conjunto",
+  Kits: "Conjuntos",
+  "Limited by": "Limitado por",
+  "Name each component and how many one kit takes. Shares of the price are optional; state them for every component, adding up to 1.":
+    "Indica cada componente y cuántos necesita un kit. Las cuotas del precio son opcionales; indícalas para cada componente, sumando exactamente 1.",
+  "No component is in stock yet.": "Aún no hay ningún componente en stock.",
+  "on hand": "en stock",
+  "Part of": "Parte de",
+  "per kit": "por conjunto",
+  "Price share": "Cuota del precio",
+  "Quantity per kit": "Cantidad por conjunto",
+  "Review assembly": "Revisar montaje",
+  Share: "Cuota",
+  "This item is not a kit.": "Este artículo no es un conjunto.",
+  "A kit is an active stocked item; {sku} is not.":
+    "Un conjunto es un artículo de stock activo; {sku} no lo es.",
+  "Kits and their components are untracked; {sku} is tracked by lot or serial.":
+    "Los conjuntos y sus componentes no llevan lote ni número de serie; {sku} se controla por lote o número de serie.",
+  "The components of {sku} are already stated; a different set is a new kit item.":
+    "Los componentes de {sku} ya están definidos; otra composición es un nuevo artículo de conjunto.",
+  "{sku} is a kit or the kit itself; a kit takes only plain components.":
+    "{sku} es un conjunto o el propio conjunto; un conjunto solo admite componentes simples.",
+  "Name at least one component with its quantity.":
+    "Indica al menos un componente con su cantidad.",
+  "A kit takes at most 50 components.": "Un conjunto tiene como máximo 50 componentes.",
+  "{sku} is named twice; state its quantity once.":
+    "{sku} aparece dos veces; indica su cantidad una sola vez.",
+  "A component is an active stocked item; {sku} is not.":
+    "Un componente es un artículo de stock activo; {sku} no lo es.",
+  "A component quantity is above zero, with at most four decimal places.":
+    "La cantidad de un componente es mayor que cero, con cuatro decimales como máximo.",
+  "Shares are stated for every component or for none, between 0 and 1, and add up to exactly 1.":
+    "Las cuotas se indican para todos los componentes o para ninguno, entre 0 y 1, y suman exactamente 1.",
+  "{sku} has no stated components.": "{sku} no tiene componentes definidos.",
+  "Kits are assembled at an active location that holds stock.":
+    "Los conjuntos se montan en una ubicación activa que tiene stock.",
+  "Kits are assembled in whole numbers above zero.":
+    "Los conjuntos se montan en números enteros mayores que cero.",
+  "State when the kits were assembled as a time with its offset.":
+    "Indica cuándo se montaron los conjuntos como hora con su desfase horario.",
+  "When the kits were assembled cannot lie in the future.":
+    "El momento del montaje no puede estar en el futuro.",
+  "{sku} is short: {needed} needed and {free} free, in {unit}. Nothing was assembled.":
+    "Falta {sku}: se necesitan {needed} y hay {free} libres, en {unit}. No se montó nada.",
+  "Only a line of a kit with stated components is split.":
+    "Solo se reparte la línea de un conjunto con componentes definidos.",
+  "Assembly movements are written only by an assembly, under its statement.":
+    "Los movimientos de montaje solo los escribe un montaje, bajo su registro.",
+  "An assembly movement is not corrected on its own; it belongs to its assembly.":
+    "Un movimiento de montaje no se corrige por separado; pertenece a su montaje.",
+  "This item has assembly movements, which inventory cost reviews do not cost yet.":
+    "Este artículo tiene movimientos de montaje, que las valoraciones de inventario aún no valoran.",
+  "can be built": "montables",
+  "Free stock": "Stock libre",
+  Takes: "Consume",
+  "Used in assembly": "Consumido en montaje",
+  Assembled: "Montado",
   "A receipt can block at most what it receives.":
     "Una recepción puede bloquear como máximo lo que recibe.",
   "Correcting this movement would take stock that is blocked; release or scrap the block first.":

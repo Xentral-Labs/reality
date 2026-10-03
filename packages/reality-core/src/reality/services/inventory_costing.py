@@ -119,6 +119,10 @@ def _check(
     )
     if len(movements) > movement_limit:
         raise core.InvalidOperation(code="inventory_movement_bound_exceeded")
+    if any(m.type in core.ASSEMBLY_MOVEMENT_TYPES for m in movements):
+        # Spec 333: what an assembly consumes and produces is not costed yet;
+        # a review that dropped those movements would value stock that is gone.
+        raise core.InvalidOperation(code="inventory_assembly_not_costed")
     ids = [m.id for m in movements]
     corrections = list(
         session.scalars(

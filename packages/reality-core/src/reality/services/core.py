@@ -5196,6 +5196,9 @@ def _stated_movement_reason(
     return stated_movement_reasons(session, tenant_id, {movement_id}).get(movement_id)
 
 
+#: Movements only an assembly writes, under its statement (spec 333).
+ASSEMBLY_MOVEMENT_TYPES = frozenset({"assembly_input", "assembly_output"})
+
 #: Movements a stated reason can explain when no promise does (spec 314 FR-003).
 #: Only receipts: goods leaving or coming back without an order stay reported,
 #: because billing and crediting follow from the order, not from a sentence.
@@ -5308,7 +5311,21 @@ def _append_movement(
         # One type inferring its direction from the commitment would stop a
         # movement being a plain statement about what happened.
         "supplier_return": (True, False),
+        # Spec 333: an assembly consumes components out of a location and
+        # produces the kit into it. Only the assembly writes these, always
+        # under its statement; they never answer to a promise.
+        "assembly_input": (True, False),
+        "assembly_output": (False, True),
     }
+    if movement_type in ASSEMBLY_MOVEMENT_TYPES and (
+        not source_record_id
+        or commitment_id
+        or (from_location_id and to_location_id)
+        or handling_unit_id
+        or lot_id
+        or serial_unit_id
+    ):
+        raise InvalidOperation(code="movement_assembly_shape_invalid")
     if movement_type == "adjustment":
         if bool(from_location_id) == bool(to_location_id):
             raise InvalidOperation(code="movement_adjustment_direction_invalid")
@@ -5325,7 +5342,7 @@ def _append_movement(
             values={"movement_type": movement_type},
         )
     if (
-        movement_type in {"shipment", "transfer", "supplier_return"}
+        movement_type in {"shipment", "transfer", "supplier_return", "assembly_input"}
         or (movement_type == "adjustment" and from_location_id)
     ) and (
         stock_at(session, tenant_id, item_id, from_location_id)
@@ -5356,7 +5373,7 @@ def _append_movement(
     ):
         raise InvalidOperation(code="movement_exceeds_identity_stock")
     if (
-        movement_type in {"shipment", "transfer", "supplier_return"}
+        movement_type in {"shipment", "transfer", "supplier_return", "assembly_input"}
         or (movement_type == "adjustment" and from_location_id)
     ) and from_location_id:
         # Spec 304: blocked stock stays where it lies until it is released or
@@ -5930,6 +5947,8 @@ def preview_movement_correction(
             raise InvalidOperation(code="movement_compensation_not_correctable")
         raise InvalidOperation(code="movement_correction_chain_exists")
     original = _tenant_record(session, Movement, tenant_id, movement_id)
+    if original.type in ASSEMBLY_MOVEMENT_TYPES:
+        raise InvalidOperation(code="movement_assembly_not_correctable")
     if original.to_location_id and stock_at(
         session, tenant_id, original.item_id, original.to_location_id
     ) < decimal(original.quantity):
@@ -6079,6 +6098,10 @@ def correct_movement(
         )
         if original is None:
             raise NotFound(code="movement_not_found")
+        if original.type in ASSEMBLY_MOVEMENT_TYPES:
+            # Spec 333: one half of an assembly corrected alone would leave
+            # components consumed for a kit that never came, or the reverse.
+            raise InvalidOperation(code="movement_assembly_not_correctable")
         if preview_fingerprint and preview_fingerprint != fingerprint:
             raise Conflict(code="movement_correction_preview_mismatch")
         compensation_relation = session.scalar(

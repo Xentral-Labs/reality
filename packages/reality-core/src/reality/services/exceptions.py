@@ -3392,6 +3392,12 @@ def _item_oversold_exceptions(
         session, tenant_id, set(demand)
     ).items():
         on_hand[item_id] = on_hand.get(item_id, ZERO) - quantity
+    # Spec 333: a kit exists as soon as it is packed; what its free components
+    # build is stock of the kit for this question.
+    from reality.services.kits import buildable_kits
+
+    for item_id, quantity in buildable_kits(session, tenant_id, set(demand)).items():
+        on_hand[item_id] = on_hand.get(item_id, ZERO) + quantity
     result = []
     for item_id in sorted(demand):
         stock = on_hand.get(item_id, ZERO)

@@ -1516,6 +1516,89 @@ def post_reorder_point_proposal(
         raise api_error(error) from error
 
 
+class KitComponentInput(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    item_id: str = Field(min_length=1, max_length=200)
+    quantity: str = Field(min_length=1, max_length=40)
+    share: str | None = Field(default=None, max_length=40)
+
+
+class KitProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    operation: Literal["define", "assemble"]
+    kit_item_id: str = Field(min_length=1, max_length=200)
+    components: list[KitComponentInput] | None = Field(default=None, max_length=50)
+    location_id: str | None = Field(default=None, max_length=200)
+    quantity: str | None = Field(default=None, max_length=40)
+    occurred_at: str | None = Field(default=None, max_length=60)
+    note: str | None = Field(default=None, max_length=500)
+
+
+@router.get("/kits")
+def get_kits(
+    tenant_id: str,
+    session: DatabaseSession,
+    item_id: str | None = Query(default=None, max_length=200),
+):
+    """Spec 333: kits with their components and what each location builds."""
+    from reality.services.kits import kits
+
+    try:
+        return {"rows": kits(session, tenant_id, item_id=item_id)}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/kits/split")
+def get_kit_split(
+    tenant_id: str,
+    session: DatabaseSession,
+    document_line_id: str = Query(min_length=1, max_length=200),
+):
+    """Spec 333: how a kit line splits its stated amounts across the components."""
+    from reality.services.kits import kit_split
+
+    try:
+        return kit_split(session, tenant_id, document_line_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/kits/proposals")
+def post_kit_proposal(tenant_id: str, body: KitProposal, session: DatabaseSession):
+    """Spec 333: prepare a kit definition or assembly; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    arguments: dict[str, Any] = {"kit_item_id": body.kit_item_id}
+    if body.operation == "define":
+        arguments["components"] = [
+            component.model_dump(exclude_none=True)
+            for component in body.components or []
+        ]
+    else:
+        arguments["location_id"] = body.location_id or ""
+        arguments["quantity"] = body.quantity or ""
+        if body.occurred_at:
+            arguments["occurred_at"] = body.occurred_at
+        if body.note:
+            arguments["note"] = body.note
+    try:
+        proposal = create_change_proposal(
+            session,
+            tenant_id,
+            f"kit_{body.operation}",
+            arguments,
+            actor_type="human",
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.get("/master-data/proposals/{proposal_id}")
 def get_reference_proposal(tenant_id: str, proposal_id: str, session: DatabaseSession):
     from reality.services.reference_workspace import reference_proposal

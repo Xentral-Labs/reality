@@ -71,6 +71,10 @@ exchange_rate|Company-currency units per document-currency unit, as stated.|Einh
 customer_item_name|The customer's own name for the item, as stated.|Die Bezeichnung des Kunden für den Artikel, wie angegeben.
 counted_quantity|What was counted, in the item's stock unit, as stated.|Gezählte Menge in der Lagereinheit des Artikels, wie angegeben.
 counted_at|When it was counted; the book is read from the movements up to this time.|Wann gezählt wurde; der Buchbestand wird aus den Bewegungen bis zu diesem Zeitpunkt gelesen.
+kit_item_id|The stocked item that is the kit.|Der Lagerartikel, der das Set ist.
+component_item_id|The item one kit consumes when it is assembled.|Der Artikel, den ein Set bei der Montage verbraucht.
+share|The component's share of the kit's price, as stated; the bundle split divides a kit line by it.|Der Anteil der Komponente am Setpreis, wie angegeben; danach wird eine Set-Position aufgeteilt.
+position|The component's place in the stated list.|Die Stelle der Komponente in der angegebenen Liste.
 rule|How the customer or order is delivered: partial allowed, ship complete or no backorders.|Wie der Kunde oder Auftrag beliefert wird: Teillieferung erlaubt, Komplettlieferung oder keine Rückstände.
 updated_at|UTC timestamp of the last change.|UTC-Zeitpunkt der letzten Änderung.
 amount|Amount recorded for this entry, in its currency.|Für diesen Eintrag erfasster Betrag in seiner Währung.

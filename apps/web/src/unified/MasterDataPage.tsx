@@ -3,6 +3,7 @@ import { recordOpened } from "./usePaletteHistory";
 import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWorkbench";
 import { PageActionBar } from "./PageActionBar";
 import { CustomerHoldCard } from "./CustomerHoldCard";
+import { KitSection } from "./KitSection";
 import { ReorderPoints } from "./ReorderPointCard";
 import { CustomerItemNumbers } from "./CustomerItemNumbers";
 import { SupplierItemTerms } from "./SupplierItemTerms";
@@ -111,10 +112,13 @@ export function MasterDataPage({
         <SupplierItemTerms key={detail.id} tenant={tenant} party={detail.id} />
       )}
       {family === "item" && (
-        <ReorderPoints
-          tenant={tenant}
-          item={{ id: detail.id, name: detail.name, unit: String(detail.unit ?? "") }}
-        />
+        <>
+          <ReorderPoints
+            tenant={tenant}
+            item={{ id: detail.id, name: detail.name, unit: String(detail.unit ?? "") }}
+          />
+          <KitSection key={detail.id} tenant={tenant} item={{ id: detail.id, name: detail.name }} />
+        </>
       )}
       <details className="mt-4 text-sm">
         <summary>{t("Source")}</summary>

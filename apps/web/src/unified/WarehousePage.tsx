@@ -37,6 +37,8 @@ const states: Record<WarehouseView, [string, string][]> = {
     ["return", "Customer return"],
     ["supplier_return", "Supplier return"],
     ["adjustment", "Adjustment"],
+    ["assembly_input", "Used in assembly"],
+    ["assembly_output", "Assembled"],
     ["correction", "Correction"],
   ],
 };

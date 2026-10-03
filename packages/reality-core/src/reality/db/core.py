@@ -1062,6 +1062,55 @@ class ItemReorderPoint(Base):
     source_record_id: Mapped[str] = mapped_column(String)
 
 
+class KitComponent(Base):
+    """One component of a kit and how many of it one kit takes (spec 333).
+
+    A kit is a stocked item whose units come only from an assembly of its
+    components. The components are stated once, in the component's stock unit,
+    with an optional share of the kit's price; what a location can build and
+    how a kit line splits are read from these rows each time, never stored.
+    """
+
+    __tablename__ = "kit_component"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "kit_item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "component_item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint(
+            "tenant_id",
+            "kit_item_id",
+            "component_item_id",
+            name="uq_kit_component_kit_component",
+        ),
+        CheckConstraint(
+            "quantity > 0 AND (share IS NULL OR (share >= 0 AND share <= 1))"
+            " AND kit_item_id <> component_item_id",
+            name="ck_kit_component_values",
+        ),
+        Index("ix_kit_component_component_item_id", "tenant_id", "component_item_id"),
+        Index("ix_kit_component_source_record_id", "tenant_id", "source_record_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    kit_item_id: Mapped[str] = mapped_column()
+    component_item_id: Mapped[str] = mapped_column()
+    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    share: Mapped[Decimal | None] = mapped_column(Numeric(9, 6), default=None)
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    source_record_id: Mapped[str] = mapped_column(String)
+
+
 class SourceSystem(Base):
     __tablename__ = "source_system"
     __table_args__ = (

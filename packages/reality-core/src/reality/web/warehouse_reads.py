@@ -26,6 +26,9 @@ STATES = {
         "return",
         "supplier_return",
         "adjustment",
+        # Spec 333: the two sides of a kit assembly.
+        "assembly_input",
+        "assembly_output",
     },
 }
 

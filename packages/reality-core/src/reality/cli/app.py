@@ -96,6 +96,7 @@ location_app = typer.Typer()
 payment_term_app = typer.Typer()
 reorder_point_app = typer.Typer(help="Reorder points per item and location (spec 302).")
 stock_app = typer.Typer(help="Blocked stock: block, release, scrap (spec 304).")
+kit_app = typer.Typer(help="Kits: components, assembly and the bundle split (spec 333).")
 customer_item_app = typer.Typer(
     help="Customer item numbers: a customer's own article numbers (spec 308)."
 )
@@ -125,6 +126,7 @@ app.add_typer(item_app, name="item")
 app.add_typer(location_app, name="location")
 app.add_typer(payment_term_app, name="payment-term")
 app.add_typer(reorder_point_app, name="reorder-point")
+app.add_typer(kit_app, name="kit")
 app.add_typer(stock_app, name="stock-block")
 app.add_typer(backorder_app, name="backorders")
 app.add_typer(delivery_rule_app, name="delivery-rule")
@@ -1490,6 +1492,110 @@ def reorder_point_remove(
         yes,
     )
     con.print(f"✓ Reorder point removed: {item_id} at {location_id}")
+
+
+@kit_app.command("show")
+def kit_show(item_id: str = "", tenant: str | None = None):
+    """List the kits, or the kit an item is or is part of, with what each location builds."""
+    from reality.services.kits import kits
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            rows = kits(s, selected.id, item_id=item_id or None)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=rows, default=str)
+
+
+@kit_app.command("split")
+def kit_split_show(document_line_id: str, tenant: str | None = None):
+    """Show how a kit's order or invoice line splits across its components."""
+    from reality.services.kits import kit_split
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            split = kit_split(s, selected.id, document_line_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=split, default=str)
+
+
+def _kit_change(tool: str, arguments: dict, tenant: str | None, yes: bool):
+    from reality.tools.application import create_change_proposal, reject_proposal
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            proposal = create_change_proposal(
+                s, selected.id, tool, arguments, actor_type="human"
+            )
+            con.print_json(data=json.loads(proposal.output)["kit"])
+            if not yes and not typer.confirm("Confirm this kit change?"):
+                # A declined review leaves no decision waiting for anyone.
+                reject_proposal(s, selected.id, proposal.id)
+                con.print("Stopped; nothing changed.")
+                raise typer.Exit()
+            approve_and_execute_proposal(s, selected.id, proposal.id, confirmed=True)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+
+
+@kit_app.command("define")
+def kit_define(
+    kit_item_id: str,
+    component: Annotated[
+        list[str],
+        typer.Option(
+            "--component",
+            help="ITEM_ID:QUANTITY or ITEM_ID:QUANTITY:SHARE, once per component.",
+        ),
+    ],
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm the components of a kit."""
+    components = []
+    for entry in component:
+        parts = entry.split(":")
+        if len(parts) not in (2, 3):
+            raise typer.BadParameter("--component is ITEM_ID:QUANTITY[:SHARE]")
+        components.append(
+            {"item_id": parts[0], "quantity": parts[1]}
+            | ({"share": parts[2]} if len(parts) == 3 else {})
+        )
+    _kit_change(
+        "kit_define",
+        {"kit_item_id": kit_item_id, "components": components},
+        tenant,
+        yes,
+    )
+    con.print(f"✓ Kit defined: {kit_item_id}")
+
+
+@kit_app.command("assemble")
+def kit_assemble(
+    kit_item_id: str,
+    location_id: str,
+    quantity: str,
+    occurred_at: str = typer.Option("", help="When it was assembled, ISO 8601 with offset."),
+    note: str = "",
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm assembling whole kits at a location from their components."""
+    arguments = {
+        "kit_item_id": kit_item_id,
+        "location_id": location_id,
+        "quantity": quantity,
+    }
+    if occurred_at:
+        arguments["occurred_at"] = occurred_at
+    if note:
+        arguments["note"] = note
+    _kit_change("kit_assemble", arguments, tenant, yes)
+    con.print(f"✓ Assembled: {quantity} × {kit_item_id} at {location_id}")
 
 
 @payment_term_app.command("create")

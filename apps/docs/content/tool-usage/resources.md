@@ -10,7 +10,7 @@ the technical key stands beside each one.
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 12      | 2                   |
-| [Item](#resource-item)                                           | 5     | 11      | 6                   |
+| [Item](#resource-item)                                           | 5     | 13      | 6                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 3                   |
 | [Order](#resource-order)                                         | 8     | 16      | 15                  |
@@ -124,7 +124,8 @@ _What you buy, stock and sell, and how much of it there is_
 The operational identity of a product with its unit. Stock is never stored on the item; it is
 derived from movements and reservations at read time, which is why the stock lists live here.
 
-**Also called:** product, SKU, stock, inventory, Produkt, Bestand, Lagerbestand, Verfügbarkeit
+**Also called:** product, SKU, stock, inventory, kit, bundle, Produkt, Bestand, Lagerbestand,
+Verfügbarkeit, Set, Stückliste
 
 **Lists**
 
@@ -144,6 +145,8 @@ derived from movements and reservations at read time, which is why the stock lis
 - [Release a stock block](./commands#command-release_stock_block) (`release_stock_block`)
 - [Scrap blocked stock](./commands#command-scrap_stock_block) (`scrap_stock_block`)
 - [Serve backorders](./commands#command-serve_backorders) (`serve_backorders`)
+- [Define a kit](./commands#command-define_kit) (`define_kit`)
+- [Assemble kits](./commands#command-assemble_kit) (`assemble_kit`)
 - [Record a stock count](./commands#command-record_stock_count) (`record_stock_count`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
@@ -153,6 +156,8 @@ derived from movements and reservations at read time, which is why the stock lis
 
 - [Read reviewed inventory acquisition costs](./commands#command-inventory_cost) (`inventory_cost`)
 - [Read available to promise](./commands#command-available_to_promise) (`available_to_promise`)
+- [Read kits](./commands#command-kits) (`kits`)
+- [Read a kit line's split](./commands#command-kit_split) (`kit_split`)
 - [Read the three-way match of a purchase order](./commands#command-purchase_match)
   (`purchase_match`)
 - [Read stock counts](./commands#command-stock_counts) (`stock_counts`)
@@ -176,13 +181,14 @@ derived from movements and reservations at read time, which is why the stock lis
 [Master data and sources](./processes#process-master_data)
 
 **Underneath:** Tables: `item`, `supply_assignment`, `item_reorder_point`, `stock_block`,
-`stock_block_resolution`, `stock_count`, `stock_count_line` · Events:
+`stock_block_resolution`, `stock_count`, `stock_count_line`, `kit_component` · Events:
 [`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
 [`stock_block.created`](./events#event-stock_block-created),
 [`stock_block.released`](./events#event-stock_block-released),
 [`stock_block.scrapped`](./events#event-stock_block-scrapped),
+[`kit.defined`](./events#event-kit-defined), [`kit.assembled`](./events#event-kit-assembled),
 [`stock_count.posted`](./events#event-stock_count-posted),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agent tools
 without a command: [`inventory_read`](./commands#tool-inventory_read),

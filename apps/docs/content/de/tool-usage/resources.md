@@ -10,7 +10,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 12       | 2         |
-| [Artikel](#resource-item)                                      | 5      | 11       | 6         |
+| [Artikel](#resource-item)                                      | 5      | 13       | 6         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 3         |
 | [Auftrag](#resource-order)                                     | 8      | 16       | 15        |
@@ -130,7 +130,8 @@ Die operative Identität eines Produkts mit seiner Einheit. Bestand wird nie am 
 sondern beim Lesen aus Bewegungen und Reservierungen abgeleitet. Deshalb stehen die Bestandslisten
 hier.
 
-**Auch genannt:** product, SKU, stock, inventory, Produkt, Bestand, Lagerbestand, Verfügbarkeit
+**Auch genannt:** product, SKU, stock, inventory, kit, bundle, Produkt, Bestand, Lagerbestand,
+Verfügbarkeit, Set, Stückliste
 
 **Listen**
 
@@ -150,6 +151,8 @@ hier.
 - [Release a stock block](./commands#command-release_stock_block) (`release_stock_block`)
 - [Scrap blocked stock](./commands#command-scrap_stock_block) (`scrap_stock_block`)
 - [Rückstände bedienen](./commands#command-serve_backorders) (`serve_backorders`)
+- [Stückliste festlegen](./commands#command-define_kit) (`define_kit`)
+- [Sets montieren](./commands#command-assemble_kit) (`assemble_kit`)
 - [Inventur erfassen](./commands#command-record_stock_count) (`record_stock_count`)
 - [Set a reorder point](./commands#command-set_reorder_point) (`set_reorder_point`)
 - [Remove a reorder point](./commands#command-remove_reorder_point) (`remove_reorder_point`)
@@ -159,6 +162,8 @@ hier.
 
 - [Bestand zu Anschaffungskosten anzeigen](./commands#command-inventory_cost) (`inventory_cost`)
 - [Lieferfähigkeit anzeigen](./commands#command-available_to_promise) (`available_to_promise`)
+- [Stücklisten anzeigen](./commands#command-kits) (`kits`)
+- [Set-Aufteilung anzeigen](./commands#command-kit_split) (`kit_split`)
 - [Bestellabgleich anzeigen](./commands#command-purchase_match) (`purchase_match`)
 - [Inventuren anzeigen](./commands#command-stock_counts) (`stock_counts`)
 - [Inventur anzeigen](./commands#command-stock_count_detail) (`stock_count_detail`)
@@ -182,13 +187,14 @@ hier.
 [Stammdaten und Quellen](./processes#process-master_data)
 
 **Darunter:** Tabellen: `item`, `supply_assignment`, `item_reorder_point`, `stock_block`,
-`stock_block_resolution`, `stock_count`, `stock_count_line` · Events:
+`stock_block_resolution`, `stock_count`, `stock_count_line`, `kit_component` · Events:
 [`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
 [`reorder_point.set`](./events#event-reorder_point-set),
 [`reorder_point.removed`](./events#event-reorder_point-removed),
 [`stock_block.created`](./events#event-stock_block-created),
 [`stock_block.released`](./events#event-stock_block-released),
 [`stock_block.scrapped`](./events#event-stock_block-scrapped),
+[`kit.defined`](./events#event-kit-defined), [`kit.assembled`](./events#event-kit-assembled),
 [`stock_count.posted`](./events#event-stock_count-posted),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agenten-Tools ohne
 Geschäftsaktion: [`inventory_read`](./commands#tool-inventory_read),

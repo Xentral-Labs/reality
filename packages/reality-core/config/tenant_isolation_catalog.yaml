@@ -464,6 +464,10 @@ families:
       - tool:supplier_item_terms_remove
       - tool:supplier_item_terms
       - tool:purchase_match
+      - tool:kit_define
+      - tool:kit_assemble
+      - tool:kits
+      - tool:kit_split
       - tool:company_currency_set
       - tool:company_currency
       - tool:customer_item_number_remove

@@ -257,6 +257,8 @@ export function readSelection(url: URL): Selection {
       "return",
       "supplier_return",
       "adjustment",
+      "assembly_input",
+      "assembly_output",
     ].includes(url.searchParams.get("state") || "")
       ? url.searchParams.get("state")!
       : "",

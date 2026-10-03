@@ -28,7 +28,7 @@ sections:
     tables: [tenant, source_system, source_capability, source_artifact, source_stream, source_record, import_job, interpretation_outcome, interpretation_record_reference]
   - name: Master Data
     description: Operational identities and settings needed for joins and decisions.
-    tables: [accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, finance_reference, party, party_role, party_email_address, party_hold, delivery_rule, customer_item_number, supplier_item_terms, payment_term, item, location, item_reorder_point, stock_count, stock_count_line, price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
+    tables: [accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, finance_reference, party, party_role, party_email_address, party_hold, delivery_rule, customer_item_number, supplier_item_terms, payment_term, item, kit_component, location, item_reorder_point, stock_count, stock_count_line, price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
   - name: Evidence
     description: Normalized business documents that connect source evidence to reality.
     tables: [financial_component, document, document_line, opening_scope, opening_item_detail]
@@ -706,6 +706,18 @@ tables:
       source_record_id: {description: "The statement in force: a version of the terms' source stream (spec 320 pattern)."}
       created_at: {}
       updated_at: {description: UTC timestamp when the terms were last restated.}
+  kit_component:
+    description: One component of a kit and how many of it one kit takes (spec 333); what a location can build and how a kit line splits are read from these rows.
+    columns:
+      id: {}
+      tenant_id: {}
+      kit_item_id: {description: The stocked item that is the kit.}
+      component_item_id: {description: The stocked item one kit consumes when it is assembled.}
+      quantity: {description: "How many of the component one kit takes, in the component's stock unit, as stated."}
+      share: {description: "The component's share of the kit's price, between 0 and 1, as stated; null when the kit states no split."}
+      position: {description: The component's place in the stated list.}
+      created_at: {}
+      source_record_id: {description: "The kit's definition: the statement that named its components."}
   item_reorder_point:
     description: The stock level at which the company reorders an item at a location, and how much it then orders (spec 302).
     columns:
