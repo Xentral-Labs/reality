@@ -57,6 +57,8 @@ SHIPMENT_EXECUTION_FIELDS = {
     # Spec 312: a customer pickup and who collected.
     "delivery_mode",
     "collected_by",
+    # Spec 334: the planned delivery this dispatch executes.
+    "outbound_delivery_id",
 }
 SHIPMENT_MOVEMENT_FIELDS = {
     "movement_type",
@@ -179,6 +181,26 @@ def review_shipment_action(
             movements = intent.get("movements")
             if not isinstance(movements, list) or not movements:
                 raise InvalidOperation(code="shipment_execution_movement_missing")
+            if intent.get("outbound_delivery_id"):
+                from reality.services.outbound_deliveries import (
+                    require_matches_delivery,
+                )
+
+                # Spec 334: the review refuses what the confirmation would refuse.
+                if tool != "shipment_dispatch" or purpose != "customer_delivery":
+                    raise InvalidOperation(code="outbound_delivery_dispatch_mismatch")
+                planned = require_matches_delivery(
+                    session,
+                    tenant_id,
+                    intent["outbound_delivery_id"],
+                    party.id,
+                    movements,
+                )
+                # A revision after the review changes what the dispatch would keep.
+                state["outbound_delivery"] = {
+                    "id": planned.id,
+                    "source_record_id": planned.source_record_id,
+                }
             expected = PURPOSES[purpose][1]
             if purpose == "customer_delivery":
                 # Spec 306: one shipment carries a ship-complete order whole.

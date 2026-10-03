@@ -2551,6 +2551,120 @@ class Movement(Base):
     )
 
 
+class OutboundDelivery(Base):
+    """A planned outbound delivery of one customer's promises (spec 334).
+
+    It is a reviewed statement, kept as versions of one internal source stream;
+    the current statement holds the stated address and the booked slot. It has
+    no status: planned, picked and shipped are read from its lines, the pick
+    movements and the shipment that executed it.
+    """
+
+    __tablename__ = "outbound_delivery"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "customer_id"], ["party.tenant_id", "party.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "recipient_party_id"], ["party.tenant_id", "party.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "staging_location_id"],
+            ["location.tenant_id", "location.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "shipment_id"], ["shipment.tenant_id", "shipment.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        Index("ix_outbound_delivery_customer_id", "tenant_id", "customer_id"),
+        Index(
+            "ix_outbound_delivery_recipient_party_id", "tenant_id", "recipient_party_id"
+        ),
+        Index(
+            "ix_outbound_delivery_staging_location_id",
+            "tenant_id",
+            "staging_location_id",
+        ),
+        Index("ix_outbound_delivery_source_record_id", "tenant_id", "source_record_id"),
+        Index("uq_outbound_delivery_shipment", "tenant_id", "shipment_id", unique=True),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    customer_id: Mapped[str] = mapped_column()
+    recipient_party_id: Mapped[str | None] = mapped_column(default=None)
+    staging_location_id: Mapped[str | None] = mapped_column(default=None)
+    shipment_id: Mapped[str | None] = mapped_column(default=None)
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class OutboundDeliveryLine(Base):
+    """One promise on a planned delivery, with the quantity planned for it."""
+
+    __tablename__ = "outbound_delivery_line"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "outbound_delivery_id"],
+            ["outbound_delivery.tenant_id", "outbound_delivery.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "commitment_id"],
+            ["commitment.tenant_id", "commitment.id"],
+        ),
+        CheckConstraint("quantity > 0", name="ck_outbound_delivery_line_quantity"),
+        Index(
+            "uq_outbound_delivery_line_commitment",
+            "tenant_id",
+            "outbound_delivery_id",
+            "commitment_id",
+            unique=True,
+        ),
+        Index("ix_outbound_delivery_line_commitment_id", "tenant_id", "commitment_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    outbound_delivery_id: Mapped[str] = mapped_column()
+    commitment_id: Mapped[str] = mapped_column()
+    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+
+
+class OutboundDeliveryPick(Base):
+    """A transfer that picked goods into staging for a line, or put them back."""
+
+    __tablename__ = "outbound_delivery_pick"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "outbound_delivery_line_id"],
+            ["outbound_delivery_line.tenant_id", "outbound_delivery_line.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "movement_id"], ["movement.tenant_id", "movement.id"]
+        ),
+        CheckConstraint(
+            "kind IN ('pick', 'put_back')", name="ck_outbound_delivery_pick_kind"
+        ),
+        Index(
+            "ix_outbound_delivery_pick_line_id",
+            "tenant_id",
+            "outbound_delivery_line_id",
+        ),
+        Index(
+            "uq_outbound_delivery_pick_movement", "tenant_id", "movement_id", unique=True
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    outbound_delivery_line_id: Mapped[str] = mapped_column()
+    movement_id: Mapped[str] = mapped_column()
+    kind: Mapped[str] = mapped_column(String)
+
+
 class ReturnAnnouncement(Base):
     """What a customer said they would send back, before it has left them.
 

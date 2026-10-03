@@ -2413,6 +2413,90 @@
     },
     "inventory_assembly_not_costed": {
       "message": "This item has assembly movements, which inventory cost reviews do not cost yet."
+    },
+    "outbound_delivery_not_found": {
+      "message": "No planned delivery was found."
+    },
+    "outbound_delivery_lines_required": {
+      "message": "A planned delivery names its promises, each with a quantity."
+    },
+    "outbound_delivery_promise_not_customer": {
+      "message": "A planned delivery carries customer deliveries only."
+    },
+    "outbound_delivery_promise_other_customer": {
+      "message": "Every promise on a planned delivery belongs to its customer."
+    },
+    "outbound_delivery_promise_not_open": {
+      "message": "Only an open promise can be planned or picked."
+    },
+    "outbound_delivery_quantity_beyond_open": {
+      "message": "More is planned than the promise still has open; {open} can still be planned.",
+      "values": {
+        "open": "number"
+      }
+    },
+    "outbound_delivery_promise_twice": {
+      "message": "A promise appears once on a planned delivery."
+    },
+    "outbound_delivery_slot_invalid": {
+      "message": "A booked slot states when it opens and when it closes, and closes after it opens."
+    },
+    "outbound_delivery_address_invalid": {
+      "message": "An address states name, street, postal code, city, country or a note, as text."
+    },
+    "outbound_delivery_staging_invalid": {
+      "message": "The location must hold stock and differ from the staging location."
+    },
+    "outbound_delivery_shipped": {
+      "message": "This delivery has shipped; it cannot be changed, picked or put back."
+    },
+    "outbound_delivery_line_picked": {
+      "message": "Goods are picked for this line; put them back before planning less or removing it."
+    },
+    "outbound_delivery_staging_missing": {
+      "message": "Name a staging location before picking."
+    },
+    "outbound_delivery_pick_not_on_delivery": {
+      "message": "This promise is not on the planned delivery."
+    },
+    "outbound_delivery_pick_beyond_planned": {
+      "message": "More is picked than is planned; {open} can still be picked.",
+      "values": {
+        "open": "number"
+      }
+    },
+    "outbound_delivery_pick_not_reserved": {
+      "message": "Only what is reserved for the promise can be picked from there."
+    },
+    "outbound_delivery_pick_location_ambiguous": {
+      "message": "The promise is reserved at more than one location; name where the goods are taken from."
+    },
+    "outbound_delivery_put_back_beyond_picked": {
+      "message": "More is put back than is picked; {picked} is picked.",
+      "values": {
+        "picked": "number"
+      }
+    },
+    "outbound_delivery_changed_since_review": {
+      "message": "The planned delivery changed since this review. Review it again."
+    },
+    "outbound_delivery_dispatch_mismatch": {
+      "message": "The shipment differs from what the planned delivery carries."
+    },
+    "outbound_delivery_dispatch_not_picked": {
+      "message": "Not everything planned is picked yet."
+    },
+    "outbound_delivery_waiting_put_back": {
+      "message": "Goods of a cancelled promise are still in staging; put them back first."
+    },
+    "outbound_delivery_staging_occupied": {
+      "message": "Picked goods are in the staging location; put them back before changing it."
+    },
+    "outbound_delivery_fields_unsupported": {
+      "message": "These fields cannot be revised: {fields}.",
+      "values": {
+        "fields": "text"
+      }
     }
   },
   "terms": [
