@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:06fffc562784a8046e88c46d977791701535db7e82f47f40772c0d8330af217c",
+  "knowledge_version": "advisor-v1:sha256:31d7accd8b8cb035557d207ddbd72c7ba2c29ca73e42899b5d834be3a4fa1809",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -800,7 +800,8 @@
         "evidence_command_opening_context",
         "evidence_command_import_opening",
         "evidence_command_record_shipment_notice",
-        "evidence_command_record_packaged_execution"
+        "evidence_command_record_packaged_execution",
+        "evidence_command_record_delivery_failure"
       ],
       "tools": [
         {
@@ -953,6 +954,10 @@
         },
         {
           "name": "record_packaged_execution",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_delivery_failure",
           "mode": "mutation"
         }
       ]
@@ -1457,6 +1462,7 @@
         "evidence_command_record_packaged_execution",
         "evidence_command_assign_supply",
         "evidence_command_record_customer_exchange",
+        "evidence_command_record_delivery_failure",
         "evidence_command_assign_line_item"
       ],
       "tools": [
@@ -1609,6 +1615,10 @@
           "mode": "mutation"
         },
         {
+          "name": "record_delivery_failure",
+          "mode": "mutation"
+        },
+        {
           "name": "assign_line_item",
           "mode": "mutation"
         }
@@ -1625,13 +1635,20 @@
         "movement",
         "transfer",
         "adjustment",
+        "failed delivery",
+        "undeliverable",
+        "refused delivery",
+        "lost parcel",
         "Warenausgang",
         "Lagerbewegung",
         "Umlagerung",
         "Bestandsanpassung",
         "Sendung",
         "Packstück",
-        "Tracking"
+        "Tracking",
+        "Unzustellbar",
+        "Annahmeverweigerung",
+        "Paketverlust"
       ],
       "evidence_ids": [
         "evidence_command_propose_cost_review",
@@ -1664,6 +1681,7 @@
         "evidence_command_record_shipment_event",
         "evidence_command_supersede_shipment_event",
         "evidence_command_record_customer_exchange",
+        "evidence_command_record_delivery_failure",
         "evidence_command_record_return_disposition"
       ],
       "tools": [
@@ -1785,6 +1803,10 @@
         },
         {
           "name": "record_customer_exchange",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_delivery_failure",
           "mode": "mutation"
         },
         {
@@ -2232,7 +2254,8 @@
         "evidence_command_settlement_context",
         "evidence_command_apply_settlement",
         "evidence_command_opening_context",
-        "evidence_command_import_opening"
+        "evidence_command_import_opening",
+        "evidence_command_record_delivery_failure"
       ],
       "tools": [
         {
@@ -2526,6 +2549,10 @@
         {
           "name": "import_opening",
           "mode": "mutation"
+        },
+        {
+          "name": "record_delivery_failure",
+          "mode": "mutation"
         }
       ]
     },
@@ -2764,6 +2791,7 @@
         "evidence_command_apply_settlement",
         "evidence_command_import_opening",
         "evidence_command_record_customer_exchange",
+        "evidence_command_record_delivery_failure",
         "evidence_command_assign_line_item"
       ],
       "tools": [
@@ -3069,6 +3097,10 @@
         },
         {
           "name": "record_customer_exchange",
+          "mode": "mutation"
+        },
+        {
+          "name": "record_delivery_failure",
           "mode": "mutation"
         },
         {

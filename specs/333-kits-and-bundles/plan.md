@@ -16,7 +16,7 @@
 
 **Language/Version**: Python 3.12, TypeScript (web)
 
-**Storage**: one new table, `kit_component` (migration 0123), and two new movement types. No new column on existing tables.
+**Storage**: one new table, `kit_component` (migration 0127), and two new movement types. No new column on existing tables.
 
 **Testing**:
 - service tests with positive controls;
@@ -60,7 +60,7 @@ Unique per kit and component. Quantities are checked positive and shares in [0, 
 ## Design
 
 1. **Domain/schema:**
-   - `KitComponent` in `db/core.py` and migration `0123_kit_components`.
+   - `KitComponent` in `db/core.py` and migration `0127_kit_components`.
    - `_append_movement` accepts the two types with their directions. `assembly_input` takes free stock only (the existing physical and blocked checks).
 2. **Service `services/kits.py`:**
    - `validate_kit_definition` and `define_kit` (source system `internal_kit`, stream per kit item, event `kit.defined`).

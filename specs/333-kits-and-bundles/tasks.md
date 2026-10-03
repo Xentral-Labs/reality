@@ -17,7 +17,7 @@
 
 ## Phase 2: Domain and schema
 
-- [x] T003 `KitComponent` model, migration `0123_kit_components`, data model, isolation catalog and FK indexes.
+- [x] T003 `KitComponent` model, migration `0127_kit_components`, data model, isolation catalog and FK indexes.
 - [x] T004 `assembly_input` and `assembly_output` in `_append_movement`. Refusals in `movement_correct` and in inventory cost preparation.
 
 ## Phase 3: Services
