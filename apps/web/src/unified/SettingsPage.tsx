@@ -48,7 +48,13 @@ export function SettingsPage({
     <div className="mx-auto max-w-6xl space-y-7">
       <RegisterHeader
         title={
-          view === "usage" ? "Usage" : view === "personal" ? "Profile & preferences" : "Companies"
+          view === "usage"
+            ? "Usage"
+            : view === "personal"
+              ? "Profile & preferences"
+              : view === "current"
+                ? "Settings"
+                : "Companies"
         }
       />
       <section
@@ -62,6 +68,7 @@ export function SettingsPage({
         ) : (
           <CompanySettings
             platformAdmin={user.is_platform_admin === true}
+            currentOnly={view === "current"}
             company={company}
             companies={companies}
             switchCompany={switchCompany}
@@ -101,7 +108,8 @@ export function SettingsPage({
           view={target.view}
           close={() => {
             setManagement(null);
-            if (view !== "company" && view !== "new") navigate({ settingsView: "company" });
+            if (view !== "company" && view !== "new" && view !== "current")
+              navigate({ settingsView: "company" });
           }}
         />
       )}

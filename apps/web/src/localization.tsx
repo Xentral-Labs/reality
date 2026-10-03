@@ -26873,3 +26873,7 @@ Object.assign(dictionaries.es, {
   "The private change cannot be read. It may be rejected, but cannot be approved here.":
     "El cambio privado no se puede leer. Puede rechazarse, pero no aprobarse aquí.",
 });
+
+Object.assign(dictionaries.de, { "All companies": "Alle Unternehmen verwalten" });
+Object.assign(dictionaries.nl, { "All companies": "Alle bedrijven beheren" });
+Object.assign(dictionaries.es, { "All companies": "Gestionar todas las empresas" });

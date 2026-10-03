@@ -90,3 +90,28 @@ horizontal overflow at 390px.
 | FR-003 | T002, T004 | Settings section round-trip; creation form survives reload |
 | FR-004 | T001, T005 | Simulation card content, link and absence for an ordinary company |
 | FR-005 | T005, T006 | Four-language audit and localized card rendering without overflow |
+
+## Approved navigation refinement (2026-10-03)
+
+The user approved placing current-company Settings under Company. This supersedes
+FR-001/002 and the two-entry success criterion only for management placement.
+
+- **FR-006**: Company navigation offers Settings before Integrations and Storyline.
+  It opens only the selected company's settings, preserves tenant identity, indicates
+  the active destination, supplies the collapsed tooltip and closes the mobile drawer.
+- **FR-007**: The switcher retains the cross-company overview under the explicit label
+  All companies; New company and existing overview bookmarks retain their behavior.
+- **FR-008**: Current-company settings display Settings and the original company name in its card,
+  without a duplicate company-name line above the card;
+  owner/member permissions and existing management services remain unchanged.
+
+Acceptance: selecting Settings for either of two companies displays only that company;
+selecting All companies displays the existing overview. Personal settings do not mark
+company Settings active. English, German, Dutch and Spanish labels remain available.
+No unresolved clarifications; the user's “ja mach” approves this bounded scope.
+
+| Requirement | Tasks | Proof |
+|---|---|---|
+| FR-006 | T007, T008 | Navigation contract and settings routing round-trip |
+| FR-007 | T007, T008 | Switcher contract and existing overview browser scenario |
+| FR-008 | T007, T008 | Current-company presentation contract, build and locale audit |

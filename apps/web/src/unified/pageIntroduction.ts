@@ -150,6 +150,10 @@ const introductions = {
     title: "Companies",
     description: "Switch companies or manage their users, agents and AI settings.",
   },
+  "company-current": {
+    title: "Settings",
+    description: "Company settings",
+  },
   personal: {
     title: "Profile & preferences",
     description: "Set your language, number format, timezone and appearance.",
@@ -225,7 +229,12 @@ export function pageIntroduction(
               : "deliveries";
       break;
     case "settings":
-      key = selection.settingsView === "personal" ? "personal" : "company";
+      key =
+        selection.settingsView === "personal"
+          ? "personal"
+          : selection.settingsView === "current"
+            ? "company-current"
+            : "company";
       break;
     case "copilot":
       key = "home";

@@ -41,6 +41,7 @@ export function CompanySettings({
   openSimulation,
   openCompany,
   creating,
+  currentOnly = false,
   setCreating,
 }: {
   company: Tenant;
@@ -55,6 +56,7 @@ export function CompanySettings({
     options?: { announce?: boolean; home?: boolean },
   ) => void;
   // The company switcher opens this form by URL, so the form follows the address.
+  currentOnly?: boolean;
   creating: boolean;
   setCreating: (creating: boolean) => void;
 }) {
@@ -65,7 +67,7 @@ export function CompanySettings({
           actions={[{ key: "create", label: "New company", onClick: () => setCreating(true) }]}
         />
         <ul className="space-y-3">
-          {companies.map((row) => {
+          {(currentOnly ? [company] : companies).map((row) => {
             const current = row.id === company.id;
             const rowStyle = current ? companyStyles.active : companyStyles.inactive;
             const badgeStyle = current ? companyStyles.current : companyStyles.switch;
@@ -186,7 +188,12 @@ export function CompanySettings({
           }}
         />
       )}
-      <CompanyDangerZone company={company} companies={companies} openCompany={openCompany} />
+      <CompanyDangerZone
+        showArchived={!currentOnly}
+        company={company}
+        companies={companies}
+        openCompany={openCompany}
+      />
     </div>
   );
 }

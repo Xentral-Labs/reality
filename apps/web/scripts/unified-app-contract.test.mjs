@@ -614,3 +614,28 @@ test("master data forms expose every field the shared services accept", () => {
   assert.match(page, /<RecordSummary/);
   for (const file of [card, page]) assert.doesNotMatch(file, /Edit basic details/);
 });
+
+test("current company settings has its own tenant-preserving navigation destination", () => {
+  const selection = readSelection(
+    new URL("https://example.test/app/settings?tenant=one&settings_view=current"),
+  );
+  assert.equal(selection.settingsView, "current");
+  assert.equal(
+    new URL(selectionUrl(selection), "https://example.test").searchParams.get("tenant"),
+    "one",
+  );
+  const shell = source("../src/unified/Shell.tsx");
+  assert.match(shell, /aria-label=\{t\("Settings"\)\}/);
+  assert.match(shell, /settingsView: "current"/);
+  const settings = source("../src/unified/SettingsPage.tsx");
+  assert.match(settings, /currentOnly=\{view === "current"\}/);
+  assert.doesNotMatch(settings, /data-current-company-settings/);
+  assert.match(
+    source("../src/unified/CompanySettings.tsx"),
+    /currentOnly \? \[company\] : companies/,
+  );
+  assert.match(
+    source("../src/unified/CompanySwitcher.tsx"),
+    /\["All companies", "company", Settings\]/,
+  );
+});
