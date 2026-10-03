@@ -1,14 +1,14 @@
 """Kit components: the bill of materials of a kit (spec 333).
 
-Revision ID: 0123_kit_components
-Revises: 0122_purchasing_depth
+Revision ID: 0127_kit_components
+Revises: 0125_delivery_failures
 """
 
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0123_kit_components"
-down_revision = "0122_purchasing_depth"
+revision = "0127_kit_components"
+down_revision = "0125_delivery_failures"
 branch_labels = None
 depends_on = None
 
