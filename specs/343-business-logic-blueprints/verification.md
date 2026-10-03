@@ -272,3 +272,5 @@ Verification: 124 Docs tests and production build pass. Live-browser regression 
 
 ### Four-section inspector and typography
 125 Docs tests passed; production build and browser regression passed. The browser verifies lazy brief/full/source-only reads, current-entry reuse, refresh invalidation, retries, escaped and syntax-colored original source lines, and technical-reference segregation. Real local view/projection inspection verified commitments, orders and fulfillment queue. Presentation uses subordinate query labels and two-column navigation on narrow screens. Human semantic acceptance remains open (T047).
+
+FR-041: 125 Docs tests and production build passed. Actual localhost browser inspection confirmed section heading border/background, heading weight above execution values, and regular related-link weight; screenshot visually reviewed. No external inference requested.
