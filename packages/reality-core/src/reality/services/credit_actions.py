@@ -579,7 +579,7 @@ def _credit_evidence(
             key: (
                 # Stated beside the columns, in the line's payload.
                 line_payload.get(key)
-                if key in {"reality_finance_v1", "customer_item_number"}
+                if key in {"reality_finance_v1", *core.STATED_LINE_NUMBER_KEYS}
                 else getattr(line, key)
             )
             for key in expected

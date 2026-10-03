@@ -29,6 +29,9 @@ from reality.services.core import (
     commitment_terms,
     decimal,
 )
+from reality.services.supplier_item_numbers import (
+    stated_number as stated_supplier_number,
+)
 
 
 def _text(value: Decimal | None) -> str | None:
@@ -221,6 +224,8 @@ def purchase_match(
                 "item_id": line.item_id,
                 "item": item.name if item else line.description,
                 "sku": item.sku if item else line.sku,
+                # Spec 345: the supplier's own number the line stated, as stated.
+                "supplier_item_number": stated_supplier_number(line),
                 "unit": held[0].unit or line.unit,
                 "ordered": _text(ordered),
                 "in_force": _text(in_force),

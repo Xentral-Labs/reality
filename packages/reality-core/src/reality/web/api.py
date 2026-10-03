@@ -1198,6 +1198,15 @@ class CustomerItemNumberProposal(ApiModel):
     customer_item_name: str | None = Field(default=None, max_length=500)
 
 
+class SupplierItemNumberProposal(ApiModel):
+    model_config = ConfigDict(extra="forbid")
+    operation: Literal["set", "remove"]
+    party_id: str = Field(min_length=1, max_length=200)
+    supplier_item_number: str = Field(min_length=1, max_length=200)
+    item_id: str | None = Field(default=None, max_length=200)
+    supplier_item_name: str | None = Field(default=None, max_length=500)
+
+
 class CompanyCurrencyProposal(ApiModel):
     model_config = ConfigDict(extra="forbid")
     currency: str = Field(min_length=1, max_length=10)
@@ -1331,6 +1340,48 @@ def post_customer_item_number_proposal(
 
     arguments = body.model_dump(exclude_none=True)
     tool = f"customer_item_number_{arguments.pop('operation')}"
+    try:
+        proposal = create_change_proposal(
+            session, tenant_id, tool, arguments, actor_type="human"
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/supplier-item-numbers")
+def get_supplier_item_numbers(
+    tenant_id: str,
+    session: DatabaseSession,
+    party_id: str | None = Query(default=None, max_length=200),
+    item_id: str | None = Query(default=None, max_length=200),
+):
+    """Spec 345: a supplier's own article numbers, or those for one item."""
+    from reality.services.supplier_item_numbers import supplier_item_numbers
+
+    try:
+        return {
+            "rows": supplier_item_numbers(
+                session, tenant_id, party_id=party_id, item_id=item_id
+            )
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/supplier-item-numbers/proposals")
+def post_supplier_item_number_proposal(
+    tenant_id: str, body: SupplierItemNumberProposal, session: DatabaseSession
+):
+    """Spec 345: prepare stating or withdrawing a number; confirmation is the shared approve."""
+    from reality.tools.application import create_change_proposal
+
+    arguments = body.model_dump(exclude_none=True)
+    tool = f"supplier_item_number_{arguments.pop('operation')}"
     try:
         proposal = create_change_proposal(
             session, tenant_id, tool, arguments, actor_type="human"
@@ -3356,6 +3407,7 @@ class ManualDocumentLineWrite(ApiModel):
     price_list_entry_id: str | None = None
     billed_document_line_id: str | None = None
     customer_item_number: str | None = None
+    supplier_item_number: str | None = None
 
 
 class ManualDocumentWrite(ApiModel):

@@ -715,6 +715,28 @@
       "effect": "Lists a customer's own article numbers, or the numbers customers use for one item."
     },
     {
+      "name": "State a supplier item number",
+      "service": "set_supplier_item_number",
+      "related_services": ["review_supplier_item_number", "resolve_supplier_item"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "States which of our items a supplier's own article number names, with the supplier's name for it, as a new version of that number's statement stream."
+    },
+    {
+      "name": "Withdraw a supplier item number",
+      "service": "remove_supplier_item_number",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Withdraws a supplier's article number; lines that stated it keep it as stated."
+    },
+    {
+      "name": "Read supplier item numbers",
+      "service": "supplier_item_numbers",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Lists a supplier's own article numbers, or the numbers suppliers use for one item."
+    },
+    {
       "name": "Plan an outbound delivery",
       "service": "plan_outbound_delivery",
       "mode": "mutation",

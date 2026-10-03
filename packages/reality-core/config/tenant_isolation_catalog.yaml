@@ -469,6 +469,7 @@ families:
       - tool:stock_count
       - tool:external_stock_state
       - tool:customer_item_number_set
+      - tool:supplier_item_number_set
       - tool:supplier_item_terms_set
       - tool:supplier_item_terms_remove
       - tool:supplier_item_terms
@@ -484,6 +485,8 @@ families:
       - tool:company_currency
       - tool:customer_item_number_remove
       - tool:customer_item_numbers
+      - tool:supplier_item_number_remove
+      - tool:supplier_item_numbers
       - tool:stock_counts
       - tool:external_stock
       - tool:stock_count_detail

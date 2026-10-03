@@ -350,7 +350,7 @@ export function OrderCard({
                         seed={seeds[line.item_id]}
                         change={(id) => lineChange(index, { item_id: id })}
                       />
-                      {direction === "sales" && (
+                      {draft.direction === "sales" && (
                         <label className="mt-2 block text-sm">
                           {/* Spec 308: or the customer's own article number. */}
                           {t("Customer item no.")}
@@ -361,6 +361,22 @@ export function OrderCard({
                             onChange={(event) =>
                               lineChange(index, {
                                 customer_item_number: event.target.value || undefined,
+                              })
+                            }
+                          />
+                        </label>
+                      )}
+                      {draft.direction === "purchase" && (
+                        <label className="mt-2 block text-sm">
+                          {/* Spec 345: or the supplier's own article number. */}
+                          {t("Supplier item no.")}
+                          <input
+                            className="br-control mt-1 w-full"
+                            aria-label={`${t("Supplier item no.")} · ${t("Line")} ${index + 1}`}
+                            value={String(line.supplier_item_number ?? "")}
+                            onChange={(event) =>
+                              lineChange(index, {
+                                supplier_item_number: event.target.value || undefined,
                               })
                             }
                           />

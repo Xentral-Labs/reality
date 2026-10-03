@@ -5097,22 +5097,34 @@ entries:
   section: Master data and identity
   title: Supplier item number ≠ own number, several suppliers
   question: Supplier item mapping?
-  status: missing
-  evidence_level: none
-  summary: 'Reality evaluates: Supplier item mapping?'
+  status: supported
+  evidence_level: executable
+  summary: "Reality evaluates: Supplier item mapping? Per supplier, a reviewed statement says which of our items the supplier's own number names, with the supplier's name for it; every supplier has its own numbers for the same item. Purchase orders and supplier invoices entered by hand or by chat resolve lines by that number, keep it on the line as stated, and the purchase order, the invoice and the three-way match show it."
   limitations:
-  - Supplier item numbers and a mapping per supplier are not recorded.
-  keywords: []
+  - Numbers are matched ignoring case and spaces; there is no fuzzy matching.
+  - An unknown supplier number is refused at entry; documents from a supplier's own system (EDI, order confirmations by file) are not interpreted yet.
+  keywords:
+  - supplier item number
+  - supplier article number
+  - Lieferantenartikelnummer
+  - Bestellnummer des Lieferanten
   question_examples:
   - Supplier item number ≠ own number, several suppliers
   - Supplier item mapping?
-  tools: []
+  - Our suppliers use their own article numbers; how do they become our items?
+  - Unsere Lieferanten haben eigene Artikelnummern; wie werden daraus unsere Artikel?
+  tools:
+  - supplier_item_number_set_propose
+  - supplier_item_numbers
+  - order_create_propose
   demo_references: []
   product_paths: []
   related_journeys: []
   internal_evidence:
-  - reference: db/core.py Item (no supplier reference table)
-    note: There's no supplier item number or per-supplier item mapping.
+  - reference: packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_two_suppliers_name_one_item_by_their_own_numbers
+    note: "LF900-12 at Lindner and VI-77 at Velo Import both name our wheel: each purchase order resolves its supplier's number, Lindner's invoice quotes it again and matches, and Velo's number is refused at Lindner."
+  - reference: packages/reality-core/tests/test_supplier_item_orders.py
+    note: Purchase and supplier-invoice lines resolve and keep the number; unknown and conflicting numbers are refused; order preview and three-way match show it (spec 345).
 - id: P01
   section: Sources and integration
   title: Same event delivered twice

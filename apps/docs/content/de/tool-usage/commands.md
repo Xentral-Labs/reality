@@ -85,6 +85,7 @@ angegeben.
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs               | Bereichsübergreifend    | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`cost_evidence`](#command-cost_evidence)                                         | Read received acquisition-cost evidence      | Bereichsübergreifend    | `cost_evidence_get`                                                                                                                                                                          | CLI · Web · MCP · Chat                  |
 | [`reviewed_contribution`](#command-reviewed_contribution)                         | Read reviewed commercial contribution        | Bereichsübergreifend    | `cost_contribution_get`                                                                                                                                                                      | CLI · Web · MCP · Chat                  |
+| [`supplier_item_numbers`](#command-supplier_item_numbers)                         | Read supplier item numbers                   | Bereichsübergreifend    | `supplier_item_numbers`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`supplier_item_terms`](#command-supplier_item_terms)                             | Read supplier item terms                     | Bereichsübergreifend    | `supplier_item_terms`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`company_currency_state`](#command-company_currency_state)                       | Read the company currency                    | Bereichsübergreifend    | `company_currency`                                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`month_end_billing`](#command-month_end_billing)                                 | Read the month-end billing lists             | Bereichsübergreifend    | `month_end_billing`                                                                                                                                                                          | CLI · Web · API · MCP · Chat            |
@@ -98,9 +99,11 @@ angegeben.
 | [`set_schedule`](#command-set_schedule)                                           | Set dunning schedule                         | Bereichsübergreifend    | `finance_dunning_schedule_set_propose`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`settle_payout`](#command-settle_payout)                                         | Settle a payout                              | Bereichsübergreifend    | `finance_payout_settle_propose`                                                                                                                                                              | Web · MCP · Chat · CLI                  |
 | [`set_customer_item_number`](#command-set_customer_item_number)                   | State a customer item number                 | Bereichsübergreifend    | `customer_item_number_set_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
+| [`set_supplier_item_number`](#command-set_supplier_item_number)                   | State a supplier item number                 | Bereichsübergreifend    | `supplier_item_number_set_propose`                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`set_supplier_item_terms`](#command-set_supplier_item_terms)                     | State supplier item terms                    | Bereichsübergreifend    | `supplier_item_terms_set_propose`                                                                                                                                                            | CLI · Web · API · MCP · Chat            |
 | [`set_company_currency`](#command-set_company_currency)                           | State the company currency                   | Bereichsübergreifend    | `company_currency_set_propose`                                                                                                                                                               | CLI · Web · API · MCP · Chat            |
 | [`remove_customer_item_number`](#command-remove_customer_item_number)             | Withdraw a customer item number              | Bereichsübergreifend    | `customer_item_number_remove_propose`                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
+| [`remove_supplier_item_number`](#command-remove_supplier_item_number)             | Withdraw a supplier item number              | Bereichsübergreifend    | `supplier_item_number_remove_propose`                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`remove_supplier_item_terms`](#command-remove_supplier_item_terms)               | Withdraw supplier item terms                 | Bereichsübergreifend    | `supplier_item_terms_remove_propose`                                                                                                                                                         | CLI · Web · API · MCP · Chat            |
 | [`accept_adjustment`](#command-accept_adjustment)                                 | Accept settlement reduction                  | Finanzen                | `finance_adjustment_propose`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`assign_component`](#command-assign_component)                                   | Assign received financial component          | Finanzen                | `finance_component_assign_propose`                                                                                                                                                           | CLI · Web · MCP · Chat                  |
@@ -4626,6 +4629,7 @@ Record a manual order as Source and Document Evidence with derived Commitments.
 | `lines[].line_type`            | `string` | nein    | Closed kind of a document line, such as goods or a charge, taken from the source statement.                                 | `item`   |
 | `lines[].price_list_entry_id`  | `string` | nein    | Opaque identity of the price tier the line price came from, when a list price was applied; provenance, not a recalculation. | —        |
 | `lines[].customer_item_number` | `string` | nein    | The customer's own article number, as the customer states it; matched ignoring case and spaces.                             | —        |
+| `lines[].supplier_item_number` | `string` | nein    | The supplier's own article number, as the supplier states it; matched ignoring case and spaces.                             | —        |
 | `gross_amount`                 | `string` | ja      | Total the source states for the document; recorded as received and never calculated.                                        | —        |
 | `currency`                     | `string` | nein    | ISO 4217 currency code for monetary values.                                                                                 | `EUR`    |
 | `document_date`                | `string` | nein    | Business date printed on or asserted by the evidence document.                                                              | —        |
@@ -7920,6 +7924,7 @@ document_create_propose document_type number party_id lines gross_amount [curren
 | `lines[].promised_at`             | `string` | nein    | UTC instant by which the line's quantity is promised; it becomes the due time of the derived Commitment.                                                                    | —        |
 | `lines[].price_list_entry_id`     | `string` | nein    | Opaque identity of the price tier the line price came from, when a list price was applied; provenance, not a recalculation.                                                 | —        |
 | `lines[].billed_document_line_id` | `string` | nein    | Opaque identity of the billed order line, or selected invoice line for an invoice-linked credit; the shortest typed evidence relationship.                                  | —        |
+| `lines[].supplier_item_number`    | `string` | nein    | The supplier's own article number, as the supplier states it; matched ignoring case and spaces.                                                                             | —        |
 | `gross_amount`                    | `string` | ja      | Total the source states for the document; recorded as received and never calculated.                                                                                        | —        |
 | `currency`                        | `string` | nein    | ISO 4217 currency code for monetary values.                                                                                                                                 | —        |
 | `document_date`                   | `string` | nein    | Business date printed on or asserted by the evidence document.                                                                                                              | —        |
@@ -10153,6 +10158,64 @@ retained inputs.
 
 **Siehe auch:** Command [`reviewed_contribution`](./commands#command-reviewed_contribution)
 
+### `supplier_item_numbers` — Read supplier item numbers {#command-supplier_item_numbers}
+
+Lists a supplier's own article numbers, or the numbers suppliers use for one item.
+
+**Aufruf**
+
+```text
+supplier_item_numbers [party_id] [item_id]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `supplier_item_number`, `party`, `item` · Schreibt: —
+
+**Siehe auch:** Agent Tool [`supplier_item_numbers`](./commands#tool-supplier_item_numbers)
+
+#### `supplier_item_numbers` — Supplier item numbers {#tool-supplier_item_numbers}
+
+Read a supplier's own article numbers (party_id) or the numbers suppliers use for one of our items
+(item_id), with the suppliers' names for them.
+
+**Aufruf**
+
+```text
+supplier_item_numbers [party_id] [item_id]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage            | Art                        | Standard |
+| --------------------------- | -------------------------- | -------- |
+| `MCP supplier_item_numbers` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Show which of our items a supplier means by its own article numbers.
+
+**Verwenden, wenn**
+
+- A purchase order
+- confirmation or supplier invoice quotes the supplier's own article number
+- or someone asks which numbers a supplier uses.
+
+**Nicht verwenden, wenn**
+
+- The question is a supplier's minimum quantity or pack size; read the supplier item terms.
+
+**Parameter**
+
+| Name       | Typ      | Pflicht | Beschreibung                                                           | Standard |
+| ---------- | -------- | ------- | ---------------------------------------------------------------------- | -------- |
+| `party_id` | `string` | nein    | Opaque identity of the customer, supplier, or other operational party. | —        |
+| `item_id`  | `string` | nein    | Opaque identity of the operational item reference.                     | —        |
+
+**Siehe auch:** Command [`supplier_item_numbers`](./commands#command-supplier_item_numbers)
+
 ### `supplier_item_terms` — Read supplier item terms {#command-supplier_item_terms}
 
 Lists suppliers' minimum order quantities and order multiples, of one supplier or one item.
@@ -10954,6 +11017,52 @@ customer_item_number_set_propose party_id item_id customer_item_number [customer
 
 **Siehe auch:** Command [`set_customer_item_number`](./commands#command-set_customer_item_number)
 
+### `set_supplier_item_number` — State a supplier item number {#command-set_supplier_item_number}
+
+States which of our items a supplier's own article number names, with the supplier's name for it, as
+a new version of that number's statement stream.
+
+**Aufruf**
+
+```text
+supplier_item_number_set_propose party_id item_id supplier_item_number [supplier_item_name]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `party`, `item`, `supplier_item_number` · Schreibt: `supplier_item_number`,
+`source_record`, `business_event` · Erzeugt: `supplier_item_number.set`
+
+**Siehe auch:** Agent Tool
+[`supplier_item_number_set_propose`](./commands#tool-supplier_item_number_set_propose), Event
+[`supplier_item_number.set`](./events#event-supplier_item_number-set)
+
+#### `supplier_item_number_set_propose` — State a supplier item number {#tool-supplier_item_number_set_propose}
+
+Prepare stating which of our items a supplier's own article number names (party_id, item_id,
+supplier_item_number), with the supplier's name for it. Purchase orders and supplier invoices by
+hand or by chat then resolve lines quoting that number (supplier_item_number) for this supplier;
+case and spaces do not matter. The review shows what the number names now. A person confirms.
+
+**Aufruf**
+
+```text
+supplier_item_number_set_propose party_id item_id supplier_item_number [supplier_item_name]
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                   | Typ      | Pflicht | Beschreibung                                                                                    | Standard |
+| ---------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------- | -------- |
+| `party_id`             | `string` | ja      | Opaque identity of the customer, supplier, or other operational party.                          | —        |
+| `item_id`              | `string` | ja      | Opaque identity of the operational item reference.                                              | —        |
+| `supplier_item_number` | `string` | ja      | The supplier's own article number, as the supplier states it; matched ignoring case and spaces. | —        |
+| `supplier_item_name`   | `string` | nein    | The supplier's own name for the item, as stated.                                                | —        |
+
+**Siehe auch:** Command [`set_supplier_item_number`](./commands#command-set_supplier_item_number)
+
 ### `set_supplier_item_terms` — State supplier item terms {#command-set_supplier_item_terms}
 
 States a supplier's minimum order quantity and order multiple for an item, as a new version of their
@@ -11083,6 +11192,48 @@ customer_item_number_remove_propose party_id customer_item_number
 
 **Siehe auch:** Command
 [`remove_customer_item_number`](./commands#command-remove_customer_item_number)
+
+### `remove_supplier_item_number` — Withdraw a supplier item number {#command-remove_supplier_item_number}
+
+Withdraws a supplier's article number; lines that stated it keep it as stated.
+
+**Aufruf**
+
+```text
+supplier_item_number_remove_propose party_id supplier_item_number
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat · **Bestätigung:** `required`
+
+**Wirkung:** Liest: `party`, `supplier_item_number` · Schreibt: `supplier_item_number`,
+`source_record`, `business_event` · Erzeugt: `supplier_item_number.removed`
+
+**Siehe auch:** Agent Tool
+[`supplier_item_number_remove_propose`](./commands#tool-supplier_item_number_remove_propose), Event
+[`supplier_item_number.removed`](./events#event-supplier_item_number-removed)
+
+#### `supplier_item_number_remove_propose` — Withdraw a supplier item number {#tool-supplier_item_number_remove_propose}
+
+Prepare withdrawing a supplier's article number; lines that already stated it keep it as stated. A
+person confirms.
+
+**Aufruf**
+
+```text
+supplier_item_number_remove_propose party_id supplier_item_number
+```
+
+**Zugriff:** `propose`
+
+**Parameter**
+
+| Name                   | Typ      | Pflicht | Beschreibung                                                                                    | Standard |
+| ---------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------- | -------- |
+| `party_id`             | `string` | ja      | Opaque identity of the customer, supplier, or other operational party.                          | —        |
+| `supplier_item_number` | `string` | ja      | The supplier's own article number, as the supplier states it; matched ignoring case and spaces. | —        |
+
+**Siehe auch:** Command
+[`remove_supplier_item_number`](./commands#command-remove_supplier_item_number)
 
 ### `remove_supplier_item_terms` — Withdraw supplier item terms {#command-remove_supplier_item_terms}
 

@@ -179,6 +179,8 @@ parameter_descriptions:
   item_id: Opaque identity of the operational item reference.
   customer_item_number: The customer's own article number, as the customer states it; matched ignoring case and spaces.
   customer_item_name: The customer's own name for the item, as stated.
+  supplier_item_number: The supplier's own article number, as the supplier states it; matched ignoring case and spaces.
+  supplier_item_name: The supplier's own name for the item, as stated.
   minimum_quantity: The supplier's minimum order quantity for the item, in its purchase unit, as stated.
   order_multiple: The supplier's order multiple (pack size) for the item, in its purchase unit, as stated.
   remember_for_customer: Also state the number the line was ordered by as the customer's item number for the assigned item.
@@ -1319,6 +1321,30 @@ commands:
     reads: [customer_item_number, party, item]
     writes: []
     effect: Lists a customer's own article numbers, or the numbers customers use for one item.
+  - name: State a supplier item number
+    service: set_supplier_item_number
+    related_services: [review_supplier_item_number, resolve_supplier_item]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [party, item, supplier_item_number]
+    writes: [supplier_item_number, source_record, business_event]
+    effect: States which of our items a supplier's own article number names, with the supplier's name for it, as a new version of that number's statement stream.
+  - name: Withdraw a supplier item number
+    service: remove_supplier_item_number
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [party, supplier_item_number]
+    writes: [supplier_item_number, source_record, business_event]
+    effect: Withdraws a supplier's article number; lines that stated it keep it as stated.
+  - name: Read supplier item numbers
+    service: supplier_item_numbers
+    mode: query
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [supplier_item_number, party, item]
+    writes: []
+    effect: Lists a supplier's own article numbers, or the numbers suppliers use for one item.
   - name: Plan an outbound delivery
     service: plan_outbound_delivery
     mode: mutation
@@ -5560,6 +5586,24 @@ capability_guidance:
     unknown_when: [A customer uses a number nobody stated.]
     next_steps: [State or change a number with customer_item_number_set_propose; a person confirms.]
     examples: {use: [{scenario: Find which item the customer means by K-4711., reason: The read names our item for that number.}], do_not_use: [{scenario: Find the customer's price., reason: Read the price resolution instead.}]}
+  supplier_item_numbers:
+    kind: read
+    application_tool: supplier_item_numbers
+    purpose: Show which of our items a supplier means by its own article numbers.
+    use_when: [A purchase order, confirmation or supplier invoice quotes the supplier's own article number, or someone asks which numbers a supplier uses.]
+    do_not_use_when: [The question is a supplier's minimum quantity or pack size; read the supplier item terms.]
+    required_context: [tenant, party_id or item_id]
+    data_basis: [supplier_item_number]
+    limitations: [A number is what a person stated for the supplier; documents from a supplier's own system are not interpreted yet.]
+    freshness: Read from the mappings at request time.
+    empty_result: No supplier item number is stated for the selection.
+    refusal_behavior: Only the company's own suppliers and items are read.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which item a supplier number names and the supplier's name for it.], does_not_prove: [That the supplier still uses the number.]}
+    unknown_when: [A supplier uses a number nobody stated.]
+    next_steps: [State or change a number with supplier_item_number_set_propose; a person confirms.]
+    examples: {use: [{scenario: Find which item supplier Lindner means by LF900-12., reason: The read names our item for that number.}], do_not_use: [{scenario: Find the supplier's minimum order quantity., reason: Read the supplier item terms instead.}]}
   outbound_deliveries:
     kind: read
     application_tool: outbound_deliveries
@@ -5964,6 +6008,9 @@ agent_command_coverage:
   set_customer_item_number: {classification: eligible, tools: [customer_item_number_set_propose]}
   remove_customer_item_number: {classification: eligible, tools: [customer_item_number_remove_propose]}
   customer_item_numbers: {classification: eligible, tools: [customer_item_numbers]}
+  set_supplier_item_number: {classification: eligible, tools: [supplier_item_number_set_propose]}
+  remove_supplier_item_number: {classification: eligible, tools: [supplier_item_number_remove_propose]}
+  supplier_item_numbers: {classification: eligible, tools: [supplier_item_numbers]}
   stock_counts: {classification: eligible, tools: [stock_counts]}
   outbound_deliveries: {classification: eligible, tools: [outbound_deliveries]}
   outbound_delivery_detail: {classification: eligible, tools: [outbound_delivery_detail]}

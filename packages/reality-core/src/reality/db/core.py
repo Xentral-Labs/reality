@@ -1065,6 +1065,54 @@ class CustomerItemNumber(Base):
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class SupplierItemNumber(Base):
+    """A supplier's own number, and name, for one of our items (spec 345).
+
+    Per supplier one number names one item; an item may have several numbers
+    there, and each supplier has its own. Lines are matched on the normalized
+    key, ignoring case and spaces. Each statement is a version of one source
+    stream per supplier and number (spec 320 pattern); the row names the one in
+    force.
+    """
+
+    __tablename__ = "supplier_item_number"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint(
+            "tenant_id", "party_id", "match_key", name="uq_supplier_item_number_key"
+        ),
+        CheckConstraint(
+            "btrim(supplier_item_number) <> ''", name="ck_supplier_item_number_number"
+        ),
+        Index("ix_supplier_item_number_item_id", "tenant_id", "item_id"),
+        Index(
+            "ix_supplier_item_number_source_record_id", "tenant_id", "source_record_id"
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    party_id: Mapped[str] = mapped_column()
+    item_id: Mapped[str] = mapped_column()
+    supplier_item_number: Mapped[str] = mapped_column(String)
+    match_key: Mapped[str] = mapped_column(String)
+    supplier_item_name: Mapped[str] = mapped_column(String, default="")
+    source_record_id: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class ItemReorderPoint(Base):
     """The stock level at which a company reorders an item at a location (spec 302).
 
