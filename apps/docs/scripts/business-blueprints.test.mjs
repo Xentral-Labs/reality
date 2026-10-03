@@ -372,3 +372,44 @@ test("technical reference is contained in its section and remains available with
   assert.ok((await render("view", "technical")).includes("Catalog reference"));
   assert.ok((await render("event", "")).includes("Catalog reference"));
 });
+
+test("authored English descriptions are displayed without an AI or unavailable notice", async () => {
+  const data = {
+    release: { version: "dev" },
+    purpose: "Current purpose",
+    status: "partial",
+    nodes: [],
+    edges: [],
+    sources: [],
+    inputs: [],
+    prerequisites: [],
+    limitations: [],
+    test_gaps: [],
+    scenarios: [],
+    business: {
+      language: "en",
+      mode: "authored",
+      heading: "Steps from source",
+      notice: "No AI generation",
+      overview: null,
+      steps: [
+        {
+          id: "rule",
+          text: "IF the exact limit is exceeded:\n    Report a breach.",
+          rule_ids: [],
+          evidence_ids: [],
+        },
+      ],
+      scenarios: [],
+      annotation_gaps: ["Function description missing: helper"],
+      unexplained_rules: 1,
+    },
+  };
+  const html = await renderToString(
+    createSSRApp(await component(data, "de", "rules"), { kind: "command", entryKey: "future" }),
+  );
+  assert.ok(html.includes("Englische Beschreibungen aus dem aktuellen Quelltext"));
+  assert.ok(html.includes("IF the exact limit is exceeded:"));
+  assert.ok(!html.includes("Keine gültige fachliche Beschreibung vorhanden"));
+  assert.ok(html.includes("Noch aufzubereitende Beschreibungen"));
+});

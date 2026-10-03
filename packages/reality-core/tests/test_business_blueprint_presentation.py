@@ -1,12 +1,11 @@
 """Generic live interpretation, citation boundaries and graph fidelity."""
 
 import pytest
-from test_business_blueprint_release import loaded
-
 from reality.domain.business_blueprints import TestScenario as Scenario
 from reality.services import business_blueprint_presentation as presentation
 from reality.services.business_blueprint_analysis import analyze_function
 from reality.services.business_blueprint_source import capture_source
+from test_business_blueprint_release import loaded
 
 
 def evidence(tmp_path, code):
@@ -204,7 +203,7 @@ def test_input_boundary_and_busy_interpreter_are_explicit(tmp_path, monkeypatch)
         presentation.INFERENCE_SLOTS.release()
 
 
-def test_source_changed_during_model_call_discards_interpretation(
+def test_source_changed_during_description_read_discards_presentation(
     tmp_path, monkeypatch
 ):
     from reality.services import business_blueprints as service
@@ -222,20 +221,16 @@ def test_source_changed_during_model_call_discards_interpretation(
         lambda fn, **kwargs: actual_capture(fn, approved_root=tmp_path),
     )
 
-    def infer(envelope):
+    actual_describe = service.describe
+
+    def changed_during_read(*args, **kwargs):
+        result = actual_describe(*args, **kwargs)
         (tmp_path / "blueprint_fixture.py").write_text(
             "def check(value):\n    return False\n"
         )
-        return {
-            "steps": [
-                {
-                    "rule_id": envelope["rules"][0]["id"],
-                    "text": "This interpretation must not survive a source change.",
-                }
-            ]
-        }
+        return result
 
-    provider(monkeypatch, infer)
+    monkeypatch.setattr(service, "describe", changed_during_read)
     result = service.explain("command", "check", language="de")
     assert result.status == "outdated"
     assert result.business.mode == "outdated"

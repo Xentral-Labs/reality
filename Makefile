@@ -49,3 +49,7 @@ compose-up:
 	docker compose up --build
 tree:
 	find . -maxdepth 4 -type f | sort
+
+.PHONY: business-annotations-check
+business-annotations-check:
+	PYTHONPATH=packages/reality-core/src .venv/bin/python scripts/check_business_annotations.py
