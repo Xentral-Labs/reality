@@ -2791,8 +2791,16 @@ def _stock_count(session: Session, tenant_id: str, arguments: dict[str, Any]) ->
 def _external_stock_state(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Record what a 3PL or a shop states is in stock, as stated, without moving stock.
+
+    BUSINESS RULE application.external_stock_state.1:
+    Route this company-scoped request to record_external_stock. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
+    """
     from reality.services.external_stock import record_external_stock
 
+    # reality-rule: application.external_stock_state.1
     rows = record_external_stock(
         session,
         tenant_id,
@@ -2808,8 +2816,16 @@ def _external_stock_state(
 
 
 def _external_stock(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Read the latest external stock statements beside Reality's stock at their stated time.
+
+    BUSINESS RULE application.external_stock.1:
+    Route this company-scoped request to external_stock. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
+    """
     from reality.services.external_stock import external_stock
 
+    # reality-rule: application.external_stock.1
     return external_stock(
         session,
         tenant_id,
