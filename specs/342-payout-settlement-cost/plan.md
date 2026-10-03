@@ -22,7 +22,7 @@
 
 Outside the scope everything reads as before. Two changes apply everywhere and are equivalent:
 `allocate_settlement` reads only the allocations touching the payment it checks, and
-`core.store_source_records` stores many source records of one type with shared reads (used for
+`core._store_source_records` stores many source records of one type with shared reads (used for
 payout lines).
 
 ## Constitution Check
