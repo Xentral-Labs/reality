@@ -33,7 +33,7 @@ Marketplace and payment-provider payouts are not matched to orders; fees, refund
 ### Non-Goals
 
 - Live marketplace or provider APIs and file profiles for their report formats. The statement is stated through the reviewed command, from a file by CLI or as arguments by an agent.
-- A web screen for entering a payout. The statement is too long to type, and the web reads what was settled.
+- A web screen for entering or browsing payouts. The statement is too long to type; the web API proposes it and reads what was settled, and the payment and document registers show the bookings. A payout register in the web app is a follow-up.
 - Moving the receivable to the provider at capture time. A capture is a stated fact about the authorization, not a posting; the money posts when the payout arrives.
 - The accounting export package of spec 148.
 - Anything that requires a document status field (Constitution II).

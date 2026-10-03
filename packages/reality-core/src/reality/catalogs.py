@@ -36,8 +36,8 @@ from reality.services import memberships as membership_service_module
 from reality.services import month_end_billing as month_end_billing_service_module
 from reality.services import notifications as notification_service_module
 from reality.services import order_line_items as order_line_item_service_module
-from reality.services import payment_intake as payment_intake_service_module
 from reality.services import payment_authorizations as authorization_service_module
+from reality.services import payment_intake as payment_intake_service_module
 from reality.services import payment_returns as payment_return_service_module
 from reality.services import payouts as payout_service_module
 from reality.services import playground as playground_service_module

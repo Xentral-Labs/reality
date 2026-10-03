@@ -2104,7 +2104,7 @@ def _billed_order(session, business, number, amount, party=None):
         "unit": "pcs",
         "source_line_id": "1",
     }
-    order, (order_line,) = core.create_manual_document_with_lines(
+    _, (order_line,) = core.create_manual_document_with_lines(
         session, tenant, "sales_order", number, party.id, [line], amount, _commit=False
     )
     invoice, (invoice_line,) = core.create_manual_document_with_lines(
@@ -2198,7 +2198,7 @@ def test_a_marketplace_payout_settles_each_order_and_books_the_fees(session, bus
         _charge("R-refund", "refund", "20.00", "AMZ-L03-R"),
         _charge("fees", "fee", "29.93"),
     ]
-    review, receipt = _finance(
+    review, _ = _finance(
         session,
         business,
         "finance.payout.settle",
