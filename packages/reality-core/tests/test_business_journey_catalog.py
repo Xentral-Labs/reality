@@ -240,10 +240,14 @@ def test_story_proven_journeys_can_be_found_by_ordinary_words() -> None:
         assert len(entry.question_examples) > 2, journey
 
 
-def test_the_combined_order_story_names_the_prepayment_it_cannot_release() -> None:
-    """Spec 294: R01 stays partial, and its limitation says why instead of claiming a release."""
+def test_the_combined_order_story_names_the_owner_release() -> None:
+    """Spec 347: R01 is supported through the owner's prepayment release, and says
+    the unpaid rest stays open instead of claiming it was paid."""
     entry = next(
         item for item in load_journey_catalog(_payload()).entries if item.id == "R01"
     )
-    assert entry.status == "partial"
-    assert any("no reviewed release" in text for text in entry.limitations)
+    assert entry.status == "supported"
+    assert "prepayment_release_propose" in entry.tools
+    assert any(
+        "stays an ordinary open receivable" in text for text in entry.limitations
+    )
