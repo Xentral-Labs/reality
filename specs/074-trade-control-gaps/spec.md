@@ -159,7 +159,8 @@ unsettled ones appear with the correct outstanding amount and days overdue.
 - **DR-002**: The payable class MUST consume the existing aging register rather than
   deriving a due date of its own, so one rule still answers when money is due.
 - **DR-003**: The trace MUST reach its records by opaque identity and MUST NOT restate
-  business fields.
+  business fields. Spec 352 adds the invoice number, customer reference and counterparty as
+  names beside those identities.
 - **DR-004**: Every read, derivation and explanation MUST be tenant-scoped.
 - **DR-005**: The class introduces no cause; the closed cause vocabulary is untouched.
 - **DR-006**: The payable class and the receivable class, and the payable class and the
