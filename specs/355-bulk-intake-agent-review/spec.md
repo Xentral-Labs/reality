@@ -160,3 +160,12 @@ IntakeBatch: fixed child identities/digests, confirmation and durable progress/r
 | DR-001, DR-002, DR-003, SC-001 | US1–US3, edge cases | `packages/reality-core/tests/test_bulk_intake_review.py` source/attribution, derived-state and tenant refusal matrix | T001, T002, T017, T018 |
 | SC-002 | All | Required gates and final evidence review | T019 |
 | SC-003 | US3 | `reality.benchmarks.intake` and volume/restart tests | T014, T016, T019 |
+
+## Delegated batch execution-time permission
+
+FR-005/FR-006 require each queued delegated child to re-read the actual token's
+current permission for `intake_agent_batch_review_and_queue`. The original parent
+review and cached transport principal cannot substitute for that permission.
+Removing it after submission makes remaining children review-required without
+accepted effects. Each retained child verdict binds the fixed ordered manifest,
+current mandate revision, original source coverage and exact prepared digest.
