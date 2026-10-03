@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:221efe21a20d7572860c61dbe77b1e2cc9e0b005d802c13e9dcae893be23a060",
+  "knowledge_version": "advisor-v1:sha256:a642bfb3566e41dcefe37d5331624adb43f469f707cfe321d0a8967e088c775b",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -603,7 +603,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D07",
-      "fingerprint": "75b095f8963b39a867c91651f487cc50529026e08153c93ce87a8f4db3c7ed2b"
+      "fingerprint": "a2c5ee535ad7d64e6bb7bd44a8c8974bdd82a8229ea73864a175bea9195fd9e5"
     },
     {
       "id": "source_journey_d08",
@@ -612,7 +612,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D08",
-      "fingerprint": "7dfb733978cd6058d310ed4e8f3a61bc565bd8dc73f91a47960026ce1c5114b1"
+      "fingerprint": "56e19decb50b140a0ab5fb5b74ef6ab34867e9a7a0b69828f8fee255ecadd1fc"
     },
     {
       "id": "source_journey_d09",
@@ -621,7 +621,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#D09",
-      "fingerprint": "d12ba820ad9e49159c0a8963afa076a92a0a1b7f537a636f44ea7b72a798e21e"
+      "fingerprint": "cc18aee31004b7185cc699eeda98d8da9cd1b194edc49585375b2cdf19248ab4"
     },
     {
       "id": "source_journey_d10",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "500f36c1362fdc5cfa7d6af46d329281838b6c0c1779d4ef1777304263cd2d1b"
+      "fingerprint": "856d5bf28d0ab4c0830eb3d5259c87ca2637790fb0685be1f31d989627e3e13d"
     },
     {
       "id": "source_document_product_evaluation",
@@ -3265,54 +3265,59 @@
       "source_id": "source_journey_d07",
       "subject": "Picking, shipment, split and merge",
       "title": "Parcel lost, carrier insurance pays",
-      "search_text": "D07 Picking, shipment, split and merge Parcel lost, carrier insurance pays Goods gone, claim receivable, customer still served? Parcel lost, carrier insurance pays Goods gone, claim receivable, customer still served?",
-      "claim_text": "Reality evaluates: Goods gone, claim receivable, customer still served?",
-      "support": "unavailable",
+      "search_text": "D07 Picking, shipment, split and merge Parcel lost, carrier insurance pays Goods gone, claim receivable, customer still served? lost parcel carrier claim insurance claim Paketverlust Schadensmeldung Parcel lost, carrier insurance pays Goods gone, claim receivable, customer still served? The carrier lost a parcel; how do we claim it and send the order again? Der Spediteur hat ein Paket verloren; wie machen wir die Forderung geltend und liefern neu?",
+      "claim_text": "Reality evaluates: Goods gone, claim receivable, customer still served? A lost parcel is recorded as a failed delivery: its shipment no longer counts as delivered, the goods are written off, the promise is open again to ship once more, and a claim against the carrier or its insurer is an open receivable that the carrier's payment settles.",
+      "support": "proven",
       "limitations": [
-        "There is no claim against the carrier or its insurer.",
-        "A lost parcel still counts as delivered until it is corrected."
+        "A failure covers the whole shipment, not one package of several.",
+        "The claim amount is stated; it is not derived from the goods' cost."
       ],
       "references": [
-        "D07"
+        "D07",
+        "shipment_delivery_failure_propose",
+        "delivery_failure_summary"
       ],
       "language": "en",
-      "fingerprint": "4f3e035103fac0370e222dc82b394891fbf963fe283a1f437c6d947d533eee62"
+      "fingerprint": "ad0505acb6ce99641b9049f38a194112c6e2e6a90636c897b20f2258fbcc0d08"
     },
     {
       "id": "evidence_journey_d08",
       "source_id": "source_journey_d08",
       "subject": "Picking, shipment, split and merge",
       "title": "Parcel undeliverable, returns",
-      "search_text": "D08 Picking, shipment, split and merge Parcel undeliverable, returns Stock back, commitment reopened? Parcel undeliverable, returns Stock back, commitment reopened?",
-      "claim_text": "Reality evaluates: Stock back, commitment reopened?",
-      "support": "unavailable",
+      "search_text": "D08 Picking, shipment, split and merge Parcel undeliverable, returns Stock back, commitment reopened? undeliverable parcel returned to sender Unzustellbar Rücksendung an Absender Parcel undeliverable, returns Stock back, commitment reopened? A parcel came back because the address was wrong; is the order open again? Ein Paket kam unzustellbar zurück; ist der Auftrag wieder offen?",
+      "claim_text": "Reality evaluates: Stock back, commitment reopened? An undeliverable parcel is recorded as a failed delivery, not a customer return: its shipment no longer counts as delivered, the goods are back where they left from, and the promise is open again; an invoice already issued is reported as invoiced and not shipped until the order ships again.",
+      "support": "proven",
       "limitations": [
-        "Returned stock is booked back, but a return never reopens the delivery promise.",
-        "An undeliverable parcel cannot be told apart from a customer return."
+        "The goods come back to the location they left from.",
+        "Reshipping or cancelling is a separate decision with the existing tools."
       ],
       "references": [
-        "D08"
+        "D08",
+        "shipment_delivery_failure_propose",
+        "delivery_failure_summary"
       ],
       "language": "en",
-      "fingerprint": "22ef5d6b68cc26ba1ccff521a7b2eb9a0c9e82f167e41a91d3869256f9943408"
+      "fingerprint": "3aa1cba5f6d50771a2ab05d38a15a806e755d87a8b959ffcb4ce911b2e65b798"
     },
     {
       "id": "evidence_journey_d09",
       "source_id": "source_journey_d09",
       "subject": "Picking, shipment, split and merge",
       "title": "Delivery refused",
-      "search_text": "D09 Picking, shipment, split and merge Delivery refused Same as D08 with a reason? Delivery refused Same as D08 with a reason?",
-      "claim_text": "Reality evaluates: Same as D08 with a reason?",
-      "support": "unavailable",
+      "search_text": "D09 Picking, shipment, split and merge Delivery refused Same as D08 with a reason? delivery refused refusal Annahmeverweigerung Annahme verweigert Delivery refused Same as D08 with a reason? The customer refused the parcel at the door; how do we record why? Der Kunde hat die Annahme verweigert; wie erfassen wir den Grund?",
+      "claim_text": "Reality evaluates: Same as D08 with a reason? A refused delivery is a failed delivery with the stated refusal reason, shown on the shipment; the goods are back and the promise is open again to ship once more or cancel.",
+      "support": "proven",
       "limitations": [
-        "As in D08, returned stock is booked back but the delivery promise does not reopen.",
-        "A refusal reason can be recorded on a return announcement, not on the received return itself."
+        "The reason is free text."
       ],
       "references": [
-        "D09"
+        "D09",
+        "shipment_delivery_failure_propose",
+        "delivery_failure_summary"
       ],
       "language": "en",
-      "fingerprint": "0bfc2b3e426697e103cec79e2095803b00e0e649663ef385432a3211a84a4175"
+      "fingerprint": "144150c4886770508160d05b6c1646b3557c246dd2ba7e2e774279f48569e3cb"
     },
     {
       "id": "evidence_journey_d10",
@@ -8502,6 +8507,21 @@
       ],
       "language": "en",
       "fingerprint": "f4dcd7a9d5de42bf638b2504dee545f12faf4ad057d7de28edce73678644825c"
+    },
+    {
+      "id": "evidence_command_record_delivery_failure",
+      "source_id": "source_executable_commands",
+      "subject": "Record a failed delivery",
+      "title": "Record a failed delivery",
+      "search_text": "record_delivery_failure Record a failed delivery Records that a customer shipment came back undeliverable, was refused or was lost; reverses its movements so the promise is open again, brings the goods back or writes them off, and may open a carrier claim. mutation",
+      "claim_text": "record_delivery_failure is a governed mutation command for Records that a customer shipment came back undeliverable, was refused or was lost; reverses its movements so the promise is open again, brings the goods back or writes them off, and may open a carrier claim..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "record_delivery_failure"
+      ],
+      "language": "en",
+      "fingerprint": "a8d4c40b3403c859361d5a81344d7a6fdd5b205768f3fc344a0d160ac113f3dc"
     },
     {
       "id": "evidence_command_assign_line_item",
