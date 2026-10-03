@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:b86ef902d9d2a68dc00c3ffe88c038e001157429e5b0185e1e81f3bc3640d064",
+  "knowledge_version": "advisor-v1:sha256:dba94d75cbe541955ef85cb1ec3af9d29bdf51648d75f45dfe9b51e280984c50",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1026,7 +1026,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#G10",
-      "fingerprint": "9c5a83cc214ae208b37bae9996c301af3099371f8a149df5068a6787585b519b"
+      "fingerprint": "fd64c52e7d5dabfdc1cdd07c3f3193e149955bda908063b4b10856a907d36c81"
     },
     {
       "id": "source_journey_g11",
@@ -4101,14 +4101,15 @@
       "support": "proven",
       "limitations": [
         "The three days are fixed for every company and supplier; a supplier's own response time is not stated.",
-        "A confirmation exactly as ordered is recorded by restating the line's date."
+        "A confirmation exactly as ordered is recorded by restating the line's date.",
+        "Once the delivery date has passed, the line is reported as overdue instead."
       ],
       "references": [
         "G10",
         "commitment_revise_propose"
       ],
       "language": "en",
-      "fingerprint": "5050376f9139b67d37a445dcd76166e5d5811ae05125bbf7787dc253a23e868c"
+      "fingerprint": "ac4987174fdb70ddfc83ad2336f9cd5bb8cec67b5c8706fccae3c555b3a8ba7b"
     },
     {
       "id": "evidence_journey_g11",
