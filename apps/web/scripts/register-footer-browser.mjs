@@ -222,7 +222,11 @@ for (const width of [1440, 1168, 390]) {
     assert.equal(await page.locator(".erp-selection-tools").count(), 1);
     await page.getByRole("checkbox", { name: "Select current page", exact: true }).uncheck();
     if (width >= 1024) {
-      await page.locator(".shell-chat-toggle").click();
+      if (await page.locator("[data-global-chat]").isVisible())
+        await page
+          .locator("[data-shell-header]")
+          .getByRole("button", { name: "Hide chat", exact: true })
+          .click();
       await page.waitForTimeout(150);
       await checkEdges();
       const closedSearchWidth = await checkToolbar();
@@ -240,7 +244,16 @@ for (const width of [1440, 1168, 390]) {
       await checkEdges();
       const openSearchWidth = await checkToolbar();
       if (width === 1168)
-        assert.ok(openSearchWidth < closedSearchWidth, "Search must shrink when chat opens");
+        assert.equal(
+          openSearchWidth,
+          closedSearchWidth,
+          "Narrow chat overlay must preserve workspace width",
+        );
+      if (width < 1280)
+        await page
+          .locator("[data-shell-header]")
+          .getByRole("button", { name: "Hide chat", exact: true })
+          .click();
     }
     const bottom = await footer.evaluate((el) => el.getBoundingClientRect().bottom);
     assert.ok(bottom <= 1000 && bottom >= 900, `footer bottom ${bottom} at ${width}`);

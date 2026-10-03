@@ -224,3 +224,18 @@ Run browser regression, frontend contracts/build/formatting and spec policy.
 Rollback restores the former markup and CSS; no migration or catalog generation.
 Pre-implementation analysis: FR-021 maps to T021–023, with geometry and existing
 interaction coverage. No critical findings; user scope is approved.
+
+## FR-022 workspace priority refinement
+
+Constitution Check: all principles PASS; existing presentation/state only, no business
+rules, tenant/service changes, persistence or schema. Shell.tsx observes a 1280px
+matchMedia query and closes chat when it changes to narrow. Default-open uses the same
+threshold. Keep ChatPage mounted to retain drafts/history. Pass data-chat-docked to
+CSS so narrow explicit chat keeps the base fixed overlay even at desktop-navigation
+widths; only dock-capable layouts receive a third grid column and sticky chat.
+Preserve explicit open events and Copilot navigation. Update refined-shell-browser.mjs
+with resize, draft, overlay bounds and reopening assertions before implementation;
+update the register-footer 1168px expectation and explicitly open touch chat.
+Analyze: FR-022 maps to T024–026; no uncovered acceptance, ambiguity or critical finding.
+Run focused/full frontend contracts, shell and register browsers, build, formatting,
+spec policy and PR CI. Rollback restores 1024px docking; no migrations/catalog edits.

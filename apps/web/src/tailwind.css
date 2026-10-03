@@ -3748,7 +3748,7 @@ textarea.br-control.rule-draft-editor {
     grid-template-rows: 48px minmax(0, 1fr);
     align-items: start;
   }
-  .app-shell[data-dock-open="true"] {
+  .app-shell[data-dock-open="true"][data-chat-docked="true"] {
     grid-template-columns: var(--shell-navigation-width) minmax(0, 1fr) var(--shell-chat-width);
   }
   .app-shell > [data-shell-body] {
@@ -3776,7 +3776,11 @@ textarea.br-control.rule-draft-editor {
     grid-column: 2;
     grid-row: 2;
   }
-  .app-shell .shell-chat-dock {
+  .app-shell[data-chat-docked="false"] .shell-chat-dock {
+    inset: var(--app-header-height) 0 0 auto;
+    width: min(100%, var(--shell-chat-width));
+  }
+  .app-shell[data-chat-docked="true"] .shell-chat-dock {
     position: sticky;
     inset: auto;
     top: 0;

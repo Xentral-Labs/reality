@@ -72,8 +72,25 @@ export function Shell({
   openAction: (tool: DeliveryAction) => void;
 }) {
   const [chatOpen, setChatOpen] = useState(
-    () => window.innerWidth >= 1024 || selection.route === "copilot",
+    () => window.innerWidth >= 1280 || selection.route === "copilot",
   );
+  const [chatCanDock, setChatCanDock] = useState(
+    () => window.matchMedia("(min-width: 1280px)").matches,
+  );
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1280px)");
+    const changed = (event: MediaQueryListEvent) => {
+      const restoreFocus = document.activeElement?.closest("[data-global-chat]");
+      setChatCanDock(event.matches);
+      if (!event.matches) setChatOpen(false);
+      if (!event.matches && restoreFocus)
+        requestAnimationFrame(() =>
+          document.querySelector<HTMLButtonElement>(".shell-chat-toggle")?.focus(),
+        );
+    };
+    media.addEventListener("change", changed);
+    return () => media.removeEventListener("change", changed);
+  }, []);
   useEffect(() => {
     if (selection.route === "copilot") setChatOpen(true);
   }, [selection.route]);
@@ -254,6 +271,7 @@ export function Shell({
             data-navigation-collapsed={navigationCollapsed}
             data-contained-chat={selection.route === "chat" || undefined}
             data-dock-open={dockOpen}
+            data-chat-docked={chatCanDock}
             className="app-shell min-h-screen bg-bg text-fg-default"
           >
             <header

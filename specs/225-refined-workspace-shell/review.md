@@ -170,3 +170,19 @@ density, selection, column preferences and export interactions remain in the tes
 The updated shared-table browser passes, including density/visibility/resize
 persistence, server sorting/page size, row/keyboard details, sticky scrolling and
 24 localized viewport screenshots. No production-code change was needed.
+
+## FR-022 workspace priority review (2026-10-03)
+
+User-approved scope; Constitution PASS, no unresolved clarification or critical
+analysis finding. The new contract failed before implementation and passes afterward
+(32 focused contracts); full frontend contracts pass (462/462). Shell browser passes
+resize from 1440px to 1168/1024/768/390px, automatic closure, full workspace bounds,
+explicit overlays without layout consumption, preserved draft, focus return and
+closed state after growing wide. Existing menus, company isolation and 32 localized
+layouts pass; 1024px touch chat is opened explicitly before target-size assertions.
+Finance register/browser checks pass across three registers at 1440/1168/390px;
+1168px chat now preserves the full register width. No chat instance is unmounted,
+no storage preference is added, and no services, catalogs or business data change.
+Final production TypeScript/Vite build, changed-file formatting, spec policy and
+whitespace checks pass. T026 local verification is complete; PR CI is verified
+separately before release. Existing bundle-size warnings remain unchanged.

@@ -99,3 +99,9 @@ T046 precedes T047; T048 follows. FR-020 is covered by all three tasks.
 - [x] T021 Update register-footer-browser.mjs, unified-tables-browser.mjs and unified-app-contract.test.mjs with FR-021 geometry/structure regression coverage before implementation.
 - [x] T022 Implement FR-021 in RegisterWorkbench.tsx and tailwind.css, preserving portal, filter and submission behavior.
 - [x] T023 Verify browser geometry, contracts, formatting, build and spec policy; record review evidence and update docs/WEB_SPEC.md (FR-021).
+
+## Workspace priority over chat
+
+- [x] T024 Add FR-022 regressions in refined-shell-browser.mjs, register-footer-browser.mjs and unified-app-contract.test.mjs before implementation.
+- [x] T025 Implement shared resize/default/overlay behavior in Shell.tsx and tailwind.css (FR-022).
+- [x] T026 Verify shell/register browser behavior, contracts, build, formatting and spec policy; document evidence in review.md and docs/WEB_SPEC.md (FR-022).
