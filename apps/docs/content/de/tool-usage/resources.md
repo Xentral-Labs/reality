@@ -38,7 +38,7 @@ privaten gespeicherten Einstellungen.
 
 - [Private Graph-Auswertung ändern](./commands#command-change_graph_report) (`change_graph_report`)
 
-**Darunter:** Tabellen: `analytics_report` · Agenten-Tools ohne Geschäftsaktion:
+**Darunter:** Tabellen: `analytics_report` · Agent Tools ohne Geschäftsaktion:
 [`graph_company_generation_current`](./commands#tool-graph_company_generation_current),
 [`graph_captured_reports_list`](./commands#tool-graph_captured_reports_list),
 [`graph_contribution_reviews_list`](./commands#tool-graph_contribution_reviews_list),
@@ -123,7 +123,7 @@ Kreditor, Adresse, Dublette, Zusammenführen
 [`party_price_list.assigned`](./events#event-party_price_list-assigned),
 [`party_group.updated`](./events#event-party_group-updated),
 [`party_group.created`](./events#event-party_group-created),
-[`party_group_member.added`](./events#event-party_group_member-added) · Agenten-Tools ohne
+[`party_group_member.added`](./events#event-party_group_member-added) · Agent Tools ohne
 Geschäftsaktion: [`finance_party_balances`](./commands#tool-finance_party_balances)
 
 ## Artikel {#resource-item}
@@ -200,7 +200,7 @@ Verfügbarkeit, Set, Stückliste
 [`stock_block.scrapped`](./events#event-stock_block-scrapped),
 [`kit.defined`](./events#event-kit-defined), [`kit.assembled`](./events#event-kit-assembled),
 [`stock_count.posted`](./events#event-stock_count-posted),
-[`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agenten-Tools ohne
+[`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agent Tools ohne
 Geschäftsaktion: [`inventory_read`](./commands#tool-inventory_read),
 [`item_supply_demand`](./commands#tool-item_supply_demand),
 [`supply_coverage`](./commands#tool-supply_coverage),
@@ -394,7 +394,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 [`commitment.held`](./events#event-commitment-held),
 [`commitment.hold_released`](./events#event-commitment-hold_released),
 [`reservation.created`](./events#event-reservation-created),
-[`reservation.released`](./events#event-reservation-released) · Agenten-Tools ohne Geschäftsaktion:
+[`reservation.released`](./events#event-reservation-released) · Agent Tools ohne Geschäftsaktion:
 [`commitments_list`](./commands#tool-commitments_list),
 [`fulfillment_queue`](./commands#tool-fulfillment_queue),
 [`fulfillment_readiness`](./commands#tool-fulfillment_readiness),
@@ -473,7 +473,7 @@ drop shipping, drop shipment, Streckengeschäft, Direktlieferung
 [`drop_shipment.recorded`](./events#event-drop_shipment-recorded),
 [`shipment.delivery_failed`](./events#event-shipment-delivery_failed),
 [`movement.recorded`](./events#event-movement-recorded),
-[`movement.corrected`](./events#event-movement-corrected) · Agenten-Tools ohne Geschäftsaktion:
+[`movement.corrected`](./events#event-movement-corrected) · Agent Tools ohne Geschäftsaktion:
 [`shipments_list`](./commands#tool-shipments_list),
 [`shipment_explain`](./commands#tool-shipment_explain),
 [`movement_explanation`](./commands#tool-movement_explanation),
@@ -601,7 +601,7 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 [`invoice.recorded`](./events#event-invoice-recorded),
 [`dunning.schedule_set`](./events#event-dunning-schedule_set),
 [`dunning.collection_handover_recorded`](./events#event-dunning-collection_handover_recorded) ·
-Agenten-Tools ohne Geschäftsaktion: [`finance_credits`](./commands#tool-finance_credits),
+Agent Tools ohne Geschäftsaktion: [`finance_credits`](./commands#tool-finance_credits),
 [`finance_party_balances`](./commands#tool-finance_party_balances)
 
 ## Zahlung und Ausgleich {#resource-payment}
@@ -670,7 +670,7 @@ Events: [`payout.settled`](./events#event-payout-settled),
 [`payment.authorized`](./events#event-payment-authorized),
 [`payment.captured`](./events#event-payment-captured),
 [`payments.run`](./events#event-payments-run),
-[`settlement.allocated`](./events#event-settlement-allocated) · Agenten-Tools ohne Geschäftsaktion:
+[`settlement.allocated`](./events#event-settlement-allocated) · Agent Tools ohne Geschäftsaktion:
 [`finance_balances`](./commands#tool-finance_balances),
 [`finance_party_balances`](./commands#tool-finance_party_balances),
 [`finance_payments`](./commands#tool-finance_payments)
@@ -836,7 +836,7 @@ jedes bestätigte Ergebnis behält seine Prüfung und Wissensgrenze.
 `cost_commercial_direct_part`, `cost_revenue_match_basis`, `cost_contribution_review`,
 `cost_selling_attribution_part`, `cost_selling_review_category`, `cost_selling_review_member` ·
 Events: [`cost.attributed`](./events#event-cost-attributed),
-[`cost.reviewed`](./events#event-cost-reviewed) · Agenten-Tools ohne Geschäftsaktion:
+[`cost.reviewed`](./events#event-cost-reviewed) · Agent Tools ohne Geschäftsaktion:
 [`graph_contribution_reviews_list`](./commands#tool-graph_contribution_reviews_list)
 
 ## Retoure {#resource-return}
@@ -891,7 +891,7 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 [`payment.returned`](./events#event-payment-returned),
 [`return.announced`](./events#event-return-announced),
 [`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn),
-[`exchange.recorded`](./events#event-exchange-recorded) · Agenten-Tools ohne Geschäftsaktion:
+[`exchange.recorded`](./events#event-exchange-recorded) · Agent Tools ohne Geschäftsaktion:
 [`customer_exchange`](./commands#tool-customer_exchange),
 [`return_disposition_summary`](./commands#tool-return_disposition_summary)
 
@@ -968,7 +968,7 @@ Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping
 [`source_record.interpreted`](./events#event-source_record-interpreted),
 [`document.recorded`](./events#event-document-recorded),
 [`document.corrected`](./events#event-document-corrected),
-[`document_line.item_assigned`](./events#event-document_line-item_assigned) · Agenten-Tools ohne
+[`document_line.item_assigned`](./events#event-document_line-item_assigned) · Agent Tools ohne
 Geschäftsaktion: [`interpretation_coverage`](./commands#tool-interpretation_coverage),
 [`business_logic_source`](./commands#tool-business_logic_source)
 
@@ -1025,7 +1025,7 @@ Freigabe, Abweichung, Klärfall, Timeline, Verlauf
 - [Reality-Fähigkeit im Business Journey Guide prüfen](./commands#command-business_journey_guide)
   (`business_journey_guide`)
 
-**Darunter:** Agenten-Tools ohne Geschäftsaktion:
+**Darunter:** Agent Tools ohne Geschäftsaktion:
 [`capability_catalog`](./commands#tool-capability_catalog),
 [`capability_describe`](./commands#tool-capability_describe),
 [`business_records_discover`](./commands#tool-business_records_discover),

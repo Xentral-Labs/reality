@@ -1,8 +1,23 @@
 {
   "interface_guide": {
     "title": {
-      "en": "Commands, agent tools and Web actions",
-      "de": "Commands, Agenten-Tools und Web-Aktionen"
+      "en": "How the five types work together",
+      "de": "Wie die fünf Typen zusammenhängen"
+    },
+    "read_example": {
+      "title": {
+        "en": "Read: inspect fulfillment blockers",
+        "de": "Ansehen: Lieferhindernisse prüfen"
+      },
+      "description": {
+        "en": "The Fulfillment blockers View presents the derived blockers supplied by the fulfillment_blockers Projection. The Agent Tool of the same name makes this read available to agents. These are related definitions at different layers; no reservation or shipment is performed.",
+        "de": "Die View Lieferhindernisse zeigt die abgeleiteten Hindernisse der Projection fulfillment_blockers. Das gleichnamige Agent Tool macht diese Abfrage für Agenten zugänglich. Die Einträge beschreiben unterschiedliche Ebenen derselben Abfrage; dabei wird nichts reserviert oder versendet."
+      },
+      "entries": [
+        "view:fulfillment_blockers",
+        "projection:fulfillment_blockers",
+        "tool:fulfillment_blockers"
+      ]
     },
     "kinds": {
       "command": {
@@ -11,7 +26,7 @@
           "de": "Commands"
         },
         "singular": {
-          "en": "command",
+          "en": "Command",
           "de": "Command"
         },
         "description": {
@@ -21,12 +36,12 @@
       },
       "tool": {
         "label": {
-          "en": "Agent tools",
-          "de": "Agenten-Tools"
+          "en": "Agent Tools",
+          "de": "Agent Tools"
         },
         "singular": {
-          "en": "agent tool",
-          "de": "Agenten-Tool"
+          "en": "Agent Tool",
+          "de": "Agent Tool"
         },
         "description": {
           "en": "Callable agent interfaces with defined inputs and access modes. A tool can expose a command; reads, discovery and proposal governance need not map to one business command.",
@@ -35,22 +50,50 @@
       },
       "action": {
         "label": {
-          "en": "Web actions",
-          "de": "Web-Aktionen"
+          "en": "Web Actions",
+          "de": "Web Actions"
         },
         "singular": {
-          "en": "Web action",
-          "de": "Web-Aktion"
+          "en": "Web Action",
+          "de": "Web Action"
         },
         "description": {
           "en": "Registered Web workspace interactions that start a command, with prerequisites, confirmation and a target view. This count covers registered workspace actions, not every Web button.",
           "de": "Registrierte Bedienaktionen der Web-Arbeitsbereiche, die einen Command starten, mit Voraussetzungen, Bestätigung und Zielansicht. Gezählt werden registrierte Workspace-Aktionen, nicht sämtliche Web-Buttons."
         }
+      },
+      "view": {
+        "label": {
+          "en": "Views",
+          "de": "Views"
+        },
+        "singular": {
+          "en": "View",
+          "de": "View"
+        },
+        "description": {
+          "en": "Business read surfaces, such as Fulfillment blockers. A View reads a Reality register directly or uses a Projection; several Views can share one Projection.",
+          "de": "Fachliche Sichten, etwa Lieferhindernisse. Eine View liest direkt aus einem Reality-Register oder nutzt eine Projection; mehrere Views können dieselbe Projection verwenden."
+        }
+      },
+      "projection": {
+        "label": {
+          "en": "Projections",
+          "de": "Projections"
+        },
+        "singular": {
+          "en": "Projection",
+          "de": "Projection"
+        },
+        "description": {
+          "en": "Derived read models built from existing records, such as delivery blockers. They supply data for Views and Agent Tools and do not replace authoritative Reality records.",
+          "de": "Aus bestehenden Datensätzen abgeleitete Lesemodelle, etwa Lieferhindernisse. Sie liefern Daten für Views und Agent Tools und ersetzen keine maßgeblichen Reality-Datensätze."
+        }
       }
     },
     "counts_note": {
       "en": "These counts overlap: a command, its agent tool and its Web action can describe the same capability. Do not add them as independent features. A command can have several agent tools or none.",
-      "de": "Diese Zahlen überschneiden sich: Ein Command, sein Agenten-Tool und seine Web-Aktion können dieselbe Fähigkeit beschreiben. Sie lassen sich nicht als unabhängige Features addieren. Ein Command kann mehrere Agenten-Tools haben oder keines."
+      "de": "Diese Zahlen überschneiden sich: Ein Command, sein Agent Tool und seine Web Action können dieselbe Fähigkeit beschreiben. Sie lassen sich nicht als unabhängige Features addieren. Ein Command kann mehrere Agent Tools haben oder keines."
     },
     "relationships_title": {
       "en": "Shared operation and entrypoints",
@@ -63,7 +106,7 @@
       },
       "description": {
         "en": "The Web action starts the reservation command after its confirmation. The agent tool prepares a proposal with a commitment identity and quantity 5; explicit approval through proposal_approve_and_execute then reaches the same command. The service owns allocation checks. Quantity is optional in the agent interface; supplying 5 makes the requested quantity explicit.",
-        "de": "Die Web-Aktion startet den Reservierungs-Command nach ihrer Bestätigung. Das Agenten-Tool bereitet einen Vorschlag mit Commitment-ID und Menge 5 vor; die ausdrückliche Freigabe über proposal_approve_and_execute führt anschließend zum selben Command. Der Service prüft die Zuteilung. Die Menge ist in der Agenten-Schnittstelle optional; mit 5 wird die gewünschte Menge ausdrücklich angegeben."
+        "de": "Die Web Action startet den Reservierungs-Command nach ihrer Bestätigung. Das Agent Tool bereitet einen Vorschlag mit Commitment-ID und Menge 5 vor; die ausdrückliche Freigabe über proposal_approve_and_execute führt anschließend zum selben Command. Der Service prüft die Zuteilung. Die Menge ist in der Agenten-Schnittstelle optional; mit 5 wird die gewünschte Menge ausdrücklich angegeben."
       },
       "action": "action:reserve_stock",
       "command": "command:reserve",

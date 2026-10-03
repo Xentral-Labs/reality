@@ -164,7 +164,8 @@ keine Live-Verbindung.
    `source_system_lifecycle_propose`
 3. **Du:** freigeben. Nicht erklärte Fähigkeiten werden am Eingang abgelehnt; das ist der Sinn.
 4. **Selbst verbinden:** Zugangsdaten, Webhooks, Senden leben im Shop oder deiner
-   Integrationsschicht; der Connector-Vertrag sagt, was ein Datensatz trägt.
+   Integrationsschicht; „Von Quelldaten zu Reality“ erklärt, wie Quellangaben mit Evidence und
+   Reality verknüpft werden.
 5. **Prüfen:** System und Fähigkeiten unter Quellen & Eingang · erste Datensätze und ihr Ergebnis →
    `interpretation_coverage`
 

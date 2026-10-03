@@ -128,9 +128,10 @@ interface Model {
   interface_guide: {
     title: Localized;
     counts_note: Localized;
+    read_example: { title: Localized; description: Localized; entries: string[] };
     relationships_title: Localized;
     kinds: Record<
-      "command" | "tool" | "action",
+      "command" | "tool" | "action" | "view" | "projection",
       {
         label: Localized;
         singular: Localized;
@@ -279,8 +280,8 @@ const copy: Record<Locale, Record<string, string>> = {
     kind_exception: "Exceptions",
     kind_event: "Events",
     kind_workspace: "Workspaces",
-    one_view: "view",
-    one_projection: "projection",
+    one_view: "View",
+    one_projection: "Projection",
     one_exception: "exception",
     one_event: "event",
     one_workspace: "workspace",
@@ -359,7 +360,7 @@ const copy: Record<Locale, Record<string, string>> = {
     kind: "Art",
     projection: "Projection",
     workspaces: "Arbeitsbereiche",
-    views: "Sichten",
+    views: "Views",
     consumers: "Verbraucher",
     outputs: "Ausgaben",
     targetRoute: "Landet auf",
@@ -376,12 +377,12 @@ const copy: Record<Locale, Record<string, string>> = {
     byWorkspace: "Nach Arbeitsbereich",
     byArea: "Nach Geschäftsbereich",
     answers: "Beantwortet",
-    kind_view: "Sichten",
+    kind_view: "Views",
     kind_projection: "Projections",
     kind_exception: "Ausnahmen",
     kind_event: "Events",
     kind_workspace: "Arbeitsbereiche",
-    one_view: "Sicht",
+    one_view: "View",
     one_projection: "Projection",
     one_exception: "Ausnahme",
     one_event: "Event",
@@ -506,6 +507,14 @@ const results = computed(() =>
 );
 
 const selected = computed(() => byId.value.get(selectedId.value) || null);
+const readRelationships = computed(() =>
+  selected.value && ["view", "projection"].includes(selected.value.kind)
+    ? selected.value.links.filter((id) =>
+        ["view", "projection"].includes(byId.value.get(id)?.kind || ""),
+      )
+    : [],
+);
+
 const operationRelationships = computed(() =>
   (selected.value?.links || []).filter((id) =>
     ["command", "tool", "action"].includes(byId.value.get(id)?.kind || ""),
@@ -595,7 +604,9 @@ const businessMatches = computed(() =>
     ? []
     : (model.value?.entries || [])
         .filter(
-          (e) => ["command", "view", "projection", "exception"].includes(e.kind) && matchesQuery(e),
+          (e) =>
+            ["command", "tool", "action", "view", "projection", "exception"].includes(e.kind) &&
+            matchesQuery(e),
         )
         .slice(0, 40),
 );
@@ -794,6 +805,20 @@ const resourceSections = computed(() => {
     { key: "lists", title: t.value.lists, entries: entryList(resource.lists) },
     { key: "actions", title: t.value.actionsOf, entries: entryList(resource.actions) },
     { key: "reads", title: t.value.lookups, entries: entryList(resource.reads) },
+    {
+      key: "tools",
+      title: t.value.kind_tool,
+      entries: (model.value?.entries || []).filter(
+        (e) => e.kind === "tool" && e.resources?.includes(resource.key),
+      ),
+    },
+    {
+      key: "web_actions",
+      title: t.value.kind_action,
+      entries: (model.value?.entries || []).filter(
+        (e) => e.kind === "action" && e.resources?.includes(resource.key),
+      ),
+    },
     { key: "exceptions", title: t.value.exceptionsOf, entries: entryList(resource.exceptions) },
   ]
     .map((section) => ({ ...section, entries: section.entries.filter(matchesQuery) }))
@@ -1027,7 +1052,7 @@ const explorerIntro = computed(() => {
         <h2>{{ explorerIntro[0] }}</h2>
         <p>{{ explorerIntro[1] }}</p>
       </header>
-      <details v-if="tab === 'technical'" class="interface-guide" data-interface-guide>
+      <details v-if="tab === 'technical'" class="interface-guide" data-interface-guide open>
         <summary>{{ loc(model.interface_guide.title) }}</summary>
         <dl>
           <template v-for="(definition, key) in model.interface_guide.kinds" :key="key">
@@ -1036,6 +1061,16 @@ const explorerIntro = computed(() => {
           </template>
         </dl>
         <p>{{ loc(model.interface_guide.counts_note) }}</p>
+        <h3>{{ loc(model.interface_guide.read_example.title) }}</h3>
+        <p>{{ loc(model.interface_guide.read_example.description) }}</p>
+        <ul>
+          <li v-for="id in model.interface_guide.read_example.entries" :key="id">
+            {{ t["one_" + byId.get(id)?.kind] }}:
+            <button type="button" class="linkish" @click="select(id)">
+              <code>{{ byId.get(id)?.key }}</code>
+            </button>
+          </li>
+        </ul>
         <h3>{{ loc(model.interface_guide.example.title) }}</h3>
         <p>{{ loc(model.interface_guide.example.description) }}</p>
         <ul>
@@ -1170,6 +1205,14 @@ const explorerIntro = computed(() => {
                 </button>
                 <strong>{{ loc(currentResource.label) }}</strong>
               </div>
+              <button
+                type="button"
+                class="linkish"
+                data-type-guide-link
+                @click="switchTab('technical')"
+              >
+                {{ locale === "de" ? "Was bedeuten die Typen?" : "What do the types mean?" }}
+              </button>
               <p v-if="resourceSections.length === 0" class="tool-usage-empty">{{ t.empty }}</p>
               <template v-for="section in resourceSections" :key="section.key">
                 <h3 class="tree-heading">{{ section.title }}</h3>
@@ -1180,11 +1223,7 @@ const explorerIntro = computed(() => {
                       :class="['tool-usage-row', { active: e.id === selectedId }]"
                       @click="select(e.id)"
                     >
-                      <span
-                        v-if="section.key !== 'actions'"
-                        :class="['badge', 'badge-' + e.kind]"
-                        >{{ t["one_" + e.kind] }}</span
-                      >
+                      <span :class="['badge', 'badge-' + e.kind]">{{ t["one_" + e.kind] }}</span>
                       <span class="row-name">{{ name(e) }}</span>
                       <code class="row-key">{{ e.key }}</code>
                       <span v-if="e.severity" class="row-area">{{ e.severity }}</span>
@@ -1205,7 +1244,8 @@ const explorerIntro = computed(() => {
                     <span class="resource-subtitle">{{ loc(r.subtitle) }}</span>
                     <span class="resource-counts">
                       {{ r.lists.length }} {{ t.countLists }} · {{ r.actions.length }}
-                      {{ t.countActions }} · {{ r.exceptions.length }} {{ t.countExceptions }}
+                      {{ t.countActions }} · {{ r.exceptions.length }}
+                      {{ t.countExceptions }}
                     </span>
                   </button>
                 </li>
@@ -1743,6 +1783,30 @@ const explorerIntro = computed(() => {
                   </ul>
                 </template>
 
+                <section v-if="readRelationships.length" data-read-relationships>
+                  <h3 class="man-title">
+                    {{ locale === "de" ? "Sicht und Datenbasis" : "View and data basis" }}
+                  </h3>
+                  <p>
+                    {{
+                      locale === "de"
+                        ? "Eine View ist eine fachliche Sicht. Eine zugehörige Projection liefert dafür abgeleitete Daten. Mehrere Sichten können dieselbe Projection verwenden."
+                        : "A View is a business read surface. Its Projection supplies derived data. Several views can use the same Projection."
+                    }}
+                  </p>
+                  <ul class="man-links">
+                    <li v-for="id in readRelationships" :key="id">
+                      <button type="button" class="tool-usage-row compact" @click="select(id)">
+                        <span :class="['badge', 'badge-' + byId.get(id)?.kind]">
+                          {{ t["one_" + byId.get(id)?.kind] }}
+                        </span>
+                        <code>{{ byId.get(id)?.key }}</code>
+                        <span class="row-label">{{ name(byId.get(id)) }}</span>
+                      </button>
+                    </li>
+                  </ul>
+                </section>
+
                 <section v-if="operationRelationships.length" data-operation-relationships>
                   <h3 class="man-title">
                     {{ loc(model.interface_guide.relationships_title) }}
@@ -1760,12 +1824,20 @@ const explorerIntro = computed(() => {
                   </ul>
                 </section>
 
-                <template v-if="selected.links.some((id) => !operationRelationships.includes(id))">
+                <template
+                  v-if="
+                    selected.links.some(
+                      (id) =>
+                        !operationRelationships.includes(id) && !readRelationships.includes(id),
+                    )
+                  "
+                >
                   <h3 class="man-title">{{ t.seeAlso }}</h3>
                   <ul class="man-links">
                     <li
                       v-for="id in selected.links.filter(
-                        (id) => !operationRelationships.includes(id),
+                        (id) =>
+                          !operationRelationships.includes(id) && !readRelationships.includes(id),
                       )"
                       :key="id"
                     >

@@ -1,4 +1,4 @@
-# Sichten, Projections und Web-Aktionen
+# Views, Projections und Web Actions
 
 Wo jemand hinschaut und was er dort auslösen kann. Eine Sicht ist entweder ein autoritatives
 Register oder eine materialisierte Projection; eine Aktion startet eine Geschäftsaktion.
@@ -6,28 +6,40 @@ Register oder eine materialisierte Projection; eine Aktion startet eine Geschäf
 > Automatisch aus `workspace_catalog.yaml`, `projection_catalog.yaml` erzeugt. Diese Seite nicht von
 > Hand bearbeiten.
 
-## Commands, Agenten-Tools und Web-Aktionen
+## Wie die fünf Typen zusammenhängen
 
-| Art           | Beschreibung                                                                                                                                                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Commands      | Gemeinsame Anwendungsoperationen zum Lesen und Ändern. CLI, Web und Agenten nutzen dieselben fachlichen Services.                                                                                                                    |
-| Agenten-Tools | Aufrufbare Agenten-Schnittstellen mit definierten Eingaben und Zugriffsarten. Ein Tool kann einen Command zugänglich machen; Abfragen, Discovery und Vorschlagssteuerung müssen keinem einzelnen fachlichen Command zugeordnet sein. |
-| Web-Aktionen  | Registrierte Bedienaktionen der Web-Arbeitsbereiche, die einen Command starten, mit Voraussetzungen, Bestätigung und Zielansicht. Gezählt werden registrierte Workspace-Aktionen, nicht sämtliche Web-Buttons.                       |
+| Art         | Beschreibung                                                                                                                                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Commands    | Gemeinsame Anwendungsoperationen zum Lesen und Ändern. CLI, Web und Agenten nutzen dieselben fachlichen Services.                                                                                                                    |
+| Agent Tools | Aufrufbare Agenten-Schnittstellen mit definierten Eingaben und Zugriffsarten. Ein Tool kann einen Command zugänglich machen; Abfragen, Discovery und Vorschlagssteuerung müssen keinem einzelnen fachlichen Command zugeordnet sein. |
+| Web Actions | Registrierte Bedienaktionen der Web-Arbeitsbereiche, die einen Command starten, mit Voraussetzungen, Bestätigung und Zielansicht. Gezählt werden registrierte Workspace-Aktionen, nicht sämtliche Web-Buttons.                       |
+| Views       | Fachliche Sichten, etwa Lieferhindernisse. Eine View liest direkt aus einem Reality-Register oder nutzt eine Projection; mehrere Views können dieselbe Projection verwenden.                                                         |
+| Projections | Aus bestehenden Datensätzen abgeleitete Lesemodelle, etwa Lieferhindernisse. Sie liefern Daten für Views und Agent Tools und ersetzen keine maßgeblichen Reality-Datensätze.                                                         |
 
-Diese Zahlen überschneiden sich: Ein Command, sein Agenten-Tool und seine Web-Aktion können dieselbe
+Diese Zahlen überschneiden sich: Ein Command, sein Agent Tool und seine Web Action können dieselbe
 Fähigkeit beschreiben. Sie lassen sich nicht als unabhängige Features addieren. Ein Command kann
-mehrere Agenten-Tools haben oder keines.
+mehrere Agent Tools haben oder keines.
+
+### Ansehen: Lieferhindernisse prüfen
+
+Die View Lieferhindernisse zeigt die abgeleiteten Hindernisse der Projection fulfillment_blockers.
+Das gleichnamige Agent Tool macht diese Abfrage für Agenten zugänglich. Die Einträge beschreiben
+unterschiedliche Ebenen derselben Abfrage; dabei wird nichts reserviert oder versendet.
+
+- [Lieferhindernisse](./views#view-fulfillment_blockers) (`fulfillment_blockers`)
+- [Lieferhindernisse](./views#projection-fulfillment_blockers) (`fulfillment_blockers`)
+- [Read fulfillment blockers](./commands#tool-fulfillment_blockers) (`fulfillment_blockers`)
 
 ### Beispiel: 5 Stück reservieren
 
-Die Web-Aktion startet den Reservierungs-Command nach ihrer Bestätigung. Das Agenten-Tool bereitet
+Die Web Action startet den Reservierungs-Command nach ihrer Bestätigung. Das Agent Tool bereitet
 einen Vorschlag mit Commitment-ID und Menge 5 vor; die ausdrückliche Freigabe über
 proposal_approve_and_execute führt anschließend zum selben Command. Der Service prüft die Zuteilung.
 Die Menge ist in der Agenten-Schnittstelle optional; mit 5 wird die gewünschte Menge ausdrücklich
 angegeben.
 
-- Web-Aktionen: [Reserve stock](./views#action-reserve_stock) (`reserve_stock`)
-- Agenten-Tools: [Propose reservation](./commands#tool-reservation_propose) (`reservation_propose`)
+- Web Actions: [Reserve stock](./views#action-reserve_stock) (`reserve_stock`)
+- Agent Tools: [Propose reservation](./commands#tool-reservation_propose) (`reservation_propose`)
 - Commands: [Bestand reservieren](./commands#command-reserve) (`reserve`)
 
 ## So wird diese Abfrage ausgeführt {#read-execution}
@@ -73,20 +85,20 @@ bedeuten nicht, dass es keine Geschäftsdaten gibt. Die Aktualität externer Que
 
 ### `company` — Company Overview {#workspace-company}
 
-**Sichten:** [`commitments`](./views#view-commitments), [`inventory`](./views#view-inventory),
+**Views:** [`commitments`](./views#view-commitments), [`inventory`](./views#view-inventory),
 [`open_items`](./views#view-open_items), [`documents`](./views#view-documents),
 [`activity`](./views#view-activity)
 
-**Web-Aktionen:** [`observe_fact`](./views#action-observe_fact)
+**Web Actions:** [`observe_fact`](./views#action-observe_fact)
 
 ### `operations` — Order Operations {#workspace-operations}
 
-**Sichten:** [`orders`](./views#view-orders), [`commitments`](./views#view-commitments),
+**Views:** [`orders`](./views#view-orders), [`commitments`](./views#view-commitments),
 [`reservations`](./views#view-reservations), [`inventory`](./views#view-inventory),
 [`fulfillment_blockers`](./views#view-fulfillment_blockers),
 [`supply_demand`](./views#view-supply_demand), [`documents`](./views#view-documents)
 
-**Web-Aktionen:** [`create_manual_order`](./views#action-create_manual_order),
+**Web Actions:** [`create_manual_order`](./views#action-create_manual_order),
 [`reserve_stock`](./views#action-reserve_stock),
 [`hold_commitment`](./views#action-hold_commitment),
 [`hold_document_commitments`](./views#action-hold_document_commitments),
@@ -94,13 +106,13 @@ bedeuten nicht, dass es keine Geschäftsdaten gibt. Die Aktualität externer Que
 
 ### `warehouse` — Warehouse Operations {#workspace-warehouse}
 
-**Sichten:** [`inventory`](./views#view-inventory),
-[`warehouse_queue`](./views#view-warehouse_queue), [`reservations`](./views#view-reservations),
-[`movements`](./views#view-movements), [`fulfillment_blockers`](./views#view-fulfillment_blockers),
+**Views:** [`inventory`](./views#view-inventory), [`warehouse_queue`](./views#view-warehouse_queue),
+[`reservations`](./views#view-reservations), [`movements`](./views#view-movements),
+[`fulfillment_blockers`](./views#view-fulfillment_blockers),
 [`supply_demand`](./views#view-supply_demand), [`commitments`](./views#view-commitments),
 [`locations`](./views#view-locations)
 
-**Web-Aktionen:** [`record_movement`](./views#action-record_movement),
+**Web Actions:** [`record_movement`](./views#action-record_movement),
 [`reserve_stock`](./views#action-reserve_stock),
 [`hold_commitment`](./views#action-hold_commitment),
 [`correct_movement`](./views#action-correct_movement),
@@ -109,20 +121,20 @@ bedeuten nicht, dass es keine Geschäftsdaten gibt. Die Aktualität externer Que
 
 ### `finance` — Finance Control {#workspace-finance}
 
-**Sichten:** [`open_items`](./views#view-open_items), [`payments`](./views#view-payments),
+**Views:** [`open_items`](./views#view-open_items), [`payments`](./views#view-payments),
 [`journal`](./views#view-journal), [`documents`](./views#view-documents),
 [`parties`](./views#view-parties)
 
-**Web-Aktionen:** [`post_customer_payment`](./views#action-post_customer_payment),
+**Web Actions:** [`post_customer_payment`](./views#action-post_customer_payment),
 [`post_supplier_payment`](./views#action-post_supplier_payment)
 
 ### `data` — Data Management {#workspace-data}
 
-**Sichten:** [`parties`](./views#view-parties), [`items`](./views#view-items),
+**Views:** [`parties`](./views#view-parties), [`items`](./views#view-items),
 [`locations`](./views#view-locations), [`documents`](./views#view-documents),
 [`commercial_terms`](./views#view-commercial_terms)
 
-## Sichten
+## Views
 
 | Schlüssel                                            | Bezeichnung          | Route                  | Art                       | Projection             |
 | ---------------------------------------------------- | -------------------- | ---------------------- | ------------------------- | ---------------------- |
@@ -498,8 +510,8 @@ execution holds.
 `reservation.created`, `reservation.released`, `movement.recorded`, `movement.corrected`,
 `ledger.reversed`, `settlement.allocated`
 
-**Siehe auch:** Sicht [`orders`](./views#view-orders), Sicht
-[`warehouse_queue`](./views#view-warehouse_queue), Agenten-Tool
+**Siehe auch:** View [`orders`](./views#view-orders), View
+[`warehouse_queue`](./views#view-warehouse_queue), Agent Tool
 [`fulfillment_queue`](./commands#tool-fulfillment_queue)
 
 ### `fulfillment_blockers` — Fulfillment blockers {#projection-fulfillment_blockers}
@@ -533,7 +545,7 @@ insufficient unblocked stock at supplying locations, and active order or party d
 `commitment.hold_released`, `reservation.created`, `reservation.released`, `movement.recorded`,
 `movement.corrected`, `ledger.reversed`, `settlement.allocated`
 
-**Siehe auch:** Sicht [`fulfillment_blockers`](./views#view-fulfillment_blockers), Agenten-Tool
+**Siehe auch:** View [`fulfillment_blockers`](./views#view-fulfillment_blockers), Agent Tool
 [`fulfillment_blockers`](./commands#tool-fulfillment_blockers)
 
 ### `item_supply_demand` — Item supply and demand {#projection-item_supply_demand}
@@ -565,7 +577,7 @@ affected-order quantities per item; available and projected stock exclude remain
 `commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
 `movement.recorded`, `movement.corrected`
 
-**Siehe auch:** Sicht [`supply_demand`](./views#view-supply_demand), Agenten-Tool
+**Siehe auch:** View [`supply_demand`](./views#view-supply_demand), Agent Tool
 [`item_supply_demand`](./commands#tool-item_supply_demand)
 
 ### `tenant_usage` — Tenant usage {#projection-tenant_usage}
@@ -646,12 +658,12 @@ revisions and cancellation.
 `drop_shipment.recorded`, `shipment.delivery_failed`, `reservation.created`, `reservation.released`,
 `movement.recorded`, `movement.corrected`
 
-**Siehe auch:** Sicht [`inventory`](./views#view-inventory), Agenten-Tool
-[`inventory_read`](./commands#tool-inventory_read), Agenten-Tool
-[`reservation_propose`](./commands#tool-reservation_propose), Agenten-Tool
-[`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool
-[`return_disposition_propose`](./commands#tool-return_disposition_propose), Agenten-Tool
-[`commitment_revise_propose`](./commands#tool-commitment_revise_propose), Agenten-Tool
+**Siehe auch:** View [`inventory`](./views#view-inventory), Agent Tool
+[`inventory_read`](./commands#tool-inventory_read), Agent Tool
+[`reservation_propose`](./commands#tool-reservation_propose), Agent Tool
+[`movement_create_propose`](./commands#tool-movement_create_propose), Agent Tool
+[`return_disposition_propose`](./commands#tool-return_disposition_propose), Agent Tool
+[`commitment_revise_propose`](./commands#tool-commitment_revise_propose), Agent Tool
 [`commitment_cancel_propose`](./commands#tool-commitment_cancel_propose)
 
 ### `exceptions` — Operational Exceptions {#projection-exceptions}
@@ -779,11 +791,11 @@ status on documents.
 `exchange.recorded`, `commitment.held`, `commitment.hold_released`, `reservation.created`,
 `reservation.released`, `movement.recorded`, `movement.corrected`
 
-**Siehe auch:** Agenten-Tool [`commitments_list`](./commands#tool-commitments_list), Agenten-Tool
-[`reservation_propose`](./commands#tool-reservation_propose), Agenten-Tool
-[`order_create_propose`](./commands#tool-order_create_propose), Agenten-Tool
-[`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool
-[`commitment_revise_propose`](./commands#tool-commitment_revise_propose), Agenten-Tool
+**Siehe auch:** Agent Tool [`commitments_list`](./commands#tool-commitments_list), Agent Tool
+[`reservation_propose`](./commands#tool-reservation_propose), Agent Tool
+[`order_create_propose`](./commands#tool-order_create_propose), Agent Tool
+[`movement_create_propose`](./commands#tool-movement_create_propose), Agent Tool
+[`commitment_revise_propose`](./commands#tool-commitment_revise_propose), Agent Tool
 [`commitment_cancel_propose`](./commands#tool-commitment_cancel_propose)
 
 ### `document_register` — Document register {#projection-document_register}
@@ -808,9 +820,8 @@ Presents evidence and counts its shortest links into operational Reality.
 `document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
 `document_line.item_assigned`
 
-**Siehe auch:** Agenten-Tool [`order_create_propose`](./commands#tool-order_create_propose),
-Agenten-Tool [`sales_credit_record_propose`](./commands#tool-sales_credit_record_propose),
-Agenten-Tool
+**Siehe auch:** Agent Tool [`order_create_propose`](./commands#tool-order_create_propose), Agent
+Tool [`sales_credit_record_propose`](./commands#tool-sales_credit_record_propose), Agent Tool
 [`supplier_invoice_free_record_propose`](./commands#tool-supplier_invoice_free_record_propose)
 
 ### `open_financial_items` — Open financial items {#projection-open_financial_items}
@@ -839,7 +850,7 @@ payment truth.
 `payment_term.updated`, `document.recorded`, `document.corrected`, `payments.run`,
 `shipment.delivery_failed`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
-**Siehe auch:** Sicht [`open_items`](./views#view-open_items)
+**Siehe auch:** View [`open_items`](./views#view-open_items)
 
 ### `payments` — Payments {#projection-payments}
 
@@ -922,12 +933,11 @@ Normalizes important evidence and reality timestamps into one chronological oper
 `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`, `movement.corrected`,
 `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
-**Siehe auch:** Agenten-Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose),
-Agenten-Tool [`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool
-[`finance_initialize_accounts_propose`](./commands#tool-finance_initialize_accounts_propose),
-Agenten-Tool [`finance_create_account_propose`](./commands#tool-finance_create_account_propose),
-Agenten-Tool [`finance_update_account_propose`](./commands#tool-finance_update_account_propose),
-Agenten-Tool
+**Siehe auch:** Agent Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose), Agent
+Tool [`movement_create_propose`](./commands#tool-movement_create_propose), Agent Tool
+[`finance_initialize_accounts_propose`](./commands#tool-finance_initialize_accounts_propose), Agent
+Tool [`finance_create_account_propose`](./commands#tool-finance_create_account_propose), Agent Tool
+[`finance_update_account_propose`](./commands#tool-finance_update_account_propose), Agent Tool
 [`finance_set_default_account_propose`](./commands#tool-finance_set_default_account_propose)
 
 ### `price_resolution` — Price resolution {#projection-price_resolution}
@@ -949,7 +959,7 @@ stored result or unrelated projection refresh is used.
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-## Web-Aktionen
+## Web Actions
 
 | Schlüssel                                                        | Bezeichnung                           | Command                                                                     | Bestätigung      | Voraussetzungen                                     |
 | ---------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------- | ---------------- | --------------------------------------------------- |
@@ -972,7 +982,7 @@ stored result or unrelated projection refresh is used.
 **Command:** [`create_manual_order`](./commands#command-create_manual_order) · **Bestätigung:**
 `summary` · **Voraussetzungen:** `company_party`, `counterparty`, `location`, `item`
 
-**Siehe auch:** Command [`create_manual_order`](./commands#command-create_manual_order), Sicht
+**Siehe auch:** Command [`create_manual_order`](./commands#command-create_manual_order), View
 [`documents`](./views#view-documents), Arbeitsbereich [`operations`](./views#workspace-operations)
 
 ### `observe_fact` — Observe source-supported fact {#action-observe_fact}
@@ -988,7 +998,7 @@ stored result or unrelated projection refresh is used.
 **Command:** [`post_customer_payment`](./commands#command-post_customer_payment) · **Bestätigung:**
 `summary` · **Voraussetzungen:** `customer_invoice`
 
-**Siehe auch:** Command [`post_customer_payment`](./commands#command-post_customer_payment), Sicht
+**Siehe auch:** Command [`post_customer_payment`](./commands#command-post_customer_payment), View
 [`payments`](./views#view-payments), Arbeitsbereich [`finance`](./views#workspace-finance)
 
 ### `post_supplier_payment` — Post supplier payment {#action-post_supplier_payment}
@@ -996,7 +1006,7 @@ stored result or unrelated projection refresh is used.
 **Command:** [`post_supplier_payment`](./commands#command-post_supplier_payment) · **Bestätigung:**
 `summary` · **Voraussetzungen:** `supplier_invoice`
 
-**Siehe auch:** Command [`post_supplier_payment`](./commands#command-post_supplier_payment), Sicht
+**Siehe auch:** Command [`post_supplier_payment`](./commands#command-post_supplier_payment), View
 [`payments`](./views#view-payments), Arbeitsbereich [`finance`](./views#workspace-finance)
 
 ### `reserve_stock` — Reserve stock {#action-reserve_stock}
@@ -1004,7 +1014,7 @@ stored result or unrelated projection refresh is used.
 **Command:** [`reserve`](./commands#command-reserve) · **Bestätigung:** `summary` ·
 **Voraussetzungen:** `commitment`
 
-**Siehe auch:** Command [`reserve`](./commands#command-reserve), Sicht
+**Siehe auch:** Command [`reserve`](./commands#command-reserve), View
 [`reservations`](./views#view-reservations), Arbeitsbereich
 [`operations`](./views#workspace-operations), Arbeitsbereich
 [`warehouse`](./views#workspace-warehouse)
@@ -1014,7 +1024,7 @@ stored result or unrelated projection refresh is used.
 **Command:** [`record_movement`](./commands#command-record_movement) · **Bestätigung:** `summary` ·
 **Voraussetzungen:** `item`, `location`
 
-**Siehe auch:** Command [`record_movement`](./commands#command-record_movement), Sicht
+**Siehe auch:** Command [`record_movement`](./commands#command-record_movement), View
 [`movements`](./views#view-movements), Arbeitsbereich [`warehouse`](./views#workspace-warehouse)
 
 ### `correct_movement` — Correct movement {#action-correct_movement}
@@ -1022,7 +1032,7 @@ stored result or unrelated projection refresh is used.
 **Command:** [`correct_movement`](./commands#command-correct_movement) · **Bestätigung:**
 `server_preview` · **Voraussetzungen:** `movement`
 
-**Siehe auch:** Command [`correct_movement`](./commands#command-correct_movement), Sicht
+**Siehe auch:** Command [`correct_movement`](./commands#command-correct_movement), View
 [`movements`](./views#view-movements), Arbeitsbereich [`warehouse`](./views#workspace-warehouse)
 
 ### `hold_commitment` — Hold or release commitment {#action-hold_commitment}
@@ -1030,7 +1040,7 @@ stored result or unrelated projection refresh is used.
 **Command:** [`hold_commitment`](./commands#command-hold_commitment) · **Bestätigung:** `summary` ·
 **Voraussetzungen:** `commitment`
 
-**Siehe auch:** Command [`hold_commitment`](./commands#command-hold_commitment), Sicht
+**Siehe auch:** Command [`hold_commitment`](./commands#command-hold_commitment), View
 [`commitments`](./views#view-commitments), Arbeitsbereich
 [`operations`](./views#workspace-operations), Arbeitsbereich
 [`warehouse`](./views#workspace-warehouse)
@@ -1041,7 +1051,7 @@ stored result or unrelated projection refresh is used.
 **Bestätigung:** `summary` · **Voraussetzungen:** `document`
 
 **Siehe auch:** Command [`hold_document_commitments`](./commands#command-hold_document_commitments),
-Sicht [`documents`](./views#view-documents), Arbeitsbereich
+View [`documents`](./views#view-documents), Arbeitsbereich
 [`operations`](./views#workspace-operations)
 
 ### `party_delivery_hold` — Set or release party delivery hold {#action-party_delivery_hold}
@@ -1049,7 +1059,7 @@ Sicht [`documents`](./views#view-documents), Arbeitsbereich
 **Command:** [`hold_party_delivery`](./commands#command-hold_party_delivery) · **Bestätigung:**
 `summary` · **Voraussetzungen:** `party`
 
-**Siehe auch:** Command [`hold_party_delivery`](./commands#command-hold_party_delivery), Sicht
+**Siehe auch:** Command [`hold_party_delivery`](./commands#command-hold_party_delivery), View
 [`parties`](./views#view-parties), Arbeitsbereich [`operations`](./views#workspace-operations)
 
 ### `create_handling_unit` — Create handling unit {#action-create_handling_unit}
@@ -1057,7 +1067,7 @@ Sicht [`documents`](./views#view-documents), Arbeitsbereich
 **Command:** [`create_handling_unit`](./commands#command-create_handling_unit) · **Bestätigung:**
 `summary` · **Voraussetzungen:** —
 
-**Siehe auch:** Command [`create_handling_unit`](./commands#command-create_handling_unit), Sicht
+**Siehe auch:** Command [`create_handling_unit`](./commands#command-create_handling_unit), View
 [`movements`](./views#view-movements), Arbeitsbereich [`warehouse`](./views#workspace-warehouse)
 
 ### `create_lot` — Create lot {#action-create_lot}
@@ -1065,7 +1075,7 @@ Sicht [`documents`](./views#view-documents), Arbeitsbereich
 **Command:** [`create_lot`](./commands#command-create_lot) · **Bestätigung:** `summary` ·
 **Voraussetzungen:** `item`
 
-**Siehe auch:** Command [`create_lot`](./commands#command-create_lot), Sicht
+**Siehe auch:** Command [`create_lot`](./commands#command-create_lot), View
 [`movements`](./views#view-movements), Arbeitsbereich [`warehouse`](./views#workspace-warehouse)
 
 ### `create_serial_unit` — Create serial unit {#action-create_serial_unit}
@@ -1073,5 +1083,5 @@ Sicht [`documents`](./views#view-documents), Arbeitsbereich
 **Command:** [`create_serial_unit`](./commands#command-create_serial_unit) · **Bestätigung:**
 `summary` · **Voraussetzungen:** `item`
 
-**Siehe auch:** Command [`create_serial_unit`](./commands#command-create_serial_unit), Sicht
+**Siehe auch:** Command [`create_serial_unit`](./commands#command-create_serial_unit), View
 [`movements`](./views#view-movements), Arbeitsbereich [`warehouse`](./views#workspace-warehouse)

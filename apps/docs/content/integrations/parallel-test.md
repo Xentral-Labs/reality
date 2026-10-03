@@ -13,7 +13,7 @@ actions during this phase.
 
 | Source  | Present in the repository                                                                                             | Still needed for a live connection                                    |
 | ------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Shopify | Connector shell and a working `("shopify", "order")` interpreter                                                      | Authentication, polling/webhooks and production mapping for your shop |
+| Shopify | Connector shell; registered interpreters for `("shopify", "order")` and `("shopify", "refund")`                       | Authentication, polling/webhooks and production mapping for your shop |
 | Xentral | Connector shell with `order`, `purchase_order`, `article`, `contact` and `payment` capabilities                       | Vendor transport and an interpreter for each source type you test     |
 | Odoo    | Connector shell with `sale.order`, `purchase.order`, `product.product`, `res.partner` and `account.move` capabilities | Vendor transport and an interpreter for each source type you test     |
 
@@ -139,5 +139,12 @@ interpreter or business rule is still missing.
 - [ ] Differences from the ERP are classified and reviewed with a business owner.
 - [ ] No outbound ERP mutation is enabled.
 
-Next, read the [Connector contract](./connector-contract) before turning the pilot adapter into a
-production integration.
+Next, read the [From source data to Reality](./connector-contract) before turning the pilot adapter
+into a production integration.
+
+## From pilot to complete integration
+
+This pilot proves a narrow case. Continue with [Xentral](./xentral), [Shopify](./shopify) or
+[Odoo](./odoo) for the full agreed scope, coverage matrix and acceptance story. The
+[From source data to Reality](./connector-contract#completeness-and-acceptance) defines shared
+completion criteria.

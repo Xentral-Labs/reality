@@ -1,11 +1,28 @@
-# Implement Business Operations
+# Develop Commands
 
-A command changes business state. Use the existing stock reservation as a complete example.
+## What you will learn
 
-The generated [Tool Usage reference](../tool-usage/commands) shows what already exists, with the
-exact public parameters of every agent tool.
+Add a shared operation through its service, Application Tool and catalog entry. Distinguish reads
+from mutations.
 
-## Follow `reserve` through the code
+## When to use it
+
+A Command describes an application operation with defined inputs/results. Add one when the operation
+is missing; a new entrypoint to an existing operation does not need a second Command.
+
+Follow `credit_exposure` in `config/command_catalog.yaml`, `_credit_exposure` and
+`TOOLS["credit_exposure"]` in `tools/application.py`, and `credit_exposure` in its service module.
+Unlike `reserve`, this entrypoint requires no mutation approval. It reads existing tenant-scoped
+records; a read must not change business records while displaying them. Take inputs/results from the
+actual schema rather than copying the reservation contract into a query.
+
+## Before you start
+
+Identify the affected Reality records and intended business outcome. Use PostgreSQL tests and
+existing fixtures. Spec, plan and tests precede implementation; see the
+[shared reference](./reference).
+
+## Worked example
 
 1. `packages/reality-core/src/reality/services/core.py::reserve` owns the rules. It loads the
    `Commitment` with tenant scope, checks holds and inventory identity, calculates quantities with
@@ -20,25 +37,10 @@ exact public parameters of every agent tool.
 5. HTTP, MCP, CLI and Chat call this application capability; they do not implement reservation
    rules.
 
-```python
-def reserve(session, tenant_id, commitment_id, quantity=None, *, action_id=None):
-    commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
-    require_not_held(session, tenant_id, "commitment", commitment.id)
-    # validate, calculate with Decimal, create Reservation, emit event
-    return ReservationResult(...)
-```
+Read the complete service and wrapper in the repository. Reservation uses the same path for Web, CLI
+and agents; wrappers are not another rule authority.
 
-The wrapper returns an application result, not an ORM object:
-
-```python
-def _reserve(session, tenant_id, arguments):
-    result = reserve(session, tenant_id, arguments["commitment_id"], arguments.get("quantity"))
-    return {"reservation_id": result.reservation.id,
-            "requested": result.requested, "applied": result.reserved,
-            "shortage": result.shortage}
-```
-
-## Add a command step by step
+## Step by step
 
 1. Add a failing business test under `packages/reality-core/tests/`. State preconditions, records
    written, event emitted and authoritative verification read.
@@ -55,6 +57,33 @@ def _reserve(session, tenant_id, arguments):
 Useful examples are `test_inventory_and_fulfillment.py`, `test_application_tools.py`,
 `test_application_catalog.py` and `test_http_boundary.py`.
 
-Do not use a command for a read-only calculation, a current risk condition or ERP transport. Those
-belong to a Projection, Exception or connector respectively. Never add delivery or reservation
-status to a Document; derive it from Reality records.
+A read Command may expose a calculation or Projection. Keep the calculation in its shared service;
+use an Exception derivation for a current risk condition and a connector for ERP transport. Never
+add delivery or reservation status to a Document; derive it from Reality records.
+
+## Check the result
+
+Use the same business test story through service, tool and adapter: sufficient stock, shortage, held
+Commitment and foreign tenant identity. Verify through Reservations and Movements rather than a new
+Document status. Add resource membership and `labels.de` in `config/resource_catalog.yaml`, run
+`make docs-generate` and inspect the reference.
+
+Continue with concrete [Agent Tool](./agent-tools) and [Web Action](./web-actions) templates. A new
+Command does not automatically require a new table; schema changes need a proven use case in the
+spec and plan.
+
+## Try it yourself
+
+Trace the read `credit_exposure` Command and record its service, inputs/results. Compare it with
+`reserve`: mutation marking and approval apply to the change. Expected result: explain which
+existing parts an extra entrypoint reuses.
+
+## Common mistakes
+
+No business rules in adapters, document numbers as IDs or fulfillment status on Documents. A
+shortened example does not replace the complete implementation's guards, idempotency and events.
+
+## Continue
+
+[Develop exceptions](./exceptions) explains derived attention needs. Continue with
+[Agent Tools](./agent-tools) and [Web Actions](./web-actions) for entrypoints.

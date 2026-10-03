@@ -1,10 +1,24 @@
-# Connect an ERP System
+# Connect ERP and Data Sources
+
+Start with [Connect an example ERP step by step](../integrations/example-erp): promises first, then
+actual deliveries and the additional data your question requires. That chapter shows the business
+output before this guide explains implementation.
+
+## What you will learn
+
+Separate transport from interpretation and trace an ERP order losslessly to its operational promise.
+
+## When to use it
 
 An integration has two independent parts: the connector transports and stores the external payload;
 the interpreter derives Evidence and Reality records. Keeping them separate means an unknown object
 can be retained losslessly without pretending that its business meaning is known.
 
-## Existing paths
+## Before you start
+
+Have an original payload, source identity and version contract. Use a test company and keep
+credentials out of fixtures. Read the
+[From source data to Reality](../integrations/connector-contract) first.
 
 | Kind                      | Extend here                                  | Example                             |
 | ------------------------- | -------------------------------------------- | ----------------------------------- |
@@ -17,12 +31,12 @@ can be retained losslessly without pretending that its business meaning is known
 does not contain authentication, transport or field mapping, and an installed shell does not imply
 that an interpreter exists.
 
-## Example: Shopify order
+## Worked example
 
 `services/core.py::_shopify_interpretation` reads the immutable `SourceRecord.payload`, resolves or
-creates Evidence and Reality records for first versions, links them to `source_record_id`, and emits
-events. Changed versions require review without replacing existing business records. Registration is
-explicit:
+creates Evidence and Reality records for first versions, preserves provenance through Evidence and
+shortest Reality links, and emits events. Supported reductions/cancellations use the shared change
+service; other changes require review. Existing Evidence is not replaced. Registration is explicit:
 
 ```python
 SOURCE_INTERPRETERS = {
@@ -34,14 +48,16 @@ SOURCE_INTERPRETERS = {
 interpreter, the job becomes `unmapped` and records an `interpreter_unavailable` outcome. Ambiguous
 business meaning should raise `InterpretationNeedsReview`; it must not be guessed.
 
-## Add an ERP object
+## Step by step
 
 1. Capture the vendor payload unchanged as a versioned `SourceRecord`. Keep authentication and
    polling in the adapter; call the shared ingest service.
 2. Add the source type and intended target to the connector shell when it should be selectable.
 3. Implement a tenant-scoped interpreter. Use application services such as `create_document`,
    `create_item` or `record_movement`; do not write ORM rows from the transport adapter.
-4. Preserve `source_record_id` on Evidence/Reality records and emit the normal business events.
+4. Preserve the shortest true provenance links: Evidence references its SourceRecord; Reality refers
+   to its Evidence or existing authoritative record. Do not duplicate a SourceRecord foreign key on
+   every derived record. Emit normal business events.
 5. Register the exact `(source_system, source_type)` key in `SOURCE_INTERPRETERS`.
 6. Test first import, retry, upstream correction/supersession, ambiguous input, malformed input and
    tenant isolation. Assert the trace back to the original payload.
@@ -50,4 +66,40 @@ For file imports, add a target to `FILE_INTERPRETER_TARGETS`, define required an
 in `FILE_MAPPING_PROFILES`, and implement the branch in `interpret_artifact`. Do not silently match
 a human number when it is not unique.
 
-Read the [Connector contract](../integrations/connector-contract) before implementing transport.
+Read the [From source data to Reality](../integrations/connector-contract) before implementing
+transport.
+
+## Check the result
+
+Work through the [ERP order example](../integrations/order-example) alongside the
+[From source data to Reality](../integrations/connector-contract). Begin with an original payload
+fixture. Import must preserve SourceRecord → Document/DocumentLine → Commitment traceability; replay
+must not create a second operational promise. A corrected version remains a new SourceRecord and
+must not silently overwrite an interpreted business operation. Test unknown object types separately:
+payloads remain available even without interpretation.
+
+Recurring intake follows `docs/features/scheduled-jobs.md`: reuse the shared job registry and
+services instead of browser timers or API-process loops. Another integration does not need another
+scheduler.
+
+## Try it yourself
+
+Deliver the same fixture payload twice: expect no second operational promise. Add an unknown
+external field in a new version: retain the original without automatically creating a typed field or
+silently overwriting business records.
+
+## Common mistakes
+
+Transport does not write domain ORM rows. Human numbers are not identities. Do not guess unknown
+meaning or duplicate Source foreign keys along existing Evidence/Reality links.
+
+## Continue
+
+For complete source cases: [Connect Xentral](../integrations/xentral),
+[Connect Shopify](../integrations/shopify) and [Connect Odoo](../integrations/odoo). The
+[coverage matrix](../integrations/connector-contract#completeness-and-acceptance) defines completion
+for your agreed scope.
+
+The [technical order-import example](../integrations/order-example) shows the implementation path;
+[From source data to Reality](../integrations/connector-contract) explains the shared concept and
+its rules. [Shared rules](./reference) includes scheduling/spec guidance.

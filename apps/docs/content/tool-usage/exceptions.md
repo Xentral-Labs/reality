@@ -99,9 +99,9 @@ kept is a promise kept.
 | `insufficient_reservation` | Insufficient reservation | `068/FR-003` |
 | `promise_was_revised`      | Promise was revised      | `093/FR-006` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)
 
 ## `outgoing_commitment_due_soon` — Customer deadline at risk {#exception-outgoing_commitment_due_soon}
@@ -135,9 +135,9 @@ never appears.
 | `insufficient_reservation` | Insufficient reservation | `300/FR-002` |
 | `promise_was_revised`      | Promise was revised      | `300/FR-002` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)
 
 ## `outgoing_commitment_at_risk` — Customer commitment at risk {#exception-outgoing_commitment_at_risk}
@@ -163,9 +163,9 @@ remainder on paper while the stock behind it has gone, and that is Reservation e
 | -------------------------- | ------------------------ | ------------ |
 | `insufficient_reservation` | Insufficient reservation | `020/FR-004` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)
 
 ## `order_stalled` — Order stalled {#exception-order_stalled}
@@ -192,9 +192,9 @@ Overdue outgoing customer commitment, and the two never both report the same ord
 - **Authority:** `080/FR-005`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_order_stalled`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)
 
 ## `overdue_incoming_supplier_commitment` — Overdue incoming supplier commitment {#exception-overdue_incoming_supplier_commitment}
@@ -227,9 +227,9 @@ made.
 | --------------------- | ------------------- | ------------ |
 | `promise_was_revised` | Promise was revised | `093/FR-006` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)
 
 ## `shipped_not_billed` — Shipped and not billed {#exception-shipped_not_billed}
@@ -260,8 +260,8 @@ and never reported here.
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_shipped_not_billed`,
   `tests/operational_exceptions/test_derivation.py::test_a_shipped_replacement_is_not_owed_an_invoice`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `billed_not_received` — Billed and not received {#exception-billed_not_received}
@@ -293,8 +293,8 @@ invoice.
 - **Authority:** `076/FR-005`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_billed_not_received`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `invoice_price_differs` — Invoice price differs from the agreement {#exception-invoice_price_differs}
@@ -319,8 +319,8 @@ Billed and not received on the buying side.
 - **Authority:** `076/FR-006`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_invoice_price_differs`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `sold_below_purchase_price` — Sold below the purchase price {#exception-sold_below_purchase_price}
@@ -347,8 +347,8 @@ agreement: this class asks whether the agreement itself was sound.
 - **Authority:** `086/FR-001`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_sold_below_purchase_price`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `returned_not_credited` — Returned and not credited {#exception-returned_not_credited}
@@ -386,8 +386,8 @@ credit, and a partial exchange leaves only the rest reported.
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_returned_not_credited`,
   `tests/operational_exceptions/test_derivation.py::test_an_exchanged_return_is_not_owed_a_credit`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `credited_not_returned` — Credited and not returned {#exception-credited_not_returned}
@@ -414,8 +414,8 @@ on top of an exchange is reported here for the quantity settled twice.
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_credited_not_returned`,
   `tests/operational_exceptions/test_derivation.py::test_a_credit_after_an_exchange_settles_the_unit_twice`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `supplier_return_not_credited` — Returned to supplier and not credited {#exception-supplier_return_not_credited}
@@ -442,8 +442,8 @@ not unmake a receipt.
 - **Authority:** `090/FR-009`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_supplier_return_not_credited`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `supplier_credit_not_returned` — Supplier credited more than went back {#exception-supplier_credit_not_returned}
@@ -465,8 +465,8 @@ is Credited and not returned.
 - **Authority:** `090/FR-010`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_supplier_credit_not_returned`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `return_unresolved` — Return not dealt with {#exception-return_unresolved}
@@ -492,9 +492,9 @@ Returned and not credited, and a return can be in either without the other.
 - **Authority:** `082/FR-007`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_return_unresolved`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`movements`](./views#view-movements)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`movements`](./views#view-movements)
 
 ## `receipt_unbilled` — Receipt not invoiced {#exception-receipt_unbilled}
 
@@ -519,8 +519,8 @@ that never did, is Billed and not received.
 - **Authority:** `080/FR-007`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_receipt_unbilled`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `units_not_comparable` — Units not comparable {#exception-units_not_comparable}
@@ -553,9 +553,9 @@ stock and supply read it as stated until it is received or closed.
 - **Authority:** `087/FR-007`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_units_not_comparable`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`items`](./views#view-items)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`items`](./views#view-items)
 
 ## `reservation_exceeds_stock` — Reservation exceeds stock {#exception-reservation_exceeds_stock}
 
@@ -576,9 +576,9 @@ item across the company, so stock sitting in another location still counts.
 - **Authority:** `068/FR-005`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_reservation_exceeds_stock`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`items`](./views#view-items)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`items`](./views#view-items)
 
 ## `silent_source` — Silent source {#exception-silent_source}
 
@@ -599,8 +599,8 @@ and could not be understood is the other case, Source interpretation failure.
 - **Authority:** `072/FR-001`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_silent_source`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `source_interpretation_failure` — Source interpretation failure {#exception-source_interpretation_failure}
@@ -621,8 +621,8 @@ not be used; a source that has stopped arriving at all is the other case, Silent
 - **Evidence:**
   `tests/operational_exceptions/test_derivation.py::test_source_interpretation_failure`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `unexplained_movement` — Unexplained movement {#exception-unexplained_movement}
@@ -644,9 +644,9 @@ cannot say what the goods were for. It is the one condition with no way back.
 - **Authority:** `020/FR-007`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_unexplained_movement`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`movements`](./views#view-movements)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`movements`](./views#view-movements)
 
 ## `sales_invoice_unposted` — Sales invoice not booked {#exception-sales_invoice_unposted}
 
@@ -673,9 +673,9 @@ Supplier invoice not booked.
 - **Authority:** `092/FR-001`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_sales_invoice_unposted`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `supplier_invoice_unposted` — Supplier invoice not booked {#exception-supplier_invoice_unposted}
 
@@ -698,9 +698,9 @@ invoiced at all is Receipt not invoiced.
 - **Authority:** `092/FR-002`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_supplier_invoice_unposted`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `credit_note_unposted` — Credit note not booked {#exception-credit_note_unposted}
 
@@ -727,9 +727,9 @@ question before it, and that is Returned and not credited.
 - **Authority:** `084/FR-008`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_credit_note_unposted`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `credit_note_unsettled` — Credit note not given back {#exception-credit_note_unsettled}
 
@@ -751,9 +751,9 @@ not claimed.
 - **Authority:** `084/FR-009`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_credit_note_unsettled`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `supplier_credit_unposted` — Supplier credit not booked {#exception-supplier_credit_unposted}
 
@@ -779,9 +779,9 @@ primary document it is Supplier invoice not booked.
 - **Authority:** `089/FR-009`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_supplier_credit_unposted`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `supplier_credit_unclaimed` — Supplier credit not claimed {#exception-supplier_credit_unclaimed}
 
@@ -806,9 +806,9 @@ goods is money with no evidence of the goods behind it.
 - **Authority:** `089/FR-010`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_supplier_credit_unclaimed`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `overdue_receivable` — Overdue receivable {#exception-overdue_receivable}
 
@@ -843,9 +843,9 @@ really is open — what is missing is the credit note recording the discount, no
 | ------------------------------ | ---------------------------- | ------------ |
 | `early_payment_discount_taken` | Early payment discount taken | `088/FR-010` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `credit_limit_exceeded` — Credit limit exceeded {#exception-credit_limit_exceeded}
 
@@ -872,8 +872,8 @@ customer can be in either without being in the other.
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_credit_limit_exceeded`,
   `tests/test_credit_hold.py::test_the_finding_reports_the_exposure_the_hold_used`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `overdue_payable` — Overdue payable {#exception-overdue_payable}
@@ -904,9 +904,9 @@ invoice recorded twice under one number is Duplicate supplier invoice.
 | ------------------------------ | ---------------------------- | ------------ |
 | `early_payment_discount_taken` | Early payment discount taken | `088/FR-010` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `purchase_discount_available` — Early payment discount still available {#exception-purchase_discount_available}
 
@@ -938,9 +938,9 @@ states what to pay, and paying 98 of 100 leaves 2 open, which is the residue des
 - **Authority:** `088/FR-007`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_purchase_discount_available`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `duplicate_supplier_invoice` — Duplicate supplier invoice {#exception-duplicate_supplier_invoice}
 
@@ -965,9 +965,9 @@ Overdue payable, and that it bills goods which never arrived is Billed and not r
 - **Authority:** `078/FR-006`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_duplicate_supplier_invoice`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `unmatched_financial_event` — Unmatched financial event {#exception-unmatched_financial_event}
 
@@ -987,8 +987,8 @@ not here — that is Credit note not given back.
 - **Authority:** `020/FR-008`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_unmatched_financial_event`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `announced_return_not_arrived` — Announced return has not arrived {#exception-announced_return_not_arrived}
@@ -1021,8 +1021,8 @@ The goods half after is Return not dealt with, and the money half is Returned an
   `tests/operational_exceptions/test_derivation.py::test_announced_return_not_arrived`,
   `tests/operational_exceptions/test_derivation.py::test_an_overdue_advance_exchange_names_the_replacement_already_sent`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `commitment_hold_unreleased` — Promise hold not lifted {#exception-commitment_hold_unreleased}
@@ -1057,8 +1057,8 @@ it is fine. The same condition on a whole customer is Party hold not lifted, and
 - **Authority:** `107/FR-001`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_commitment_hold_unreleased`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `party_hold_unreleased` — Party hold not lifted {#exception-party_hold_unreleased}
@@ -1087,8 +1087,8 @@ suppresses anything. The same condition on a single promise is Promise hold not 
 - **Authority:** `107/FR-001`
 - **Evidence:** `tests/operational_exceptions/test_derivation.py::test_party_hold_unreleased`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `stock_expired` — Expired stock on hand {#exception-stock_expired}
@@ -1133,8 +1133,8 @@ loss.
 | ----------------------- | ----------------------- | ------------ |
 | `reserved_for_delivery` | Reserved for a delivery | `109/FR-008` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `missing_acquisition_cost` — Missing acquisition cost {#exception-missing_acquisition_cost}
@@ -1158,9 +1158,9 @@ unknown and is never treated as zero.
 | `acquisition_cost_unknown`        | Acquisition cost unknown        | `234/FR-014` |
 | `contribution_goods_cost_unknown` | Contribution goods cost unknown | `234/FR-014` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`items`](./views#view-items)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`items`](./views#view-items)
 
 ## `unassigned_cost_component` — Unassigned cost component {#exception-unassigned_cost_component}
 
@@ -1182,8 +1182,8 @@ scope.
 | --------------------------- | ------------------------- | ------------ |
 | `cost_component_unassigned` | Cost component unassigned | `234/FR-003` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `stale_cost_review` — Stale cost review {#exception-stale_cost_review}
@@ -1205,9 +1205,9 @@ basis.
 | ------------------------- | ----------------------- | ------------ |
 | `later_relevant_evidence` | Later relevant evidence | `234/FR-015` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`items`](./views#view-items)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`items`](./views#view-items)
 
 ## `negative_actual_db1` — Negative actual DB1 {#exception-negative_actual_db1}
 
@@ -1228,8 +1228,8 @@ Complete supported actual goods cost exceeds the received net revenue of the rev
 | ------------------------------- | ----------------------------- | ------------ |
 | `supported_actual_db1_negative` | Supported actual DB1 negative | `234/FR-011` |
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `exchange_without_return` — Exchange without return {#exception-exchange_without_return}
@@ -1254,8 +1254,8 @@ it is still an ordinary step.
   `tests/operational_exceptions/test_derivation.py::test_a_withdrawn_announcement_with_an_unsent_replacement_is_not_reported`,
   `tests/operational_exceptions/test_derivation.py::test_goods_arriving_after_a_withdrawal_clear_the_exchange_without_return`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `order_line_item_unknown` — Order line with unknown item {#exception-order_line_item_unknown}
@@ -1275,8 +1275,8 @@ article from silently dropping part of an order.
   `tests/test_order_line_items.py::test_an_unknown_item_line_is_reported_until_an_item_is_assigned`,
   `tests/test_order_line_items.py::test_a_cancelled_order_no_longer_reports_its_unknown_line`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `payment_returned` — Payment returned {#exception-payment_returned}
@@ -1294,9 +1294,9 @@ date, so the receivable is followed up at once instead of waiting until it shows
 - **Evidence:**
   `tests/finance/test_payment_returns.py::test_a_reopened_invoice_is_reported_until_it_is_paid_again`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `order_line_price_missing` — Order line without a price {#exception-order_line_price_missing}
 
@@ -1314,8 +1314,8 @@ states what is billed. Reporting it keeps a gap in what the source sent from pas
   `tests/test_shop_line_gaps.py::test_a_line_without_a_price_is_kept_without_one_and_reported`,
   `tests/test_shop_line_gaps.py::test_a_billed_unpriced_line_is_no_longer_reported`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `billed_not_shipped` — Invoiced and not shipped {#exception-billed_not_shipped}
@@ -1342,8 +1342,8 @@ and a pair that cannot be reconciled is reported as Units not comparable.
   `tests/test_billed_not_shipped.py::test_a_down_payment_invoice_reports_nothing`,
   `tests/test_billed_not_shipped.py::test_a_cancelled_line_stays_reported_until_its_invoice_is_reversed`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `item_oversold` — Item oversold {#exception-item_oversold}
@@ -1375,9 +1375,9 @@ the whole kits its free components build count as stock beside the kits already 
   `tests/test_item_oversold.py::test_an_open_purchase_order_covering_the_shortfall_clears_it`,
   `tests/test_kits.py::test_a_kit_the_components_build_is_not_oversold`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`items`](./views#view-items)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`items`](./views#view-items)
 
 ## `reorder_point_reached` — Reorder point reached {#exception-reorder_point_reached}
 
@@ -1407,8 +1407,8 @@ whatever customers have ordered.
   `tests/test_reorder_point_reached.py::test_an_open_purchase_to_the_location_counts_as_incoming`,
   `tests/test_reorder_point_reached.py::test_one_supplier_on_a_purchase_list_is_named_with_its_price`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
 ## `stock_in_another_location` — Stock in another warehouse {#exception-stock_in_another_location}
@@ -1436,9 +1436,9 @@ is.
   `tests/test_stock_in_another_location.py::test_reserving_there_through_the_review_clears_it`,
   `tests/test_stock_in_another_location.py::test_a_transfer_through_the_review_clears_it`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)
 
 ## `order_waiting_for_completeness` — Order waiting for completeness {#exception-order_waiting_for_completeness}
@@ -1463,9 +1463,9 @@ other order.
   `tests/test_delivery_rule_exceptions.py::test_an_order_waiting_only_for_completeness_is_reported`,
   `tests/test_delivery_rule_exceptions.py::test_an_order_with_nothing_ready_is_not_waiting_for_the_rule`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `backorder_against_rule` — Backorder against the customer's rule {#exception-backorder_against_rule}
 
@@ -1486,9 +1486,9 @@ Before the first shipment nothing is a backorder.
   `tests/test_delivery_rule_exceptions.py::test_a_rest_after_a_shipment_is_a_backorder_against_the_rule`,
   `tests/test_delivery_rule_exceptions.py::test_without_a_no_backorder_rule_a_rest_is_ordinary`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)
 
 ## `shipped_beyond_order` — Shipped beyond the order {#exception-shipped_beyond_order}
@@ -1510,9 +1510,9 @@ beyond the order.
   `tests/test_shipped_beyond_order.py::test_a_line_lowered_below_what_shipped_is_reported`,
   `tests/test_shipped_beyond_order.py::test_it_clears_by_a_return_or_a_revision_up`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)
 
 ## `payout_line_unmatched` — Payout lines not booked {#exception-payout_line_unmatched}
@@ -1531,9 +1531,9 @@ many lines are open and their amount.
 - **Evidence:**
   `tests/finance/test_payouts.py::test_an_unmatched_line_waits_and_settling_again_books_only_it`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `payment_authorization_expired` — Payment authorization expired {#exception-payment_authorization_expired}
 
@@ -1552,9 +1552,9 @@ cancelled or held by itself.
   `tests/finance/test_payment_authorizations.py::test_an_expired_authorization_leaves_the_rest_uncovered_until_authorized_again`,
   `tests/finance/test_payment_authorizations.py::test_nothing_left_to_ship_is_not_uncovered`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view [`documents`](./views#view-documents)
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View [`documents`](./views#view-documents)
 
 ## `received_beyond_order` — Received beyond the order {#exception-received_beyond_order}
 
@@ -1575,9 +1575,9 @@ itself. A cancelled rest asks for nothing more.
   `tests/test_receipt_deviations.py::test_keeping_the_surplus_raises_the_line_to_what_arrived`,
   `tests/test_receipt_deviations.py::test_sending_the_surplus_back_clears_it`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)
 
 ## `misdelivery_outstanding` — Wrong item delivered {#exception-misdelivery_outstanding}
@@ -1598,7 +1598,7 @@ line, the ordered item and the wrong items still out, until they have gone back.
   `tests/test_receipt_deviations.py::test_wrong_goods_go_back_against_the_same_line`,
   `tests/test_receipt_deviations.py::test_a_picking_error_is_corrected_into_a_wrong_item`
 
-**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
-[`exceptions_list`](./commands#tool-exceptions_list), agent tool
-[`exception_explain`](./commands#tool-exception_explain), view
+**See also:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
+[`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
+[`exception_explain`](./commands#tool-exception_explain), View
 [`commitments`](./views#view-commitments)

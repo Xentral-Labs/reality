@@ -35,6 +35,7 @@ type NavigationCopy = {
   playbookMasterData: string;
   playbookRhythm: string;
   customization: string;
+  exampleErp: string;
   orderExample: string;
   connectorContract: string;
   apiTools: string;
@@ -50,8 +51,15 @@ type NavigationCopy = {
   development: string;
   connectors: string;
   commands: string;
-  derivedViews: string;
+  viewDevelopment: string;
+  projectionDevelopment: string;
+  firstExtension: string;
+  developmentReference: string;
+  apiCliDevelopment: string;
+  exceptionsDevelopment: string;
   applicationSurfaces: string;
+  agentToolDevelopment: string;
+  webActionDevelopment: string;
   toolUsage: string;
   learn: string;
   setupAndOperate: string;
@@ -99,9 +107,10 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     playbookReturns: "Returns",
     playbookMasterData: "Master data and sources",
     playbookRhythm: "Operating rhythm",
-    customization: "What can be adapted?",
-    orderExample: "Example: an ERP order",
-    connectorContract: "Connector contract",
+    customization: "Configuration or development?",
+    exampleErp: "Example ERP: step by step",
+    orderExample: "Technical order-import example",
+    connectorContract: "From source data to Reality",
     apiTools: "API and agent interfaces",
     connectMcp: "Connect an MCP client",
     getStarted: "Get started",
@@ -112,11 +121,18 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     kubernetes: "Kubernetes with Helm",
     railway: "Railway",
     productionDeployment: "Operate with Docker",
-    development: "Reality Core Development",
-    connectors: "Connect another ERP",
-    commands: "Implement business operations",
-    derivedViews: "Develop metrics and operational warnings",
-    applicationSurfaces: "Expose functions through API and MCP",
+    development: "Extending Reality",
+    connectors: "Connect ERP and data sources",
+    commands: "Develop Commands",
+    viewDevelopment: "Develop Views",
+    projectionDevelopment: "Develop Projections",
+    firstExtension: "Your first extension",
+    developmentReference: "Shared development reference",
+    apiCliDevelopment: "Add API and CLI",
+    exceptionsDevelopment: "Develop exceptions",
+    applicationSurfaces: "Add entrypoints",
+    agentToolDevelopment: "Add Agent Tools",
+    webActionDevelopment: "Add Web Actions",
     toolUsage: "Tool Usage",
     learn: "Get to know",
     setupAndOperate: "Set up and operate",
@@ -162,9 +178,10 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     playbookReturns: "Retouren",
     playbookMasterData: "Stammdaten und Quellen",
     playbookRhythm: "Betriebsrhythmus",
-    customization: "Was kann angepasst werden?",
-    orderExample: "Beispiel: ein ERP-Auftrag",
-    connectorContract: "Connector-Vertrag",
+    customization: "Konfiguration oder Entwicklung?",
+    exampleErp: "Beispiel-ERP: Schritt für Schritt",
+    orderExample: "Technische Umsetzung eines Auftragsimports",
+    connectorContract: "Von Quelldaten zu Reality",
     apiTools: "API und Agentenschnittstellen",
     connectMcp: "Einen MCP-Client verbinden",
     getStarted: "Loslegen",
@@ -175,11 +192,18 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     kubernetes: "Kubernetes mit Helm",
     railway: "Railway",
     productionDeployment: "Mit Docker betreiben",
-    development: "Reality-Core-Entwicklung",
-    connectors: "Ein weiteres ERP anbinden",
-    commands: "Neue Geschäftsabläufe implementieren",
-    derivedViews: "Kennzahlen und operative Warnungen entwickeln",
-    applicationSurfaces: "Funktionen über API und MCP anbieten",
+    development: "Reality erweitern",
+    connectors: "ERP und Datenquellen anbinden",
+    commands: "Commands entwickeln",
+    viewDevelopment: "Views entwickeln",
+    projectionDevelopment: "Projections entwickeln",
+    firstExtension: "Deine erste Erweiterung",
+    developmentReference: "Gemeinsame Entwicklungsregeln",
+    apiCliDevelopment: "API und CLI ergänzen",
+    exceptionsDevelopment: "Ausnahmen entwickeln",
+    applicationSurfaces: "Zugänge ergänzen",
+    agentToolDevelopment: "Agent Tools ergänzen",
+    webActionDevelopment: "Web Actions ergänzen",
     toolUsage: "Tools nutzen",
     learn: "Kennenlernen",
     setupAndOperate: "Einrichten & Betreiben",
@@ -343,15 +367,37 @@ const sidebar = (locale: LocaleKey) => {
       items: [
         { text: labels.overview, link: route(locale, "/development/") },
         { text: labels.customization, link: route(locale, "/integrations/customization") },
-        { text: labels.connectors, link: route(locale, "/development/connectors") },
-        { text: labels.orderExample, link: route(locale, "/integrations/order-example") },
-        { text: labels.connectorContract, link: route(locale, "/integrations/connector-contract") },
+        { text: labels.firstExtension, link: route(locale, "/development/first-extension") },
+        { text: labels.viewDevelopment, link: route(locale, "/development/views") },
+        { text: labels.projectionDevelopment, link: route(locale, "/development/projections") },
         { text: labels.commands, link: route(locale, "/development/commands") },
-        { text: labels.derivedViews, link: route(locale, "/development/derived-views") },
+        { text: labels.exceptionsDevelopment, link: route(locale, "/development/exceptions") },
         {
           text: labels.applicationSurfaces,
           link: route(locale, "/development/application-surfaces"),
+          collapsed: true,
+          items: [
+            { text: labels.agentToolDevelopment, link: route(locale, "/development/agent-tools") },
+            { text: labels.webActionDevelopment, link: route(locale, "/development/web-actions") },
+            { text: labels.apiCliDevelopment, link: route(locale, "/development/api-cli") },
+          ],
         },
+        {
+          text: labels.connectors,
+          link: route(locale, "/development/connectors"),
+          collapsed: true,
+          items: [
+            {
+              text: labels.connectorContract,
+              link: route(locale, "/integrations/connector-contract"),
+            },
+            { text: labels.exampleErp, link: route(locale, "/integrations/example-erp") },
+            { text: "Xentral", link: route(locale, "/integrations/xentral") },
+            { text: "Shopify", link: route(locale, "/integrations/shopify") },
+            { text: "Odoo", link: route(locale, "/integrations/odoo") },
+          ],
+        },
+        { text: labels.developmentReference, link: route(locale, "/development/reference") },
       ],
     },
   ];

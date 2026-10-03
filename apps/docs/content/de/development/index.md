@@ -1,60 +1,57 @@
-# Reality-Core-Entwicklung
+# Reality erweitern
 
-Dieser Bereich richtet sich an Mitwirkende, die das gemeinsame Geschäftsverhalten von Reality
-ändern. ERP-Berater sollten normalerweise bei
-[Was kann angepasst werden?](../integrations/customization) beginnen und nur hierher wechseln, wenn
-das benötigte Command, die Projection oder Exception noch nicht existiert.
+## Was du hier lernst
 
-## Was Core-Entwickler ergänzen können
+Du lernst, welche Bausteine Reality verwendet und wie du eine vorhandene Vorlage für eine eigene
+Erweiterung nutzt. Am Ende kannst du eine Leseoberfläche, Anwendungsoperation oder Schnittstelle
+ergänzen und ihr Ergebnis prüfen.
 
-| Du möchtest …                                                     | Dann erweiterst du …                | Anleitung                                                                    |
-| ----------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------- |
-| ein weiteres ERP-Objekt verlustfrei übernehmen und interpretieren | Connector-Fähigkeit und Interpreter | [Ein weiteres ERP anbinden](./connectors)                                    |
-| einen Vorgang wie eine Bestandsreservierung ausführen             | Service und Geschäftsaktion         | [Geschäftsaktionen ergänzen](./commands)                                     |
-| eine wiederverwendbare Position wie verfügbaren Bestand berechnen | Projection                          | [Projections und Ausnahmen ergänzen](./derived-views)                        |
-| ein aktuelles Risiko in die operative Arbeitsliste bringen        | Exception-Ableitung                 | [Projections und Ausnahmen ergänzen](./derived-views#eine-ausnahme-ergänzen) |
-| eine vorhandene Funktion einem weiteren Client anbieten           | nur den Adapter                     | [Funktionen sicher bereitstellen](./application-surfaces)                    |
+Du brauchst grundlegende Python-Kenntnisse und ein ausgechecktes Repository. Für Web-Oberflächen
+kommen TypeScript/React hinzu. Geschäftsregeln musst du nicht auswendig kennen: Die Kapitel
+verfolgen ein gemeinsames Beispiel, **Bestand reservieren und Lieferhindernisse verstehen**.
 
-Beginne nicht bei einer Seite oder einem API-Endpunkt, sondern bei der fehlenden Geschäftsfrage. Die
-Reihenfolge ist immer:
+## Wie die Bausteine zusammenhängen
+
+Eine **View** zeigt Daten. Eine **Projection** liefert bei Bedarf ein abgeleitetes Lesemodell. Ein
+**Command** definiert eine gemeinsame Anwendungsoperation; **Agent Tools** und **Web Actions**
+machen sie unterschiedlich zugänglich. Eine Ausnahme beschreibt einen aktuellen Zustand mit
+Handlungsbedarf.
 
 ```text
-Domain-Datensätze → Application Service → Application Tool → Adapter
+Lesen:    View oder Agent Tool → gemeinsamer Reader → Reality oder Projection
+Handeln:  Web Action oder Agent Tool → Command/Service → Reality
+Import:   Connector → SourceRecord → Interpreter → Evidence → Reality
 ```
 
-## Landkarte des Repositorys
+Ändernde Agent Tools bereiten einen Vorschlag vor; die Ausführung folgt erst nach ausdrücklicher
+Freigabe. Eine View benötigt nicht automatisch eine Projection. Technische Namen bleiben in allen
+Sprachen Englisch.
 
-| Aufgabe                | Hauptort                                                 | Vorhandenes Beispiel                               |
-| ---------------------- | -------------------------------------------------------- | -------------------------------------------------- |
-| Domain-Datensätze      | `packages/reality-core/src/reality/db/core.py`           | `Commitment`, `Reservation`, `Movement`            |
-| Geschäftsverhalten     | `packages/reality-core/src/reality/services/`            | `core.py::reserve`                                 |
-| Application Tools      | `packages/reality-core/src/reality/tools/application.py` | `_reserve` und `TOOLS["reserve"]`                  |
-| Ausführbares Vokabular | `packages/reality-core/config/*.yaml`                    | `command_catalog.yaml`, `projection_catalog.yaml`  |
-| HTTP-Adapter           | `packages/reality-core/src/reality/web/api.py`           | mandantenbezogene Routen, die Services aufrufen    |
-| Agenten-Adapter        | `packages/reality-core/src/reality/mcp/catalog.py`       | Eingabeschemas und Proposal-Tools                  |
-| Web-Client             | `apps/web/src/`                                          | API-Client und operative Seiten                    |
-| Nachweise              | `packages/reality-core/tests/`                           | Service-, Katalog-, HTTP- und Business-Story-Tests |
+## Die Bausteine im Überblick
 
-## Vor einer Änderung
+| Baustein                | Wofür?                   | Beispiel                 | Anleitung                    |
+| ----------------------- | ------------------------ | ------------------------ | ---------------------------- |
+| View                    | Daten anzeigen           | Lieferhindernisse        | [Views](./views)             |
+| Projection              | Lesemodell ableiten      | Versandvorrat            | [Projections](./projections) |
+| Command                 | Operation ausführen      | Bestand reservieren      | [Commands](./commands)       |
+| Ausnahme                | Handlungsbedarf erkennen | Gefährdete Zusage        | [Ausnahmen](./exceptions)    |
+| Agent Tool              | Agentenzugang anbieten   | Reservierung vorschlagen | [Agent Tools](./agent-tools) |
+| Web Action              | Bedienablauf anbieten    | Reservierungsformular    | [Web Actions](./web-actions) |
+| Connector / Interpreter | Quelldaten übernehmen    | ERP-Auftrag              | [Datenquellen](./connectors) |
 
-1. Suche die ähnlichste vorhandene Business Story und verfolge sie durch alle Schichten.
-2. Aktualisiere bei beobachtbarem Verhalten die Feature-Spezifikation. Eine reine Erklärung in der
-   Dokumentation hat `Spec impact: none`.
-3. Schreibe den Service-Test nach Möglichkeit zuerst.
-4. Halte Source → Evidence → Reality nachvollziehbar und jede Abfrage mandantenbezogen.
-5. Verwende undurchsichtige IDs. Belegnummer, SKU oder ERP-Nummer sind Referenzen, keine Identität.
+API und CLI sind weitere Zugänge zu denselben Services; die [Adapter-Anleitung](./api-cli) erklärt
+ihre Umsetzung.
 
-Ein externes Feld bleibt im verlustfreien `SourceRecord.payload`, solange die Kernlogik es nicht
-wiederholt berechnet, filtert, verknüpft, einschränkt, vorhersagt oder für Aktionen benötigt.
-Adapter schreiben nie direkt über das ORM und duplizieren keine Geschäftsregeln.
+## So liest du dieses Handbuch
 
-## Sinnvoller Einstieg in den Code
+1. Prüfe [Konfiguration oder Entwicklung?](../integrations/customization). Nicht jede Anpassung
+   braucht neuen Code.
+2. Arbeite die [erste Erweiterung](./first-extension) durch: ein kleiner lesender Agentenzugang ohne
+   neue Geschäftsregeln.
+3. Wähle danach dein Kapitel. Jedes erklärt Zweck, Voraussetzungen, ein Beispiel, Änderungen,
+   Ergebnisprüfung und eine Übung.
+4. Nutze die [gemeinsamen Entwicklungsregeln](./reference) für Repository-Orte, Spec-Kit-Workflow
+   und Prüfungen.
 
-Verfolge eine Bestandsreservierung: `reserve` in `services/core.py`, `_reserve` und den
-`TOOLS`-Eintrag in `tools/application.py`, `reserve` in `command_catalog.yaml`, `reserve_stock` in
-`workspace_catalog.yaml` sowie die Tests in `test_inventory_and_fulfillment.py` und
-`test_application_tools.py`. Genau diese vollständige Form sollte eine neue geregelte Aktion haben.
-
-Prüfe vor einer Erweiterung die generierte [Tool-Referenz](../tool-usage/). Dort stehen alle
-vorhandenen Geschäftsaktionen, Business Events, Projections, Exceptions, MCP-Tools und
-Workspace-Aktionen.
+Wenn du bereits weißt, was du ergänzen möchtest, kannst du direkt beim passenden Baustein beginnen.
+Die Kapitel sagen ausdrücklich, welche Teile bereits vorhanden sein müssen.

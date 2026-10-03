@@ -1,4 +1,7 @@
-# Beispiel: vom ERP-Auftrag in den Betrieb
+# Technische Umsetzung eines Auftragsimports
+
+[Welche Daten brauche ich zuerst? Beispiel-ERP Schritt für Schritt](./example-erp) zeigt einen
+kleinen Einstieg und seine Ausbaustufen.
 
 Dieses Beispiel zeigt den gesamten Erweiterungsweg. Es ist zum Lernen bewusst vereinfacht; die
 produktive Umsetzung muss die genauen Prüfungen und vorhandenen Services des Repositorys verwenden.
@@ -76,10 +79,11 @@ def _my_erp_sales_order_interpretation(session, tenant_id, source, context):
 ```
 
 Nutze die vollständige `_shopify_interpretation` in `services/core.py` als ausführbares Beispiel.
-Sie erzeugt auch `DocumentLine`-Evidence, prüft jede mandantenbezogene Referenz, behandelt
-Idempotenz und erzeugt Business Events. Geänderte Shopify-Quellversionen benötigen derzeit eine
-Prüfung. Bestehende Evidence, Zusagen, Reservierungen und Bewegungen bleiben erhalten; automatische
-Anpassungen werden nicht unterstützt.
+Sie erzeugt auch `DocumentLine`-Evidence, prüft tenant-begrenzte Referenzen und behandelt
+Idempotenz/Events. Geänderte Shopify-Versionen laufen über
+`shop_order_changes.py::apply_order_version`: Unterstützte Mengenreduzierungen und Stornierungen
+ändern Zusagen über gemeinsame Services; andere Fälle benötigen Prüfung. Ursprüngliche Evidence wird
+nicht ersetzt. Die [Shopify-Anleitung](./shopify) erklärt Umfang und verbleibende Lücken.
 
 ## 4. Was anschließend sichtbar wird
 
