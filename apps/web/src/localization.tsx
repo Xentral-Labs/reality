@@ -24903,6 +24903,20 @@ Object.assign(dictionaries.de, {
     "Die Nummer des Kunden bezeichnet einen anderen Artikel als den angegebenen.",
   "This line quotes no customer item number to remember.":
     "Diese Position nennt keine Kundenartikelnummer, die gemerkt werden könnte.",
+  "Supplier item numbers are stated for a supplier.":
+    "Lieferantenartikelnummern gelten für einen Lieferanten.",
+  "State the supplier's item number.": "Gib die Artikelnummer des Lieferanten an.",
+  "This supplier has no such item number.": "Dieser Lieferant hat keine solche Artikelnummer.",
+  "This supplier item number changed after it was reviewed; review it again.":
+    "Diese Lieferantenartikelnummer hat sich nach der Prüfung geändert; prüfe sie erneut.",
+  "The supplier has no item under this number; choose our item or state the number for the supplier first.":
+    "Der Lieferant hat unter dieser Nummer keinen Artikel; wähle unseren Artikel oder hinterlege die Nummer zuerst beim Lieferanten.",
+  "The supplier's number names another item than the one stated.":
+    "Die Nummer des Lieferanten bezeichnet einen anderen Artikel als den angegebenen.",
+  "Supplier item no.": "Lieferantenartikelnr.",
+  "Supplier item numbers": "Lieferantenartikelnummern",
+  "Supplier's name for it": "Bezeichnung beim Lieferanten",
+  "No supplier item numbers stated.": "Keine Lieferantenartikelnummern hinterlegt.",
   "Customer item no.": "Kundenartikelnr.",
   "Customer item numbers": "Kundenartikelnummern",
   "Customer's name for it": "Bezeichnung beim Kunden",
@@ -25654,6 +25668,20 @@ Object.assign(dictionaries.nl, {
     "Het nummer van de klant verwijst naar een ander artikel dan het opgegeven.",
   "This line quotes no customer item number to remember.":
     "Deze regel noemt geen klantartikelnummer om te onthouden.",
+  "Supplier item numbers are stated for a supplier.":
+    "Leveranciersartikelnummers gelden voor een leverancier.",
+  "State the supplier's item number.": "Geef het artikelnummer van de leverancier op.",
+  "This supplier has no such item number.": "Deze leverancier heeft geen dergelijk artikelnummer.",
+  "This supplier item number changed after it was reviewed; review it again.":
+    "Dit leveranciersartikelnummer is na de controle gewijzigd; controleer het opnieuw.",
+  "The supplier has no item under this number; choose our item or state the number for the supplier first.":
+    "De leverancier heeft onder dit nummer geen artikel; kies ons artikel of leg het nummer eerst vast bij de leverancier.",
+  "The supplier's number names another item than the one stated.":
+    "Het nummer van de leverancier verwijst naar een ander artikel dan het opgegeven artikel.",
+  "Supplier item no.": "Leveranciersartikelnr.",
+  "Supplier item numbers": "Leveranciersartikelnummers",
+  "Supplier's name for it": "Benaming bij de leverancier",
+  "No supplier item numbers stated.": "Geen leveranciersartikelnummers vastgelegd.",
   "Customer item no.": "Klantartikelnr.",
   "Customer item numbers": "Klantartikelnummers",
   "Customer's name for it": "Benaming bij de klant",
@@ -26400,6 +26428,20 @@ Object.assign(dictionaries.es, {
     "El número del cliente corresponde a otro artículo distinto del indicado.",
   "This line quotes no customer item number to remember.":
     "Esta línea no indica ningún número de artículo del cliente que recordar.",
+  "Supplier item numbers are stated for a supplier.":
+    "Los números de artículo del proveedor se registran para un proveedor.",
+  "State the supplier's item number.": "Indica el número de artículo del proveedor.",
+  "This supplier has no such item number.": "Este proveedor no tiene ese número de artículo.",
+  "This supplier item number changed after it was reviewed; review it again.":
+    "Este número de artículo del proveedor cambió después de revisarlo; revísalo de nuevo.",
+  "The supplier has no item under this number; choose our item or state the number for the supplier first.":
+    "El proveedor no tiene ningún artículo con este número; elige nuestro artículo o registra primero el número para el proveedor.",
+  "The supplier's number names another item than the one stated.":
+    "El número del proveedor designa otro artículo distinto del indicado.",
+  "Supplier item no.": "N.º de artículo del proveedor",
+  "Supplier item numbers": "Números de artículo del proveedor",
+  "Supplier's name for it": "Denominación del proveedor",
+  "No supplier item numbers stated.": "No hay números de artículo del proveedor registrados.",
   "Customer item no.": "N.º de artículo del cliente",
   "Customer item numbers": "Números de artículo del cliente",
   "Customer's name for it": "Denominación del cliente",
