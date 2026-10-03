@@ -34,4 +34,4 @@
 
 ## Phase 5: Verify
 
-- [ ] T012 Full backend suite, web checks and CI
+- [x] T012 Full backend suite, web checks and CI (CI 22/22 on 71748dde)
