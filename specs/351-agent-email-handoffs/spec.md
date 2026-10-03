@@ -3,7 +3,7 @@
 **Feature Branch**: `351-agent-email-handoffs`
 
 **Created**: 2026-10-03
-**Status**: Accepted for implementation (owner instruction, 2026-10-03)
+**Status**: Implemented and verified (PR #332, 2026-10-03)
 **Language**: English
 **Input**: Store email content and attachments handed over by external agents; review outgoing email through Decisions; retain the actual send outcome and make this workflow explicit for every agent using Reality.
 

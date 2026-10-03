@@ -8,8 +8,8 @@
 - [x] T006 Implement shared capture/file/authorization/claim/report/history services.
 - [x] T007 Bind application and MCP tools; expose shared API routes and review links.
 - [x] T008 Publish canonical agent contract, labels and generated documentation.
-- [ ] T009 Run all required checks, review diff and record verification evidence.
-- [ ] T010 Create PR and resolve required CI/review findings until green.
+- [x] T009 Run all required checks, review diff and record verification evidence.
+- [x] T010 Create PR and resolve required CI/review findings until green.
 
 ## Analysis
 
