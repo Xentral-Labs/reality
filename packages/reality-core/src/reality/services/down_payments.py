@@ -460,7 +460,7 @@ def record_down_payment_invoice(
         preview["party_id"],
         amount,
         currency=preview["currency"],
-        document_date=moment.date().isoformat(),
+        document_date=core._company_day(session, tenant_id, moment).isoformat(),
         source_record_id=source.id,
         action_id=action_id,
         _commit=False,
@@ -763,7 +763,7 @@ def preview_proforma_invoice(
         except ValueError as error:
             raise core.InvalidOperation(code="proforma_date_invalid") from error
     else:
-        document_date = core.now().date().isoformat()
+        document_date = core._company_day(session, tenant_id, core.now()).isoformat()
     lines = arguments.get("lines")
     if lines is None:
         lines = [

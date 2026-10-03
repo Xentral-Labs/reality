@@ -145,7 +145,7 @@ def _existing_financial_documents(
 def preview_opening(session: Session, tenant_id: str, values: dict) -> dict:
     context = opening_context(session, tenant_id)
     cutover = _day(values["cutover_date"], "cutover")
-    if cutover is None or cutover > core.now().date():
+    if cutover is None or cutover > core._company_day(session, tenant_id, core.now()):
         raise core.InvalidOperation(
             "Opening cutover must be a stated date no later than today."
         )
@@ -243,7 +243,11 @@ def preview_opening(session: Session, tenant_id: str, values: dict) -> dict:
                         LedgerEntry.account == "cash",
                     )
                 )
-                existing_day = core.utc_datetime(actual).date() if actual else None
+                existing_day = (
+                    core._company_day(session, tenant_id, core.utc_datetime(actual))
+                    if actual
+                    else None
+                )
             else:
                 existing_day = existing.document_date
             if exact or existing_day is None or existing_day <= cutover:
@@ -483,7 +487,9 @@ def check_opening_coverage(
             raise core.InvalidOperation(code="opening_source_item_already_represented")
     cash = document.type.endswith(("_payment", "_refund"))
     observed = (
-        core.utc_datetime(effective_at).date() if effective_at is not None else None
+        core._company_day(session, tenant_id, core.utc_datetime(effective_at))
+        if effective_at is not None
+        else None
     )
     if not cash:
         observed = document.document_date

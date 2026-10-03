@@ -2,13 +2,13 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope; spec 344 (2026-10-03) proved J07. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope; spec 344 (2026-10-03) proved J07; spec 349 (2026-10-03) proved Q05. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 182 covered, 10 partial, 0 missing, 31 gap, 5 out.
+228 scenarios: 183 covered, 9 partial, 0 missing, 31 gap, 5 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -28,7 +28,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | N Finance, tax, currency | 5 |  |  | 1 | 2 |
 | O Master data and identity | 4 |  |  | 1 | 1 |
 | P Sources and integration | 7 | 1 |  |  |  |
-| Q Time and period | 3 | 1 |  |  | 1 |
+| Q Time and period | 4 |  |  |  | 1 |
 | R Combined stress stories | 5 | 3 |  |  |  |
 
 Strongest where an operational exception class exists (at-risk, reservation_exceeds_stock,
@@ -427,7 +427,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | Q02 | out | specs/340-accounting-boundary/spec.md Non-Goals (no accounting periods, close or posting locks) | Reality is not the bookkeeping system; closing periods belongs to the accounting system that receives the records. |
 | Q03 | covered | tests/test_analysis_positions_history.py::test_detail_inventory_conserves_locations_and_unknown_tracking, ::test_later_stock_compensation_does_not_rewrite_earlier_snapshot, ::test_cutoff_excludes_next_midnight_and_late_allocation_endpoint | Point-in-time stock with an explicit cutoff is asserted, including that later corrections don't rewrite it. |
 | Q04 | covered | packages/reality-core/tests/scenarios/test_catalog_time.py::test_open_orders_and_purchases_carry_over_the_year_end | An order and a purchase with 4 of 10 delivered in December keep 6 open across the year end; January's delivery fulfils both with December's still counted (spec 340). |
-| Q05 | partial | tests/test_operational_fields.py::test_document_and_commitment_operational_fields | Offset timestamps are proven to normalize to UTC; there is no company time zone, and no test pins the day a late-evening local order falls on (`domain/calendar.as_day` takes the text's local day). |
+| Q05 | covered | packages/reality-core/tests/scenarios/test_catalog_time.py::test_an_order_at_half_past_eleven_in_new_york_is_dated_that_day | Instants are stored in UTC; once the company states its time zone, an order at 23:30 New York time is dated that day while a stated day never moves (spec 349). Analysis reports still group by the UTC day. |
 
 ## R. Combined stress stories
 

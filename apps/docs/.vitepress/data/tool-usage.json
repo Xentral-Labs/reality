@@ -1343,23 +1343,31 @@
         "member",
         "invitation",
         "access",
+        "time zone",
         "Mandant",
         "Mitglied",
         "Einladung",
-        "Zugang"
+        "Zugang",
+        "Zeitzone"
       ],
-      "tables": ["company_invitation", "invitation_delivery", "tenant_membership"],
+      "tables": [
+        "company_invitation",
+        "invitation_delivery",
+        "tenant_membership",
+        "company_time_zone"
+      ],
       "lists": ["projection:tenant_usage"],
       "actions": [
+        "command:set_company_time_zone",
         "command:create_invitation",
         "command:resend_invitation",
         "command:revoke_invitation",
         "command:remove_member"
       ],
-      "reads": [],
+      "reads": ["command:company_time_zone_state"],
       "exceptions": [],
       "tools": [],
-      "events": [],
+      "events": ["event:company_time_zone.set"],
       "workspace_actions": []
     },
     {
@@ -10649,6 +10657,70 @@
       "links": ["command:company_currency_state"],
       "label_de": "Company currency",
       "resources": ["accounting"]
+    },
+    {
+      "id": "tool:company_time_zone_set_propose",
+      "kind": "tool",
+      "key": "company_time_zone_set_propose",
+      "label": "State the company time zone",
+      "area": "cross_functional",
+      "summary": "Prepare stating the time zone the company's business days are counted in (an IANA name such as Europe/Berlin; UTC until stated). Instants stay in UTC; due dates, overdue days, documents dated by a posting and day filters use the company's local day. A person confirms.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "company_time_zone_set_propose time_zone",
+      "parameters": [
+        {
+          "name": "time_zone",
+          "type": "string",
+          "required": true,
+          "description": "The company time zone as an IANA name, such as Europe/Berlin, or UTC (spec 349); business days are counted in it.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "set_company_time_zone",
+      "projections": [],
+      "links": ["command:set_company_time_zone"],
+      "label_de": "State the company time zone",
+      "resources": ["company"]
+    },
+    {
+      "id": "tool:company_time_zone",
+      "kind": "tool",
+      "key": "company_time_zone",
+      "label": "Company time zone",
+      "area": "cross_functional",
+      "summary": "Read the time zone the company's business days are counted in, and whether it was stated.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "company_time_zone",
+      "parameters": [],
+      "guidance": {
+        "purpose": "Show the time zone the company's business days are counted in.",
+        "use_when": [
+          "Someone asks on which day a late-evening order or posting counts",
+          "or why a due date passed a day early or late."
+        ],
+        "do_not_use_when": [
+          "The question is when something happened; instants are read in UTC from the record itself."
+        ],
+        "limitations": ["UTC until stated; analysis reports group by UTC day."],
+        "empty_result": "The company time zone is UTC, the default.",
+        "freshness": "Read at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP company_time_zone",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "company_time_zone_state",
+      "projections": [],
+      "links": ["command:company_time_zone_state"],
+      "label_de": "Company time zone",
+      "resources": ["company"]
     },
     {
       "id": "tool:supplier_item_terms_set_propose",
@@ -24504,6 +24576,66 @@
       "resources": ["accounting"]
     },
     {
+      "id": "command:set_company_time_zone",
+      "kind": "command",
+      "key": "set_company_time_zone",
+      "label": "State the company time zone",
+      "area": "cross_functional",
+      "summary": "States the time zone the company's business days are counted in, as a new version of the company's time-zone statement; days stored on documents stay as stated.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["company_time_zone"],
+      "writes": ["company_time_zone", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": ["review_company_time_zone", "company_time_zone_state"],
+      "tools": ["company_time_zone_set_propose"],
+      "synopses": ["company_time_zone_set_propose time_zone"],
+      "events": ["company_time_zone.set"],
+      "actions": [],
+      "guidance": {},
+      "links": [
+        "tool:company_time_zone_set_propose",
+        "event:company_time_zone.set",
+        "command:company_time_zone_state"
+      ],
+      "label_de": "Zeitzone der Firma festlegen",
+      "resources": ["company"]
+    },
+    {
+      "id": "command:company_time_zone_state",
+      "kind": "command",
+      "key": "company_time_zone_state",
+      "label": "Read the company time zone",
+      "area": "cross_functional",
+      "summary": "Answers the time zone the company's business days are counted in, UTC until stated, and whether it was stated.",
+      "mode": "query",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["company_time_zone"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["company_time_zone"],
+      "synopses": ["company_time_zone"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Show the time zone the company's business days are counted in.",
+        "use_when": [
+          "Someone asks on which day a late-evening order or posting counts",
+          "or why a due date passed a day early or late."
+        ],
+        "do_not_use_when": [
+          "The question is when something happened; instants are read in UTC from the record itself."
+        ],
+        "limitations": ["UTC until stated; analysis reports group by UTC day."],
+        "empty_result": "The company time zone is UTC, the default.",
+        "freshness": "Read at request time."
+      },
+      "links": ["tool:company_time_zone"],
+      "label_de": "Zeitzone der Firma anzeigen",
+      "resources": ["company"]
+    },
+    {
       "id": "command:set_supplier_item_terms",
       "kind": "command",
       "key": "set_supplier_item_terms",
@@ -29098,6 +29230,7 @@
         "stock_block.released",
         "stock_block.scrapped",
         "company_currency.set",
+        "company_time_zone.set",
         "kit.defined",
         "party.merged",
         "commitment.substitute_accepted",
@@ -29310,6 +29443,7 @@
         "stock_block.created",
         "stock_block.released",
         "stock_block.scrapped",
+        "company_time_zone.set",
         "party.merged",
         "commitment.substitute_accepted",
         "kit.assembled",
@@ -29568,6 +29702,7 @@
         "dunning.run_confirmed",
         "dunning.collection_handover_recorded",
         "party.updated",
+        "company_time_zone.set",
         "party.merged",
         "payment_term.updated",
         "document.recorded",
@@ -29719,6 +29854,7 @@
         "stock_block.released",
         "stock_block.scrapped",
         "company_currency.set",
+        "company_time_zone.set",
         "kit.defined",
         "party.merged",
         "commitment.substitute_accepted",
@@ -31904,6 +32040,20 @@
       "links": ["command:set_company_currency"],
       "label_de": "company_currency.set",
       "resources": ["accounting"]
+    },
+    {
+      "id": "event:company_time_zone.set",
+      "kind": "event",
+      "key": "company_time_zone.set",
+      "label": "company_time_zone.set",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "set_company_time_zone",
+      "subject": "company_time_zone",
+      "invalidates": ["Open financial items", "Operational Exceptions", "Timeline", "Tenant usage"],
+      "links": ["command:set_company_time_zone"],
+      "label_de": "company_time_zone.set",
+      "resources": ["company"]
     },
     {
       "id": "event:kit.defined",
@@ -78968,6 +79118,7 @@
         "command:create_payment_term",
         "command:create_price_list",
         "command:set_company_currency",
+        "command:set_company_time_zone",
         "command:set_supplier_item_terms",
         "command:remove_supplier_item_terms",
         "command:define_kit",

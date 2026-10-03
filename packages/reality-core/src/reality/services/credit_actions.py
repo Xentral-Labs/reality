@@ -300,7 +300,9 @@ def _preview_credit(
         amount,
         _carry_unstated_price=True,
         currency=context["invoice"]["currency"],
-        document_date=effective.date().isoformat() if effective else "",
+        document_date=core._company_day(session, tenant, effective).isoformat()
+        if effective
+        else "",
     )
     creation = {
         "invoice_id": arguments["invoice_id"],
@@ -377,7 +379,7 @@ def _record_invoice_credit(
             creation["gross_amount"],
             _carry_unstated_price=True,
             currency=context["invoice"]["currency"],
-            document_date=effective.date().isoformat(),
+            document_date=core._company_day(session, tenant, effective).isoformat(),
             source_record_id=source.id,
             action_id=action_id,
             _commit=False,
@@ -520,7 +522,7 @@ def _credit_evidence(
     entries = objects[2 + line_count : 4 + line_count]
     if (
         note.number != creation["number"]
-        or note.document_date != effective.date()
+        or note.document_date != core._company_day(session, tenant, effective)
         or note.type != "credit_note"
         or note.source_record_id != source.id
         or note.party_id != review["state"]["context"]["invoice"]["party_id"]

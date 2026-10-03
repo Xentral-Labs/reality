@@ -169,6 +169,8 @@
     "record_external_stock": "movements",
     "set_company_currency": "accounts",
     "company_currency_state": "accounts",
+    "set_company_time_zone": "accounts",
+    "company_time_zone_state": "accounts",
     "set_supplier_item_terms": "orders",
     "remove_supplier_item_terms": "orders",
     "supplier_item_terms": "orders",

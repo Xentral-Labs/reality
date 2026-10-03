@@ -42,6 +42,7 @@ events:
   - {type: stock_block.released, producer: release_stock_block, subject: stock_block, invalidates: [Inventory, Item supply and demand, Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
   - {type: stock_block.scrapped, producer: scrap_stock_block, subject: stock_block, invalidates: [Inventory, Item supply and demand, Fulfillment queue, Fulfillment blockers, Operational Exceptions, Timeline, Tenant usage]}
   - {type: company_currency.set, producer: set_company_currency, subject: company_currency, invalidates: [Timeline, Tenant usage]}
+  - {type: company_time_zone.set, producer: set_company_time_zone, subject: company_time_zone, invalidates: [Open financial items, Operational Exceptions, Timeline, Tenant usage]}
   - {type: kit.defined, producer: define_kit, subject: item, invalidates: [Timeline, Tenant usage]}
   - {type: party.merged, producer: merge_party, subject: party, invalidates: [Open financial items, Operational Exceptions, Timeline, Tenant usage]}
   - {type: commitment.substitute_accepted, producer: accept_substitute, subject: commitment, invalidates: [Operational Exceptions, Timeline, Tenant usage]}

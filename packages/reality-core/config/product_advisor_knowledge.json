@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:3812f2f21139d4b9c6cb68ffbd1981facdbb00d6552b4e8e9cca5b25acf074dc",
+  "knowledge_version": "advisor-v1:sha256:4068a088b5b306c747643bef81278edf5c579b9ff4ac46fcfcb96af3af0fa308",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1980,7 +1980,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#Q05",
-      "fingerprint": "e0b7d2b02cdc90496e8686a99f2bac056d97ad580a2b6d8b622efc5abc5f9f19"
+      "fingerprint": "a0717c05de2976ab6c16572d3cd33f3ae391db877a9e93a36f2082a7623107a7"
     },
     {
       "id": "source_journey_r01",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "0cb1402cbc9c6e8896cedcd8ed68193844ace41c6f34f22ed735511f7002a4ea"
+      "fingerprint": "fb7039062a8ed39117790b9812e47fc54c00a54bad811f884b929a5f22ea1942"
     },
     {
       "id": "source_document_product_evaluation",
@@ -5962,18 +5962,20 @@
       "source_id": "source_journey_q05",
       "subject": "Time and period",
       "title": "Time zones: order at 23:30 in New York",
-      "search_text": "Q05 Time and period Time zones: order at 23:30 in New York Stored in UTC, dated correctly? Time zones: order at 23:30 in New York Stored in UTC, dated correctly?",
-      "claim_text": "Reality evaluates: Stored in UTC, dated correctly?",
-      "support": "limited",
+      "search_text": "Q05 Time and period Time zones: order at 23:30 in New York Stored in UTC, dated correctly? time zone business day late evening order Zeitzone Geschäftstag Bestellung spät abends Time zones: order at 23:30 in New York Stored in UTC, dated correctly? On which day does an order placed late in the evening count? In welcher Zeitzone zählt Reality den Geschäftstag?",
+      "claim_text": "Reality evaluates: Stored in UTC, dated correctly? Instants are stored in UTC, and the company states the time zone its business days are counted in: an order at 23:30 New York time is dated that day, while a stated day never moves.",
+      "support": "proven",
       "limitations": [
-        "Timestamps with an offset are stored in UTC.",
-        "There is no company time zone, and the day a late-evening local order falls on is not yet proven."
+        "A company counts in UTC until it states its time zone; days already stored on documents stay as they were stated when the zone changes.",
+        "Analysis reports and cost or contribution dates still group by the UTC day."
       ],
       "references": [
-        "Q05"
+        "Q05",
+        "company_time_zone_set_propose",
+        "company_time_zone"
       ],
       "language": "en",
-      "fingerprint": "194389ab4670dc3174369b8f02ee8ebc3d18c9c97d43e4af62b18f0388441fa0"
+      "fingerprint": "4fd179f25c70d224fc85b7a28d604f611b0c227bba87373e226e8a105e42d125"
     },
     {
       "id": "evidence_journey_r01",
@@ -7359,6 +7361,36 @@
       ],
       "language": "en",
       "fingerprint": "bb852c49a2072099a2c647a685eef2b424fbbb0cceadc08391295e03c93909c2"
+    },
+    {
+      "id": "evidence_command_set_company_time_zone",
+      "source_id": "source_executable_commands",
+      "subject": "State the company time zone",
+      "title": "State the company time zone",
+      "search_text": "set_company_time_zone State the company time zone States the time zone the company's business days are counted in, as a new version of the company's time-zone statement; days stored on documents stay as stated. mutation",
+      "claim_text": "set_company_time_zone is a governed mutation command for States the time zone the company's business days are counted in, as a new version of the company's time-zone statement; days stored on documents stay as stated..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "set_company_time_zone"
+      ],
+      "language": "en",
+      "fingerprint": "f3d4d745f74a6200d3c3c75e18228162d51d9ffce9ec674e5dcaa12c913d0823"
+    },
+    {
+      "id": "evidence_command_company_time_zone_state",
+      "source_id": "source_executable_commands",
+      "subject": "Read the company time zone",
+      "title": "Read the company time zone",
+      "search_text": "company_time_zone_state Read the company time zone Answers the time zone the company's business days are counted in, UTC until stated, and whether it was stated. query",
+      "claim_text": "company_time_zone_state is a governed query command for Answers the time zone the company's business days are counted in, UTC until stated, and whether it was stated..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "company_time_zone_state"
+      ],
+      "language": "en",
+      "fingerprint": "550d5e8971ec163361ce3afd0952d282e0a871d98642234351f55f5c457c3bb3"
     },
     {
       "id": "evidence_command_set_supplier_item_terms",

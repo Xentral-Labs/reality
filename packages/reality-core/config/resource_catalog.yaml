@@ -344,9 +344,9 @@ resources:
         Wer in einem Unternehmen arbeiten darf und wie weit dessen Daten eingerichtet sind. Jeder
         Geschäftsdatensatz gehört zu genau einem Unternehmen; fremde Datensätze verhalten sich wie
         nicht vorhanden.
-    synonyms: [tenant, member, invitation, access, Mandant, Mitglied, Einladung, Zugang]
-    tables: [company_invitation, invitation_delivery, tenant_membership]
-    match: "invitation|member|tenant"
+    synonyms: [tenant, member, invitation, access, time zone, Mandant, Mitglied, Einladung, Zugang, Zeitzone]
+    tables: [company_invitation, invitation_delivery, tenant_membership, company_time_zone]
+    match: "invitation|member|tenant|time_zone"
     views: []
     projections: [tenant_usage]
     exceptions: []
@@ -586,6 +586,8 @@ labels:
       record_external_stock: Fremdbestand erfassen
       set_company_currency: Firmenwährung festlegen
       company_currency_state: Firmenwährung anzeigen
+      set_company_time_zone: Zeitzone der Firma festlegen
+      company_time_zone_state: Zeitzone der Firma anzeigen
       set_supplier_item_terms: Lieferantenkonditionen festlegen
       settle_payout: Auszahlung abrechnen
       payouts: Auszahlungen anzeigen

@@ -2507,6 +2507,44 @@ def _company_currency_set(
     )
 
 
+def _company_time_zone_set(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """
+    BUSINESS PURPOSE:
+    State the time zone the company's business days are counted in (spec 349).
+
+    BUSINESS RULE application.company_time_zone_set.1:
+    Route this company-scoped request to set_company_time_zone. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
+    """
+    from reality.services.company_time_zone import UNCHECKED, set_company_time_zone
+
+    # reality-rule: application.company_time_zone_set.1
+    return set_company_time_zone(
+        session,
+        tenant_id,
+        arguments["time_zone"],
+        action_id=arguments.get("_action_id"),
+        _expected=arguments.get("reviewed", UNCHECKED),
+    )
+
+
+def _company_time_zone(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """
+    BUSINESS PURPOSE:
+    Read the time zone the company's business days are counted in.
+
+    BUSINESS RULE application.company_time_zone.1:
+    Route this company-scoped request to company_time_zone_state. The called implementation owns validation, selection and any business effects; this adapter returns its evidence rather than calculating an alternative result.
+    """
+    from reality.services.company_time_zone import company_time_zone_state
+
+    # reality-rule: application.company_time_zone.1
+    return company_time_zone_state(session, tenant_id)
+
+
 def _company_currency(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -4700,6 +4738,18 @@ TOOLS = {
         False,
         _company_currency,
     ),
+    "company_time_zone_set": Tool(
+        "company_time_zone_set",
+        "State the time zone the company's business days are counted in.",
+        True,
+        _company_time_zone_set,
+    ),
+    "company_time_zone": Tool(
+        "company_time_zone",
+        "Read the time zone the company's business days are counted in.",
+        False,
+        _company_time_zone,
+    ),
     "supplier_item_terms_set": Tool(
         "supplier_item_terms_set",
         "State a supplier's minimum order quantity and order multiple for an item.",
@@ -5884,6 +5934,13 @@ def create_change_proposal(
         normalized_arguments, company_currency_review = review_company_currency(
             session, tenant_id, arguments
         )
+    company_time_zone_review = None
+    if tool_name == "company_time_zone_set":
+        from reality.services.company_time_zone import review_company_time_zone
+
+        normalized_arguments, company_time_zone_review = review_company_time_zone(
+            session, tenant_id, arguments
+        )
     outbound_delivery_review = None
     if tool_name in {
         "outbound_delivery_plan",
@@ -6031,6 +6088,8 @@ def create_change_proposal(
         preview["supplier_item_terms"] = supplier_terms_review
     if company_currency_review is not None:
         preview["company_currency"] = company_currency_review
+    if company_time_zone_review is not None:
+        preview["company_time_zone"] = company_time_zone_review
     if stock_block_review is not None:
         preview["stock_block"] = stock_block_review
     if backorder_review is not None:
@@ -6709,6 +6768,7 @@ def approve_and_execute_proposal(
         "supplier_item_terms_set",
         "supplier_item_terms_remove",
         "company_currency_set",
+        "company_time_zone_set",
         "down_payment_invoice_record",
         "proforma_invoice_record",
         "commitment_revise",

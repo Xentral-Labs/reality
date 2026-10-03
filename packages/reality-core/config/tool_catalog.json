@@ -252,6 +252,8 @@
     "external_stock_state_propose": "shipping",
     "company_currency_set_propose": "payments",
     "company_currency": "payments",
+    "company_time_zone_set_propose": "payments",
+    "company_time_zone": "payments",
     "supplier_item_terms_set_propose": "orders",
     "supplier_item_terms_remove_propose": "orders",
     "supplier_item_terms": "orders",

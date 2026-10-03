@@ -358,7 +358,9 @@ def record_delivery_failure(
                 claim["party_id"],
                 claim["amount"],
                 currency=claim["currency"],
-                document_date=failure.occurred_at.date().isoformat(),
+                document_date=core._company_day(
+                    session, tenant_id, failure.occurred_at
+                ).isoformat(),
                 source_record_id=source.id,
                 action_id=action_id,
                 _commit=False,

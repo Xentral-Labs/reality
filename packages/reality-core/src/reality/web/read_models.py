@@ -92,6 +92,24 @@ issue_page = exception_page
 issue_count = exception_count
 
 
+def _local_day(session, tenant_id: str, column):
+    """A stored instant as the company's business day, in SQL (spec 349).
+
+    A register filtered by day shows what happened on that day in the company's
+    own calendar, not on the UTC day.
+    """
+    from reality.services.company_time_zone import _zone_name
+
+    utc = func.timezone("UTC", column)
+    # A stated day travels as midnight UTC and keeps its day, as in Python.
+    return func.date(
+        case(
+            (utc == func.date_trunc("day", utc), utc),
+            else_=func.timezone(_zone_name(session, tenant_id), column),
+        )
+    )
+
+
 def commitment_page(
     session,
     tenant_id: str,
@@ -154,12 +172,14 @@ def commitment_page(
     # reality-rule: web.read_models.commitment_page.due_from
     if due_from:
         criteria.append(
-            func.date(effective_value("due_at")) >= date.fromisoformat(due_from)
+            _local_day(session, tenant_id, effective_value("due_at"))
+            >= date.fromisoformat(due_from)
         )
     # reality-rule: web.read_models.commitment_page.due_to
     if due_to:
         criteria.append(
-            func.date(effective_value("due_at")) <= date.fromisoformat(due_to)
+            _local_day(session, tenant_id, effective_value("due_at"))
+            <= date.fromisoformat(due_to)
         )
     # reality-rule: web.read_models.commitment_page.status_filter
     if status in {"open", "fulfilled", "cancelled"}:
@@ -477,11 +497,13 @@ def reservation_page(
         criteria.append(Reservation.status == status)
     if date_from:
         criteria.append(
-            func.date(Reservation.reserved_at) >= date.fromisoformat(date_from)
+            _local_day(session, tenant_id, Reservation.reserved_at)
+            >= date.fromisoformat(date_from)
         )
     if date_to:
         criteria.append(
-            func.date(Reservation.reserved_at) <= date.fromisoformat(date_to)
+            _local_day(session, tenant_id, Reservation.reserved_at)
+            <= date.fromisoformat(date_to)
         )
     records, pager = entity_page(
         session,
@@ -564,10 +586,14 @@ def movement_page(
         criteria.append(Movement.type == movement_type)
     if date_from:
         criteria.append(
-            func.date(Movement.occurred_at) >= date.fromisoformat(date_from)
+            _local_day(session, tenant_id, Movement.occurred_at)
+            >= date.fromisoformat(date_from)
         )
     if date_to:
-        criteria.append(func.date(Movement.occurred_at) <= date.fromisoformat(date_to))
+        criteria.append(
+            _local_day(session, tenant_id, Movement.occurred_at)
+            <= date.fromisoformat(date_to)
+        )
     records, pager = entity_page(
         session,
         Movement,
@@ -648,11 +674,13 @@ def journal_page(
         criteria.append(LedgerEntry.debit_credit == side)
     if date_from:
         criteria.append(
-            func.date(LedgerEntry.effective_at) >= date.fromisoformat(date_from)
+            _local_day(session, tenant_id, LedgerEntry.effective_at)
+            >= date.fromisoformat(date_from)
         )
     if date_to:
         criteria.append(
-            func.date(LedgerEntry.effective_at) <= date.fromisoformat(date_to)
+            _local_day(session, tenant_id, LedgerEntry.effective_at)
+            <= date.fromisoformat(date_to)
         )
     rows, pager = entity_page(
         session,
@@ -754,11 +782,13 @@ def payment_page(
         criteria.append(LedgerEntry.debit_credit == "credit")
     if date_from:
         criteria.append(
-            func.date(LedgerEntry.effective_at) >= date.fromisoformat(date_from)
+            _local_day(session, tenant_id, LedgerEntry.effective_at)
+            >= date.fromisoformat(date_from)
         )
     if date_to:
         criteria.append(
-            func.date(LedgerEntry.effective_at) <= date.fromisoformat(date_to)
+            _local_day(session, tenant_id, LedgerEntry.effective_at)
+            <= date.fromisoformat(date_to)
         )
     cash_entries, pager = entity_page(
         session,
@@ -1187,7 +1217,10 @@ def aging_page(
         if term_id
     }
     terms = _records_by_id(session, PaymentTerm, tenant_id, term_ids)
-    return with_invoice_aging(rows, terms, as_of or datetime.now(UTC)), pager
+    from reality.services.company_time_zone import company_day
+
+    today = company_day(session, tenant_id, as_of or datetime.now(UTC))
+    return with_invoice_aging(rows, terms, today), pager
 
 
 @_read_without_flush

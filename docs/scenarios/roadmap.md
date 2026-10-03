@@ -51,7 +51,7 @@ J03, I11), because the same capability closes it.
 | R01 | Combined story with a released prepayment | by design (spec 275 FR-005) |
 | J09 | Consignment from the supplier | rare |
 | P06 | Two systems contradict each other | rare, general mechanism |
-| Q05 | Company time zone | rare |
+| Q05 | Company time zone | implemented; supported (spec 349) |
 | D18 | Duplicate shipment reports from outside | needs a shipment source first |
 
 ## Working through it

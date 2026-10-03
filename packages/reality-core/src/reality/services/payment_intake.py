@@ -255,7 +255,9 @@ def interpret_sales_invoice(
         lines,
         invoice.gross_amount,
         currency=invoice.currency,
-        document_date=invoice.issued_at.date().isoformat(),
+        document_date=core._company_day(
+            session, tenant_id, invoice.issued_at
+        ).isoformat(),
         payment_term_code=invoice.payment_term_code,
         source_record_id=source.id,
         _commit=False,

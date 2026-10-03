@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:3812f2f21139d4b9c6cb68ffbd1981facdbb00d6552b4e8e9cca5b25acf074dc",
+  "knowledge_version": "advisor-v1:sha256:4068a088b5b306c747643bef81278edf5c579b9ff4ac46fcfcb96af3af0fa308",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -3418,13 +3418,17 @@
         "member",
         "invitation",
         "access",
+        "time zone",
         "Mandant",
         "Mitglied",
         "Einladung",
-        "Zugang"
+        "Zugang",
+        "Zeitzone"
       ],
       "evidence_ids": [
         "evidence_command_change_graph_report",
+        "evidence_command_set_company_time_zone",
+        "evidence_command_company_time_zone_state",
         "evidence_command_create_invitation",
         "evidence_command_resend_invitation",
         "evidence_command_revoke_invitation",
@@ -3434,6 +3438,14 @@
         {
           "name": "change_graph_report",
           "mode": "mutation"
+        },
+        {
+          "name": "set_company_time_zone",
+          "mode": "mutation"
+        },
+        {
+          "name": "company_time_zone_state",
+          "mode": "query"
         },
         {
           "name": "create_invitation",
