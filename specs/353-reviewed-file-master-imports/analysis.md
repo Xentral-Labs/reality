@@ -1,0 +1,47 @@
+# Cross-artifact analysis: 353-reviewed-file-master-imports
+
+**Date**: 2026-10-03
+**Language**: English
+**Scope**: Specification, technical plan, tasks, data model and interface contracts.
+**Result**: No remaining HIGH/CRITICAL design finding identified after remediation.
+This is not runtime verification or completed business-writer coverage.
+
+## Review method
+
+Repository-grounded analysis compared intended behavior with existing interpreter,
+proposal, source/outcome, finance, item-import and scheduler code. Independent
+read-only research/review agents covered shared admission/Shopify/financial/rollout
+and bulk/agent/file/demo design respectively. Root resolved their findings and
+rechecked cross-package wording and requirement/task references. No extension
+hooks are configured. Spec-Kit prerequisites are checked per feature.
+
+## Findings and resolution
+
+| ID | Original severity | Finding | Resolution |
+| --- | --- | --- | --- |
+| B004 | HIGH | Ten packages could contradict the per-package byte bound for variable-width rows | Resolved: ten only for the controlled short-row fixture; canonical UTF-8 byte measurement, deterministic dual-limit grouping and oversized-unit exclusions. |
+| F001 | REVIEW | Legacy original artifact and normalized interpretation could be confused as source truth | Verified: received artifact/source references are separate from prepared normalized rows; the existing single-file upload limit is unchanged. |
+
+## Coverage summary
+
+- 10 functional and 3 domain requirements; three acceptance stories.
+- 15 ordered implementation tasks, all intentionally unchecked.
+- Every FR/DR has scenario and planned executable proof; spec task IDs resolve.
+- Constitution check passes at design level with no proposed exception.
+- Local document links and dependency references resolve; unresolved template or
+  product clarification markers are absent.
+- Tests precede corresponding implementation, then domain/schema/services/tools/
+  adapters. Actual migrations are not allocated or claimed applied by planning.
+
+## Implementation evidence still required
+
+Real PostgreSQL concurrency, phase numbering, crash/replay, current authorization
+and transport refusal proofs; all required regression/frontend/catalog/migration
+checks; and actual volume/resource measurements where in scope. Existing sources
+and test behavior may expose additional engineering issues during implementation;
+those must be resolved before completion, not hidden by this design-level result.
+
+The static writer inventory intentionally includes read/audit candidates and does
+not prove every dynamically registered or nested writer is covered. Spec 356 owns
+final semantic closure. Automated agent verdict fixtures prove pipeline behavior,
+not independent model quality or live-provider cost.
