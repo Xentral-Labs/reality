@@ -102,6 +102,6 @@ T046 precedes T047; T048 follows. FR-020 is covered by all three tasks.
 
 ## Workspace priority over chat
 
-- [x] T024 Add FR-022 regressions in refined-shell-browser.mjs, register-footer-browser.mjs and unified-app-contract.test.mjs before implementation.
+- [x] T024 Add FR-022 regressions in refined-shell-browser.mjs, register-footer-browser.mjs, unified-chat-composer-browser.mjs and unified-app-contract.test.mjs before implementation.
 - [x] T025 Implement shared resize/default/overlay behavior in Shell.tsx and tailwind.css (FR-022).
 - [x] T026 Verify shell/register browser behavior, contracts, build, formatting and spec policy; document evidence in review.md and docs/WEB_SPEC.md (FR-022).

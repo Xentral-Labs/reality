@@ -153,6 +153,13 @@ try {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${base}/app?tenant=tenant_a`);
   const dock = page.locator("[data-global-chat]");
+  const showDock = async () => {
+    if (!(await dock.isVisible()))
+      await page
+        .locator("[data-shell-header]")
+        .getByRole("button", { name: "Show chat", exact: true })
+        .click();
+  };
   await dock.getByRole("button", { name: "Conversation history", exact: true }).waitFor();
   const input = dock.getByRole("textbox", { name: "Ask about your company", exact: true });
   const starters = dock.locator("[data-chat-starters] button");
@@ -161,6 +168,7 @@ try {
   await mkdir("/private/tmp/reality-201-browser", { recursive: true });
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
+    await showDock();
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   }
   await page.screenshot({ path: "/private/tmp/reality-201-browser/desktop.png" });
@@ -328,6 +336,7 @@ try {
   for (const width of [390, 1440])
     for (const theme of ["light", "dark"]) {
       await page.setViewportSize({ width, height: 900 });
+      await showDock();
       await page.evaluate(
         (theme) => document.documentElement.setAttribute("data-theme", theme),
         theme,

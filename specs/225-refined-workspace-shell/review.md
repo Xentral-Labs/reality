@@ -186,3 +186,11 @@ no storage preference is added, and no services, catalogs or business data chang
 Final production TypeScript/Vite build, changed-file formatting, spec policy and
 whitespace checks pass. T026 local verification is complete; PR CI is verified
 separately before release. Existing bundle-size warnings remain unchanged.
+
+CI found the previous composer viewport smoke test depended on chat remaining open
+after shrinking and growing the window. Updated its dock screenshots/starter flow
+to explicitly reopen chat, preserving the intentional automatic-close behavior.
+The shell resize/draft/focus acceptance passed in CI without production changes.
+
+The adapted composer browser passes locally: reference header, attachments, voice
+draft/teardown, keyboard, immediate message echo and send-failure retention.
