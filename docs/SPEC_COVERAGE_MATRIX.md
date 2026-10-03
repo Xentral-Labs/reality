@@ -2377,3 +2377,12 @@ No schema change. An order in another currency than the customer's credit limit 
 - ERP explorer entry (spec 343 FR-029): `apps/docs/scripts/tool-interface-render.test.mjs` verifies actual Vue SSR German object labels/order, retention of all objects, English labels and catalog-backed starter presence. Actual browser checks verify starter-to-entry navigation without a live-source request and responsive sizing.
 - Docs explanation entry hierarchy (spec 343 FR-030): `apps/docs/scripts/business-blueprints.test.mjs` checks initial question/action and loaded provenance/refresh; `apps/docs/scripts/business-blueprints-browser.mjs` checks loading/freshness/retry under the revised accessible labels.
 - Business-first function detail (spec 343 FR-031): `apps/docs/scripts/tool-interface-render.test.mjs` verifies localized catalog purpose/title before technical identity and preserved synopsis. `apps/docs/scripts/business-blueprints.test.mjs` verifies borderless initial explanation entry and retained loaded controls; Docs browser workflow retains loading/freshness/retry behavior.
+
+## Payout settlement cost — Spec 342
+
+No schema change. A payout statement is reviewed and settled as one batch: locks and stable reads are kept for the transaction, line sources are stored together and order references are read for the whole statement.
+
+- `packages/reality-core/tests/finance/test_payout_cost.py`:
+  - Settling grows by at most 18 statements per further line and reviewing by at most 2 (measured 15 and under 1; 82 and 10 before).
+  - The same statement shape settled line by line and as a batch books the same documents, ledger entries, allocations, returns, events, line sources and finance revision rise.
+- `packages/reality-core/tests/scenarios/test_catalog_finance.py::test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_line`: the R04 budget is 20 statements per line.

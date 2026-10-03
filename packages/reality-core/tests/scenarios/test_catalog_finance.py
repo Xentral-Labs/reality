@@ -2310,8 +2310,9 @@ def test_a_payout_of_400_orders_with_refunds_chargebacks_and_fees_books_every_li
     )
     # The provider's account is empty after both payouts: everything was booked.
     assert _cash_on(session, business, account) == 0
-    # Review and settlement read a bounded number of statements per line.
-    assert len(statements) < (R04_ORDERS + 17) * 120, len(statements)
+    # Review and settlement take a bounded number of statements per line; the
+    # lines are booked as one batch (spec 342: about 16 per line, 83 before).
+    assert len(statements) < (R04_ORDERS + 17) * 20, len(statements)
 
 
 def test_cash_on_delivery_is_tied_to_the_parcel_it_was_collected_for(

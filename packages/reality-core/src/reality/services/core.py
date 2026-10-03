@@ -614,7 +614,11 @@ def emit_business_event(
     from reality.services.tenant_policy import require_decision_action
 
     require_decision_action(session, tenant_id, action_id, event_type=event_type)
-    session.scalar(select(Tenant).where(Tenant.id == tenant_id).with_for_update())
+    memo = _batch_memo(session)
+    if memo is None or ("tenant_lock", tenant_id) not in memo:
+        session.scalar(select(Tenant).where(Tenant.id == tenant_id).with_for_update())
+        if memo is not None:
+            memo[("tenant_lock", tenant_id)] = True
     progress = _event_progress(session, tenant_id)
     last_sequence = (
         progress.last_event_sequence
@@ -961,7 +965,83 @@ def _persist_fact_observation(
     return fact, True
 
 
+#: One batch of writes that repeats the same reads (spec 342): a payout statement
+#: books hundreds of lines in one transaction, and every line used to take the same
+#: locks and read the same company currency, accounts, parties and proposal again.
+_batch_scope: ContextVar[dict[str, Any] | None] = ContextVar(
+    "reality_batch_scope", default=None
+)
+
+
+@contextmanager
+def _batch_reads(session: OrmSession):
+    """Within this block and this transaction, a lock taken or a stable read is kept.
+
+    A row lock lasts until the transaction ends, so taking it again changes nothing;
+    the company currency, accounts, parties and the deciding proposal are not
+    changed by the writes a batch makes. The block ends with the batch, so nothing
+    is remembered past it.
+    """
+    token = _batch_scope.set(
+        {"session": session, "transaction": session.get_transaction(), "memo": {}}
+    )
+    try:
+        yield
+    finally:
+        _batch_scope.reset(token)
+
+
+def _held_record(session: OrmSession, model, tenant_id: str, record_id: str):
+    from sqlalchemy.orm import util as orm_util
+
+    columns = [column.key for column in sa_inspect(model).primary_key]
+    values = {"tenant_id": tenant_id, "id": record_id}
+    if not set(columns) <= set(values):
+        return None
+    record = session.identity_map.get(
+        orm_util.identity_key(model, tuple(values[column] for column in columns))
+    )
+    if record is None or record.tenant_id != tenant_id or record in session.deleted:
+        return None
+    return record
+
+
+def _atomic(session: OrmSession):
+    """A savepoint, except inside a batch, which stands or falls as one (spec 342)."""
+    from contextlib import nullcontext
+
+    return nullcontext() if _batch_memo(session) is not None else session.begin_nested()
+
+
+def _batch_memo(session: OrmSession) -> dict[Any, Any] | None:
+    scope = _batch_scope.get()
+    if (
+        scope is None
+        or scope["session"] is not session
+        or scope["transaction"] is not session.get_transaction()
+    ):
+        return None
+    return scope["memo"]
+
+
 def _tenant_record(session: OrmSession, model, tenant_id: str, record_id: str):
+    memo = _batch_memo(session)
+    if memo is not None and model in (Party, ChangeProposal, SourceRecord, Tenant):
+        # Records a batch never changes: reading one again returns what was read.
+        key = ("record", model, tenant_id, record_id)
+        if key not in memo:
+            memo[key] = _tenant_record_read(session, model, tenant_id, record_id)
+        return memo[key]
+    return _tenant_record_read(session, model, tenant_id, record_id)
+
+
+def _tenant_record_read(session: OrmSession, model, tenant_id: str, record_id: str):
+    if _batch_memo(session) is not None and model is not Tenant:
+        # In a batch, a record this session already holds is the one a read would
+        # return; only one it does not hold is read (spec 342).
+        held = _held_record(session, model, tenant_id, record_id)
+        if held is not None:
+            return held
     if model is Tenant:
         record = session.scalar(
             select(Tenant).where(Tenant.id == tenant_id, Tenant.id == record_id)
@@ -2102,6 +2182,122 @@ def store_source_record(
     if disposition == "current":
         stream.current_source_record_id = source.id
     return source, True, disposition
+
+
+def store_source_records(
+    session: OrmSession,
+    tenant_id: str,
+    source_system: str,
+    source_type: str,
+    payloads: dict[str, dict[str, Any]],
+) -> dict[str, SourceRecord]:
+    """`store_source_record` for many identities of one type at once (spec 342).
+
+    The same rules hold for every identity: it is locked, its stream is created
+    once, an identical payload returns the version already held, and a new payload
+    becomes the next version and the stream's current one. Only the reads are
+    shared, so a statement of hundreds of lines does not read each line apart.
+    Versions stated with a source time are not supported here; they keep the
+    single-record path.
+    """
+    if not payloads:
+        return {}
+    _require_business_mutation(session, tenant_id, "store_source_record")
+    _tenant_record(session, Tenant, tenant_id, tenant_id)
+    external_ids = sorted(payloads)
+    if session.get_bind().dialect.name == "postgresql":
+        keys = sorted(
+            int.from_bytes(
+                hashlib.sha256(
+                    f"{tenant_id}\x1f{source_system}\x1f{source_type}\x1f{external_id}".encode()
+                ).digest()[:8],
+                "big",
+                signed=True,
+            )
+            for external_id in external_ids
+        )
+        session.execute(
+            text(
+                "SELECT pg_advisory_xact_lock(key)"
+                " FROM unnest(CAST(:keys AS bigint[])) AS key ORDER BY key"
+            ),
+            {"keys": keys},
+        )
+    streams = {
+        stream.external_id: stream
+        for stream in session.scalars(
+            select(SourceStream)
+            .where(
+                SourceStream.tenant_id == tenant_id,
+                SourceStream.source_system == source_system,
+                SourceStream.source_type == source_type,
+                SourceStream.external_id.in_(external_ids),
+            )
+            .with_for_update()
+        )
+    }
+    new_streams = [
+        SourceStream(
+            id=uid("sst"),
+            tenant_id=tenant_id,
+            source_system=source_system,
+            source_type=source_type,
+            external_id=external_id,
+        )
+        for external_id in external_ids
+        if external_id not in streams
+    ]
+    if new_streams:
+        session.add_all(new_streams)
+        session.flush()
+        streams.update({stream.external_id: stream for stream in new_streams})
+    hashes = {
+        external_id: canonical_payload_hash(payloads[external_id])
+        for external_id in external_ids
+    }
+    held: dict[str, list[SourceRecord]] = {}
+    for record in session.scalars(
+        select(SourceRecord).where(
+            SourceRecord.tenant_id == tenant_id,
+            SourceRecord.source_system == source_system,
+            SourceRecord.source_type == source_type,
+            SourceRecord.external_id.in_(external_ids),
+        )
+    ):
+        held.setdefault(record.external_id, []).append(record)
+    stored: dict[str, SourceRecord] = {}
+    created: list[str] = []
+    for external_id in external_ids:
+        versions = held.get(external_id, [])
+        duplicate = next(
+            (r for r in versions if r.payload_hash == hashes[external_id]), None
+        )
+        if duplicate is not None:
+            stored[external_id] = duplicate
+            continue
+        stream = streams[external_id]
+        latest = max((r.version for r in versions), default=0)
+        source = SourceRecord(
+            id=uid("src"),
+            tenant_id=tenant_id,
+            source_system=source_system,
+            source_type=source_type,
+            external_id=external_id,
+            payload=json.dumps(
+                payloads[external_id], ensure_ascii=False, separators=(",", ":")
+            ),
+            payload_hash=hashes[external_id],
+            version=latest + 1,
+            supersedes_source_record_id=stream.current_source_record_id,
+        )
+        session.add(source)
+        stored[external_id] = source
+        created.append(external_id)
+    if created:
+        session.flush()
+    for external_id in created:
+        streams[external_id].current_source_record_id = stored[external_id].id
+    return stored
 
 
 def update_master_source_reference(
@@ -9411,6 +9607,10 @@ def post_ledger(
         )
     ]
     session.add_all(entries)
+    memo = _batch_memo(session)
+    if memo is not None:
+        # A group posted now has no reversal yet (spec 342).
+        memo[("reversal", tenant_id, group_id)] = (None, "normal")
     emit_business_event(
         session,
         tenant_id,
@@ -9666,6 +9866,19 @@ def _ledger_group_entries(
 
 
 def _ledger_reversal_for_group(
+    session: OrmSession, tenant_id: str, posting_group_id: str
+) -> tuple[LedgerReversal | None, str]:
+    memo = _batch_memo(session)
+    if memo is None:
+        return _ledger_reversal_read(session, tenant_id, posting_group_id)
+    # A reversal recorded during the batch is entered where it is made (spec 342).
+    key = ("reversal", tenant_id, posting_group_id)
+    if key not in memo:
+        memo[key] = _ledger_reversal_read(session, tenant_id, posting_group_id)
+    return memo[key]
+
+
+def _ledger_reversal_read(
     session: OrmSession, tenant_id: str, posting_group_id: str
 ) -> tuple[LedgerReversal | None, str]:
     relation = session.scalar(
@@ -9926,6 +10139,13 @@ def reverse_ledger_posting_group(
         )
         session.add(relation)
         session.flush()
+        memo = _batch_memo(session)
+        if memo is not None:
+            memo[("reversal", tenant_id, posting_group_id)] = (
+                relation,
+                "reversed_original",
+            )
+            memo[("reversal", tenant_id, reversing_group_id)] = (relation, "reversing")
         affected_allocations = _allocations_for_entries(
             session, tenant_id, {entry.id for entry in entries}
         )
@@ -11394,7 +11614,7 @@ def record_customer_payment(
 ) -> list[LedgerEntry]:
     _require_business_mutation(session, tenant_id, "record_customer_payment")
     amount = positive(amount, "amount")
-    with session.begin_nested():
+    with _atomic(session):
         payment = create_document(
             session,
             tenant_id,
@@ -11493,7 +11713,7 @@ def record_customer_refund(
     _require_business_mutation(session, tenant_id, "record_customer_refund")
     amount = positive(amount, "amount")
     effective_at = utc_datetime(effective_at)
-    with session.begin_nested():
+    with _atomic(session):
         refund = create_document(
             session,
             tenant_id,
@@ -11913,6 +12133,19 @@ SETTLEMENT_CONTROL = {
 def _settlement_control_entry(
     session: OrmSession, tenant_id: str, invoice_id: str
 ) -> LedgerEntry:
+    memo = _batch_memo(session)
+    if memo is None:
+        return _settlement_control_entry_read(session, tenant_id, invoice_id)
+    # A posted document's control entry never changes (spec 342).
+    key = ("control", tenant_id, invoice_id)
+    if key not in memo:
+        memo[key] = _settlement_control_entry_read(session, tenant_id, invoice_id)
+    return memo[key]
+
+
+def _settlement_control_entry_read(
+    session: OrmSession, tenant_id: str, invoice_id: str
+) -> LedgerEntry:
     invoice = _tenant_record(session, Document, tenant_id, invoice_id)
     control = SETTLEMENT_CONTROL.get(invoice.type)
     if control is None:
@@ -12176,7 +12409,11 @@ def allocate_settlement(
     allocated_payment = sum(
         (
             decimal(row.amount)
-            for row in active_settlement_allocations(session, tenant_id)
+            # Only this payment's allocations: the company's other ones were read
+            # and discarded, which grew with its history (spec 342).
+            for row in active_settlement_allocations(
+                session, tenant_id, entry_ids={payment.id}
+            )
             if payment.id in (row.payment_ledger_entry_id, row.invoice_ledger_entry_id)
         ),
         ZERO,

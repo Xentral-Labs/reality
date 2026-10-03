@@ -27,7 +27,7 @@ from typing import Any
 
 from pydantic import ValidationError
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from reality.db.core import (
     Document,
@@ -46,6 +46,7 @@ from reality.services.finance.accounts import lock_finance, resolve_account
 from reality.services.payment_intake import (
     Reference,
     _invoices_billing,
+    _orders_by,
     _orders_shipped_under,
     _posted_control,
     resolve_references,
@@ -273,68 +274,78 @@ def _customers(
     session: Session, tenant_id: str, references: list[Reference]
 ) -> set[str]:
     """The customers the stated references name, across all customers."""
+    memo = core._batch_memo(session)
     parties: set[str] = set()
     for reference in references:
-        if reference.type == "invoice_number":
-            parties |= set(
-                session.scalars(
-                    select(Document.party_id).where(
-                        Document.tenant_id == tenant_id,
-                        Document.type == "sales_invoice",
-                        Document.number == reference.value,
-                    )
-                )
-            )
-        elif reference.type in {"shop_order_number", "customer_reference"}:
-            column = (
-                Document.number
-                if reference.type == "shop_order_number"
-                else Document.customer_reference
-            )
-            parties |= set(
-                session.scalars(
-                    select(Document.party_id).where(
-                        Document.tenant_id == tenant_id,
-                        Document.type == "sales_order",
-                        column == reference.value,
-                    )
-                )
-            )
-        elif reference.type == "shop_id":
-            parties |= set(
-                session.scalars(
-                    select(Document.party_id)
-                    .join(
-                        SourceRecord,
-                        (SourceRecord.tenant_id == Document.tenant_id)
-                        & (SourceRecord.id == Document.source_record_id),
-                    )
-                    .where(
-                        Document.tenant_id == tenant_id,
-                        Document.type == "sales_order",
-                        SourceRecord.source_type == "order",
-                        SourceRecord.external_id == reference.value,
-                    )
-                )
-            )
-        elif reference.type == "tracking_number":
-            parties |= {
-                order.party_id
-                for order in _orders_shipped_under(
-                    session, tenant_id, reference.value, None
-                )
-            }
-        elif reference.type == "customer_number":
-            parties |= set(
-                session.scalars(
-                    select(Party.id).where(
-                        Party.tenant_id == tenant_id,
-                        Party.accounting_code == reference.value,
-                    )
-                )
-            )
+        key = ("customers", tenant_id, reference.type, reference.value)
+        if memo is not None and key in memo:
+            parties |= memo[key]
+        else:
+            parties |= _customers_of(session, tenant_id, reference)
     parties.discard(None)
     return parties
+
+
+def _customers_of(session: Session, tenant_id: str, reference: Reference) -> set[str]:
+    if reference.type == "invoice_number":
+        return set(
+            session.scalars(
+                select(Document.party_id).where(
+                    Document.tenant_id == tenant_id,
+                    Document.type == "sales_invoice",
+                    Document.number == reference.value,
+                )
+            )
+        )
+    if reference.type in {"shop_order_number", "customer_reference"}:
+        column = (
+            Document.number
+            if reference.type == "shop_order_number"
+            else Document.customer_reference
+        )
+        return set(
+            session.scalars(
+                select(Document.party_id).where(
+                    Document.tenant_id == tenant_id,
+                    Document.type == "sales_order",
+                    column == reference.value,
+                )
+            )
+        )
+    if reference.type == "shop_id":
+        return set(
+            session.scalars(
+                select(Document.party_id)
+                .join(
+                    SourceRecord,
+                    (SourceRecord.tenant_id == Document.tenant_id)
+                    & (SourceRecord.id == Document.source_record_id),
+                )
+                .where(
+                    Document.tenant_id == tenant_id,
+                    Document.type == "sales_order",
+                    SourceRecord.source_type == "order",
+                    SourceRecord.external_id == reference.value,
+                )
+            )
+        )
+    if reference.type == "tracking_number":
+        return {
+            order.party_id
+            for order in _orders_shipped_under(
+                session, tenant_id, reference.value, None
+            )
+        }
+    if reference.type == "customer_number":
+        return set(
+            session.scalars(
+                select(Party.id).where(
+                    Party.tenant_id == tenant_id,
+                    Party.accounting_code == reference.value,
+                )
+            )
+        )
+    return set()
 
 
 def _orders_named(
@@ -347,19 +358,12 @@ def _orders_named(
             found = _orders_shipped_under(session, tenant_id, reference.value, party_id)
         elif reference.type in {"shop_order_number", "customer_reference"}:
             column = (
-                Document.number
+                "number"
                 if reference.type == "shop_order_number"
-                else Document.customer_reference
+                else "customer_reference"
             )
-            found = list(
-                session.scalars(
-                    select(Document).where(
-                        Document.tenant_id == tenant_id,
-                        Document.party_id == party_id,
-                        Document.type == "sales_order",
-                        column == reference.value,
-                    )
-                )
+            found = _orders_by(
+                session, tenant_id, party_id, **{column: reference.value}
             )
         else:
             found = []
@@ -486,6 +490,128 @@ def _held_payment(
     return next(iter(payments)) if len(payments) == 1 else None
 
 
+def _warm(session: Session, tenant_id: str, lines: list[dict[str, Any]]) -> None:
+    """Read what the lines' order references lead to, for the whole statement at once.
+
+    The same functions resolve each line afterwards; inside the batch they find
+    what was read here instead of reading per line. Nothing a batch writes changes
+    these orders, their lines, the invoices billing them or those invoices'
+    control entries (spec 342).
+    """
+    memo = core._batch_memo(session)
+    if memo is None:
+        return
+    columns = {
+        "shop_order_number": "number",
+        "customer_reference": "customer_reference",
+    }
+    wanted: dict[str, set[str]] = {column: set() for column in columns.values()}
+    for line in lines:
+        for reference in line["references"]:
+            if reference["type"] in columns:
+                wanted[columns[reference["type"]]].add(reference["value"])
+    orders: dict[str, Document] = {}
+    for reference_type, column in columns.items():
+        if not wanted[column]:
+            continue
+        found = list(
+            session.scalars(
+                select(Document).where(
+                    Document.tenant_id == tenant_id,
+                    Document.type == "sales_order",
+                    getattr(Document, column).in_(wanted[column]),
+                )
+            )
+        )
+        by_value: dict[str, list[Document]] = {value: [] for value in wanted[column]}
+        for order in found:
+            by_value[getattr(order, column)].append(order)
+            orders[order.id] = order
+        for value, group in by_value.items():
+            memo[("customers", tenant_id, reference_type, value)] = {
+                order.party_id for order in group
+            }
+            by_party: dict[str, list[Document]] = {}
+            for order in group:
+                by_party.setdefault(order.party_id, []).append(order)
+            for party_id, party_orders in by_party.items():
+                memo[("orders_by", tenant_id, party_id, column, value)] = party_orders
+    if not orders:
+        return
+    order_lines: dict[str, list[DocumentLine]] = {order_id: [] for order_id in orders}
+    for line in session.scalars(
+        select(DocumentLine).where(
+            DocumentLine.tenant_id == tenant_id,
+            DocumentLine.document_id.in_(list(orders)),
+        )
+    ):
+        order_lines[line.document_id].append(line)
+    line_order = {
+        line.id: order_id for order_id, rows in order_lines.items() for line in rows
+    }
+    billing_ids: dict[str, set[str]] = {order_id: set() for order_id in orders}
+    if line_order:
+        for invoice_id, billed_line_id in session.execute(
+            select(
+                DocumentLine.document_id, DocumentLine.billed_document_line_id
+            ).where(
+                DocumentLine.tenant_id == tenant_id,
+                DocumentLine.billed_document_line_id.in_(list(line_order)),
+            )
+        ):
+            billing_ids[line_order[billed_line_id]].add(invoice_id)
+    invoice_ids = set().union(*billing_ids.values())
+    invoices = (
+        {
+            invoice.id: invoice
+            for invoice in session.scalars(
+                select(Document).where(
+                    Document.tenant_id == tenant_id,
+                    Document.id.in_(list(invoice_ids)),
+                    Document.type == "sales_invoice",
+                )
+            )
+        }
+        if invoice_ids
+        else {}
+    )
+    for order_id in orders:
+        memo[("lines_of", tenant_id, order_id)] = order_lines[order_id]
+        memo[("invoices_billing", tenant_id, order_id)] = [
+            invoices[invoice_id]
+            for invoice_id in billing_ids[order_id]
+            if invoice_id in invoices
+        ]
+    if not invoices:
+        return
+    invoice_line = aliased(DocumentLine)
+    billed: dict[str, set[str]] = {invoice_id: set() for invoice_id in invoices}
+    for invoice_id, order_id in session.execute(
+        select(invoice_line.document_id, DocumentLine.document_id)
+        .join(
+            DocumentLine,
+            (DocumentLine.tenant_id == invoice_line.tenant_id)
+            & (DocumentLine.id == invoice_line.billed_document_line_id),
+        )
+        .where(
+            invoice_line.tenant_id == tenant_id,
+            invoice_line.document_id.in_(list(invoices)),
+        )
+    ):
+        billed[invoice_id].add(order_id)
+    for invoice_id, order_ids in billed.items():
+        memo[("billed_orders", tenant_id, invoice_id)] = order_ids
+    controls = core._settlement_control_entries(
+        session, tenant_id, list(invoices.values())
+    )
+    for invoice_id, entry in controls.items():
+        memo[("control", tenant_id, invoice_id)] = entry
+    groups = {entry.posting_group_id for entry in controls.values()}
+    roles = core._ledger_reversal_roles(session, tenant_id, groups)
+    for group_id in groups:
+        memo[("reversal", tenant_id, group_id)] = roles.get(group_id, (None, "normal"))
+
+
 class _Planner:
     """Decides what each line does, reading open amounts once for the statement.
 
@@ -505,6 +631,7 @@ class _Planner:
         self.resolved: dict[str, tuple[set[str], Any]] = {}
 
     def prefetch(self, lines: list[dict[str, Any]]) -> None:
+        _warm(self.session, self.tenant_id, lines)
         invoices: dict[str, Document] = {}
         for line in lines:
             if line["kind"] != "charge":
@@ -683,6 +810,13 @@ def preview_payout(
     session: Session, tenant_id: str, values: dict[str, Any]
 ) -> dict[str, Any]:
     """What settling this statement would do, line by line; records nothing."""
+    with core._batch_reads(session):
+        return _preview(session, tenant_id, values)
+
+
+def _preview(
+    session: Session, tenant_id: str, values: dict[str, Any]
+) -> dict[str, Any]:
     statement = _statement(values)
     provider = core._tenant_record(
         session, Party, tenant_id, statement["provider_party_id"]
@@ -826,8 +960,24 @@ def settle_payout(
     """Book the statement's lines, once each, and its deposit; callers own the transaction.
 
     Every line is resolved again under the finance lock, so a payment or order
-    recorded since the review is seen as it is now.
+    recorded since the review is seen as it is now. The lines are booked as one
+    batch: locks taken and stable reads made for the first line hold for the rest
+    (spec 342).
     """
+    with core._batch_reads(session):
+        return _settle(
+            session, tenant_id, action_id=action_id, actor_id=actor_id, **values
+        )
+
+
+def _settle(
+    session: Session,
+    tenant_id: str,
+    *,
+    action_id: str,
+    actor_id: str | None,
+    **values: Any,
+) -> dict[str, Any]:
     core._require_business_mutation(session, tenant_id, "settle_payout")
     lock_finance(session, tenant_id)
     statement = _statement(values)
@@ -882,23 +1032,25 @@ def settle_payout(
             _commit=False,
         )
     lines = {line["line_id"]: line for line in statement["lines"]}
-    sources = {
-        line_id: core.store_source_record(
-            session,
-            tenant_id,
-            SOURCE_SYSTEM,
-            LINE_TYPE,
-            _line_external_id(source.id, line_id),
-            {
+    stored = core.store_source_records(
+        session,
+        tenant_id,
+        SOURCE_SYSTEM,
+        LINE_TYPE,
+        {
+            _line_external_id(source.id, line_id): {
                 "payout_source_record_id": source.id,
                 "provider_party_id": statement["provider_party_id"],
                 "payout_reference": statement["payout_reference"],
                 "paid_on": statement["paid_on"],
                 "currency": statement["currency"],
                 **line,
-            },
-        )[0]
-        for line_id, line in lines.items()
+            }
+            for line_id, line in lines.items()
+        },
+    )
+    sources = {
+        line_id: stored[_line_external_id(source.id, line_id)] for line_id in lines
     }
     bookings = _bookings(session, tenant_id, {s.id for s in sources.values()})
     booked = {line_id for line_id, s in sources.items() if s.id in bookings}

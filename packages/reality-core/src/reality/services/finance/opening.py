@@ -76,6 +76,19 @@ def opening_context(
 def _scopes(
     session: Session, tenant_id: str, party_id: str, currency: str, side: str
 ) -> list[OpeningScope]:
+    memo = core._batch_memo(session)
+    if memo is None:
+        return _scopes_read(session, tenant_id, party_id, currency, side)
+    # A batch states no opening scope (spec 342).
+    key = ("opening_scopes", tenant_id, party_id, currency, side)
+    if key not in memo:
+        memo[key] = _scopes_read(session, tenant_id, party_id, currency, side)
+    return memo[key]
+
+
+def _scopes_read(
+    session: Session, tenant_id: str, party_id: str, currency: str, side: str
+) -> list[OpeningScope]:
     return list(
         session.scalars(
             select(OpeningScope).where(

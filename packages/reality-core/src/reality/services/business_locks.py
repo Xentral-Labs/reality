@@ -51,10 +51,16 @@ DELIVERY_WRITERS = frozenset(
 
 
 def lock_delivery_state(session: Session, tenant_id: str) -> None:
-    from reality.services.core import NotFound
+    from reality.services.core import NotFound, _batch_memo
 
+    memo = _batch_memo(session)
+    if memo is not None and ("tenant_lock", tenant_id) in memo:
+        # The row lock is held until the transaction ends (spec 342).
+        return
     found = session.scalar(
         select(Tenant.id).where(Tenant.id == tenant_id).with_for_update()
     )
     if found is None:
         raise NotFound(code="tenant_not_found")
+    if memo is not None:
+        memo[("tenant_lock", tenant_id)] = True
