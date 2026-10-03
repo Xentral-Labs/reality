@@ -64,7 +64,7 @@ was sie auflöst und welche Agent Tools sie auflisten und erklären.
 | [`received_beyond_order`](#exception-received_beyond_order)                               | Received beyond the order                | Aufträge & Erfüllung    | `normal` | Purchasing                                                                                  |
 | [`misdelivery_outstanding`](#exception-misdelivery_outstanding)                           | Wrong item delivered                     | Aufträge & Erfüllung    | `normal` | Warehouse                                                                                   |
 | [`external_stock_differs`](#exception-external_stock_differs)                             | External stock differs                   | Lager & Logistik        | `normal` | Warehouse                                                                                   |
-| [`reservation_awaiting_prepayment`](#exception-reservation_awaiting_prepayment)           | Reservation waiting for prepayment       | Finanzen                | `normal` | Accounts receivable                                                                         |
+| [`purchase_order_unconfirmed`](#exception-purchase_order_unconfirmed)                     | Purchase order not confirmed             | Aufträge & Erfüllung    | `normal` | Purchasing                                                                                  |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1630,22 +1630,23 @@ and when.
 [`exceptions_list`](./commands#tool-exceptions_list), Agent Tool
 [`exception_explain`](./commands#tool-exception_explain)
 
-## `reservation_awaiting_prepayment` — Reservation waiting for prepayment {#exception-reservation_awaiting_prepayment}
+## `purchase_order_unconfirmed` — Purchase order not confirmed {#exception-purchase_order_unconfirmed}
 
-Stock has been reserved for an order with prepayment terms for longer than a week while its
-prepayment is still unpaid, so the stock is withheld from every other order. Nothing is released by
-itself. The entry names the order, the reserved quantity, how long it has waited and the unpaid
-amount, so a person chases the payment or releases the reservation.
+A supplier has not confirmed an open purchase line three days after the order was placed. A
+confirmation is the supplier restating the promise — its date, quantity or price, or the date as
+ordered — and goods arriving answer it too. The entry names the order, when it was placed and since
+when a confirmation was expected, so the buyer can ask before the delivery date has passed. It
+changes nothing by itself.
 
-- **Verantwortlich:** Accounts receivable
-- **Aufgelöst durch:** Payment of the open prepayment, releasing the reservation so the stock serves
-  other orders, or cancelling the order.
+- **Verantwortlich:** Purchasing
+- **Aufgelöst durch:** The supplier's confirmation recorded as a revision of the line, goods
+  arriving against it, or the line cancelled.
 - **Schwere:** `normal`
 - **Datensatztyp:** `commitment`
-- **Spezifikation:** `348/FR-001`
+- **Spezifikation:** `346/FR-001`
 - **Nachweis:**
-  `tests/test_prepayment_reservations.py::test_stock_reserved_for_an_unpaid_prepayment_is_reported_after_a_week`,
-  `tests/test_prepayment_reservations.py::test_payment_release_or_cancellation_clears_it`
+  `tests/test_purchase_order_unconfirmed.py::test_an_unconfirmed_line_is_reported_after_three_days`,
+  `tests/test_purchase_order_unconfirmed.py::test_a_confirmation_or_a_receipt_clears_it`
 
 **Siehe auch:** Projection [`exceptions`](./views#projection-exceptions), Agent Tool
 [`exceptions_list`](./commands#tool-exceptions_list), Agent Tool

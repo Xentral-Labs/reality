@@ -2,13 +2,13 @@
 
 Spec impact: none. This records test evidence for [catalog.md](catalog.md); it changes no behavior.
 
-Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope; spec 344 (2026-10-03) proved J07; spec 348 (2026-10-03) proved B12. Rows
+Assessed against `main` at 4dc658f9 (2026-09-26) by reading tests, services and specs; spec 292 (2026-09-28) proved A04, A06, A07, A19, C04, F01, F05, M08, N01, N02 and N06; spec 293 (2026-09-29) proved F07 with the customer exchange; spec 294 (2026-09-29) proved D16, G07, H03, I06, I07, K05, L06, O01, P04 and P07 and pinned R01; spec 299 (2026-10-01) proved E03, E11, C14 and Q01; spec 300 (2026-10-01) proved B14, L02 and L07; spec 301 (2026-10-01) proved O05; spec 302 (2026-10-01) proved G02; spec 303 (2026-10-01) proved A02, B06 and D02; spec 304 (2026-10-02) proved B05, J05, H08 and H15; spec 335 (2026-10-03) proved D07, D08 and D09; spec 336 (2026-10-02) proved L03, R04, C09, C10 and C13; spec 333 (2026-10-02) proved K01, K02, K04 and K06 and made K03 partial; spec 334 (2026-10-02) proved A08, A11, A21, A24, D04, D13 and M05; spec 337 (2026-10-03) proved D10, D11 and G15 and made R03 partial; spec 339 (2026-10-03) proved L10 and O02; spec 338 (2026-10-03) proved H04, H05, H06, H07, H17, G16 and D05; spec 340 (2026-10-03) proved Q04 and set L11 and Q02 out of scope; spec 344 (2026-10-03) proved J07; spec 348 (2026-10-03) proved B12; spec 346 (2026-10-03) proved G10. Rows
 pointing at `tests/scenarios/test_catalog_*.py` were proven by running those tests. Evidence paths are relative to `packages/reality-core/` unless they
 start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on it.
 
 ## Summary
 
-228 scenarios: 183 covered, 10 partial, 0 missing, 29 gap, 6 out.
+228 scenarios: 184 covered, 10 partial, 0 missing, 28 gap, 6 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -18,7 +18,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | D Shipment, split and merge | 15 | 1 |  | 3 |  |
 | E Customer invoice and credit | 12 |  |  |  |  |
 | F Returns and complaints | 12 |  |  | 1 |  |
-| G Purchase demand and order | 14 |  |  | 3 |  |
+| G Purchase demand and order | 15 |  |  | 2 |  |
 | H Receipt and supplier deviations | 19 |  |  |  |  |
 | I Supplier invoice and payment | 12 |  |  |  |  |
 | J Warehouse and stock | 7 | 1 |  | 3 |  |
@@ -92,7 +92,7 @@ Most of the 74 gaps come from a few structural decisions or absences, not from s
     release the order; a contribution needs the invoice in the order's currency.
 14. **Other single gaps:** loans and samples with a return obligation (M12), repair round trip
     (F10), returnable packaging (D19), subscriptions (L08), customs data (L12, D14), negative stock (J06 is refused by design),
-    re-labelling pairs (J11), unconfirmed purchase orders (G10),
+    re-labelling pairs (J11),
     quote documents (A14), variant swap on an
     open order (A10). Customer delivery documents and labels are out by spec 350 (M07).
 
@@ -271,7 +271,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | G07 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_supplier_tier_price_is_kept_and_a_different_price_is_reported | Purchase price list with a 10-unit tier; the order line takes the tier entry; the guided supplier invoice is kept as stated with no finding; a second invoice at the single-unit tier recorded through document_create is reported as invoice_price_differs. |
 | G08 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_usd_purchase_is_invoiced_at_its_stated_rate | A USD purchase keeps its currency; its invoice is posted at the stated rate with both amounts on every entry (spec 309). |
 | G09 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_supplier_confirms_less_later_and_dearer_and_is_billed_as_confirmed | A confirmation restates quantity, date and price; the invoice follows the confirmed price (spec 310). |
-| G10 | gap | — | No acknowledgement expectation, so an unconfirmed PO is never flagged (only overdue after the due date). |
+| G10 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_purchase_order_the_supplier_has_not_confirmed_is_flagged | A purchase line unconfirmed three days after it was placed is reported long before its delivery date; the supplier's confirmation, recorded as a revision, clears it (spec 346). |
 | G11 | covered | tests/test_commitment_revisions.py::test_a_new_date_never_erases_the_old_one, ::test_the_date_in_force_is_the_latest_stated | Append-only revisions; the latest one is in force. |
 | G12 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_purchase_cancelled_after_production_records_the_suppliers_charge | The cancellation charge is a supplier invoice against the cancelled line, without purchase findings (spec 310). |
 | G13 | covered | packages/reality-core/tests/scenarios/test_catalog_purchasing.py::test_a_cancelled_order_frees_its_purchase_before_the_purchase_is_reduced | Cancelling the order ends its assignment, so all 10 of the purchase are unassigned and promisable; the reviewed revision to 6 then reduces the purchase (spec 305). |

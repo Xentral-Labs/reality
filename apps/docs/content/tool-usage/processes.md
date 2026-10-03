@@ -190,7 +190,9 @@ run.
 
 **Can leave behind:**
 [Overdue incoming supplier commitment](./exceptions#exception-overdue_incoming_supplier_commitment)
-(`overdue_incoming_supplier_commitment`)
+(`overdue_incoming_supplier_commitment`),
+[Purchase order not confirmed](./exceptions#exception-purchase_order_unconfirmed)
+(`purchase_order_unconfirmed`)
 
 ### 3. Receive the goods
 

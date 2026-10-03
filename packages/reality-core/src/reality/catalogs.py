@@ -160,6 +160,7 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "misdelivery_outstanding",
     "external_stock_differs",
     "reservation_awaiting_prepayment",
+    "purchase_order_unconfirmed",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays
