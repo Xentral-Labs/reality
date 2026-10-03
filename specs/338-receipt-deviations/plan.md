@@ -24,7 +24,7 @@
 
 **Language/Version**: Python 3.12, SQLAlchemy 2, Alembic, PostgreSQL
 
-**Storage**: migration `0130_receipt_deviations` with `misdelivery`, `commitment_substitute` and `shipment_advice_line`. No new column on an existing table.
+**Storage**: migration `0132_receipt_deviations` with `misdelivery`, `commitment_substitute` and `shipment_advice_line`. No new column on an existing table.
 
 **Testing**:
 - service tests with positive controls (`tests/test_receipt_deviations.py`);
@@ -122,4 +122,4 @@
 
 ## Rollback
 
-Downgrade 0130 drops the three tables and is refused while any of them holds rows. Movements recorded with a wrong-item link stay valid unlinked movements.
+Downgrade 0132 drops the three tables and is refused while any of them holds rows. Movements recorded with a wrong-item link stay valid unlinked movements.

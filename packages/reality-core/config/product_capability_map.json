@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:2ce24dafd9aafa6d1dcd17d476941f8a991d01b77d291709d87ef35ee47d1d4b",
+  "knowledge_version": "advisor-v1:sha256:7a3df2b5c3da4659d0d735a572265df17afe443035352dad87384fc175b87ba7",
   "capabilities": [
     {
       "id": "capability_process_availability_reservation_and_backorder",
@@ -210,7 +210,12 @@
         "evidence_journey_l11",
         "evidence_journey_l12"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "party_merges",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_finance_tax_and_currency",
@@ -346,7 +351,12 @@
         "evidence_journey_o05",
         "evidence_journey_o06"
       ],
-      "tools": []
+      "tools": [
+        {
+          "name": "party_merges",
+          "mode": "query"
+        }
+      ]
     },
     {
       "id": "capability_process_order_intake_and_order_changes",
@@ -774,11 +784,15 @@
         "supplier",
         "debtor",
         "creditor",
+        "duplicate",
+        "merge",
         "Kunde",
         "Lieferant",
         "Debitor",
         "Kreditor",
-        "Adresse"
+        "Adresse",
+        "Dublette",
+        "Zusammenführen"
       ],
       "evidence_ids": [
         "evidence_command_propose_cost_review",
@@ -799,6 +813,8 @@
         "evidence_command_set_supplier_item_terms",
         "evidence_command_remove_supplier_item_terms",
         "evidence_command_supplier_item_terms",
+        "evidence_command_merge_party",
+        "evidence_command_party_merges",
         "evidence_command_set_customer_item_number",
         "evidence_command_remove_customer_item_number",
         "evidence_command_customer_item_numbers",
@@ -897,6 +913,14 @@
         },
         {
           "name": "supplier_item_terms",
+          "mode": "query"
+        },
+        {
+          "name": "merge_party",
+          "mode": "mutation"
+        },
+        {
+          "name": "party_merges",
           "mode": "query"
         },
         {
@@ -1518,6 +1542,7 @@
         "evidence_command_accept_substitute",
         "evidence_command_assemble_kit",
         "evidence_command_kits",
+        "evidence_command_merge_party",
         "evidence_command_purchase_match",
         "evidence_command_plan_outbound_delivery",
         "evidence_command_revise_outbound_delivery",
@@ -1628,6 +1653,10 @@
         {
           "name": "kits",
           "mode": "query"
+        },
+        {
+          "name": "merge_party",
+          "mode": "mutation"
         },
         {
           "name": "purchase_match",
@@ -2421,6 +2450,7 @@
         "evidence_command_release_credit_holds",
         "evidence_command_set_company_currency",
         "evidence_command_company_currency_state",
+        "evidence_command_merge_party",
         "evidence_command_credit_exposure",
         "evidence_command_record_down_payment_invoice",
         "evidence_command_post_customer_payment",
@@ -2609,6 +2639,10 @@
         {
           "name": "company_currency_state",
           "mode": "query"
+        },
+        {
+          "name": "merge_party",
+          "mode": "mutation"
         },
         {
           "name": "credit_exposure",
@@ -2960,6 +2994,7 @@
         "evidence_command_hold_document_commitments",
         "evidence_command_release_credit_holds",
         "evidence_command_kit_split",
+        "evidence_command_merge_party",
         "evidence_command_purchase_match",
         "evidence_command_state_delivery_rule",
         "evidence_command_delivery_rules",
@@ -3001,7 +3036,6 @@
         "evidence_command_allocate_supplier_credit_note",
         "evidence_command_post_supplier_refund",
         "evidence_command_post_supplier_payment",
-        "evidence_command_adjustment_context",
         "evidence_command_accept_adjustment",
         "evidence_command_apply_settlement",
         "evidence_command_import_opening",
@@ -3140,6 +3174,10 @@
         {
           "name": "kit_split",
           "mode": "query"
+        },
+        {
+          "name": "merge_party",
+          "mode": "mutation"
         },
         {
           "name": "purchase_match",
@@ -3304,10 +3342,6 @@
         {
           "name": "post_supplier_payment",
           "mode": "mutation"
-        },
-        {
-          "name": "adjustment_context",
-          "mode": "read"
         },
         {
           "name": "accept_adjustment",

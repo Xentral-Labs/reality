@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "knowledge_version": "advisor-v1:sha256:2ce24dafd9aafa6d1dcd17d476941f8a991d01b77d291709d87ef35ee47d1d4b",
+  "knowledge_version": "advisor-v1:sha256:7a3df2b5c3da4659d0d735a572265df17afe443035352dad87384fc175b87ba7",
   "sources": [
     {
       "id": "source_journey_a01",
@@ -1611,7 +1611,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#L10",
-      "fingerprint": "e232b39c0de1c6b5141d2010f2667728df3552d73e2abd38c342266189533c48"
+      "fingerprint": "2d3e55c4434573dc63bd478bf6150801bd792b02d07632f1439f398d9fd33049"
     },
     {
       "id": "source_journey_l11",
@@ -1827,7 +1827,7 @@
       "visibility": "public",
       "authority": "capability",
       "public_url": "https://docs.runreality.ai/getting-started/business-journeys#O02",
-      "fingerprint": "559388d142ff0cdbcdcbd67d0845b283543cc9f234eb7c58370307849bc4be70"
+      "fingerprint": "0d0626f711ea9fabb78a1f3894065d6f7b9455ee6df17635293c96b79c705341"
     },
     {
       "id": "source_journey_o03",
@@ -2061,7 +2061,7 @@
       "visibility": "public",
       "authority": "executable_vocabulary",
       "public_url": "https://docs.runreality.ai/tool-usage/commands",
-      "fingerprint": "28a946af77c705ee532c3966b12e6f7dbef1c36ec24b0e1c03356981e4bc98da"
+      "fingerprint": "372a2115fec2c38d0e01451b3fa9447b7d4201f63776db2b977dbf31a57d2feb"
     },
     {
       "id": "source_document_product_evaluation",
@@ -5238,17 +5238,20 @@
       "source_id": "source_journey_l10",
       "subject": "E-commerce and marketplaces",
       "title": "Guest order, later with an account (duplicate party)",
-      "search_text": "L10 E-commerce and marketplaces Guest order, later with an account (duplicate party) Parties merged, history kept? Guest order, later with an account (duplicate party) Parties merged, history kept?",
-      "claim_text": "Reality evaluates: Parties merged, history kept?",
-      "support": "unavailable",
+      "search_text": "L10 E-commerce and marketplaces Guest order, later with an account (duplicate party) Parties merged, history kept? guest checkout merge customer account Gastbestellung Kundenkonto zusammenführen Guest order, later with an account (duplicate party) Parties merged, history kept? A shop customer ordered as a guest and later opened an account; can both be one customer? Ein Shopkunde hat als Gast bestellt und später ein Konto angelegt; werden beide ein Kunde?",
+      "claim_text": "Reality evaluates: Parties merged, history kept? Yes. A person merges the guest business partner into the customer's account through a review with a reason. The guest's orders, invoices and payments keep naming the guest and read under the account: its detail, balance and credit exposure include them. The guest becomes inactive, and a shop order that still names the guest lands on the account.",
+      "support": "proven",
       "limitations": [
-        "Duplicate business partners cannot be merged while keeping both histories."
+        "A merge is not undone.",
+        "Unused credit of the guest settles only the guest's own invoices."
       ],
       "references": [
-        "L10"
+        "L10",
+        "party_merge_propose",
+        "party_merges"
       ],
       "language": "en",
-      "fingerprint": "85b609345f5c511da401a644540bca49f8d61c18d3fd07395814bc1b5d847d0e"
+      "fingerprint": "0ed07dd6114033985a85345a4e48dc22a0fc29818932840a19401c6bf8b3c825"
     },
     {
       "id": "evidence_journey_l11",
@@ -5662,17 +5665,20 @@
       "source_id": "source_journey_o02",
       "subject": "Master data and identity",
       "title": "Two parties merged as duplicates",
-      "search_text": "O02 Master data and identity Two parties merged as duplicates History of both kept? Two parties merged as duplicates History of both kept?",
-      "claim_text": "Reality evaluates: History of both kept?",
-      "support": "unavailable",
+      "search_text": "O02 Master data and identity Two parties merged as duplicates History of both kept? duplicate business partner merge duplicates Dublette Geschäftspartner zusammenführen Two parties merged as duplicates History of both kept? We created the same customer twice; can we merge them and keep both histories? Wir haben denselben Kunden doppelt angelegt; können wir sie zusammenführen und beide Historien behalten?",
+      "claim_text": "Reality evaluates: History of both kept? Yes. A reviewed merge states that one business partner is a duplicate of another, with a reason. Nothing stated is rewritten: each record keeps naming the partner it states, and the survivor's detail, balance and credit exposure include the duplicate's. The duplicate's detail names its survivor. Merged partners are never merged again, so there are no chains.",
+      "support": "proven",
       "limitations": [
-        "Business partners cannot be merged as duplicates."
+        "A merge is not undone.",
+        "The company's own business partner and a partner with an open delivery hold are not merged."
       ],
       "references": [
-        "O02"
+        "O02",
+        "party_merge_propose",
+        "party_merges"
       ],
       "language": "en",
-      "fingerprint": "dfa0a8ad2ffcc523163e0e67aee90c0e321a3db7451e7be4e2a192ab537fce07"
+      "fingerprint": "b6c197024d90153f0ed4217aab98dca45eb7a4a9db00a1ed88671035dddd8ca6"
     },
     {
       "id": "evidence_journey_o03",
@@ -7469,6 +7475,36 @@
       ],
       "language": "en",
       "fingerprint": "3c47f3aa58f1060572900fd12a10f334fe3928e9b23e83919b4adda137481bb3"
+    },
+    {
+      "id": "evidence_command_merge_party",
+      "source_id": "source_executable_commands",
+      "subject": "Merge a duplicate business partner",
+      "title": "Merge a duplicate business partner",
+      "search_text": "merge_party Merge a duplicate business partner States that one business partner is a duplicate of another; both histories stay as stated and read under the survivor, and the duplicate becomes inactive. mutation",
+      "claim_text": "merge_party is a governed mutation command for States that one business partner is a duplicate of another; both histories stay as stated and read under the survivor, and the duplicate becomes inactive..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "merge_party"
+      ],
+      "language": "en",
+      "fingerprint": "e7e5298003e5407eaa372f592804ed1844ee58ca29b68a0d20c3a2633b306c09"
+    },
+    {
+      "id": "evidence_command_party_merges",
+      "source_id": "source_executable_commands",
+      "subject": "Read business partner merges",
+      "title": "Read business partner merges",
+      "search_text": "party_merges Read business partner merges Lists the business partner merges, or those one partner took part in, with the reason and when. query",
+      "claim_text": "party_merges is a governed query command for Lists the business partner merges, or those one partner took part in, with the reason and when..",
+      "support": "vocabulary_only",
+      "limitations": [],
+      "references": [
+        "party_merges"
+      ],
+      "language": "en",
+      "fingerprint": "ba94908989120d61ba90da724693470eeefdd2aedfdeca2a4d6e8a88842925ce"
     },
     {
       "id": "evidence_command_purchase_match",
