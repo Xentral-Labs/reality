@@ -39,7 +39,10 @@ export function PlannedDeliveries({ tenant, settled }: { tenant: string; settled
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     working = useRef(false);
-  const rows = Array.isArray(read.data?.rows) ? read.data!.rows : [];
+  // A delivery whose promises are all off and whose staging is empty has nothing left to do.
+  const rows = (Array.isArray(read.data?.rows) ? read.data!.rows : []).filter((delivery) =>
+    delivery.lines.some((line) => open(line) || Number(line.to_put_back) > 0),
+  );
   if (!rows.length) return null;
 
   const run = async (action: () => Promise<void>) => {
@@ -243,15 +246,17 @@ export function PlannedDeliveries({ tenant, settled }: { tenant: string; settled
                         {t("Put back")}
                       </button>
                     )}
-                    {!waiting && (!delivery.staging_location_id || !toPick) && (
-                      <button
-                        className="br-btn br-btn-primary"
-                        disabled={busy || !!pending}
-                        onClick={() => ship(delivery)}
-                      >
-                        {t("Ship")}
-                      </button>
-                    )}
+                    {!waiting &&
+                      delivery.lines.some(open) &&
+                      (!delivery.staging_location_id || !toPick) && (
+                        <button
+                          className="br-btn br-btn-primary"
+                          disabled={busy || !!pending}
+                          onClick={() => ship(delivery)}
+                        >
+                          {t("Ship")}
+                        </button>
+                      )}
                   </div>
                 )}
               </li>
