@@ -1,14 +1,14 @@
 """Planned outbound deliveries, their lines and their picks (spec 334).
 
 Revision ID: 0128_outbound_deliveries
-Revises: 0125_delivery_failures
+Revises: 0126_payment_authorizations
 """
 
 import sqlalchemy as sa
 from alembic import op
 
 revision = "0128_outbound_deliveries"
-down_revision = "0125_delivery_failures"
+down_revision = "0126_payment_authorizations"
 branch_labels = None
 depends_on = None
 
