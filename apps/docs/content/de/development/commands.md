@@ -22,7 +22,9 @@ Reservierungsvertrag für eine Abfrage zu kopieren.
 
 Du kennst die beteiligten Reality-Datensätze und den gewünschten fachlichen Ausgang. Nutze eine
 PostgreSQL-Testumgebung und vorhandene Fixtures. Spec, Plan und Tests stehen vor der
-Implementierung; die [gemeinsame Referenz](./reference) beschreibt den Ablauf.
+Implementierung; die
+[gemeinsame Referenz](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/reference.md)
+beschreibt den Ablauf.
 
 ## Durchgearbeitetes Beispiel
 
@@ -73,9 +75,10 @@ Fehlmenge, gesperrtes Commitment und fremde Tenant-ID. Überprüfe das Ergebnis 
 Movements, nicht durch einen neuen Status am Document. Ergänze Ressourcen-Zuordnung und `labels.de`
 in `config/resource_catalog.yaml`, führe `make docs-generate` aus und kontrolliere die Referenz.
 
-Für den nächsten Schritt gibt es konkrete Vorlagen: [Agent Tools](./agent-tools) und
-[Web Actions](./web-actions). Neue Tabellen sind keine Voraussetzung für einen neuen Command; eine
-Schemaänderung braucht einen nachgewiesenen Use Case in Spec und Plan.
+Für den nächsten Schritt gibt es konkrete Vorlagen: [Agent Tools](/de/development/agent-tools) und
+[Web Actions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/web-actions.md).
+Neue Tabellen sind keine Voraussetzung für einen neuen Command; eine Schemaänderung braucht einen
+nachgewiesenen Use Case in Spec und Plan.
 
 ## Selbst ausprobieren
 
@@ -90,5 +93,7 @@ verkürztes Beispiel ersetzt nicht Guards, Idempotenz und Events der vollständi
 
 ## Weiterlesen
 
-[Ausnahmen entwickeln](./exceptions) erklärt abgeleiteten Handlungsbedarf. Für Zugänge folgen
-[Agent Tools](./agent-tools) und [Web Actions](./web-actions).
+[Ausnahmen entwickeln](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/exceptions.md)
+erklärt abgeleiteten Handlungsbedarf. Für Zugänge folgen [Agent Tools](/de/development/agent-tools)
+und
+[Web Actions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/web-actions.md).

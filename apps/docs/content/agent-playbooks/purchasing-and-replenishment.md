@@ -179,8 +179,9 @@ The daily glance at purchasing.
 
 ## Not possible yet
 
-- No order proposal or reorder point: Reality shows uncovered demand, the agent applies your rules
-  and states the quantity.
+- No automatic replenishment recommendation or reorder point: Reality shows uncovered demand; the
+  agent applies your confirmed buying rules and uses `order_create_propose` to prepare a purchase
+  order with the required stated inputs.
 - No supplier catalogue, price negotiation or sending of the purchase order; the order is evidence
   of what you ordered, the message to the supplier leaves through your own channel.
 - No payable hold: a supplier invoice cannot be blocked from the payment run other than by leaving

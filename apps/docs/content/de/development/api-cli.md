@@ -7,14 +7,15 @@ Du kannst eine vorhandene Operation über HTTP oder CLI zugänglich machen und i
 ## Wann du diesen Baustein brauchst
 
 Eine unterstützte Anwendung benötigt HTTP, oder Entwicklung und Administration brauchen einen
-Terminalzugang. Für Agenten verwende [Agent Tools](./agent-tools), für Bedienabläufe
-[Web Actions](./web-actions).
+Terminalzugang. Für Agenten verwende [Agent Tools](/de/development/agent-tools), für Bedienabläufe
+[Web Actions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/web-actions.md).
 
 ## Bevor du beginnst
 
-Der gemeinsame Service muss bereits existieren und getestet sein. Lies [Commands](./commands) und
-die [Entwicklungsregeln](./reference). Nutze PostgreSQL-Testfixtures und die authentifizierte
-Tenant-Grenze.
+Der gemeinsame Service muss bereits existieren und getestet sein. Lies
+[Commands](/de/development/commands) und die
+[Entwicklungsregeln](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/reference.md).
+Nutze PostgreSQL-Testfixtures und die authentifizierte Tenant-Grenze.
 
 ## Durchgearbeitetes Beispiel
 
@@ -53,5 +54,7 @@ Erfolg melden, bevor das Ergebnis verifiziert ist.
 
 ## Weiterlesen
 
-[Agent Tools](./agent-tools), [Web Actions](./web-actions) und die
-[gemeinsamen Regeln](./reference).
+[Agent Tools](/de/development/agent-tools),
+[Web Actions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/web-actions.md)
+und die
+[gemeinsamen Regeln](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/reference.md).

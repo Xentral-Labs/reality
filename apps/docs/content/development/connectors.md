@@ -1,8 +1,9 @@
 # Connect ERP and Data Sources
 
-Start with [Connect an example ERP step by step](../integrations/example-erp): promises first, then
-actual deliveries and the additional data your question requires. That chapter shows the business
-output before this guide explains implementation.
+Start with
+[Connect an example ERP step by step](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/example-erp.md):
+promises first, then actual deliveries and the additional data your question requires. That chapter
+shows the business output before this guide explains implementation.
 
 ## What you will learn
 
@@ -18,7 +19,7 @@ can be retained losslessly without pretending that its business meaning is known
 
 Have an original payload, source identity and version contract. Use a test company and keep
 credentials out of fixtures. Read the
-[From source data to Reality](../integrations/connector-contract) first.
+[From source data to Reality](/integrations/connector-contract) first.
 
 | Kind                      | Extend here                                  | Example                             |
 | ------------------------- | -------------------------------------------- | ----------------------------------- |
@@ -66,17 +67,18 @@ For file imports, add a target to `FILE_INTERPRETER_TARGETS`, define required an
 in `FILE_MAPPING_PROFILES`, and implement the branch in `interpret_artifact`. Do not silently match
 a human number when it is not unique.
 
-Read the [From source data to Reality](../integrations/connector-contract) before implementing
+Read the [From source data to Reality](/integrations/connector-contract) before implementing
 transport.
 
 ## Check the result
 
-Work through the [ERP order example](../integrations/order-example) alongside the
-[From source data to Reality](../integrations/connector-contract). Begin with an original payload
-fixture. Import must preserve SourceRecord → Document/DocumentLine → Commitment traceability; replay
-must not create a second operational promise. A corrected version remains a new SourceRecord and
-must not silently overwrite an interpreted business operation. Test unknown object types separately:
-payloads remain available even without interpretation.
+Work through the
+[ERP order example](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/order-example.md)
+alongside the [From source data to Reality](/integrations/connector-contract). Begin with an
+original payload fixture. Import must preserve SourceRecord → Document/DocumentLine → Commitment
+traceability; replay must not create a second operational promise. A corrected version remains a new
+SourceRecord and must not silently overwrite an interpreted business operation. Test unknown object
+types separately: payloads remain available even without interpretation.
 
 Recurring intake follows `docs/features/scheduled-jobs.md`: reuse the shared job registry and
 services instead of browser timers or API-process loops. Another integration does not need another
@@ -95,11 +97,17 @@ meaning or duplicate Source foreign keys along existing Evidence/Reality links.
 
 ## Continue
 
-For complete source cases: [Connect Xentral](../integrations/xentral),
-[Connect Shopify](../integrations/shopify) and [Connect Odoo](../integrations/odoo). The
-[coverage matrix](../integrations/connector-contract#completeness-and-acceptance) defines completion
-for your agreed scope.
+For complete source cases:
+[Connect Xentral](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/xentral.md),
+[Connect Shopify](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/shopify.md)
+and
+[Connect Odoo](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/odoo.md).
+The [coverage matrix](/integrations/connector-contract#completeness-and-acceptance) defines
+completion for your agreed scope.
 
-The [technical order-import example](../integrations/order-example) shows the implementation path;
-[From source data to Reality](../integrations/connector-contract) explains the shared concept and
-its rules. [Shared rules](./reference) includes scheduling/spec guidance.
+The
+[technical order-import example](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/order-example.md)
+shows the implementation path; [From source data to Reality](/integrations/connector-contract)
+explains the shared concept and its rules.
+[Shared rules](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/reference.md)
+includes scheduling/spec guidance.

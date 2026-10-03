@@ -1,112 +1,81 @@
-# Dein erster Produktdurchlauf
+# Betreibe dein Unternehmen mit Agenten
 
-Reality ist der operative Kern für Unternehmen, in denen Menschen, Anwendungen und autonome Agenten
-auf derselben nachvollziehbaren Geschäftsrealität arbeiten. Statt Informationen nur in Belegen und
-Einzelsystemen abzulegen, verbindet Reality Zusagen, Bestand, Lieferungen und Geldflüsse mit ihren
-Belegen und ursprünglichen Quellen.
+Reality ist ein System, mit dem Agenten in deinem Unternehmen arbeiten können: Aufträge, Bestand,
+Lieferungen und Geld verstehen, die nächste Aktion vorbereiten und prüfen, was tatsächlich passiert
+ist. Menschen und Agenten nutzen dieselben Geschäftsdatensätze und Anwendungswerkzeuge.
 
-In diesem Rundgang legst du ein Unternehmen mit Beispieldaten an, liest seine aktuelle Lage und
-verfolgst ein Ergebnis bis zu seinem Ursprung zurück. So lernst du zuerst den durchgängigen Ablauf
-kennen: Geschäftsdaten aufnehmen, operative Wirklichkeit ableiten, Handlungsbedarf erkennen und jede
-Antwort erklären können.
+**Das Ziel: Agenten übernehmen dauerhaft operative Arbeit, 365 Tage im Jahr.** Du bestimmst ihre
+Aufgabe, ihren Zugriff und ihre Entscheidungsgrenzen. Reality macht ihre Arbeit über **Source →
+Evidence → Reality** nachvollziehbar.
 
-## App öffnen
+**Reality ist der Geschäftskern.** Es liefert Datensätze, Geschäftsregeln, Tools und
+nachvollziehbare Ergebnisse. Ein Agentensystem darüber entscheidet, welche Aufgabe als Nächstes
+ansteht, und nutzt diese Funktionen für die Arbeit. Seine Verantwortung baust du schrittweise auf —
+beginnend mit einer wiederholbaren Aufgabe.
 
-<ProductLink>Reality öffnen</ProductLink>, anmelden und ein Unternehmen auswählen. Lege zum Lernen
-ein separates Unternehmen mit Beispieldaten an. Aktionen in der App verändern Datensätze im
-ausgewählten Unternehmen; prüfe das Unternehmen vor der Bestätigung.
+Für dauerhaften Betrieb muss dieses Agentensystem nach Zeitplan laufen oder auf Ereignisse und
+festgelegte Bedingungen reagieren können — zum Beispiel jeden Morgen oder beim Eingang eines neuen
+Auftrags. Es muss außerdem den Aufgabenkontext behalten, Freigabegrenzen beachten und Ergebnisse
+prüfen. Einen Chat-Client anzubinden richtet diesen Arbeitskreislauf allein noch nicht ein.
 
-Dieser Weg führt von einem leeren Unternehmen zu einem nachvollziehbaren Geschäftsergebnis. Wenn
-Reality noch nicht läuft, beginne mit dem [Einzeiler-Setup](/de/operations/installation).
+Reality ist über seine gemeinsamen Schnittstellen für unterschiedliche Agentensysteme ausgelegt. Du
+kannst interaktiv mit einem verbundenen Assistenten wie ChatGPT oder Claude starten und für
+regelmäßige Arbeit eine Agenten-Laufzeit oder ein Orchestrierungssystem einsetzen. Entscheidend ist,
+welche Anbindungen, Auslöser und Steuerungsmöglichkeiten dein System unterstützt.
+[Deinen Agenten verbinden](./connect-agent).
 
-Wenn du Reality als ERP-Fachperson zuerst verstehen möchtest, lies vor der Bedienung die
-[Grundlagen](/de/concepts/business-reality-guide/01-from-erp-documents-to-business-reality) und
-[die Rolle des Process Owners](/de/concepts/business-reality-guide/04-working-as-process-owner).
-Dieser Produktdurchlauf ist der praktische zweite Schritt der 30-Minuten-Lernreise.
+## Wie möchtest du anfangen?
 
-## Ein Unternehmen anlegen oder auswählen
+### Eine Demo-Firma erleben — unser empfohlener erster Einstieg
 
-Öffne Product Web, melde dich an und lege ein Unternehmen an oder wähle eines aus. Das Unternehmen
-ist die Mandantengrenze für jeden Geschäftsdatensatz, jede Abfrage, jeden Agenten und jede
-Konfiguration. Der Name hilft Menschen beim Wiedererkennen; eine undurchsichtige ID schafft
-Identität.
+Verbinde deinen Agenten mit einer Firma voller Beispieldaten und sieh, wie er damit arbeitet. Neue
+synthetische Geschäftsvorfälle kommen hinzu, während du einen Auftrag untersuchst, eine Entscheidung
+vorbereitest und ihre Wirkung prüfst.
 
-## Echten Eingang oder geführte Demo wählen
+**Rezept:** Demo-Firma → Agentenverbindung → erste Frage → geprüfte Aktion → wiederholbare Aufgabe.
 
-Öffne für eine echte Quelle Unternehmen → **Integrationen** → **Quellsysteme**, registriere das
-Vorsystem und lege fest, welche Datensatzarten es liefern darf. Nutze zum Lernen die geführte Demo.
-Sie erzeugt über dieselben Anwendungsservices einen zusammenhängenden Geschäftsfall, ohne externe
-Zugangsdaten zu verlangen.
+[Eine Demo-Firma erleben →](./demo-company)
 
-Reality speichert angenommene externe Payloads verlustfrei. Es verwirft keine unbekannten Felder und
-erzeugt nicht allein deshalb typisierte geschäftliche Bedeutung, weil eine Quelle ein Feld liefert.
+### Ein Unternehmen von null aufbauen
 
-Die Registrierung einer Quelle stellt noch keine Verbindung zum Vorsystem her. Plane für eigene
-Daten zuerst einen [begrenzten Piloten](/de/integrations/parallel-test).
+Starte leer und richte gemeinsam mit deinem Agenten die Grundlagen ein. Beschreibe, was dein
+Unternehmen verkauft, lege die Stammdaten an und bearbeite einen ersten Auftrag zusammen.
 
-## Oder eine Storyline spielen
+**Rezept:** Leeres Unternehmen → Agentenverbindung → Geschäft beschreiben → Stammdaten → erster
+Auftrag.
 
-Eine Storyline ist ein geführter Geschäftsablauf, den du Schritt für Schritt in einer eigenen
-Sandbox spielst: ein Auftrag von der Anlage bis zum Monatsrückblick oder ein Einkauf von der
-Bestellung bis zur Zahlung mit Skonto. Jeder Schritt ist ein gewöhnlicher Befehl; daneben liest du
-jeden Aufruf, den Reality gemacht hat, und was es aufgezeichnet hat. Öffne **Storyline** in der
-Navigation, wähle eine in der Bibliothek und drücke Starten. Die [Storyline-Seite](/de/storylines/)
-erklärt die Maske und listet die Pakete, die Reality mitliefert.
+[Ein Unternehmen von null aufbauen →](./start-business)
 
-## Das erste Ergebnis lesen
+### Mit einer bestehenden Firma starten
 
-Öffne **Start** für die aktuelle Position. Nutze **Ausnahmen** für Zustände, die Aufmerksamkeit
-brauchen, **Ereignisverlauf** für aufgezeichnete Ereignisse und die passende Ansicht des
-Arbeitsbereichs für das maßgebliche Register. Wähle ein wichtiges Ergebnis und öffne **Prüfen**.
+Wähle eine wiederkehrende Aufgabe aus deinem heutigen Geschäft. Nimm die dafür benötigten Datensätze
+auf, vergleiche die Antworten des Agenten mit deinem bisherigen System und gib ihm schrittweise mehr
+Verantwortung.
 
-## Business Graph, Business Facts und Tools
+**Rezept:** Eine Frage → Quellenumfang → erste Datensätze → geprüfte Antwort → begrenzte Aktionen.
 
-Beginne mit derselben Frage wie im Arbeitsalltag: „Warum sind sechs Lampen noch offen?“
+[Mit einer bestehenden Firma starten →](./existing-business)
 
-- **Business Facts** zeigt die Elemente des Geschäftsfalls: etwa Source Records, Documents,
-  Commitments, Reservations, Movements und Ledger Entries. Öffne einen Datensatz, um seine Details
-  und die vorhandenen Belege zu prüfen.
-- **Business Graph** zeigt, wie diese Elemente zusammenhängen und was im Zeitverlauf passiert ist.
-  Folge von der Lieferzusage zur Reservierung und zum Versand und dann zu den vorhandenen
-  Quelldaten. Graph und Timeline zeigen die erfasste Historie.
-- **Tools** zeigt, was Reality damit tun kann. Unter **Aktionen** findest du Commands; unter
-  **Berechnete Sichten** Views und Projections. Eine Sicht beantwortet eine Frage, etwa nach offenen
-  Lieferungen. Eine Aktion verändert Datensätze und nutzt den vorgesehenen Vorschau- und
-  Bestätigungsablauf.
+## Was alle drei Wege gemeinsam haben
 
-**Business Facts ist der Gruppenname für Datensätze.** Der Datentyp **Fact** bezeichnet weiterhin
-eine bestimmte, durch eine Quelle belegte Beobachtung. Ein Commitment oder Movement wird durch die
-Gruppierung nicht zu einem Fact. Berechnete Sichten gehören zu Tools; sie werden nicht als neue
-Quelldaten gespeichert. Bei gespeicherten Projections gehört der Berechnungsstand zur
-Interpretation.
+Öffne <ProductLink>Reality</ProductLink>, erstelle deinen Account und bestätige deine E-Mail-Adresse
+und lege das Unternehmen im Browser an oder wähle es aus. Danach
+[verbindest du deinen Agenten](./connect-agent) oder nutzt den Reality-**Chat**, wenn KI für dein
+Unternehmen eingerichtet ist. Das Unternehmen ist die Grenze für seine Datensätze und den Zugriff
+des Agenten.
 
-Der separate **Ereignisverlauf** listet aufgezeichnete Business Events chronologisch. Im Business
-Graph betrachtest du dagegen die Beziehungen und die Timeline eines Geschäftskontexts. Für
-Fähigkeiten und Parameter dient die [Tools-Referenz](/de/tool-usage/).
+Beginne mit Lesen. Lass den Agenten die nächste Aktion erklären, prüfe seinen Vorschlag und
+bestätige die gewünschte Wirkung. Lies die Datensätze danach erneut: **lesen → vorschlagen → prüfen
+und bestätigen → verifizieren**.
 
-## Ein Beispiel zum Mitdenken
+## Von der ersten Frage zur dauerhaften Arbeit
 
-**Illustratives Beispiel, kein Live-Datenstrom und keine zugesagte Demo-Konfiguration.** Angenommen,
-die passenden Auftrags-, Liefer-, Reservierungs- und Zahlungsdaten wurden erfasst. Die geführte Demo
-kann einen anderen Fall zeigen.
+Jedes Rezept endet mit einer Aufgabe, die du wiederholen kannst: offene Aufträge prüfen, Hindernisse
+finden oder eingehendes Geld untersuchen. Der
+[Arbeitsrhythmus](/de/agent-playbooks/operating-rhythm) macht daraus tägliche, wöchentliche und
+monatliche Arbeit.
 
-| Erfasste Position       | Bedeutung                                                                     |
-| ----------------------- | ----------------------------------------------------------------------------- |
-| 10 Lampen zugesagt      | Das ausgehende Commitment umfasst zehn Lampen.                                |
-| 4 versendet             | Zugeordnete Movements erfassen vier Lampen, die den Standort verlassen haben. |
-| 6 noch zu liefern       | Zehn zugesagt minus vier erfüllt.                                             |
-| 2 reserviert            | Aktive Reservations decken zwei der sechs offenen Lampen ab.                  |
-| 4 noch nicht reserviert | Dieser Bedarf ist nicht zugeteilt, aber nicht zwingend unverfügbar.           |
-| Rechnung ausgeglichen   | Buchungen und eine zugeordnete Zahlung lassen keinen offenen Betrag.          |
-
-Bezahlt heißt nicht geliefert. Nicht reserviert heißt nicht automatisch nicht verfügbar. Ob Ware
-fehlt oder eine Lieferung verspätet ist, braucht Bestandsdaten und einen zugesagten Termin.
-
-Folge mit [Verfolge dein erstes Ergebnis zurück](./first-trace) dem Weg durch Reality, Evidence und
-die ursprüngliche SourceRecord. Lies danach
-[Business Reality in der Praxis](/de/concepts/business-reality-guide) für das vollständige operative
-Modell oder [Agenten-Playbooks](/de/agent-playbooks/) für aufgabenorientierte Abläufe.
-
-Prüfe vor einer Entscheidung, ob die relevanten Daten angekommen, verarbeitet und aktuell sind. Eine
-leere Exception-Liste beweist keine Vollständigkeit. Ändernde Chat-Aktionen brauchen Vorschau und
-Bestätigung; eine Reservation in Reality reserviert nicht automatisch Bestand in Xentral.
+Die Rezepte führen mit den heute verfügbaren Werkzeugen durch den Ablauf. Ein Prompt plant keine
+zukünftigen Agentenläufe. Für unbeaufsichtigten Betrieb müssen wiederkehrende Ausführung,
+Quellenanbindung, Überwachung und die geltende Freigaberegel getrennt eingerichtet sein. Live-Demo
+startet ihre synthetische Quelle; die nachgelagerte Agentenarbeit ist eine eigene Aufgabe.

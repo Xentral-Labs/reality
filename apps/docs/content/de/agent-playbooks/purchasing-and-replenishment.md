@@ -187,8 +187,9 @@ Der tägliche Blick auf den Einkauf.
 
 ## Geht noch nicht
 
-- Kein Bestellvorschlag oder Meldebestand: Reality zeigt ungedeckte Nachfrage, der Agent wendet
-  deine Regeln an und nennt die Menge.
+- Kein automatischer Nachbestellvorschlag oder Meldebestand: Reality zeigt ungedeckte Nachfrage. Der
+  Agent wendet deine bestätigten Beschaffungsregeln an und bereitet mit `order_create_propose` eine
+  Einkaufsbestellung mit den erforderlichen angegebenen Werten vor.
 - Kein Lieferantenkatalog, keine Preisverhandlung, kein Versand der Bestellung; die Bestellung
   belegt, was du bestellt hast, die Nachricht an den Lieferanten geht über deinen eigenen Kanal.
 - Keine Zahlsperre: eine Lieferantenrechnung lässt sich nur aus dem Zahllauf heraushalten, indem sie

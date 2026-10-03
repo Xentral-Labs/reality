@@ -20,7 +20,7 @@ actual schema rather than copying the reservation contract into a query.
 
 Identify the affected Reality records and intended business outcome. Use PostgreSQL tests and
 existing fixtures. Spec, plan and tests precede implementation; see the
-[shared reference](./reference).
+[shared reference](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/reference.md).
 
 ## Worked example
 
@@ -68,9 +68,10 @@ Commitment and foreign tenant identity. Verify through Reservations and Movement
 Document status. Add resource membership and `labels.de` in `config/resource_catalog.yaml`, run
 `make docs-generate` and inspect the reference.
 
-Continue with concrete [Agent Tool](./agent-tools) and [Web Action](./web-actions) templates. A new
-Command does not automatically require a new table; schema changes need a proven use case in the
-spec and plan.
+Continue with concrete [Agent Tool](/development/agent-tools) and
+[Web Action](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/web-actions.md)
+templates. A new Command does not automatically require a new table; schema changes need a proven
+use case in the spec and plan.
 
 ## Try it yourself
 
@@ -85,5 +86,7 @@ shortened example does not replace the complete implementation's guards, idempot
 
 ## Continue
 
-[Develop exceptions](./exceptions) explains derived attention needs. Continue with
-[Agent Tools](./agent-tools) and [Web Actions](./web-actions) for entrypoints.
+[Develop exceptions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/exceptions.md)
+explains derived attention needs. Continue with [Agent Tools](/development/agent-tools) and
+[Web Actions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/web-actions.md)
+for entrypoints.

@@ -10,8 +10,9 @@ product capability.
 ## Prerequisites
 
 Work from the repository root with the Python environment and dependencies from
-[installation](../operations/installation). The result test needs the repository’s PostgreSQL test
-environment. Do not use a production database. Read the [shared development reference](./reference);
+[installation](https://github.com/Xentral-Labs/reality#development). The result test needs the
+repository’s PostgreSQL test environment. Do not use a production database. Read the
+[shared development reference](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/reference.md);
 product changes still follow specification, review, planning, tasks and tests.
 
 ## 1. Understand the template
@@ -111,6 +112,9 @@ the handler to the shared inventory reader and explain where the calculation hap
 ## Clean up and continue
 
 Remove the training alias and test after the exercise and regenerate the reference. Define a
-business need before adding a real capability. [Agent Tools](./agent-tools) explains read and
-mutation access, [Views](./views) covers presentation, [Projections](./projections) covers
-derivation, and [Commands](./commands) covers operations.
+business need before adding a real capability. [Agent Tools](/development/agent-tools) explains read
+and mutation access,
+[Views](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/views.md)
+covers presentation,
+[Projections](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/projections.md)
+covers derivation, and [Commands](/development/commands) covers operations.

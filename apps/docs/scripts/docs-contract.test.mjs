@@ -10,6 +10,15 @@ const docsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const contentRoot = path.join(docsRoot, "content");
 const repositoryRoot = path.resolve(docsRoot, "..", "..");
 const translatedLocales = ["de"];
+const maintainerRoot = path.join(repositoryRoot, "docs/maintainer-guides");
+// Existing technical content checks follow the guides into the repository handbook.
+const contentPath = (...parts) => {
+  const publicPath = path.join(contentRoot, ...parts);
+  const maintainerPath = path.join(maintainerRoot, ...parts);
+  return parts.join("/").replace(/\/+$/u, "") !== "de" && fs.existsSync(maintainerPath)
+    ? maintainerPath
+    : publicPath;
+};
 
 test("live MCP verifier compares names, required fields, enums and nested shapes", () => {
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "reality-mcp-catalog-"));
@@ -106,13 +115,10 @@ test("contribution agent playbook maps common DB1 and DB2 situations to governed
 
   for (const locale of ["", "de/"]) {
     const playbook = fs.readFileSync(
-      path.join(contentRoot, locale, "agent-playbooks/contribution-margin.md"),
+      contentPath(locale, "agent-playbooks/contribution-margin.md"),
       "utf8",
     );
-    const index = fs.readFileSync(
-      path.join(contentRoot, locale, "agent-playbooks/index.md"),
-      "utf8",
-    );
+    const index = fs.readFileSync(contentPath(locale, "agent-playbooks/index.md"), "utf8");
     assert.ok(index.includes("./contribution-margin"));
     for (const tool of [
       "cost_query_get",
@@ -130,10 +136,7 @@ test("contribution agent playbook maps common DB1 and DB2 situations to governed
 
 test("contribution margin is a first-class bilingual business resource", () => {
   for (const locale of ["", "de/"]) {
-    const resources = fs.readFileSync(
-      path.join(contentRoot, locale, "tool-usage/resources.md"),
-      "utf8",
-    );
+    const resources = fs.readFileSync(contentPath(locale, "tool-usage/resources.md"), "utf8");
     const start = resources.indexOf(locale ? "## Deckungsbeitrag" : "## Contribution margin");
     assert.notEqual(start, -1);
     const section = resources.slice(start, resources.indexOf("\n## ", start + 4));
@@ -163,7 +166,7 @@ test("contribution margin is a first-class bilingual business resource", () => {
 test("operational recap emphasizes record types rather than calculated balances", () => {
   for (const locale of ["", "de/"]) {
     const chapter = fs.readFileSync(
-      path.join(contentRoot, locale, "concepts/business-reality-guide/05-one-order-end-to-end.md"),
+      contentPath(locale, "concepts/business-reality-guide/05-one-order-end-to-end.md"),
       "utf8",
     );
     const section = chapter.split("## 2.")[1].split("## 3.")[0];
@@ -180,19 +183,15 @@ test("closing agent recap is bilingual, linked and honest about its illustrative
   assert.ok(config.includes(`"${slug}"`));
   for (const locale of ["", "de/"]) {
     const chapter = fs.readFileSync(
-      path.join(contentRoot, locale, `concepts/business-reality-guide/${slug}.md`),
+      contentPath(locale, `concepts/business-reality-guide/${slug}.md`),
       "utf8",
     );
     const overview = fs.readFileSync(
-      path.join(contentRoot, locale, "concepts/business-reality-guide.md"),
+      contentPath(locale, "concepts/business-reality-guide.md"),
       "utf8",
     );
     const previous = fs.readFileSync(
-      path.join(
-        contentRoot,
-        locale,
-        "concepts/business-reality-guide/04-working-as-process-owner.md",
-      ),
+      contentPath(locale, "concepts/business-reality-guide/04-working-as-process-owner.md"),
       "utf8",
     );
     assert.ok(overview.includes(slug));
@@ -222,11 +221,7 @@ test("closing agent recap is bilingual, linked and honest about its illustrative
 test("inventory walkthrough separates explicit records, automatic effects and derived balances", () => {
   for (const locale of ["", "de/"]) {
     const text = fs.readFileSync(
-      path.join(
-        contentRoot,
-        locale,
-        "concepts/business-reality-guide/02-orders-stock-and-deliveries.md",
-      ),
+      contentPath(locale, "concepts/business-reality-guide/02-orders-stock-and-deliveries.md"),
       "utf8",
     );
     for (const term of ["SO-1001", "PO-2001", "Northstar", "Alpine Components", "30", "22"])
@@ -243,48 +238,59 @@ test("inventory walkthrough separates explicit records, automatic effects and de
   }
 });
 
-test("original timed learning paths retain model, operator and integration progression", () => {
+test("public homes lead directly to demo setup and a first business question", () => {
   for (const locale of ["", "de/"]) {
-    const home = fs.readFileSync(path.join(contentRoot, locale, "index.md"), "utf8");
-    for (const minutes of [15, 30, 60])
-      assert.ok(home.includes(`${minutes} ${locale ? "Minuten" : "minutes"}`));
-    for (const target of [
-      "concepts/business-reality-guide/01-from-erp-documents-to-business-reality",
-      "concepts/business-reality-guide/04-working-as-process-owner",
-      "integrations/customization",
-      "integrations/order-example",
-    ])
-      assert.ok(home.includes(target), target);
-    assert.match(home, /learning time|Lernzeit/u);
-    assert.doesNotMatch(home, /60 minutes — connect an ERP|60 Minuten – ein ERP anbinden/u);
-    const journey = fs.readFileSync(
-      path.join(contentRoot, locale, "getting-started/index.md"),
-      "utf8",
-    );
-    assert.match(journey, /30-minute learning path|30-Minuten-Lernreise/u);
+    const home = fs.readFileSync(contentPath(locale, "index.md"), "utf8");
+    assert.ok(home.includes(`/${locale}getting-started/`));
+    assert.ok(home.includes(`/${locale}getting-started/first-question`));
+    assert.match(home.replace(/\s+/gu, " "), /Source → Evidence → Reality/u);
+    assert.doesNotMatch(home, /Railway|Helm|Docker|operations\/|free of charge|gratis/u);
   }
 });
 
-test("the original product journey retains a bounded illustrative case", () => {
-  const home = fs.readFileSync(path.join(contentRoot, "index.md"), "utf8");
-  const journey = fs.readFileSync(path.join(contentRoot, "getting-started/index.md"), "utf8");
-  const trace = fs.readFileSync(path.join(contentRoot, "getting-started/first-trace.md"), "utf8");
-  for (const text of ["Three learning paths", "Other paths", "Process Owners"])
-    assert.ok(home.includes(text), text);
-  for (const text of ["10 lamps", "4 shipped", "6 still", "2 reserved", "4 not yet reserved"])
-    assert.ok(journey.includes(text), text);
-  assert.match(journey, /Illustrative example/u);
-  assert.match(trace, /SettlementAllocation/u);
-  assert.match(trace.replace(/\s+/gu, " "), /missing evidence/iu);
+test("the starting path uses actual demo records and preserves human setup and confirmation", () => {
+  for (const locale of ["", "de/"]) {
+    const read = (name) =>
+      fs.readFileSync(contentPath(locale, `getting-started/${name}.md`), "utf8");
+    const overview = read("index");
+    for (const recipe of ["demo-company", "start-business", "existing-business"])
+      assert.ok(overview.includes(`./${recipe}`), recipe);
+    assert.match(overview, /365/u);
+    assert.match(overview, /does not schedule|plant keine/u);
+    const start = read("demo-company");
+    const connection = read("connect-agent");
+    const question = read("first-question");
+    const action = read("first-action");
+    for (const target of ["./connect-agent", "./first-question", "./first-action"])
+      assert.ok(start.includes(target), target);
+    assert.match(start, /email address|E-Mail-Adresse/u);
+    assert.match(start, /Enable live simulation|Live-Simulation aktivieren/u);
+    assert.match(start, /Inbox/u);
+    assert.match(start, /human browser steps|selbst im Browser/u);
+    assert.match(
+      connection,
+      /Streamable HTTP and OAuth with PKCE|Streamable HTTP und OAuth mit PKCE/u,
+    );
+    assert.ok(connection.includes("api-tools/connect-mcp"));
+    for (const page of [connection, question]) {
+      assert.ok(page.includes("SO-006"));
+      assert.match(page.replace(/\s+/gu, " "), /Do not change any data|Verändere keine Daten/u);
+    }
+    assert.match(action, /Do not execute it|Führe ihn nicht aus/u);
+    assert.match(action, /review and confirm|prüfen und bestätigen/u);
+    assert.match(action, /execution status|Ausführungsstatus/u);
+  }
 });
 
 test("MCP onboarding clearly requires one human browser setup before agent access", () => {
   for (const locale of ["", "de/"]) {
-    const guide = fs.readFileSync(
-      path.join(contentRoot, locale, "api-tools/connect-mcp.md"),
+    const connection = fs.readFileSync(
+      contentPath(locale, "getting-started/connect-agent.md"),
       "utf8",
     );
-    const overview = fs.readFileSync(path.join(contentRoot, locale, "api-tools/index.md"), "utf8");
+    assert.ok(connection.includes("/api-tools/connect-mcp"));
+    const guide = fs.readFileSync(contentPath(locale, "api-tools/connect-mcp.md"), "utf8");
+    const overview = fs.readFileSync(contentPath(locale, "api-tools/index.md"), "utf8");
     const prose = `${guide} ${overview}`.replace(/\s+/gu, " ");
     assert.match(prose, /one-time browser setup|einmaligen Einrichtung.*Browser/u);
     assert.match(prose, /email verification|E-Mail-Bestätigung/u);
@@ -296,7 +302,7 @@ test("MCP onboarding clearly requires one human browser setup before agent acces
 
 test("missing-information guidance separates facts, warnings and actions", () => {
   const guidance = fs.readFileSync(
-    path.join(contentRoot, "concepts/business-reality-guide/06-facts-and-open-questions.md"),
+    contentPath("concepts/business-reality-guide/06-facts-and-open-questions.md"),
     "utf8",
   );
   for (const text of [
@@ -313,23 +319,20 @@ test("missing-information guidance separates facts, warnings and actions", () =>
   assert.match(config, /06-facts-and-open-questions/u);
   for (const relative of ["concepts/business-reality-guide.md", "integrations/customization.md"])
     assert.match(
-      fs.readFileSync(path.join(contentRoot, relative), "utf8"),
+      fs.readFileSync(contentPath(relative), "utf8"),
       /facts-and-open-questions|missing-information/u,
     );
 });
 
 const requiredAreas = [
-  ["First product journey", "getting-started/index.md"],
+  ["Choose your starting point", "getting-started/index.md"],
   ["Reality for ERP professionals", "concepts/business-reality-guide.md"],
-  ["Get started", "getting-started/index.md"],
+  ["Start here", "getting-started/index.md"],
   ["Agents", "agent-playbooks/index.md"],
   ["API and agent interfaces", "api-tools/index.md"],
-  ["Installation & Operations", "operations/index.md"],
-  ["Extending Reality", "development/index.md"],
   ["Tool Usage", "tool-usage/index.md"],
-  ["Storylines", "storylines/index.md"],
-  ["Demo data guide", "getting-started/demo-data.md"],
-  ["Reference", "reference/index.md"],
+  ["Follow a guided storyline", "storylines/index.md"],
+  ["Explore the demo company", "getting-started/demo-data.md"],
 ];
 
 const markdownFiles = (directory) =>
@@ -339,9 +342,9 @@ const markdownFiles = (directory) =>
   });
 
 test("content inventory covers the complete reader journey", () => {
-  assert.ok(fs.existsSync(path.join(contentRoot, "index.md")));
+  assert.ok(fs.existsSync(contentPath("index.md")));
   for (const [, relativePath] of requiredAreas) {
-    assert.ok(fs.existsSync(path.join(contentRoot, relativePath)), `Missing ${relativePath}`);
+    assert.ok(fs.existsSync(contentPath(relativePath)), `Missing ${relativePath}`);
   }
 
   const content = markdownFiles(contentRoot)
@@ -355,8 +358,6 @@ test("content inventory covers the complete reader journey", () => {
     "Movement",
     "LedgerEntry",
     "shortest true links",
-    "Operations Cockpit",
-    "Business Reality Inspector",
     "Ask Reality",
     "lossless",
     "idempotency",
@@ -374,7 +375,7 @@ test("navigation and search expose all required areas", () => {
   for (const route of [
     "/tool-usage/",
     "/concepts/business-reality-guide",
-    "/api-tools/connect-mcp",
+    "/api-tools/agent-guidance",
   ]) {
     assert.ok(config.includes(route), `Missing navigation route: ${route}`);
   }
@@ -402,7 +403,7 @@ test("translated locales mirror the canonical Markdown page inventory", () => {
     .filter((file) => !translatedLocales.some((locale) => file.startsWith(`${locale}/`)))
     .sort();
   for (const locale of translatedLocales) {
-    const localizedRoot = path.join(contentRoot, locale);
+    const localizedRoot = contentPath(locale);
     assert.ok(fs.existsSync(localizedRoot), `Missing locale directory: ${locale}`);
     const localized = markdownFiles(localizedRoot)
       .map((file) => path.relative(localizedRoot, file))
@@ -411,7 +412,7 @@ test("translated locales mirror the canonical Markdown page inventory", () => {
     for (const relativePath of canonical) {
       assert.notEqual(
         fs.readFileSync(path.join(localizedRoot, relativePath), "utf8"),
-        fs.readFileSync(path.join(contentRoot, relativePath), "utf8"),
+        fs.readFileSync(contentPath(relativePath), "utf8"),
         `Localized page is unchanged English content: ${locale}/${relativePath}`,
       );
     }
@@ -420,7 +421,7 @@ test("translated locales mirror the canonical Markdown page inventory", () => {
 
 test("translated pages preserve Markdown table structure", () => {
   const canonical = markdownFiles(contentRoot).filter(
-    (file) => !translatedLocales.some((locale) => file.startsWith(path.join(contentRoot, locale))),
+    (file) => !translatedLocales.some((locale) => file.startsWith(contentPath(locale))),
   );
   for (const sourceFile of canonical) {
     const relativePath = path.relative(contentRoot, sourceFile);
@@ -443,7 +444,7 @@ test("each translated edition contains native reader and search language markers
     de: ["Dokumentation", "Geschäft"],
   };
   for (const locale of translatedLocales) {
-    const content = markdownFiles(path.join(contentRoot, locale))
+    const content = markdownFiles(contentPath(locale))
       .map((file) => fs.readFileSync(file, "utf8"))
       .join("\n");
     for (const marker of markers[locale]) {
@@ -457,9 +458,9 @@ test("each translated edition contains native reader and search language markers
 });
 
 test("book-length guide explains the operational model through worked business cases", () => {
-  const guideRoot = path.join(contentRoot, "concepts", "business-reality-guide");
+  const guideRoot = contentPath("concepts", "business-reality-guide");
   const guide = [
-    fs.readFileSync(path.join(contentRoot, "concepts", "business-reality-guide.md"), "utf8"),
+    fs.readFileSync(contentPath("concepts", "business-reality-guide.md"), "utf8"),
     ...fs
       .readdirSync(guideRoot)
       .sort()
@@ -481,15 +482,12 @@ test("book-length guide explains the operational model through worked business c
   ]) {
     assert.match(guide, new RegExp(term, "iu"), `Missing guide chapter: ${term}`);
   }
-  const reference = fs.readFileSync(path.join(contentRoot, "reference", "table-map.md"), "utf8");
+  const reference = fs.readFileSync(contentPath("reference", "table-map.md"), "utf8");
   for (const term of ["Table map by responsibility", "Common misconceptions"]) {
     assert.match(reference, new RegExp(term), `Missing reference appendix: ${term}`);
   }
   for (const locale of ["", "de/"]) {
-    const usage = fs.readFileSync(
-      path.join(contentRoot, locale, "concepts", "list-evidence.md"),
-      "utf8",
-    );
+    const usage = fs.readFileSync(contentPath(locale, "concepts", "list-evidence.md"), "utf8");
     assert.ok(
       usage.includes("{#how-to-read-the-lists}"),
       `${locale || "en"}: list explanation missing`,
@@ -525,11 +523,7 @@ test("ERP handbook explains the complete contribution bridge in both languages",
   ];
   for (const [locale, terms, amounts] of editions) {
     const page = fs.readFileSync(
-      path.join(
-        contentRoot,
-        locale,
-        "concepts/business-reality-guide/08-inventory-cost-and-contribution.md",
-      ),
+      contentPath(locale, "concepts/business-reality-guide/08-inventory-cost-and-contribution.md"),
       "utf8",
     );
     for (const term of terms) assert.ok(page.includes(term), `${locale || "en"}: missing ${term}`);
@@ -553,8 +547,7 @@ test("ERP handbook compares the complete demo contribution portfolio in both lan
   ];
   for (const [locale, terms] of editions) {
     const page = fs.readFileSync(
-      path.join(
-        contentRoot,
+      contentPath(
         locale,
         "concepts",
         "business-reality-guide",
@@ -566,29 +559,33 @@ test("ERP handbook compares the complete demo contribution portfolio in both lan
   }
 });
 
-test("the ERP practical book is a first-class navigation section", () => {
+test("the ERP practical book remains discoverable within exploration", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
   assert.ok(config.includes('realityGuide: "Reality for ERP professionals"'));
   assert.ok(config.includes('realityGuide: "Reality für ERP-Profis"'));
-  assert.ok(config.includes('realityChapters: "Overview"'));
-  assert.ok(config.includes('realityChapters: "Überblick"'));
-  assert.ok(config.indexOf("text: labels.realityGuide") < config.indexOf("text: labels.toolUsage"));
+  const sidebar = config.slice(config.indexOf("const sidebar ="));
+  assert.ok(sidebar.indexOf("text: labels.explore") < sidebar.indexOf("text: labels.realityGuide"));
+  assert.ok(
+    sidebar.indexOf("text: labels.realityGuide") < sidebar.indexOf("text: labels.useReality"),
+  );
+  const start = sidebar.slice(
+    sidebar.indexOf("text: labels.learn"),
+    sidebar.indexOf("text: labels.explore"),
+  );
+  assert.match(start, /collapsed: false/u);
+  assert.ok(!start.includes("/operations/"));
+  assert.doesNotMatch(sidebar, /\/operations\/|\/reference\/environment|Railway|Helm/u);
+  for (const prefix of ["", "de/"])
+    for (const directory of ["operations"])
+      assert.ok(!fs.existsSync(path.join(contentRoot, prefix, directory)));
 });
 
 test("the learning journey positions ERP professionals as accountable Process Owners", () => {
-  const home = fs.readFileSync(path.join(contentRoot, "index.md"), "utf8");
+  const home = fs.readFileSync(contentPath("index.md"), "utf8");
   const role = fs.readFileSync(
-    path.join(contentRoot, "concepts", "business-reality-guide", "04-working-as-process-owner.md"),
+    contentPath("concepts", "business-reality-guide", "04-working-as-process-owner.md"),
     "utf8",
   );
-  for (const term of [
-    "open reference core",
-    "ERP professionals becoming",
-    "Three learning paths",
-    "What open source means here",
-  ]) {
-    assert.match(home, new RegExp(term, "iu"), `Missing learning position: ${term}`);
-  }
   for (const term of [
     "Process Owner is the accountable business person",
     "governed operating loop",
@@ -613,7 +610,7 @@ test("technical guidance gives code-grounded ERP extension paths", () => {
     "exceptions.md",
     "application-surfaces.md",
   ];
-  const developmentRoot = path.join(contentRoot, "development");
+  const developmentRoot = contentPath("development");
   const guidance = extensionFiles
     .map((file) => fs.readFileSync(path.join(developmentRoot, file), "utf8"))
     .join("\n");
@@ -633,22 +630,16 @@ test("technical guidance gives code-grounded ERP extension paths", () => {
   ]) {
     assert.match(guidance, new RegExp(term), `Missing extension guidance: ${term}`);
   }
-  assert.ok(fs.existsSync(path.join(contentRoot, "operations", "installation.md")));
+  assert.ok(fs.existsSync(contentPath("operations", "installation.md")));
   assert.match(
-    fs.readFileSync(path.join(contentRoot, "getting-started", "index.md"), "utf8"),
-    /operations\/installation/,
+    fs.readFileSync(contentPath("getting-started", "demo-company.md"), "utf8"),
+    /hosted app/,
   );
 });
 
 test("ERP customization separates implementation work from Reality Core development", () => {
-  const customization = fs.readFileSync(
-    path.join(contentRoot, "integrations", "customization.md"),
-    "utf8",
-  );
-  const example = fs.readFileSync(
-    path.join(contentRoot, "integrations", "order-example.md"),
-    "utf8",
-  );
+  const customization = fs.readFileSync(contentPath("integrations", "customization.md"), "utf8");
+  const example = fs.readFileSync(contentPath("integrations", "order-example.md"), "utf8");
   for (const term of [
     "What Can Be Adapted?",
     "connector transport and order interpreter",
@@ -668,26 +659,13 @@ test("ERP customization separates implementation work from Reality Core developm
     assert.ok(example.includes(term), `Missing end-to-end ERP example: ${term}`);
   }
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
-  assert.ok(config.includes('development: "Reality erweitern"'));
-  assert.match(config, /text: labels\.development,\s+collapsed: true/u);
+  assert.ok(config.includes("text: labels.development"));
 });
 
 test("ERP professionals can run a truthful parallel pilot before enabling actions", () => {
-  for (const locale of ["", "de/"]) {
-    const home = fs.readFileSync(path.join(contentRoot, locale, "index.md"), "utf8");
-    assert.match(home, /Shopify, Xentral (?:or|oder) Odoo/u);
-    assert.match(home, /integrations\/parallel-test/u);
-    assert.match(home, /Try it with my ERP|Mit meinem ERP testen/u);
-    assert.match(home, /Start Reality alongside my ERP|Reality parallel zu meinem ERP starten/u);
-    assert.match(
-      home.replace(/\s+/gu, " "),
-      /not mean a finished connection|nicht, dass eine fertige Anbindung/u,
-    );
-  }
-
   for (const locale of ["", ...translatedLocales]) {
     const guide = fs.readFileSync(
-      path.join(contentRoot, locale, "integrations", "parallel-test.md"),
+      path.join(maintainerRoot, locale, "integrations", "parallel-test.md"),
       "utf8",
     );
     for (const term of [
@@ -738,7 +716,7 @@ test("technical interface guide shares labels and actual operation links", () =>
   for (const locale of ["en", "de"]) {
     const prefix = locale === "de" ? "de/" : "";
     const manual = fs
-      .readFileSync(path.join(contentRoot, prefix, "tool-usage/commands.md"), "utf8")
+      .readFileSync(contentPath(prefix, "tool-usage/commands.md"), "utf8")
       .replace(/\s+/gu, " ");
     assert.ok(manual.includes(guide.counts_note[locale]));
     assert.ok(manual.includes(guide.example.description[locale]));
@@ -755,7 +733,7 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
     "events.md",
   ];
   for (const locale of ["", ...translatedLocales]) {
-    const root = path.join(contentRoot, locale, "tool-usage");
+    const root = contentPath(locale, "tool-usage");
     for (const file of pages) {
       const content = fs.readFileSync(path.join(root, file), "utf8");
       assert.match(content, /Automatically generated|Automatisch aus/u);
@@ -766,7 +744,7 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
     assert.match(reference, /apropos/u);
     for (const file of pages) assert.ok(reference.includes(`(./${file.replace(".md", "")})`), file);
   }
-  const commands = fs.readFileSync(path.join(contentRoot, "tool-usage", "commands.md"), "utf8");
+  const commands = fs.readFileSync(contentPath("tool-usage", "commands.md"), "utf8");
   for (const term of [
     "## Finance",
     "## Agent Tools without a business command",
@@ -790,7 +768,7 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
   ]) {
     assert.ok(commands.includes(term), `Missing manual page detail: ${term}`);
   }
-  const views = fs.readFileSync(path.join(contentRoot, "tool-usage", "views.md"), "utf8");
+  const views = fs.readFileSync(contentPath("tool-usage", "views.md"), "utf8");
   for (const term of [
     "## Workspaces",
     "## Views",
@@ -803,16 +781,16 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
   ]) {
     assert.ok(views.includes(term), `Missing views detail: ${term}`);
   }
-  const exceptions = fs.readFileSync(path.join(contentRoot, "tool-usage", "exceptions.md"), "utf8");
+  const exceptions = fs.readFileSync(contentPath("tool-usage", "exceptions.md"), "utf8");
   assert.ok(exceptions.includes("{#exception-overdue_outgoing_customer_commitment}"));
   assert.ok(exceptions.includes("(./commands#tool-exceptions_list)"));
   assert.ok(
     fs
-      .readFileSync(path.join(contentRoot, "tool-usage", "events.md"), "utf8")
+      .readFileSync(contentPath("tool-usage", "events.md"), "utf8")
       .includes("(./commands#command-record_movement)"),
   );
 
-  const resources = fs.readFileSync(path.join(contentRoot, "tool-usage", "resources.md"), "utf8");
+  const resources = fs.readFileSync(contentPath("tool-usage", "resources.md"), "utf8");
   for (const term of [
     "{#resource-order}",
     "**Lists**",
@@ -824,10 +802,7 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
   ]) {
     assert.ok(resources.includes(term), `Missing resource detail: ${term}`);
   }
-  const german = fs.readFileSync(
-    path.join(contentRoot, "de", "tool-usage", "resources.md"),
-    "utf8",
-  );
+  const german = fs.readFileSync(contentPath("de", "tool-usage", "resources.md"), "utf8");
   for (const term of [
     "## Auftrag",
     "## Geschäftspartner",
@@ -838,7 +813,7 @@ test("the Tool Usage reference is generated, bilingual and written like manual p
   ]) {
     assert.ok(german.includes(term), `German resource page lacks ERP wording: ${term}`);
   }
-  const processes = fs.readFileSync(path.join(contentRoot, "tool-usage", "processes.md"), "utf8");
+  const processes = fs.readFileSync(contentPath("tool-usage", "processes.md"), "utf8");
   for (const term of [
     "{#process-order_to_cash}",
     "### 1.",
@@ -918,7 +893,7 @@ test("translated guide editions preserve canonical technical vocabulary", () => 
   const guidePaths = [
     "concepts/business-reality-guide.md",
     ...fs
-      .readdirSync(path.join(contentRoot, "concepts", "business-reality-guide"))
+      .readdirSync(contentPath("concepts", "business-reality-guide"))
       .sort()
       .map((file) => `concepts/business-reality-guide/${file}`),
   ];
@@ -934,7 +909,7 @@ test("translated guide editions preserve canonical technical vocabulary", () => 
   ];
   for (const locale of translatedLocales) {
     const guide = guidePaths
-      .map((relativePath) => fs.readFileSync(path.join(contentRoot, locale, relativePath), "utf8"))
+      .map((relativePath) => fs.readFileSync(contentPath(locale, relativePath), "utf8"))
       .join("\n");
     for (const term of protectedTerms) {
       assert.ok(guide.includes(term), `Missing protected guide term in ${locale}: ${term}`);
@@ -944,7 +919,7 @@ test("translated guide editions preserve canonical technical vocabulary", () => 
 
 test("Fact guidance defines the safe write boundary with a complete example", () => {
   const facts = fs.readFileSync(
-    path.join(contentRoot, "concepts", "business-reality-guide", "06-facts-and-open-questions.md"),
+    contentPath("concepts", "business-reality-guide", "06-facts-and-open-questions.md"),
     "utf8",
   );
   for (const term of [
@@ -962,10 +937,7 @@ test("Fact guidance defines the safe write boundary with a complete example", ()
 
 test("agent capability guidance defines selection, confirmation, and verification", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
-  const guidance = fs.readFileSync(
-    path.join(contentRoot, "api-tools", "agent-guidance.md"),
-    "utf8",
-  );
+  const guidance = fs.readFileSync(contentPath("api-tools", "agent-guidance.md"), "utf8");
   for (const term of [
     "capability_describe",
     "business_records_discover",
@@ -991,17 +963,19 @@ test("agent capability guidance defines selection, confirmation, and verificatio
     assert.match(guidance, new RegExp(term), `Missing agent capability guidance: ${term}`);
   }
   assert.ok(guidance.includes("{#choosing-a-tool}"));
-  assert.ok(config.includes('getStarted: "Get started"'));
+  assert.ok(config.includes('learn: "Start here"'));
 });
 
 test("MCP connection guidance is bilingual, discoverable, and matches current authentication", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
-  assert.ok(config.includes("/api-tools/connect-mcp"));
+  assert.ok(config.includes("/getting-started/"));
   for (const locale of ["", "de/"]) {
-    const guide = fs.readFileSync(
-      path.join(contentRoot, locale, "api-tools/connect-mcp.md"),
+    const connection = fs.readFileSync(
+      contentPath(locale, "getting-started/connect-agent.md"),
       "utf8",
     );
+    assert.ok(connection.includes("/api-tools/connect-mcp"));
+    const guide = fs.readFileSync(contentPath(locale, "api-tools/connect-mcp.md"), "utf8");
     for (const marker of [
       "MCP_URL",
       "Bearer",
@@ -1022,7 +996,7 @@ test("the blog is a bilingual publishing surface with an editorial desk behind i
   const theme = fs.readFileSync(path.join(docsRoot, ".vitepress", "theme", "index.ts"), "utf8");
 
   for (const locale of ["", ...translatedLocales]) {
-    const blogRoot = path.join(contentRoot, locale, "blog");
+    const blogRoot = contentPath(locale, "blog");
     const index = fs.readFileSync(path.join(blogRoot, "index.md"), "utf8");
     assert.match(index, /<PostList \/>/u, `Blog index does not list posts: ${locale || "root"}`);
     assert.match(
@@ -1042,8 +1016,8 @@ test("the blog is a bilingual publishing surface with an editorial desk behind i
     }
   }
 
-  assert.ok(config.includes('blog: "Blog"'));
-  assert.ok(config.includes('link: route(locale, "/blog/")'));
+  assert.ok(config.includes('development: "Build with Reality"'));
+  assert.ok(config.includes('link: route(locale, "/development/")'));
   for (const marker of [
     'pattern: "blog/*.md"',
     'pattern: "de/blog/*.md"',
@@ -1089,10 +1063,8 @@ test("unfinished blog drafts stay out of the index and the feeds", () => {
   // "no draft in the tree" but that an article is a draft in every language or in none. A draft
   // in one language only would publish an article whose other edition is missing.
   const isDraft = (locale, file) =>
-    /^draft: true$/mu.test(fs.readFileSync(path.join(contentRoot, locale, "blog", file), "utf8"));
-  const articles = fs
-    .readdirSync(path.join(contentRoot, "blog"))
-    .filter((entry) => entry !== "index.md");
+    /^draft: true$/mu.test(fs.readFileSync(contentPath(locale, "blog", file), "utf8"));
+  const articles = fs.readdirSync(contentPath("blog")).filter((entry) => entry !== "index.md");
   for (const file of articles) {
     for (const locale of translatedLocales) {
       assert.equal(
@@ -1115,7 +1087,7 @@ test("every blog page offers the feed as the way to follow new writing", () => {
     assert.ok(subscribe.includes(marker), `Missing feed address: ${marker}`);
   }
   for (const locale of ["", ...translatedLocales]) {
-    const blogRoot = path.join(contentRoot, locale, "blog");
+    const blogRoot = contentPath(locale, "blog");
     for (const file of fs.readdirSync(blogRoot)) {
       const page = fs.readFileSync(path.join(blogRoot, file), "utf8");
       assert.match(page, /<Subscribe \/>/u, `No subscribe call to action: ${locale}/blog/${file}`);
@@ -1158,7 +1130,7 @@ test("one written voice governs both editions and the German stays informal", ()
 
   const politeAddress = /\b(?:Ihnen|Ihre[nmrs]?)\b/u;
   const informalAddress = /\b(?:du|dir|dich|dein\w*)\b/u;
-  const germanBlog = path.join(contentRoot, "de", "blog");
+  const germanBlog = contentPath("de", "blog");
   for (const file of fs.readdirSync(germanBlog).filter((entry) => entry !== "index.md")) {
     const post = fs.readFileSync(path.join(germanBlog, file), "utf8");
     assert.doesNotMatch(post, politeAddress, `German post addresses the reader formally: ${file}`);
@@ -1180,7 +1152,7 @@ test("one written voice governs both editions and the German stays informal", ()
 test("the configured documentation logo is shipped from the public directory", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
   assert.match(config, /logo:\s*["']\/reality-mark\.svg["']/u);
-  assert.ok(fs.existsSync(path.join(contentRoot, "public", "reality-mark.svg")));
+  assert.ok(fs.existsSync(contentPath("public", "reality-mark.svg")));
 });
 
 test("relative Markdown links resolve inside public documentation", () => {
@@ -1207,22 +1179,17 @@ test("public guidance labels claims and provides recovery content", () => {
   assert.match(content, /Current behavior/u);
   assert.match(content, /Normative invariant/u);
   assert.match(content, /Example/u);
-  const notFound = fs.readFileSync(path.join(contentRoot, "404.md"), "utf8");
+  const notFound = fs.readFileSync(contentPath("404.md"), "utf8");
   assert.match(notFound, /Back to documentation/u);
 });
 
-test("documentation homes teach Source to Evidence to Reality before the product overview", () => {
-  for (const [locale, heading, caveat] of [
-    ["", "The model in one minute", "checkable, not automatically correct"],
-    ["de", "Das Modell in einer Minute", "überprüfbar, aber nicht automatisch richtig"],
-  ]) {
-    const home = fs.readFileSync(path.join(contentRoot, locale, "index.md"), "utf8");
-    assert.ok(
-      home.indexOf(heading) < home.indexOf(locale ? "## Was Reality ist" : "## What Reality is"),
-    );
-    assert.match(home, /Source → Evidence → Reality/u);
-    assert.ok(home.includes(caveat));
-    assert.match(home, /Commitments, Reservations, Movements (?:and|und) Ledger Entries/u);
+test("product homes keep a compact introduction and link to deeper explanations", () => {
+  for (const locale of ["", "de/"]) {
+    const home = fs.readFileSync(contentPath(locale, "index.md"), "utf8");
+    assert.match(home.replace(/\s+/gu, " "), /Source → Evidence → Reality/u);
+    assert.ok(home.includes("concepts/business-reality-guide"));
+    assert.ok(home.includes("getting-started/business-journeys"));
+    assert.ok(home.split("\n").length < 85);
   }
 });
 
@@ -1278,7 +1245,7 @@ test("the open reference core declares and explains its MIT license", () => {
   assert.match(pyproject, /^license = "MIT"$/mu);
   for (const relativePath of ["reference/license.md", "concepts/business-reality-guide.md"]) {
     assert.match(
-      fs.readFileSync(path.join(contentRoot, relativePath), "utf8"),
+      fs.readFileSync(contentPath(relativePath), "utf8"),
       /MIT License/u,
       `Missing MIT explanation in ${relativePath}`,
     );
@@ -1289,19 +1256,12 @@ test("commercial services are linked without restricting MIT use", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
   assert.equal((config.match(/website: "Website"/gu) || []).length, 2);
   assert.match(config, /text: labels\.website,\s*link: languageHref\(siteUrl/u);
-  for (const relativePath of ["index.md", "reference/license.md"]) {
-    const content = fs.readFileSync(path.join(contentRoot, relativePath), "utf8");
-    assert.ok(content.includes("https://runreality.ai"));
-    assert.match(
-      content.replace(/\s+/gu, " "),
-      /does not require an additional commercial license|remains independently available for commercial use/u,
-    );
-  }
+  assert.ok(config.includes("github.com/Xentral-Labs/reality/blob/main/LICENSE"));
 });
 
 test("handbook teaches the business model before integration details", () => {
   for (const locale of ["", "de/"]) {
-    const root = path.join(contentRoot, locale, "concepts/business-reality-guide");
+    const root = contentPath(locale, "concepts/business-reality-guide");
     const intro = fs.readFileSync(
       path.join(root, "01-from-erp-documents-to-business-reality.md"),
       "utf8",
@@ -1311,7 +1271,9 @@ test("handbook teaches the business model before integration details", () => {
       intro,
       /Shopify-JSON|Shopify JSON|projection_checkpoint|source_capability/u,
     );
-    assert.ok(intro.includes("../../reference/table-map"));
+    assert.ok(
+      intro.includes("docs/maintainer-guides/") && intro.includes("reference/table-map.md"),
+    );
     const finance = fs.readFileSync(path.join(root, "03-invoices-and-payments.md"), "utf8");
     assert.ok(
       finance.includes("INV-1001") && finance.includes("SO-1001") && finance.includes("Northstar"),
@@ -1328,11 +1290,7 @@ test("handbook teaches the business model before integration details", () => {
 test("the shared order example reconciles stock, allocations and fulfilment", () => {
   for (const locale of ["", "de/"]) {
     const chapter = fs.readFileSync(
-      path.join(
-        contentRoot,
-        locale,
-        "concepts/business-reality-guide/02-orders-stock-and-deliveries.md",
-      ),
+      contentPath(locale, "concepts/business-reality-guide/02-orders-stock-and-deliveries.md"),
       "utf8",
     );
     const rows = chapter.split("\n").filter((line) => /^\|[^|]+\|(?:\s*\d+\s*\|){5}$/.test(line));
@@ -1355,7 +1313,7 @@ test("the closing summary connects shared records, tools and the limits of the j
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
   assert.ok(config.includes(slug));
   for (const locale of ["", "de/"]) {
-    const root = path.join(contentRoot, locale, "concepts");
+    const root = contentPath(locale, "concepts");
     const summary = fs.readFileSync(
       path.join(root, "business-reality-guide", `${slug}.md`),
       "utf8",
@@ -1436,24 +1394,21 @@ test("the docs dark ground matches the product rather than the VitePress default
 
 test("extension navigation leads data-source guides with the shared concept", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
-  assert.match(
-    config,
-    /text: labels\.connectors,[\s\S]*?items: \[[\s\S]*?labels\.connectorContract[\s\S]*?labels\.exampleErp/u,
-  );
-  assert.ok(config.includes('"/development/exceptions"'));
+  for (const route of [
+    "/development/first-extension",
+    "/development/commands",
+    "/development/connectors",
+    "/development/application-surfaces",
+  ])
+    assert.ok(config.includes(route), route);
+  assert.doesNotMatch(config, /\/integrations\/example-erp/u);
   for (const locale of ["", "de/"]) {
-    const overview = fs.readFileSync(
-      path.join(contentRoot, locale, "development/index.md"),
-      "utf8",
-    );
+    const overview = fs.readFileSync(contentPath(locale, "development/index.md"), "utf8");
     for (const term of ["Command", "View", "Projection", "Agent Tool", "Web Action"])
       assert.ok(overview.includes(term), `${locale}: ${term}`);
-    const derived = fs.readFileSync(
-      path.join(contentRoot, locale, "development/derived-views.md"),
-      "utf8",
-    );
+    const derived = fs.readFileSync(contentPath(locale, "development/derived-views.md"), "utf8");
     assert.ok(derived.includes("./exceptions"));
-    assert.ok(fs.existsSync(path.join(contentRoot, locale, "development/exceptions.md")));
+    assert.ok(fs.existsSync(contentPath(locale, "development/exceptions.md")));
   }
 });
 
@@ -1468,10 +1423,7 @@ test("extension tutorials give source-backed Agent Tool and Web Action templates
     "utf8",
   );
   for (const locale of ["", "de/"]) {
-    const agent = fs.readFileSync(
-      path.join(contentRoot, locale, "development/agent-tools.md"),
-      "utf8",
-    );
+    const agent = fs.readFileSync(contentPath(locale, "development/agent-tools.md"), "utf8");
     for (const key of [
       "reservation_propose",
       "proposal_approve_and_execute",
@@ -1482,10 +1434,7 @@ test("extension tutorials give source-backed Agent Tool and Web Action templates
       assert.ok(agent.includes(key), `${locale}: ${key}`);
     const excerpt = agent.match(/```python\n([\s\S]*?)\n```/u)[1];
     assert.ok(registry.includes(excerpt), "MCP example is copied from the actual registry");
-    const action = fs.readFileSync(
-      path.join(contentRoot, locale, "development/web-actions.md"),
-      "utf8",
-    );
+    const action = fs.readFileSync(contentPath(locale, "development/web-actions.md"), "utf8");
     assert.ok(workspace.includes("key: reserve_stock"));
     for (const key of [
       "key: reserve_stock",
@@ -1496,15 +1445,9 @@ test("extension tutorials give source-backed Agent Tool and Web Action templates
       "make docs-generate",
     ])
       assert.ok(action.includes(key), `${locale}: ${key}`);
-    const commands = fs.readFileSync(
-      path.join(contentRoot, locale, "development/commands.md"),
-      "utf8",
-    );
+    const commands = fs.readFileSync(contentPath(locale, "development/commands.md"), "utf8");
     assert.ok(commands.includes("./agent-tools") && commands.includes("./web-actions"));
-    const projection = fs.readFileSync(
-      path.join(contentRoot, locale, "development/projections.md"),
-      "utf8",
-    );
+    const projection = fs.readFileSync(contentPath(locale, "development/projections.md"), "utf8");
     assert.ok(projection.includes("`_inventory_rows`"));
     assert.ok(!projection.includes("`inventory_position`"));
   }
@@ -1522,27 +1465,7 @@ test("extension handbook has a consistent bilingual learning path and building-b
     "api-cli",
   ];
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
-  const navigation = config.slice(config.indexOf("text: labels.development,"));
-  let previousLink = -1;
-  for (const route of [
-    "/development/",
-    "/integrations/customization",
-    "/development/first-extension",
-    "/development/views",
-    "/development/projections",
-    "/development/commands",
-    "/development/exceptions",
-    "/development/application-surfaces",
-    "/development/agent-tools",
-    "/development/web-actions",
-    "/development/api-cli",
-    "/development/connectors",
-    "/development/reference",
-  ]) {
-    const index = navigation.indexOf(`"${route}"`);
-    assert.ok(index > previousLink, `learning navigation: ${route}`);
-    previousLink = index;
-  }
+  assert.ok(config.includes("text: labels.development"));
   const headings = {
     "": [
       "What you will learn",
@@ -1568,7 +1491,7 @@ test("extension handbook has a consistent bilingual learning path and building-b
     ],
   };
   for (const locale of ["", "de/"]) {
-    const root = path.join(contentRoot, locale, "development");
+    const root = contentPath(locale, "development");
     const overview = fs.readFileSync(path.join(root, "index.md"), "utf8");
     assert.match(overview, locale ? /\| Baustein\s*\| Wofür/ : /\| Building block\s*\| Purpose/u);
     for (const chapter of [...chapters, "first-extension", "reference"])
@@ -1648,11 +1571,8 @@ test("vendor integration guides define complete scope without claiming unimpleme
   };
   for (const locale of ["", "de/"]) {
     for (const vendor of ["xentral", "shopify", "odoo"]) {
-      assert.ok(config.includes(`"/integrations/${vendor}"`), vendor);
-      const page = fs.readFileSync(
-        path.join(contentRoot, locale, `integrations/${vendor}.md`),
-        "utf8",
-      );
+      assert.ok(!config.includes(`"/integrations/${vendor}"`), vendor);
+      const page = fs.readFileSync(contentPath(locale, `integrations/${vendor}.md`), "utf8");
       let previous = -1;
       for (const heading of headings[locale]) {
         const index = page.indexOf(`## ${heading}`);
@@ -1681,19 +1601,16 @@ test("vendor integration guides define complete scope without claiming unimpleme
               : "developer.xentral.com",
         ),
       );
-      const connector = fs.readFileSync(
-        path.join(contentRoot, locale, "development/connectors.md"),
-        "utf8",
-      );
+      const connector = fs.readFileSync(contentPath(locale, "development/connectors.md"), "utf8");
       assert.ok(connector.includes(`../integrations/${vendor}`));
       const pilot = fs.readFileSync(
-        path.join(contentRoot, locale, "integrations/parallel-test.md"),
+        path.join(maintainerRoot, locale, "integrations/parallel-test.md"),
         "utf8",
       );
       assert.ok(pilot.includes(`./${vendor}`));
     }
     const contract = fs.readFileSync(
-      path.join(contentRoot, locale, "integrations/connector-contract.md"),
+      contentPath(locale, "integrations/connector-contract.md"),
       "utf8",
     );
     for (const term of [
@@ -1712,8 +1629,8 @@ test("vendor integration guides define complete scope without claiming unimpleme
 
 test("vendor acquisition guidance separates recommendations from implemented transport", () => {
   for (const locale of ["", "de/"]) {
-    const shop = fs.readFileSync(path.join(contentRoot, locale, "integrations/shopify.md"), "utf8");
-    const erp = fs.readFileSync(path.join(contentRoot, locale, "integrations/xentral.md"), "utf8");
+    const shop = fs.readFileSync(contentPath(locale, "integrations/shopify.md"), "utf8");
+    const erp = fs.readFileSync(contentPath(locale, "integrations/xentral.md"), "utf8");
     for (const text of [shop, erp]) {
       assert.match(text, /### (How and when to fetch data|Wie und wann du die Daten abholst)/);
       assert.match(text, /recommended starting values|empfohlene Startwerte/);
@@ -1732,10 +1649,7 @@ test("vendor acquisition guidance separates recommendations from implemented tra
 test("observation modes explain local interpretation without upstream mutation", () => {
   for (const locale of ["", "de/"]) {
     for (const vendor of ["shopify", "xentral"]) {
-      const page = fs.readFileSync(
-        path.join(contentRoot, locale, `integrations/${vendor}.md`),
-        "utf8",
-      );
+      const page = fs.readFileSync(contentPath(locale, `integrations/${vendor}.md`), "utf8");
       assert.match(page, /### (A\)|B\))/);
       assert.match(page, /read-only|nur lesend/);
       assert.match(page, /SourceRecord/);
@@ -1746,7 +1660,7 @@ test("observation modes explain local interpretation without upstream mutation",
 
 test("Reality-master mode separates decisions from evidenced Xentral execution", () => {
   for (const locale of ["", "de/"]) {
-    const page = fs.readFileSync(path.join(contentRoot, locale, "integrations/xentral.md"), "utf8");
+    const page = fs.readFileSync(contentPath(locale, "integrations/xentral.md"), "utf8");
     assert.match(
       page,
       /### C\) (Reality decides, Xentral executes|Reality entscheidet, Xentral führt aus)/,
@@ -1760,10 +1674,7 @@ test("Reality-master mode separates decisions from evidenced Xentral execution",
 test("coverage matrices scope observation separately from outbound execution", () => {
   for (const locale of ["", "de/"]) {
     for (const vendor of ["shopify", "xentral", "odoo"]) {
-      const page = fs.readFileSync(
-        path.join(contentRoot, locale, `integrations/${vendor}.md`),
-        "utf8",
-      );
+      const page = fs.readFileSync(contentPath(locale, `integrations/${vendor}.md`), "utf8");
       const matrix = page
         .split(locale ? "## Abdeckungsmatrix" : "## Coverage matrix")[1]
         .split(locale ? "## Schritt für Schritt" : "## Step by step")[0];
@@ -1777,7 +1688,7 @@ test("coverage matrices scope observation separately from outbound execution", (
 
 test("Odoo modes distinguish observation from requested execution", () => {
   for (const locale of ["", "de/"]) {
-    const page = fs.readFileSync(path.join(contentRoot, locale, "integrations/odoo.md"), "utf8");
+    const page = fs.readFileSync(contentPath(locale, "integrations/odoo.md"), "utf8");
     assert.match(page, /### (Read only: observe Odoo|Nur lesen: Odoo zuschauen)/);
     assert.match(page, /### Reality (directs, Odoo executes|steuert, Odoo führt aus)/);
     assert.match(page, /Execution only|Nur Ausführung/);
@@ -1787,14 +1698,9 @@ test("Odoo modes distinguish observation from requested execution", () => {
 
 test("example ERP chapter teaches progressive capture and knowledge boundaries", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
-  assert.ok(
-    config.indexOf('"/integrations/example-erp"') < config.indexOf('"/integrations/xentral"'),
-  );
+  assert.ok(!config.includes('"/integrations/example-erp"'));
   for (const locale of ["", "de/"]) {
-    const page = fs.readFileSync(
-      path.join(contentRoot, locale, "integrations/example-erp.md"),
-      "utf8",
-    );
+    const page = fs.readFileSync(contentPath(locale, "integrations/example-erp.md"), "utf8");
     for (let stage = 1; stage <= 7; stage++) assert.ok(page.includes(`## ${stage}.`));
     for (const term of [
       "SourceRecord",
@@ -1810,20 +1716,14 @@ test("example ERP chapter teaches progressive capture and knowledge boundaries",
     assert.match(page, /unknown|unbekannt/);
     assert.match(page, /cutover|Stichtag/);
     assert.match(page, /human confirmation|menschliche Bestätigung/);
-    const guide = fs.readFileSync(
-      path.join(contentRoot, locale, "development/connectors.md"),
-      "utf8",
-    );
+    const guide = fs.readFileSync(contentPath(locale, "development/connectors.md"), "utf8");
     assert.ok(guide.includes("../integrations/example-erp"));
   }
 });
 
 test("example ERP stages explain agent capabilities and bounded execution", () => {
   for (const locale of ["", "de/"]) {
-    const page = fs.readFileSync(
-      path.join(contentRoot, locale, "integrations/example-erp.md"),
-      "utf8",
-    );
+    const page = fs.readFileSync(contentPath(locale, "integrations/example-erp.md"), "utf8");
     for (let stage = 1; stage <= 7; stage++) {
       const section = page.split(`## ${stage}.`)[1].split("\n## ")[0];
       assert.match(section, /\*\*(Your agent|Dein Agent):\*\*/);
@@ -1836,18 +1736,9 @@ test("example ERP stages explain agent capabilities and bounded execution", () =
 test("source concept chapter precedes technical rules and keeps stable references", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
   assert.ok(!config.includes('link: route(locale, "/integrations/order-example")'));
-  const sourceMenu = config
-    .split("text: labels.connectors,")[1]
-    .split("text: labels.developmentReference,")[0];
-  assert.ok(sourceMenu.indexOf("labels.connectorContract") >= 0);
-  assert.ok(
-    sourceMenu.indexOf("labels.connectorContract") < sourceMenu.indexOf("labels.exampleErp"),
-  );
+  assert.ok(config.includes("text: labels.connectors"));
   for (const locale of ["", "de/"]) {
-    const page = fs.readFileSync(
-      path.join(contentRoot, locale, "integrations/connector-contract.md"),
-      "utf8",
-    );
+    const page = fs.readFileSync(contentPath(locale, "integrations/connector-contract.md"), "utf8");
     assert.ok(
       page.startsWith(locale ? "# Von Quelldaten zu Reality\n" : "# From source data to Reality\n"),
     );
@@ -1861,20 +1752,14 @@ test("source concept chapter precedes technical rules and keeps stable reference
     assert.ok(
       page.includes(locale ? "## Vollständigkeit und Abnahme" : "## Completeness and acceptance"),
     );
-    const reference = fs.readFileSync(
-      path.join(contentRoot, locale, "development/reference.md"),
-      "utf8",
-    );
+    const reference = fs.readFileSync(contentPath(locale, "development/reference.md"), "utf8");
     assert.ok(reference.includes("../integrations/connector-contract"));
   }
 });
 
 test("source concept distinguishes payload versions from semantic interpretation", () => {
   for (const locale of ["", "de/"]) {
-    const page = fs.readFileSync(
-      path.join(contentRoot, locale, "integrations/connector-contract.md"),
-      "utf8",
-    );
+    const page = fs.readFileSync(contentPath(locale, "integrations/connector-contract.md"), "utf8");
     for (const term of [
       "SourceStream",
       "external_id",

@@ -94,7 +94,7 @@ dieselben Regeln weiterarbeiten. Die neuen Einträge werden wieder zur Grundlage
 **Reality hält diese gemeinsame Grundlage zusammen.**
 
 Zum Anwenden: [Tools nutzen](../../tool-usage/). Zum Nachschlagen:
-[Tabellenübersicht](../../reference/table-map). Zurück zu
-[Facts und offenen Fragen](./06-facts-and-open-questions).
+[Tabellenübersicht](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/reference/table-map.md).
+Zurück zu [Facts und offenen Fragen](./06-facts-and-open-questions).
 
 [Die Bausteine mit ihren Feldern und Aktionen erkunden](/de/tool-usage/#model:commitment).

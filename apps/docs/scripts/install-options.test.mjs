@@ -8,7 +8,8 @@ import test from "node:test";
 const docsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = path.resolve(docsRoot, "..", "..");
 const readRepo = (relative) => fs.readFileSync(path.join(repoRoot, relative), "utf8");
-const readDocs = (relative) => fs.readFileSync(path.join(docsRoot, "content", relative), "utf8");
+const guideRoot = path.join(repoRoot, "docs/maintainer-guides");
+const readDocs = (relative) => fs.readFileSync(path.join(guideRoot, relative), "utf8");
 
 const installer = readRepo("installer/install.sh");
 const installerReadme = readRepo("installer/README.md");
@@ -33,11 +34,12 @@ test("the install options index lists every option in both languages", () => {
   for (const locale of locales) {
     const index = readDocs(`${locale}operations/index.md`);
     for (const page of OPTION_PAGES) {
-      assert.match(index, new RegExp(`\\]\\(\\./${page}\\)`, "u"), `${locale}index links ${page}`);
-      assert.ok(
-        fs.existsSync(path.join(docsRoot, "content", locale, "operations", `${page}.md`)),
-        page,
+      assert.match(
+        index,
+        new RegExp(`\\]\\(\\./${page}\\.md\\)`, "u"),
+        `${locale}index links ${page}`,
       );
+      assert.ok(fs.existsSync(path.join(guideRoot, locale, "operations", `${page}.md`)), page);
     }
   }
 });
@@ -125,22 +127,12 @@ test("the environment reference documents every installer variable that the exam
   }
 });
 
-test("the sidebar exposes the install options in every docs locale", () => {
-  const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
-  for (const label of [
-    "installOptions",
-    "oneLineSetup",
-    "dockerCompose",
-    "kubernetes",
-    "railway",
-  ]) {
-    assert.equal(
-      (config.match(new RegExp(`\\b${label}:`, "gu")) || []).length,
-      3,
-      `${label} typed + en + de`,
-    );
+test("deployment guides live outside public product Docs", () => {
+  const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
+  assert.doesNotMatch(config, /Railway|Helm|\/operations\/|\/reference\/environment/u);
+  for (const locale of locales) {
+    assert.ok(!fs.existsSync(path.join(docsRoot, "content", locale, "operations")));
+    for (const page of OPTION_PAGES)
+      assert.ok(fs.existsSync(path.join(guideRoot, locale, "operations", `${page}.md`)));
   }
-  assert.match(config, /\/operations\/docker-compose/u);
-  assert.match(config, /\/operations\/kubernetes/u);
-  assert.match(config, /\/operations\/railway/u);
 });

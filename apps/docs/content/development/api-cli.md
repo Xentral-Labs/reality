@@ -7,13 +7,15 @@ Expose an existing operation through HTTP or CLI and verify its boundaries.
 ## When to use it
 
 A supported client needs HTTP, or development and administration need terminal access. Use
-[Agent Tools](./agent-tools) for agents and [Web Actions](./web-actions) for human interactions.
+[Agent Tools](/development/agent-tools) for agents and
+[Web Actions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/web-actions.md)
+for human interactions.
 
 ## Before you start
 
-The shared service must already exist and be tested. Read [Commands](./commands) and the
-[development reference](./reference). Use PostgreSQL test fixtures and the authenticated tenant
-boundary.
+The shared service must already exist and be tested. Read [Commands](/development/commands) and the
+[development reference](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/reference.md).
+Use PostgreSQL test fixtures and the authenticated tenant boundary.
 
 ## Worked example
 
@@ -50,4 +52,7 @@ reporting success without verifying the result.
 
 ## Continue
 
-[Agent Tools](./agent-tools), [Web Actions](./web-actions) and the [shared reference](./reference).
+[Agent Tools](/development/agent-tools),
+[Web Actions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/web-actions.md)
+and the
+[shared reference](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/development/reference.md).

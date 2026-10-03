@@ -14,18 +14,6 @@ documents:
     public_url: https://docs.runreality.ai/integrations/connector-contract
     authority: technical_contract
     topics: [integration, connector, API, import, source, provenance, source file, traceability, Quelldatei, Herkunft, Nachvollziehbarkeit]
-  - id: installation
-    path: apps/docs/content/operations/installation.md
-    title: Installation
-    public_url: https://docs.runreality.ai/operations/installation
-    authority: technical_contract
-    topics: [installation, deployment, hosting, Docker]
-  - id: deployment
-    path: apps/docs/content/operations/deployment.md
-    title: Deployment
-    public_url: https://docs.runreality.ai/operations/deployment
-    authority: technical_contract
-    topics: [deployment, upgrade, backup, operations]
   - id: tool_usage
     path: apps/docs/content/tool-usage/index.md
     title: Tool Usage

@@ -116,10 +116,12 @@ ihrer belegten Verbindung zur Zusage.
   Datensätzen. Agent Tools machen dieselben Anwendungsfähigkeiten zugänglich, ohne eigene
   alternative Geschäftsregeln.
 
-Mit [den Beispiel-ERP-Stufen](./example-erp) wählst du die Fakten aus, die dein Agent braucht.
-[Die technische Umsetzung eines Auftragsimports](./order-example) hilft beim Einstieg in die
-Implementierung. Die folgenden Regeln beschreiben, wie jede Anbindung verlustfrei, wiederholbar und
-nachvollziehbar bleibt.
+Mit
+[den Beispiel-ERP-Stufen](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/example-erp.md)
+wählst du die Fakten aus, die dein Agent braucht.
+[Die technische Umsetzung eines Auftragsimports](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/order-example.md)
+hilft beim Einstieg in die Implementierung. Die folgenden Regeln beschreiben, wie jede Anbindung
+verlustfrei, wiederholbar und nachvollziehbar bleibt.
 
 ## Verantwortlichkeiten
 
@@ -176,7 +178,9 @@ Abdeckung ab Stichtag ist keine vollständige Rekonstruktion der früheren Histo
 Module und nicht verfügbare Daten werden ausdrücklich benannt.
 
 Die durchgehenden Anleitungen zeigen Umfang, konkrete Quellbereiche und Umsetzungslücken:
-[Xentral](./xentral), [Shopify](./shopify), [Odoo](./odoo).
+[Xentral](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/xentral.md),
+[Shopify](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/shopify.md),
+[Odoo](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/integrations/odoo.md).
 
 ### Die gemeinsame Abdeckungsmatrix
 

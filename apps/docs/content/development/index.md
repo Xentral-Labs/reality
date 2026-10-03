@@ -1,55 +1,55 @@
-# Extending Reality
+# Build with Reality
 
-## What you will learn
+Reality gives you an operational business model and shared application services to extend. You can
+add a business rule, interpret data from your ERP or expose a capability to agents and applications.
+The same rule then serves Web, Chat, MCP, API and CLI through their existing boundaries.
 
-Learn which building blocks Reality uses and how to adapt an existing template for your own
-extension. You will be able to add a read surface, application operation or interface and verify its
-result.
+## Three things you can build
 
-You need basic Python knowledge and a repository checkout. Web surfaces also require
-TypeScript/React. You do not need to memorize business rules: the chapters share one story,
-**reserve stock and understand fulfillment blockers**.
+| Your goal             | A concrete example                                                                                          | Start here                                         |
+| --------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Extend business logic | Add a tenant-scoped operation that checks a business condition and records its approved effect.             | [Develop business logic](./commands)               |
+| Connect an ERP        | Receive an original order payload, retain it losslessly and interpret its order lines and delivery promise. | [Connect ERP and data sources](./connectors)       |
+| Add an interface      | Let an agent or application read stock or prepare a reservation through the existing service.               | [Agent and API interfaces](./application-surfaces) |
 
-## How the building blocks connect
+## Start with a working example
 
-A **View** presents data. A **Projection** supplies a derived read model when needed. A **Command**
-defines a shared application operation; **Agent Tools** and **Web Actions** expose it through
-different entrypoints. An exception describes a current condition requiring attention.
+Follow [your first extension](./first-extension): add a read-only Agent Tool that returns the same
+inventory rows as an existing capability. You will register its input schema, reuse the shared
+application tool and verify its result with the repository's PostgreSQL fixtures.
+
+The exercise is deliberately small. It shows the complete extension path without asking you to
+invent new business rules or a new database table.
+
+## Where business logic belongs
 
 ```text
-Read:    View or Agent Tool → shared reader → Reality or Projection
-Act:     Web Action or Agent Tool → Command/service → Reality
-Import:  Connector → SourceRecord → interpreter → Evidence → Reality
+Web / Chat / MCP / API / CLI
+             ↓
+Shared Application Tool and service
+             ↓
+Tenant-scoped Reality records
 ```
 
-Mutating Agent Tools prepare proposals; execution follows explicit approval. A View does not
-automatically need a Projection. Technical category names remain English in every language.
+A service owns the business rule. Its interfaces translate inputs and expose results; they do not
+reimplement that rule. For example, a reservation checks the delivery commitment and available stock
+in the shared service, regardless of whether a person or agent requested it.
 
-## Building blocks at a glance
+ERP intake follows **Source → Evidence → Reality**: preserve the received payload, interpret its
+business evidence and create the operational records it supports. A connector transports data; an
+interpreter gives it business meaning. See
+[From source data to Reality](/integrations/connector-contract).
 
-| Building block          | Purpose                   | Example              | Guide                        |
-| ----------------------- | ------------------------- | -------------------- | ---------------------------- |
-| View                    | Present data              | Fulfillment blockers | [Views](./views)             |
-| Projection              | Derive a read model       | Fulfillment queue    | [Projections](./projections) |
-| Command                 | Execute an operation      | Reserve stock        | [Commands](./commands)       |
-| Exception               | Identify attention needed | At-risk commitment   | [Exceptions](./exceptions)   |
-| Agent Tool              | Offer agent access        | Propose reservation  | [Agent Tools](./agent-tools) |
-| Web Action              | Offer a human workflow    | Reservation form     | [Web Actions](./web-actions) |
-| Connector / interpreter | Receive source data       | ERP order            | [Data sources](./connectors) |
+## Choose your next step
 
-API and CLI are further entrypoints to the same services; the [adapter guide](./api-cli) covers
-their implementation.
+- [Business logic](./commands): service, application operation, catalog and tests.
+- [ERP integration](./connectors): source identity, lossless intake and interpretation.
+- [Agent tools](./agent-tools): discovery, schemas, shared readers and governed proposals.
+- [API and CLI](./api-cli): thin adapters around an existing capability.
 
-## How to read this handbook
+Changes follow the repository's specification and test workflow. Mutating agent calls prepare a
+proposal and require human confirmation. Every read and write stays scoped to its company.
 
-1. Start with [configuration or development?](../integrations/customization). Not every adaptation
-   needs code.
-2. Follow the [first extension](./first-extension): a small read agent interface with no new
-   business rules.
-3. Choose your chapter. Each explains purpose, prerequisites, a worked example, changes,
-   verification and an exercise.
-4. Use the [shared development reference](./reference) for repository locations, Spec Kit workflow
-   and checks.
-
-If you already know what you need, go directly to that building block. Chapters explicitly state
-which parts must already exist.
+The
+[repository development handbook](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/README.md)
+contains deeper guides for views, projections, exception derivations and implementation checks.

@@ -23,8 +23,8 @@ heutige Arbeit betrifft. Frag:
 Reality. Kontrolliere Mandant, Geschäftszeitpunkt, Menge oder Betrag, Typ, Status und die direkten
 Beziehungen.
 
-Beim [Lampenbeispiel](./index) bleiben von 10 zugesagten Lampen nach 4 versendeten noch 6 offen; 2
-davon sind reserviert. Prüfe die Zahlung getrennt: LedgerEntry hält die Buchung fest,
+In einem illustrativen Lampenbeispiel bleiben von 10 zugesagten Lampen nach 4 versendeten noch 6
+offen; 2 davon sind reserviert. Prüfe die Zahlung getrennt: LedgerEntry hält die Buchung fest,
 SettlementAllocation ordnet die Zahlung der Rechnung zu. Bezahlt heißt noch nicht geliefert.
 
 ## 3. Der Evidence folgen

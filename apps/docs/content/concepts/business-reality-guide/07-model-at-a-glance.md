@@ -87,7 +87,8 @@ You build your business on shared, traceable business records. People, agents an
 understand the situation, decide their next step and continue through the same rules. The resulting
 entries become the basis for the next question. **Reality holds that shared foundation together.**
 
-To apply it: [Tool Usage](../../tool-usage/). For reference: [Table map](../../reference/table-map).
+To apply it: [Tool Usage](../../tool-usage/). For reference:
+[Table map](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/reference/table-map.md).
 Return to [Facts and Open Questions](./06-facts-and-open-questions).
 
 [Explore the building blocks, their fields and actions](/tool-usage/#model:commitment).

@@ -2,7 +2,17 @@
 pageClass: demo-data-page
 ---
 
-# Demo data guide
+# Explore the demo company
+
+Already [created your demo company](./demo-company)? Start with three cases in **Sales → Orders**:
+
+- **SO-006:** A partial delivery — three of five units shipped, two still open.
+- **SO-002:** Stock exists, but nothing is reserved. Stock and allocation are different.
+- **SO-003:** An order with too little available stock. Ask what prevents fulfillment.
+
+These are the baseline examples. If you change a case, inspect its current records. Use the
+[first-question prompts](./first-question) with your agent or Reality Chat. The inventory below is
+for looking up more examples; you do not need to read it before starting.
 
 The canonical demo company is a deterministic synthetic trading company. Use it to see how completed
 and exceptional business processes look across Sales, Purchasing, Warehouse, Finance and Analytics.

@@ -56,7 +56,8 @@ parallelen Einstieg neben deinem ERP gibt es den [Pilotleitfaden](../integration
 
 Lies beim ersten Durchgang in dieser Reihenfolge. Aufklappbare technische Vertiefungen kannst du
 überspringen. Danach dienen [Tools nutzen](../tool-usage/) und die
-[Tabellenübersicht](../reference/table-map) als Nachschlagewerk.
+[Tabellenübersicht](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/reference/table-map.md)
+als Nachschlagewerk.
 
 ## Autorität und Referenzkern
 
@@ -66,9 +67,10 @@ Das Handbuch erklärt das bestehende Produkt. Maßgeblich bleiben
 [Feature-Contracts](https://github.com/Xentral-Labs/reality/tree/main/docs/features) und die
 Spezifikationen unter `specs/`.
 
-Der Referenzkern steht unter der [MIT-Lizenz](/de/reference/license). Du kannst seine Umsetzung
-untersuchen und unter den Lizenzbedingungen verwenden und verändern. Copyright-, Lizenz- und
-Haftungshinweis müssen bei Kopien oder wesentlichen Teilen erhalten bleiben.
+Der Referenzkern steht unter der
+[MIT-Lizenz](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/reference/license.md).
+Du kannst seine Umsetzung untersuchen und unter den Lizenzbedingungen verwenden und verändern.
+Copyright-, Lizenz- und Haftungshinweis müssen bei Kopien oder wesentlichen Teilen erhalten bleiben.
 
 ## Felder und Datenstrukturen nachschlagen
 

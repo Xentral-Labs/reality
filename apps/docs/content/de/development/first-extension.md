@@ -10,10 +10,11 @@ Tabellen oder Geschäftsregeln. Der Alias ist eine Trainingshilfe, keine zusätz
 ## Voraussetzungen
 
 Arbeite im Repository-Hauptverzeichnis mit eingerichteter Python-Umgebung und den Abhängigkeiten aus
-der [Installation](../operations/installation). Für den Ergebnistest brauchst du die
-PostgreSQL-Testumgebung des Repositorys. Verwende keine Produktionsdatenbank. Lies die
-[gemeinsamen Entwicklungsregeln](./reference); auch eigene Produktänderungen durchlaufen Spec,
-Review, Plan, Tasks und Tests.
+der [Installation](https://github.com/Xentral-Labs/reality#development). Für den Ergebnistest
+brauchst du die PostgreSQL-Testumgebung des Repositorys. Verwende keine Produktionsdatenbank. Lies
+die
+[gemeinsamen Entwicklungsregeln](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/reference.md);
+auch eigene Produktänderungen durchlaufen Spec, Review, Plan, Tasks und Tests.
 
 ## 1. Die Vorlage verstehen
 
@@ -115,6 +116,9 @@ Stelle die Berechnung stattfindet.
 ## Aufräumen und weiterlernen
 
 Entferne den Trainingsalias und seinen Test nach der Übung und regeneriere die Referenz. Für eine
-echte neue Fähigkeit definiere zuerst den fachlichen Bedarf. [Agent Tools](./agent-tools) zeigt
-lesende und ändernde Zugänge; [Views](./views) erklärt die Anzeige, [Projections](./projections) die
-Ableitung und [Commands](./commands) die Operation.
+echte neue Fähigkeit definiere zuerst den fachlichen Bedarf.
+[Agent Tools](/de/development/agent-tools) zeigt lesende und ändernde Zugänge;
+[Views](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/views.md)
+erklärt die Anzeige,
+[Projections](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/projections.md)
+die Ableitung und [Commands](/de/development/commands) die Operation.

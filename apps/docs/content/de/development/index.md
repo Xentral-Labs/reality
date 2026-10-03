@@ -1,57 +1,60 @@
-# Reality erweitern
+# Mit Reality entwickeln
 
-## Was du hier lernst
+Reality liefert dir ein operatives Geschäftsmodell und gemeinsame Anwendungsservices zum Erweitern.
+Du kannst eine Geschäftsregel ergänzen, Daten aus deinem ERP interpretieren oder eine Fähigkeit für
+Agenten und Anwendungen zugänglich machen. Dieselbe Regel dient dann Web, Chat, MCP, API und CLI
+über ihre bestehenden Zugänge.
 
-Du lernst, welche Bausteine Reality verwendet und wie du eine vorhandene Vorlage für eine eigene
-Erweiterung nutzt. Am Ende kannst du eine Leseoberfläche, Anwendungsoperation oder Schnittstelle
-ergänzen und ihr Ergebnis prüfen.
+## Drei Dinge, die du entwickeln kannst
 
-Du brauchst grundlegende Python-Kenntnisse und ein ausgechecktes Repository. Für Web-Oberflächen
-kommen TypeScript/React hinzu. Geschäftsregeln musst du nicht auswendig kennen: Die Kapitel
-verfolgen ein gemeinsames Beispiel, **Bestand reservieren und Lieferhindernisse verstehen**.
+| Dein Ziel                   | Ein konkretes Beispiel                                                                                                      | Hier beginnen                                             |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Geschäftslogik erweitern    | Eine unternehmensgebundene Operation ergänzen, die eine Geschäftsbedingung prüft und ihre freigegebene Wirkung erfasst.     | [Geschäftslogik entwickeln](./commands)                   |
+| Ein ERP anbinden            | Einen ursprünglichen Auftrags-Payload empfangen, verlustfrei erhalten und seine Positionen und Lieferzusage interpretieren. | [ERP und Datenquellen anbinden](./connectors)             |
+| Eine Schnittstelle ergänzen | Einen Agenten oder eine Anwendung Bestand lesen oder über den bestehenden Service eine Reservierung vorbereiten lassen.     | [Agenten- und API-Schnittstellen](./application-surfaces) |
 
-## Wie die Bausteine zusammenhängen
+## Beginne mit einem funktionierenden Beispiel
 
-Eine **View** zeigt Daten. Eine **Projection** liefert bei Bedarf ein abgeleitetes Lesemodell. Ein
-**Command** definiert eine gemeinsame Anwendungsoperation; **Agent Tools** und **Web Actions**
-machen sie unterschiedlich zugänglich. Eine Ausnahme beschreibt einen aktuellen Zustand mit
-Handlungsbedarf.
+Folge [deiner ersten Erweiterung](./first-extension): Ergänze ein lesendes Agent Tool, das dieselben
+Bestandszeilen wie eine bestehende Fähigkeit liefert. Du registrierst sein Eingabeschema, nutzt das
+gemeinsame Anwendungswerkzeug und prüfst sein Ergebnis mit den PostgreSQL-Testdaten des Repositorys.
+
+Die Übung ist bewusst klein. Sie zeigt den vollständigen Erweiterungsweg, ohne dass du neue
+Geschäftsregeln oder eine Datenbanktabelle erfinden musst.
+
+## Wo Geschäftslogik hingehört
 
 ```text
-Lesen:    View oder Agent Tool → gemeinsamer Reader → Reality oder Projection
-Handeln:  Web Action oder Agent Tool → Command/Service → Reality
-Import:   Connector → SourceRecord → Interpreter → Evidence → Reality
+Web / Chat / MCP / API / CLI
+             ↓
+Gemeinsames Anwendungswerkzeug und Service
+             ↓
+Unternehmensgebundene Reality-Datensätze
 ```
 
-Ändernde Agent Tools bereiten einen Vorschlag vor; die Ausführung folgt erst nach ausdrücklicher
-Freigabe. Eine View benötigt nicht automatisch eine Projection. Technische Namen bleiben in allen
-Sprachen Englisch.
+Ein Service besitzt die Geschäftsregel. Seine Schnittstellen übersetzen Eingaben und zeigen
+Ergebnisse; sie implementieren die Regel nicht erneut. Eine Reservierung prüft zum Beispiel die
+Lieferzusage und den verfügbaren Bestand im gemeinsamen Service — unabhängig davon, ob ein Mensch
+oder Agent sie angefragt hat.
 
-## Die Bausteine im Überblick
+ERP-Eingang folgt **Source → Evidence → Reality**: den empfangenen Payload erhalten, seine
+kaufmännischen Belege interpretieren und die dadurch belegten operativen Datensätze erzeugen. Ein
+Connector transportiert Daten; ein Interpreter gibt ihnen geschäftliche Bedeutung. Siehe
+[Von Quelldaten zu Reality](/de/integrations/connector-contract).
 
-| Baustein                | Wofür?                   | Beispiel                 | Anleitung                    |
-| ----------------------- | ------------------------ | ------------------------ | ---------------------------- |
-| View                    | Daten anzeigen           | Lieferhindernisse        | [Views](./views)             |
-| Projection              | Lesemodell ableiten      | Versandvorrat            | [Projections](./projections) |
-| Command                 | Operation ausführen      | Bestand reservieren      | [Commands](./commands)       |
-| Ausnahme                | Handlungsbedarf erkennen | Gefährdete Zusage        | [Ausnahmen](./exceptions)    |
-| Agent Tool              | Agentenzugang anbieten   | Reservierung vorschlagen | [Agent Tools](./agent-tools) |
-| Web Action              | Bedienablauf anbieten    | Reservierungsformular    | [Web Actions](./web-actions) |
-| Connector / Interpreter | Quelldaten übernehmen    | ERP-Auftrag              | [Datenquellen](./connectors) |
+## Wähle deinen nächsten Schritt
 
-API und CLI sind weitere Zugänge zu denselben Services; die [Adapter-Anleitung](./api-cli) erklärt
-ihre Umsetzung.
+- [Geschäftslogik](./commands): Service, Anwendungsoperation, Katalog und Tests.
+- [ERP-Anbindung](./connectors): Quellenidentität, verlustfreier Eingang und Interpretation.
+- [Agentenwerkzeuge](./agent-tools): Auffindbarkeit, Schemas, gemeinsame Abfragen und kontrollierte
+  Vorschläge.
+- [API und CLI](./api-cli): Schlanke Adapter um eine bestehende Fähigkeit.
 
-## So liest du dieses Handbuch
+Änderungen folgen dem Spezifikations- und Testablauf des Repositorys. Ändernde Agentenaufrufe
+bereiten einen Vorschlag vor und benötigen menschliche Bestätigung. Jede Abfrage und Änderung bleibt
+an ihr Unternehmen gebunden.
 
-1. Prüfe [Konfiguration oder Entwicklung?](../integrations/customization). Nicht jede Anpassung
-   braucht neuen Code.
-2. Arbeite die [erste Erweiterung](./first-extension) durch: ein kleiner lesender Agentenzugang ohne
-   neue Geschäftsregeln.
-3. Wähle danach dein Kapitel. Jedes erklärt Zweck, Voraussetzungen, ein Beispiel, Änderungen,
-   Ergebnisprüfung und eine Übung.
-4. Nutze die [gemeinsamen Entwicklungsregeln](./reference) für Repository-Orte, Spec-Kit-Workflow
-   und Prüfungen.
-
-Wenn du bereits weißt, was du ergänzen möchtest, kannst du direkt beim passenden Baustein beginnen.
-Die Kapitel sagen ausdrücklich, welche Teile bereits vorhanden sein müssen.
+Das
+[Entwicklungshandbuch im Repository](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/README.md)
+enthält vertiefende Anleitungen für Views, Projections, Exception-Ableitungen und
+Implementierungsprüfungen.

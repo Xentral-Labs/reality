@@ -104,9 +104,12 @@ and evidenced relationship to the promise.
 - **Services, Views and Projections:** calculate current observations from held records. Agent Tools
   provide access to these same application capabilities, without an alternative set of rules.
 
-Start with [the example ERP stages](./example-erp) to choose the facts your agent needs. Use
-[the technical order-import example](./order-example) for implementation orientation. The rules
-below explain how to keep any integration lossless, repeatable and traceable.
+Start with
+[the example ERP stages](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/example-erp.md)
+to choose the facts your agent needs. Use
+[the technical order-import example](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/order-example.md)
+for implementation orientation. The rules below explain how to keep any integration lossless,
+repeatable and traceable.
 
 ## Responsibilities
 
@@ -158,8 +161,10 @@ it.
 field or the source’s entire history. Coverage from a cutover date is not a reconstruction of
 earlier history. Explicitly name excluded modules and unavailable data.
 
-The end-to-end guides cover scope, source areas and implementation gaps: [Xentral](./xentral),
-[Shopify](./shopify), [Odoo](./odoo).
+The end-to-end guides cover scope, source areas and implementation gaps:
+[Xentral](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/xentral.md),
+[Shopify](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/shopify.md),
+[Odoo](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/integrations/odoo.md).
 
 ### Shared coverage matrix
 

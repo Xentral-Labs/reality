@@ -2,7 +2,19 @@
 pageClass: demo-data-page
 ---
 
-# Demo-Datensatz
+# Die Demo-Firma erkunden
+
+Hast du [deine Demo-Firma erstellt](./demo-company)? Beginne mit drei Fällen unter **Verkauf →
+Aufträge & Bestellungen**:
+
+- **SO-006:** Teillieferung — drei von fünf Stück versendet, zwei noch offen.
+- **SO-002:** Bestand vorhanden, aber nichts reserviert. Bestand und Zuordnung sind verschieden.
+- **SO-003:** Ein Auftrag mit zu wenig verfügbarem Bestand. Frage, was die Erfüllung verhindert.
+
+Das sind die Ausgangsbeispiele. Wenn du einen Fall veränderst, prüfe seine aktuellen Datensätze.
+Nutze die [Prompts für die erste Frage](./first-question) mit deinem Agenten oder Reality-Chat. Das
+Verzeichnis darunter hilft beim Nachschlagen weiterer Beispiele; du musst es vor dem Start nicht
+lesen.
 
 Die kanonische Demo-Firma ist ein reproduzierbares, synthetisches Handelsunternehmen. Hier siehst du
 vollständige und problematische Geschäftsabläufe in Vertrieb, Einkauf, Lager, Finance und Analytics.

@@ -1,0 +1,62 @@
+# Was kann angepasst werden?
+
+Diese Seite richtet sich an ERP-Berater und Integrationsentwickler. Beginne mit dem fachlichen
+Ergebnis und wähle danach die kleinste notwendige Erweiterung.
+
+Wenn du Reality zuerst mit Daten aus einem vertrauten System verstehen möchtest, folge
+[Reality parallel zum ERP testen](./parallel-test.md). Der Ablauf bleibt gegenüber dem ERP zunächst
+lesend und zeigt, wann Konfiguration genügt und wann noch ein kleiner Adapter oder Interpreter nötig
+ist.
+
+| Fachlicher Wunsch                                | Was wird angepasst?                          | Typischerweise nötig                   |
+| ------------------------------------------------ | -------------------------------------------- | -------------------------------------- |
+| Aufträge aus einem weiteren ERP übernehmen       | Connector-Transport und Auftrags-Interpreter | Integrationscode                       |
+| andere CSV-Spaltennamen zuordnen                 | Datei-Mapping                                | Konfiguration oder kleine Codeänderung |
+| einen zusätzlichen ERP-Objekttyp übernehmen      | Source Capability und Interpreter            | Integrationscode                       |
+| eine vorhandene Reality-Aktion aufrufen          | vorhandene HTTP API oder Agent Tool          | Integrationskonfiguration              |
+| eine vorhandene Aktion anders platzieren         | Workspace-Katalog                            | Konfiguration                          |
+| eine wirklich neue Geschäftsposition berechnen   | Projection                                   | Reality erweitern                      |
+| ein neues operatives Risiko erkennen             | Exception-Ableitung                          | Reality erweitern                      |
+| einen neuen geregelten Geschäftsablauf einführen | Service und Command                          | Reality erweitern                      |
+
+## Was normalerweise unverändert bleiben kann
+
+Eine ERP-Anbindung braucht kein zweites Auftrags-, Bestands- oder Finanzmodell. Der Connector erhält
+den Original-Payload; der Interpreter übersetzt verstandene Bedeutung in vorhandene Evidence- und
+Reality-Datensätze. Unbekannte Felder bleiben im `SourceRecord.payload` verfügbar.
+
+Prüfe vor neuem Code die generierten [Commands und Agent Tools](https://docs.runreality.ai/de/tool-usage/commands) sowie die
+[Views und Projections](https://docs.runreality.ai/de/tool-usage/views). Häufig existiert die benötigte Fähigkeit bereits und
+nur Transport oder Interpretation des ERP fehlen.
+
+## Konfiguration oder Entwicklung?
+
+Kannst du vorhandene Felder zuordnen oder eine bereits unterstützte Aktion platzieren, genügt
+möglicherweise Konfiguration. Fehlen Reader, Operation, Interpreter oder ausführbare Oberfläche,
+brauchst du Entwicklung. Ein Workspace-Eintrag erzeugt allein weder eine neue Route noch ein
+Formular. Prüfe deshalb die vorhandene Fähigkeit, bevor du ihre Darstellung änderst.
+
+Für den Einstieg folgt die [erste Erweiterung](../development/first-extension.md). Die
+[Baustein-Übersicht](../development/index.md) trennt View, Projection, Command und ihre Zugänge.
+
+## Das passende nächste Kapitel
+
+- Für neue Datenquellen: [Ein weiteres ERP anbinden](../development/connectors.md).
+- Für den vollständigen Weg: [Beispiel eines ERP-Auftrags](./order-example.md).
+- Für Anmeldung, Versionierung, Wiederholung und Fehler:
+  [Von Quelldaten zu Reality](./connector-contract.md).
+- Für vorhandene Funktionen: [API und Agentenschnittstellen](https://docs.runreality.ai/de/api-tools/).
+- Nur bei wirklich fehlendem Geschäftsverhalten: [Reality erweitern](../development/index.md).
+
+## Belegte Beobachtungen ohne neuen Connector ergänzen
+
+Inhaber können begrenzte Fact-Regeln für gespeicherte Quellen und vorhandene Bezugsobjekte
+konfigurieren. Beginne bei
+[fehlenden Informationen](https://docs.runreality.ai/de/concepts/business-reality-guide/06-facts-and-open-questions#missing-information):
+erst simulieren, dann aktivieren, ältere Quellen getrennt nachverarbeiten. Das kann eine Beobachtung
+auslesen oder eine geprüfte Einordnung erzeugen. Es ist kein allgemeiner Feldeditor, keine
+Datenanbindung, keine freie Formelmaschine und kein Exception-Baukasten.
+
+Für eigene Agentenschnittstellen und Bedienabläufe:
+[Agent Tools ergänzen](../development/agent-tools.md) und
+[Web Actions ergänzen](../development/web-actions.md).

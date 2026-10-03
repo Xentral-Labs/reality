@@ -16,7 +16,7 @@ Bestätigung vor.
 
 Der Service und das Application Tool existieren bereits. Für Änderungen kennst du die exakte
 Vorschau und den getrennten Freigabeweg; für Reads verwendest du die vorhandene Leseberechtigung.
-Beginne gegebenenfalls mit der [ersten Erweiterung](./first-extension).
+Beginne gegebenenfalls mit der [ersten Erweiterung](/de/development/first-extension).
 
 ## Durchgearbeitetes Beispiel
 
@@ -81,7 +81,8 @@ diesen konkreten Vorschlag ausdrücklich. Lies danach Reservations und Commitmen
 Menge und eventuelle Fehlmenge müssen zum Service-Ergebnis passen. Dieselbe Anfrage in einer anderen
 Firma darf den Datensatz nicht offenlegen.
 
-[Web Actions ergänzen](./web-actions) zeigt den Zugang für Menschen zu derselben Operation.
+[Web Actions ergänzen](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/web-actions.md)
+zeigt den Zugang für Menschen zu derselben Operation.
 
 ## Selbst ausprobieren
 
@@ -96,5 +97,5 @@ automatisch setzen oder fremde IDs ungeprüft weiterreichen. Kopiere keine Mutat
 
 ## Weiterlesen
 
-[Web Actions](./web-actions) zeigt den menschlichen Zugang; [API und CLI](./api-cli) die weiteren
-Adapter.
+[Web Actions](https://github.com/Xentral-Labs/reality/blob/main/docs/maintainer-guides/de/development/web-actions.md)
+zeigt den menschlichen Zugang; [API und CLI](/de/development/api-cli) die weiteren Adapter.
