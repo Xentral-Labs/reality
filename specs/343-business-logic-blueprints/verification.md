@@ -298,3 +298,10 @@ Parallel, disjoint source owners prepared the current catalog and approved direc
 - Local preview received only comment/docstring transfers where executable functions matched, with backups and unchanged local executable AST. Divergent/unavailable local functions were preserved; the isolated PR is the complete audited catalog snapshot.
 - PR #319 was already merged before this expansion. Remaining inspector/source-description follow-ups are rebased onto current Main for a separate PR. Main's new View/Projection navigation and integration handbook remain intact.
 - T047 human ERP semantic acceptance remains open. Actual data-flow/branch evidence and test execution remain independent of reviewed commentary. Generated dataclass methods, unprepared helpers and source-boundary limitations are disclosed; this does not claim every repository helper or test has a narrative.
+
+## Runtime source-span indexing (FR-051)
+
+- Indexed function spans once per content-keyed parsed module with a bounded 32-entry cache. Every read still reads current source bytes and retains compiled-code, global/default binding and final freshness checks; no narrative is cached or generated ahead of source. Decorator starts and breadth-first first-match behavior remain identical.
+- Three red-first regressions cover decorator/nested/collision parity, repeated capture and revalidation reuse, and changed source invalidation with stale callable rejection. The final focused backend run passed **96 tests** in 48.74 seconds, including release, annotation, service/adapter parity and credit journey checks. The earlier 247 business regression checks remain applicable because no business implementation changed. Ruff, whitespace and spec policy passed.
+- Fresh actual-router browser reads measured commitments **2,468 ms**, fulfillment queue **1,321 ms**, supplier-invoice posting **792 ms** and credit exposure **863 ms**. Rule counts remain 19/156/27/62, all 28 discovered credit scenarios retain descriptions, and the inference model remains null. These are local measurements, not a universal latency guarantee.
+- T047 human semantic acceptance remains open.

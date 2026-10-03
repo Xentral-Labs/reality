@@ -252,3 +252,5 @@ UX correction analysis: FR-026 maps T060/T062; FR-027 maps T061/T062. Scope appr
 - [x] T087 [FR-047–049] Integrate parallel edits, validate references and unchanged executable ASTs, run required suites/builds/browser reads and update PR with exact coverage evidence.
 
 - [x] T088 [FR-050] Prepare actual captured commitment-list and fulfillment-queue helpers; validate rule bindings, unchanged executable AST and representative source/steps/browser reads.
+
+- [x] T089 [FR-051] Test and implement bounded runtime AST span indexing with unchanged source/default/signature checks, validate freshness and measure representative read latency.
